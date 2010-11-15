@@ -20,6 +20,8 @@
 
 package org.dataone.integration;
 
+import java.io.InputStream;
+import java.security.MessageDigest;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -355,4 +357,43 @@ public class ExampleUtilities {
         return sysmeta;
     }
  
+    /**
+     * produce a checksum for item using the given algorithm
+     */
+    protected static String checksum(InputStream is, String algorithm)
+      throws Exception
+    {        
+        byte[] buffer = new byte[1024];
+        MessageDigest complete = MessageDigest.getInstance(algorithm);
+        int numRead;
+        
+        do 
+        {
+          numRead = is.read(buffer);
+          if (numRead > 0) 
+          {
+            complete.update(buffer, 0, numRead);
+          }
+        } while (numRead != -1);
+        
+        
+        return getHex(complete.digest());
+    }
+    
+    /**
+     * convert a byte array to a hex string
+     */
+    private static String getHex( byte [] raw ) 
+    {
+        final String HEXES = "0123456789ABCDEF";
+        if ( raw == null ) {
+          return null;
+        }
+        final StringBuilder hex = new StringBuilder( 2 * raw.length );
+        for ( final byte b : raw ) {
+          hex.append(HEXES.charAt((b & 0xF0) >> 4))
+             .append(HEXES.charAt((b & 0x0F)));
+        }
+        return hex.toString();
+    }
 }
