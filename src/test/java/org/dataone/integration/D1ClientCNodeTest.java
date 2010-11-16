@@ -105,14 +105,14 @@ public class D1ClientCNodeTest  {
 
 	@Test
 	public void testResolve_idEncoding_unicode_pct_escaped_bmp_lt255() {
-		String idString = "test-" + "£-" + ExampleUtilities.generateIdentifier();
+		String idString = "test-" + "\u00AC-" + ExampleUtilities.generateIdentifier();
 		resolveRunner(idString);
 	}
 	
 	
 	@Test
 	public void testResolve_idEncoding_unicode_pct_escaped_bmp_other_2byte() {
-		String idString = "test-" + "Ÿ-" + ExampleUtilities.generateIdentifier();
+		String idString = "test-" + "\u00FC-" + ExampleUtilities.generateIdentifier();
 		resolveRunner(idString);
 	}
 
