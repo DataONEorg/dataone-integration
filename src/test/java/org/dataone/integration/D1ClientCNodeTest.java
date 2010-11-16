@@ -81,6 +81,12 @@ public class D1ClientCNodeTest  {
 		String idString = "test:" + ExampleUtilities.generateIdentifier() + "/";
 		resolveRunner(idString);
 	}
+    
+    @Test
+	public void testResolve_IdEncoding_xml_reserved() {
+		String idString = "test:" + "<_\"'_&__>" + ExampleUtilities.generateIdentifier();
+		resolveRunner(idString);
+	}
 
 	@Test
 	public void testResolve_idEncoding_rfc3986_pchar_unescaped_ascii() {
