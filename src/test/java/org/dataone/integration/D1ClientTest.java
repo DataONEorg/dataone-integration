@@ -837,7 +837,7 @@ public class D1ClientTest  {
                 Identifier guid = new Identifier();
                 guid.setValue(idString);
                 InputStream objectStream = this.getClass().getResourceAsStream("/org/dataone/client/tests/knb-lter-luq.76.2.xml");
-                String checksum1str = checksum(objectStream, "MD5");
+                String checksum1str = ExampleUtilities.checksum(objectStream, "MD5");
                 objectStream = this.getClass().getResourceAsStream("/org/dataone/client/tests/knb-lter-luq.76.2.xml");
                 SystemMetadata sysmeta = ExampleUtilities.generateSystemMetadata(guid, ObjectFormat.EML_2_1_0);
                 Checksum checksum1 = new Checksum();
