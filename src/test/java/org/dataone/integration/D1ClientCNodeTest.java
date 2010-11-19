@@ -58,6 +58,11 @@ public class D1ClientCNodeTest  {
 	//    @Before
 	public void setUp() throws Exception 
 	{
+		// TODO: create condition that evaluates whether we can run against cn-dev or not...
+		// a diff between package update and deploy times??
+		// if false -->  tests will be skipped
+
+		// org.junit.Assume.assumTrue(someCondition());
 
 	}
 
@@ -182,11 +187,11 @@ public class D1ClientCNodeTest  {
 			AuthToken token = mn.login(principal, "kepler");
 
 			//insert a data file
-			InputStream objectStream = this.getClass().getResourceAsStream("/org/dataone/client/tests/knb-lter-cdr.329066.1.data");
+			InputStream objectStream = this.getClass().getResourceAsStream("/d1_testdocs/knb-lter-cdr.329066.1.data");
 			SystemMetadata sysmeta = ExampleUtilities.generateSystemMetadata(guid, ObjectFormat.TEXT_CSV);
 
 			//insert EML file
-			//InputStream objectStream = this.getClass().getResourceAsStream("/org/dataone/client/tests/knb-lter-luq.76.2.xml");
+			//InputStream objectStream = this.getClass().getResourceAsStream("/d1_testdocs/knb-lter-luq.76.2.xml");
 			//SystemMetadata sysmeta = ExampleUtilities.generateSystemMetadata(guid, ObjectFormat.EML_2_1_0));
 
 			Identifier rGuid = null;

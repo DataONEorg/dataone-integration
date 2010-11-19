@@ -105,7 +105,7 @@ public class D1ClientTest  {
     @Before
     public void setUp() throws Exception 
     {
-        InputStream nodeRegStream = this.getClass().getResourceAsStream("/org/dataone/client/nodeRegistry.xml");
+        InputStream nodeRegStream = this.getClass().getResourceAsStream("/d1_testdocs/nodelist/nodeRegistry.xml");
         NodeList nr = null;
         
         
@@ -178,7 +178,7 @@ public class D1ClientTest  {
                 Identifier guid = new Identifier();
                 guid.setValue(idString);
                 InputStream objectStream = this.getClass().getResourceAsStream(
-                        "/org/dataone/client/tests/knb-lter-luq.76.2-broken.xml");
+                        "/d1_testdocs/knb-lter-luq.76.2-broken.xml");
                 SystemMetadata sysmeta = ExampleUtilities.generateSystemMetadata(guid, ObjectFormat.EML_2_1_0);
                 Identifier rGuid = null;
 
@@ -221,7 +221,7 @@ public class D1ClientTest  {
                Identifier guid = new Identifier();
                guid.setValue(idString);
                InputStream objectStream = this.getClass().getResourceAsStream(
-                       "/org/dataone/client/tests/knb-lter-cdr.329066.1.data");
+                       "/d1_testdocs/knb-lter-cdr.329066.1.data");
                SystemMetadata sysmeta = ExampleUtilities.generateSystemMetadata(
                        guid, ObjectFormat.TEXT_CSV);
 
@@ -289,7 +289,7 @@ public class D1ClientTest  {
                 guid.setValue(idString);
                 
                 InputStream objectStream = this.getClass().getResourceAsStream(
-                        "/org/dataone/client/tests/knb-lter-cdr.329066.1.data");
+                        "/d1_testdocs/knb-lter-cdr.329066.1.data");
                 SystemMetadata sysmeta = ExampleUtilities.generateSystemMetadata(guid, ObjectFormat.TEXT_CSV);
 
                 Identifier rGuid = mn.create(token, guid, objectStream, sysmeta);
@@ -326,7 +326,7 @@ public class D1ClientTest  {
                 guid = new Identifier();
                 guid.setValue(idString);
                 objectStream = this.getClass().getResourceAsStream(
-                        "/org/dataone/client/tests/knb-lter-cdr.329066.1.data");
+                        "/d1_testdocs/knb-lter-cdr.329066.1.data");
                 sysmeta = ExampleUtilities.generateSystemMetadata(guid, ObjectFormat.TEXT_CSV);
 
                 rGuid = mn.create(token, guid, objectStream, sysmeta);
@@ -400,7 +400,7 @@ public class D1ClientTest  {
                 Identifier guid = new Identifier();
                 guid.setValue(idString);
                 InputStream objectStream = this.getClass().getResourceAsStream(
-                        "/org/dataone/client/tests/knb-lter-cdr.329066.1.data");
+                        "/d1_testdocs/knb-lter-cdr.329066.1.data");
                 SystemMetadata sysmeta = ExampleUtilities.generateSystemMetadata(guid, ObjectFormat.TEXT_CSV);
                 Identifier rGuid = mn.create(token, guid, objectStream, sysmeta);
                 checkEquals(guid.getValue(), rGuid.getValue());
@@ -441,7 +441,7 @@ public class D1ClientTest  {
                 Identifier guid = new Identifier();
                 guid.setValue(idString);
                 InputStream objectStream = this.getClass().getResourceAsStream(
-                        "/org/dataone/client/tests/knb-lter-cdr.329066.1.data");
+                        "/d1_testdocs/knb-lter-cdr.329066.1.data");
                 SystemMetadata sysmeta = ExampleUtilities.generateSystemMetadata(guid, ObjectFormat.TEXT_CSV);
                 System.out.println("d1 create");
                 Identifier rGuid = mn.create(token, guid, objectStream, sysmeta);
@@ -506,9 +506,9 @@ public class D1ClientTest  {
             AuthToken token = d1.login(principal, "kepler");
 
             InputStream objectStream = this.getClass().getResourceAsStream(
-                "/org/dataone/client/tests/BAYXXX_015ADCP015R00_20051215.50.9.xml");
+                "/d1_testdocs/BAYXXX_015ADCP015R00_20051215.50.9.xml");
             SystemMetadata sysmeta = getSystemMetadata(
-                "/org/dataone/client/tests/BAYXXX_015ADCP015R00_20051215.50.9_SYSMETA.xml");
+                "/d1_testdocs/BAYXXX_015ADCP015R00_20051215.50.9_SYSMETA.xml");
             Identifier guid = sysmeta.getIdentifier();
             System.out.println("inserting with guid " + guid.getValue());
             Identifier rGuid = new Identifier();
@@ -541,7 +541,7 @@ public class D1ClientTest  {
                 System.out.println("guid is " + guid.getValue());
                 //InputStream objectStream = IOUtils.toInputStream("x,y,z\n1,2,3\n");
                 InputStream objectStream = this.getClass().getResourceAsStream(
-                        "/org/dataone/client/tests/BAYXXX_015ADCP015R00_20051215.50.9.xml");
+                        "/d1_testdocs/BAYXXX_015ADCP015R00_20051215.50.9.xml");
                 SystemMetadata sysmeta = ExampleUtilities.generateSystemMetadata(guid, ObjectFormat.TEXT_CSV);
                 Identifier rGuid = null;
 
@@ -586,7 +586,7 @@ public class D1ClientTest  {
                 Identifier guid = new Identifier();
                 guid.setValue(idString);
                 InputStream objectStream = this.getClass().getResourceAsStream(
-                        "/org/dataone/client/tests/knb-lter-luq.76.2.xml");
+                        "/d1_testdocs/knb-lter-luq.76.2.xml");
                 //InputStream objectStream = IOUtils.toInputStream("<?xml version=\"1.0\"?><test></test>");
                 SystemMetadata sysmeta = ExampleUtilities.generateSystemMetadata(guid, ObjectFormat.EML_2_1_0);
                 Identifier rGuid = null;
@@ -642,7 +642,7 @@ public class D1ClientTest  {
                 //parse that document for distribution info
                 //Test EML 2.0.0
                 InputStream is = this.getClass().getResourceAsStream(
-                        "/org/dataone/client/tests/eml200/dpennington.195.2");
+                        "/d1_testdocs/eml200/dpennington.195.2");
                 DataoneEMLParser parser = DataoneEMLParser.getInstance();
                 EMLDocument emld = parser.parseDocument(is);
                 checkEquals(ObjectFormat.EML_2_0_0.toString(), emld.format.toString());
@@ -652,7 +652,7 @@ public class D1ClientTest  {
                 insertEMLDocsWithEMLParserOutput(mn, emld, "dpennington.195.2", token);
                 
                 //Test EML 2.0.1
-                is = this.getClass().getResourceAsStream("/org/dataone/client/tests/eml201/msucci.23.3");
+                is = this.getClass().getResourceAsStream("/d1_testdocs/eml201/msucci.23.3");
                 parser = DataoneEMLParser.getInstance();
                 emld = parser.parseDocument(is);
                 checkEquals(ObjectFormat.EML_2_0_1.toString(), emld.format.toString());
@@ -662,7 +662,7 @@ public class D1ClientTest  {
                 insertEMLDocsWithEMLParserOutput(mn, emld, "msucci.23.3", token);
                 
                 //Test EML 2.1.0
-                is = this.getClass().getResourceAsStream("/org/dataone/client/tests/eml210/peggym.130.4");
+                is = this.getClass().getResourceAsStream("/d1_testdocs/eml210/peggym.130.4");
                 parser = DataoneEMLParser.getInstance();
                 emld = parser.parseDocument(is);
                 checkEquals(ObjectFormat.EML_2_1_0.toString(), emld.format.toString());
@@ -709,7 +709,7 @@ public class D1ClientTest  {
                 Identifier guid = new Identifier();
                 guid.setValue(idString);
                 InputStream objectStream = this.getClass().getResourceAsStream(
-                        "/org/dataone/client/tests/knb-lter-cdr.329066.1.data");
+                        "/d1_testdocs/knb-lter-cdr.329066.1.data");
                 SystemMetadata sysmeta = ExampleUtilities.generateSystemMetadata(guid, ObjectFormat.TEXT_CSV);
                 Identifier rGuid = null;
 
@@ -763,7 +763,7 @@ public class D1ClientTest  {
                 Identifier guid = new Identifier();
                 guid.setValue(idString);
                 InputStream objectStream = this.getClass().getResourceAsStream(
-                        "/org/dataone/client/tests/knb-lter-luq.76.2.xml");
+                        "/d1_testdocs/knb-lter-luq.76.2.xml");
                 SystemMetadata sysmeta = ExampleUtilities.generateSystemMetadata(guid, ObjectFormat.EML_2_1_0);
                 Identifier rGuid = null;
 
@@ -858,7 +858,7 @@ public class D1ClientTest  {
                 Identifier guid = new Identifier();
                 guid.setValue(idString);
                 InputStream objectStream = this.getClass().getResourceAsStream(
-                        "/org/dataone/client/tests/knb-lter-luq.76.2.xml");
+                        "/d1_testdocs/knb-lter-luq.76.2.xml");
                 SystemMetadata sysmeta = ExampleUtilities.generateSystemMetadata(guid, ObjectFormat.EML_2_1_0);
                 Identifier rGuid = null;
 
@@ -940,10 +940,10 @@ public class D1ClientTest  {
                 Identifier guid = new Identifier();
                 guid.setValue(idString);
                 InputStream objectStream = this.getClass().getResourceAsStream(
-                        "/org/dataone/client/tests/knb-lter-luq.76.2.xml");
+                        "/d1_testdocs/knb-lter-luq.76.2.xml");
                 String checksum1str = ExampleUtilities.checksum(objectStream, "MD5");
                 objectStream = this.getClass().getResourceAsStream(
-                        "/org/dataone/client/tests/knb-lter-luq.76.2.xml");
+                        "/d1_testdocs/knb-lter-luq.76.2.xml");
                 SystemMetadata sysmeta = ExampleUtilities.generateSystemMetadata(guid, ObjectFormat.EML_2_1_0);
                 Checksum checksum1 = new Checksum();
                 checksum1.setValue(checksum1str);
@@ -1051,7 +1051,7 @@ public class D1ClientTest  {
             mdSm.addDescribe(id);
             //TODO: replace this with a call to the server eventually
             
-            InputStream instream = this.getClass().getResourceAsStream("/org/dataone/client/tests/" + dirname + "/" + url);
+            InputStream instream = this.getClass().getResourceAsStream("/d1_testdocs/" + dirname + "/" + url);
 
             Identifier createdDataId = mn.create(token, id, instream, sm);
             mn.setAccess(token, createdDataId, "public", "read", "allow", "allowFirst");
@@ -1060,7 +1060,7 @@ public class D1ClientTest  {
         }
         
         //send the EML doc to create
-        InputStream is = this.getClass().getResourceAsStream("/org/dataone/client/tests/" + dirname + "/" + file);
+        InputStream is = this.getClass().getResourceAsStream("/d1_testdocs/" + dirname + "/" + file);
         Identifier createdMdId = mn.create(token, mdId, is, mdSm);
         mn.setAccess(token, createdMdId, "public", "read", "allow", "allowFirst");
         checkEquals(createdMdId.getValue(), mdId.getValue());
