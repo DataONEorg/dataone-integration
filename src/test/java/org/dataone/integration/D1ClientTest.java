@@ -23,8 +23,14 @@ package org.dataone.integration;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.ProtocolException;
+import java.net.URL;
 import java.util.Date;
 import java.util.List;
 import java.util.Vector;
@@ -33,9 +39,11 @@ import java.util.concurrent.Callable;
 import org.apache.commons.io.IOUtils;
 import org.dataone.client.D1Client;
 import org.dataone.client.MNode;
+import org.dataone.client.D1Node.ResponseData;
 import org.dataone.eml.DataoneEMLParser;
 import org.dataone.eml.EMLDocument;
 import org.dataone.eml.EMLDocument.DistributionMetadata;
+import org.dataone.service.Constants;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.IdentifierNotUnique;
 import org.dataone.service.exceptions.InsufficientResources;
@@ -78,8 +86,8 @@ import org.junit.rules.ErrorCollector;
  */
 public class D1ClientTest  {
 
-    //String contextUrl = "http://localhost:8080/knb/";
-    String contextUrl = "http://cn-dev.dataone.org/knb/";
+    String contextUrl = "http://localhost:8080/knb/";
+    //String contextUrl = "http://cn-dev.dataone.org/knb/";
     
     private static final String prefix = "knb:testid:";
     private static final String bogusId = "foobarbaz214";
@@ -151,7 +159,7 @@ public class D1ClientTest  {
     /**
      * test the failed creation of a doc
      */
-    @Test
+    //@Test
     public void testFailedCreate()
     {
         for(int i=0; i<nodeList.size(); i++)
@@ -192,7 +200,7 @@ public class D1ClientTest  {
     /**
      * test the getLogRecords call
      */
-    @Test
+    //@Test
     public void testGetLogRecords()
     {
        for(int j=0; j<nodeList.size(); j++)
@@ -258,7 +266,7 @@ public class D1ClientTest  {
     /**
      * list objects with specified params
      */
-    @Test
+    //@Test
     public void testListObjects()
     {
         for(int j=0; j<nodeList.size(); j++)
@@ -373,7 +381,7 @@ public class D1ClientTest  {
     /**
      * get a systemMetadata resource
      */
-    @Test
+    //@Test
     public void testGetSystemMetadata()
     {
         for(int i=0; i<nodeList.size(); i++)
@@ -414,7 +422,7 @@ public class D1ClientTest  {
     /**
      * test the update of a resource
      */
-    @Test
+    //@Test
     public void testUpdate()
     {
         for(int i=0; i<nodeList.size(); i++)
@@ -480,7 +488,7 @@ public class D1ClientTest  {
      * test the error state where metacat fails if the id includes a .\d on
      * the end.
      */
-    @Test
+    //@Test
     public void testFailedCreateData() {
         for(int i=0; i<nodeList.size(); i++)
         {
@@ -559,7 +567,7 @@ public class D1ClientTest  {
     /**
      * test various create and get scenarios with different access rules
      */
-//    @Test
+//    //@Test
     public void testGet() 
     {
         for(int i=0; i<nodeList.size(); i++)
@@ -616,7 +624,7 @@ public class D1ClientTest  {
     /**
      * test the creation of the desribes and describedBy sysmeta elements
      */
-//    @Test
+//    //@Test
     public void testCreateDescribedDataAndMetadata()
     {
         try
@@ -682,7 +690,7 @@ public class D1ClientTest  {
      * test creation of data.  this also tests get() since it
      * is used to verify the inserted metadata
      */
-    @Test
+    //@Test
     public void testCreateData() 
     {
         for(int i=0; i<nodeList.size(); i++)
@@ -736,7 +744,7 @@ public class D1ClientTest  {
      * test creation of science metadata.  this also tests get() since it
      * is used to verify the inserted metadata
      */
-    @Test
+    //@Test
     public void testCreateScienceMetadata() 
     {
         for(int i=0; i<nodeList.size(); i++)
@@ -794,13 +802,44 @@ public class D1ClientTest  {
         {
             currentUrl = nodeList.get(i).getBaseURL();
             d1 = new D1Client(currentUrl);
-            
+            MNode mn = d1.getMN(currentUrl);
             printHeader("testDelete - node " + nodeList.get(i).getBaseURL());
-            checkTrue(true);
+            
+            try
+            {
+                checkTrue(true);
+                String principal = "uid%3Dkepler,o%3Dunaffiliated,dc%3Decoinformatics,dc%3Dorg";
+                AuthToken token = mn.login(principal, "kepler");
+                String idString = prefix + ExampleUtilities.generateIdentifier();
+                Identifier guid = new Identifier();
+                guid.setValue(idString);
+                InputStream objectStream = this.getClass().getResourceAsStream(
+                        "/org/dataone/client/tests/knb-lter-luq.76.2.xml");
+                SystemMetadata sysmeta = ExampleUtilities.generateSystemMetadata(guid, ObjectFormat.EML_2_1_0);
+                Identifier rGuid = null;
+
+                try 
+                {
+                    rGuid = mn.create(token, guid, objectStream, sysmeta);
+                    checkEquals(guid.getValue(), rGuid.getValue());
+                    Identifier delId = mn.delete(token, rGuid);
+                    checkTrue(delId.getValue().equals(rGuid.getValue()));
+                } 
+                catch (Exception e) 
+                {
+                    errorCollector.addError(new Throwable(createAssertMessage() + 
+                            " error in testDelete: " + e.getMessage()));
+                }
+            }
+            catch(Exception e)
+            {
+                errorCollector.addError(new Throwable(createAssertMessage() + 
+                        " unexpected error in testDelete: " + e.getMessage()));
+            }
         }
     }
     
-    @Test
+    //@Test
     public void testDescribe() 
     {
         for(int i=0; i<nodeList.size(); i++)
@@ -838,8 +877,6 @@ public class D1ClientTest  {
                     errorCollector.addError(new Throwable(createAssertMessage() + 
                             " error in testGetChecksumAuthTokenIdentifierTypeString: " + e.getMessage()));
                 }
-                
-                
             }
             catch(Exception e)
             {
@@ -849,7 +886,7 @@ public class D1ClientTest  {
         }
     }
 
-    @Test
+    //@Test
     public void testGetNotFound() 
     {
         for(int i=0; i<nodeList.size(); i++)
@@ -879,7 +916,7 @@ public class D1ClientTest  {
         }
     }
     
-    @Test
+    //@Test
     public void testGetChecksumAuthTokenIdentifierTypeString() 
     {
         //create a doc
