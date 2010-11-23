@@ -33,7 +33,7 @@ public class D1ClientTestProtected {
     @Test
     public void testTrailingSlashes()
     {
-    	String baseURL = "http://localhost:8080/knb";
+    	String baseURL = "http://cn-dev.dataone.org/knb";
     	MNode node = new MNode(baseURL);
 
     	String localhostName = "";
