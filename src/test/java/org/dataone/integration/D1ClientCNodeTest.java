@@ -49,7 +49,6 @@ import org.dataone.service.types.ObjectFormat;
 import org.dataone.service.types.ObjectLocation;
 import org.dataone.service.types.ObjectLocationList;
 import org.dataone.service.types.SystemMetadata;
-import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -61,7 +60,6 @@ import org.junit.rules.ErrorCollector;
  */
 public class D1ClientCNodeTest  {
 
-	private static final boolean skipHudson = true;
 	private static final String baseURL = "http://cn-dev.dataone.org";
 	private static final String cnUrl = "http://cn-dev.dataone.org/cn/";
 	private static final String mnUrl = "http://cn-dev.dataone.org/knb/";
@@ -73,19 +71,6 @@ public class D1ClientCNodeTest  {
 	@Rule 
 	public ErrorCollector errorCollector = new ErrorCollector();
 
-    @Before
-	public void setUp() throws Exception 
-	{
-    	System.out.println("========================================================================================");
-    	System.out.println("These integration tests require deployment of main classes to cn-dev in order to pass.");
-    	System.out.println("Set variable \"skipHudson\" to TRUE if you need need them to pass to deploy to cn-dev.");
-    	System.out.println("Set the variable to FALSE when you are ready to run the tests.");
-    	System.out.println("  (admittedly this is not the best system, but will do for now.)");
-    	System.out.println();
-    	System.out.println("Current status of \"skipHudson\" = " + skipHudson);
-    	
-    	Assume.assumeTrue(!skipHudson);
-	}
     
 	@Before
 	public void generateStandardTests() {
