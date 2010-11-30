@@ -86,9 +86,9 @@ import org.junit.rules.ErrorCollector;
  */
 public class D1ClientTest  {
 
-
-    //String contextUrl = "http://localhost:8080/knb/";
-    String contextUrl = "http://cn-dev.dataone.org/knb/";
+    String contextUrl = "http://localhost:8080/knb/";
+    
+    //String contextUrl = "http://cn-dev.dataone.org/knb/";
     
     private static final String prefix = "knb:testid:";
     private static final String bogusId = "foobarbaz214";
@@ -101,9 +101,8 @@ public class D1ClientTest  {
     private static boolean useNodeList = false;
         
     @Rule 
-    public ErrorCollector errorCollector = new ErrorCollector();  
-    
-    
+    public ErrorCollector errorCollector = new ErrorCollector();
+
     @Before
     public void setUp() throws Exception 
     {
@@ -569,7 +568,7 @@ public class D1ClientTest  {
     /**
      * test various create and get scenarios with different access rules
      */
-//    @Test
+    @Test
     public void testGet() 
     {
         for(int i=0; i<nodeList.size(); i++)
@@ -626,7 +625,7 @@ public class D1ClientTest  {
     /**
      * test the creation of the desribes and describedBy sysmeta elements
      */
-//    @Test
+    @Test
     public void testCreateDescribedDataAndMetadata()
     {
         try
@@ -738,6 +737,73 @@ public class D1ClientTest  {
             {
                 errorCollector.addError(new Throwable(createAssertMessage() + 
                         " unexpected error in testCreateData: " + e.getMessage()));
+            }
+        }
+    }
+    
+    @Test
+    public void testGetChecksumAuthTokenIdentifierTypeString() 
+    {
+        //create a doc
+        //calculate checksum
+        //create
+        //getChecksum
+        //check the two checksums
+        for(int i=0; i<nodeList.size(); i++)
+        {
+            currentUrl = nodeList.get(i).getBaseURL();
+            d1 = new D1Client(currentUrl);
+            MNode mn = d1.getMN(currentUrl);
+
+            try
+            {
+                printHeader("testGetChecksumAuthTokenIdentifierTypeString - node " + nodeList.get(i).getBaseURL());
+                checkTrue(true);
+                
+                InputStream objectStream = this.getClass().getResourceAsStream(
+                "/d1_testdocs/knb-lter-luq.76.2.xml");
+                String doc = IOUtils.toString(objectStream);
+                Checksum checksum1 = new Checksum();
+                String checksum1str = ExampleUtilities.checksum(IOUtils.toInputStream(doc), "MD5");
+                checksum1.setValue(checksum1str);
+                checksum1.setAlgorithm(ChecksumAlgorithm.M_D5);
+                System.out.println("Checksum1: " + checksum1.getValue());
+                objectStream.close();
+                
+                String principal = "uid%3Dkepler,o%3Dunaffiliated,dc%3Decoinformatics,dc%3Dorg";
+                AuthToken token = mn.login(principal, "kepler");
+                String idString = prefix + ExampleUtilities.generateIdentifier();
+                Identifier guid = new Identifier();
+                guid.setValue(idString);
+                objectStream = IOUtils.toInputStream(doc);
+                SystemMetadata sysmeta = ExampleUtilities.generateSystemMetadata(guid, ObjectFormat.EML_2_1_0);
+                sysmeta.setChecksum(checksum1);
+                Identifier rGuid = null;
+
+                try {
+                    rGuid = mn.create(token, guid, objectStream, sysmeta);
+                    checkEquals(guid.getValue(), rGuid.getValue());
+                } catch (Exception e) {
+                    errorCollector.addError(new Throwable(createAssertMessage() + 
+                            " error in testCreateScienceMetadata: " + e.getMessage()));
+                }
+                
+                try 
+                {
+                    Checksum checksum2 = mn.getChecksum(token, rGuid, "MD5");
+                    System.out.println("Checksum2: " + checksum2.getValue());
+                    checkEquals(checksum1.getValue(), checksum2.getValue());
+                } 
+                catch (Exception e) 
+                {
+                    errorCollector.addError(new Throwable(createAssertMessage() + 
+                            " error in testGetChecksumAuthTokenIdentifierTypeString: " + e.getMessage()));
+                }
+            }
+            catch(Exception e)
+            {
+                errorCollector.addError(new Throwable(createAssertMessage() + 
+                        " unexpected error in testGetChecksumAuthTokenIdentifierTypeString: " + e.getMessage()));
             }
         }
     }
@@ -914,73 +980,6 @@ public class D1ClientTest  {
                 errorCollector.addError(new Throwable(createAssertMessage() + 
                         " unexpected exception in testGetNotFound: " + 
                         e.getMessage()));
-            }
-        }
-    }
-    
-    @Test
-    public void testGetChecksumAuthTokenIdentifierTypeString() 
-    {
-        //create a doc
-        //calculate checksum
-        //create
-        //getChecksum
-        //check the two checksums
-        for(int i=0; i<nodeList.size(); i++)
-        {
-            currentUrl = nodeList.get(i).getBaseURL();
-            d1 = new D1Client(currentUrl);
-            MNode mn = d1.getMN(currentUrl);
-
-            try
-            {
-                printHeader("testGetChecksumAuthTokenIdentifierTypeString - node " + nodeList.get(i).getBaseURL());
-                checkTrue(true);
-                String principal = "uid%3Dkepler,o%3Dunaffiliated,dc%3Decoinformatics,dc%3Dorg";
-                AuthToken token = mn.login(principal, "kepler");
-                String idString = prefix + ExampleUtilities.generateIdentifier();
-                Identifier guid = new Identifier();
-                guid.setValue(idString);
-                InputStream objectStream = this.getClass().getResourceAsStream(
-                        "/d1_testdocs/knb-lter-luq.76.2.xml");
-                String checksum1str = ExampleUtilities.checksum(objectStream, "MD5");
-                objectStream = this.getClass().getResourceAsStream(
-                        "/d1_testdocs/knb-lter-luq.76.2.xml");
-                SystemMetadata sysmeta = ExampleUtilities.generateSystemMetadata(guid, ObjectFormat.EML_2_1_0);
-                Checksum checksum1 = new Checksum();
-                checksum1.setValue(checksum1str);
-                checksum1.setAlgorithm(ChecksumAlgorithm.M_D5);
-                System.out.println("Checksum1: " + checksum1.getValue());
-                sysmeta.setChecksum(checksum1);
-                Identifier rGuid = null;
-
-                try 
-                {
-                    rGuid = mn.create(token, guid, objectStream, sysmeta);
-                    checkEquals(guid.getValue(), rGuid.getValue());
-                } 
-                catch (Exception e) 
-                {
-                    errorCollector.addError(new Throwable(createAssertMessage() + 
-                            " error in testGetChecksumAuthTokenIdentifierTypeString: " + e.getMessage()));
-                }
-
-                try 
-                {
-                    Checksum checksum2 = mn.getChecksum(token, rGuid, "MD5");
-                    System.out.println("Checksum2: " + checksum2.getValue());
-                    checkEquals(checksum1.getValue(), checksum2.getValue());
-                } 
-                catch (Exception e) 
-                {
-                    errorCollector.addError(new Throwable(createAssertMessage() + 
-                            " error in testGetChecksumAuthTokenIdentifierTypeString: " + e.getMessage()));
-                } 
-            }
-            catch(Exception e)
-            {
-                errorCollector.addError(new Throwable(createAssertMessage() + 
-                        " unexpected error in testGetChecksumAuthTokenIdentifierTypeString: " + e.getMessage()));
             }
         }
     }
