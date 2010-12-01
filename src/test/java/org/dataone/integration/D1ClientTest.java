@@ -32,10 +32,13 @@ import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.URL;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Scanner;
 import java.util.Vector;
 import java.util.concurrent.Callable;
 
+import org.apache.commons.collections.KeyValue;
 import org.apache.commons.io.IOUtils;
 import org.dataone.client.D1Client;
 import org.dataone.client.MNode;
@@ -740,6 +743,95 @@ public class D1ClientTest  {
             }
         }
     }
+ 
+    
+    /**
+     * test creation of data with challenging unicode identifier.
+     * this also tests get() since it
+     * is used to verify the inserted metadata
+     */
+    @Test
+    public void testCreateData_UnicodeIdentifier() 
+    {
+
+    	String unicodeString = null;
+    	String unicodeStringEscaped = null;
+    	
+    	InputStream is = this.getClass().getResourceAsStream("/d1_testdocs/encodingTestSet/testUnicodeStrings.utf8.txt");
+    	Scanner s = new Scanner(is,"UTF-8");
+    	String[] temp;
+    	try
+    	{
+    		while (s.hasNextLine()) 
+    		{
+    			String line = s.nextLine();
+				System.out.println(line);
+    			if (line.startsWith("common-unicode-supplementary-escaped"))
+    			{
+    				System.out.println(line);
+    				temp = line.split("\t");
+    				if (temp.length > 1)
+    				{
+    					unicodeString = temp[0];
+    					unicodeStringEscaped = temp[1];
+    				}
+    			}
+    		}
+    	} finally {
+    		s.close();
+    	}
+        String idString = prefix + "_" + unicodeString + "_" + ExampleUtilities.generateIdentifier();
+        String idStringEscaped = prefix + "_" + unicodeStringEscaped + "_" + ExampleUtilities.generateIdentifier();
+    	        
+    	
+    	for(int i=0; i<nodeList.size(); i++)
+        {
+            currentUrl = nodeList.get(i).getBaseURL();
+            d1 = new D1Client(currentUrl);
+            MNode mn = d1.getMN(currentUrl);
+
+            printHeader("testCreateData - node " + nodeList.get(i).getBaseURL());
+            try
+            {
+                checkTrue(true);
+                String principal = "uid%3Dkepler,o%3Dunaffiliated,dc%3Decoinformatics,dc%3Dorg";
+                AuthToken token = mn.login(principal, "kepler");
+                Identifier guid = new Identifier();
+                guid.setValue(idString);
+                InputStream objectStream = this.getClass().getResourceAsStream(
+                        "/d1_testdocs/knb-lter-cdr.329066.1.data");
+                SystemMetadata sysmeta = ExampleUtilities.generateSystemMetadata(guid, ObjectFormat.TEXT_CSV);
+                Identifier rGuid = null;
+
+                // rGuid is either going to be the escaped ID or the non-escaped ID
+                try {
+                    rGuid = mn.create(token, guid, objectStream, sysmeta);
+                    System.out.println("== rGuid: " + rGuid);
+                    checkEquals(guid.getValue(), rGuid.getValue());
+                } catch (Exception e) {
+                    errorCollector.addError(new Throwable(createAssertMessage() + 
+                            " error in testCreateData: " + e.getMessage()));
+                }
+
+                try {
+                    InputStream data = mn.get(token, rGuid);
+                    checkTrue(null != data);
+                    String str = IOUtils.toString(data);
+                    checkTrue(str.indexOf("61 66 104 2 103 900817 \"Planted\" 15.0  3.3") != -1);
+                    data.close();
+                } catch (Exception e) {
+                    errorCollector.addError(new Throwable(createAssertMessage() + 
+                            " error in testCreateData: " + e.getMessage()));
+                } 
+            }
+            catch(Exception e)
+            {
+                errorCollector.addError(new Throwable(createAssertMessage() + 
+                        " unexpected error in testCreateData: " + e.getMessage()));
+            }
+        }
+    }
+    
     
     @Test
     public void testGetChecksumAuthTokenIdentifierTypeString() 
