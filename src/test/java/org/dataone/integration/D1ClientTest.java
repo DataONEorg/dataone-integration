@@ -863,7 +863,7 @@ public class D1ClientTest  {
         }
     }
     
-    //@Test
+    @Test
     public void testDelete() 
     {
         for(int i=0; i<nodeList.size(); i++)
@@ -890,17 +890,20 @@ public class D1ClientTest  {
                 {
                     rGuid = mn.create(token, guid, objectStream, sysmeta);
                     checkEquals(guid.getValue(), rGuid.getValue());
+                    Thread.sleep(2000);
                     Identifier delId = mn.delete(token, rGuid);
                     checkTrue(delId.getValue().equals(rGuid.getValue()));
                 } 
                 catch (Exception e) 
                 {
+                    e.printStackTrace();
                     errorCollector.addError(new Throwable(createAssertMessage() + 
                             " error in testDelete: " + e.getMessage()));
                 }
             }
             catch(Exception e)
             {
+                e.printStackTrace();
                 errorCollector.addError(new Throwable(createAssertMessage() + 
                         " unexpected error in testDelete: " + e.getMessage()));
             }
