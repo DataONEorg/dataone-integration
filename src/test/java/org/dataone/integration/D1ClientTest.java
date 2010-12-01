@@ -86,9 +86,9 @@ import org.junit.rules.ErrorCollector;
  */
 public class D1ClientTest  {
 
-    String contextUrl = "http://localhost:8080/knb/";
+    //String contextUrl = "http://localhost:8080/knb/";
     
-    //String contextUrl = "http://cn-dev.dataone.org/knb/";
+    String contextUrl = "http://cn-dev.dataone.org/knb/";
     
     private static final String prefix = "knb:testid:";
     private static final String bogusId = "foobarbaz214";
