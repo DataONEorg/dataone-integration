@@ -756,7 +756,7 @@ public class D1ClientTest  {
 
     	String unicodeString = null;
     	String unicodeStringEscaped = null;
-    	
+    	printHeader("Testing IdentifierEncoding");
     	InputStream is = this.getClass().getResourceAsStream("/d1_testdocs/encodingTestSet/testUnicodeStrings.utf8.txt");
     	Scanner s = new Scanner(is,"UTF-8");
     	String[] temp;
@@ -766,9 +766,9 @@ public class D1ClientTest  {
     		{
     			String line = s.nextLine();
 				System.out.println(line);
-    			if (line.startsWith("common-unicode-supplementary-escaped"))
+    			if (line.contains("<>[]"))
     			{
-    				System.out.println(line);
+    				System.out.println(" ** using previous line for identifier");
     				temp = line.split("\t");
     				if (temp.length > 1)
     				{
@@ -790,7 +790,7 @@ public class D1ClientTest  {
             d1 = new D1Client(currentUrl);
             MNode mn = d1.getMN(currentUrl);
 
-            printHeader("testCreateData - node " + nodeList.get(i).getBaseURL());
+            printHeader("testCreateData_UnicodeIdentfier - node " + nodeList.get(i).getBaseURL());
             try
             {
                 checkTrue(true);
@@ -806,20 +806,22 @@ public class D1ClientTest  {
                 // rGuid is either going to be the escaped ID or the non-escaped ID
                 try {
                     rGuid = mn.create(token, guid, objectStream, sysmeta);
-                    System.out.println("== rGuid: " + rGuid);
+                    System.out.println("== returned Guid (rGuid): " + rGuid.getValue());
                     checkEquals(guid.getValue(), rGuid.getValue());
-                } catch (Exception e) {
-                    errorCollector.addError(new Throwable(createAssertMessage() + 
-                            " error in testCreateData: " + e.getMessage()));
-                }
-
-                try {
+//                } catch (Exception e) {
+//                	e.printStackTrace();
+//                    errorCollector.addError(new Throwable(createAssertMessage() + 
+//                            " error in testCreateData: " + e.getMessage()));
+//                }
+//
+//                try {
                     InputStream data = mn.get(token, rGuid);
                     checkTrue(null != data);
                     String str = IOUtils.toString(data);
                     checkTrue(str.indexOf("61 66 104 2 103 900817 \"Planted\" 15.0  3.3") != -1);
                     data.close();
                 } catch (Exception e) {
+                	e.printStackTrace();
                     errorCollector.addError(new Throwable(createAssertMessage() + 
                             " error in testCreateData: " + e.getMessage()));
                 } 
