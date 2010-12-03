@@ -33,8 +33,11 @@ import java.net.ProtocolException;
 import java.net.URL;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Scanner;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.Vector;
 import java.util.concurrent.Callable;
 
@@ -753,87 +756,104 @@ public class D1ClientTest  {
     @Test
     public void testCreateData_UnicodeIdentifier() 
     {
-
-    	String unicodeString = null;
-    	String unicodeStringEscaped = null;
     	printHeader("Testing IdentifierEncoding");
+
+    	Vector<String> unicodeString = new Vector<String>();
+    	Vector<String> escapedString = new Vector<String>();
     	InputStream is = this.getClass().getResourceAsStream("/d1_testdocs/encodingTestSet/testUnicodeStrings.utf8.txt");
     	Scanner s = new Scanner(is,"UTF-8");
     	String[] temp;
+    	int c = 0;
     	try
     	{
     		while (s.hasNextLine()) 
     		{
     			String line = s.nextLine();
-				System.out.println(line);
-    			if (line.contains("<>[]"))
+    			if (line.startsWith("common-") || line.startsWith("path-"))
+//    			if (line.startsWith("path-unicode-ascii-escaped") || line.startsWith("common-unicode-ascii-escaped-tomcatBlocked"))
     			{
-    				System.out.println(" ** using previous line for identifier");
-    				temp = line.split("\t");
-    				if (temp.length > 1)
-    				{
-    					unicodeString = temp[0];
-    					unicodeStringEscaped = temp[1];
+    				if (!(line.contains("chartests")))
+    				{	
+    					System.out.println(c++ + "   " + line);
+    					temp = line.split("\t");
+    					unicodeString.add(temp[0]);
+    					escapedString.add(temp[1]);		
     				}
     			}
     		}
     	} finally {
     		s.close();
     	}
-        String idString = prefix + "_" + unicodeString + "_" + ExampleUtilities.generateIdentifier();
-        String idStringEscaped = prefix + "_" + unicodeStringEscaped + "_" + ExampleUtilities.generateIdentifier();
-    	        
-    	
+
     	for(int i=0; i<nodeList.size(); i++)
-        {
-            currentUrl = nodeList.get(i).getBaseURL();
-            d1 = new D1Client(currentUrl);
-            MNode mn = d1.getMN(currentUrl);
+    	{
+    		currentUrl = nodeList.get(i).getBaseURL();
+    		
+    		Vector<String> nodeSummary = new Vector<String>();
+    		nodeSummary.add("Node Test Summary for node: " + currentUrl );
 
-            printHeader("testCreateData_UnicodeIdentfier - node " + nodeList.get(i).getBaseURL());
-            try
-            {
-                checkTrue(true);
-                String principal = "uid%3Dkepler,o%3Dunaffiliated,dc%3Decoinformatics,dc%3Dorg";
-                AuthToken token = mn.login(principal, "kepler");
-                Identifier guid = new Identifier();
-                guid.setValue(idString);
-                InputStream objectStream = this.getClass().getResourceAsStream(
-                        "/d1_testdocs/knb-lter-cdr.329066.1.data");
-                SystemMetadata sysmeta = ExampleUtilities.generateSystemMetadata(guid, ObjectFormat.TEXT_CSV);
-                Identifier rGuid = null;
+    		printHeader("  Node:: " + currentUrl);
+    		d1 = new D1Client(currentUrl);
+    		MNode mn = d1.getMN(currentUrl);
 
-                // rGuid is either going to be the escaped ID or the non-escaped ID
-                try {
-                    rGuid = mn.create(token, guid, objectStream, sysmeta);
-                    System.out.println("== returned Guid (rGuid): " + rGuid.getValue());
-                    checkEquals(guid.getValue(), rGuid.getValue());
-//                } catch (Exception e) {
-//                	e.printStackTrace();
-//                    errorCollector.addError(new Throwable(createAssertMessage() + 
-//                            " error in testCreateData: " + e.getMessage()));
-//                }
-//
-//                try {
-                    InputStream data = mn.get(token, rGuid);
-                    checkTrue(null != data);
-                    String str = IOUtils.toString(data);
-                    checkTrue(str.indexOf("61 66 104 2 103 900817 \"Planted\" 15.0  3.3") != -1);
-                    data.close();
-                } catch (Exception e) {
-                	e.printStackTrace();
-                    errorCollector.addError(new Throwable(createAssertMessage() + 
-                            " error in testCreateData: " + e.getMessage()));
-                } 
-            }
-            catch(Exception e)
-            {
-                errorCollector.addError(new Throwable(createAssertMessage() + 
-                        " unexpected error in testCreateData: " + e.getMessage()));
-            }
-        }
+    		for (int j=0; j<unicodeString.size(); j++) 
+    		{
+        		String status = "OK   ";
+
+    			//    			String unicode = unicodeString.get(j);
+    			System.out.println();
+    			System.out.println(j + "    unicode String:: " + unicodeString.get(j));
+    			String idString = prefix + "_" + unicodeString.get(j) + "_" + ExampleUtilities.generateIdentifier();
+    			String idStringEscaped = prefix + "_" + escapedString.get(j) + "_" + ExampleUtilities.generateIdentifier();
+
+    			try
+    			{
+    				checkTrue(true);
+    				String principal = "uid%3Dkepler,o%3Dunaffiliated,dc%3Decoinformatics,dc%3Dorg";
+    				AuthToken token = mn.login(principal, "kepler");
+    				Identifier guid = new Identifier();
+    				guid.setValue(idString);
+    				InputStream objectStream = this.getClass().getResourceAsStream(
+    						"/d1_testdocs/knb-lter-cdr.329066.1.data");
+    				SystemMetadata sysmeta = ExampleUtilities.generateSystemMetadata(guid, ObjectFormat.TEXT_CSV);
+    				Identifier rGuid = null;
+
+    				// rGuid is either going to be the escaped ID or the non-escaped ID
+    				try {
+    					rGuid = mn.create(token, guid, objectStream, sysmeta);
+    					System.out.println("    == returned Guid (rGuid): " + rGuid.getValue());
+    					checkEquals(guid.getValue(), rGuid.getValue());
+    					InputStream data = mn.get(token, rGuid);
+    					checkTrue(null != data);
+    					String str = IOUtils.toString(data);
+    					checkTrue(str.indexOf("61 66 104 2 103 900817 \"Planted\" 15.0  3.3") != -1);
+    					data.close();
+    				} catch (Exception e) {
+    					status = "Error";
+    					System.out.println("error message: " + e.getMessage());
+    					//	e.printStackTrace();
+    					errorCollector.addError(new Throwable(createAssertMessage() + 
+    							" error in testCreateData: " + e.getMessage()));
+    				} 
+    			}
+    			catch(Exception ee)
+    			{
+					status = "Error";
+    				ee.printStackTrace();
+    				errorCollector.addError(new Throwable(createAssertMessage() + 
+    						" unexpected error in testCreateData_unicodeIdentifier: " + ee.getMessage()));
+    			}
+    			nodeSummary.add("Test " + j + ": " + status + ":  " + unicodeString.get(j));
+    		}
+    		System.out.println();
+    		for (int k=0; k<nodeSummary.size(); k++) 
+    		{
+    			System.out.println(nodeSummary.get(k));
+    		}
+    		System.out.println();
+    	}
     }
-    
+
     
     @Test
     public void testGetChecksumAuthTokenIdentifierTypeString() 
