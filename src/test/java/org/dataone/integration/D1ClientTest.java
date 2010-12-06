@@ -92,7 +92,7 @@ import org.junit.rules.ErrorCollector;
  */
 public class D1ClientTest  {
 
-    //String contextUrl = "http://localhost:8080/knb/";
+    //String contextUrl = "http://localhost:8080/knb/d1/";
     
     String contextUrl = "http://cn-dev.dataone.org/knb/";
     
