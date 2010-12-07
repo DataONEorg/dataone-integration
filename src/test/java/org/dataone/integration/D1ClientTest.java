@@ -94,7 +94,7 @@ public class D1ClientTest  {
 
     //String contextUrl = "http://localhost:8080/knb/d1/";
     
-    String contextUrl = "http://cn-dev.dataone.org/knb/";
+    String contextUrl = "http://cn-dev.dataone.org/knb/d1";
     
     private static final String prefix = "knb:testid:";
     private static final String bogusId = "foobarbaz214";
