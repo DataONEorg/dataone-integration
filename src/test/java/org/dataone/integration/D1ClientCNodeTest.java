@@ -62,7 +62,7 @@ public class D1ClientCNodeTest  {
 
 	private static final String baseURL = "http://cn-dev.dataone.org";
 	private static final String cnUrl = "http://cn-dev.dataone.org/cn/";
-	private static final String mnUrl = "http://cn-dev.dataone.org/knb/";
+	private static final String mnUrl = "http://cn-dev.dataone.org/knb/d1/";
 	private static final String badIdentifier = "ThisIdentifierShouldNotExist";
 
 	private static String testUnicodeIdentifiersFile = "/d1_testdocs/encodingTestSet/testUnicodeStrings.utf8.txt";
