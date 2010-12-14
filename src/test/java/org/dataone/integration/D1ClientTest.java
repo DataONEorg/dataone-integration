@@ -94,7 +94,13 @@ public class D1ClientTest  {
 
     //String contextUrl = "http://localhost:8080/knb/d1/";
     
-    String contextUrl = "http://cn-dev.dataone.org/knb/d1";
+    String contextUrl = "http://cn-dev.dataone.org/knb/d1/";
+    
+    //String contextUrl = "http://slickrock.local:8080/knb/d1/";
+    
+   // String contextUrl = "http://amasa.local:8080/knb/d1/";
+    
+    //String contextUrl = "http://fred.msi.ucsb.edu:8080/knb/d1/";
     
     private static final String prefix = "knb:testid:";
     private static final String bogusId = "foobarbaz214";
@@ -271,6 +277,76 @@ public class D1ClientTest  {
     }
     
     /**
+     * test setting access.  this is mainly a metacat test since other nodes
+     * will not have implemented this.
+     */
+    @Test
+    public void testSetAccess()
+    {
+        for(int j=0; j<nodeList.size(); j++)
+        {
+            currentUrl = nodeList.get(j).getBaseURL();
+            d1 = new D1Client(currentUrl);
+            MNode mn = d1.getMN(currentUrl);
+            
+            printHeader("testListObjects - node " + nodeList.get(j).getBaseURL());
+            System.out.println("current time is: " + new Date());
+            try
+            {
+                Date date1 = new Date(System.currentTimeMillis() - 1000000);
+                String principal = "uid%3Dkepler,o%3Dunaffiliated,dc%3Decoinformatics,dc%3Dorg";
+                AuthToken token = mn.login(principal, "kepler");
+                //AuthToken token = new AuthToken("public");
+                //create a document we know is in the system
+                String idString = prefix + ExampleUtilities.generateIdentifier();
+                Identifier guid = new Identifier();
+                guid.setValue(idString);
+                
+                InputStream objectStream = this.getClass().getResourceAsStream(
+                        "/d1_testdocs/knb-lter-cdr.329066.1.data");
+                SystemMetadata sysmeta = ExampleUtilities.generateSystemMetadata(guid, ObjectFormat.TEXT_CSV);
+
+                Identifier rGuid = mn.create(token, guid, objectStream, sysmeta);
+                
+                checkEquals(rGuid.getValue(), guid.getValue());
+                
+                AuthToken pubToken = new AuthToken("public");
+                //try to access as public (should not work)
+                try
+                {
+                    mn.get(pubToken, rGuid);
+                    errorCollector.addError(new Throwable(createAssertMessage() + 
+                            " mn.get should have failed since the doc does not have public access."));
+                }
+                catch(Exception e)
+                {
+                    
+                }
+                
+                //make the inserted documents public
+                mn.setAccess(token, rGuid, "public", "read", "allow", "allowFirst");
+                
+                try
+                {
+                    mn.get(pubToken, rGuid);
+                }
+                catch(Exception e)
+                {
+                    errorCollector.addError(new Throwable(createAssertMessage() + 
+                            " mn.get should not have failed to get the document since it is now public."));
+                }
+                
+            }
+            catch(Exception e)
+            {
+                e.printStackTrace();
+                errorCollector.addError(new Throwable(createAssertMessage() + 
+                        " could not list object: " + e.getMessage()));
+            }
+        }
+    }
+    
+    /**
      * list objects with specified params
      */
     @Test
@@ -357,7 +433,7 @@ public class D1ClientTest  {
                         break;
                     }
                 }
-                System.out.println("isthere: " + isthere);
+                System.out.println("1isthere: " + isthere);
                 checkTrue(isthere);
                 
                 //test with a public token.  should get the same result since both docs are public
@@ -373,7 +449,7 @@ public class D1ClientTest  {
                         break;
                     }
                 }
-                System.out.println("isthere: " + isthere);
+                System.out.println("2isthere: " + isthere);
                 checkTrue(isthere);
             }
             catch(Exception e)
@@ -952,6 +1028,7 @@ public class D1ClientTest  {
                 try {
                     rGuid = mn.create(token, guid, objectStream, sysmeta);
                     checkEquals(guid.getValue(), rGuid.getValue());
+                    mn.setAccess(token, rGuid, "public", "read", "allow", "allowFirst");
                 } catch (Exception e) {
                     errorCollector.addError(new Throwable(createAssertMessage() + 
                             " error in testCreateScienceMetadata: " + e.getMessage()));
