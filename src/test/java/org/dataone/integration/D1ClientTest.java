@@ -94,6 +94,7 @@ public class D1ClientTest  {
 
     //String contextUrl = "http://localhost:8080/knb/d1/";
     
+//    String contextUrl = "http://cn-dev-2.dataone.org/knb/d1";
     String contextUrl = "http://cn-dev.dataone.org/knb/d1/";
     
     //String contextUrl = "http://slickrock.local:8080/knb/d1/";
@@ -846,15 +847,16 @@ public class D1ClientTest  {
     		{
     			String line = s.nextLine();
     			if (line.startsWith("common-") || line.startsWith("path-"))
-//    			if (line.startsWith("path-unicode-ascii-escaped") || line.startsWith("common-unicode-ascii-escaped-tomcatBlocked"))
     			{
-    				if (!(line.contains("chartests")))
-    				{	
-    					System.out.println(c++ + "   " + line);
-    					temp = line.split("\t");
-    					unicodeString.add(temp[0]);
-    					escapedString.add(temp[1]);		
-    				}
+					// TODO: remove the ascii test restriction when metacat supports unicode
+					if (line.contains("-ascii-"))
+						if (!(line.contains("chartests")))
+    					{	
+    						System.out.println(c++ + "   " + line);
+    						temp = line.split("\t");
+    						unicodeString.add(temp[0]);
+    						escapedString.add(temp[1]);		
+    					}
     			}
     		}
     	} finally {
@@ -864,7 +866,7 @@ public class D1ClientTest  {
     	for(int i=0; i<nodeList.size(); i++)
     	{
     		currentUrl = nodeList.get(i).getBaseURL();
-    		
+
     		Vector<String> nodeSummary = new Vector<String>();
     		nodeSummary.add("Node Test Summary for node: " + currentUrl );
 
@@ -874,7 +876,7 @@ public class D1ClientTest  {
 
     		for (int j=0; j<unicodeString.size(); j++) 
     		{
-        		String status = "OK   ";
+    			String status = "OK   ";
 
     			//    			String unicode = unicodeString.get(j);
     			System.out.println();
@@ -898,6 +900,7 @@ public class D1ClientTest  {
     				try {
     					rGuid = mn.create(token, guid, objectStream, sysmeta);
     					System.out.println("    == returned Guid (rGuid): " + rGuid.getValue());
+    					mn.setAccess(token, rGuid, "public", "read", "allow", "allowFirst");
     					checkEquals(guid.getValue(), rGuid.getValue());
     					InputStream data = mn.get(token, rGuid);
     					checkTrue(null != data);
@@ -914,7 +917,7 @@ public class D1ClientTest  {
     			}
     			catch(Exception ee)
     			{
-					status = "Error";
+    				status = "Error";
     				ee.printStackTrace();
     				errorCollector.addError(new Throwable(createAssertMessage() + 
     						" unexpected error in testCreateData_unicodeIdentifier: " + ee.getMessage()));
