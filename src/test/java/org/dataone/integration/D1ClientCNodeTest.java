@@ -50,6 +50,7 @@ import org.dataone.service.types.ObjectLocation;
 import org.dataone.service.types.ObjectLocationList;
 import org.dataone.service.types.SystemMetadata;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ErrorCollector;
@@ -64,20 +65,21 @@ public class D1ClientCNodeTest  {
 	private static final String cnUrl = "http://cn-dev.dataone.org/cn/";
 	private static final String mnUrl = "http://cn-dev.dataone.org/knb/d1/";
 	private static final String badIdentifier = "ThisIdentifierShouldNotExist";
-
-	private static String testUnicodeIdentifiersFile = "/d1_testdocs/encodingTestSet/testUnicodeStrings.utf8.txt";
+//  TODO: test against testUnicodeStrings file instead when metacat supports unicode.
+//	private static String identifierEncodingTestFile = "/d1_testdocs/encodingTestSet/testUnicodeStrings.utf8.txt";
+	private static String identifierEncodingTestFile = "/d1_testdocs/encodingTestSet/testAsciiStrings.utf8.txt";
 	private static HashMap<String,String> StandardTests = new HashMap<String,String>();
 
 	@Rule 
 	public ErrorCollector errorCollector = new ErrorCollector();
 
     
-	@Before
+	@BeforeClass
 	public void generateStandardTests() {
 		if (StandardTests.size() == 0) {
 			System.out.println(" * * * * * * * Unicode Test Strings * * * * * * ");
 			
-			InputStream is = this.getClass().getResourceAsStream(testUnicodeIdentifiersFile);
+			InputStream is = this.getClass().getResourceAsStream(identifierEncodingTestFile);
 			Scanner s = new Scanner(is,"UTF-8");
 			String[] temp;
 			try
@@ -110,73 +112,6 @@ public class D1ClientCNodeTest  {
 		String idString = "test" + ExampleUtilities.generateIdentifier();
 		resolveRunner(idString);
 	}
-
-//	@Test
-//	public void testResolve_IdEncoding_Slash() {
-//		String idString = "test:xxxx/yyy" + ExampleUtilities.generateIdentifier() ;
-//		resolveRunner(idString);
-//	}
-//
-//    @Test
-//	public void testResolve_IdEncoding_trailingSlash() {
-//		String idString = "test:" + ExampleUtilities.generateIdentifier() + "/";
-//		resolveRunner(idString);
-//	}
-//    
-//    @Test
-//	public void testResolve_IdEncoding_xml_reserved() {
-//		String idString = "test:" + "<_\"'_&__>" + ExampleUtilities.generateIdentifier();
-//		resolveRunner(idString);
-//	}
-//
-//	@Test
-//	public void testResolve_idEncoding_rfc3986_pchar_unescaped_ascii() {
-//	//	String idString = "test:" + ";:@&=$-_.+!*()',~" + ExampleUtilities.generateIdentifier();
-//	//   mn/create doesn't allow ";" or "&", even though path-safe according to rfc3986
-//		String idString = "test:" + ":@=$-_.+!*()',~" + ExampleUtilities.generateIdentifier();
-//		resolveRunner(idString);
-//	}
-//
-//	
-//	@Test
-//	public void testResolve_idEncoding_rfc3986_pchar_escaped_ascii() {
-//		String idString = "test:" + "`#%^{}[]\\|\"?<>" + ExampleUtilities.generateIdentifier();
-//		resolveRunner(idString);
-//	}
-//
-//	@Test
-//	public void testResolve_idEncoding_unicode_pct_escaped_bmp_lt255() {
-//		String idString = "test-" + "\u00AC-" + ExampleUtilities.generateIdentifier();
-//		resolveRunner(idString);
-//	}
-//	
-//	
-//	@Test
-//	public void testResolve_idEncoding_unicode_pct_escaped_bmp_other_2byte() {
-//		String idString = "test-" + "\u00FC-" + ExampleUtilities.generateIdentifier();
-//		resolveRunner(idString);
-//	}
-//
-//	@Test
-//	public void testResolve_idEncoding_unicode_pct_escaped_bmp_3byte() {
-//		String idString = "test-" + "\u20AC-\u0E09-" + ExampleUtilities.generateIdentifier();
-//		resolveRunner(idString);
-//	}
-//
-//
-//	@Test
-//	public void testResolve_idEncoding_unicode_pct_escaped_supplementary_aegean() {
-//		//to get supplementary Unicode code points into Strings, a couple extra steps are needed
-//		// because these are beyond the 16 bit limit
-//		int codepoint = 0x1010C;  // An Aegean number
-//		char[] surrogatePair = Character.toChars(codepoint);
-//		String supp = new String(surrogatePair);
-//
-//		String idString = "test-" + supp + "-" + ExampleUtilities.generateIdentifier();
-//		resolveRunner(idString);
-//	}
-
-
 
 
 	/**
@@ -213,8 +148,7 @@ public class D1ClientCNodeTest  {
 		while (i.hasNext())
 		{
 			String id = (String) i.next();
-			if (id.startsWith("common-") || 
-					id.startsWith("path-")) {
+			if (id.startsWith("common-") || id.startsWith("path-")) {
 				resolveRunner(id);
 			}
 		}

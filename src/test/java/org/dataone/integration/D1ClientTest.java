@@ -831,13 +831,15 @@ public class D1ClientTest  {
      * is used to verify the inserted metadata
      */
     @Test
-    public void testCreateData_UnicodeIdentifier() 
+    public void testCreateData_IdentifierEncoding() 
     {
     	printHeader("Testing IdentifierEncoding");
 
     	Vector<String> unicodeString = new Vector<String>();
     	Vector<String> escapedString = new Vector<String>();
-    	InputStream is = this.getClass().getResourceAsStream("/d1_testdocs/encodingTestSet/testUnicodeStrings.utf8.txt");
+//   TODO: test against Unicode characters when metacat supports unicode    	
+//    	InputStream is = this.getClass().getResourceAsStream("/d1_testdocs/encodingTestSet/testUnicodeStrings.utf8.txt");
+    	InputStream is = this.getClass().getResourceAsStream("/d1_testdocs/encodingTestSet/testAsciiStrings.utf8.txt");
     	Scanner s = new Scanner(is,"UTF-8");
     	String[] temp;
     	int c = 0;
@@ -848,15 +850,13 @@ public class D1ClientTest  {
     			String line = s.nextLine();
     			if (line.startsWith("common-") || line.startsWith("path-"))
     			{
-					// TODO: remove the ascii test restriction when metacat supports unicode
-					if (line.contains("-ascii-"))
-						if (!(line.contains("chartests")))
-    					{	
-    						System.out.println(c++ + "   " + line);
-    						temp = line.split("\t");
-    						unicodeString.add(temp[0]);
-    						escapedString.add(temp[1]);		
-    					}
+    				if (!(line.contains("chartests")))
+    				{	
+    					System.out.println(c++ + "   " + line);
+    					temp = line.split("\t");
+    					unicodeString.add(temp[0]);
+    					escapedString.add(temp[1]);		
+    				}
     			}
     		}
     	} finally {

@@ -1,0 +1,13 @@
+common-unicode-ascii-safe-:@$-_.!*()',~	common-unicode-ascii-safe-:@$-_.!*()',~
+common-unicode-ascii-safe-chartests-:	common-unicode-ascii-safe-chartests-:
+common-unicode-ascii-safe-chartests-@	common-unicode-ascii-safe-chartests-@
+common-unicode-ascii-safe-chartests-$	common-unicode-ascii-safe-chartests-$
+common-unicode-ascii-safe-chartests--	common-unicode-ascii-safe-chartests--
+common-unicode-ascii-safe-chartests-_	common-unicode-ascii-safe-chartests-_
+common-unicode-ascii-safe-chartests-.	common-unicode-ascii-safe-chartests-.
+common-unicode-ascii-safe-chartests-!	common-unicode-ascii-safe-chartests-!
+common-unicode-ascii-safe-chartests-*	common-unicode-ascii-safe-chartests-*
+common-unicode-ascii-safe-chartests-()	common-unicode-ascii-safe-chartests-()
+common-unicode-ascii-safe-chartests-'	common-unicode-ascii-safe-chartests-'
+common-unicode-ascii-safe-chartests-,	common-unicode-ascii-safe-chartests-,
+common-unicode-ascii-safe-chartests-~	common-unicode-ascii-safe-chartests-~

@@ -28,9 +28,6 @@ query-unicode-ascii-safe-/?	query-unicode-ascii-safe-/?
 query-unicode-ascii-escaped-&=&=	query-unicode-ascii-escaped-%26%3D%26%3D
 fragment-unicode-ascii-safe-;	fragment-unicode-ascii-safe-;
 fragment-unicode-ascii-safe-&=&=/?	fragment-unicode-ascii-safe-&=&=/?
-common-unicode-bmp-1byte-escaped-¡¢£	common-unicode-bmp-1byte-escaped-%C2%A1%C2%A2%C2%A3
-common-unicode-bmp-2byte-escaped-䦹䦺	common-unicode-bmp-2byte-escaped-%E4%A6%B9%E4%A6%BA
-common-unicode-supplementary-escaped-𐌔𐌕𐌖𐌗	common-unicode-supplementary-escaped-%F0%90%8C%94%F0%90%8C%95%F0%90%8C%96%F0%90%8C%97
 query-unicode-ascii-escaped-this&that=theOther	query-unicode-ascii-escaped-this%26that%3DtheOther
 
 common-ascii-doc-example-urn:lsid:ubio.org:namebank:11815	common-ascii-doc-example-urn:lsid:ubio.org:namebank:11815
@@ -43,7 +40,4 @@ fragment-ascii-doc-example-http://example.com/data/mydata?row=24	fragment-ascii-
 path-ascii-doc-example-ldap://ldap1.example.net:6666/o=University%20of%20Michigan, c=US??sub?(cn=Babs%20Jensen)	path-ascii-doc-example-ldap:%2F%2Fldap1.example.net:6666%2Fo=University%2520of%2520Michigan,%20c=US%3F%3Fsub%3F(cn=Babs%2520Jensen)
 query-ascii-doc-example-ldap://ldap1.example.net:6666/o=University%20of%20Michigan, c=US??sub?(cn=Babs%20Jensen)	query-ascii-doc-example-ldap://ldap1.example.net:6666/o%3DUniversity%2520of%2520Michigan,%20c%3DUS??sub?(cn%3DBabs%2520Jensen)
 fragment-ascii-doc-example-ldap://ldap1.example.net:6666/o=University%20of%20Michigan, c=US??sub?(cn=Babs%20Jensen)	fragment-ascii-doc-example-ldap://ldap1.example.net:6666/o=University%2520of%2520Michigan,%20c=US??sub?(cn=Babs%2520Jensen)
-common-bmp-doc-example-ฉันกินกระจกได้	common-bmp-doc-example-%E0%B8%89%E0%B8%B1%E0%B8%99%E0%B8%81%E0%B8%B4%E0%B8%99%E0%B8%81%E0%B8%A3%E0%B8%B0%E0%B8%88%E0%B8%81%E0%B9%84%E0%B8%94%E0%B9%89
-common-bmp-doc-example-Is féidir liom ithe gloine	common-bmp-doc-example-Is%20f%C3%A9idir%20liom%20ithe%20gloine
 
-decode-space-potential-error-unescaped-plus-+	decode-space-potential-error-unescaped-plus-+
