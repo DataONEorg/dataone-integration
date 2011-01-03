@@ -851,13 +851,10 @@ public class D1ClientTest  {
     			String line = s.nextLine();
     			if (line.startsWith("common-") || line.startsWith("path-"))
     			{
-    				if (!(line.contains("chartests")))
-    				{	
-    					System.out.println(c++ + "   " + line);
-    					temp = line.split("\t");
-    					unicodeString.add(temp[0]);
-    					escapedString.add(temp[1]);		
-    				}
+    				System.out.println(c++ + "   " + line);
+    				temp = line.split("\t");
+    				unicodeString.add(temp[0]);
+    				escapedString.add(temp[1]);		
     			}
     		}
     	} finally {
@@ -882,8 +879,8 @@ public class D1ClientTest  {
     			//    			String unicode = unicodeString.get(j);
     			System.out.println();
     			System.out.println(j + "    unicode String:: " + unicodeString.get(j));
-    			String idString = prefix + "_" + unicodeString.get(j) + "_" + ExampleUtilities.generateIdentifier();
-    			String idStringEscaped = prefix + "_" + escapedString.get(j) + "_" + ExampleUtilities.generateIdentifier();
+    			String idString = prefix + ExampleUtilities.generateIdentifier() + "_" + unicodeString.get(j) ;
+    			String idStringEscaped = prefix  + ExampleUtilities.generateIdentifier() + "_" + escapedString.get(j);
 
     			try
     			{
