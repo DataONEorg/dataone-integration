@@ -94,12 +94,13 @@ public class D1ClientTest  {
 
     //String contextUrl = "http://localhost:8080/knb/d1/";
     
-//    String contextUrl = "http://cn-dev-2.dataone.org/knb/d1";
+//    //String contextUrl = "http://cn-dev-2.dataone.org/knb/d1";
     String contextUrl = "http://cn-dev.dataone.org/knb/d1/";
     
     //String contextUrl = "http://slickrock.local:8080/knb/d1/";
     
-   // String contextUrl = "http://amasa.local:8080/knb/d1/";
+      //String contextUrl = "http://amasa.local:8080/knb/d1/";
+    //String contextUrl = "http://cn-unm-1.dataone.org/knb/d1";
     
     //String contextUrl = "http://fred.msi.ucsb.edu:8080/knb/d1/";
     
@@ -997,6 +998,50 @@ public class D1ClientTest  {
             {
                 errorCollector.addError(new Throwable(createAssertMessage() + 
                         " unexpected error in testGetChecksumAuthTokenIdentifierTypeString: " + e.getMessage()));
+            }
+        }
+    }
+    
+    /**
+     * test creation of science metadata.  this also tests get() since it
+     * is used to verify the inserted metadata
+     */
+    @Test
+    public void testSemiColonIdentifiers() 
+    {
+        for(int i=0; i<nodeList.size(); i++)
+        {
+            currentUrl = nodeList.get(i).getBaseURL();
+            d1 = new D1Client(currentUrl);
+            MNode mn = d1.getMN(currentUrl);
+
+            try
+            {
+                printHeader("testSemiColonIdentifiers - node " + nodeList.get(i).getBaseURL());
+                checkTrue(true);
+                String principal = "uid%3Dkepler,o%3Dunaffiliated,dc%3Decoinformatics,dc%3Dorg";
+                AuthToken token = mn.login(principal, "kepler");
+                String idString = "some;id;with;semi;colons;" + new Date().getTime();
+                Identifier guid = new Identifier();
+                guid.setValue(idString);
+                InputStream objectStream = this.getClass().getResourceAsStream(
+                        "/d1_testdocs/knb-lter-luq.76.2.xml");
+                SystemMetadata sysmeta = ExampleUtilities.generateSystemMetadata(guid, ObjectFormat.EML_2_1_0);
+                Identifier rGuid = null;
+
+                try {
+                    rGuid = mn.create(token, guid, objectStream, sysmeta);
+                    checkEquals(guid.getValue(), rGuid.getValue());
+                    mn.setAccess(token, rGuid, "public", "read", "allow", "allowFirst");
+                } catch (Exception e) {
+                    errorCollector.addError(new Throwable(createAssertMessage() + 
+                            " error in testCreateScienceMetadata: " + e.getMessage()));
+                }
+            }
+            catch(Exception e)
+            {
+                errorCollector.addError(new Throwable(createAssertMessage() + 
+                        " unexpected error in testCreateScienceMetadata: " + e.getMessage()));
             }
         }
     }
