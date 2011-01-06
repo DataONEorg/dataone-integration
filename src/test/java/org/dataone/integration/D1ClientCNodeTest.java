@@ -35,6 +35,7 @@ import java.util.Iterator;
 import java.util.Scanner;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.Vector;
 import java.util.concurrent.Callable;
 
 import org.dataone.client.CNode;
@@ -68,30 +69,36 @@ public class D1ClientCNodeTest  {
 //  TODO: test against testUnicodeStrings file instead when metacat supports unicode.
 //	private static String identifierEncodingTestFile = "/d1_testdocs/encodingTestSet/testUnicodeStrings.utf8.txt";
 	private static String identifierEncodingTestFile = "/d1_testdocs/encodingTestSet/testAsciiStrings.utf8.txt";
-	private static HashMap<String,String> StandardTests = new HashMap<String,String>();
-
+//	private static HashMap<String,String> StandardTests = new HashMap<String,String>();
+	private static Vector<String> testPIDEncodingStrings = new Vector<String>();
 	@Rule 
 	public ErrorCollector errorCollector = new ErrorCollector();
 
     
-	@BeforeClass
-	public void generateStandardTests() {
-		if (StandardTests.size() == 0) {
+	@Before
+	public  void generateStandardTests() {
+		
+		if (testPIDEncodingStrings.size() == 0) {
 			System.out.println(" * * * * * * * Unicode Test Strings * * * * * * ");
 			
 			InputStream is = this.getClass().getResourceAsStream(identifierEncodingTestFile);
 			Scanner s = new Scanner(is,"UTF-8");
 			String[] temp;
+			int c = 0;
 			try
 			{
 				while (s.hasNextLine()) 
 				{
 					String line = s.nextLine();
-					System.out.println(line);
-					temp = line.split("\t");
-					if (temp.length > 1)
-						StandardTests.put(temp[0], temp[1]);
-				}
+					if (line.startsWith("common-") || line.startsWith("path-"))
+					{
+						System.out.println(c++ + "   " + line);
+						temp = line.split("\t");
+						if (temp.length > 1)
+							testPIDEncodingStrings.add(temp[0]);
+//						StandardTests.put(temp[0], temp[1]);
+					}
+				}	
 				System.out.println("");
 			} finally {
 				s.close();
@@ -110,7 +117,9 @@ public class D1ClientCNodeTest  {
 	@Test
 	public void testResolve() {
 		String idString = "test" + ExampleUtilities.generateIdentifier();
-		resolveRunner(idString);
+		Vector<String> testIDs = new Vector<String>();
+		testIDs.add(idString);
+		resolveRunner(testIDs);
 	}
 
 
@@ -143,74 +152,90 @@ public class D1ClientCNodeTest  {
 	@Test
 	public void test_IdEncoding() 
 	{
-		SortedSet<String> ids = new TreeSet<String>(StandardTests.keySet());
-		Iterator<String> i = ids.iterator();
-		while (i.hasNext())
+		Vector<String> testIDs  = new Vector<String>();	
+		printHeader("test_IdEncoding");
+			
+		for (int j=0; j<testPIDEncodingStrings.size(); j++) 
 		{
-			String id = (String) i.next();
-			if (id.startsWith("common-") || id.startsWith("path-")) {
-				resolveRunner(id);
-			}
+			String idString = "cn:testid:" + ExampleUtilities.generateIdentifier() + ":" + testPIDEncodingStrings.get(j);
+			testIDs.add(idString);
 		}
+		resolveRunner(testIDs);
 	}
-	
-
-	
 
 	/*
 	 * a general procedure for creating and testing the return from resolve for different
 	 * identifier strings
 	 */
-	private void resolveRunner(String idString) {
+	private void resolveRunner(Vector<String> ids) {
+
+		Vector<String> summaryReport = new Vector<String>();
+		
+		D1Client d1 = new D1Client(cnUrl);
+		CNode cn = d1.getCN();
+
+		d1 = new D1Client(mnUrl);
+		MNode mn = d1.getMN(mnUrl);
+		String principal = "uid%3Dkepler,o%3Dunaffiliated,dc%3Decoinformatics,dc%3Dorg";
 
 		try {
-			D1Client d1 = new D1Client(cnUrl);
-			CNode cn = d1.getCN();
-
-			Identifier guid = new Identifier();
-			guid.setValue(idString);
-
-			//insert a doc to resolve
-			printHeader("testResolve - node " + cnUrl);
-			d1 = new D1Client(mnUrl);
-			MNode mn = d1.getMN(mnUrl);
-			String principal = "uid%3Dkepler,o%3Dunaffiliated,dc%3Decoinformatics,dc%3Dorg";
 			AuthToken token = mn.login(principal, "kepler");
+			// run tests for each identifier
+			Identifier guid = new Identifier();
+			String status;
+			String message;
+			for (int j=0; j<ids.size(); j++) 
+			{
+				status = "OK   ";
+				message = "-";
+				try {
+					String idString = ids.get(j);
+					guid.setValue(idString);
+					System.out.println();
+					System.out.println("*** ID string:  " + idString);
 
-			//insert a data file
-			InputStream objectStream = this.getClass().getResourceAsStream("/d1_testdocs/knb-lter-cdr.329066.1.data");
-			SystemMetadata sysmeta = ExampleUtilities.generateSystemMetadata(guid, ObjectFormat.TEXT_CSV);
+					//insert a data file
+					InputStream objectStream = this.getClass().getResourceAsStream("/d1_testdocs/knb-lter-cdr.329066.1.data");
+					SystemMetadata sysmeta = ExampleUtilities.generateSystemMetadata(guid, ObjectFormat.TEXT_CSV);
 
-			//insert EML file
-			//InputStream objectStream = this.getClass().getResourceAsStream("/d1_testdocs/knb-lter-luq.76.2.xml");
-			//SystemMetadata sysmeta = ExampleUtilities.generateSystemMetadata(guid, ObjectFormat.EML_2_1_0));
+					Identifier rGuid = null;
 
-			Identifier rGuid = null;
-			try {
-				rGuid = mn.create(token, guid, objectStream, sysmeta);
-				mn.setAccess(token, rGuid, "public", "read", "allow", "allowFirst");
-				checkEquals(guid.getValue(), rGuid.getValue());
-			} catch (Exception e) {
-				errorCollector.addError(new Throwable(createAssertMessage() + " error in testCreateScienceMetadata: " + e.getMessage()));
-			}
+					rGuid = mn.create(token, guid, objectStream, sysmeta);
+					System.out.println("    == returned Guid (rGuid): " + rGuid.getValue());
+					mn.setAccess(token, rGuid, "public", "read", "allow", "allowFirst");
+					checkEquals(guid.getValue(), rGuid.getValue());
 
-			// to prevent a null pointer exception
-			if (rGuid == null) {
-				rGuid = guid;
-			}
 
-			ObjectLocationList oll = cn.resolve(token, rGuid);
+					// to prevent a null pointer exception
+					if (rGuid == null) 
+						rGuid = guid;
 
-			for (ObjectLocation ol : oll.getObjectLocationList()) {
-				System.out.println("Location: " + ol.getNodeIdentifier().getValue()
-						+ " (" + ol.getUrl() + ")");
-				checkTrue(ol.getUrl().contains(idString));
+					ObjectLocationList oll = cn.resolve(token, rGuid);
+					for (ObjectLocation ol : oll.getObjectLocationList()) {
+						System.out.println("Location: " + ol.getNodeIdentifier().getValue()
+								+ " (" + ol.getUrl() + ")");
+						checkTrue(ol.getUrl().contains(idString));
+					}
+				}
+				catch (Exception e) {
+					
+					status  = "error";
+					message = e.getMessage();
+					errorCollector.addError(new Throwable(createAssertMessage() + " error in testCreateScienceMetadata: " + e.getMessage()));
+				}
+				summaryReport.add(j + " " + status + " " + ids.get(j) + "  " + message);
 			}
 		} catch (BaseException e) {
-			e.printStackTrace();
 			errorCollector.addError(new Throwable(createAssertMessage()
-					+ " error in testResolve: " + e.getMessage()));
+					+ " error in resolveRunner at logon: " + e.getMessage()));
 		}
+		System.out.println("*********  Test Summary ************");
+
+		for (int j =0; j<summaryReport.size(); j++)
+		{
+			System.out.println(summaryReport.get(j));
+		}
+		System.out.println();
 	}
 
 
@@ -221,9 +246,9 @@ public class D1ClientCNodeTest  {
 	}
 
 
-	private void printHeader(String methodName)
+	private void printHeader(String test)
 	{
-		System.out.println("\n***************** running test for " + methodName + " *****************");
+		System.out.println("\n***************** running test for " + test + " *****************");
 	}
 
 	private void checkEquals(final String s1, final String s2)
