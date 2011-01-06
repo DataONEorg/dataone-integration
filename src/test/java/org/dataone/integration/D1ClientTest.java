@@ -174,7 +174,7 @@ public class D1ClientTest  {
     /**
      * test the failed creation of a doc
      */
-    @Test
+    //@Test
     public void testFailedCreate()
     {
         for(int i=0; i<nodeList.size(); i++)
@@ -215,7 +215,7 @@ public class D1ClientTest  {
     /**
      * test the getLogRecords call
      */
-    @Test
+    //@Test
     public void testGetLogRecords()
     {
        for(int j=0; j<nodeList.size(); j++)
@@ -282,7 +282,7 @@ public class D1ClientTest  {
      * test setting access.  this is mainly a metacat test since other nodes
      * will not have implemented this.
      */
-    @Test
+    //@Test
     public void testSetAccess()
     {
         for(int j=0; j<nodeList.size(); j++)
@@ -351,7 +351,7 @@ public class D1ClientTest  {
     /**
      * list objects with specified params
      */
-    @Test
+    //@Test
     public void testListObjects()
     {
         for(int j=0; j<nodeList.size(); j++)
@@ -466,7 +466,7 @@ public class D1ClientTest  {
     /**
      * get a systemMetadata resource
      */
-    @Test
+    //@Test
     public void testGetSystemMetadata()
     {
         for(int i=0; i<nodeList.size(); i++)
@@ -507,7 +507,7 @@ public class D1ClientTest  {
     /**
      * test the update of a resource
      */
-    @Test
+    //@Test
     public void testUpdate()
     {
         for(int i=0; i<nodeList.size(); i++)
@@ -573,7 +573,7 @@ public class D1ClientTest  {
      * test the error state where metacat fails if the id includes a .\d on
      * the end.
      */
-    @Test
+    //@Test
     public void testFailedCreateData() {
         for(int i=0; i<nodeList.size(); i++)
         {
@@ -652,7 +652,7 @@ public class D1ClientTest  {
     /**
      * test various create and get scenarios with different access rules
      */
-    @Test
+    //@Test
     public void testGet() 
     {
         for(int i=0; i<nodeList.size(); i++)
@@ -709,7 +709,7 @@ public class D1ClientTest  {
     /**
      * test the creation of the desribes and describedBy sysmeta elements
      */
-    @Test
+    //@Test
     public void testCreateDescribedDataAndMetadata()
     {
         try
@@ -775,7 +775,7 @@ public class D1ClientTest  {
      * test creation of data.  this also tests get() since it
      * is used to verify the inserted metadata
      */
-    @Test
+    //@Test
     public void testCreateData() 
     {
         for(int i=0; i<nodeList.size(); i++)
@@ -872,6 +872,18 @@ public class D1ClientTest  {
     		d1 = new D1Client(currentUrl);
     		MNode mn = d1.getMN(currentUrl);
 
+    		String principal = "uid%3Dkepler,o%3Dunaffiliated,dc%3Decoinformatics,dc%3Dorg";
+            AuthToken token = null;
+            try
+            {
+                token = mn.login(principal, "kepler");
+            }
+            catch(Exception e)
+            {
+                errorCollector.addError(new Throwable(createAssertMessage() + 
+                        " Error loggin in for testCreateData_IdentifierEncoding: " + e.getMessage()));
+            }
+            
     		for (int j=0; j<unicodeString.size(); j++) 
     		{
     			String status = "OK   ";
@@ -885,8 +897,7 @@ public class D1ClientTest  {
     			try
     			{
     				checkTrue(true);
-    				String principal = "uid%3Dkepler,o%3Dunaffiliated,dc%3Decoinformatics,dc%3Dorg";
-    				AuthToken token = mn.login(principal, "kepler");
+    				
     				Identifier guid = new Identifier();
     				guid.setValue(idString);
     				InputStream objectStream = this.getClass().getResourceAsStream(
@@ -932,7 +943,7 @@ public class D1ClientTest  {
     }
 
     
-    @Test
+    //@Test
     public void testGetChecksumAuthTokenIdentifierTypeString() 
     {
         //create a doc
@@ -1003,7 +1014,7 @@ public class D1ClientTest  {
      * test creation of science metadata.  this also tests get() since it
      * is used to verify the inserted metadata
      */
-    @Test
+    //@Test
     public void testSemiColonIdentifiers() 
     {
         for(int i=0; i<nodeList.size(); i++)
@@ -1047,7 +1058,7 @@ public class D1ClientTest  {
      * test creation of science metadata.  this also tests get() since it
      * is used to verify the inserted metadata
      */
-    @Test
+    //@Test
     public void testCreateScienceMetadata() 
     {
         for(int i=0; i<nodeList.size(); i++)
@@ -1099,7 +1110,7 @@ public class D1ClientTest  {
         }
     }
     
-    @Test
+    //@Test
     public void testDelete() 
     {
         for(int i=0; i<nodeList.size(); i++)
@@ -1146,7 +1157,7 @@ public class D1ClientTest  {
         }
     }
     
-    @Test
+    //@Test
     public void testDescribe() 
     {
         for(int i=0; i<nodeList.size(); i++)
@@ -1193,7 +1204,7 @@ public class D1ClientTest  {
         }
     }
 
-    @Test
+    //@Test
     public void testGetNotFound() 
     {
         for(int i=0; i<nodeList.size(); i++)
