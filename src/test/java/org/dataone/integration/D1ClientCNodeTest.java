@@ -71,6 +71,7 @@ public class D1ClientCNodeTest  {
 	private static String identifierEncodingTestFile = "/d1_testdocs/encodingTestSet/testAsciiStrings.utf8.txt";
 //	private static HashMap<String,String> StandardTests = new HashMap<String,String>();
 	private static Vector<String> testPIDEncodingStrings = new Vector<String>();
+	private static Vector<String> encodedPIDStrings = new Vector<String>();
 	@Rule 
 	public ErrorCollector errorCollector = new ErrorCollector();
 
@@ -96,6 +97,7 @@ public class D1ClientCNodeTest  {
 						temp = line.split("\t");
 						if (temp.length > 1)
 							testPIDEncodingStrings.add(temp[0]);
+							encodedPIDStrings.add(temp[1]);
 //						StandardTests.put(temp[0], temp[1]);
 					}
 				}	
@@ -119,7 +121,10 @@ public class D1ClientCNodeTest  {
 		String idString = "test" + ExampleUtilities.generateIdentifier();
 		Vector<String> testIDs = new Vector<String>();
 		testIDs.add(idString);
-		resolveRunner(testIDs);
+		Vector<String> encodedIDs = new Vector<String>();
+		encodedIDs.add(idString);
+
+		resolveRunner(testIDs,encodedIDs);
 	}
 
 
@@ -153,21 +158,23 @@ public class D1ClientCNodeTest  {
 	public void test_IdEncoding() 
 	{
 		Vector<String> testIDs  = new Vector<String>();	
+		Vector<String> encodedIDs  = new Vector<String>();	
 		printHeader("test_IdEncoding");
 			
 		for (int j=0; j<testPIDEncodingStrings.size(); j++) 
 		{
-			String idString = "cn:testid:" + ExampleUtilities.generateIdentifier() + ":" + testPIDEncodingStrings.get(j);
-			testIDs.add(idString);
+			String idStringPrefix = "cn:testid:" + ExampleUtilities.generateIdentifier() + ":";
+			testIDs.add(idStringPrefix + testPIDEncodingStrings.get(j));
+			encodedIDs.add(idStringPrefix + encodedPIDStrings.get(j));
 		}
-		resolveRunner(testIDs);
+		resolveRunner(testIDs,encodedIDs);
 	}
 
 	/*
 	 * a general procedure for creating and testing the return from resolve for different
 	 * identifier strings
 	 */
-	private void resolveRunner(Vector<String> ids) {
+	private void resolveRunner(Vector<String> ids, Vector<String> encodedIDs) {
 
 		Vector<String> summaryReport = new Vector<String>();
 		
@@ -190,6 +197,7 @@ public class D1ClientCNodeTest  {
 				message = "-";
 				try {
 					String idString = ids.get(j);
+					String encodedID = encodedIDs.get(j);
 					guid.setValue(idString);
 					System.out.println();
 					System.out.println("*** ID string:  " + idString);
@@ -212,9 +220,15 @@ public class D1ClientCNodeTest  {
 
 					ObjectLocationList oll = cn.resolve(token, rGuid);
 					for (ObjectLocation ol : oll.getObjectLocationList()) {
-						System.out.println("Location: " + ol.getNodeIdentifier().getValue()
+						System.out.println("   === Location: " + ol.getNodeIdentifier().getValue()
 								+ " (" + ol.getUrl() + ")");
-						checkTrue(ol.getUrl().contains(idString));
+						if (ol.getUrl().contains(encodedID))
+							checkTrue(true);
+						else
+						{
+							status = "Fail";
+							message = "encodedID not found: " + encodedID;
+						}
 					}
 				}
 				catch (Exception e) {
