@@ -22,9 +22,13 @@ package org.dataone.integration;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.InetAddress;
 import java.net.MalformedURLException;
@@ -38,6 +42,7 @@ import java.util.TreeSet;
 import java.util.Vector;
 import java.util.concurrent.Callable;
 
+import org.apache.commons.io.IOUtils;
 import org.dataone.client.CNode;
 import org.dataone.client.D1Client;
 import org.dataone.client.MNode;
@@ -50,6 +55,10 @@ import org.dataone.service.types.ObjectFormat;
 import org.dataone.service.types.ObjectLocation;
 import org.dataone.service.types.ObjectLocationList;
 import org.dataone.service.types.SystemMetadata;
+import org.jibx.runtime.BindingDirectory;
+import org.jibx.runtime.IBindingFactory;
+import org.jibx.runtime.IMarshallingContext;
+import org.jibx.runtime.JiBXException;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
@@ -92,13 +101,13 @@ public class D1ClientCNodeTest  {
 				{
 					String line = s.nextLine();
 					if (line.startsWith("common-") || line.startsWith("path-"))
+						if (line.contains(";"))
 					{
 						System.out.println(c++ + "   " + line);
 						temp = line.split("\t");
 						if (temp.length > 1)
 							testPIDEncodingStrings.add(temp[0]);
 							encodedPIDStrings.add(temp[1]);
-//						StandardTests.put(temp[0], temp[1]);
 					}
 				}	
 				System.out.println("");
@@ -109,8 +118,99 @@ public class D1ClientCNodeTest  {
 		}
 	}
 
+	/**
+	 * test the resolve() operation on Coordinating Nodes
+	 * @throws JiBXException 
+	 */
+	@Test
+	public void testCNGetSysMeta() throws JiBXException {
 
-	
+		printHeader("testGetSysMeta vs. node " + cnUrl);
+
+		// create a new object in order to retrieve its sysmeta
+		D1Client d1 = new D1Client(mnUrl);
+		MNode mn = d1.getMN(mnUrl);
+		String principal = "uid%3Dkepler,o%3Dunaffiliated,dc%3Decoinformatics,dc%3Dorg";
+		
+		try {
+			AuthToken token = mn.login(principal, "kepler");
+			String idString = "test:cn:meta:" + ExampleUtilities.generateIdentifier();
+			Identifier guid = new Identifier();
+			guid.setValue(idString);
+
+			//insert a data file
+			InputStream objectStream = this.getClass().getResourceAsStream("/d1_testdocs/knb-lter-cdr.329066.1.data");
+			SystemMetadata sysmeta = ExampleUtilities.generateSystemMetadata(guid, ObjectFormat.TEXT_CSV);
+			
+			Identifier rGuid = null;
+			
+			rGuid = mn.create(token, guid, objectStream, sysmeta);
+			System.out.println("    == returned Guid (rGuid): " + rGuid.getValue());
+			mn.setAccess(token, rGuid, "public", "read", "allow", "allowFirst");
+			checkEquals(guid.getValue(), rGuid.getValue());
+
+			SystemMetadata mnSysMeta = mn.getSystemMetadata(token, rGuid);
+			String mnSMString = serializeSystemMetadata(mnSysMeta);
+			
+			d1 = new D1Client(cnUrl);
+			CNode cn = d1.getCN();
+		
+			SystemMetadata cnSysMeta = cn.getSystemMetadata(token, guid);
+			String cnSMString = serializeSystemMetadata(cnSysMeta);
+			assertTrue("systemMetadata from mn equals sysmeta from cn",mnSMString.equals(cnSMString));
+
+		} catch (BaseException e) {
+			checkTrue(e instanceof NotFound);
+		}
+	}
+
+	/**
+	 * test the resolve() operation on Coordinating Nodes
+	 * @throws JiBXException 
+	 */
+	@Test
+	public void testCNGet() throws JiBXException {
+
+		printHeader("testGet vs. node " + cnUrl);
+
+		// create a new object in order to retrieve its sysmeta
+		D1Client d1 = new D1Client(mnUrl);
+		MNode mn = d1.getMN(mnUrl);
+		String principal = "uid%3Dkepler,o%3Dunaffiliated,dc%3Decoinformatics,dc%3Dorg";
+		
+		try {
+			AuthToken token = mn.login(principal, "kepler");
+			String idString = "test:cn:get:" + ExampleUtilities.generateIdentifier();
+			Identifier guid = new Identifier();
+			guid.setValue(idString);
+
+			//insert a data file
+			InputStream objectStream = this.getClass().getResourceAsStream("/d1_testdocs/knb-lter-cdr.329066.1.data");
+			SystemMetadata sysmeta = ExampleUtilities.generateSystemMetadata(guid, ObjectFormat.TEXT_CSV);
+			
+			Identifier rGuid = null;
+			
+			rGuid = mn.create(token, guid, objectStream, sysmeta);
+			System.out.println("    == returned Guid (rGuid): " + rGuid.getValue());
+			mn.setAccess(token, rGuid, "public", "read", "allow", "allowFirst");
+			checkEquals(guid.getValue(), rGuid.getValue());
+
+			String mnIn = IOUtils.toString(mn.get(token, rGuid));
+			
+			d1 = new D1Client(cnUrl);
+			CNode cn = d1.getCN();
+		
+			String cnIn = IOUtils.toString(cn.get(token, guid));
+			assertTrue("data from mn equals data from cn",mnIn.equals(cnIn));
+
+		} catch (BaseException e) {
+
+		} catch (IOException e) {
+
+		}
+	}
+
+
 	
 	
 	/**
@@ -136,7 +236,7 @@ public class D1ClientCNodeTest  {
 		D1Client d1 = new D1Client(cnUrl);
 		CNode cn = d1.getCN();
 
-		printHeader("testResolve - node " + cnUrl);
+		printHeader("testInvalidResolve vs. node " + cnUrl);
 		//AuthToken token = new AuthToken();
 		AuthToken token = null;
 		Identifier guid = new Identifier();
@@ -228,6 +328,7 @@ public class D1ClientCNodeTest  {
 						{
 							status = "Fail";
 							message = "encodedID not found: " + encodedID;
+							errorCollector.addError(new Throwable(createAssertMessage() + " encodedID not found: " + encodedID));
 						}
 					}
 				}
@@ -288,4 +389,41 @@ public class D1ClientCNodeTest  {
 			}
 				});
 	}
+
+	/**
+	 * Serialize the system metadata object to a ByteArrayInputStream
+	 * @param sysmeta
+	 * @return
+	 * @throws JiBXException
+	 */
+	private String serializeSystemMetadata(SystemMetadata sysmeta)
+			throws JiBXException {
+
+		ByteArrayOutputStream sysmetaOut = new ByteArrayOutputStream();
+		serializeServiceType(SystemMetadata.class, sysmeta, sysmetaOut);
+		return sysmetaOut.toString();
+	}
+	
+	/**
+	 * serialize an object of type to out
+	 * 
+	 * @param type
+	 *            the class of the object to serialize (i.e.
+	 *            SystemMetadata.class)
+	 * @param object
+	 *            the object to serialize
+	 * @param out
+	 *            the stream to serialize it to
+	 * @throws JiBXException
+	 */
+	@SuppressWarnings("rawtypes")
+	private void serializeServiceType(Class type, Object object,
+			OutputStream out) throws JiBXException {
+		IBindingFactory bfact = BindingDirectory.getFactory(type);
+		IMarshallingContext mctx = bfact.createMarshallingContext();
+		mctx.marshalDocument(object, "UTF-8", null, out);
+	}
+	
+	
+
 }
