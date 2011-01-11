@@ -101,7 +101,6 @@ public class D1ClientCNodeTest  {
 				{
 					String line = s.nextLine();
 					if (line.startsWith("common-") || line.startsWith("path-"))
-						if (line.contains(";"))
 					{
 						System.out.println(c++ + "   " + line);
 						temp = line.split("\t");
