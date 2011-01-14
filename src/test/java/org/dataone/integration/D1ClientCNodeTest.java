@@ -41,6 +41,8 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.Vector;
 import java.util.concurrent.Callable;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.commons.io.IOUtils;
 import org.dataone.client.CNode;
@@ -52,6 +54,7 @@ import org.dataone.service.exceptions.NotFound;
 import org.dataone.service.types.AuthToken;
 import org.dataone.service.types.Identifier;
 import org.dataone.service.types.ObjectFormat;
+import org.dataone.service.types.ObjectList;
 import org.dataone.service.types.ObjectLocation;
 import org.dataone.service.types.ObjectLocationList;
 import org.dataone.service.types.SystemMetadata;
@@ -118,7 +121,73 @@ public class D1ClientCNodeTest  {
 	}
 
 	/**
-	 * test the resolve() operation on Coordinating Nodes
+	 * test the listObject() operation on Coordinating Nodes
+	 * @throws JiBXException 
+	 */
+	@Test
+	public void testlistObject() throws JiBXException {
+
+		printHeader("testlistObject vs. node " + cnUrl);
+
+		// create a new object in order to retrieve its sysmeta
+		D1Client d1 = new D1Client(mnUrl);
+		MNode mn = d1.getMN(mnUrl);
+		String principal = "uid%3Dkepler,o%3Dunaffiliated,dc%3Decoinformatics,dc%3Dorg";
+		
+		try {
+			// creating an object to ensure that there is at least one object to list
+//			AuthToken token = mn.login(principal, "kepler");
+//			String idString = "test:cn:listobject:" + ExampleUtilities.generateIdentifier();
+//			Identifier guid = new Identifier();
+//			guid.setValue(idString);
+//
+//			//insert a data file
+//			InputStream objectStream = this.getClass().getResourceAsStream("/d1_testdocs/knb-lter-cdr.329066.1.data");
+//			SystemMetadata sysmeta = ExampleUtilities.generateSystemMetadata(guid, ObjectFormat.TEXT_CSV);
+//			
+//			Identifier rGuid = null;
+//			
+//			rGuid = mn.create(token, guid, objectStream, sysmeta);
+//			System.out.println("    == returned Guid (rGuid): " + rGuid.getValue());
+//			mn.setAccess(token, rGuid, "public", "read", "allow", "allowFirst");
+//			checkEquals(guid.getValue(), rGuid.getValue());
+
+			// test the totals that come back from each call
+			Pattern pat = Pattern.compile("total=\"\\d+\"");
+
+			
+			ObjectList mnOL = mn.listObjects();
+			String mnOLString = serializeObjectList(mnOL);
+
+			Matcher mat = pat.matcher(mnOLString);
+			String mnTotalPattern = null;
+			if (mat.find())
+				mnTotalPattern = mat.group();
+			System.out.println("   ===> total from mn call = " + mnTotalPattern);
+			
+			d1 = new D1Client(cnUrl);
+			CNode cn = d1.getCN();
+		
+			ObjectList cnOL = cn.listObjects();
+			String cnOLString = serializeObjectList(cnOL);
+			mat = pat.matcher(cnOLString);	
+			String cnTotalPattern = null;
+			if (mat.find())
+				cnTotalPattern = mat.group();
+
+			System.out.println("   ===> total from cn call = " + cnTotalPattern);
+
+			
+			// have to compare length of files because the order of elements is not consistent
+			assertTrue("objectList total from mn equals that from cn",cnTotalPattern.equals(mnTotalPattern));
+			
+		} catch (BaseException e) {
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * test the getSystemMetacata() operation on Coordinating Nodes
 	 * @throws JiBXException 
 	 */
 	@Test
@@ -162,7 +231,8 @@ public class D1ClientCNodeTest  {
 			checkTrue(e instanceof NotFound);
 		}
 	}
-
+	
+	
 	/**
 	 * test the resolve() operation on Coordinating Nodes
 	 * @throws JiBXException 
@@ -389,6 +459,21 @@ public class D1ClientCNodeTest  {
 				});
 	}
 
+	/**
+	 * Serialize the objectList object to a ByteArrayInputStream
+	 * @param sysmeta
+	 * @return
+	 * @throws JiBXException
+	 */
+	private String serializeObjectList(ObjectList objectlist)
+			throws JiBXException {
+
+		ByteArrayOutputStream responseOut = new ByteArrayOutputStream();
+		serializeServiceType(SystemMetadata.class, objectlist, responseOut);
+		return responseOut.toString();
+	}
+
+	
 	/**
 	 * Serialize the system metadata object to a ByteArrayInputStream
 	 * @param sysmeta

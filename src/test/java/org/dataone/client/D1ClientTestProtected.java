@@ -1,6 +1,7 @@
 package org.dataone.client;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -13,6 +14,9 @@ import java.net.UnknownHostException;
 import org.apache.commons.io.IOUtils;
 import org.dataone.client.D1Node.ResponseData;
 import org.dataone.service.Constants;
+import org.dataone.service.exceptions.BaseException;
+import org.dataone.service.exceptions.InvalidRequest;
+import org.dataone.service.exceptions.ServiceFailure;
 import org.dataone.service.types.AuthToken;
 import org.junit.Assume;
 import org.junit.Rule;
@@ -21,11 +25,56 @@ import org.junit.rules.ErrorCollector;
 
 
 public class D1ClientTestProtected {
+	private static final String baseURL = "http://cn-dev.dataone.org";
+	private static final String cnUrl = "http://cn-dev.dataone.org/cn/";
+	private static final String mnUrl = "http://cn-dev.dataone.org/knb/d1/";
 
 	@Rule 
 	public ErrorCollector errorCollector = new ErrorCollector();
 
 	
+	@Test
+	public void testBadParametersVsListObjects() throws ServiceFailure
+	{
+		String resource = Constants.RESOURCE_OBJECTS;
+		String urlParameters = "xxx=XXX&yyy=YYY";
+
+		runBadParametersTests(resource, urlParameters);
+	}
+	
+	
+	private void runBadParametersTests(String resource, String urlParameters) throws ServiceFailure
+	{
+		CNode cn = new CNode(cnUrl);
+		ResponseData rd = cn.sendRequest(null, resource, Constants.GET, urlParameters, null, null, null);
+
+		// First handle any errors that were generated	
+		int code = rd.getCode();
+		System.out.println("code = " + code);
+		if (code != HttpURLConnection.HTTP_OK) {
+			InputStream errorStream = rd.getErrorStream();
+			try {
+				cn.deserializeAndThrowException(code,errorStream);
+				assertTrue("Bad parameters should have thrown an exception", false);
+			} catch (InvalidRequest e) {
+				System.out.println("=== Exception code: " + e.getCode());
+				System.out.println("=== Exception type: " + e.getClass());
+				System.out.println("=== exception msg:  " + e.getMessage());
+				assertTrue("Bad parameters should result in invalidRequest exception",true);
+			} catch (BaseException e) {
+				System.out.println("=== Exception code: " + e.getCode());
+				System.out.println("=== Exception type: " + e.getClass());
+				System.out.println("=== exception msg:  " + e.getMessage());
+				assertTrue("Unexpected dataone exception: " + e.getCode() + " " + e.getClass(), false);
+			} catch (Exception e) {
+				System.out.println("=== Exception type: " + e.getClass());
+				System.out.println("=== exception msg:  " + e.getMessage());
+				assertTrue("Unexpected exception: " + e.getClass(), false);
+			}
+		} else {
+			assertTrue("Exception should have been thrown.", false);
+		}
+	}
 	
 	/**
      * test that trailing slashes do not affect the response of the node
@@ -61,7 +110,6 @@ public class D1ClientTestProtected {
     	
     	try
         {
-            InputStream is = null;
             String resource = Constants.RESOURCE_OBJECTS;
             String params = "";
 
@@ -129,7 +177,6 @@ public class D1ClientTestProtected {
     	
     	try
         {
-            InputStream is = null;
             String resource = Constants.RESOURCE_OBJECTS;
             String params = "";
 
