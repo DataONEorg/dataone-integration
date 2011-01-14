@@ -14,7 +14,8 @@ common-unicode-ascii-escaped-space x x	common-unicode-ascii-escaped-space%20x%20
 common-unicode-ascii-escape-anyway-+	common-unicode-ascii-escape-anyway-%2B
 common-unicode-ascii-escape-space-v-plus-+ +%20 %20+	common-unicode-ascii-escape-space-v-plus-%2B%20%2B%2520%20%2520%2B
 path-unicode-ascii-safe-&=&=	path-unicode-ascii-safe-&=&=
-path-unicode-ascii-escaped-;	path-unicode-ascii-escaped-%3B
+path-unicode-ascii-escaped-trailing-;	path-unicode-ascii-escaped-trailing-%3B
+path-unicode-ascii-escaped-;-case	path-unicode-ascii-escaped-%3B-case
 path-unicode-ascii-escaped-?	path-unicode-ascii-escaped-%3F
 path-unicode-ascii-escaped-/	path-unicode-ascii-escaped-%2F
 path-unicode-ascii-escaped-%3F	path-unicode-ascii-escaped-%253F
