@@ -132,7 +132,7 @@ public class D1ClientCNodeTest  {
 		// create a new object in order to retrieve its sysmeta
 		D1Client d1 = new D1Client(mnUrl);
 		MNode mn = d1.getMN(mnUrl);
-		String principal = "uid%3Dkepler,o%3Dunaffiliated,dc%3Decoinformatics,dc%3Dorg";
+//		String principal = "uid%3Dkepler,o%3Dunaffiliated,dc%3Decoinformatics,dc%3Dorg";
 		
 		try {
 			// creating an object to ensure that there is at least one object to list
@@ -153,16 +153,11 @@ public class D1ClientCNodeTest  {
 //			checkEquals(guid.getValue(), rGuid.getValue());
 
 			// test the totals that come back from each call
-			Pattern pat = Pattern.compile("total=\"\\d+\"");
-
 			
 			ObjectList mnOL = mn.listObjects();
 			String mnOLString = serializeObjectList(mnOL);
-
-			Matcher mat = pat.matcher(mnOLString);
-			String mnTotalPattern = null;
-			if (mat.find())
-				mnTotalPattern = mat.group();
+			String mnTotalPattern = ExampleUtilities.extractObjectListTotalAttribute(mnOLString);
+			
 			System.out.println("   ===> total from mn call = " + mnTotalPattern);
 			
 			d1 = new D1Client(cnUrl);
@@ -170,13 +165,9 @@ public class D1ClientCNodeTest  {
 		
 			ObjectList cnOL = cn.listObjects();
 			String cnOLString = serializeObjectList(cnOL);
-			mat = pat.matcher(cnOLString);	
-			String cnTotalPattern = null;
-			if (mat.find())
-				cnTotalPattern = mat.group();
+			String cnTotalPattern = ExampleUtilities.extractObjectListTotalAttribute(cnOLString);
 
 			System.out.println("   ===> total from cn call = " + cnTotalPattern);
-
 			
 			// have to compare length of files because the order of elements is not consistent
 			assertTrue("objectList total from mn equals that from cn",cnTotalPattern.equals(mnTotalPattern));

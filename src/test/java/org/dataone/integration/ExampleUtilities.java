@@ -28,12 +28,17 @@ import java.util.GregorianCalendar;
 import java.util.SimpleTimeZone;
 import java.util.TimeZone;
 import java.util.Vector;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+import org.dataone.client.CNode;
+import org.dataone.client.D1Client;
 import org.dataone.service.types.Checksum;
 import org.dataone.service.types.ChecksumAlgorithm;
 import org.dataone.service.types.Identifier;
 import org.dataone.service.types.NodeReference;
 import org.dataone.service.types.ObjectFormat;
+import org.dataone.service.types.ObjectList;
 import org.dataone.service.types.Principal;
 import org.dataone.service.types.Replica;
 import org.dataone.service.types.ReplicationStatus;
@@ -396,4 +401,14 @@ public class ExampleUtilities {
         }
         return hex.toString();
     }
+    
+    protected static String extractObjectListTotalAttribute(String ol) {
+    	Pattern pat = Pattern.compile("total=\"\\d+\"");
+
+		Matcher mat = pat.matcher(ol);
+		String totalPattern = null;
+		if (mat.find())
+			totalPattern = mat.group();
+		return totalPattern;
+    }    
 }

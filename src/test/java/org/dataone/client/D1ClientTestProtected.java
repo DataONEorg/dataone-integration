@@ -10,6 +10,8 @@ import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.UnknownHostException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.commons.io.IOUtils;
 import org.dataone.client.D1Node.ResponseData;
@@ -18,6 +20,7 @@ import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.InvalidRequest;
 import org.dataone.service.exceptions.ServiceFailure;
 import org.dataone.service.types.AuthToken;
+import org.dataone.integration.ExampleUtilities;
 import org.junit.Assume;
 import org.junit.Rule;
 import org.junit.Test;
@@ -82,7 +85,7 @@ public class D1ClientTestProtected {
     @Test
     public void testTrailingSlashes_Metacat()
     {
-    	String baseURL = "http://cn-dev.dataone.org/knb";
+    	String baseURL = "http://cn-dev.dataone.org/knb/d1";
     	MNode node = new MNode(baseURL);
 
     	String localhostName = "";
@@ -132,8 +135,10 @@ public class D1ClientTestProtected {
             ResponseData rd2 = node.sendRequest(token, resource + "/", 
                     Constants.GET, params, null, null, null);
             String rd1response = IOUtils.toString(rd1.getContentStream());
+            String rd1Total = D1ClientTestProtected.extractObjectListTotalAttribute(rd1response);
             String rd2response = IOUtils.toString(rd2.getContentStream());
-            assertEquals(rd1response.trim(), rd2response.trim());
+            String rd2Total = D1ClientTestProtected.extractObjectListTotalAttribute(rd2response);
+            assertEquals(rd1Total, rd2Total);
         }
         catch(Exception e)
         {
@@ -186,22 +191,98 @@ public class D1ClientTestProtected {
             AuthToken token = new AuthToken("public");
 
             //without trailing slash
+            ResponseData rd1 = node.sendRequest(null, resource, 
+                    Constants.GET, params, null, null, null);
+            //with trailing slash
+            ResponseData rd2 = node.sendRequest(null, resource + "/", 
+                    Constants.GET, params, null, null, null);
+            
+            String rd1response = IOUtils.toString(rd1.getContentStream());
+            String rd1Total = D1ClientTestProtected.extractObjectListTotalAttribute(rd1response);
+            String rd2response = IOUtils.toString(rd2.getContentStream());
+            String rd2Total = D1ClientTestProtected.extractObjectListTotalAttribute(rd2response);
+            assertEquals(rd1Total, rd2Total);
+        }
+        catch(Exception e)
+        {
+        	e.printStackTrace();
+        	errorCollector.addError(new Throwable(
+                    "Unexpected Exception in testTrailingSlashes: " + e.getMessage()));
+        }
+    }
+    
+	/**
+     * test that trailing slashes do not affect the response of the node
+     */
+    @Test
+    public void testTrailingSlashes_CN_publicToken()
+    {
+    	String baseURL = "http://cn-dev.dataone.org/cn";
+    	MNode node = new MNode(baseURL);
+
+    	String localhostName = "";
+    	try {
+			 localhostName = InetAddress.getLocalHost().getHostName();
+			 System.out.println("Localhost Name: " + localhostName);
+		} catch (UnknownHostException e2) {
+			e2.printStackTrace();
+		}
+    	// need to add Assume test to see if the test can be run:
+    	// don't always have a localhost set up.
+ 		try {
+ 			if (!localhostName.contains("cn-dev")) {
+ 				URL u = new URL(node.getNodeBaseServiceUrl());
+ 				HttpURLConnection connection = null;	
+ 				connection = (HttpURLConnection) u.openConnection();
+ 				connection.connect();
+ 			}
+		} catch (MalformedURLException e1) {
+			e1.printStackTrace();
+		} catch (IOException e) {
+			System.out.println("Web server '" + baseURL + "' assumed not set up. Skipping test.");
+			Assume.assumeTrue(false);
+		}
+    	
+    	try
+        {
+            String resource = Constants.RESOURCE_OBJECTS;
+            String params = "";
+
+
+            System.out.println(resource);
+            
+            AuthToken token = new AuthToken("public");
+
+            //without trailing slash
             ResponseData rd1 = node.sendRequest(token, resource, 
                     Constants.GET, params, null, null, null);
             //with trailing slash
             ResponseData rd2 = node.sendRequest(token, resource + "/", 
                     Constants.GET, params, null, null, null);
+            
             String rd1response = IOUtils.toString(rd1.getContentStream());
+            String rd1Total = D1ClientTestProtected.extractObjectListTotalAttribute(rd1response);
             String rd2response = IOUtils.toString(rd2.getContentStream());
-            assertEquals(rd1response.trim(), rd2response.trim());
+            String rd2Total = D1ClientTestProtected.extractObjectListTotalAttribute(rd2response);
+            assertEquals(rd1Total, rd2Total);
         }
         catch(Exception e)
         {
-            errorCollector.addError(new Throwable(
+        	e.printStackTrace();
+        	errorCollector.addError(new Throwable(
                     "Unexpected Exception in testTrailingSlashes: " + e.getMessage()));
         }
     }
+    
   
-	
+    protected static String extractObjectListTotalAttribute(String ol) {
+    	Pattern pat = Pattern.compile("total=\"\\d+\"");
+
+		Matcher mat = pat.matcher(ol);
+		String totalPattern = null;
+		if (mat.find())
+			totalPattern = mat.group();
+		return totalPattern;
+    }
 	
 }
