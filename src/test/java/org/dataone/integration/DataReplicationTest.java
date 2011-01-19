@@ -12,10 +12,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Date;
-import java.util.List;
 import java.util.concurrent.Callable;
 
 import org.apache.commons.io.IOUtils;
@@ -24,8 +22,9 @@ import org.dataone.client.D1Client;
 import org.dataone.client.MNode;
 import org.dataone.client.D1Node.ResponseData;
 import org.dataone.service.Constants;
-import org.dataone.service.EncodingUtilities;
 import org.dataone.service.exceptions.BaseException;
+import org.dataone.service.exceptions.IdentifierNotUnique;
+import org.dataone.service.exceptions.InsufficientResources;
 import org.dataone.service.exceptions.InvalidRequest;
 import org.dataone.service.exceptions.InvalidSystemMetadata;
 import org.dataone.service.exceptions.InvalidToken;
@@ -33,11 +32,9 @@ import org.dataone.service.exceptions.NotAuthorized;
 import org.dataone.service.exceptions.NotFound;
 import org.dataone.service.exceptions.NotImplemented;
 import org.dataone.service.exceptions.ServiceFailure;
+import org.dataone.service.exceptions.UnsupportedType;
 import org.dataone.service.types.AuthToken;
 import org.dataone.service.types.Identifier;
-import org.dataone.service.types.ObjectFormat;
-import org.dataone.service.types.ObjectLocation;
-import org.dataone.service.types.ObjectLocationList;
 import org.dataone.service.types.SystemMetadata;
 import org.jibx.runtime.BindingDirectory;
 import org.jibx.runtime.IBindingFactory;
@@ -64,18 +61,20 @@ public class DataReplicationTest {
 	private static final String cn_id = "cn-dev";
 	private static final String cn_Url = "http://cn-dev.dataone.org/cn/";
 	// mn1 needs to be a published node that supports login, create, get and meta
-	private static final String mn1_id = "http://knb-mn.ecoinformatics.org";
-	private static final String mn1_Url = "http://knb-mn.ecoinformatics.org/knb/";
-//	private static final String mn1_id = "unregistered";
-//	private static final String mn1_Url = "http://cn-dev.dataone.org/knb/d1/";
+//	private static final String mn1_id = "http://knb-mn.ecoinformatics.org";
+//	private static final String mn1_Url = "http://knb-mn.ecoinformatics.org/knb/";
+	private static final String mn1_id = "unregistered";
+	private static final String mn1_Url = "http://cn-dev.dataone.org/knb/d1/";
 	
 	private static final String mn2_id = "http://mn-dev.dataone.org";
 	private static final String mn2_Url = "http://home.offhegoes.net:8080/knb/d1/";
 	
 	private static final int replicateWaitLimitSec = 20;
-	private static final int pollingFrequencyMS = 5000;
+	private static final int pollingFrequencySec = 5;
 	
 	private static final int replicateResolveWaitLimitSec = 120;
+
+	
 	
 /* other mn info	
 	http://dev-dryad-mn.dataone.org
@@ -102,10 +101,15 @@ public class DataReplicationTest {
 	 * @throws InvalidRequest
 	 * @throws NotFound
 	 * @throws IOException
+	 * @throws InvalidSystemMetadata 
+	 * @throws InsufficientResources 
+	 * @throws UnsupportedType 
+	 * @throws IdentifierNotUnique 
 	 */
 	@Test
-	public void testReplicateWithGet() throws ServiceFailure, NotImplemented, InterruptedException, 
-	InvalidToken, NotAuthorized, InvalidRequest, NotFound, IOException 
+	public void testDataReplicateWithGet() throws ServiceFailure, NotImplemented, InterruptedException, 
+	InvalidToken, NotAuthorized, InvalidRequest, NotFound, IOException, IdentifierNotUnique, UnsupportedType,
+	InsufficientResources, InvalidSystemMetadata 
 	{
 		// create the players
 		D1Client d1 = new D1Client(cn_Url);
@@ -115,7 +119,7 @@ public class DataReplicationTest {
 		AuthToken token = null;
 		
 		// create new object on MN_1
-		Identifier pid = doCreateNewObject(mn1);
+		Identifier pid = ExampleUtilities.doCreateNewObject(mn1, prefix);
 
 		// issue a replicate command to MN2 to get the object
 		SystemMetadata smd = mn1.getSystemMetadata(token, pid);
@@ -134,11 +138,11 @@ public class DataReplicationTest {
 				notFound = true;
 				// expect a notfound until replication completes
 			}
-			Thread.sleep(pollingFrequencyMS); // millisec's
-			elapsedTimeSec += pollingFrequencyMS;
+			Thread.sleep(pollingFrequencySec * 1000); // millisec's
+			elapsedTimeSec += pollingFrequencySec;
 			System.out.println("Time elapsed: " + elapsedTimeSec);
 		} 
-		assertTrue("New object replicated on " + mn2_id, !notFound);
+		assertTrue("New object replication on " + mn2_id, !notFound);
 	}
 
 	/**
@@ -152,10 +156,15 @@ public class DataReplicationTest {
 	 * @throws InvalidRequest
 	 * @throws NotFound
 	 * @throws IOException
+	 * @throws InvalidSystemMetadata 
+	 * @throws InsufficientResources 
+	 * @throws UnsupportedType 
+	 * @throws IdentifierNotUnique 
 	 */
 	@Test
-	public void testReplicateWithMeta() throws ServiceFailure, NotImplemented, InterruptedException, 
-	InvalidToken, NotAuthorized, InvalidRequest, NotFound, IOException 
+	public void testDataReplicateWithMeta() throws ServiceFailure, NotImplemented, InterruptedException, 
+	InvalidToken, NotAuthorized, InvalidRequest, NotFound, IOException, IdentifierNotUnique, UnsupportedType,
+	InsufficientResources, InvalidSystemMetadata 
 	{
 		// create the players
 		D1Client d1 = new D1Client(cn_Url);
@@ -165,7 +174,7 @@ public class DataReplicationTest {
 		AuthToken token = null;
 		
 		// create new object on MN_1
-		Identifier pid = doCreateNewObject(mn1);
+		Identifier pid = ExampleUtilities.doCreateNewObject(mn1, prefix);
 
 		// issue a replicate command to MN2 to get the object
 		SystemMetadata smd = mn1.getSystemMetadata(token, pid);
@@ -185,8 +194,8 @@ public class DataReplicationTest {
 				notFound = true;
 				// expect a notfound until replication completes
 			}
-			Thread.sleep(pollingFrequencyMS); // millisec's
-			elapsedTimeSec += pollingFrequencyMS;
+			Thread.sleep(pollingFrequencySec * 1000); // millisec's
+			elapsedTimeSec += pollingFrequencySec;
 			System.out.println("Time elapsed: " + elapsedTimeSec);
 		} 
 		assertTrue("New object replicated on " + mn2_id, !notFound);
@@ -206,10 +215,15 @@ public class DataReplicationTest {
 	 * @throws InvalidRequest
 	 * @throws NotFound
 	 * @throws IOException
+	 * @throws InvalidSystemMetadata 
+	 * @throws InsufficientResources 
+	 * @throws UnsupportedType 
+	 * @throws IdentifierNotUnique 
 	 */
 //	@Test
-	public void testReplicateWithResolve() throws ServiceFailure, NotImplemented, InterruptedException, 
-	InvalidToken, NotAuthorized, InvalidRequest, NotFound, IOException 
+	public void testDataReplicateWithResolve() throws ServiceFailure, NotImplemented, InterruptedException, 
+	InvalidToken, NotAuthorized, InvalidRequest, NotFound, IOException, IdentifierNotUnique, UnsupportedType,
+	InsufficientResources, InvalidSystemMetadata 
 	{
 		// create the players
 		D1Client d1 = new D1Client(cn_Url);
@@ -219,11 +233,11 @@ public class DataReplicationTest {
 		AuthToken token = null;
 		
 		// create new object on MN_1
-		Identifier pid = doCreateNewObject(mn1);
+		Identifier pid = ExampleUtilities.doCreateNewObject(mn1, prefix);
 		
 
 		// do resolve and count locations
-		int preReplCount = countLocationsWithResolve(cn,pid);
+		int preReplCount = ExampleUtilities.countLocationsWithResolve(cn,pid);
 		System.out.println("locations before replication = " + preReplCount);
 
 		// issue a replicate command to MN2 to get the object
@@ -236,67 +250,21 @@ public class DataReplicationTest {
 		boolean notFound = true;
 		while (postReplCount == preReplCount && (elapsedTimeSec <= replicateResolveWaitLimitSec))
 		{
-			postReplCount = countLocationsWithResolve(cn,pid);
-			Thread.sleep(pollingFrequencyMS); // millisec's
-			elapsedTimeSec += pollingFrequencyMS;
+			postReplCount = ExampleUtilities.countLocationsWithResolve(cn,pid);
+			Thread.sleep(pollingFrequencySec * 1000); // millisec's
+			elapsedTimeSec += pollingFrequencySec;
 			System.out.println("Time elapsed: " + elapsedTimeSec);
 		} 
 		assertTrue("New object replicated on " + mn2_id, postReplCount > preReplCount);
 	}
 
-
+	
+	
 	//  ===================  helper procedures  =======================================//
-	
-	
-	private Identifier doCreateNewObject(MNode mn) throws ServiceFailure, NotImplemented
-	{
-		String principal = "uid%3Dkepler,o%3Dunaffiliated,dc%3Decoinformatics,dc%3Dorg";
-		AuthToken token = mn.login(principal, "kepler");
-		String idString = prefix + ExampleUtilities.generateIdentifier();
-		Identifier guid = new Identifier();
-		guid.setValue(idString);
-		InputStream objectStream = this.getClass().getResourceAsStream(
-				"/d1_testdocs/knb-lter-cdr.329066.1.data");
-		SystemMetadata sysmeta = ExampleUtilities.generateSystemMetadata(guid, ObjectFormat.TEXT_CSV);
-		Identifier rGuid = null;
-
-		try {
-			rGuid = mn.create(token, guid, objectStream, sysmeta);
-			//			 assertTrue("checking that returned guid matches given ", guid.equals(rGuid.getValue()));
-			assertThat("checking that returned guid matches given ", guid.getValue(), is(rGuid.getValue()));
-			mn.setAccess(token, rGuid, "public", "read", "allow", "allowFirst");
-			InputStream is = mn.get(null,guid);
-		} catch (Exception e) {
-			errorCollector.addError(new Throwable(" error in creating data for replication test: " + e.getMessage()));
-		}
-		return rGuid;
-	}
-	
-	/**
-	 *  
-	 * @param cn
-	 * @param pid
-	 * @return
-	 * @throws InvalidToken
-	 * @throws ServiceFailure
-	 * @throws NotAuthorized
-	 * @throws NotFound
-	 * @throws InvalidRequest
-	 * @throws NotImplemented
-	 */
-	private int countLocationsWithResolve(CNode cn, Identifier pid) throws InvalidToken, ServiceFailure,
-	NotAuthorized, NotFound, InvalidRequest, NotImplemented {
-
-		ObjectLocationList oll = cn.resolve(null, pid);
-		List<ObjectLocation> locs = oll.getObjectLocationList();
-		return locs.toArray().length;
-	}
-	
 	
 	private InputStream doReplicateCall(String mnBaseURL, AuthToken token, 
 			SystemMetadata sysmeta, String sourceNode) throws ServiceFailure, IOException
 	{
-		
 		String restURL = mnBaseURL + "replicate";
 		String method = Constants.POST;
 
@@ -435,13 +403,4 @@ public class DataReplicationTest {
 				sysmetaOut.toByteArray());
 		return sysmetaStream;
 	}
-	
-//	@SuppressWarnings("rawtypes")
-//	protected void serializeServiceType(Class type, Object object,
-//			OutputStream out) throws JiBXException 
-//			{
-//		IBindingFactory bfact = BindingDirectory.getFactory(type);
-//		IMarshallingContext mctx = bfact.createMarshallingContext();
-//		mctx.marshalDocument(object, "UTF-8", null, out);
-//	}
 }						

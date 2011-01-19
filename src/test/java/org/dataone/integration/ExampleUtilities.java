@@ -20,11 +20,15 @@
 
 package org.dataone.integration;
 
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertThat;
+
 import java.io.InputStream;
 import java.security.MessageDigest;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.List;
 import java.util.SimpleTimeZone;
 import java.util.TimeZone;
 import java.util.Vector;
@@ -33,12 +37,26 @@ import java.util.regex.Pattern;
 
 import org.dataone.client.CNode;
 import org.dataone.client.D1Client;
+import org.dataone.client.MNode;
+import org.dataone.service.exceptions.IdentifierNotUnique;
+import org.dataone.service.exceptions.InsufficientResources;
+import org.dataone.service.exceptions.InvalidRequest;
+import org.dataone.service.exceptions.InvalidSystemMetadata;
+import org.dataone.service.exceptions.InvalidToken;
+import org.dataone.service.exceptions.NotAuthorized;
+import org.dataone.service.exceptions.NotFound;
+import org.dataone.service.exceptions.NotImplemented;
+import org.dataone.service.exceptions.ServiceFailure;
+import org.dataone.service.exceptions.UnsupportedType;
+import org.dataone.service.types.AuthToken;
 import org.dataone.service.types.Checksum;
 import org.dataone.service.types.ChecksumAlgorithm;
 import org.dataone.service.types.Identifier;
 import org.dataone.service.types.NodeReference;
 import org.dataone.service.types.ObjectFormat;
 import org.dataone.service.types.ObjectList;
+import org.dataone.service.types.ObjectLocation;
+import org.dataone.service.types.ObjectLocationList;
 import org.dataone.service.types.Principal;
 import org.dataone.service.types.Replica;
 import org.dataone.service.types.ReplicationStatus;
@@ -411,4 +429,37 @@ public class ExampleUtilities {
 			totalPattern = mat.group();
 		return totalPattern;
     }    
+    
+	protected static Identifier doCreateNewObject(MNode mn, String idPrefix) throws ServiceFailure,
+	NotImplemented, InvalidToken, NotAuthorized, IdentifierNotUnique, UnsupportedType,
+	InsufficientResources, InvalidSystemMetadata, NotFound
+	{
+		String principal = "uid%3Dkepler,o%3Dunaffiliated,dc%3Decoinformatics,dc%3Dorg";
+		AuthToken token = mn.login(principal, "kepler");
+		String idString = idPrefix + ExampleUtilities.generateIdentifier();
+		Identifier guid = new Identifier();
+		guid.setValue(idString);
+		InputStream objectStream = 
+			new Throwable().getStackTrace()[2].getClass().getResourceAsStream("/d1_testdocs/knb-lter-cdr.329066.1.data");
+//		InputStream objectStream = Caller.getClass().getResourceAsStream(
+//				"/d1_testdocs/knb-lter-cdr.329066.1.data");
+		SystemMetadata sysmeta = ExampleUtilities.generateSystemMetadata(guid, ObjectFormat.TEXT_CSV);
+		Identifier rGuid = null;
+
+		rGuid = mn.create(token, guid, objectStream, sysmeta);
+		assertThat("checking that returned guid matches given ", guid.getValue(), is(rGuid.getValue()));
+		mn.setAccess(token, rGuid, "public", "read", "allow", "allowFirst");
+		InputStream is = mn.get(null,guid);
+		return rGuid;
+	}
+   
+
+	protected static int countLocationsWithResolve(CNode cn, Identifier pid) throws InvalidToken, ServiceFailure,
+	NotAuthorized, NotFound, InvalidRequest, NotImplemented {
+
+		ObjectLocationList oll = cn.resolve(null, pid);
+		List<ObjectLocation> locs = oll.getObjectLocationList();
+		return locs.toArray().length;
+	}
+    
 }
