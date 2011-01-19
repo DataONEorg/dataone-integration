@@ -63,10 +63,19 @@ import org.junit.rules.ErrorCollector;
 public class DataReplicationTest {
 	private static final String cn_id = "cn-dev";
 	private static final String cn_Url = "http://cn-dev.dataone.org/cn/";
-	private static final String mn1_id = "unpublished but not used";
-	private static final String mn1_Url = "http://cn-dev.dataone.org/knb/d1/";
+	// mn1 needs to be a published node that supports login, create, get and meta
+	private static final String mn1_id = "http://knb-mn.ecoinformatics.org";
+	private static final String mn1_Url = "http://knb-mn.ecoinformatics.org/knb/";
+//	private static final String mn1_id = "unregistered";
+//	private static final String mn1_Url = "http://cn-dev.dataone.org/knb/d1/";
+	
 	private static final String mn2_id = "http://mn-dev.dataone.org";
-	private static final String mn2_Url = "http://mn-dev.dataone.org/mn/";
+	private static final String mn2_Url = "http://home.offhegoes.net:8080/knb/d1/";
+	
+	private static final int replicateWaitLimitSec = 20;
+	private static final int pollingFrequencyMS = 5000;
+	
+	private static final int replicateResolveWaitLimitSec = 120;
 	
 /* other mn info	
 	http://dev-dryad-mn.dataone.org
@@ -83,8 +92,19 @@ public class DataReplicationTest {
 	@Rule 
 	public ErrorCollector errorCollector = new ErrorCollector();
 
+	/**
+	 *  This test does not require synchronization to be working
+	 * @throws ServiceFailure
+	 * @throws NotImplemented
+	 * @throws InterruptedException
+	 * @throws InvalidToken
+	 * @throws NotAuthorized
+	 * @throws InvalidRequest
+	 * @throws NotFound
+	 * @throws IOException
+	 */
 	@Test
-	public void testReplicate() throws ServiceFailure, NotImplemented, InterruptedException, 
+	public void testReplicateWithGet() throws ServiceFailure, NotImplemented, InterruptedException, 
 	InvalidToken, NotAuthorized, InvalidRequest, NotFound, IOException 
 	{
 		// create the players
@@ -92,11 +112,146 @@ public class DataReplicationTest {
 		CNode cn = d1.getCN();
 		MNode mn1 = d1.getMN(mn1_Url);	
 		MNode mn2 = d1.getMN(mn2_Url);
-
+		AuthToken token = null;
+		
 		// create new object on MN_1
+		Identifier pid = doCreateNewObject(mn1);
 
+		// issue a replicate command to MN2 to get the object
+		SystemMetadata smd = mn1.getSystemMetadata(token, pid);
+		InputStream is = doReplicateCall(mn2_Url, token, smd, mn1_Url);
+
+		// poll get until found or tired of waiting
+
+		int elapsedTimeSec = 0;
+		boolean notFound = true;
+		while (notFound && (elapsedTimeSec <= replicateWaitLimitSec ))
+		{			
+			notFound = false;
+			try {
+				InputStream response = mn2.get(token, pid);
+			} catch (NotFound e) {
+				notFound = true;
+				// expect a notfound until replication completes
+			}
+			Thread.sleep(pollingFrequencyMS); // millisec's
+			elapsedTimeSec += pollingFrequencyMS;
+			System.out.println("Time elapsed: " + elapsedTimeSec);
+		} 
+		assertTrue("New object replicated on " + mn2_id, !notFound);
+	}
+
+	/**
+	 * This test does not require synchronization to be working
+	 * 
+	 * @throws ServiceFailure
+	 * @throws NotImplemented
+	 * @throws InterruptedException
+	 * @throws InvalidToken
+	 * @throws NotAuthorized
+	 * @throws InvalidRequest
+	 * @throws NotFound
+	 * @throws IOException
+	 */
+	@Test
+	public void testReplicateWithMeta() throws ServiceFailure, NotImplemented, InterruptedException, 
+	InvalidToken, NotAuthorized, InvalidRequest, NotFound, IOException 
+	{
+		// create the players
+		D1Client d1 = new D1Client(cn_Url);
+		CNode cn = d1.getCN();
+		MNode mn1 = d1.getMN(mn1_Url);	
+		MNode mn2 = d1.getMN(mn2_Url);
+		AuthToken token = null;
+		
+		// create new object on MN_1
+		Identifier pid = doCreateNewObject(mn1);
+
+		// issue a replicate command to MN2 to get the object
+		SystemMetadata smd = mn1.getSystemMetadata(token, pid);
+		InputStream is = doReplicateCall(mn2_Url, token, smd, mn1_Url);
+
+		// poll get until found or tired of waiting
+
+		int elapsedTimeSec = 0;
+		boolean notFound = true;
+		SystemMetadata smd2 = null;
+		while (notFound && (elapsedTimeSec <= replicateWaitLimitSec ))
+		{			
+			notFound = false;
+			try {
+				smd2 = mn2.getSystemMetadata(token, pid);
+			} catch (NotFound e) {
+				notFound = true;
+				// expect a notfound until replication completes
+			}
+			Thread.sleep(pollingFrequencyMS); // millisec's
+			elapsedTimeSec += pollingFrequencyMS;
+			System.out.println("Time elapsed: " + elapsedTimeSec);
+		} 
+		assertTrue("New object replicated on " + mn2_id, !notFound);
+	}
+
+	
+	/**
+	 * This test requires synchronization to be functional, and probably requires a longer wait time
+	 * because of it. It is the more thorough test of replication, because it needs the replicationStatus
+	 * to be updated once replication is complete. 
+	 * 
+	 * @throws ServiceFailure
+	 * @throws NotImplemented
+	 * @throws InterruptedException
+	 * @throws InvalidToken
+	 * @throws NotAuthorized
+	 * @throws InvalidRequest
+	 * @throws NotFound
+	 * @throws IOException
+	 */
+//	@Test
+	public void testReplicateWithResolve() throws ServiceFailure, NotImplemented, InterruptedException, 
+	InvalidToken, NotAuthorized, InvalidRequest, NotFound, IOException 
+	{
+		// create the players
+		D1Client d1 = new D1Client(cn_Url);
+		CNode cn = d1.getCN();
+		MNode mn1 = d1.getMN(mn1_Url);	
+		MNode mn2 = d1.getMN(mn2_Url);
+		AuthToken token = null;
+		
+		// create new object on MN_1
+		Identifier pid = doCreateNewObject(mn1);
+		
+
+		// do resolve and count locations
+		int preReplCount = countLocationsWithResolve(cn,pid);
+		System.out.println("locations before replication = " + preReplCount);
+
+		// issue a replicate command to MN2 to get the object
+		SystemMetadata smd = mn1.getSystemMetadata(token, pid);
+		InputStream is = doReplicateCall(mn2_Url, token, smd, mn1_Url);
+
+		// poll resolve until locations is 2 (or more);
+		int postReplCount = preReplCount;
+		int elapsedTimeSec = 0;
+		boolean notFound = true;
+		while (postReplCount == preReplCount && (elapsedTimeSec <= replicateResolveWaitLimitSec))
+		{
+			postReplCount = countLocationsWithResolve(cn,pid);
+			Thread.sleep(pollingFrequencyMS); // millisec's
+			elapsedTimeSec += pollingFrequencyMS;
+			System.out.println("Time elapsed: " + elapsedTimeSec);
+		} 
+		assertTrue("New object replicated on " + mn2_id, postReplCount > preReplCount);
+	}
+
+
+	//  ===================  helper procedures  =======================================//
+	
+	
+	private Identifier doCreateNewObject(MNode mn) throws ServiceFailure, NotImplemented
+	{
 		String principal = "uid%3Dkepler,o%3Dunaffiliated,dc%3Decoinformatics,dc%3Dorg";
-		AuthToken token = mn1.login(principal, "kepler");
+		AuthToken token = mn.login(principal, "kepler");
 		String idString = prefix + ExampleUtilities.generateIdentifier();
 		Identifier guid = new Identifier();
 		guid.setValue(idString);
@@ -106,100 +261,40 @@ public class DataReplicationTest {
 		Identifier rGuid = null;
 
 		try {
-			rGuid = mn1.create(token, guid, objectStream, sysmeta);
+			rGuid = mn.create(token, guid, objectStream, sysmeta);
 			//			 assertTrue("checking that returned guid matches given ", guid.equals(rGuid.getValue()));
 			assertThat("checking that returned guid matches given ", guid.getValue(), is(rGuid.getValue()));
-			mn1.setAccess(token, rGuid, "public", "read", "allow", "allowFirst");
+			mn.setAccess(token, rGuid, "public", "read", "allow", "allowFirst");
+			InputStream is = mn.get(null,guid);
 		} catch (Exception e) {
 			errorCollector.addError(new Throwable(" error in creating data for replication test: " + e.getMessage()));
 		}
+		return rGuid;
+	}
+	
+	/**
+	 *  
+	 * @param cn
+	 * @param pid
+	 * @return
+	 * @throws InvalidToken
+	 * @throws ServiceFailure
+	 * @throws NotAuthorized
+	 * @throws NotFound
+	 * @throws InvalidRequest
+	 * @throws NotImplemented
+	 */
+	private int countLocationsWithResolve(CNode cn, Identifier pid) throws InvalidToken, ServiceFailure,
+	NotAuthorized, NotFound, InvalidRequest, NotImplemented {
 
-		// do resolve and count locations, should be 1.
-		int preReplCount = -1;
-
-		ObjectLocationList oll;
-		try {
-			oll = cn.resolve(token, guid);
-		} catch (NotFound e) {
-			throw new ServiceFailure("1000","create not available to resolve");
-		}
+		ObjectLocationList oll = cn.resolve(null, pid);
 		List<ObjectLocation> locs = oll.getObjectLocationList();
-		preReplCount = locs.toArray().length;
-		System.out.println("locations before replication = " + preReplCount);
-
-
-		// issue a replicate command to MN2 to get the object
-		// this isn't a client command, so going to handcraft the call
-		//  mn/replicate?sessionid=axaxax&sourceNode=cn-dev
-		//  POST sysmeta...
-		SystemMetadata smd = mn1.getSystemMetadata(token, rGuid);
-		InputStream is = doReplicateCall(mn2_Url, token, smd, mn1_Url);
-
-
-
-		// poll resolve until locations is 2 (or more);
-
-
-		int postReplCount = preReplCount;
-		int maxTries = 20;
-		int tries = 0;
-		while (postReplCount == preReplCount && tries < maxTries)
-		{
-			Thread.sleep(3000); // millisec's
-			try {
-				oll = cn.resolve(token, guid);
-			} catch (NotFound e) {
-				throw new ServiceFailure("1001","create not available to resolve");
-			}
-			locs = oll.getObjectLocationList();
-			postReplCount = locs.toArray().length;
-			System.out.println("try " + tries + ": postReplication resolve count = " + postReplCount);
-			tries++;
-		} 
-
-
-		// test the meta and get calls (to MN2)
-		try 
-		{
-			SystemMetadata smd2 = mn2.getSystemMetadata(null, rGuid);
-		} catch (NotFound e) {
-			fail("check meta test");
-		}
-
-		try {
-			InputStream response = mn2.get(token, rGuid);
-		} catch (NotFound e) {
-			fail("check get test");
-		}
+		return locs.toArray().length;
 	}
-
-	private void checkEquals(final String s1, final String s2)
-	{
-		errorCollector.checkSucceeds(new Callable<Object>() 
-				{
-			public Object call() throws Exception 
-			{
-				assertThat("assertion failed", s1, is(s2));
-				//assertThat("assertion failed for host " + currentUrl, s1, is(s2 + "x"));
-				return null;
-			}
-				});
-	}
-
-	//    private void checkTrue(final boolean b)
-	//    {
-	//        errorCollector.checkSucceeds(new Callable<Object>() 
-	//        {
-	//            public Object call() throws Exception 
-	//            {
-	//                assertThat("assertion failed for host " + currentUrl, true, is(b));
-	//                return null;
-	//            }
-	//        });
-	//    }
-
-
-	private InputStream doReplicateCall(String mnBaseURL, AuthToken token, SystemMetadata sysmeta, String sourceNode) throws ServiceFailure, IOException
+	
+	
+	private InputStream doReplicateCall(String mnBaseURL, AuthToken token, 
+			SystemMetadata sysmeta, String sourceNode) throws ServiceFailure, IOException
 	{
 		
 		String restURL = mnBaseURL + "replicate";
@@ -282,7 +377,7 @@ public class DataReplicationTest {
 		mime += "Content-type:multipart/mixed; boundary=\"" + boundary + "\"\n";
 		boundary = "--" + boundary + "\n";
 		mime += boundary;
-		mime += "Content-Disposition: attachment; filename=systemmetadata\n\n";
+		mime += "Content-Disposition: attachment; filename=sysmeta\n\n";
 		out.write(mime.getBytes());
 		out.flush();
 		
