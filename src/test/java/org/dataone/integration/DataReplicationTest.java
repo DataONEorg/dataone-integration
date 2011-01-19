@@ -66,8 +66,12 @@ public class DataReplicationTest {
 	private static final String mn1_id = "unregistered";
 	private static final String mn1_Url = "http://cn-dev.dataone.org/knb/d1/";
 	
+	//private static final String mn1_id = "unregistered";
+	//private static final String mn1_Url = "http://amasa.local:8080/knb/d1/";
+	
 	private static final String mn2_id = "http://mn-dev.dataone.org";
-	private static final String mn2_Url = "http://home.offhegoes.net:8080/knb/d1/";
+	//private static final String mn2_Url = "http://amasa.local:8080/knb/d1/";
+	private static final String mn2_id = "http://home.offhegoes.net:8080/knb/d1";
 	
 	private static final int replicateWaitLimitSec = 20;
 	private static final int pollingFrequencySec = 5;
@@ -275,6 +279,7 @@ public class DataReplicationTest {
 			Date d = new Date();
 			File tmpDir = new File(Constants.TEMP_DIR);
 			outputFile = new File(tmpDir, "mmp.output." + d.getTime());
+			System.out.println("outputFile is " + outputFile.getAbsolutePath());
 			FileOutputStream dataSink = new FileOutputStream(outputFile);
 			createMimeMultipart(dataSink, sourceNode, sysmeta);
 			multipartStream = new FileInputStream(outputFile);
@@ -286,11 +291,9 @@ public class DataReplicationTest {
 					"Error creating MMP stream in MNode.handleCreateOrUpdate: " + 
 					e.getMessage() + " " + e.getStackTrace());
 		}
-	        
-//		ResponseData rd = null;
 
 		HttpURLConnection connection = null;
-		//////
+		
 		System.out.println("restURL: " + restURL);
 		System.out.println("method: " + method);
 		
@@ -300,7 +303,15 @@ public class DataReplicationTest {
 		connection.setDoOutput(true);
 		connection.setDoInput(true);
 		connection.setRequestMethod(method);
-		connection.connect();			
+		connection.connect();	
+		
+		if(multipartStream != null)
+		{
+		    System.out.println("sending multipartStream to the connection.");
+		    OutputStream connStream = connection.getOutputStream();
+		    IOUtils.copy(multipartStream, connStream);
+		    connStream.flush();
+		}
 		
 		// this phrase if we are expecting something in the response body
 //		if (dataStream != null) {
@@ -367,21 +378,13 @@ public class DataReplicationTest {
 		if (sourceNode != null) 
 		{    
 			out.write(boundary.getBytes());
-			String sn = "Content-Disposition: attachment; sourceNode=" + sourceNode + "\n\n";
+			String sn = "Content-Disposition: form-data; name=sourceNode\n\n" + 
+			    sourceNode + "\n";
 			out.write(sn.getBytes());
-//			try {
-//				mime += IOUtils.copy(object, out);
-//			} 
-//			catch (IOException ioe) 
-//			{
-//				throw new ServiceFailure("1000",
-//						"Error serializing object to multipart: "
-//								+ ioe.getMessage());
-//			}
-//			out.write("\n".getBytes());
 		}
 
-		out.write((boundary + "--").getBytes());		
+		out.write((boundary + "--").getBytes());	
+		out.flush();
 	}
 
 	
