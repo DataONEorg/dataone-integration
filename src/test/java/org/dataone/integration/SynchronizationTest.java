@@ -39,6 +39,7 @@ import org.dataone.service.exceptions.UnsupportedType;
 import org.dataone.service.types.AuthToken;
 import org.dataone.service.types.Identifier;
 import org.dataone.service.types.ObjectFormat;
+import org.dataone.service.types.ObjectList;
 import org.dataone.service.types.ObjectLocation;
 import org.dataone.service.types.ObjectLocationList;
 import org.dataone.service.types.SystemMetadata;
@@ -165,4 +166,39 @@ public class SynchronizationTest {
 		} 
 		assertTrue("New object resolved on " + cn_id, count > 0);
 	}
+	
+	
+	/**
+	 * Naive test of metadata Replication (synchronization) to the CNs
+	 * Using the search function to test success  
+	 */
+	@Test
+	public void testMDSynchronizeWithSearch() throws ServiceFailure, NotImplemented, InterruptedException, 
+	InvalidToken, NotAuthorized, InvalidRequest, NotFound, IOException, IdentifierNotUnique, UnsupportedType,
+	InsufficientResources, InvalidSystemMetadata 
+	{
+		// create the players
+		D1Client d1 = new D1Client(cn_Url);
+		CNode cn = d1.getCN();
+		MNode mn1 = d1.getMN(mn1_Url);	
+		AuthToken token = null;
+		
+		// create new object on MN_1
+		Identifier pid = ExampleUtilities.doCreateNewObject(mn1, prefix);
+
+		// poll get until found or tired of waiting
+
+		int elapsedTimeSec = 0;
+		int count = 0;
+		while (count == 0 && (elapsedTimeSec <= synchronizeWaitLimitSec ))
+		{			
+			ObjectList ol = cn.search(token, "simpleWord="+pid.getValue());
+			count = ol.getCount();
+			Thread.sleep(pollingFrequencySec * 1000); // millisec's
+			elapsedTimeSec += pollingFrequencySec;
+			System.out.println("Time elapsed: " + elapsedTimeSec);
+		} 
+		assertTrue("Metadata synchronized to the CN " + cn_id, count > 0);
+	}
+
 }						
