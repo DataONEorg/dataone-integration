@@ -50,7 +50,12 @@ import org.dataone.client.D1Client;
 import org.dataone.client.MNode;
 import org.dataone.service.EncodingUtilities;
 import org.dataone.service.exceptions.BaseException;
+import org.dataone.service.exceptions.InvalidRequest;
+import org.dataone.service.exceptions.InvalidToken;
+import org.dataone.service.exceptions.NotAuthorized;
 import org.dataone.service.exceptions.NotFound;
+import org.dataone.service.exceptions.NotImplemented;
+import org.dataone.service.exceptions.ServiceFailure;
 import org.dataone.service.types.AuthToken;
 import org.dataone.service.types.Identifier;
 import org.dataone.service.types.ObjectFormat;
@@ -84,6 +89,8 @@ public class D1ClientCNodeTest  {
 //	private static HashMap<String,String> StandardTests = new HashMap<String,String>();
 	private static Vector<String> testPIDEncodingStrings = new Vector<String>();
 	private static Vector<String> encodedPIDStrings = new Vector<String>();
+	
+	
 	@Rule 
 	public ErrorCollector errorCollector = new ErrorCollector();
 
@@ -177,6 +184,46 @@ public class D1ClientCNodeTest  {
 		}
 	}
 
+	@Test
+	public void testSearch() {
+		printHeader("testSearch vs. node " + cnUrl);
+
+		// create a new object 
+		D1Client d1 = new D1Client(mnUrl);
+		MNode mn = d1.getMN(mnUrl);
+		String principal = "uid%3Dkepler,o%3Dunaffiliated,dc%3Decoinformatics,dc%3Dorg";
+		
+		try {
+			AuthToken token = mn.login(principal, "kepler");
+			String idString = "testCNget" + ExampleUtilities.generateIdentifier();
+			Identifier guid = new Identifier();
+			guid.setValue(idString);
+
+			//insert a data file
+			InputStream objectStream = this.getClass().getResourceAsStream("/d1_testdocs/knb-lter-cdr.329066.1.data");
+			SystemMetadata sysmeta = ExampleUtilities.generateSystemMetadata(guid, ObjectFormat.TEXT_CSV);
+			
+			Identifier rGuid = null;
+			
+			rGuid = mn.create(token, guid, objectStream, sysmeta);
+			System.out.println("    == returned Guid (rGuid): " + rGuid.getValue());
+			mn.setAccess(token, rGuid, "public", "read", "allow", "allowFirst");
+			checkEquals(guid.getValue(), rGuid.getValue());
+
+			d1 = new D1Client(cnUrl);
+			CNode cn = d1.getCN();
+		
+			ObjectList ol = cn.search(null, "query="+EncodingUtilities.encodeUrlQuerySegment(rGuid.getValue()));
+			
+			assertTrue("search found new object",ol.getCount() == 1);
+
+		} catch (BaseException e) {
+			errorCollector.addError(new Throwable(createAssertMessage() + " error in " +
+					new Throwable().getStackTrace()[1].getMethodName() + ": " +
+					e.getClass() + ": " + e.getMessage()));
+		}
+	}
+	
 	/**
 	 * test the getSystemMetacata() operation on Coordinating Nodes
 	 * @throws JiBXException 
