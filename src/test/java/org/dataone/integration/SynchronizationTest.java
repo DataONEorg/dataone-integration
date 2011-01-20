@@ -74,6 +74,7 @@ public class SynchronizationTest {
 //	private static final String mn1_Url = "http://cn-dev.dataone.org/knb/d1/";
 	
 	private static final int pollingFrequencySec = 5;	
+	// as of jan20, 2011, dev nodes on a 5 minute synchronize cycle
 	private static final int synchronizeWaitLimitSec = 7 * 60;
 	
 	
@@ -95,9 +96,89 @@ public class SynchronizationTest {
 
 	/**
 	 * Naive test of metadata Replication to the CNs
+	 * Because of the synch schedule, want to test all methods in the same test, instead of using multiple
+	 * synch runs.
+	 * @throws NotFound 
+	 */
+	public void testMDSynchronizeWithMulti() throws ServiceFailure, NotImplemented, InterruptedException, 
+	InvalidToken, NotAuthorized, InvalidRequest, IOException, IdentifierNotUnique, UnsupportedType,
+	InsufficientResources, InvalidSystemMetadata, NotFound 
+	{
+		// create the players
+		D1Client d1 = new D1Client(cn_Url);
+		CNode cn = d1.getCN();
+		MNode mn1 = d1.getMN(mn1_Url);	
+		AuthToken token = null;
+		
+		// create new object on MN_1
+		Identifier pid = ExampleUtilities.doCreateNewObject(mn1, prefix);
+
+		// poll resolve until the new object is found;
+		int callsPassing = 0;
+		int elapsedTimeSec = 0;
+		boolean testsRemain = true;
+		boolean resolveTodo = true;
+		boolean getTodo = true;
+		boolean metaTodo = true;
+		boolean searchTodo = true;
+		while (testsRemain && (elapsedTimeSec <= synchronizeWaitLimitSec))
+		{
+			
+			if (resolveTodo) {
+				try {
+					if (ExampleUtilities.countLocationsWithResolve(cn,pid) > 0) {
+						resolveTodo = false;
+						System.out.println("...resolve call succeeded");
+						callsPassing++;
+					}
+				} catch (NotFound e) {
+					resolveTodo = true;
+				}
+			}
+			if (getTodo) {
+				try {
+					InputStream is = cn.get(token,pid);
+					getTodo = false;
+					System.out.println("...get call succeeded");
+					callsPassing++;
+				} catch (NotFound e) {
+					getTodo = true;
+				} 
+			}
+			if (metaTodo) {
+				try {
+					SystemMetadata s = cn.getSystemMetadata(token,pid);
+					metaTodo = false;
+					System.out.println("...meta call succeeded");
+					callsPassing++;
+				} catch (NotFound e) {
+					metaTodo = true;
+				} 
+			}
+			if (searchTodo) {
+				ObjectList ol = cn.search(token,
+						"query="+EncodingUtilities.encodeUrlQuerySegment(pid.getValue()));
+				if (ol.getCount() > 0) {
+					searchTodo = false;
+					System.out.println("...search call succeeded");
+					callsPassing++;
+				}
+			}
+			Thread.sleep(pollingFrequencySec * 1000); // millisec's
+			elapsedTimeSec += pollingFrequencySec;
+			System.out.println(" = = time elapsed: " + elapsedTimeSec);
+		
+			testsRemain = resolveTodo && getTodo && metaTodo && searchTodo; 
+		} 
+		assertTrue("synchronize succeeded at least partially on " + cn_id, callsPassing > 0);
+		assertTrue("synchronize succeeded fully on" + cn_id, callsPassing == 4);
+	}
+
+	/**
+	 * Naive test of metadata Replication to the CNs
 	 * Using getSystemMetadata call to detect successful synchronization  
 	 */
-	@Test
+//	@Test
 	public void testMDSynchronizeWithMeta() throws ServiceFailure, NotImplemented, InterruptedException, 
 	InvalidToken, NotAuthorized, InvalidRequest, NotFound, IOException, IdentifierNotUnique, UnsupportedType,
 	InsufficientResources, InvalidSystemMetadata 
@@ -115,6 +196,7 @@ public class SynchronizationTest {
 		// so there is nothing to trigger, just wait
 
 		// poll get until found or tired of waiting
+		
 
 		int elapsedTimeSec = 0;
 		boolean notFound = true;
@@ -139,7 +221,7 @@ public class SynchronizationTest {
 	 * on a Coordinating Node. 
 	 * 
 	 */
-	@Test
+//	@Test
 	public void testMDSynchronizeWithResolve() throws ServiceFailure, NotImplemented, InterruptedException, 
 	InvalidToken, NotAuthorized, InvalidRequest, NotFound, IOException, IdentifierNotUnique, UnsupportedType,
 	InsufficientResources, InvalidSystemMetadata 
@@ -172,7 +254,7 @@ public class SynchronizationTest {
 	 * Naive test of metadata Replication (synchronization) to the CNs
 	 * Using the search function to test success  
 	 */
-	@Test
+//	@Test
 	public void testMDSynchronizeWithSearch() throws ServiceFailure, NotImplemented, InterruptedException, 
 	InvalidToken, NotAuthorized, InvalidRequest, NotFound, IOException, IdentifierNotUnique, UnsupportedType,
 	InsufficientResources, InvalidSystemMetadata 
@@ -192,7 +274,7 @@ public class SynchronizationTest {
 		int count = 0;
 		while (count == 0 && (elapsedTimeSec <= synchronizeWaitLimitSec ))
 		{			
-			ObjectList ol = cn.search(token, "simpleWord="+pid.getValue());
+			ObjectList ol = cn.search(token, "query=" + EncodingUtilities.encodeUrlQuerySegment(pid.getValue()));
 			count = ol.getCount();
 			Thread.sleep(pollingFrequencySec * 1000); // millisec's
 			elapsedTimeSec += pollingFrequencySec;
