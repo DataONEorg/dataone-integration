@@ -69,8 +69,8 @@ public class DataReplicationTest {
 	//private static final String mn1_id = "unregistered";
 	//private static final String mn1_Url = "http://amasa.local:8080/knb/d1/";
 	
-	private static final String mn2_id = "http://mn-dev.dataone.org";
-	//private static final String mn2_Url = "http://amasa.local:8080/knb/d1/";
+//	private static final String mn2_id = "http://mn-dev.dataone.org";
+	private static final String mn2_Url = "http://amasa.local:8080/knb/d1/";
 	private static final String mn2_id = "http://home.offhegoes.net:8080/knb/d1";
 	
 	private static final int replicateWaitLimitSec = 20;
