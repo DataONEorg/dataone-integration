@@ -17,10 +17,12 @@ import java.util.Date;
 import java.util.concurrent.Callable;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.http.HttpResponse;
 import org.dataone.client.CNode;
 import org.dataone.client.D1Client;
 import org.dataone.client.MNode;
 import org.dataone.client.D1Node.ResponseData;
+import org.dataone.mimemultipart.MultipartRequestHandler;
 import org.dataone.service.Constants;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.IdentifierNotUnique;
@@ -288,10 +290,14 @@ public class DataReplicationTest {
 			File tmpDir = new File(Constants.TEMP_DIR);
 			outputFile = new File(tmpDir, "mmp.output." + d.getTime());
 			System.out.println("outputFile is " + outputFile.getAbsolutePath());
-			FileOutputStream dataSink = new FileOutputStream(outputFile);
-			createMimeMultipart(dataSink, sourceNode, sysmeta);
-			dataSink.close();
-			multipartStream = new FileInputStream(outputFile);
+			//FileOutputStream dataSink = new FileOutputStream(outputFile);
+			//createMimeMultipart(dataSink, sourceNode, sysmeta);
+			MultipartRequestHandler mmpHandler = new MultipartRequestHandler(restURL);
+			mmpHandler.addFilePart(outputFile, "sysmeta");
+			mmpHandler.addParamPart("sourceNode", sourceNode);
+			//dataSink.close();
+			HttpResponse response = mmpHandler.executeRequest();
+			//multipartStream = new FileInputStream(outputFile);
 		}
 		catch(Exception e)
 		{
@@ -301,7 +307,7 @@ public class DataReplicationTest {
 					e.getMessage() + " " + e.getStackTrace());
 		}
 
-		HttpURLConnection connection = null;
+		/*HttpURLConnection connection = null;
 		
 		System.out.println("restURL: " + restURL);
 		System.out.println("method: " + method);
@@ -321,12 +327,13 @@ public class DataReplicationTest {
 		    OutputStream out = connection.getOutputStream();
             IOUtils.copy(multipartStream, out);
 		    System.out.println("sending multipartStream to the connection.");
-		    /*OutputStream connStream = connection.getOutputStream();
+		    OutputStream connStream = connection.getOutputStream();
 		    //IOUtils.copy(multipartStream, connStream);
 		    connStream.write("ASDFASFASDF".getBytes());
 		    connStream.flush();
-		    connStream.close();*/
+		    connStream.close();
 		}
+	
 		System.out.println("done sending multipart to connection");
 		
         try 
@@ -339,7 +346,7 @@ public class DataReplicationTest {
         catch (IOException ioe) 
         {
             System.out.println("tried to get content and failed.  Receiving an error stream instead: " + ioe.getMessage());
-        }
+        }*/
 	}
 
 	/**
