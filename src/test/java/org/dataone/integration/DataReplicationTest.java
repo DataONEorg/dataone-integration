@@ -8,6 +8,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -290,9 +291,15 @@ public class DataReplicationTest {
 			File tmpDir = new File(Constants.TEMP_DIR);
 			outputFile = new File(tmpDir, "mmp.output." + d.getTime());
 			System.out.println("outputFile is " + outputFile.getAbsolutePath());
-			//FileOutputStream dataSink = new FileOutputStream(outputFile);
+			FileOutputStream dataSink = new FileOutputStream(outputFile);
 			//createMimeMultipart(dataSink, sourceNode, sysmeta);
 			MultipartRequestHandler mmpHandler = new MultipartRequestHandler(restURL);
+			//mmpHandler.addParamPart("sysmeta", sysmeta.toString());
+			FileWriter fw = new FileWriter(outputFile);
+			fw.write(sysmeta.toString());
+			fw.flush();
+			fw.close();
+			
 			mmpHandler.addFilePart(outputFile, "sysmeta");
 			mmpHandler.addParamPart("sourceNode", sourceNode);
 			//dataSink.close();
@@ -301,7 +308,7 @@ public class DataReplicationTest {
 		}
 		catch(Exception e)
 		{
-			outputFile.delete();
+			//outputFile.delete();
 			throw new ServiceFailure("1000", 
 					"Error creating MMP stream in MNode.handleCreateOrUpdate: " + 
 					e.getMessage() + " " + e.getStackTrace());
