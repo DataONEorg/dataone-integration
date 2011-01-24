@@ -805,7 +805,7 @@ public class D1ClientTest  {
                     checkEquals(guid.getValue(), rGuid.getValue());
                 } catch (Exception e) {
                     errorCollector.addError(new Throwable(createAssertMessage() + 
-                            " error in testCreateData: " + e.getMessage()));
+                            " error in testCreateData: " + e.getClass() + ": " + e.getMessage()));
                 }
 
                 try {
@@ -827,6 +827,55 @@ public class D1ClientTest  {
         }
     }
  
+    @Test
+    public void testCreateData_CurrentRestFormat() 
+    {
+        for(int i=0; i<nodeList.size(); i++)
+        {
+            currentUrl = nodeList.get(i).getBaseURL();
+            d1 = new D1Client(currentUrl);
+            MNode mn = d1.getMN(currentUrl);
+
+            printHeader("testCreateData - node " + nodeList.get(i).getBaseURL());
+            try
+            {
+                checkTrue(true);
+                String principal = "uid%3Dkepler,o%3Dunaffiliated,dc%3Decoinformatics,dc%3Dorg";
+                AuthToken token = mn.login(principal, "kepler");
+                String idString = prefix + ExampleUtilities.generateIdentifier();
+                Identifier guid = new Identifier();
+                guid.setValue(idString);
+                InputStream objectStream = this.getClass().getResourceAsStream(
+                        "/d1_testdocs/knb-lter-cdr.329066.1.data");
+                SystemMetadata sysmeta = ExampleUtilities.generateSystemMetadata(guid, ObjectFormat.TEXT_CSV);
+                Identifier rGuid = null;
+
+                try {
+                    rGuid = mn.create2(token, guid, objectStream, sysmeta);
+                    checkEquals(guid.getValue(), rGuid.getValue());
+                } catch (Exception e) {
+                    errorCollector.addError(new Throwable(createAssertMessage() + 
+                            " error in testCreateData: " + e.getClass() + ": " + e.getMessage()));
+                }
+
+                try {
+                    InputStream data = mn.get(token, rGuid);
+                    checkTrue(null != data);
+                    String str = IOUtils.toString(data);
+                    checkTrue(str.indexOf("61 66 104 2 103 900817 \"Planted\" 15.0  3.3") != -1);
+                    data.close();
+                } catch (Exception e) {
+                    errorCollector.addError(new Throwable(createAssertMessage() + 
+                            " error in testCreateData: " + e.getMessage()));
+                } 
+            }
+            catch(Exception e)
+            {
+                errorCollector.addError(new Throwable(createAssertMessage() + 
+                        " unexpected error in testCreateData: " + e.getMessage()));
+            }
+        }
+    }
     
     /**
      * test creation of data with challenging unicode identifier.
