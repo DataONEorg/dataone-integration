@@ -66,15 +66,15 @@ public class DataReplicationTest {
 	// mn1 needs to be a published node that supports login, create, get and meta
 //	private static final String mn1_id = "http://knb-mn.ecoinformatics.org";
 //	private static final String mn1_Url = "http://knb-mn.ecoinformatics.org/knb/";
-	private static final String mn1_id = "unregistered";
-	private static final String mn1_Url = "http://cn-dev.dataone.org/knb/d1/";
+	private static final String mn1_id = "http://knb-mn.ecoinformatics.org";
+	private static final String mn1_Url = "http://knb-mn.ecoinformatics.org/knb/d1/";
 	
 	//private static final String mn1_id = "unregistered";
 	//private static final String mn1_Url = "http://amasa.local:8080/knb/d1/";
 	
-//	private static final String mn2_id = "http://mn-dev.dataone.org";
+	private static final String mn2_id = "http://mn-dev.dataone.org";
 	private static final String mn2_Url = "http://amasa.local:8080/knb/d1/";
-	private static final String mn2_id = "http://home.offhegoes.net:8080/knb/d1";
+	//private static final String mn2_id = "http://home.offhegoes.net:8080/knb/d1";
 	
 	private static final int replicateWaitLimitSec = 20;
 	private static final int pollingFrequencySec = 5;
@@ -133,7 +133,7 @@ public class DataReplicationTest {
 		System.out.println("getting sys meta");
 		SystemMetadata smd = mn1.getSystemMetadata(token, pid);
 		System.out.println("doing replicate");
-		doReplicateCall(mn2_Url, token, smd, mn1_Url);
+		doReplicateCall(mn2_Url, token, smd, mn1_id);
 		System.out.println("done with replicate");
 
 		// poll get until found or tired of waiting
@@ -293,7 +293,7 @@ public class DataReplicationTest {
 			System.out.println("outputFile is " + outputFile.getAbsolutePath());
 			FileOutputStream dataSink = new FileOutputStream(outputFile);
 			//createMimeMultipart(dataSink, sourceNode, sysmeta);
-			MultipartRequestHandler mmpHandler = new MultipartRequestHandler(restURL);
+			MultipartRequestHandler mmpHandler = new MultipartRequestHandler(restURL, Constants.POST);
 			//mmpHandler.addParamPart("sysmeta", sysmeta.toString());
 			FileWriter fw = new FileWriter(outputFile);
 			fw.write(sysmeta.toString());
