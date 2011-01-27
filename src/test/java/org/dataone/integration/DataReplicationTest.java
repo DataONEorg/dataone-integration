@@ -33,6 +33,7 @@ import org.dataone.service.exceptions.UnsupportedType;
 import org.dataone.service.types.AuthToken;
 import org.dataone.service.types.Identifier;
 import org.dataone.service.types.SystemMetadata;
+import org.dataone.service.types.util.ServiceTypeUtil;
 import org.jibx.runtime.BindingDirectory;
 import org.jibx.runtime.IBindingFactory;
 import org.jibx.runtime.IMarshallingContext;
@@ -115,7 +116,7 @@ public class DataReplicationTest {
 		
 		// create new object on MN_1
 		System.out.println("creating doc");
-		Identifier pid = ExampleUtilities.doCreateNewObject(mn1, prefix);
+		Identifier pid = ExampleUtilities.doCreateNewObject(mn1, prefix);  
 
 		// issue a replicate command to MN2 to get the object
 		System.out.println("getting sys meta");
@@ -281,10 +282,10 @@ public class DataReplicationTest {
 			//createMimeMultipart(dataSink, sourceNode, sysmeta);
 			MultipartRequestHandler mmpHandler = new MultipartRequestHandler(restURL, Constants.POST);
 			//mmpHandler.addParamPart("sysmeta", sysmeta.toString());
-			FileWriter fw = new FileWriter(outputFile);
-			fw.write(sysmeta.toString());
-			fw.flush();
-			fw.close();
+			FileOutputStream fos = new FileOutputStream(outputFile);
+			ServiceTypeUtil.serializeServiceType(SystemMetadata.class, sysmeta, fos);
+			fos.flush();
+			fos.close();
 			
 			mmpHandler.addFilePart(outputFile, "sysmeta");
 			mmpHandler.addParamPart("sourceNode", sourceNode);
@@ -342,53 +343,7 @@ public class DataReplicationTest {
         }*/
 	}
 
-	/**
-	 * create a mime multipart message from object and sysmeta and write it to out
-	 */
-	protected void createMimeMultipart(OutputStream out, String sourceNode,
-			SystemMetadata sysmeta) throws IOException, BaseException
-	{
-		if (sysmeta == null) {
-			throw new InvalidSystemMetadata("1000",
-					"System metadata was null.  Can't create multipart form.");
-		}
-		Date d = new Date();
-		String boundary = d.getTime() + "";
-
-		String mime = "MIME-Version:1.0\n";
-		mime += "Content-type:multipart/mixed; boundary=\"" + boundary + "\"\n";
-		boundary = "--" + boundary + "\n";
-		mime += boundary;
-		mime += "Content-Disposition: attachment; filename=sysmeta\n\n";
-		out.write(mime.getBytes());
-		out.flush();
-		
-		//write the sys meta
-		try
-		{
-		    ByteArrayInputStream bais = serializeSystemMetadata(sysmeta);
-			IOUtils.copy(bais, out);
-		}
-		catch(JiBXException e)
-		{
-		    throw new ServiceFailure("1000",
-                    "Could not serialize the system metadata to multipart: "
-                            + e.getMessage());
-		}
-		
-		out.write("\n".getBytes());	
-
-		if (sourceNode != null) 
-		{    
-			out.write(boundary.getBytes());
-			String sn = "Content-Disposition: form-data; name=sourceNode\n\n" + 
-			    sourceNode + "\n";
-			out.write(sn.getBytes());
-		}
-
-		out.write((boundary + "--").getBytes());	
-		out.flush();
-	}
+	
 
 	
 	/**
@@ -401,12 +356,9 @@ public class DataReplicationTest {
 			throws JiBXException {
 
 		ByteArrayOutputStream sysmetaOut = new ByteArrayOutputStream();
-		
-		IBindingFactory bfact = BindingDirectory.getFactory(SystemMetadata.class);
-		IMarshallingContext mctx = bfact.createMarshallingContext();
-		mctx.marshalDocument(sysmeta, "UTF-8", null, sysmetaOut);		
+		ServiceTypeUtil.serializeServiceType(SystemMetadata.class, sysmeta, sysmetaOut);
 		ByteArrayInputStream sysmetaStream = new ByteArrayInputStream(
-				sysmetaOut.toByteArray());
+                sysmetaOut.toByteArray());
 		return sysmetaStream;
 	}
 }						

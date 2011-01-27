@@ -61,6 +61,7 @@ import org.dataone.service.types.Principal;
 import org.dataone.service.types.Replica;
 import org.dataone.service.types.ReplicationStatus;
 import org.dataone.service.types.SystemMetadata;
+import org.dataone.service.types.util.ServiceTypeUtil;
 
 /**
  * Utilities that are useful for generating test data.
@@ -345,7 +346,8 @@ public class ExampleUtilities {
     
     
     /** Generate a SystemMetadata object with bogus data. */
-    protected static SystemMetadata generateSystemMetadata(Identifier guid, ObjectFormat objectFormat) 
+    protected static SystemMetadata generateSystemMetadata(Identifier guid, 
+            ObjectFormat objectFormat, InputStream source) 
     {
         SystemMetadata sysmeta = new SystemMetadata();
         sysmeta.setIdentifier(guid);
@@ -361,21 +363,29 @@ public class ExampleUtilities {
         sysmeta.setDateSysMetadataModified(new Date());
         sysmeta.setDateUploaded(new Date());
         NodeReference originMemberNode = new NodeReference();
-        originMemberNode.setValue("mn1");
+        originMemberNode.setValue("http://knb-mn.ecoinformatics.org");
         sysmeta.setOriginMemberNode(originMemberNode);
         NodeReference authoritativeMemberNode = new NodeReference();
-        authoritativeMemberNode.setValue("mn1");
+        authoritativeMemberNode.setValue("http://knb-mn.ecoinformatics.org");
         sysmeta.setAuthoritativeMemberNode(authoritativeMemberNode);
         Replica firstReplica = new Replica();
         NodeReference replicaNodeReference = new NodeReference();
-        replicaNodeReference.setValue("cn-dev");
+        replicaNodeReference.setValue("http://knb-mn.ecoinformatics.org");
         firstReplica.setReplicaMemberNode(replicaNodeReference);
         firstReplica.setReplicationStatus(ReplicationStatus.COMPLETED);
         firstReplica.setReplicaVerified(new Date());
         sysmeta.addReplica(firstReplica);
-        Checksum checksum = new Checksum();
-        checksum.setValue("4d6537f48d2967725bfcc7a9f0d5094ce4088e0975fcd3f1a361f15f46e49f83");
-        checksum.setAlgorithm(ChecksumAlgorithm.SH_A256);
+        Checksum checksum = null;
+        try
+        {
+            checksum = ServiceTypeUtil.checksum(source, ChecksumAlgorithm.M_D5);
+        }
+        catch (Exception e)
+        {
+            // TODO Auto-generated catch block
+            System.out.println("could not create the checksum for the document: " + e.getMessage());
+            e.printStackTrace();
+        }
         sysmeta.setChecksum(checksum);
         return sysmeta;
     }
@@ -443,12 +453,16 @@ public class ExampleUtilities {
 			new Throwable().getStackTrace()[2].getClass().getResourceAsStream("/d1_testdocs/knb-lter-cdr.329066.1.data");
 //		InputStream objectStream = Caller.getClass().getResourceAsStream(
 //				"/d1_testdocs/knb-lter-cdr.329066.1.data");
-		SystemMetadata sysmeta = ExampleUtilities.generateSystemMetadata(guid, ObjectFormat.TEXT_CSV);
+		SystemMetadata sysmeta = ExampleUtilities.generateSystemMetadata(guid, ObjectFormat.TEXT_CSV, objectStream);
 		Identifier rGuid = null;
+		objectStream = 
+            new Throwable().getStackTrace()[2].getClass().getResourceAsStream("/d1_testdocs/knb-lter-cdr.329066.1.data");
 
 		rGuid = mn.create(token, guid, objectStream, sysmeta);
 		assertThat("checking that returned guid matches given ", guid.getValue(), is(rGuid.getValue()));
 		mn.setAccess(token, rGuid, "public", "read", "allow", "allowFirst");
+		System.out.println("new document created on " + mn.getNodeBaseServiceUrl() + 
+		        " with guid " + rGuid.getValue());
 		InputStream is = mn.get(null,guid);
 		return rGuid;
 	}
