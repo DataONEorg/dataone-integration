@@ -29,15 +29,17 @@ import org.junit.Test;
 import org.junit.rules.ErrorCollector;
 
 /**
- * The goal here is to test CN initiated data replication between member nodes
- * We should be able to trigger a replicate command on the CN, so the naive 
- * approach taken is to:
+ * The goal here is to test synchronization of metadata created on a MN
+ * with a CN.  Synchronization is a CN scheduled cron job, so there is no
+ * trigger for synchronization.  We have to wait for it to happen :-)
+ * The testing approach is:
  *    1. create a new data on a MN
- *    2. trigger a replicate command on the CN
- *    3. sleep for a bit...
- *    4. check replicaStatus in the systemMetadata
- *    5. when complete, use resolve to find new MN
- *    6. OK if retreivable from new MN (the resolve is followable)
+ *    2. periodically poll the CN for a period greater than the cron interval
+ *       checking for presence of the new object there using:
+ *       a). getSystemMetadata
+ *       b). resolve
+ *       c). search
+ *       
  * @author rnahf
  *
  */
