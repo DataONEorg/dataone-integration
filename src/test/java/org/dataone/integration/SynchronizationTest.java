@@ -1,31 +1,15 @@
 package org.dataone.integration;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.Date;
-import java.util.List;
-import java.util.concurrent.Callable;
 
-import org.apache.commons.io.IOUtils;
 import org.dataone.client.CNode;
 import org.dataone.client.D1Client;
 import org.dataone.client.MNode;
-import org.dataone.client.D1Node.ResponseData;
-import org.dataone.service.Constants;
 import org.dataone.service.EncodingUtilities;
-import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.IdentifierNotUnique;
 import org.dataone.service.exceptions.InsufficientResources;
 import org.dataone.service.exceptions.InvalidRequest;
@@ -38,15 +22,8 @@ import org.dataone.service.exceptions.ServiceFailure;
 import org.dataone.service.exceptions.UnsupportedType;
 import org.dataone.service.types.AuthToken;
 import org.dataone.service.types.Identifier;
-import org.dataone.service.types.ObjectFormat;
 import org.dataone.service.types.ObjectList;
-import org.dataone.service.types.ObjectLocation;
-import org.dataone.service.types.ObjectLocationList;
 import org.dataone.service.types.SystemMetadata;
-import org.jibx.runtime.BindingDirectory;
-import org.jibx.runtime.IBindingFactory;
-import org.jibx.runtime.IMarshallingContext;
-import org.jibx.runtime.JiBXException;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ErrorCollector;
@@ -66,7 +43,7 @@ import org.junit.rules.ErrorCollector;
  */
 public class SynchronizationTest {
 	private static final String cn_id = "cn-dev";
-	private static final String cn_Url = "http://cn-dev.dataone.org/cn/";
+	//private static final String cn_Url = "http://cn-dev.dataone.org/cn/";
 	// mn1 needs to be a node that supports login, create, get and meta
 	private static final String mn1_id = "http://knb-mn.ecoinformatics.org";
 	private static final String mn1_Url = "http://knb-mn.ecoinformatics.org/knb/";
@@ -93,6 +70,15 @@ public class SynchronizationTest {
 	@Rule 
 	public ErrorCollector errorCollector = new ErrorCollector();
 
+    /**
+     * test the unit test harness
+     */
+    @Test
+    public void testHarness()
+    {
+        assertTrue(true);
+        assertEquals("1", "1");
+    }
 
 	/**
 	 * Naive test of metadata Replication to the CNs
@@ -105,9 +91,8 @@ public class SynchronizationTest {
 	InsufficientResources, InvalidSystemMetadata, NotFound 
 	{
 		// create the players
-		D1Client d1 = new D1Client(cn_Url);
-		CNode cn = d1.getCN();
-		MNode mn1 = d1.getMN(mn1_Url);	
+		CNode cn = D1Client.getCN();
+		MNode mn1 = D1Client.getMN(mn1_Url);	
 		AuthToken token = null;
 		
 		// create new object on MN_1
@@ -184,9 +169,8 @@ public class SynchronizationTest {
 	InsufficientResources, InvalidSystemMetadata 
 	{
 		// create the players
-		D1Client d1 = new D1Client(cn_Url);
-		CNode cn = d1.getCN();
-		MNode mn1 = d1.getMN(mn1_Url);	
+		CNode cn = D1Client.getCN();
+		MNode mn1 = D1Client.getMN(mn1_Url);	
 		AuthToken token = null;
 		
 		// create new object on MN_1
@@ -227,9 +211,8 @@ public class SynchronizationTest {
 	InsufficientResources, InvalidSystemMetadata 
 	{
 		// create the players
-		D1Client d1 = new D1Client(cn_Url);
-		CNode cn = d1.getCN();
-		MNode mn1 = d1.getMN(mn1_Url);	
+		CNode cn = D1Client.getCN();
+		MNode mn1 = D1Client.getMN(mn1_Url);	
 		AuthToken token = null;
 		
 		// create new object on MN_1
@@ -260,9 +243,8 @@ public class SynchronizationTest {
 	InsufficientResources, InvalidSystemMetadata 
 	{
 		// create the players
-		D1Client d1 = new D1Client(cn_Url);
-		CNode cn = d1.getCN();
-		MNode mn1 = d1.getMN(mn1_Url);	
+		CNode cn = D1Client.getCN();
+		MNode mn1 = D1Client.getMN(mn1_Url);	
 		AuthToken token = null;
 		
 		// create new object on MN_1

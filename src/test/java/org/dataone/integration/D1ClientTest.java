@@ -23,33 +23,20 @@ package org.dataone.integration;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.ProtocolException;
-import java.net.URL;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Scanner;
-import java.util.SortedSet;
-import java.util.TreeSet;
 import java.util.Vector;
 import java.util.concurrent.Callable;
 
-import org.apache.commons.collections.KeyValue;
 import org.apache.commons.io.IOUtils;
 import org.dataone.client.D1Client;
 import org.dataone.client.MNode;
-import org.dataone.client.D1Node.ResponseData;
 import org.dataone.eml.DataoneEMLParser;
 import org.dataone.eml.EMLDocument;
 import org.dataone.eml.EMLDocument.DistributionMetadata;
-import org.dataone.service.Constants;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.IdentifierNotUnique;
 import org.dataone.service.exceptions.InsufficientResources;
@@ -63,19 +50,16 @@ import org.dataone.service.exceptions.UnsupportedType;
 import org.dataone.service.types.AuthToken;
 import org.dataone.service.types.Checksum;
 import org.dataone.service.types.ChecksumAlgorithm;
+import org.dataone.service.types.DescribeResponse;
 import org.dataone.service.types.Event;
 import org.dataone.service.types.Identifier;
 import org.dataone.service.types.Log;
 import org.dataone.service.types.LogEntry;
 import org.dataone.service.types.Node;
-import org.dataone.service.types.NodeList;
-import org.dataone.service.types.NodeReference;
 import org.dataone.service.types.ObjectFormat;
 import org.dataone.service.types.ObjectInfo;
 import org.dataone.service.types.ObjectList;
-import org.dataone.service.types.Principal;
 import org.dataone.service.types.SystemMetadata;
-import org.dataone.service.types.DescribeResponse;
 import org.jibx.runtime.BindingDirectory;
 import org.jibx.runtime.IBindingFactory;
 import org.jibx.runtime.IMarshallingContext;
@@ -92,24 +76,11 @@ import org.junit.rules.ErrorCollector;
  */
 public class D1ClientTest  {
 
-    //String contextUrl = "http://localhost:8080/knb/d1/";
-    
-//    //String contextUrl = "http://cn-dev-2.dataone.org/knb/d1";
-    String contextUrl = "http://cn-dev.dataone.org/knb/d1/";
-    
-    //String contextUrl = "http://slickrock.local:8080/knb/d1/";
-    
-    //String contextUrl = "http://amasa.local:8080/knb/d1/";
-    //String contextUrl = "http://cn-unm-1.dataone.org/knb/d1";
-    
-    //String contextUrl = "http://fred.msi.ucsb.edu:8080/knb/d1/";
-    
-    //String contextUrl = "http://knb-mn.ecoinformatics.org/knb/d1/";
+    private static final String TEST_MN_URL = "http://cn-dev.dataone.org/knb/d1/";
     
     private static final String prefix = "knb:testid:";
     private static final String bogusId = "foobarbaz214";
 
-    private D1Client d1 = null;
     private List<Node> nodeList = null;
     private static String currentUrl;
     //set this to false if you don't want to use the node list to get the urls for 
@@ -122,55 +93,12 @@ public class D1ClientTest  {
     @Before
     public void setUp() throws Exception 
     {
-        InputStream nodeRegStream = this.getClass().getResourceAsStream("/d1_testdocs/nodelist/nodeRegistry.xml");
-        NodeList nr = null;
-        
-        
-        /*try 
-        {
-            IBindingFactory bfact = BindingDirectory.getFactory(NodeList.class);
-            IUnmarshallingContext uctx = bfact.createUnmarshallingContext();
-            nr = (NodeList) uctx.unmarshalDocument(nodeRegStream, null);
-        } 
-        catch (JiBXException e) 
-        {
-            e.printStackTrace();
-            throw new ServiceFailure("1190", "Failed to deserialize NodeRegistry: " + e.getMessage());
-        }   
-        
-        if(nr != null)
-        {
-            nodeList = nr.getNodes();
-            
-        }*/
-        
-        nodeList = new Vector<Node>();
-        Node n1 = new Node();
-//        Node n2 = new Node();
-//        Node n3 = new Node();
-//        Node n4 = new Node();
-        n1.setBaseURL("http://cn-dev.dataone.org/knb/");
-//        n2.setBaseURL("http://cn-unm-stage.dataone.org/knb/");
-//        n3.setBaseURL("http://cn-ucsb-stage.dataone.org/knb/");
-//        n4.setBaseURL("http://cn-orc-stage.dataone.org/knb/");
-        nodeList.add(n1);
-//        nodeList.add(n2);
-//        nodeList.add(n3);
-//       nodeList.add(n4);
-        
-        if(nodeList == null || nodeList.size() == 0 || !useNodeList)
-        {
+        if (nodeList == null || nodeList.size() == 0 || !useNodeList) {
             nodeList = new Vector<Node>();
             Node n = new Node();
-            n.setBaseURL(contextUrl);
+            n.setBaseURL(TEST_MN_URL);
             nodeList.add(n);
         }
-        
-        /*System.out.println("nodes to test on:");
-        for(int i=0; i<nodeList.size(); i++)
-        {
-            System.out.println(i + ": " + nodeList.get(i).getBaseURL());
-        }*/
     }
     
     /**
@@ -182,8 +110,7 @@ public class D1ClientTest  {
         for(int i=0; i<nodeList.size(); i++)
         {
             currentUrl = nodeList.get(i).getBaseURL();
-            d1 = new D1Client(currentUrl);
-            MNode mn = d1.getMN(currentUrl);
+            MNode mn = D1Client.getMN(currentUrl);
             
             try
             {
@@ -223,8 +150,7 @@ public class D1ClientTest  {
        for(int j=0; j<nodeList.size(); j++)
        {
            currentUrl = nodeList.get(j).getBaseURL();
-           d1 = new D1Client(currentUrl);
-           MNode mn = d1.getMN(currentUrl);
+           MNode mn = D1Client.getMN(currentUrl);
            
            printHeader("testGetLogRecords - node " + nodeList.get(j).getBaseURL());
            System.out.println("current time is: " + new Date());
@@ -290,8 +216,7 @@ public class D1ClientTest  {
         for(int j=0; j<nodeList.size(); j++)
         {
             currentUrl = nodeList.get(j).getBaseURL();
-            d1 = new D1Client(currentUrl);
-            MNode mn = d1.getMN(currentUrl);
+            MNode mn = D1Client.getMN(currentUrl);
             
             printHeader("testListObjects - node " + nodeList.get(j).getBaseURL());
             System.out.println("current time is: " + new Date());
@@ -359,8 +284,7 @@ public class D1ClientTest  {
         for(int j=0; j<nodeList.size(); j++)
         {
             currentUrl = nodeList.get(j).getBaseURL();
-            d1 = new D1Client(currentUrl);
-            MNode mn = d1.getMN(currentUrl);
+            MNode mn = D1Client.getMN(currentUrl);
             
             printHeader("testListObjects - node " + nodeList.get(j).getBaseURL());
             System.out.println("current time is: " + new Date());
@@ -474,8 +398,7 @@ public class D1ClientTest  {
         for(int i=0; i<nodeList.size(); i++)
         {
             currentUrl = nodeList.get(i).getBaseURL();
-            d1 = new D1Client(currentUrl);
-            MNode mn = d1.getMN(currentUrl);
+            MNode mn = D1Client.getMN(currentUrl);
 
             printHeader("testGetSystemMetadata - node " + nodeList.get(i).getBaseURL());
             try
@@ -515,8 +438,7 @@ public class D1ClientTest  {
         for(int i=0; i<nodeList.size(); i++)
         {
             currentUrl = nodeList.get(i).getBaseURL();
-            d1 = new D1Client(currentUrl);
-            MNode mn = d1.getMN(currentUrl);
+            MNode mn = D1Client.getMN(currentUrl);
 
             printHeader("testUpdate - node " + nodeList.get(i).getBaseURL());
             try 
@@ -580,8 +502,7 @@ public class D1ClientTest  {
         for(int i=0; i<nodeList.size(); i++)
         {
             currentUrl = nodeList.get(i).getBaseURL();
-            d1 = new D1Client(currentUrl);
-            MNode mn = d1.getMN(currentUrl);
+            MNode mn = D1Client.getMN(currentUrl);
 
             printHeader("testFailedCreateData - node " + nodeList.get(i).getBaseURL());
             /*try 
@@ -660,8 +581,7 @@ public class D1ClientTest  {
         for(int i=0; i<nodeList.size(); i++)
         {
             currentUrl = nodeList.get(i).getBaseURL();
-            d1 = new D1Client(currentUrl);
-            MNode mn = d1.getMN(currentUrl);
+            MNode mn = D1Client.getMN(currentUrl);
 
             printHeader("testGet - node " + nodeList.get(i).getBaseURL());
             try
@@ -719,8 +639,7 @@ public class D1ClientTest  {
             for(int j=0; j<nodeList.size(); j++)
             {
                 currentUrl = nodeList.get(j).getBaseURL();
-                d1 = new D1Client(currentUrl);
-                MNode mn = d1.getMN(currentUrl);
+                MNode mn = D1Client.getMN(currentUrl);
 
                 String principal = "uid%3Dkepler,o%3Dunaffiliated,dc%3Decoinformatics,dc%3Dorg";
                 AuthToken token = mn.login(principal, "kepler");
@@ -783,8 +702,7 @@ public class D1ClientTest  {
         for(int i=0; i<nodeList.size(); i++)
         {
             currentUrl = nodeList.get(i).getBaseURL();
-            d1 = new D1Client(currentUrl);
-            MNode mn = d1.getMN(currentUrl);
+            MNode mn = D1Client.getMN(currentUrl);
 
             printHeader("testCreateData - node " + nodeList.get(i).getBaseURL());
             try
@@ -833,8 +751,7 @@ public class D1ClientTest  {
         for(int i=0; i<nodeList.size(); i++)
         {
             currentUrl = nodeList.get(i).getBaseURL();
-            d1 = new D1Client(currentUrl);
-            MNode mn = d1.getMN(currentUrl);
+            MNode mn = D1Client.getMN(currentUrl);
 
             printHeader("testCreateData - node " + nodeList.get(i).getBaseURL());
             try
@@ -920,8 +837,7 @@ public class D1ClientTest  {
     		nodeSummary.add("Node Test Summary for node: " + currentUrl );
 
     		printHeader("  Node:: " + currentUrl);
-    		d1 = new D1Client(currentUrl);
-    		MNode mn = d1.getMN(currentUrl);
+    		MNode mn = D1Client.getMN(currentUrl);
 
     		String principal = "uid%3Dkepler,o%3Dunaffiliated,dc%3Decoinformatics,dc%3Dorg";
             AuthToken token = null;
@@ -1005,8 +921,7 @@ public class D1ClientTest  {
         for(int i=0; i<nodeList.size(); i++)
         {
             currentUrl = nodeList.get(i).getBaseURL();
-            d1 = new D1Client(currentUrl);
-            MNode mn = d1.getMN(currentUrl);
+            MNode mn = D1Client.getMN(currentUrl);
 
             try
             {
@@ -1071,8 +986,7 @@ public class D1ClientTest  {
         for(int i=0; i<nodeList.size(); i++)
         {
             currentUrl = nodeList.get(i).getBaseURL();
-            d1 = new D1Client(currentUrl);
-            MNode mn = d1.getMN(currentUrl);
+            MNode mn = D1Client.getMN(currentUrl);
 
             try
             {
@@ -1115,8 +1029,7 @@ public class D1ClientTest  {
         for(int i=0; i<nodeList.size(); i++)
         {
             currentUrl = nodeList.get(i).getBaseURL();
-            d1 = new D1Client(currentUrl);
-            MNode mn = d1.getMN(currentUrl);
+            MNode mn = D1Client.getMN(currentUrl);
 
             try
             {
@@ -1167,8 +1080,7 @@ public class D1ClientTest  {
         for(int i=0; i<nodeList.size(); i++)
         {
             currentUrl = nodeList.get(i).getBaseURL();
-            d1 = new D1Client(currentUrl);
-            MNode mn = d1.getMN(currentUrl);
+            MNode mn = D1Client.getMN(currentUrl);
             printHeader("testDelete - node " + nodeList.get(i).getBaseURL());
             
             try
@@ -1214,8 +1126,7 @@ public class D1ClientTest  {
         for(int i=0; i<nodeList.size(); i++)
         {
             currentUrl = nodeList.get(i).getBaseURL();
-            d1 = new D1Client(currentUrl);
-            MNode mn = d1.getMN(currentUrl);
+            MNode mn = D1Client.getMN(currentUrl);
             
             printHeader("testDescribe - node " + nodeList.get(i).getBaseURL());
             try
@@ -1261,8 +1172,7 @@ public class D1ClientTest  {
         for(int i=0; i<nodeList.size(); i++)
         {
             currentUrl = nodeList.get(i).getBaseURL();
-            d1 = new D1Client(currentUrl);
-            MNode mn = d1.getMN(currentUrl);
+            MNode mn = D1Client.getMN(currentUrl);
 
             try {
                 printHeader("testGetNotFound - node " + nodeList.get(i).getBaseURL());
@@ -1375,7 +1285,7 @@ public class D1ClientTest  {
     }
 
     /** Generate a science metadata object for testing. */
-    private static String generateScienceMetadata(Identifier guid) {
+/*    private static String generateScienceMetadata(Identifier guid) {
         String accessBlock = ExampleUtilities.getAccessBlock("public", true, true,
                 false, false, false);
         String emldoc = ExampleUtilities.generateEmlDocument(
@@ -1384,14 +1294,14 @@ public class D1ClientTest  {
                 null, "http://fake.example.com/somedata", null,
                 accessBlock, null, null, null, null);
         return emldoc;
-    }
+    }*/
     
     /**
      * get system metadata
      * @param metadataResourcePath
      * @return
      */
-    private SystemMetadata getSystemMetadata(String metadataResourcePath)  {
+    /*private SystemMetadata getSystemMetadata(String metadataResourcePath)  {
         printHeader("testGetSystemMetadata");
         SystemMetadata  systemMetadata = null;
         InputStream inputStream = null;
@@ -1417,7 +1327,7 @@ public class D1ClientTest  {
             }
         }
         return systemMetadata;
-    }
+    }*/
     
     private void printHeader(String methodName)
     {

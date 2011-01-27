@@ -1,28 +1,22 @@
 package org.dataone.integration;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertTrue;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.Date;
-import java.util.concurrent.Callable;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpResponse;
 import org.dataone.client.CNode;
 import org.dataone.client.D1Client;
 import org.dataone.client.MNode;
-import org.dataone.client.D1Node.ResponseData;
 import org.dataone.mimemultipart.MultipartRequestHandler;
 import org.dataone.service.Constants;
 import org.dataone.service.exceptions.BaseException;
@@ -61,11 +55,7 @@ import org.junit.rules.ErrorCollector;
  *
  */
 public class DataReplicationTest {
-	private static final String cn_id = "cn-dev";
-	private static final String cn_Url = "http://cn-dev.dataone.org/cn/";
 	// mn1 needs to be a published node that supports login, create, get and meta
-//	private static final String mn1_id = "http://knb-mn.ecoinformatics.org";
-//	private static final String mn1_Url = "http://knb-mn.ecoinformatics.org/knb/";
 	private static final String mn1_id = "http://knb-mn.ecoinformatics.org";
 	private static final String mn1_Url = "http://knb-mn.ecoinformatics.org/knb/d1/";
 	
@@ -74,7 +64,6 @@ public class DataReplicationTest {
 	
 	private static final String mn2_id = "http://mn-dev.dataone.org";
 	private static final String mn2_Url = "http://amasa.local:8080/knb/d1/";
-	//private static final String mn2_id = "http://home.offhegoes.net:8080/knb/d1";
 	
 	private static final int replicateWaitLimitSec = 20;
 	private static final int pollingFrequencySec = 5;
@@ -119,10 +108,9 @@ public class DataReplicationTest {
 	InsufficientResources, InvalidSystemMetadata 
 	{
 		// create the players
-		D1Client d1 = new D1Client(cn_Url);
-		CNode cn = d1.getCN();
-		MNode mn1 = d1.getMN(mn1_Url);	
-		MNode mn2 = d1.getMN(mn2_Url);
+		CNode cn = D1Client.getCN();
+		MNode mn1 = D1Client.getMN(mn1_Url);	
+		MNode mn2 = D1Client.getMN(mn2_Url);
 		AuthToken token = null;
 		
 		// create new object on MN_1
@@ -179,10 +167,9 @@ public class DataReplicationTest {
 	InsufficientResources, InvalidSystemMetadata 
 	{
 		// create the players
-		D1Client d1 = new D1Client(cn_Url);
-		CNode cn = d1.getCN();
-		MNode mn1 = d1.getMN(mn1_Url);	
-		MNode mn2 = d1.getMN(mn2_Url);
+		CNode cn = D1Client.getCN();
+		MNode mn1 = D1Client.getMN(mn1_Url);	
+		MNode mn2 = D1Client.getMN(mn2_Url);
 		AuthToken token = null;
 		
 		// create new object on MN_1
@@ -238,10 +225,9 @@ public class DataReplicationTest {
 	InsufficientResources, InvalidSystemMetadata 
 	{
 		// create the players
-		D1Client d1 = new D1Client(cn_Url);
-		CNode cn = d1.getCN();
-		MNode mn1 = d1.getMN(mn1_Url);	
-		MNode mn2 = d1.getMN(mn2_Url);
+		CNode cn = D1Client.getCN();
+		MNode mn1 = D1Client.getMN(mn1_Url);	
+		MNode mn2 = D1Client.getMN(mn2_Url);
 		AuthToken token = null;
 		
 		// create new object on MN_1
