@@ -21,6 +21,7 @@
 package org.dataone.integration;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.*;
 import static org.junit.Assert.assertThat;
 
 import java.io.FileInputStream;
@@ -144,6 +145,7 @@ public class SimpleApiTests  {
     		try {
         		printSubHeader("Testing Create and Object");
     			pid = doCreateNewObject(mn, prefix, logon, cred);
+    			System.out.println("new object PID: " + pid.getValue());
     		} catch (Exception e) {
     			errorCollector.addError(new Throwable(createAssertMessage() + 
     					" error in mn.create or mn.get: " + e.getMessage()));
@@ -155,6 +157,8 @@ public class SimpleApiTests  {
     		try {
         		printSubHeader("Testing getSystemMetadata");
     			SystemMetadata smd = mn.getSystemMetadata(null, pid);
+    			System.out.println("systemMetadata object size: " + smd.getSize());
+    			assertTrue("smd object not null", smd != null);
     		} catch (Exception e) {
     			errorCollector.addError(new Throwable(createAssertMessage() + 
     					" error in mn.getSystemMetadata: " + e.getMessage()));
@@ -163,6 +167,8 @@ public class SimpleApiTests  {
     		try {
         		printSubHeader("Testing getChecksum");
     			Checksum cs = mn.getChecksum(null, pid);
+    			System.out.println("checksum object value: " +  cs.getValue());
+    			assertTrue("checksum object not null", cs != null);
     		} catch (Exception e) {
     			errorCollector.addError(new Throwable(createAssertMessage() + 
     					" error in mn.checksum: " + e.getMessage()));
@@ -1430,12 +1436,12 @@ public class SimpleApiTests  {
 //            new Throwable().getStackTrace()[2].getClass().getResourceAsStream("/d1_testdocs/knb-lter-cdr.329066.1.data");
 
 
-		try {
-			objectStream = new FileInputStream("/d1_testdocs/knb-lter-cdr.329066.1.data");
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+//		try {
+//			objectStream = new FileInputStream("/d1_testdocs/knb-lter-cdr.329066.1.data");
+//		} catch (FileNotFoundException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
 		
 
 		rGuid = mn.create(token, guid, objectStream, sysmeta);
