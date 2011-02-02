@@ -670,6 +670,7 @@ public class D1ClientTest  {
                 DistributionMetadata dm = emld.distributionMetadata.elementAt(0);
                 checkEquals(ObjectFormat.TEXT_PLAIN.toString(), dm.mimeType);
                 checkEquals(dm.url, "ecogrid://knb/IPCC.200802107062739.1");
+                is = this.getClass().getResourceAsStream("/d1_testdocs/eml200/dpennington.195.2");
                 insertEMLDocsWithEMLParserOutput(mn, emld, "dpennington.195.2", token, is);
                 
                 //Test EML 2.0.1
@@ -680,6 +681,7 @@ public class D1ClientTest  {
                 dm = emld.distributionMetadata.elementAt(0);
                 checkEquals(ObjectFormat.TEXT_PLAIN.toString(), dm.mimeType);
                 checkEquals(dm.url, "ecogrid://knb/msucci.24.1");
+                is = this.getClass().getResourceAsStream("/d1_testdocs/eml201/msucci.23.3");
                 insertEMLDocsWithEMLParserOutput(mn, emld, "msucci.23.3", token, is);
                 
                 //Test EML 2.1.0
@@ -696,6 +698,7 @@ public class D1ClientTest  {
                 dm = emld.distributionMetadata.elementAt(2);
                 checkEquals(ObjectFormat.TEXT_PLAIN.toString(), dm.mimeType);
                 checkEquals(dm.url, "ecogrid://knb/peggym.129.1");
+                is = this.getClass().getResourceAsStream("/d1_testdocs/eml210/peggym.130.4");
                 insertEMLDocsWithEMLParserOutput(mn, emld, "peggym.130.4", token, is);
             }
         }
