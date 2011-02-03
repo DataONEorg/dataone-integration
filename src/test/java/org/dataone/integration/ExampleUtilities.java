@@ -36,7 +36,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.dataone.client.CNode;
-import org.dataone.client.D1Client;
 import org.dataone.client.MNode;
 import org.dataone.service.exceptions.IdentifierNotUnique;
 import org.dataone.service.exceptions.InsufficientResources;
@@ -54,7 +53,6 @@ import org.dataone.service.types.ChecksumAlgorithm;
 import org.dataone.service.types.Identifier;
 import org.dataone.service.types.NodeReference;
 import org.dataone.service.types.ObjectFormat;
-import org.dataone.service.types.ObjectList;
 import org.dataone.service.types.ObjectLocation;
 import org.dataone.service.types.ObjectLocationList;
 import org.dataone.service.types.Principal;
@@ -344,11 +342,17 @@ public class ExampleUtilities {
         return guid.toString();
     }
     
+    /** Generate a SystemMetadata object with bogus data. */
+    protected static SystemMetadata generateSystemMetadata(
+            Identifier guid, ObjectFormat objectFormat, InputStream source) {
+        
+        String fixedMemberNode = "http://knb-mn.ecoinformatics.org";
+        return generateSystemMetadata(guid, objectFormat, source, fixedMemberNode);
+    }
     
     /** Generate a SystemMetadata object with bogus data. */
-    protected static SystemMetadata generateSystemMetadata(Identifier guid, 
-            ObjectFormat objectFormat, InputStream source) 
-    {
+    protected static SystemMetadata generateSystemMetadata(
+            Identifier guid, ObjectFormat objectFormat, InputStream source, String mnIdentifier) {
         SystemMetadata sysmeta = new SystemMetadata();
         sysmeta.setIdentifier(guid);
         sysmeta.setObjectFormat(objectFormat);
@@ -363,14 +367,14 @@ public class ExampleUtilities {
         sysmeta.setDateSysMetadataModified(new Date());
         sysmeta.setDateUploaded(new Date());
         NodeReference originMemberNode = new NodeReference();
-        originMemberNode.setValue("http://knb-mn.ecoinformatics.org");
+        originMemberNode.setValue(mnIdentifier);
         sysmeta.setOriginMemberNode(originMemberNode);
         NodeReference authoritativeMemberNode = new NodeReference();
-        authoritativeMemberNode.setValue("http://knb-mn.ecoinformatics.org");
+        authoritativeMemberNode.setValue(mnIdentifier);
         sysmeta.setAuthoritativeMemberNode(authoritativeMemberNode);
         Replica firstReplica = new Replica();
         NodeReference replicaNodeReference = new NodeReference();
-        replicaNodeReference.setValue("http://knb-mn.ecoinformatics.org");
+        replicaNodeReference.setValue(mnIdentifier);
         firstReplica.setReplicaMemberNode(replicaNodeReference);
         firstReplica.setReplicationStatus(ReplicationStatus.COMPLETED);
         firstReplica.setReplicaVerified(new Date());
