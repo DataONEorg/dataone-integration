@@ -120,7 +120,6 @@ public class D1ClientCNodeTest  {
 
 		printHeader("testlistObject vs. node " + cnUrl);
 		System.out.println("Using CN: " + D1Client.getCN().getNodeBaseServiceUrl());
-		checkTrue(D1Client.getCN().getNodeBaseServiceUrl().equals(cnUrl));
 		
 		MNode mn = D1Client.getMN(mnUrl);
 //		String principal = "uid%3Dkepler,o%3Dunaffiliated,dc%3Decoinformatics,dc%3Dorg";
@@ -171,7 +170,6 @@ public class D1ClientCNodeTest  {
 	public void testSearch() {
 		printHeader("testSearch vs. node " + cnUrl);
         System.out.println("Using CN: " + D1Client.getCN().getNodeBaseServiceUrl());
-        checkTrue(D1Client.getCN().getNodeBaseServiceUrl().equals(cnUrl));
 
 		MNode mn = D1Client.getMN(mnUrl);
 		String principal = "uid%3Dkepler,o%3Dunaffiliated,dc%3Decoinformatics,dc%3Dorg";
@@ -216,7 +214,6 @@ public class D1ClientCNodeTest  {
 
 		printHeader("testGetSysMeta vs. node " + cnUrl);
         System.out.println("Using CN: " + D1Client.getCN().getNodeBaseServiceUrl());
-        checkTrue(D1Client.getCN().getNodeBaseServiceUrl().equals(cnUrl));
 
 		// create a new object in order to retrieve its sysmeta
 		MNode mn = D1Client.getMN(mnUrl);
@@ -265,7 +262,6 @@ public class D1ClientCNodeTest  {
 		printHeader("testGet vs. node " + cnUrl);
 
         System.out.println("Using CN: " + D1Client.getCN().getNodeBaseServiceUrl());
-        checkTrue(D1Client.getCN().getNodeBaseServiceUrl().equals(cnUrl));
 
 		// create a new object in order to retrieve its sysmeta
 		MNode mn = D1Client.getMN(mnUrl);
@@ -327,7 +323,6 @@ public class D1ClientCNodeTest  {
 	@Test
 	public void testInvalidResolve() {
 	    System.out.println("Using CN: " + D1Client.getCN().getNodeBaseServiceUrl());
-	    checkTrue(D1Client.getCN().getNodeBaseServiceUrl().equals(cnUrl));
 
 		CNode cn = D1Client.getCN();
 
