@@ -24,6 +24,7 @@ import org.dataone.service.types.AuthToken;
 import org.dataone.service.types.Identifier;
 import org.dataone.service.types.ObjectList;
 import org.dataone.service.types.SystemMetadata;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ErrorCollector;
@@ -45,6 +46,7 @@ import org.junit.rules.ErrorCollector;
  */
 public class SynchronizationTest {
 	private static final String cn_id = "cn-dev";
+    private static final String TEST_CN_URL = "http://cn-dev.dataone.org/cn";
 	//private static final String cn_Url = "http://cn-dev.dataone.org/cn/";
 	// mn1 needs to be a node that supports login, create, get and meta
 	private static final String mn1_id = "http://knb-mn.ecoinformatics.org";
@@ -68,10 +70,15 @@ public class SynchronizationTest {
 	
 	private static final String prefix = "synch:testID";
 	
-
 	@Rule 
 	public ErrorCollector errorCollector = new ErrorCollector();
 
+    @Before
+    public void setUp() throws Exception 
+    {
+        D1Client d1 = new D1Client(TEST_CN_URL);
+    }
+    
     /**
      * test the unit test harness
      */

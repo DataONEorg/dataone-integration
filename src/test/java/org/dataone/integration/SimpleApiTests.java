@@ -77,7 +77,7 @@ import org.junit.rules.ErrorCollector;
  * @author Matthew Jones, Rob Nahf
  */
 public class SimpleApiTests  {
-
+    private static final String TEST_CN_URL = "http://cn-dev.dataone.org/cn";
     private static final String TEST_MN_URL = "http://cn-dev.dataone.org/knb/d1/";
     private static final String devPrincipal = "uid%3Dkepler,o%3Dunaffiliated,dc%3Decoinformatics,dc%3Dorg";
     private static final String pw = "kepler";
@@ -98,6 +98,8 @@ public class SimpleApiTests  {
     @Before
     public void setUp() throws Exception 
     {
+        D1Client d1 = new D1Client(TEST_CN_URL);
+        
     	nodeInfo = new Hashtable();
     	nodeInfo.put("http://cn-dev.dataone.org/knb/d1/", new String[] {devPrincipal, pw});
 //    	nodeInfo.put("http://cn-dev.dataone.org/mn/", new String[] {"",""});

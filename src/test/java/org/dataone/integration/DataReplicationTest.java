@@ -38,6 +38,7 @@ import org.jibx.runtime.BindingDirectory;
 import org.jibx.runtime.IBindingFactory;
 import org.jibx.runtime.IMarshallingContext;
 import org.jibx.runtime.JiBXException;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ErrorCollector;
@@ -57,6 +58,7 @@ import org.junit.rules.ErrorCollector;
  */
 public class DataReplicationTest {
 	// mn1 needs to be a published node that supports login, create, get and meta
+    private static final String TEST_CN_URL = "http://cn-dev.dataone.org/cn";
 	private static final String mn1_id = "http://knb-mn.ecoinformatics.org";
 	private static final String mn1_Url = "http://knb-mn.ecoinformatics.org/knb/d1/";
 	
@@ -88,6 +90,12 @@ public class DataReplicationTest {
 	@Rule 
 	public ErrorCollector errorCollector = new ErrorCollector();
 
+    @Before
+    public void setUp() throws Exception 
+    {
+        D1Client d1 = new D1Client(TEST_CN_URL);
+    }
+	
 	/**
 	 *  This test does not require synchronization to be working
 	 * @throws ServiceFailure
