@@ -70,6 +70,7 @@ import org.junit.rules.ErrorCollector;
  */
 public class D1ClientTest  {
 
+    private static final String TEST_CN_URL = "http://cn-dev.dataone.org/cn";
     private static final String TEST_MN_URL = "http://cn-dev.dataone.org/knb/d1/";
     private static final String TEST_MN_ID = "http://cn-dev.dataone.org/knb/d1";
     private static final String principal = "uid%3Dkepler,o%3Dunaffiliated,dc%3Decoinformatics,dc%3Dorg";
@@ -89,6 +90,8 @@ public class D1ClientTest  {
     @Before
     public void setUp() throws Exception 
     {
+        D1Client d1 = new D1Client(TEST_CN_URL);
+        
         if (nodeList == null || nodeList.size() == 0 || !useNodeList) {
             nodeList = new Vector<Node>();
             Node n = new Node();
