@@ -77,11 +77,9 @@ import org.junit.rules.ErrorCollector;
  * @author Matthew Jones, Rob Nahf
  */
 public class SimpleApiTests  {
-    private static final String TEST_CN_URL = "http://cn-dev.dataone.org/cn";
-    private static final String TEST_MN_URL = "http://cn-dev.dataone.org/knb/d1/";
     private static final String devPrincipal = "uid%3Dkepler,o%3Dunaffiliated,dc%3Decoinformatics,dc%3Dorg";
     private static final String pw = "kepler";
-    private static final String prefix = "knb:testid:";
+    private static final String prefix = "simpleApiTests:testid:";
     private static final String bogusId = "foobarbaz214";
     private static final String knownId = "repl:testID201120161032499";
 
@@ -97,12 +95,10 @@ public class SimpleApiTests  {
 
     @Before
     public void setUp() throws Exception 
-    {
-        D1Client d1 = new D1Client(TEST_CN_URL);
-        
+    {        
     	nodeInfo = new Hashtable();
     	nodeInfo.put("http://cn-dev.dataone.org/knb/d1/", new String[] {devPrincipal, pw});
-//    	nodeInfo.put("http://cn-dev.dataone.org/mn/", new String[] {"",""});
+    	nodeInfo.put("http://gmn-dev.dyndns.org/", new String[] {"public","public"});
 //    	nodeInfo.put("http://dev-dryad-mn.dataone.org/mn/", new String[] {"",""});
 //    	nodeInfo.put("http://daacmn.dataone.utk.edu/mn/", new String[] {"",""});
     }
@@ -116,7 +112,7 @@ public class SimpleApiTests  {
     	while( nodeBaseUrls.hasMoreElements() ) 
     	{
     		String currentBaseUrl = nodeBaseUrls.nextElement();
-    		this.currentUrl = currentBaseUrl;
+    		currentUrl = currentBaseUrl;
     		String[] currentNodeInfo = (String[]) nodeInfo.get(currentBaseUrl);
     		String logon = currentNodeInfo[0];
     		String cred = currentNodeInfo[1];
@@ -133,8 +129,8 @@ public class SimpleApiTests  {
     			errorCollector.addError(new Throwable(createAssertMessage() + 
     					" error in mn.listObjects: " + e.getMessage()));
     		}
-    		int origObjectCount = ol.sizeObjectInfoList();
-    		System.out.println("total from listObjects: " + origObjectCount);
+    		int origObjectCount = ol.getTotal();
+    		System.out.println("=========>> total from listObjects: " + origObjectCount);
 
     		// login if necessary
     		AuthToken token = null;
@@ -151,7 +147,7 @@ public class SimpleApiTests  {
     		}
     		
     		// assemble new object and systemMetadata (client-side)
-    		String idString = "simpleApiTests:testid:" + ExampleUtilities.generateIdentifier();
+    		String idString = prefix + ExampleUtilities.generateIdentifier();
     		Identifier newPid = new Identifier();
     		newPid.setValue(idString);
 
@@ -258,7 +254,8 @@ public class SimpleApiTests  {
  
     		printSubHeader("checking new object list count");
     		int c = getCountFromListObjects( mn,  token);
-    		checkTrue("objectlist should be one more than before", c == origObjectCount + 1); 
+    		System.out.println("=========>> total from listObjects: " + c);
+    		checkEquals(" *~*~*~* objectlist should be one more than before the create", origObjectCount + 1, c); 
  
     		// search
     		// deferring this one - do MNs have search?
@@ -294,7 +291,9 @@ public class SimpleApiTests  {
     		}
        		printSubHeader("checking object list count after update");
     		c = getCountFromListObjects( mn,  token);
-    		checkTrue("objectlist should be same as before update", c == origObjectCount + 1); 
+    		System.out.println("=========>> total from listObjects: " + c);
+    		checkEquals(" *~*~*~* objectlist should be +1 after the update", origObjectCount + 2, c); 
+    		// but a search will not have the old object in the index
     		
     		
     		// delete
@@ -311,7 +310,8 @@ public class SimpleApiTests  {
   
       		printSubHeader("checking object list count after delete");
     		c = getCountFromListObjects( mn,  token);
-    		checkTrue("objectlist should be same as before update", c == origObjectCount);
+    		System.out.println("=========>> total from listObjects: " + c);
+    		checkEquals(" *~*~*~* objectlist should be same after delete as before delete (zero impact)", origObjectCount + 2, c);
     		
     		
     		
@@ -763,7 +763,7 @@ public class SimpleApiTests  {
 			errorCollector.addError(new Throwable(createAssertMessage() + 
 					" error in getCountFromListObjects: " + e.getMessage()));
 		}
-		int count = ol.sizeObjectInfoList();
+		int count = ol.getTotal();
 		System.out.println("total from listObjects: " + count);
 		return count;
     }
@@ -796,7 +796,20 @@ public class SimpleApiTests  {
             }
         });
     }
-    
+ 
+    private void checkEquals(final String msg, final int i1, final int i2)
+    {
+        errorCollector.checkSucceeds(new Callable<Object>() 
+        {
+            public Object call() throws Exception 
+            {
+                assertThat(msg, i1, is(i2));
+                //assertThat("assertion failed for host " + currentUrl, s1, is(s2 + "x"));
+                return null;
+            }
+        });
+    }
+   
     private void checkTrue(final String msg, final boolean b)
     {
         errorCollector.checkSucceeds(new Callable<Object>() 
