@@ -166,8 +166,13 @@ public class CNRestURLTest {
 		
 		System.out.println("*** expected  = " + expectedCode);
 		System.out.println("*** http code = " + status);
-		if (rd.getContentStream() != null) 
-			System.out.println("*** contentStream = " + IOUtils.toString(rd.getContentStream()));
+		if (rd.getContentStream() != null) {
+			String content = IOUtils.toString(rd.getContentStream());
+			if (content.length() > 1000)
+				System.out.println("*** contentStream = " + content.substring(0, 1000) + " ...");
+			else
+				System.out.println("*** contentStream = " + content);
+		}
 		if (rd.getErrorStream() != null) 
 			System.out.println("*** errorStream = " + IOUtils.toString(rd.getErrorStream()));
 		
