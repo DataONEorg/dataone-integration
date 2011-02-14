@@ -49,8 +49,9 @@ public class SynchronizationTest {
     private static final String TEST_CN_URL = "http://cn-dev.dataone.org/cn";
 	//private static final String cn_Url = "http://cn-dev.dataone.org/cn/";
 	// mn1 needs to be a node that supports login, create, get and meta
-	private static final String mn1_id = "http://knb-mn.ecoinformatics.org";
-	private static final String mn1_Url = "http://knb-mn.ecoinformatics.org/knb/";
+	// TODO: unobfuscate urls when allowed to put test data into knb-mn
+    private static final String mn1_id = "http://___knb-mn.ecoinformatics.org";
+	private static final String mn1_Url = "http://___knb-mn.ecoinformatics.org/knb/";
 //	private static final String mn1_id = "unregistered";
 //	private static final String mn1_Url = "http://cn-dev.dataone.org/knb/d1/";
 	
