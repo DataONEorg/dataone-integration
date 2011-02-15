@@ -23,10 +23,10 @@ package org.dataone.integration;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
+import java.io.IOException;
 import java.io.InputStream;
-import java.util.Date;
+import java.security.NoSuchAlgorithmException;
 import java.util.List;
-import java.util.Scanner;
 import java.util.Set;
 import java.util.Vector;
 import java.util.concurrent.Callable;
@@ -36,31 +36,11 @@ import org.dataone.client.D1Client;
 import org.dataone.client.D1Object;
 import org.dataone.client.DataPackage;
 import org.dataone.client.MNode;
-import org.dataone.eml.DataoneEMLParser;
-import org.dataone.eml.EMLDocument;
-import org.dataone.eml.EMLDocument.DistributionMetadata;
 import org.dataone.service.exceptions.BaseException;
-import org.dataone.service.exceptions.IdentifierNotUnique;
-import org.dataone.service.exceptions.InsufficientResources;
-import org.dataone.service.exceptions.InvalidSystemMetadata;
-import org.dataone.service.exceptions.InvalidToken;
-import org.dataone.service.exceptions.NotAuthorized;
-import org.dataone.service.exceptions.NotFound;
-import org.dataone.service.exceptions.NotImplemented;
-import org.dataone.service.exceptions.ServiceFailure;
-import org.dataone.service.exceptions.UnsupportedType;
 import org.dataone.service.types.AuthToken;
-import org.dataone.service.types.Checksum;
-import org.dataone.service.types.ChecksumAlgorithm;
-import org.dataone.service.types.DescribeResponse;
-import org.dataone.service.types.Event;
 import org.dataone.service.types.Identifier;
-import org.dataone.service.types.Log;
-import org.dataone.service.types.LogEntry;
 import org.dataone.service.types.Node;
 import org.dataone.service.types.ObjectFormat;
-import org.dataone.service.types.ObjectInfo;
-import org.dataone.service.types.ObjectList;
 import org.dataone.service.types.SystemMetadata;
 import org.junit.Before;
 import org.junit.Rule;
@@ -81,8 +61,6 @@ public class PackageTest  {
 
     private List<Node> nodeList = null;
     private static String currentUrl;
-    //set this to false if you don't want to use the node list to get the urls for 
-    //the test.  
         
     @Rule 
     public ErrorCollector errorCollector = new ErrorCollector();
@@ -116,7 +94,8 @@ public class PackageTest  {
                 token = mn.login(principal, password);
 
                 Identifier id = createDataObject(mn, token);
-
+                checkTrue(id != null);
+                
                 D1Object d1o = new D1Object(id);
                 checkTrue(d1o != null);
                 checkEquals(id.getValue(), d1o.getIdentifier().getValue());
@@ -141,7 +120,8 @@ public class PackageTest  {
                 token = mn.login(principal, password);
 
                 Identifier id = createDataObject(mn, token);
-
+                checkTrue(id != null);
+                
                 DataPackage dp = new DataPackage(id);
                 checkTrue(dp != null);
                 checkEquals(id.getValue(), dp.get(id).getIdentifier().getValue());
@@ -156,6 +136,54 @@ public class PackageTest  {
                 errorCollector.addError(new Throwable(createAssertMessage() + "" +
                 		" unexpected error in testD1Object: " + e.getClass().getName() + ": "
                         + e.getMessage()));
+            }
+        }
+    }
+    
+    /**
+     * test creation of a D1Object and its call to create()
+     */
+    @Test
+    public void testD1ObjectManualCreate() {
+        for (int i = 0; i < nodeList.size(); i++) {
+            currentUrl = nodeList.get(i).getBaseURL();
+            MNode mn = D1Client.getMN(currentUrl);
+
+            printHeader("testD1ObjectCreate - node " + nodeList.get(i).getBaseURL());
+            checkTrue(true);
+            AuthToken token;
+            try {
+                token = mn.login("uid%3Dkepler,o%3Dunaffiliated,dc%3Decoinformatics,dc%3Dorg", password);
+
+                Identifier id = new Identifier();
+                id.setValue(prefix + ExampleUtilities.generateIdentifier());
+                InputStream objectStream = this.getClass().getResourceAsStream(
+                    "/d1_testdocs/knb-lter-cdr.329066.1.data");
+                byte[] data = IOUtils.toByteArray(objectStream);
+                String[] describes = {"j.1.1", "j.2.1"};
+                String[] describedBy = {};
+                D1Object d1o = new D1Object(id, data, ObjectFormat.TEXT_CSV, principal, TEST_MN_ID, describes, describedBy);
+                checkTrue(d1o != null);
+                d1o.create(token);
+                d1o.setPublicAccess(token);
+                
+                // Now check if the object is on the MN
+                SystemMetadata smCopy = mn.getSystemMetadata(token, id);
+                checkEquals(id.getValue(), smCopy.getIdentifier().getValue());
+                checkEquals(d1o.getType().toString(), smCopy.getObjectFormat().toString());
+                
+            } catch (BaseException e) {
+                errorCollector.addError(new Throwable(createAssertMessage() + 
+                        " unexpected error in testD1ObjectManualCreate: " + e.getClass().getName() + ": "
+                        + e.getMessage()));
+            } catch (NoSuchAlgorithmException e) {
+                errorCollector.addError(new Throwable(createAssertMessage() + 
+                        " unexpected error in testD1ObjectManualCreate: " + e.getClass().getName() + ": "
+                        + e.getMessage()));
+            } catch (IOException e) {
+                errorCollector.addError(new Throwable(createAssertMessage() + 
+                " unexpected error in testD1ObjectManualCreate: " + e.getClass().getName() + ": "
+                + e.getMessage()));
             }
         }
     }
