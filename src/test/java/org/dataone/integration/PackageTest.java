@@ -37,6 +37,7 @@ import org.dataone.client.D1Object;
 import org.dataone.client.DataPackage;
 import org.dataone.client.MNode;
 import org.dataone.service.exceptions.BaseException;
+import org.dataone.service.exceptions.IdentifierNotUnique;
 import org.dataone.service.types.AuthToken;
 import org.dataone.service.types.Identifier;
 import org.dataone.service.types.Node;
@@ -172,6 +173,14 @@ public class PackageTest  {
                 checkEquals(id.getValue(), smCopy.getIdentifier().getValue());
                 checkEquals(d1o.getType().toString(), smCopy.getObjectFormat().toString());
                 
+                // Now check that create() fails if called a second time
+                try {
+                    System.out.println("Trying create a second time, expecting an exception due to ID conflicts...");
+                    d1o.create(token);
+                    // Should not get here, because the object already exists on the MN
+                } catch (IdentifierNotUnique e) {
+                    checkTrue(e != null);
+                }
             } catch (BaseException e) {
                 errorCollector.addError(new Throwable(createAssertMessage() + 
                         " unexpected error in testD1ObjectManualCreate: " + e.getClass().getName() + ": "
