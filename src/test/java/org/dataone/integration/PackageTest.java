@@ -53,7 +53,7 @@ import org.junit.rules.ErrorCollector;
  * @author Matthew Jones
  */
 public class PackageTest  {
-    private static final String TEST_CN_URL = "http://cn-dev.dataone.org/cn";
+    private static final String TEST_CN_URL = "http://cn-dev.dataone.org/cn/";
     private static final String TEST_MN_URL = "http://cn-dev.dataone.org/knb/d1/";
     private static final String TEST_MN_ID = "http://cn-dev.dataone.org/knb/d1";
     private static final String principal = "uid%3Dkepler,o%3Dunaffiliated,dc%3Decoinformatics,dc%3Dorg";
@@ -163,7 +163,7 @@ public class PackageTest  {
                 byte[] data = IOUtils.toByteArray(objectStream);
                 String[] describes = {"j.1.1", "j.2.1"};
                 String[] describedBy = {};
-                D1Object d1o = new D1Object(id, data, ObjectFormat.TEXT_CSV, principal, TEST_MN_ID, describes, describedBy);
+                D1Object d1o = new D1Object(id, data, ObjectFormat.TEXT_CSV.toString(), principal, TEST_MN_ID, describes, describedBy);
                 checkTrue(d1o != null);
                 d1o.create(token);
                 d1o.setPublicAccess(token);
