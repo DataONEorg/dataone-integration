@@ -112,7 +112,7 @@ public class DataReplicationTest {
 	 * @throws UnsupportedType 
 	 * @throws IdentifierNotUnique 
 	 */
-	@Test
+//	@Test
 	public void testDataReplicateWithGet() throws ServiceFailure, NotImplemented, InterruptedException, 
 	InvalidToken, NotAuthorized, InvalidRequest, NotFound, IOException, IdentifierNotUnique, UnsupportedType,
 	InsufficientResources, InvalidSystemMetadata 

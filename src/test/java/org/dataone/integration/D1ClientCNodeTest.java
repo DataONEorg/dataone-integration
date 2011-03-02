@@ -166,7 +166,7 @@ public class D1ClientCNodeTest  {
 		}
 	}
 
-	@Test
+//	@Test
 	public void testSearch() {
 		printHeader("testSearch vs. node " + cnUrl);
         System.out.println("Using CN: " + D1Client.getCN().getNodeBaseServiceUrl());
