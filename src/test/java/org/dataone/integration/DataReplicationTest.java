@@ -97,7 +97,7 @@ public class DataReplicationTest {
         D1Client d1 = new D1Client(TEST_CN_URL);
     }
 
-//    @Test
+    @Test
     public void testPlaceholder() {
     	assertTrue(true);
     }  
