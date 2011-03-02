@@ -96,7 +96,13 @@ public class DataReplicationTest {
     {
         D1Client d1 = new D1Client(TEST_CN_URL);
     }
-	
+
+//    @Test
+    public void testPlaceholder() {
+    	assertTrue(true);
+    }  
+    
+    
 	/**
 	 *  This test does not require synchronization to be working
 	 * @throws ServiceFailure
