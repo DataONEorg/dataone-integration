@@ -73,7 +73,10 @@ public class D1ClientTest  {
     private static final String TEST_CN_URL = "http://cn-dev.dataone.org/cn";
     private static final String TEST_MN_URL = "http://cn-dev.dataone.org/knb/d1/";
     private static final String TEST_MN_ID = "http://cn-dev.dataone.org/knb/d1";
-    private static final String principal = "uid%3Dkepler,o%3Dunaffiliated,dc%3Decoinformatics,dc%3Dorg";
+//	private static final String TEST_MN_URL = "http://localhost:8080/knb/d1/";
+//	private static final String TEST_MN_ID = "http://localhost:8080/knb/d1";
+ 
+private static final String principal = "uid%3Dkepler,o%3Dunaffiliated,dc%3Decoinformatics,dc%3Dorg";
     private static final String password = "kepler";
     private static final String prefix = "knb:testid:";
     private static final String bogusId = "foobarbaz214";
@@ -741,57 +744,7 @@ public class D1ClientTest  {
         }
     }
  
-    // TODO: implementation of this REST call format has been deferred.
-//    @Test
-    public void testCreateData_CurrentRestFormat() 
-    {
-        for(int i=0; i<nodeList.size(); i++)
-        {
-            currentUrl = nodeList.get(i).getBaseURL();
-            MNode mn = D1Client.getMN(currentUrl);
-
-            printHeader("testCreateData - node " + nodeList.get(i).getBaseURL());
-            try
-            {
-                checkTrue(true);
-                AuthToken token = mn.login(principal, password);
-                String idString = prefix + ExampleUtilities.generateIdentifier();
-                Identifier guid = new Identifier();
-                guid.setValue(idString);
-                InputStream objectStream = this.getClass().getResourceAsStream(
-                        "/d1_testdocs/knb-lter-cdr.329066.1.data");
-                SystemMetadata sysmeta = ExampleUtilities.generateSystemMetadata(guid, ObjectFormat.TEXT_CSV, objectStream, TEST_MN_ID);
-                objectStream = this.getClass().getResourceAsStream(
-                    "/d1_testdocs/knb-lter-cdr.329066.1.data");
-                Identifier rGuid = null;
-
-                try {
-                    rGuid = mn.create2(token, guid, objectStream, sysmeta);
-                    checkEquals(guid.getValue(), rGuid.getValue());
-                } catch (Exception e) {
-                    errorCollector.addError(new Throwable(createAssertMessage() + 
-                            " error in testCreateData: " + e.getClass() + ": " + e.getMessage()));
-                }
-
-                try {
-                    InputStream data = mn.get(token, rGuid);
-                    checkTrue(null != data);
-                    String str = IOUtils.toString(data);
-                    checkTrue(str.indexOf("61 66 104 2 103 900817 \"Planted\" 15.0  3.3") != -1);
-                    data.close();
-                } catch (Exception e) {
-                    errorCollector.addError(new Throwable(createAssertMessage() + 
-                            " error in testCreateData: " + e.getMessage()));
-                } 
-            }
-            catch(Exception e)
-            {
-                errorCollector.addError(new Throwable(createAssertMessage() + 
-                        " unexpected error in testCreateData: " + e.getMessage()));
-            }
-        }
-    }
-    
+  
     /**
      * test creation of data with challenging unicode identifier.
      * this also tests get() since it
@@ -885,7 +838,7 @@ public class D1ClientTest  {
     				} catch (Exception e) {
     					status = "Error";
     					System.out.println("error message: " + e.getMessage());
-    					//	e.printStackTrace();
+    					e.printStackTrace();
     					errorCollector.addError(new Throwable(createAssertMessage() + 
     							" error in testCreateData: " + e.getMessage()));
     				} 
