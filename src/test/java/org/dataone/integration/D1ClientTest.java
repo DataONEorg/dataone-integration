@@ -23,7 +23,9 @@ package org.dataone.integration;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.Date;
 import java.util.List;
 import java.util.Scanner;
@@ -31,11 +33,16 @@ import java.util.Vector;
 import java.util.concurrent.Callable;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.http.HttpException;
+import org.apache.http.client.ClientProtocolException;
 import org.dataone.client.D1Client;
+import org.dataone.client.D1RestClient;
 import org.dataone.client.MNode;
 import org.dataone.eml.DataoneEMLParser;
 import org.dataone.eml.EMLDocument;
 import org.dataone.eml.EMLDocument.DistributionMetadata;
+import org.dataone.service.Constants;
+import org.dataone.service.D1Url;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.IdentifierNotUnique;
 import org.dataone.service.exceptions.InsufficientResources;
@@ -59,10 +66,13 @@ import org.dataone.service.types.ObjectFormat;
 import org.dataone.service.types.ObjectInfo;
 import org.dataone.service.types.ObjectList;
 import org.dataone.service.types.SystemMetadata;
+import org.dataone.service.types.util.ServiceTypeUtil;
+import org.jibx.runtime.JiBXException;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ErrorCollector;
+import org.w3c.dom.NodeList;
 
 /**
  * Test the DataONE Java client methods.
@@ -1149,6 +1159,60 @@ private static final String principal = "uid%3Dkepler,o%3Dunaffiliated,dc%3Decoi
             }
         }
     }
+    
+    @Test
+    public void testNodeResponse() {
+    	 for(int i=0; i<nodeList.size(); i++)
+         {
+             currentUrl = nodeList.get(i).getBaseURL();
+             MNode  mn = D1Client.getMN(currentUrl);
+             
+             try {
+                 printHeader("testNodeResponse " + nodeList.get(i).getBaseURL());
+             
+                 D1Url url = new D1Url(mn.getNodeBaseServiceUrl());
+                 
+                 D1RestClient rc = new D1RestClient();
+                 
+                 InputStream is = null;
+                 try {	
+                	 is = rc.doGetRequest(url.getUrl());
+                 } catch (BaseException be) {
+                	 be.printStackTrace();
+                 } catch (IllegalStateException e) {
+                	 e.printStackTrace();
+                 } catch (ClientProtocolException e) {
+                	 e.printStackTrace();
+                 } catch (IOException e) {
+                	 e.printStackTrace();
+                 } catch (HttpException e) {
+                	 e.printStackTrace();
+                 } 
+                 
+                 try {
+//                	 System.out.println(IOUtils.toString(is));
+                	 org.dataone.service.types.NodeList nl = 
+                		 (org.dataone.service.types.NodeList) ServiceTypeUtil.deserializeServiceType(
+                				 org.dataone.service.types.NodeList.class, is);
+                 } catch (Exception e) {
+                	 errorCollector.addError(new Throwable(createAssertMessage() + 
+                             " failed to create NodeList: " + 
+                             e.getMessage()));
+                 }
+             } catch (Exception e) {
+                 errorCollector.addError(new Throwable(createAssertMessage() + 
+                         " unexpected exception in testNodeResponse: " + 
+                         e.getMessage()));
+             }
+         }
+    }
+    
+	@SuppressWarnings("rawtypes")
+	protected void serializeServiceType(Class type, Object object,
+			OutputStream out) throws JiBXException {
+		ServiceTypeUtil.serializeServiceType(type, object, out);
+	}
+    
     
     /**
      * Create a test data object on the given member node, and return the Identifier that was created for that object.
