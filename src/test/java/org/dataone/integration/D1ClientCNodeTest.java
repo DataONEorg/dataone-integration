@@ -425,7 +425,7 @@ public class D1ClientCNodeTest  {
 					
 					status  = "error";
 					message = e.getMessage();
-					errorCollector.addError(new Throwable(createAssertMessage() + " error in testCreateScienceMetadata: " + e.getMessage()));
+					errorCollector.addError(new Throwable(createAssertMessage() + " error in resolveRunner: " + e.getMessage()));
 				}
 				summaryReport.add(j + " " + status + " " + ids.get(j) + "  " + message);
 			}
