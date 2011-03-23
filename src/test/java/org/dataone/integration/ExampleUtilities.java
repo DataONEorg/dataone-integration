@@ -23,8 +23,10 @@ package org.dataone.integration;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -394,11 +396,37 @@ public class ExampleUtilities {
         return sysmeta;
     }
  
+
     /**
      * produce a checksum for item using the given algorithm
      */
-    protected static String checksum(InputStream is, String algorithm)
-      throws Exception
+    protected static String checksum(byte[] object, String algorithm) throws NoSuchAlgorithmException 
+    {
+    	MessageDigest complete = MessageDigest.getInstance(algorithm);
+    	complete.update(object);
+    	return getHex(complete.digest());
+    }
+    
+    
+    /**
+     * produce a checksum for item using the given algorithm
+     */
+    protected static String checksum(byte[][] baa, String algorithm) throws NoSuchAlgorithmException 
+    {
+    	MessageDigest complete = MessageDigest.getInstance(algorithm);
+    	for(int i=0; i<baa.length;i++) {
+    		complete.update(baa[i]);
+    	}
+    	return getHex(complete.digest());
+    }
+    
+    
+    /**
+     * produce a checksum for item using the given algorithm
+     * @throws IOException 
+     * @throws NoSuchAlgorithmException 
+     */
+    protected static String checksum(InputStream is, String algorithm) throws IOException, NoSuchAlgorithmException
     {        
         byte[] buffer = new byte[1024];
         MessageDigest complete = MessageDigest.getInstance(algorithm);
