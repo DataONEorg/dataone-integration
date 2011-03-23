@@ -105,6 +105,11 @@ public class ChecksumAnalysis  {
 //    	nodeInfo.put("http://daacmn.dataone.utk.edu/mn/", new String[] {"",""});
     }
 
+   @ Test
+   public void testTest()
+   {
+	   assertTrue("yep",true);
+   }
     
 //    @Test
     public void checkChecksum() throws IOException {
