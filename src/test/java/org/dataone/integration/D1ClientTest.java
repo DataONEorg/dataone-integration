@@ -26,6 +26,7 @@ import static org.junit.Assert.assertThat;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.security.NoSuchAlgorithmException;
 import java.util.Date;
 import java.util.List;
 import java.util.Scanner;
@@ -873,7 +874,7 @@ private static final String principal = "uid%3Dkepler,o%3Dunaffiliated,dc%3Decoi
 
     
     @Test
-    public void testGetChecksumAuthTokenIdentifierTypeString() 
+    public void testChecksum() 
     {
         //create a doc
         //calculate checksum
@@ -884,58 +885,116 @@ private static final String principal = "uid%3Dkepler,o%3Dunaffiliated,dc%3Decoi
         {
             currentUrl = nodeList.get(i).getBaseURL();
             MNode mn = D1Client.getMN(currentUrl);
-
+            
+           	printHeader("testChecksum.  node = " + nodeList.get(i).getBaseURL());
+        	checkTrue(true);
+            
             try
             {
-                printHeader("testGetChecksumAuthTokenIdentifierTypeString - node " + nodeList.get(i).getBaseURL());
-                checkTrue(true);
-                
-                InputStream objectStream = this.getClass().getResourceAsStream(
-                "/d1_testdocs/knb-lter-luq.76.2.xml");
-                String doc = IOUtils.toString(objectStream);
-                Checksum checksum1 = new Checksum();
-                String checksum1str = ExampleUtilities.checksum(IOUtils.toInputStream(doc), "MD5");
-                checksum1.setValue(checksum1str);
-                checksum1.setAlgorithm(ChecksumAlgorithm.M_D5);
-                System.out.println("Checksum1: " + checksum1.getValue());
-                objectStream.close();
-                
-                AuthToken token = mn.login(principal, password);
-                String idString = prefix + ExampleUtilities.generateIdentifier();
-                Identifier guid = new Identifier();
-                guid.setValue(idString);
-                objectStream = IOUtils.toInputStream(doc);
-                SystemMetadata sysmeta = ExampleUtilities.generateSystemMetadata(guid, ObjectFormat.EML_2_1_0, objectStream, TEST_MN_ID);
-                objectStream = IOUtils.toInputStream(doc);
-                sysmeta.setChecksum(checksum1);
-                Identifier rGuid = null;
-
-                try {
-                    rGuid = mn.create(token, guid, objectStream, sysmeta);
-                    checkEquals(guid.getValue(), rGuid.getValue());
-                } catch (Exception e) {
-                    errorCollector.addError(new Throwable(createAssertMessage() + 
-                            " error in testCreateScienceMetadata: " + e.getMessage()));
-                }
-                
-                try 
-                {
-                    Checksum checksum2 = mn.getChecksum(token, rGuid, "MD5");
-                    System.out.println("Checksum2: " + checksum2.getValue());
-                    checkEquals(checksum1.getValue(), checksum2.getValue());
-                } 
-                catch (Exception e) 
-                {
-                    errorCollector.addError(new Throwable(createAssertMessage() + 
-                            " error in testGetChecksumAuthTokenIdentifierTypeString: " + e.getMessage()));
-                }
-            }
+               runChecksumTest(mn, "/d1_testdocs/checksumTestSet/sciMD-eml-201-NoLastLForCR.xml",null);
+               runChecksumTest(mn, "/d1_testdocs/checksumTestSet/sciMD-eml-201-NoLastLForCR.xml","\n");
+               runChecksumTest(mn, "/d1_testdocs/checksumTestSet/sciMD-eml-201-NoLastLForCR.xml","\r\n");
+               runChecksumTest(mn, "/d1_testdocs/checksumTestSet/sciMD-eml-201-NoLastLForCR.xml","\n\n");
+               runChecksumTest(mn, "/d1_testdocs/checksumTestSet/sciMD-eml-201-NoLastLForCR.xml","\r\n\r\n");
+            } 
             catch(Exception e)
             {
-                errorCollector.addError(new Throwable(createAssertMessage() + 
-                        " unexpected error in testGetChecksumAuthTokenIdentifierTypeString: " + e.getMessage()));
+            	errorCollector.addError(new Throwable(createAssertMessage() + 
+            			" unexpected error in testGetChecksumAuthTokenIdentifierTypeString: " + e.getMessage()));
             }
         }
+    }
+  
+    
+    private static String stringToUnicodeCharacters(String s) {
+    	byte[] ba = s.getBytes();
+    	
+    	StringBuffer sb = new StringBuffer(s.length());
+    	String b = null;
+    	sb.append("0x");
+    	for(int i=0;i<ba.length; i++)
+    	{
+    		b = Integer.toString(ba[i],16);  // converts to octal
+    		for(int j=0; j< 2 - b.length(); j++) {
+    			sb.append("0");
+    		}
+    		sb.append(b.toUpperCase());
+    	}
+    	return sb.toString();
+    }   
+    
+ 
+
+
+    private void runChecksumTest(MNode mn, String resourceFile, String append) 
+    throws NoSuchAlgorithmException, IOException, ServiceFailure, NotImplemented 
+    {
+    	System.out.println("******************************************");
+    	System.out.println("Test file = " + resourceFile);
+    	if (append != null)
+    		System.out.println("File concatenations = " + stringToUnicodeCharacters(append));
+    	else
+    		System.out.println("File concatenations = nothing to concatenate");
+    	
+    	InputStream objectStream = this.getClass().getResourceAsStream(resourceFile);
+
+    	objectStream = this.getClass().getResourceAsStream(resourceFile);
+    	String doc = IOUtils.toString(objectStream);
+    	objectStream.close();
+    	
+    	if (append != null)
+    		doc += append;
+    	
+    	String checksum1str = ExampleUtilities.checksum(IOUtils.toInputStream(doc), "MD5");
+    	Checksum checksum1 = new Checksum();
+    	checksum1.setValue(checksum1str);
+    	checksum1.setAlgorithm(ChecksumAlgorithm.M_D5);
+    	System.out.println("Checksum 1: " + checksum1.getValue());
+    	
+    	AuthToken token = mn.login(principal, password);
+    	String idString = prefix + ExampleUtilities.generateIdentifier();
+    	Identifier guid = new Identifier();
+    	guid.setValue(idString);
+    	objectStream = IOUtils.toInputStream(doc);
+    	SystemMetadata sysmeta = ExampleUtilities.generateSystemMetadata(guid, ObjectFormat.EML_2_1_0, objectStream, TEST_MN_ID);
+    	objectStream = IOUtils.toInputStream(doc);
+    	sysmeta.setChecksum(checksum1);
+    	Identifier rGuid = null;
+
+    	try {
+    		rGuid = mn.create(token, guid, objectStream, sysmeta);
+    		checkEquals(guid.getValue(), rGuid.getValue());
+    	} catch (Exception e) {
+    		errorCollector.addError(new Throwable(createAssertMessage() + 
+    				" error in testChecksum: " + e.getMessage()));
+    	}
+                
+    	try 
+    	{
+    		// getChecksum in metacat simply returns the checksum provided at create / update
+    		// this better be the same, but doesn't mean much if it is
+    		Checksum checksum2 = mn.getChecksum(token, rGuid, "MD5");
+    		System.out.println("getChecksum value: " + checksum2.getValue());
+    		checkEquals(checksum1.getValue(), checksum2.getValue());
+    		
+    		// check that retrieved object has same checksum as submitted
+    		InputStream objStream = mn.get(token,rGuid);
+    		String checksum3str = ExampleUtilities.checksum(objStream, "MD5");
+    		System.out.println("retrieved object checksum: " + checksum3str);
+    		checkEquals(checksum1.getValue(),checksum3str);
+    		
+    		
+    	} 
+    	catch (Exception e) 
+    	{
+    		errorCollector.addError(new Throwable(createAssertMessage() + 
+    				" error in testChecksum: " + e.getMessage()));
+    	}
+    	
+    	
+    	
+    	
+    	
     }
     
     /**
