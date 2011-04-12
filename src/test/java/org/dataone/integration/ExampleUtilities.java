@@ -384,7 +384,7 @@ public class ExampleUtilities {
         Checksum checksum = null;
         try
         {
-            checksum = ServiceTypeUtil.checksum(source, ChecksumAlgorithm.M_D5);
+            checksum = ServiceTypeUtil.checksum(source, ChecksumAlgorithm.MD5);
         }
         catch (Exception e)
         {

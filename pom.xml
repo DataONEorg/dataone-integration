@@ -4,7 +4,7 @@
   <groupId>org.dataone</groupId>
   <artifactId>d1_integration</artifactId>
   <packaging>jar</packaging>
-  <version>0.0.1</version>
+  <version>0.5.0</version>
   <name>DataONE Integration Testing Package</name>
   <url>http://dataone.org</url>
     <repositories>

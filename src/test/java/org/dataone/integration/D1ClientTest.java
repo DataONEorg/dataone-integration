@@ -948,7 +948,7 @@ private static final String principal = "uid%3Dkepler,o%3Dunaffiliated,dc%3Decoi
     	String checksum1str = ExampleUtilities.checksum(IOUtils.toInputStream(doc), "MD5");
     	Checksum checksum1 = new Checksum();
     	checksum1.setValue(checksum1str);
-    	checksum1.setAlgorithm(ChecksumAlgorithm.M_D5);
+    	checksum1.setAlgorithm(ChecksumAlgorithm.MD5);
     	System.out.println("Checksum 1: " + checksum1.getValue());
     	
     	AuthToken token = mn.login(principal, password);

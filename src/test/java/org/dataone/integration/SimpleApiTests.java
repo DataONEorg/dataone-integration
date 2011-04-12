@@ -621,7 +621,7 @@ public class SimpleApiTests  {
                 Checksum checksum1 = new Checksum();
                 String checksum1str = ExampleUtilities.checksum(IOUtils.toInputStream(doc), "MD5");
                 checksum1.setValue(checksum1str);
-                checksum1.setAlgorithm(ChecksumAlgorithm.M_D5);
+                checksum1.setAlgorithm(ChecksumAlgorithm.MD5);
                 System.out.println("Checksum1: " + checksum1.getValue());
                 objectStream.close();
                 
