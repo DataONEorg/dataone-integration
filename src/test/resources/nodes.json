@@ -1,0 +1,67 @@
+{
+  "mn": {
+    "dryad": {
+      "baseurl": "http://dev-dryad-mn.dataone.org/mn"
+    },
+    "daac": {
+      "baseurl": "http://daacmn.dataone.utk.edu/mn"
+    },
+    "metacat": {
+      "baseurl": "http://knb-mn.ecoinformatics.org/knb/d1"
+    },
+    "gmn_dev": {
+      "baseurl": "http://gmn-dev.dyndns.org/mn"
+    },
+    "local_gmn_1": {
+      "baseurl": "http://127.0.0.1:8000",
+      "identifier": "gmn_test"
+    },
+    "local_gmn_2": {
+      "baseurl": "http://192.168.1.122/mn"
+    }
+  },
+  "cn": {
+    "cn-dev": {
+      "baseurl": "http://cn-dev.dataone.org/cn"
+    },
+    "local_gmn_cn_1": {
+      "baseurl": "http://127.0.0.1:8000/cn"
+    },
+    "local_gmn_cn_2": {
+      "baseurl": "http://192.168.1.122/mn/cn"
+    }
+  },
+  "test_pids": {
+    "pid1": "hdl:10255/dryad.105/mets.xml",
+    "pid2": "http://dev-dryad-mn.dataone.org/mn/meta/hdl:10255/dryad.105/mets.xml",
+    "pid3": "http://dev-dryad-mn.dataone.org/mn/meta/hdl%3A10255%2Fdryad.105%2Fmets.xml",
+    "pid4": "http://dev-dryad-mn.dataone.org/mn/meta/hdl:10255%2Fdryad.105%2Fmets.xml",
+    "pid5": "http://dev-dryad-mn.dataone.org/mn/meta/hdl%3A10255/dryad.105/mets.xml"
+  },
+  "tier_1_methods": [
+    "session",
+    "object_collection",
+    "get_object",
+    "get_meta",
+    "log_collection",
+    "health_ping",
+    "health_status",
+    "monitor_object",
+    "monitor_event",
+    "node"
+  ],
+  "tier_2_methods": [
+    "isAuthorized",
+    "setAccess"
+  ],
+  "tier_3_methods": [
+    "create",
+    "update",
+    "delete"
+  ],
+  "tier_4_methods": [
+    "replicate"
+  ],
+  "tier_5_methods": [
+  ]
+}
