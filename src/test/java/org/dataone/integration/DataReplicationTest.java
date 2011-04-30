@@ -302,7 +302,7 @@ public class DataReplicationTest {
 			fos.flush();
 			fos.close();
 			
-			mmpHandler.addFilePart(outputFile, "sysmeta");
+			mmpHandler.addFilePart("sysmeta", outputFile);
 			mmpHandler.addParamPart("sourceNode", sourceNode);
 			//dataSink.close();
 			HttpResponse response = mmpHandler.executeRequest();
