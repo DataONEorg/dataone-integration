@@ -46,7 +46,6 @@ import test_client
 
 
 class Test040GetLogRecords(d1_test_case.D1TestCase):
-
   def setUp(self):
     pass
 
@@ -81,5 +80,3 @@ class Test040GetLogRecords(d1_test_case.D1TestCase):
         found = True
         break
     self.assertTrue(found)
-
-

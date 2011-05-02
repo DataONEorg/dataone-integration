@@ -69,10 +69,9 @@ from tier_1_mn_core_getoperationstatistics import Test026GetOperationStatistics
 from tier_1_mn_read_listobjects import Test030ListObjects
 from tier_1_mn_core_getlogrecords import Test040GetLogRecords
 from tier_1_mn_read_get import Test050Get
-
-#from tier_1_mn_read_describe import TestDescribe
-#from tier_1_mn_read_getchecksum import TestGetChecksum
-#from tier_1_mn_read_getsystemmetadata import TestGetSystemMetadata
+from tier_1_mn_read_describe import Test060Describe
+from tier_1_mn_read_getchecksum import Test070GetChecksum
+from tier_1_mn_read_getsystemmetadata import Test080GetSystemMetadata
 #from tier_1_mn_read_synchronizationfailed import TestSynchronizationFailed
 
 # Tier 2

@@ -47,7 +47,6 @@ import test_utilities
 
 
 class Test010Ping(d1_test_case.D1TestCase):
-
   def setUp(self):
     pass
 

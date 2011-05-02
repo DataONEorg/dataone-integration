@@ -50,6 +50,7 @@ class Test015GetStatus(d1_test_case.D1TestCase):
   def setUp(self):
     pass
 
+
   def test_010_getstatus(self):
     '''GetStatus() does not raise and does not return empty object.'''
     client = test_client.TestClient(context.node['baseurl'])
@@ -57,4 +58,3 @@ class Test015GetStatus(d1_test_case.D1TestCase):
     response = client.getStatusResponse()
     response_doc = response.read()
     self.assertNotEqual(response_doc, '')
-

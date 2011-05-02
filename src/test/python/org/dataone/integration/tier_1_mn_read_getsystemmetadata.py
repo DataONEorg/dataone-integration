@@ -46,14 +46,13 @@ import test_client
 import test_utilities
 
 
-class TestGetSystemMetadata(d1_test_case.D1TestCase):
-
+class Test080GetSystemMetadata(d1_test_case.D1TestCase):
   def setUp(self):
     pass
 
 
-  def test_get_sysmeta_by_invalid_pid(self):
-    '''404 NotFound when attempting to get non-existing SysMeta /meta/_invalid_pid_.
+  def test_010_get_sysmeta_by_invalid_pid(self):
+    '''404 NotFound when attempting to get non-existing SysMeta.
     '''
     client = test_client.TestClient(context.node['baseurl'])
     self.assertRaises(d1_common.types.exceptions.NotFound,
@@ -62,45 +61,22 @@ class TestGetSystemMetadata(d1_test_case.D1TestCase):
                       '_invalid_pid_')
 
 
-  def test_get_sysmeta_by_valid_pid(self):
-    '''Successful retrieval of valid object /meta/valid_pid.
+  def test_020_get_sysmeta_by_valid_pid(self):
+    '''Successful retrieval of valid SysMeta objects.
     '''
     client = test_client.TestClient(context.node['baseurl'])
-    response = client.getSystemMetadata(context.TOKEN, '10Dappend2.txt')
-    self.assertTrue(response)
-
-
-  def test_object_properties(self):
-    '''Read complete object collection and compare with values stored in local SysMeta files.
-    '''
-    # Get object collection.
-    client = test_client.TestClient(context.node['baseurl'], timeout=60)
-    object_list = client.listObjects(context.TOKEN,
-                                     count=d1_common.const.MAX_LISTOBJECTS)
-
-    # Loop through our local test objects.
-    for sysmeta_path in sorted(glob.glob(os.path.join(self.opts.obj_path, '*.sysmeta'))):
-      # Get name of corresponding object and check that it exists on disk.
-      object_path = re.match(r'(.*)\.sysmeta', sysmeta_path).group(1)
-      self.assertTrue(os.path.exists(object_path))
-      # Get pid for object.
-      pid = urllib.unquote(os.path.basename(object_path))
-      # Get sysmeta xml for corresponding object from disk.
-      sysmeta_file = open(sysmeta_path, 'r')
-      sysmeta_obj = d1_client.systemmetadata.SystemMetadata(sysmeta_file)
-
-      # Get corresponding object from objectList.
-      found = False
+    for object_list in context.slices:
       for object_info in object_list.objectInfo:
-        if object_info.identifier.value() == sysmeta_obj.identifier:
-          found = True
-          break;
-
-      self.assertTrue(found, 'Couldn\'t find object with pid "{0}"'.format(sysmeta_obj.identifier))
-
-      self.assertEqual(object_info.identifier.value(), sysmeta_obj.identifier)
-      self.assertEqual(object_info.objectFormat, sysmeta_obj.objectFormat)
-      self.assertEqual(object_info.dateSysMetadataModified, sysmeta_obj.dateSysMetadataModified)
-      self.assertEqual(object_info.size, sysmeta_obj.size)
-      self.assertEqual(object_info.checksum.value(), sysmeta_obj.checksum)
-      self.assertEqual(object_info.checksum.algorithm, sysmeta_obj.checksumAlgorithm)
+        pid = object_info.identifier.value()
+        sys_meta = client.getSystemMetadata(context.TOKEN, pid)
+        # Verify that identifier in SysMeta matches the one that was retrieved.
+        self.assertEqual(object_info.identifier.value(), sys_meta.identifier.value())
+        # Verify that object format matches listObjects.
+        self.assertEqual(object_info.objectFormat, sys_meta.objectFormat)
+        # Verify that date matches listObjects.
+        self.assertEqual(object_info.dateSysMetadataModified, sys_meta.dateSysMetadataModified)
+        # Verify that size matches listObjects.
+        self.assertEqual(object_info.size, sys_meta.size)
+        # Verify that checksum and checksum algorithm matches listObjects.
+        self.assertEqual(object_info.checksum.value(), sys_meta.checksum.value())
+        self.assertEqual(object_info.checksum.algorithm, sys_meta.checksum.algorithm)

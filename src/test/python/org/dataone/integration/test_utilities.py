@@ -34,7 +34,7 @@ import sys
 import hashlib
 
 def get_resource_path(path):
-  '''Get path to test resource.'''
+  '''Get path to test resources.'''
   resource_path = os.path.abspath(os.path.join(os.path.dirname(__file__),
                                '../../../../resources/'))
   return os.path.join(resource_path, path)
@@ -59,6 +59,8 @@ def calculate_checksum(flo, algorithm):
   checksum_calculator_map = {
     'SHA-1': hashlib.sha1(),
     'SHA-224': hashlib.sha224(),
+    # TODO: SHA-356 is supported by DataONE but is not in the hashlib. Will
+    # probably need to get it from somewhere else.
     #'SHA-356': hashlib.sha356,
     'SHA-384': hashlib.sha384(),
     'SHA-512': hashlib.sha512(),
@@ -162,4 +164,3 @@ def unicode_test_1():
     # Round-trip validation.
     assertEqual(scidata_retrieved, scidata)
     assertEqual(sysmeta_obj_retrieved.identifier.value(), scidata)
-
