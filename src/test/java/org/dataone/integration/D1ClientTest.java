@@ -675,7 +675,7 @@ private static final String principal = "uid%3Dkepler,o%3Dunaffiliated,dc%3Decoi
                 EMLDocument emld = parser.parseDocument(is);
                 checkEquals(ObjectFormat.EML_2_0_0.toString(), emld.format.toString());
                 DistributionMetadata dm = emld.distributionMetadata.elementAt(0);
-                checkEquals(ObjectFormat.TEXT_PLAIN.toString(), dm.mimeType);
+                checkEquals(ObjectFormat.TEXT_CSV.toString(), dm.mimeType);
                 checkEquals(dm.url, "ecogrid://knb/IPCC.200802107062739.1");
                 is = this.getClass().getResourceAsStream("/d1_testdocs/eml200/dpennington.195.2");
                 insertEMLDocsWithEMLParserOutput(mn, emld, "dpennington.195.2", token, is);
@@ -686,7 +686,7 @@ private static final String principal = "uid%3Dkepler,o%3Dunaffiliated,dc%3Decoi
                 emld = parser.parseDocument(is);
                 checkEquals(ObjectFormat.EML_2_0_1.toString(), emld.format.toString());
                 dm = emld.distributionMetadata.elementAt(0);
-                checkEquals(ObjectFormat.TEXT_PLAIN.toString(), dm.mimeType);
+                checkEquals(ObjectFormat.TEXT_CSV.toString(), dm.mimeType);
                 checkEquals(dm.url, "ecogrid://knb/msucci.24.1");
                 is = this.getClass().getResourceAsStream("/d1_testdocs/eml201/msucci.23.3");
                 insertEMLDocsWithEMLParserOutput(mn, emld, "msucci.23.3", token, is);
@@ -697,13 +697,13 @@ private static final String principal = "uid%3Dkepler,o%3Dunaffiliated,dc%3Decoi
                 emld = parser.parseDocument(is);
                 checkEquals(ObjectFormat.EML_2_1_0.toString(), emld.format.toString());
                 dm = emld.distributionMetadata.elementAt(0);
-                checkEquals(ObjectFormat.TEXT_PLAIN.toString(), dm.mimeType);
+                checkEquals(ObjectFormat.TEXT_CSV.toString(), dm.mimeType);
                 checkEquals(dm.url, "ecogrid://knb/peggym.127.1");
                 dm = emld.distributionMetadata.elementAt(1);
-                checkEquals(ObjectFormat.TEXT_PLAIN.toString(), dm.mimeType);
+                checkEquals(ObjectFormat.TEXT_CSV.toString(), dm.mimeType);
                 checkEquals(dm.url, "ecogrid://knb/peggym.128.1");
                 dm = emld.distributionMetadata.elementAt(2);
-                checkEquals(ObjectFormat.TEXT_PLAIN.toString(), dm.mimeType);
+                checkEquals(ObjectFormat.TEXT_CSV.toString(), dm.mimeType);
                 checkEquals(dm.url, "ecogrid://knb/peggym.129.1");
                 is = this.getClass().getResourceAsStream("/d1_testdocs/eml210/peggym.130.4");
                 insertEMLDocsWithEMLParserOutput(mn, emld, "peggym.130.4", token, is);
