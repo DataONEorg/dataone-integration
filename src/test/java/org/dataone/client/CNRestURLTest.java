@@ -1,35 +1,24 @@
 package org.dataone.client;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import java.io.BufferedInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.ProtocolException;
 import java.net.URL;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 
 import org.apache.commons.io.IOUtils;
 import org.dataone.client.D1Node.ResponseData;
 import org.dataone.service.Constants;
 import org.dataone.service.EncodingUtilities;
-import org.dataone.service.exceptions.ServiceFailure;
 import org.dataone.service.types.AuthToken;
 import org.junit.Test;
-import org.junit.Assume;
-import org.junit.Rule;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.xml.sax.SAXException;
 
 
 public class CNRestURLTest {
@@ -128,7 +117,7 @@ public class CNRestURLTest {
 	@Test
 	public void testResolve_errorForwarding_nullID() throws IOException {
 
-		testRunner( 500,
+		testRunner( 404,
 					Constants.RESOURCE_RESOLVE,  
 					"");
 	}
@@ -136,7 +125,7 @@ public class CNRestURLTest {
 	@Test
 	public void testResolve_errorForwarding_nullID_unknownParams() throws IOException {
 
-		testRunner( 500,
+		testRunner( 404,
 					Constants.RESOURCE_RESOLVE,  
 					"Fred=boy");
 	}

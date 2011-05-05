@@ -67,7 +67,7 @@ import org.dataone.service.types.util.ServiceTypeUtil;
  * Utilities that are useful for generating test data.
  */
 public class ExampleUtilities {
-	    
+	protected final static String preferredMNId = "c3p0";
 	protected final static String EML2_0_0 = "EML2_0_0";
 	protected final static String EML2_0_1 = "EML2_0_1";
 	protected final static String EML2_1_0 = "EML2_1_0";
@@ -348,8 +348,7 @@ public class ExampleUtilities {
     protected static SystemMetadata generateSystemMetadata(
             Identifier guid, ObjectFormat objectFormat, InputStream source) {
         
-        String fixedMemberNode = "http://knb-mn.ecoinformatics.org";
-        return generateSystemMetadata(guid, objectFormat, source, fixedMemberNode);
+        return generateSystemMetadata(guid, objectFormat, source, preferredMNId);
     }
     
     /** Generate a SystemMetadata object with bogus data. */

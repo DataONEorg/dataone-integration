@@ -83,7 +83,7 @@ public class D1ClientTest  {
 
     private static final String TEST_CN_URL = "http://cn-dev.dataone.org/cn";
     private static final String TEST_MN_URL = "http://cn-dev.dataone.org/knb/d1/";
-    private static final String TEST_MN_ID = "http://cn-dev.dataone.org/knb/d1";
+    private static final String TEST_MN_ID = "c3p0";
 //	private static final String TEST_MN_URL = "http://localhost:8080/knb/d1/";
 //	private static final String TEST_MN_ID = "http://localhost:8080/knb/d1";
  
@@ -144,6 +144,8 @@ private static final String principal = "uid%3Dkepler,o%3Dunaffiliated,dc%3Decoi
                     rGuid = mn.create(token, guid, objectStream, sysmeta);
                     errorCollector.addError(new Throwable(createAssertMessage() + 
                             " Should have thrown exception since the xml file created was currupt"));
+                    // just incase both statements above do not throw exceptions...
+                    mn.setAccess(token, rGuid, "public", "read", "allow", "allowFirst");
                 } catch (Exception e) {
                 }
             }
@@ -184,6 +186,7 @@ private static final String principal = "uid%3Dkepler,o%3Dunaffiliated,dc%3Decoi
                    "/d1_testdocs/knb-lter-cdr.329066.1.data");
 
                Identifier rGuid = mn.create(token, guid, objectStream, sysmeta);
+               mn.setAccess(token, rGuid, "public", "read", "allow", "allowFirst");
                InputStream data = mn.get(token, rGuid);
                String str = IOUtils.toString(data);
                //System.out.println("str: " + str);
@@ -435,7 +438,7 @@ private static final String principal = "uid%3Dkepler,o%3Dunaffiliated,dc%3Decoi
                 Identifier rGuid = mn.create(token, guid, objectStream, sysmeta);
                 checkEquals(guid.getValue(), rGuid.getValue());
                 //System.out.println("create success, id returned is " + rGuid.getValue());
-
+                mn.setAccess(token, rGuid, "public", "read", "allow", "allowFirst");
                 //get the system metadata
                 SystemMetadata sm = mn.getSystemMetadata(token, rGuid);
                 checkTrue(guid.getValue().equals(sm.getIdentifier().getValue()));
@@ -478,7 +481,7 @@ private static final String principal = "uid%3Dkepler,o%3Dunaffiliated,dc%3Decoi
                 System.out.println("d1 created " + rGuid.getValue());
                 checkEquals(guid.getValue(), rGuid.getValue());
                 //System.out.println("create success, id returned is " + rGuid.getValue());
-
+                mn.setAccess(token, rGuid, "public", "read", "allow", "allowFirst");
                 //get the document
                 InputStream data = mn.get(token, rGuid);
                 checkTrue(null != data);
@@ -495,10 +498,10 @@ private static final String principal = "uid%3Dkepler,o%3Dunaffiliated,dc%3Decoi
                 objectStream = IOUtils.toInputStream(str);
                 
                 //update the document
-                System.out.println("d1 update newguid: "+ newguid.getValue() + " old guid: " + rGuid);
-                Identifier nGuid = mn.update(token, newguid, objectStream, rGuid, updatedSysmeta);
+                System.out.println("d1 update newguid: "+ newguid.getValue() + " old guid: " + rGuid.getValue());
+                Identifier nGuid = mn.update(token, rGuid, objectStream, newguid,updatedSysmeta);
                 System.out.println("d1 updated success, id returned is " + nGuid.getValue());
-
+                mn.setAccess(token, nGuid, "public", "read", "allow", "allowFirst");
                 //perform tests
                 data = mn.get(token, nGuid);
                 checkTrue(null != data);
@@ -964,6 +967,7 @@ private static final String principal = "uid%3Dkepler,o%3Dunaffiliated,dc%3Decoi
     	try {
     		rGuid = mn.create(token, guid, objectStream, sysmeta);
     		checkEquals(guid.getValue(), rGuid.getValue());
+                mn.setAccess(token, rGuid, "public", "read", "allow", "allowFirst");
     	} catch (Exception e) {
     		errorCollector.addError(new Throwable(createAssertMessage() + 
     				" error in testChecksum: " + e.getMessage()));
@@ -1124,6 +1128,7 @@ private static final String principal = "uid%3Dkepler,o%3Dunaffiliated,dc%3Decoi
                 {
                     rGuid = mn.create(token, guid, objectStream, sysmeta);
                     checkEquals(guid.getValue(), rGuid.getValue());
+                    mn.setAccess(token, rGuid, "public", "read", "allow", "allowFirst");
                     Thread.sleep(2000);
                     Identifier delId = mn.delete(token, rGuid);
                     checkTrue(delId.getValue().equals(rGuid.getValue()));
@@ -1171,6 +1176,7 @@ private static final String principal = "uid%3Dkepler,o%3Dunaffiliated,dc%3Decoi
                 {
                     rGuid = mn.create(token, guid, objectStream, sysmeta);
                     checkEquals(guid.getValue(), rGuid.getValue());
+                    mn.setAccess(token, rGuid, "public", "read", "allow", "allowFirst");
                     DescribeResponse dr = mn.describe(token, rGuid);
                     Checksum cs = dr.getDataONE_Checksum();
                     checkTrue(cs.getValue().equals(sysmeta.getChecksum().getValue()));

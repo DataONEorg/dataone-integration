@@ -19,8 +19,7 @@
     See the License for the specific language governing permissions and
     limitations under the License.
 
--->
-<actions>
+--><actions>
 	<action>
 		<actionName>CUSTOM-Client Test</actionName>
 		<displayName>Client Test</displayName>
@@ -55,4 +54,34 @@
 			<maven.test.skip>true</maven.test.skip>
 		</properties>
 	</action>
+	<action>
+            <actionName>CUSTOM-test D1ClientTest</actionName>
+            <displayName>test D1ClientTest</displayName>
+            <goals>
+                <goal>integration-test</goal>
+            </goals>
+            <properties>
+                <test>D1ClientTest</test>
+            </properties>
+        </action>
+	<action>
+            <actionName>CUSTOM-test PackageTest</actionName>
+            <displayName>test PackageTest</displayName>
+            <goals>
+                <goal>integration-test</goal>
+            </goals>
+            <properties>
+                <test>PackageTest</test>
+            </properties>
+        </action>
+	<action>
+            <actionName>CUSTOM-test CNRestURLTest</actionName>
+            <displayName>test CNRestURLTest</displayName>
+            <goals>
+                <goal>integration-test</goal>
+            </goals>
+            <properties>
+                <test>CNRestURLTest</test>
+            </properties>
+        </action>
 </actions>
