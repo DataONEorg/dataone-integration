@@ -14,18 +14,17 @@ import org.junit.runner.JUnitCore;
 
 /**
  * Logic for setting up the nodes to be tested
- * 1. nodeUrl from systemProperties
- * 2. nodeUrlFile from systemProperties
- * 3. nodeUrl from file
- * 4. nodeUrl from CN
- * 5. nodeUrl from provided filepath
+ * use the values defined in the test class, unless superceded
+ * by those passed in as SystemProperties
  * 
  * @author rnahf
  */
 public class SystemPropertyTest {
 	
 	// static variables for setting up the nodes to be tested
-	private static String prop; 
+	private static String mNodeUrl; 
+	private static String nodeListFile; 
+	private static String nodeListEnv; 
 	
 	private List<Node> nodeList = null;	
 	private Hashtable nodeInfo = null;
@@ -39,19 +38,23 @@ public class SystemPropertyTest {
 	@Before
 	public void setUp() throws Exception 
 	{
-//		Enumeration p = System.getProperties().propertyNames();
-//		while (p.hasMoreElements())
-//			System.out.println("name: " + p.nextElement());
+		
+		mNodeUrl = "[default_from_test_class]: http://localhost/knb/d1";
+		nodeListFile = "[default_from_test_class]";
+		nodeListEnv = "[default_from_test_class]: staging";
 
-		
-		
-		prop = System.getProperty("TestApp:testProperty", "can't locate");
-		System.out.println("test setup: testProperty value: " + prop);
+		// override parameter values with SystemProperties if present
+		mNodeUrl = System.getProperty("mNodeUrl", mNodeUrl);
+		nodeListFile = System.getProperty("nodeListFile", nodeListFile);
+		nodeListEnv = System.getProperty("nodeListEnv", nodeListEnv);
+	
 	}
 
 	@Test
 	public void testSystemProperty()
 	{
-		System.out.println("unit test: testProperty value: " + prop);
+		System.out.println("testSystemProperty: mNodeUrl = " + mNodeUrl);
+		System.out.println("testSystemProperty: nodeListFile = " + nodeListFile);
+		System.out.println("testSystemProperty: nodeListEnv = " + nodeListEnv);
 	}
 }
