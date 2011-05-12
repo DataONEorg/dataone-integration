@@ -1,4 +1,4 @@
-package org.dataone.integration;
+package org.dataone.integration.webTest;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.GnuParser;

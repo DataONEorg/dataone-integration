@@ -1,5 +1,7 @@
-package org.dataone.integration;
+package org.dataone.integration.webTest;
 
+
+import static org.junit.Assert.assertTrue;
 
 import java.util.Enumeration;
 import java.util.Hashtable;
@@ -8,6 +10,7 @@ import java.util.Properties;
 
 import org.dataone.service.types.Node;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.JUnitCore;
 
@@ -25,6 +28,7 @@ public class SystemPropertyTest {
 	private static String mNodeUrl; 
 	private static String nodeListFile; 
 	private static String nodeListEnv; 
+	private static String testSysProp; 
 	
 	private List<Node> nodeList = null;	
 	private Hashtable nodeInfo = null;
@@ -47,14 +51,40 @@ public class SystemPropertyTest {
 		mNodeUrl = System.getProperty("mNodeUrl", mNodeUrl);
 		nodeListFile = System.getProperty("nodeListFile", nodeListFile);
 		nodeListEnv = System.getProperty("nodeListEnv", nodeListEnv);
+		testSysProp = System.getProperty("testSysProp", testSysProp);
 	
 	}
 
 	@Test
+	public void testTrue() 
+	{
+		assertTrue(1==1);
+	}
+	
+	@Test
+	public void testFalse()
+	{
+		assertTrue(1==2);
+	}
+	@Ignore
+	@Test
+	public void testIgnore() {
+		;
+	}
+	
+	@Test
+	public void testException() {
+		// should throw a numerical exception of some type
+		float f = 12 / 0;
+	}
+	
+	@Test
 	public void testSystemProperty()
 	{
-		System.out.println("testSystemProperty: mNodeUrl = " + mNodeUrl);
-		System.out.println("testSystemProperty: nodeListFile = " + nodeListFile);
-		System.out.println("testSystemProperty: nodeListEnv = " + nodeListEnv);
+		System.out.println("testSystemProperty(): mNodeUrl = " + mNodeUrl);
+		System.out.println("testSystemProperty(): nodeListFile = " + nodeListFile);
+		System.out.println("testSystemProperty(): nodeListEnv = " + nodeListEnv);
+		System.out.println("testSystemProperty(): testSysProp = " + testSysProp);
+		System.out.println();
 	}
 }
