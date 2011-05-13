@@ -1,7 +1,6 @@
 package org.dataone.integration.webTest;
 
 import java.io.IOException;
-import java.io.OutputStream;
 import java.io.Writer;
 import java.util.ArrayList;
 
@@ -80,6 +79,7 @@ public class TestRunnerHttpServlet extends HttpServlet
 	}
 	private void writeln(Writer w, String s) throws IOException {
 		w.write(s + "\n");
+		w.flush();
 	}
 			
 	class TestStartListener extends RunListener

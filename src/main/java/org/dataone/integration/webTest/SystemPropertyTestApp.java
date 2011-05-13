@@ -12,6 +12,11 @@ import org.junit.runner.JUnitCore;
 public class SystemPropertyTestApp {
 
 	/**
+	 * A demo class for showing how to trigger the running of a
+	 * JUnit test class (containing one or more @Test methods),
+	 * and passing commandline parameters into the TestCase class
+	 * via System.properties
+	 * 
 	 * @param args
 	 */
 	public static void main(String[] args) {
@@ -43,10 +48,6 @@ public class SystemPropertyTestApp {
 		for (Option o: cl.getOptions()) {
 			System.out.println(o.getOpt() + " = " + o.getValue());
 		}
-		
-		String mNodeUrl = null;
-		String nodeListFile = null;
-		String nodeListEnv = null;
 		
 		if (cl.hasOption("mNodeUrl")) {
 			 System.setProperty("mNodeUrl", cl.getOptionValue("mNodeUrl"));
