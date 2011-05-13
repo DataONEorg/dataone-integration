@@ -2,8 +2,6 @@ package org.dataone.integration.webTest;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.PipedOutputStream;
-import java.io.PrintWriter;
 import java.io.Writer;
 import java.util.ArrayList;
 
@@ -13,7 +11,6 @@ import javax.servlet.http.*;
 import org.junit.runner.Description;
 import org.junit.runner.JUnitCore;
 import org.junit.runner.Result;
-import org.junit.runner.Runner;
 import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunListener;
 
@@ -107,7 +104,7 @@ public class TestRunnerHttpServlet extends HttpServlet
 		}
 		
 		
-		public ArrayList getTestList() {
+		public ArrayList<String> getTestList() {
 			return testList;
 		}
 		

@@ -7,7 +7,6 @@ import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.Parser;
-import org.apache.commons.cli.PosixParser;
 import org.junit.runner.JUnitCore;
 
 public class SystemPropertyTestApp {
@@ -58,7 +57,7 @@ public class SystemPropertyTestApp {
 		if (cl.hasOption("nodeListEnv")) {
 			System.setProperty("nodeListEnv", cl.getOptionValue("nodeListEnv"));
 		}
-		JUnitCore.main("org.dataone.integration.SystemPropertyTest");
+		JUnitCore.main("org.dataone.integration.webTest.SystemPropertyTest");
 	}
 }
 

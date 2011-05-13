@@ -61,7 +61,7 @@ public class SystemPropertyTest {
 		assertTrue(1==1);
 	}
 	
-	@Ignore
+
 	@Test
 	public void testFalse()
 	{
@@ -72,7 +72,7 @@ public class SystemPropertyTest {
 	public void testIgnore() {
 		;
 	}
-	@Ignore
+
 	@Test
 	public void testException() {
 		// should throw a numerical exception of some type
