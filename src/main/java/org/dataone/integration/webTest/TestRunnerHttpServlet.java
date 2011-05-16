@@ -89,14 +89,13 @@ public class TestRunnerHttpServlet extends HttpServlet
 //			testList.add(d.getClassName() + ":" + d.getMethodName());
 //		}
 		public void testStarted(Description d) {
-			testList.add(d.getClassName() + ":" + d.getMethodName());
+			testList.add("Started: " + d.getClassName() + ":" + d.getMethodName());
 		}
 		public void testIgnored(Description d) {
-			testList.add(d.getClassName() + ":" + d.getMethodName() + ": IGNORED");
+			testList.add("Ignored: " + d.getClassName() + ":" + d.getMethodName());
 		}
 		public void testFailure(Failure f) {
-			testList.set(testList.size(),
-					"Header: " + f.getTestHeader() +
+			testList.add("Header: " + f.getTestHeader() +
 					"\nMessage: " + f.getMessage() + 
 					"\nDescription: " + f.getDescription() +
 					"\nException: " + f.getException() +

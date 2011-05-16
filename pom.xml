@@ -4,7 +4,7 @@
   <groupId>org.dataone</groupId>
   <artifactId>d1_integration</artifactId>
   <packaging>jar</packaging>
-  <version>0.5.0</version>
+  <version>0.6.1</version>
   <name>DataONE Integration Testing Package</name>
   <url>http://dataone.org</url>
     <repositories>
@@ -27,7 +27,7 @@
     <dependency>
         <groupId>org.dataone</groupId>
         <artifactId>d1_libclient_java</artifactId>
-        <version>0.5.2</version>
+        <version>0.6.1</version>
     </dependency>
     <dependency>
         <groupId>junit</groupId>
