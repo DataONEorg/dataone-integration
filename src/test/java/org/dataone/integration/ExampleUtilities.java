@@ -57,9 +57,9 @@ import org.dataone.service.types.NodeReference;
 import org.dataone.service.types.ObjectFormat;
 import org.dataone.service.types.ObjectLocation;
 import org.dataone.service.types.ObjectLocationList;
-import org.dataone.service.types.Principal;
 import org.dataone.service.types.Replica;
 import org.dataone.service.types.ReplicationStatus;
+import org.dataone.service.types.Subject;
 import org.dataone.service.types.SystemMetadata;
 import org.dataone.service.types.util.ServiceTypeUtil;
 
@@ -358,11 +358,11 @@ public class ExampleUtilities {
         sysmeta.setIdentifier(guid);
         sysmeta.setObjectFormat(objectFormat);
         sysmeta.setSize(12);
-        Principal submitter = new Principal();
+        Subject submitter = new Subject();
         String dn = "uid=jones,o=NCEAS,dc=ecoinformatics,dc=org";
         submitter.setValue(dn);
         sysmeta.setSubmitter(submitter);
-        Principal rightsHolder = new Principal();
+        Subject rightsHolder = new Subject();
         rightsHolder.setValue(dn);
         sysmeta.setRightsHolder(rightsHolder);
         sysmeta.setDateSysMetadataModified(new Date());
