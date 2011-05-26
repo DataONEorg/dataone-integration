@@ -56,7 +56,7 @@ import org.junit.rules.ErrorCollector;
  * @author rnahf
  *
  */
-public class DataReplicationTest {
+public class DataReplicationIT {
 	// mn1 needs to be a published node that supports login, create, get and meta
     private static final String TEST_CN_URL = "http://cn-dev.dataone.org/cn";
     // TODO: remove the obfuscating characters once allowed to put test data into knb-mn

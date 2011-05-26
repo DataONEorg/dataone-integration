@@ -44,7 +44,7 @@ import org.junit.rules.ErrorCollector;
  * @author rnahf
  *
  */
-public class SynchronizationTest {
+public class SynchronizationIT {
 	private static final String cn_id = "cn-dev";
     private static final String TEST_CN_URL = "http://cn-dev.dataone.org/cn";
 	//private static final String cn_Url = "http://cn-dev.dataone.org/cn/";

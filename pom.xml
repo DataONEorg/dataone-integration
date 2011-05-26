@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.dataone</groupId>
   <artifactId>d1_integration</artifactId>
-  <packaging>jar</packaging>
+  <packaging>war</packaging>
   <version>0.6.1</version>
   <name>DataONE Integration Testing Package</name>
   <url>http://dataone.org</url>
@@ -16,6 +16,16 @@
             </releases>
             <snapshots>
                 <enabled>false</enabled>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>dataone.org</id>
+            <url>http://dev-testing.dataone.org/maven</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
             </snapshots>
         </repository>
         <repository>
@@ -51,101 +61,102 @@
 		<groupId>org.springframework</groupId>
 		<artifactId>spring-web</artifactId>
 		<version>3.0.5.RELEASE</version>
+		<scope>test</scope>
 	</dependency>
-	      <dependency>
-        	<groupId>org.springframework</groupId>
-        	<artifactId>spring-test</artifactId>
-                <version>3.0.5.RELEASE</version>
-        	<type>jar</type>
-        </dependency>
-    <dependency>
-        <groupId>org.apache.httpcomponents</groupId>
-        <artifactId>httpclient</artifactId>
-        <version>4.0-beta2</version>
-    </dependency>
-    <dependency>
+	<dependency>
+		<groupId>org.springframework</groupId>
+		<artifactId>spring-test</artifactId>
+		<version>3.0.5.RELEASE</version>
+		<type>jar</type>
+		<scope>test</scope>
+	</dependency>
+	<dependency>
       <groupId>xom</groupId>
       <artifactId>xom</artifactId>
       <version>1.2.5</version>
     </dependency>
-    <!--
-    <dependency>
-  	    <groupId>org.jmock</groupId>
-  	    <artifactId>jmock-junit4</artifactId>
-  	    <version>2.5.1</version>
-	    <scope>test</scope>
-    </dependency>
-    <dependency>
-        <groupId>net.sf.jsignature.io-tools</groupId>
-        <artifactId>easystream</artifactId>
-        <version>1.2.9</version>
-    </dependency>
-    <dependency>
-    	<groupId>javax.mail</groupId>
-    	<artifactId>mail</artifactId>
-    	<version>1.4.1</version>
-    </dependency>
-    <dependency>
-    	<groupId>org.slf4j</groupId>
-    	<artifactId>slf4j-api</artifactId>
-    	<version>1.5.11</version>
-    </dependency>
-    <dependency>
-    	<groupId>org.slf4j</groupId>
-    	<artifactId>slf4j-simple</artifactId>
-    	<version>1.5.11</version>
-    </dependency>
-    <dependency>
-        <groupId>org.jibx</groupId>
-        <artifactId>jibx-run</artifactId>
-        <version>1.2.2</version>
-    </dependency>
-    <dependency>
-    	<groupId>org.dataone</groupId>
-    	<artifactId>d1_common_java</artifactId>
-    	<version>0.5.0</version>
-      <type>jar</type>
-    </dependency>
-    -->
   </dependencies>
   <build>
-      <plugins>
-          <plugin>
+	  <plugins>
+		  <plugin>
+			<groupId>org.apache.maven.plugins</groupId>
+			<artifactId>maven-compiler-plugin</artifactId>
+			<configuration>
+				<source>1.6</source>
+				<target>1.6</target>
+			</configuration>
+		  </plugin>
+		  <plugin>
+			<groupId>com.mycila.maven-license-plugin</groupId>
+			<artifactId>maven-license-plugin</artifactId>
+			<configuration>
+				<header>src/license-header.txt</header>
+			</configuration>
+		  </plugin>
+		  <plugin>
             <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-compiler-plugin</artifactId>
-            <configuration>
-              <source>1.6</source>
-              <target>1.6</target>
-            </configuration>
-          </plugin>
+            <artifactId>maven-jar-plugin</artifactId>
+            <executions>
+                <execution>
+                    <phase>prepare-package</phase>
+                    <goals>
+                        <goal>test-jar</goal>
+                    </goals>
+	                <configuration>
+		                <outputDirectory>target/d1_integration-0.6.1/WEB-INF/lib</outputDirectory>
+                	</configuration>
+                </execution>
+            </executions>
+        </plugin>
+		<plugin>
+			<groupId>org.apache.maven.plugins</groupId>
+			<artifactId>maven-failsafe-plugin</artifactId>
+			<version>2.8.1</version>
+			<executions>
+				<execution>
+					<id>integration-test</id>
+<!-- 					<phase>integration-test</phase> -->
+					<goals>
+						<goal>integration-test</goal>
+					</goals>
+				</execution>
+				<execution>
+					<id>verify</id>
+<!-- 					<phase>verify</phase> -->
+					<goals>
+						<goal>verify</goal>
+					</goals>
+				</execution>
+			</executions>
+		</plugin>
+          
           <plugin>
-              <groupId>com.mycila.maven-license-plugin</groupId>
-              <artifactId>maven-license-plugin</artifactId>
-              <configuration>
-                  <header>src/license-header.txt</header>
-              </configuration>
+          	<groupId>org.codehaus.mojo</groupId>
+          	<artifactId>tomcat-maven-plugin</artifactId>
+          	<version>1.1</version>
+          	<configuration>
+          	     <url>http://localhost:8080/manager</url>
+          	     <server>tomcat</server>
+          	     <path>mntester_</path>
+          	</configuration>
           </plugin>
-          <plugin>
-        	<groupId>org.apache.maven.plugins</groupId>
-        	<artifactId>maven-surefire-plugin</artifactId>
-        	<configuration>
-          		<skip>true</skip>
-        	</configuration>
-        	<executions>
-          		<execution>
-            			<id>surefire-it</id>
-            			<phase>integration-test</phase>
-            			<goals>
-              				<goal>test</goal>
-            			</goals>
-            			<configuration>
-              				<skip>false</skip>
-            			</configuration>
-          		</execution>
-        	</executions>
-      	  </plugin>
       </plugins>
   </build>
+<!-- Enable this block if you want to be able to generate html reports from test phase -->
+<!--    using:  mvn surefire-report:report -->
+<!--   <reporting> -->
+<!--     <plugins> -->
+<!--       <plugin> -->
+<!--         <groupId>org.apache.maven.plugins</groupId> -->
+<!--         <artifactId>maven-surefire-report-plugin</artifactId> -->
+<!--         <version>2.8.1</version> -->
+<!--         <configuration> -->
+<!--           <reportsDirectories>target/failsafe-reports</reportsDirectories> -->
+<!--         </configuration> -->
+<!--       </plugin> -->
+<!--     </plugins> -->
+<!--   </reporting> -->
+  
   <licenses>
     <license>
       <name>Apache License, Version 2.0</name>

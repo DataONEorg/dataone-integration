@@ -59,7 +59,7 @@ import org.junit.rules.ErrorCollector;
  * Test the DataONE Java client methods that focus on CN services.
  * @author Matthew Jones
  */
-public class D1ClientCNodeTest  {
+public class D1ClientCNodeIT  {
 
 //	private static String cnUrl = D1Client.getCN().getNodeBaseServiceUrl();
     private static String cnUrl = "http://cn-dev.dataone.org/cn";

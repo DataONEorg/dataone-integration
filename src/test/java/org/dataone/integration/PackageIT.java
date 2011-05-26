@@ -52,7 +52,7 @@ import org.junit.rules.ErrorCollector;
  * Test the DataONE Java client methods.
  * @author Matthew Jones
  */
-public class PackageTest  {
+public class PackageIT  {
     private static final String TEST_CN_URL = "http://cn-dev.dataone.org/cn/";
     private static final String TEST_MN_URL = "http://cn-dev.dataone.org/knb/d1/";
     private static final String TEST_MN_ID = "c3p0";

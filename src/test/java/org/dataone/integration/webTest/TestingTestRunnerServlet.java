@@ -1,5 +1,6 @@
 package org.dataone.integration.webTest;
 
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.IOException;
@@ -18,24 +19,19 @@ public class TestingTestRunnerServlet {
 	@Test
 	public void callServletTest() throws IOException
 	{
-
-		//	        ResourceLoader fsrl = new FileSystemResourceLoader();
+		String mNodeUrl = "nodeFromMockClientRequest";
+		
+		// set up mock objects
 		ServletContext sc = new MockServletContext("src/main/webapp", null);
-		//	        MockFilterConfig fc = new MockFilterConfig(ProxyWebApplicationContextLoader.SERVLET_CONTEXT, "ResolveFilter");
-
 		MockHttpServletRequest request = new MockHttpServletRequest(sc, null, "/some/path?mNodeUrl=NodeFromMockClient");
-		request.setParameter("mNodeUrl","nodeFromMockClientRequest");
+		MockHttpServletResponse response = new MockHttpServletResponse();
+
+		request.setParameter("mNodeUrl",mNodeUrl);
 		request.addHeader("accept", (Object) "text/xml");
 		request.setMethod("GET");
-
-		TestRunnerHttpServlet servlet = new TestRunnerHttpServlet();
-
-		MockHttpServletResponse response = new MockHttpServletResponse();
 		
-        // need to wrap the response to examine
-//        BufferedHttpResponseWrapper responseWrapper =
-//                new BufferedHttpResponseWrapper((HttpServletResponse) response);
-	
+		// call the servlet
+		TestRunnerHttpServlet servlet = new TestRunnerHttpServlet();
 		try {
 			servlet.doGet(request, response);
 		} catch (ServletException se) {
@@ -43,7 +39,11 @@ public class TestingTestRunnerServlet {
 		} catch (IOException ioe) {
 			fail("IO exception at servlet.goGet(): " + ioe);
 		}
-		System.out.println(response.getContentAsString());
+		
+		// process the response - did it return anything meaningful?
+		String responseString = response.getContentAsString();
+		System.out.println(responseString);
+		assertTrue("Url successfully passed to servlet",responseString.contains(mNodeUrl));
 	}
 
 }
