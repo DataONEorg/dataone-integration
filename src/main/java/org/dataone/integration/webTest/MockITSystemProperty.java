@@ -15,7 +15,7 @@ import org.junit.Test;
  * 
  * @author rnahf
  */
-public class SystemPropertyTest {
+public class MockITSystemProperty {
 	
 	// static variables for setting up the nodes to be tested
 	private static String mNodeUrl; 
