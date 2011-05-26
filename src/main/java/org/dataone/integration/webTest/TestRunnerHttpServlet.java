@@ -101,14 +101,49 @@ public class TestRunnerHttpServlet extends HttpServlet
 	    return body;
 	}
 	
-	private void write(Writer w, String s) throws IOException {
-		w.write(s);
+	/**
+	 * adapted from webTester in MN package...
+	 * @param testResult
+	 * @param div
+	 */
+	private void generateTestReport(AtomicTest testResult, Element div) {
+
+		Element table = new Element("table");
+		Element tr = new Element("tr");
+		Element name = new Element("th");
+		Element description = new Element("td");
+		Element exception = new Element("td");
+
+		// set color based on status
+		if (testResult.getStatus().equals("Success")) {
+			div.addAttribute(new Attribute("class", "green"));
+		} 
+		else if (testResult.getStatus().equals("Ignored")) {
+			div.addAttribute(new Attribute("class", "yellow"));
+		} 
+		else if (testResult.getStatus().equals("Failed")) {
+			div.addAttribute(new Attribute("class", "red"));
+		}
+		else {
+			div.addAttribute(new Attribute("class", "violet"));
+		}
+
+		// add contents to the table row...
+		name.appendChild(testResult.getTestName());
+		tr.appendChild(name);
+
+		description.appendChild(testResult.getMessage());
+		tr.appendChild(description);
+
+		table.appendChild(tr);
+		div.appendChild(table);
 	}
-	private void writeln(Writer w, String s) throws IOException {
-		w.write(s + "\n");
-		w.flush();
-	}
-			
+
+	/**
+	 * extended class used to catch the output from junit and put it in usable form
+	 * @author rnahf
+	 *
+	 */
 	class TestStartListener extends RunListener
 	{
 		ArrayList<AtomicTest> testList = new ArrayList<AtomicTest>();
@@ -133,9 +168,12 @@ public class TestRunnerHttpServlet extends HttpServlet
 		
 		public void testFailure(Failure f) {
 			Throwable t = f.getException();
-			currentTest.setStatus("Failed");
-			currentTest.setMessage( t.getClass().getName() + ": " + f.getMessage());
-
+			if (t instanceof java.lang.AssertionError) {
+				currentTest.setStatus("Failed");
+			} else {
+				currentTest.setStatus("Error");
+			}
+			currentTest.setMessage( t.getClass().getSimpleName() + ": " + f.getMessage());
 		}
 		
 		public ArrayList<AtomicTest> getTestList() {
@@ -181,66 +219,5 @@ public class TestRunnerHttpServlet extends HttpServlet
 		public String getMessage() {
 			return message;
 		}
-	}
-	
-	
-	/**
-	 * lifted directly from webTester in MN package...
-	 * @param testResult
-	 * @param url
-	 * @param div
-	 */
-	private void generateTestReport(AtomicTest testResult, Element div) {
-
-		Element table = new Element("table");
-		Element tr = new Element("tr");
-		Element name = new Element("th");
-		Element description = new Element("td");
-		Element exception = new Element("td");
-
-
-		// set color based on status
-		if (testResult.getStatus().equals("Success")) {
-			div.addAttribute(new Attribute("class", "green"));
-		} 
-		else if (testResult.getStatus().equals("Ignored")) {
-			div.addAttribute(new Attribute("class", "yellow"));
-		} 
-		else if (testResult.getStatus().equals("Failed")) {
-			div.addAttribute(new Attribute("class", "red"));
-		}
-		else {
-			div.addAttribute(new Attribute("class", "violet"));
-		}
-
-		// add contents to the table row...
-		name.appendChild(testResult.getTestName());
-		tr.appendChild(name);
-
-		description.appendChild(testResult.getMessage());
-		tr.appendChild(description);
-
-//		if (!testResult.wasSuccessful()) {
-//			String details = testResult.getMessage();
-//			StringBuilder buffer = new StringBuilder();
-//
-//			// fail 'gracefully' if the test's code is broken
-//			if (details == null) {
-//				buffer.append("THIS TEST IS BROKEN - DEV PLEASE FIX ME");
-//			}
-//			
-//			}
-//
-//			exception.appendChild(buffer.toString());
-//		}
-//		else {
-//			exception.appendChild("");
-//		}
-//
-//		tr.appendChild(exception);
-
-		table.appendChild(tr);
-		div.appendChild(table);
-	}
-	
+	}	
 }
