@@ -51,22 +51,25 @@ Running all tests:
  * mvn tomcat:deploy - used to deploy the war to a local tomcat server (local
        configuration required)
 
-Java integration testing options:
+Java integration testing options **
   described fully at:
         http://maven.apache.org/plugins/maven-failsafe-plugin/examples/single-test.html
 
 Examples: 
  running one integration test:             mvn -Dit.test={pathlessTestName} verify
- running one method in integration test:   mvn -Dit.test={pathlessTestName}#{method} verify
  running multiple tests:                   mvn -Dit.test=*Core* verify
- running subset of methods in test:        mvn -Dit.test=someTest#*get*
+ 
+ ** However: specifying methods within the class is supposed to work, 
+ but doesn't in practice for reasons unknown.
+    running one method in integration test:   mvn -Dit.test={pathlessTestName}#{method} verify
+    running subset of methods in test:        mvn -Dit.test=someTest#*get*
 
 
 Notes for Developers:
 ---------------------
 Integration tests are defined as tests that require infrastructure beyond the current
 package and it's dependencies.  This would include functional and use case tests, but
-not the unit tests that typically must pass before a build is deployed.
+not the unit tests that typically must pass before committing the code.
 
 * Regarding local tomcat deployment, see:
 http://mojo.codehaus.org/tomcat-maven-plugin/deployment.html
