@@ -79,7 +79,7 @@ import org.w3c.dom.NodeList;
  * Test the DataONE Java client methods.
  * @author Matthew Jones
  */
-public class D1ClientIT  {
+public class MNodeIT  {
 
     private static final String TEST_CN_URL = "http://cn-dev.dataone.org/cn";
     private static final String TEST_MN_URL = "http://cn-dev.dataone.org/knb/d1/";

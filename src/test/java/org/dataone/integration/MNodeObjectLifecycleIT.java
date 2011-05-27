@@ -76,7 +76,7 @@ import org.junit.rules.ErrorCollector;
  * Test the DataONE Java client methods.
  * @author Rob Nahf
  */
-public class ObjectLifecycleIT  {
+public class MNodeObjectLifecycleIT  {
     private static final String devPrincipal = "uid%3Dkepler,o%3Dunaffiliated,dc%3Decoinformatics,dc%3Dorg";
     private static final String pw = "kepler";
     private static final String prefix = "simpleApiTests:testid:";
