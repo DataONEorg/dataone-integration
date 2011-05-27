@@ -74,7 +74,7 @@ import org.junit.rules.ErrorCollector;
 
 /**
  * Test the DataONE Java client methods.
- * @author Matthew Jones, Rob Nahf
+ * @author Rob Nahf
  */
 public class ObjectLifecycleIT  {
     private static final String devPrincipal = "uid%3Dkepler,o%3Dunaffiliated,dc%3Decoinformatics,dc%3Dorg";
@@ -98,7 +98,7 @@ public class ObjectLifecycleIT  {
     {        
     	nodeInfo = new Hashtable();
     	nodeInfo.put("http://cn-dev.dataone.org/knb/d1/", new String[] {devPrincipal, pw});
-    	nodeInfo.put("http://gmn-dev.dyndns.org/mn/", new String[] {"public","public"});
+//    	nodeInfo.put("http://gmn-dev.dyndns.org/mn/", new String[] {"public","public"});
 //    	nodeInfo.put("http://dev-dryad-mn.dataone.org/mn/", new String[] {"",""});
 //    	nodeInfo.put("http://daacmn.dataone.utk.edu/mn/", new String[] {"",""});
     }
