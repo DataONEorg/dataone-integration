@@ -24,8 +24,6 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.*;
 import static org.junit.Assert.assertThat;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Date;
@@ -37,7 +35,6 @@ import java.util.Vector;
 import java.util.concurrent.Callable;
 
 import org.apache.commons.io.IOUtils;
-import org.dataone.client.D1Client;
 import org.dataone.client.MNode;
 import org.dataone.eml.DataoneEMLParser;
 import org.dataone.eml.EMLDocument;
@@ -118,7 +115,7 @@ public class MNodeObjectLifecycleIT  {
     		String cred = currentNodeInfo[1];
     		
     		printHeader("Node: " + currentBaseUrl);
-    		MNode mn = D1Client.getMN(currentBaseUrl);
+    		MNode mn = new MNode(currentBaseUrl);
 
     		// objectlist - count
     		printSubHeader(" listObjects");
@@ -215,6 +212,7 @@ public class MNodeObjectLifecycleIT  {
         		printSubHeader("getSystemMetadata");
     			SystemMetadata smd = mn.getSystemMetadata(null, newPid);
     			System.out.println("systemMetadata object size: " + smd.getSize());
+    			System.out.println(smd.toString());
     			checkTrue("pid in sysMeta document matches requested pid",
     					newPid.getValue().equals(smd.getIdentifier().getValue()));
 //    			assertTrue("smd object not null", smd != null);
@@ -274,8 +272,8 @@ public class MNodeObjectLifecycleIT  {
                 objectStream = IOUtils.toInputStream(createdDataObject);
                 
                 //update the document
-                System.out.println("d1 update new pid: "+ updatedPid.getValue() + " old pid: " + newPid);
-                Identifier uPid = mn.update(token, updatedPid, objectStream, rGuid, updatedSysmeta);
+                System.out.println("d1 update new pid: "+ updatedPid.getValue() + " old pid: " + newPid.getValue());
+                Identifier uPid = mn.update(token, rGuid, objectStream, updatedPid, updatedSysmeta);
                 System.out.println("d1 updated success, id returned is " + uPid.getValue());
 
                 //perform tests
@@ -522,7 +520,7 @@ public class MNodeObjectLifecycleIT  {
     		nodeSummary.add("Node Test Summary for node: " + currentUrl );
 
     		printHeader("  Node:: " + currentUrl);
-    		MNode mn = D1Client.getMN(currentUrl);
+    		MNode mn = new MNode(currentUrl);
 
     		String principal = "uid%3Dkepler,o%3Dunaffiliated,dc%3Decoinformatics,dc%3Dorg";
             AuthToken token = null;
@@ -608,7 +606,7 @@ public class MNodeObjectLifecycleIT  {
         for(int i=0; i<nodeList.size(); i++)
         {
             currentUrl = nodeList.get(i).getBaseURL();
-            MNode mn = D1Client.getMN(currentUrl);
+            MNode mn = new MNode(currentUrl);
 
             try
             {

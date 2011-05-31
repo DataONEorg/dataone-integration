@@ -39,6 +39,7 @@ import org.jibx.runtime.IBindingFactory;
 import org.jibx.runtime.IMarshallingContext;
 import org.jibx.runtime.JiBXException;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ErrorCollector;
@@ -118,7 +119,8 @@ public class DataReplicationIT {
 	 * @throws UnsupportedType 
 	 * @throws IdentifierNotUnique 
 	 */
-//	@Test
+	@Ignore("can't really run this until test environment test up")
+	@Test
 	public void testDataReplicateWithGet() throws ServiceFailure, NotImplemented, InterruptedException, 
 	InvalidToken, NotAuthorized, InvalidRequest, NotFound, IOException, IdentifierNotUnique, UnsupportedType,
 	InsufficientResources, InvalidSystemMetadata 
@@ -177,7 +179,8 @@ public class DataReplicationIT {
 	 * @throws UnsupportedType 
 	 * @throws IdentifierNotUnique 
 	 */
-	//@Test
+	@Ignore("can't really run this until test environment test up")
+	@Test
 	public void testDataReplicateWithMeta() throws ServiceFailure, NotImplemented, InterruptedException, 
 	InvalidToken, NotAuthorized, InvalidRequest, NotFound, IOException, IdentifierNotUnique, UnsupportedType,
 	InsufficientResources, InvalidSystemMetadata 
@@ -235,7 +238,8 @@ public class DataReplicationIT {
 	 * @throws UnsupportedType 
 	 * @throws IdentifierNotUnique 
 	 */
-	//@Test
+	@Ignore("can't really run this until test environment test up")
+	@Test
 	public void testDataReplicateWithResolve() throws ServiceFailure, NotImplemented, InterruptedException, 
 	InvalidToken, NotAuthorized, InvalidRequest, NotFound, IOException, IdentifierNotUnique, UnsupportedType,
 	InsufficientResources, InvalidSystemMetadata 

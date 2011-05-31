@@ -25,6 +25,7 @@ import org.dataone.service.types.Identifier;
 import org.dataone.service.types.ObjectList;
 import org.dataone.service.types.SystemMetadata;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ErrorCollector;
@@ -96,6 +97,8 @@ public class SynchronizationIT {
 	 * synch runs.
 	 * @throws NotFound 
 	 */
+	@Ignore("can't really run this until test environment test up")
+	@Test
 	public void testMDSynchronizeWithMulti() throws ServiceFailure, NotImplemented, InterruptedException, 
 	InvalidToken, NotAuthorized, InvalidRequest, IOException, IdentifierNotUnique, UnsupportedType,
 	InsufficientResources, InvalidSystemMetadata, NotFound 
