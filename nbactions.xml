@@ -84,4 +84,14 @@
                 <test>CNRestURLTest</test>
             </properties>
         </action>
+	<action>
+            <actionName>CUSTOM-test CreateData_IdentifierEncoding</actionName>
+            <displayName>test CreateData_IdentifierEncoding</displayName>
+            <goals>
+                <goal>integration-test</goal>
+            </goals>
+            <properties>
+                <test>testCreateData_IdentifierEncoding</test>
+            </properties>
+        </action>
 </actions>
