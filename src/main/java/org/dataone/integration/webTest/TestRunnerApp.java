@@ -9,7 +9,7 @@ import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.Parser;
 import org.junit.runner.JUnitCore;
 
-public class SysPropertyTestApp {
+public class TestRunnerApp {
 
 	/**
 	 * A demo class for showing how to trigger the running of a
