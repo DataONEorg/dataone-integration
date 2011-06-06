@@ -2,7 +2,7 @@ package org.dataone.integration;
 
 /**
  * Defines the parameter names used by dataone integration to configure tests 
- * implemented by AbstractTestCaseDataone and subclasses.
+ * implemented by ContextAwareTestCaseDataone and subclasses.
  * Also used by the TestRunners contained in org.dataone.integration.webTest package
  * 
  * Definitions:
@@ -15,10 +15,10 @@ package org.dataone.integration;
  * MN_URL - the base url of a member node to be tested. used for testing a single node.
  * 
  */
-public interface IntegrationTestParameters {
+public interface IntegrationTestContextParameters {
 	
 	/**
-	 * the names of system properties that AbstractTestCaseDataone will fetch and take action on
+	 * the names of system properties that ContextAwareTestCaseDataone will fetch and take action on
 	 * during the test setup phase.
 	 * 
 	 * Also used by the TestRunners contained in org.dataone.integration.webTest package
