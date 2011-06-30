@@ -4,14 +4,32 @@ package org.dataone.integration;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.io.InputStream;
-import java.util.Properties;
+import java.net.URL;
+import java.util.List;
+import java.util.Vector;
 import java.util.concurrent.Callable;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.dataone.client.CNode;
+import org.dataone.client.D1Client;
+import org.dataone.configuration.Settings;
+import org.dataone.service.exceptions.InsufficientResources;
+import org.dataone.service.exceptions.InvalidRequest;
+import org.dataone.service.exceptions.NotFound;
+import org.dataone.service.exceptions.NotImplemented;
+import org.dataone.service.exceptions.ServiceFailure;
+import org.dataone.service.impl.ObjectFormatServiceImpl;
+import org.dataone.service.types.AccessPolicy;
+import org.dataone.service.types.AccessRule;
+import org.dataone.service.types.Node;
+import org.dataone.service.types.NodeList;
+import org.dataone.service.types.ObjectFormat;
+import org.dataone.service.types.ObjectFormatIdentifier;
+import org.dataone.service.types.Permission;
+import org.dataone.service.types.Subject;
+import org.dataone.service.types.util.ServiceTypeUtil;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.rules.ErrorCollector;
@@ -21,211 +39,180 @@ import org.junit.rules.ErrorCollector;
  * 
  * This class is intended as a base class that implements the standard IntegrationTestContextParameters
  * 
- * Mostly having to do with setting up the testing context.  This class sets default values for
- * some methods.  Subclasses can override these default values by overriding the getter methods.
+ * There is a setUp routine that parses configurations into objects useful for running tests in a given
+ * context.  It also sets up the logger, and errorCollector logic (see @Rule, and  protected "check" methods)
  * 
  * @author rnahf
  *
  */
-public class ContextAwareTestCaseDataone implements IntegrationTestContextParameters {
+public abstract class ContextAwareTestCaseDataone implements IntegrationTestContextParameters {
 
-	// TODO: make sure files stored here are not deployed in the test-jar!! (security)
-	private final static String CONTEXT_FILE_PATH = "/d1_testDocs/IT_contexts";
-	protected static boolean debug = true;
-
+	protected static Log log = LogFactory.getLog(ContextAwareTestCaseDataone.class);
 	
-	// variables to hold system properties / parameters passed in
-	protected static String testContext = DEFAULT_CONTEXT;
-	protected static String testSettingsUri = buildTestSettingsUri(testContext);
+	// variables to the context interface parameters
+	protected static String testContext;
 	protected static String cnBaseUrl;
 	protected static String mnBaseUrl;
 	protected static String nodelistUri;
 
-	// object to hold properties in settings file
-	private static Properties props;
+	public List<Node> listOfNodes = null;
 	
-	
-	@Rule 
-    public ErrorCollector errorCollector = new ErrorCollector();
-	
-	/**
-	 * 
-	 * @param contextName
-	 * @return
-	 */
-	protected static String buildTestSettingsUri(String contextName) {
-		return CONTEXT_FILE_PATH + "/default." + contextName + ".test.properties";
-	}
-	
+	protected abstract String getTestDescription();
 	
 	
 	/**
-	 * Can get parameters from 4 directions.  Listed in order of precedence
-	 * 1) system properties
-	 * 2) a settings file
-	 * 3) class defaults
-	 * 4) inherited base class defaults
-	 * 
-	 * * a parameter passed in on system properties will override the one
-	 * in the settings file which overrides the class default value which 
-	 * overrides base class defaults
-	 * 
+	 * sets static variables based on properties returned from org.dataone.configuration.Settings object
+	 * assigns only once (the first test)
+	 *  
 	 * @throws Exception
 	 */
 	@Before
 	public void setUp() throws Exception {
-		
-		// skip setUp steps if already run
-		if (props == null) {
-			debug("Setting context....");
-			debug("initial context: " + getTestContext());
-			debug("initial settings file = " + getTestSettingsUri());
 
-			// class default values (or subclass overridden values) 
-			// provided by the getter methods.
-			
-			// now override with any set system properties
-			testSettingsUri = System.getProperty(PARAM_TEST_SETTINGS_URI, getTestSettingsUri());
-			debug("**settings file after checking sys props: " + getTestSettingsUri());
-			// read the setting file to get property values
-			// some of these (user accounts) are only found in the settings file
-			props = new Properties();
-			try {
-				File settings = new File(testSettingsUri);
-				InputStream propertiesStream = null;
-				if (settings.canRead()) {
-					propertiesStream = new FileInputStream(settings);
+		// skip setUp steps if already run
+		if (testContext == null) {
+			testContext = Settings.getConfiguration().getString(Settings.OPTIONAL_PROPERTY_CONTEXT_LABEL);			
+			cnBaseUrl = Settings.getConfiguration().getString(PARAM_CN_URL);
+			mnBaseUrl = Settings.getConfiguration().getString(PARAM_MN_URL);
+			nodelistUri = Settings.getConfiguration().getString(PARAM_NODELIST_URI);
+
+			log.debug("context: " + testContext);
+			log.debug("overrides from: " + Settings.getConfiguration().getString(Settings.OPTIONAL_PROPERTY_PROPERTIES_FILENAME));
+		
+
+			if (mnBaseUrl != null) {
+				// the context is standalone member node
+				Node n = new Node();
+				n.setBaseURL(mnBaseUrl);
+				listOfNodes = new Vector<Node>();
+				listOfNodes.add(n);
+			} else {
+				// we will be testing multiple member nodes
+				if (nodelistUri != null) {
+					// the list of member nodes is in this NodeList.xml file
+					URL url = new URL(nodelistUri);
+					InputStream is = url.openStream();
+					NodeList nl = (NodeList) ServiceTypeUtil.deserializeServiceType(NodeList.class, is);
+					listOfNodes = nl.getNodeList();
 				} else {
-					propertiesStream = this.getClass().getResourceAsStream(testSettingsUri);
-				}
-				
-				
-				props.load(propertiesStream);
-			} catch (FileNotFoundException e) {
-				System.out.println("FNF: Can't find settings file: " +  e.getMessage());
-				throw e;
-			} catch (IOException e) {
-				System.out.println("IO Exception: Can't load contents of settings file: " + e.getMessage());
-				throw e;
-			}
-			
-			// now set interface-defined parameter variables
-			// (the second parameter is the default if not found in the settings file)
-			testContext = props.getProperty(PARAM_TEST_CONTEXT,getTestContext());
-			cnBaseUrl = props.getProperty(PARAM_CN_URL,getCnBaseURL());
-			mnBaseUrl = props.getProperty(PARAM_MN_URL,getMnBaseURL());
-			nodelistUri = props.getProperty(PARAM_NODELIST_URI,getNodeListURI());
-		
-			// finally get any other defined system properties that get passed in at runtime
-			debug("system prop context: " + System.getProperty(PARAM_TEST_CONTEXT));
-			debug("settings file context: " + getTestContext());
-			testContext = System.getProperty(PARAM_TEST_CONTEXT,getTestContext());
-			debug("final context: " + testContext);
-			cnBaseUrl = System.getProperty(PARAM_CN_URL,getCnBaseURL());
-			mnBaseUrl = System.getProperty(PARAM_MN_URL,getMnBaseURL());
-			nodelistUri = System.getProperty(PARAM_NODELIST_URI,getNodeListURI());
-		
-			debug("context: " + testContext);
-			
-		}
-		
-		// have the settings, now to decide how to initiate the tests (which nodes, users to create)
-		if (getTestContext() != null) {
-			//set the cn based on the environment found in the nodelist.
-		}
-		
-		
+					// use the context specified by D1Client
+					CNode cn = D1Client.getCN();
+					listOfNodes = cn.listNodes().getNodeList();
+				} 
+			} // nodelist set up
+		}  // settings already set up
 	}
+	
+	
+   
+	
+	/**
+	 * create an accessPolicy that assigns read permission to public subject.
+	 * This is a common test scenario...
+	 */
+	protected static AccessPolicy buildPublicReadAccessPolicy() {
+
+		AccessRule ar = new AccessRule();
+		ar.addPermission(Permission.READ);
+
+		Subject sub = new Subject();
+    	sub.setValue("public");
+		ar.addSubject(sub);
+
+		AccessPolicy ap = new AccessPolicy();
+		ap.addAllow(ar);
+    	return ap;
+	}
+
+	
+	
+	/**
+	 * creates a header line with the text: "*** running test for <string> ***" 
+	 * into the log (INFO level)
+	 * @param methodName
+	 */
+	protected void printTestHeader(String methodName)
+    {
+        log.info("\n***************** running test for " + methodName + " *****************");
+    }
+
+	
+	/**
+	 * Tests should use the error collector to handle JUnit assertions
+	 * and keep going.  The check methods in this class use this errorCollector
+	 * the check methods 
+	 */
+	@Rule 
+    public ErrorCollector errorCollector = new ErrorCollector();
+	
+	/**
+	 * performs the junit assertThat method using the errorCollector
+	 * to record the error and keep going
+	 * 
+	 * @param message
+	 * @param s1
+	 * @param s2
+	 */
+    protected void checkEquals(final String host, final String message, final String s1, final String s2)
+    {
+        errorCollector.checkSucceeds(new Callable<Object>() 
+        {
+            public Object call() throws Exception 
+            {
+                if (host != null) {
+                	assertThat("for host: " + host + ":: " + message, s1, is(s2));
+                } else {
+                	assertThat(message, s1, is(s2));
+                }
+                return null;
+            }
+        });
+    }
+    
+    
+    /**
+	 * performs the equivalent of the junit assertTrue method
+	 * using the errorCollector to record the error and keep going
+	 * 
+	 * @param message
+	 * @param s1
+	 * @param s2
+	 */
+    protected void checkTrue(final String host, final String message, final boolean b)
+    {
+        errorCollector.checkSucceeds(new Callable<Object>() 
+        {
+            public Object call() throws Exception 
+            {
+            	if (host != null) {	
+            		assertThat("for host: " + host + ":: " + message, true, is(b));
+            	} else {
+            		assertThat(message, true, is(b));
+            	}
+                return null;
+            }
+        });
+    }
 	
     /**
-     * Return one of the properties based on its key value.
-     * @param key the String name of a property key
-     * @return the value of that property
-     */
-    public String getSetting(String key) {
-        if (key.equals(PARAM_TEST_CONTEXT)) {
-        	return getTestContext();
-        }
-        if (key.equals(PARAM_CN_URL)) {
-        	return getCnBaseURL();
-        }
-        if (key.equals(PARAM_MN_URL)) {
-        	return getMnBaseURL();
-        }
-        if (key.equals(PARAM_NODELIST_URI)) {
-        	return getNodeListURI();
-        }
-        return props.getProperty(key);
-        
-    }
-    
-    
-	
-	public void debug(String message) {
-		if (getDebug()) {
-			System.out.println(message);
-		}
-	}
-	/**
-	 * returns the uri (file or url) where the settings file to 
-	 * be used is located.
-	 * @return
+	 * performs the equivalent of the junit assertFalse method
+	 * using the errorCollector to record the error and keep going
+	 * 
+	 * @param message
+	 * @param s1
+	 * @param s2
 	 */
-	protected String getTestSettingsUri() {
-		return testSettingsUri;
-	}
-	protected  String getTestContext() {
-		return testContext;
-	}
-	protected  String getCnBaseURL() {
-		return cnBaseUrl;
-	}
-	protected  String getMnBaseURL() {
-		return mnBaseUrl;
-	}
-	protected  String getNodeListURI() {
-		return nodelistUri;
-	}
-	protected boolean getDebug() {
-		return debug;
-	}
-	
-    protected void printTestHeader(String methodName)
-    {
-        System.out.println("\n***************** running test for " + methodName + " *****************");
-    }
-    
-    protected void checkEquals(final String message, final String s1, final String s2)
+    protected void checkFalse(final String host, final String message, final boolean b)
     {
         errorCollector.checkSucceeds(new Callable<Object>() 
         {
             public Object call() throws Exception 
             {
-                assertThat(message, s1, is(s2));
-                return null;
-            }
-        });
-    }
-    
-    protected void checkTrue(final String message, final boolean b)
-    {
-        errorCollector.checkSucceeds(new Callable<Object>() 
-        {
-            public Object call() throws Exception 
-            {
-                assertThat(message, true, is(b));
-                return null;
-            }
-        });
-    }
-	
-    protected void checkFalse(final String message, final boolean b)
-    {
-        errorCollector.checkSucceeds(new Callable<Object>() 
-        {
-            public Object call() throws Exception 
-            {
-                assertThat(message, false, is(b));
+            	if (host != null) {	
+            		assertThat("for host: " + host + ":: " + message, false, is(b));
+            	} else {
+            		assertThat(message, false, is(b));
+            	}
                 return null;
             }
         });

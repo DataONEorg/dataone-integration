@@ -49,16 +49,18 @@ import org.dataone.service.exceptions.NotFound;
 import org.dataone.service.exceptions.NotImplemented;
 import org.dataone.service.exceptions.ServiceFailure;
 import org.dataone.service.exceptions.UnsupportedType;
-import org.dataone.service.types.AuthToken;
+import org.dataone.service.impl.ObjectFormatServiceImpl;
 import org.dataone.service.types.Checksum;
 import org.dataone.service.types.ChecksumAlgorithm;
 import org.dataone.service.types.Identifier;
 import org.dataone.service.types.NodeReference;
 import org.dataone.service.types.ObjectFormat;
+import org.dataone.service.types.ObjectFormatIdentifier;
 import org.dataone.service.types.ObjectLocation;
 import org.dataone.service.types.ObjectLocationList;
 import org.dataone.service.types.Replica;
 import org.dataone.service.types.ReplicationStatus;
+import org.dataone.service.types.Session;
 import org.dataone.service.types.Subject;
 import org.dataone.service.types.SystemMetadata;
 import org.dataone.service.types.util.ServiceTypeUtil;
@@ -343,17 +345,48 @@ public class ExampleUtilities {
 
         return guid.toString();
     }
+
+    
     
     /** Generate a SystemMetadata object with bogus data. */
     protected static SystemMetadata generateSystemMetadata(
-            Identifier guid, ObjectFormat objectFormat, InputStream source) {
+            Identifier guid, String objectFormatIdString, InputStream source) {
         
-        return generateSystemMetadata(guid, objectFormat, source, preferredMNId);
+        return generateSystemMetadata(guid, objectFormatIdString, source, preferredMNId);
     }
     
     /** Generate a SystemMetadata object with bogus data. */
     protected static SystemMetadata generateSystemMetadata(
-            Identifier guid, ObjectFormat objectFormat, InputStream source, String mnIdentifier) {
+            Identifier guid, String objectFormatIdString, InputStream source, String mnIdentifier) 
+    {
+    	
+
+    	ObjectFormatIdentifier ofid = new ObjectFormatIdentifier();
+    	ofid.setValue(objectFormatIdString);
+    	ObjectFormat objectFormat = null;
+    	
+    	// swallowing these exceptions for now, in v0.6.3 will be replacing 
+    	// object format with objectformatIdentifier, and won't need exception handling
+    	// (unless checking for registered format?)
+    	try {
+    		objectFormat = ObjectFormatServiceImpl.getInstance().getFormat(ofid);
+    	} catch (InvalidRequest e1) {
+    		// TODO Auto-generated catch block
+    		e1.printStackTrace();
+    	} catch (ServiceFailure e1) {
+    		// TODO Auto-generated catch block
+    		e1.printStackTrace();
+    	} catch (NotFound e1) {
+    		// TODO Auto-generated catch block
+    		e1.printStackTrace();
+    	} catch (InsufficientResources e1) {
+    		// TODO Auto-generated catch block
+    		e1.printStackTrace();
+    	} catch (NotImplemented e1) {
+    		// TODO Auto-generated catch block
+    		e1.printStackTrace();
+    	}
+
         SystemMetadata sysmeta = new SystemMetadata();
         sysmeta.setIdentifier(guid);
         sysmeta.setObjectFormat(objectFormat);
@@ -473,10 +506,10 @@ public class ExampleUtilities {
     
 	protected static Identifier doCreateNewObject(MNode mn, String idPrefix) throws ServiceFailure,
 	NotImplemented, InvalidToken, NotAuthorized, IdentifierNotUnique, UnsupportedType,
-	InsufficientResources, InvalidSystemMetadata, NotFound
+	InsufficientResources, InvalidSystemMetadata, NotFound, InvalidRequest
 	{
-		String principal = "uid%3Dkepler,o%3Dunaffiliated,dc%3Decoinformatics,dc%3Dorg";
-		AuthToken token = mn.login(principal, "kepler");
+//		String principal = "uid%3Dkepler,o%3Dunaffiliated,dc%3Decoinformatics,dc%3Dorg";
+		Session token = null; // mn.login(principal, "kepler");
 		String idString = idPrefix + ExampleUtilities.generateIdentifier();
 		Identifier guid = new Identifier();
 		guid.setValue(idString);
@@ -484,14 +517,14 @@ public class ExampleUtilities {
 			new Throwable().getStackTrace()[2].getClass().getResourceAsStream("/d1_testdocs/knb-lter-cdr.329066.1.data");
 //		InputStream objectStream = Caller.getClass().getResourceAsStream(
 //				"/d1_testdocs/knb-lter-cdr.329066.1.data");
-		SystemMetadata sysmeta = ExampleUtilities.generateSystemMetadata(guid, ObjectFormat.TEXT_CSV, objectStream);
+		SystemMetadata sysmeta = ExampleUtilities.generateSystemMetadata(guid, "text/csv", objectStream);
 		Identifier rGuid = null;
 		objectStream = 
             new Throwable().getStackTrace()[2].getClass().getResourceAsStream("/d1_testdocs/knb-lter-cdr.329066.1.data");
 
 		rGuid = mn.create(token, guid, objectStream, sysmeta);
 		assertThat("checking that returned guid matches given ", guid.getValue(), is(rGuid.getValue()));
-		mn.setAccess(token, rGuid, "public", "read", "allow", "allowFirst");
+		mn.setAccessPolicy(token, rGuid, ContextAwareTestCaseDataone.buildPublicReadAccessPolicy());
 		System.out.println("new document created on " + mn.getNodeBaseServiceUrl() + 
 		        " with guid " + rGuid.getValue());
 		InputStream is = mn.get(null,guid);
