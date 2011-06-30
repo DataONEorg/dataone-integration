@@ -5,24 +5,23 @@ import static org.junit.Assert.fail;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.apache.commons.io.IOUtils;
-import org.dataone.client.D1Node.ResponseData;
+import org.apache.http.HttpResponse;
+import org.dataone.configuration.Settings;
 import org.dataone.service.Constants;
+import org.dataone.service.D1Url;
 import org.dataone.service.EncodingUtilities;
-import org.dataone.service.types.AuthToken;
 import org.junit.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 
 public class CNRestURLTest {
-	private static final String cnUrl = "http://cn-dev.dataone.org/cn/";
+	private static final String cnUrl = Settings.getConfiguration().getString("context.cn.baseurl");
 	
 	@Test
 	public void testListObject_noParams() throws IOException {
@@ -135,8 +134,14 @@ public class CNRestURLTest {
 	@Test
 	public void testResolve_errorForwarding_unknownQueryParams() throws IOException {
 
-		ResponseData rd = sendHttpGet(null,Constants.RESOURCE_OBJECTS, "qt=path&count=1");
-		String ol = IOUtils.toString(rd.getContentStream());
+		RestClient rc = new RestClient();
+		D1Url url = new D1Url(cnUrl);
+		url.addNextPathElement(Constants.RESOURCE_OBJECTS);
+		url.addPreEncodedNonEmptyQueryParams("qt=path&count=1");
+		
+		HttpResponse response = rc.doGetRequest(url.getUrl());
+		
+		String ol = IOUtils.toString(response.getEntity().getContent());
 		String someID = null;
 		if (ol.contains("<identifier>"))
 			someID = ol.substring(ol.indexOf("<identifier>")+12, ol.indexOf("</identifier>"));
@@ -150,27 +155,30 @@ public class CNRestURLTest {
 		
 	private void testRunner(int expectedCode, String resourcePath, String param) throws IOException {
 		System.out.println("===================================================================");
-		ResponseData rd = sendHttpGet(null, resourcePath, param);
-		int status = rd.getCode();
+		
+		RestClient rc = new RestClient();
+		D1Url url = new D1Url(cnUrl);
+		url.addNextPathElement(resourcePath);
+		url.addPreEncodedNonEmptyQueryParams(param);
+		
+		HttpResponse response = rc.doGetRequest(url.getUrl());
+		int status = response.getStatusLine().getStatusCode();
 		
 		System.out.println("*** expected  = " + expectedCode);
 		System.out.println("*** http code = " + status);
-		if (rd.getContentStream() != null) {
-			String content = IOUtils.toString(rd.getContentStream());
-			if (content.length() > 1000)
-				System.out.println("*** contentStream = " + content.substring(0, 1000) + " ...");
-			else
-				System.out.println("*** contentStream = " + content);
-		}
-		if (rd.getErrorStream() != null) 
-			System.out.println("*** errorStream = " + IOUtils.toString(rd.getErrorStream()));
-		
-		rd = sendHttpGet(null, resourcePath, param);
-		Integer errorCode = null;
-		if (rd.getContentStream() != null)
-			errorCode = readErrorStreamForErrorCode(rd.getContentStream());	
-		if (rd.getErrorStream() != null) 
-			errorCode = readErrorStreamForErrorCode(rd.getErrorStream());
+	
+		InputStream responseStream = response.getEntity().getContent();
+
+		String content = IOUtils.toString(responseStream);
+		if (content.length() > 1000)
+			System.out.println("*** contentStream = " + content.substring(0, 1000) + " ...");
+		else
+			System.out.println("*** contentStream = " + content);
+
+
+		HttpResponse response2 = rc.doGetRequest(url.getUrl());	
+		InputStream is2 = response2.getEntity().getContent();
+		Integer errorCode = readErrorStreamForErrorCode(is2);	
 
 		System.out.println("*** errorCode = " + errorCode);	
 
@@ -186,56 +194,7 @@ public class CNRestURLTest {
 	}
 	
 	
-	private ResponseData sendHttpGet(AuthToken token, String resource, 
-			 String urlParameters) throws IOException {
 
-		CNode cn = new CNode(cnUrl);
-		String method = Constants.GET;
-		ResponseData resData = cn.new ResponseData();
-		HttpURLConnection connection = null;
-		
-		// append the token onto the parameter string.
-		if (token != null) {
-			if (urlParameters.trim().length() > 0)
-				urlParameters += "&sessionid=" + token.getToken();
-			else
-				urlParameters = "sessionid=" + token.getToken();
-		}
-
-		// encode and assemble the url
-		String restURL = cn.getNodeBaseServiceUrl() + resource;
-		if (urlParameters.trim().length() > 0)
-			if (!urlParameters.startsWith("?")) 
-				restURL += "?";
-		restURL += urlParameters;
-
-		System.out.println("restURL: " + restURL);
-		System.out.println("method: " + method);
-
-		URL u = new URL(restURL);
-		connection = (HttpURLConnection) u.openConnection();
-
-		connection.setDoOutput(true);
-		connection.setDoInput(true);
-		connection.setRequestMethod(method);
-		connection.connect();			
-
-		try {
-			InputStream content = connection.getInputStream();
-			resData.setContentStream(content);
-		} catch (IOException ioe) {
-			System.out.println("tried to get content and failed.  Receiving an error stream instead.");
-			// will set errorStream outside of catch
-		}
-
-		int code = connection.getResponseCode();
-		resData.setCode(code);
-		resData.setHeaderFields(connection.getHeaderFields());
-		if (code != HttpURLConnection.HTTP_OK) 
-			resData.setErrorStream(connection.getErrorStream());
-			
-		return resData;
-	}
 	
 	private Integer readErrorStreamForErrorCode(InputStream errorStream) {
 		

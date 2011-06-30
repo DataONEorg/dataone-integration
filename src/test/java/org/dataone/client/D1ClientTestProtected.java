@@ -14,14 +14,17 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.io.IOUtils;
-import org.dataone.client.D1Node.ResponseData;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.ClientProtocolException;
 import org.dataone.service.Constants;
+import org.dataone.service.D1Url;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.InvalidRequest;
 import org.dataone.service.exceptions.ServiceFailure;
 import org.dataone.service.types.AuthToken;
 import org.dataone.integration.ExampleUtilities;
 import org.junit.Assume;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ErrorCollector;
@@ -36,28 +39,31 @@ public class D1ClientTestProtected {
 	public ErrorCollector errorCollector = new ErrorCollector();
 
 	
-	@Test
-	public void testBadParametersVsListObjects() throws ServiceFailure
-	{
-		String resource = Constants.RESOURCE_OBJECTS;
-		String urlParameters = "xxx=XXX&yyy=YYY";
-
-		runBadParametersTests(resource, urlParameters);
+	
+	private HttpResponse executeGetRequest(String resource, String queryString) 
+	throws ClientProtocolException, IOException {
+		
+		RestClient rc = new RestClient();
+		String url = cnUrl + resource;
+		if (queryString != null) {
+			url += "?" + queryString;
+		}
+		return rc.doGetRequest(url);
 	}
 	
 	
-	private void runBadParametersTests(String resource, String urlParameters) throws ServiceFailure
+	private void runBadParametersTests(String resource, String urlParameters) 
+	throws ServiceFailure, ClientProtocolException, IOException
 	{
-		CNode cn = new CNode(cnUrl);
-		ResponseData rd = cn.sendRequest(null, resource, Constants.GET, urlParameters, null, null, null);
-
+		HttpResponse rd = executeGetRequest(resource,urlParameters);
+		
 		// First handle any errors that were generated	
-		int code = rd.getCode();
+		int code = rd.getStatusLine().getStatusCode();
 		System.out.println("code = " + code);
-		if (code != HttpURLConnection.HTTP_OK) {
-			InputStream errorStream = rd.getErrorStream();
+		if (code != 200) {
+			InputStream errorStream = rd.getEntity().getContent();
 			try {
-				cn.deserializeAndThrowException(code,errorStream);
+				D1Node.deserializeAndThrowException(code,errorStream);
 				assertTrue("Bad parameters should have thrown an exception", false);
 			} catch (InvalidRequest e) {
 				System.out.println("=== Exception code: " + e.getCode());
@@ -78,6 +84,17 @@ public class D1ClientTestProtected {
 			assertTrue("Exception should have been thrown.", false);
 		}
 	}
+
+	
+	@Test
+	public void testBadParametersVsListObjects() throws ServiceFailure, ClientProtocolException, IOException
+	{
+		String resource = Constants.RESOURCE_OBJECTS;
+		String urlParameters = "xxx=XXX&yyy=YYY";
+
+		runBadParametersTests(resource, urlParameters);
+	}
+	
 	
 	/**
      * test that trailing slashes do not affect the response of the node
@@ -129,14 +146,13 @@ public class D1ClientTestProtected {
             AuthToken token = new AuthToken("public");
 
             //without trailing slash
-            ResponseData rd1 = node.sendRequest(token, resource, 
-                    Constants.GET, params, null, null, null);
+            HttpResponse resp1 = executeGetRequest(resource,params);
             //with trailing slash
-            ResponseData rd2 = node.sendRequest(token, resource + "/", 
-                    Constants.GET, params, null, null, null);
-            String rd1response = IOUtils.toString(rd1.getContentStream());
+            HttpResponse resp2 = executeGetRequest(resource + "/",params);
+
+            String rd1response = IOUtils.toString(resp1.getEntity().getContent());            
             String rd1Total = D1ClientTestProtected.extractObjectListTotalAttribute(rd1response);
-            String rd2response = IOUtils.toString(rd2.getContentStream());
+            String rd2response = IOUtils.toString(resp2.getEntity().getContent());
             String rd2Total = D1ClientTestProtected.extractObjectListTotalAttribute(rd2response);
             assertEquals(rd1Total, rd2Total);
         }
@@ -191,15 +207,13 @@ public class D1ClientTestProtected {
             AuthToken token = new AuthToken("public");
 
             //without trailing slash
-            ResponseData rd1 = node.sendRequest(null, resource, 
-                    Constants.GET, params, null, null, null);
+            HttpResponse resp1 = executeGetRequest(resource,params);
             //with trailing slash
-            ResponseData rd2 = node.sendRequest(null, resource + "/", 
-                    Constants.GET, params, null, null, null);
+            HttpResponse resp2 = executeGetRequest(resource + "/",params);
             
-            String rd1response = IOUtils.toString(rd1.getContentStream());
+            String rd1response = IOUtils.toString(resp1.getEntity().getContent());            
             String rd1Total = D1ClientTestProtected.extractObjectListTotalAttribute(rd1response);
-            String rd2response = IOUtils.toString(rd2.getContentStream());
+            String rd2response = IOUtils.toString(resp2.getEntity().getContent());
             String rd2Total = D1ClientTestProtected.extractObjectListTotalAttribute(rd2response);
             assertEquals(rd1Total, rd2Total);
         }
@@ -214,6 +228,7 @@ public class D1ClientTestProtected {
 	/**
      * test that trailing slashes do not affect the response of the node
      */
+    @Ignore("need to implement public tokens for 0.6.2")
     @Test
     public void testTrailingSlashes_CN_publicToken()
     {
@@ -254,15 +269,13 @@ public class D1ClientTestProtected {
             AuthToken token = new AuthToken("public");
 
             //without trailing slash
-            ResponseData rd1 = node.sendRequest(token, resource, 
-                    Constants.GET, params, null, null, null);
+            HttpResponse resp1 = executeGetRequest(resource,params);
             //with trailing slash
-            ResponseData rd2 = node.sendRequest(token, resource + "/", 
-                    Constants.GET, params, null, null, null);
+            HttpResponse resp2 = executeGetRequest(resource + "/",params);
             
-            String rd1response = IOUtils.toString(rd1.getContentStream());
+            String rd1response = IOUtils.toString(resp1.getEntity().getContent());            
             String rd1Total = D1ClientTestProtected.extractObjectListTotalAttribute(rd1response);
-            String rd2response = IOUtils.toString(rd2.getContentStream());
+            String rd2response = IOUtils.toString(resp2.getEntity().getContent());
             String rd2Total = D1ClientTestProtected.extractObjectListTotalAttribute(rd2response);
             assertEquals(rd1Total, rd2Total);
         }
