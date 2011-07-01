@@ -21,13 +21,14 @@ import nu.xom.Serializer;
 import nu.xom.ValidityException;
 
 
+import org.dataone.integration.IntegrationTestContextParameters;
 import org.junit.runner.Description;
 import org.junit.runner.JUnitCore;
 import org.junit.runner.Result;
 import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunListener;
 
-public class TestRunnerHttpServlet extends HttpServlet
+public class TestRunnerHttpServlet extends HttpServlet implements IntegrationTestContextParameters
 {
 //	private static final String TESTS_DIR = "/WEB-INF/tests";
 	private static final String RESULTS_FILE_TEMPLATE = "/results.html";
@@ -62,7 +63,7 @@ public class TestRunnerHttpServlet extends HttpServlet
 		serializer.setIndent(2); // pretty-print output
 		
 		
-		System.setProperty("mNodeUrl", mNodeBaseUrl);
+		System.setProperty(PARAM_MN_URL, mNodeBaseUrl);
 		
 		// to test that system properties are being received
 		if (debug) 
@@ -73,7 +74,7 @@ public class TestRunnerHttpServlet extends HttpServlet
 		TestStartListener listener = new TestStartListener();
 		junit.addListener(listener);
 		
-		Result result = junit.run(org.dataone.integration.webTest.MockITSystemProperty.class);
+		Result result = junit.run(org.dataone.integration.webTest.MockITCase.class);
 		
 		ArrayList<AtomicTest> testList = listener.getTestList();
 
@@ -199,6 +200,12 @@ public class TestRunnerHttpServlet extends HttpServlet
 			currentTest.setStatus("Success");
 		}
 
+		public void testRunFinished(Result r) {
+			if (currentTest != null) {
+				testList.add(currentTest);
+			}
+		}
+		
 		public void testIgnored(Description d) {
 			if (currentTest != null) {
 				testList.add(currentTest);

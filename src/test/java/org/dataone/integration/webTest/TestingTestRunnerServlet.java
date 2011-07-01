@@ -23,7 +23,8 @@ public class TestingTestRunnerServlet {
 		
 		// set up mock objects
 		ServletContext sc = new MockServletContext("src/main/webapp", null);
-		MockHttpServletRequest request = new MockHttpServletRequest(sc, null, "/some/path?mNodeUrl=NodeFromMockClient");
+		MockHttpServletRequest request = new MockHttpServletRequest(sc, null,
+				"/some/path?mNodeUrl=NodeFromMockClient");
 		MockHttpServletResponse response = new MockHttpServletResponse();
 
 		request.setParameter("mNodeUrl",mNodeUrl);
