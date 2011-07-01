@@ -120,14 +120,14 @@ public class MNodeIT extends ContextAwareTestCaseDataone  {
     @Test
     public void testFailedCreate()
     {
-        for(int i=0; i<listOfNodes.size(); i++)
+        for(int i=0; i<memberNodeList.size(); i++)
         {
-            currentUrl = listOfNodes.get(i).getBaseURL();
+            currentUrl = memberNodeList.get(i).getBaseURL();
             MNode mn = D1Client.getMN(currentUrl);
             
             try
             {
-                printTestHeader("testFailedCreate - node " + listOfNodes.get(i).getBaseURL());
+                printTestHeader("testFailedCreate - node " + memberNodeList.get(i).getBaseURL());
                 checkTrue(true);
                 Session token = null;
                 String idString = idPrefix + ExampleUtilities.generateIdentifier();
@@ -163,12 +163,12 @@ public class MNodeIT extends ContextAwareTestCaseDataone  {
     @Test
     public void testGetLogRecords()
     {
-       for(int j=0; j<listOfNodes.size(); j++)
+       for(int j=0; j<memberNodeList.size(); j++)
        {
-           currentUrl = listOfNodes.get(j).getBaseURL();
+           currentUrl = memberNodeList.get(j).getBaseURL();
            MNode mn = D1Client.getMN(currentUrl);
            
-           printTestHeader("testGetLogRecords - node " + listOfNodes.get(j).getBaseURL());
+           printTestHeader("testGetLogRecords - node " + memberNodeList.get(j).getBaseURL());
            System.out.println("current time is: " + new Date());
            try
            {
@@ -231,12 +231,12 @@ public class MNodeIT extends ContextAwareTestCaseDataone  {
     @Test
     public void testsetAccessPolicy()
     {
-        for(int j=0; j<listOfNodes.size(); j++)
+        for(int j=0; j<memberNodeList.size(); j++)
         {
-            currentUrl = listOfNodes.get(j).getBaseURL();
+            currentUrl = memberNodeList.get(j).getBaseURL();
             MNode mn = D1Client.getMN(currentUrl);
             
-            printTestHeader("testListObjects - node " + listOfNodes.get(j).getBaseURL());
+            printTestHeader("testListObjects - node " + memberNodeList.get(j).getBaseURL());
             System.out.println("current time is: " + new Date());
             try
             {
@@ -300,12 +300,12 @@ public class MNodeIT extends ContextAwareTestCaseDataone  {
     @Test
     public void testListObjects()
     {
-        for(int j=0; j<listOfNodes.size(); j++)
+        for(int j=0; j<memberNodeList.size(); j++)
         {
-            currentUrl = listOfNodes.get(j).getBaseURL();
+            currentUrl = memberNodeList.get(j).getBaseURL();
             MNode mn = D1Client.getMN(currentUrl);
             
-            printTestHeader("testListObjects - node " + listOfNodes.get(j).getBaseURL());
+            printTestHeader("testListObjects - node " + memberNodeList.get(j).getBaseURL());
             System.out.println("current time is: " + new Date());
             try
             {
@@ -417,12 +417,12 @@ public class MNodeIT extends ContextAwareTestCaseDataone  {
     @Test
     public void testGetSystemMetadata()
     {
-        for(int i=0; i<listOfNodes.size(); i++)
+        for(int i=0; i<memberNodeList.size(); i++)
         {
-            currentUrl = listOfNodes.get(i).getBaseURL();
+            currentUrl = memberNodeList.get(i).getBaseURL();
             MNode mn = D1Client.getMN(currentUrl);
 
-            printTestHeader("testGetSystemMetadata - node " + listOfNodes.get(i).getBaseURL());
+            printTestHeader("testGetSystemMetadata - node " + memberNodeList.get(i).getBaseURL());
             try
             {
                 //create a document
@@ -458,12 +458,12 @@ public class MNodeIT extends ContextAwareTestCaseDataone  {
     @Test
     public void testUpdate()
     {
-        for(int i=0; i<listOfNodes.size(); i++)
+        for(int i=0; i<memberNodeList.size(); i++)
         {
-            currentUrl = listOfNodes.get(i).getBaseURL();
+            currentUrl = memberNodeList.get(i).getBaseURL();
             MNode mn = D1Client.getMN(currentUrl);
 
-            printTestHeader("testUpdate - node " + listOfNodes.get(i).getBaseURL());
+            printTestHeader("testUpdate - node " + memberNodeList.get(i).getBaseURL());
             try 
             {
                 //create a document
@@ -524,12 +524,12 @@ public class MNodeIT extends ContextAwareTestCaseDataone  {
      */
     @Test
     public void testFailedCreateData() {
-        for(int i=0; i<listOfNodes.size(); i++)
+        for(int i=0; i<memberNodeList.size(); i++)
         {
-            currentUrl = listOfNodes.get(i).getBaseURL();
+            currentUrl = memberNodeList.get(i).getBaseURL();
             MNode mn = D1Client.getMN(currentUrl);
 
-            printTestHeader("testFailedCreateData - node " + listOfNodes.get(i).getBaseURL());
+            printTestHeader("testFailedCreateData - node " + memberNodeList.get(i).getBaseURL());
             /*try 
         {
             System.out.println();
@@ -603,12 +603,12 @@ public class MNodeIT extends ContextAwareTestCaseDataone  {
     @Test
     public void testGet() 
     {
-        for(int i=0; i<listOfNodes.size(); i++)
+        for(int i=0; i<memberNodeList.size(); i++)
         {
-            currentUrl = listOfNodes.get(i).getBaseURL();
+            currentUrl = memberNodeList.get(i).getBaseURL();
             MNode mn = D1Client.getMN(currentUrl);
 
-            printTestHeader("testGet - node " + listOfNodes.get(i).getBaseURL());
+            printTestHeader("testGet - node " + memberNodeList.get(i).getBaseURL());
             try
             {
                 //create a document
@@ -662,9 +662,9 @@ public class MNodeIT extends ContextAwareTestCaseDataone  {
     {
         try
         {
-            for(int j=0; j<listOfNodes.size(); j++)
+            for(int j=0; j<memberNodeList.size(); j++)
             {
-                currentUrl = listOfNodes.get(j).getBaseURL();
+                currentUrl = memberNodeList.get(j).getBaseURL();
                 MNode mn = D1Client.getMN(currentUrl);
 
                 Session token = null;
@@ -727,12 +727,12 @@ public class MNodeIT extends ContextAwareTestCaseDataone  {
     @Test
     public void testCreateData() 
     {
-        for(int i=0; i<listOfNodes.size(); i++)
+        for(int i=0; i<memberNodeList.size(); i++)
         {
-            currentUrl = listOfNodes.get(i).getBaseURL();
+            currentUrl = memberNodeList.get(i).getBaseURL();
             MNode mn = D1Client.getMN(currentUrl);
 
-            printTestHeader("testCreateData - node " + listOfNodes.get(i).getBaseURL());
+            printTestHeader("testCreateData - node " + memberNodeList.get(i).getBaseURL());
             try
             {
                 checkTrue(true);
@@ -794,9 +794,9 @@ public class MNodeIT extends ContextAwareTestCaseDataone  {
     		s.close();
     	}
 
-    	for(int i=0; i<listOfNodes.size(); i++)
+    	for(int i=0; i<memberNodeList.size(); i++)
     	{
-    		currentUrl = listOfNodes.get(i).getBaseURL();
+    		currentUrl = memberNodeList.get(i).getBaseURL();
 
     		Vector<String> nodeSummary = new Vector<String>();
     		nodeSummary.add("Node Test Summary for node: " + currentUrl );
@@ -884,12 +884,12 @@ public class MNodeIT extends ContextAwareTestCaseDataone  {
         //create
         //getChecksum
         //check the two checksums
-        for(int i=0; i<listOfNodes.size(); i++)
+        for(int i=0; i<memberNodeList.size(); i++)
         {
-            currentUrl = listOfNodes.get(i).getBaseURL();
+            currentUrl = memberNodeList.get(i).getBaseURL();
             MNode mn = D1Client.getMN(currentUrl);
             
-           	printTestHeader("testChecksum.  node = " + listOfNodes.get(i).getBaseURL());
+           	printTestHeader("testChecksum.  node = " + memberNodeList.get(i).getBaseURL());
         	checkTrue(true);
             
             try
@@ -1008,14 +1008,14 @@ public class MNodeIT extends ContextAwareTestCaseDataone  {
     @Test
     public void testSemiColonIdentifiers() 
     {
-        for(int i=0; i<listOfNodes.size(); i++)
+        for(int i=0; i<memberNodeList.size(); i++)
         {
-            currentUrl = listOfNodes.get(i).getBaseURL();
+            currentUrl = memberNodeList.get(i).getBaseURL();
             MNode mn = D1Client.getMN(currentUrl);
 
             try
             {
-                printTestHeader("testSemiColonIdentifiers - node " + listOfNodes.get(i).getBaseURL());
+                printTestHeader("testSemiColonIdentifiers - node " + memberNodeList.get(i).getBaseURL());
                 checkTrue(true);
                 Session token = null;
                 String idString = "some;id;with;semi;colons;" + new Date().getTime();
@@ -1052,14 +1052,14 @@ public class MNodeIT extends ContextAwareTestCaseDataone  {
     @Test
     public void testCreateScienceMetadata() 
     {
-        for(int i=0; i<listOfNodes.size(); i++)
+        for(int i=0; i<memberNodeList.size(); i++)
         {
-            currentUrl = listOfNodes.get(i).getBaseURL();
+            currentUrl = memberNodeList.get(i).getBaseURL();
             MNode mn = D1Client.getMN(currentUrl);
 
             try
             {
-                printTestHeader("testCreateScienceMetadata - node " + listOfNodes.get(i).getBaseURL());
+                printTestHeader("testCreateScienceMetadata - node " + memberNodeList.get(i).getBaseURL());
                 checkTrue(true);
                 Session token = null;
                 String idString = idPrefix + ExampleUtilities.generateIdentifier();
@@ -1104,11 +1104,11 @@ public class MNodeIT extends ContextAwareTestCaseDataone  {
     @Test
     public void testDelete() 
     {
-        for(int i=0; i<listOfNodes.size(); i++)
+        for(int i=0; i<memberNodeList.size(); i++)
         {
-            currentUrl = listOfNodes.get(i).getBaseURL();
+            currentUrl = memberNodeList.get(i).getBaseURL();
             MNode mn = D1Client.getMN(currentUrl);
-            printTestHeader("testDelete - node " + listOfNodes.get(i).getBaseURL());
+            printTestHeader("testDelete - node " + memberNodeList.get(i).getBaseURL());
             
             try
             {
@@ -1152,12 +1152,12 @@ public class MNodeIT extends ContextAwareTestCaseDataone  {
     @Test
     public void testDescribe() 
     {
-        for(int i=0; i<listOfNodes.size(); i++)
+        for(int i=0; i<memberNodeList.size(); i++)
         {
-            currentUrl = listOfNodes.get(i).getBaseURL();
+            currentUrl = memberNodeList.get(i).getBaseURL();
             MNode mn = D1Client.getMN(currentUrl);
             
-            printTestHeader("testDescribe - node " + listOfNodes.get(i).getBaseURL());
+            printTestHeader("testDescribe - node " + memberNodeList.get(i).getBaseURL());
             try
             {
                 checkTrue(true);
@@ -1200,13 +1200,13 @@ public class MNodeIT extends ContextAwareTestCaseDataone  {
     @Test
     public void testGetNotFound() 
     {
-        for(int i=0; i<listOfNodes.size(); i++)
+        for(int i=0; i<memberNodeList.size(); i++)
         {
-            currentUrl = listOfNodes.get(i).getBaseURL();
+            currentUrl = memberNodeList.get(i).getBaseURL();
             MNode mn = D1Client.getMN(currentUrl);
 
             try {
-                printTestHeader("testGetNotFound - node " + listOfNodes.get(i).getBaseURL());
+                printTestHeader("testGetNotFound - node " + memberNodeList.get(i).getBaseURL());
                 Session token = null;
                 Identifier guid = new Identifier();
                 guid.setValue(bogusId);
@@ -1227,13 +1227,13 @@ public class MNodeIT extends ContextAwareTestCaseDataone  {
     
     @Test
     public void testNodeResponse() {
-    	 for(int i=0; i<listOfNodes.size(); i++)
+    	 for(int i=0; i<memberNodeList.size(); i++)
          {
-             currentUrl = listOfNodes.get(i).getBaseURL();
+             currentUrl = memberNodeList.get(i).getBaseURL();
              MNode  mn = D1Client.getMN(currentUrl);
              
              try {
-                 printTestHeader("testNodeResponse " + listOfNodes.get(i).getBaseURL());
+                 printTestHeader("testNodeResponse " + memberNodeList.get(i).getBaseURL());
              
                  D1Url url = new D1Url(mn.getNodeBaseServiceUrl());
                  

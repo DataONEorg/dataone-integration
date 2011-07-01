@@ -6,6 +6,7 @@ import static org.junit.Assert.assertThat;
 
 import java.io.InputStream;
 import java.net.URL;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Vector;
 import java.util.concurrent.Callable;
@@ -15,18 +16,11 @@ import org.apache.commons.logging.LogFactory;
 import org.dataone.client.CNode;
 import org.dataone.client.D1Client;
 import org.dataone.configuration.Settings;
-import org.dataone.service.exceptions.InsufficientResources;
-import org.dataone.service.exceptions.InvalidRequest;
-import org.dataone.service.exceptions.NotFound;
-import org.dataone.service.exceptions.NotImplemented;
-import org.dataone.service.exceptions.ServiceFailure;
-import org.dataone.service.impl.ObjectFormatServiceImpl;
 import org.dataone.service.types.AccessPolicy;
 import org.dataone.service.types.AccessRule;
 import org.dataone.service.types.Node;
 import org.dataone.service.types.NodeList;
-import org.dataone.service.types.ObjectFormat;
-import org.dataone.service.types.ObjectFormatIdentifier;
+import org.dataone.service.types.NodeType;
 import org.dataone.service.types.Permission;
 import org.dataone.service.types.Subject;
 import org.dataone.service.types.util.ServiceTypeUtil;
@@ -55,7 +49,9 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 	protected static String mnBaseUrl;
 	protected static String nodelistUri;
 
-	public List<Node> listOfNodes = null;
+	public List<Node> memberNodeList = null;
+	public List<Node> coordinatingNodeList = new Vector<Node>();
+	public List<Node> monitorNodeList = new Vector<Node>();
 	
 	protected abstract String getTestDescription();
 	
@@ -82,27 +78,63 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 
 			if (mnBaseUrl != null) {
 				// the context is standalone member node
+				System.out.println("Context is solo MemberNode: " + mnBaseUrl);
 				Node n = new Node();
 				n.setBaseURL(mnBaseUrl);
-				listOfNodes = new Vector<Node>();
-				listOfNodes.add(n);
+				memberNodeList = new Vector<Node>();
+				memberNodeList.add(n);
 			} else {
 				// we will be testing multiple member nodes
 				if (nodelistUri != null) {
 					// the list of member nodes is in this NodeList.xml file
+					System.out.println("Context is ad-hoc NodeList at: " + nodelistUri);
 					URL url = new URL(nodelistUri);
 					InputStream is = url.openStream();
 					NodeList nl = (NodeList) ServiceTypeUtil.deserializeServiceType(NodeList.class, is);
-					listOfNodes = nl.getNodeList();
+					memberNodeList = nl.getNodeList();
 				} else {
 					// use the context specified by D1Client
 					CNode cn = D1Client.getCN();
-					listOfNodes = cn.listNodes().getNodeList();
+					System.out.println("Context is from D1Client: " + cn.getNodeBaseServiceUrl());
+					memberNodeList = cn.listNodes().getNodeList();
 				} 
+				// divide into separate lists
+				for(int i=memberNodeList.size()-1; i<= 0; i--) {
+					Node currentNode = memberNodeList.get(i);
+					if (currentNode.getType() == NodeType.CN) {
+						coordinatingNodeList.add(currentNode);
+						memberNodeList.remove(i);
+					} else if (currentNode.getType() == NodeType.MONITOR) {
+						monitorNodeList.add(currentNode);
+						memberNodeList.remove(i);	
+					} else if (currentNode.getType() != NodeType.MN) {
+						if (currentNode.getType() == null) {
+							log.warn("Node from nodelist has null NodeType. Removing from test list. " +
+									currentNode.getName() + ": " + currentNode.getBaseURL());
+							memberNodeList.remove(i);
+						} else {
+							log.warn("Node from nodelist is not of recognizable type: [" +
+									currentNode.getType() + "]. Removing from test list: " + 
+									currentNode.getName() + ": " + currentNode.getBaseURL());
+							memberNodeList.remove(i);
+						}
+					}
+				}			
 			} // nodelist set up
 		}  // settings already set up
 	}
 	
+	protected Iterator<Node> getMemberNodeIterator() {
+		return memberNodeList.iterator();
+	}
+	
+	protected Iterator<Node> getCoordinatingNodeIterator() {
+		return coordinatingNodeList.iterator();
+	}
+	
+	protected Iterator<Node> getMonitorNodeIterator() {
+		return monitorNodeList.iterator();
+	}
 	
    
 	

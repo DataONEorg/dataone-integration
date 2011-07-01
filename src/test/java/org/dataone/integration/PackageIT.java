@@ -68,11 +68,11 @@ public class PackageIT extends ContextAwareTestCaseDataone {
      */
     @Test
     public void testD1Object() {
-        for (int i = 0; i < listOfNodes.size(); i++) {
-            currentUrl = listOfNodes.get(i).getBaseURL();
+        for (int i = 0; i < memberNodeList.size(); i++) {
+            currentUrl = memberNodeList.get(i).getBaseURL();
             MNode mn = D1Client.getMN(currentUrl);
 
-            printHeader("testD1Object - node " + listOfNodes.get(i).getBaseURL());
+            printHeader("testD1Object - node " + memberNodeList.get(i).getBaseURL());
             checkTrue(true);
             Session token;
 //            try {
@@ -94,11 +94,11 @@ public class PackageIT extends ContextAwareTestCaseDataone {
     
     @Test
     public void testDataPackage() {
-        for (int i = 0; i < listOfNodes.size(); i++) {
-            currentUrl = listOfNodes.get(i).getBaseURL();
+        for (int i = 0; i < memberNodeList.size(); i++) {
+            currentUrl = memberNodeList.get(i).getBaseURL();
             MNode mn = D1Client.getMN(currentUrl);
 
-            printHeader("testDataPackage - node " + listOfNodes.get(i).getBaseURL());
+            printHeader("testDataPackage - node " + memberNodeList.get(i).getBaseURL());
             checkTrue(true);
             Session token;
 //            try {
@@ -148,11 +148,11 @@ public class PackageIT extends ContextAwareTestCaseDataone {
      */
 //    @Test
     public void testD1ObjectManualCreate() {
-        for (int i = 0; i < listOfNodes.size(); i++) {
-            currentUrl = listOfNodes.get(i).getBaseURL();
+        for (int i = 0; i < memberNodeList.size(); i++) {
+            currentUrl = memberNodeList.get(i).getBaseURL();
             MNode mn = D1Client.getMN(currentUrl);
 
-            printHeader("testD1ObjectManualCreate - node " + listOfNodes.get(i).getBaseURL());
+            printHeader("testD1ObjectManualCreate - node " + memberNodeList.get(i).getBaseURL());
             checkTrue(true);
             Session token;
             try {
