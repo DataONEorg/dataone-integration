@@ -37,7 +37,7 @@ import org.apache.commons.io.IOUtils;
 import org.dataone.client.D1Client;
 import org.dataone.client.MNode;
 import org.dataone.service.exceptions.BaseException;
-import org.dataone.service.types.AuthToken;
+import org.dataone.service.types.Session;
 import org.dataone.service.types.Checksum;
 import org.dataone.service.types.ChecksumAlgorithm;
 import org.dataone.service.types.Identifier;
@@ -55,7 +55,7 @@ import org.junit.rules.ErrorCollector;
  * Test the DataONE Java client methods.
  * @author Matthew Jones, Rob Nahf
  */
-public class ChecksumAnalysis  {
+public class ChecksumAnalysis extends ContextAwareTestCaseDataone {
     private static final String devPrincipal = "uid%3Dkepler,o%3Dunaffiliated,dc%3Decoinformatics,dc%3Dorg";
     private static final String pw = "kepler";
     private static final String prefix = "simpleApiTests:testid:";
@@ -196,7 +196,7 @@ public class ChecksumAnalysis  {
     }
     
  //   @Test
-    public void testGetChecksumAuthTokenIdentifierTypeString() 
+    public void testGetChecksumSessionIdentifierTypeString() 
     {
         //create a doc
         //calculate checksum
@@ -210,7 +210,7 @@ public class ChecksumAnalysis  {
 
             try
             {
-                printHeader("testGetChecksumAuthTokenIdentifierTypeString - node " + nodeList.get(i).getBaseURL());
+                printHeader("testGetChecksumSessionIdentifierTypeString - node " + nodeList.get(i).getBaseURL());
                 checkTrue("",true);
                 
                 InputStream objectStream = this.getClass().getResourceAsStream(
@@ -224,12 +224,13 @@ public class ChecksumAnalysis  {
                 objectStream.close();
                 
                 String principal = "uid%3Dkepler,o%3Dunaffiliated,dc%3Decoinformatics,dc%3Dorg";
-                AuthToken token = mn.login(principal, "kepler");
+                Session token = null; // mn.login(principal, "kepler");
                 String idString = prefix + ExampleUtilities.generateIdentifier();
                 Identifier guid = new Identifier();
                 guid.setValue(idString);
                 objectStream = IOUtils.toInputStream(doc);
-                SystemMetadata sysmeta = ExampleUtilities.generateSystemMetadata(guid, ObjectFormat.EML_2_1_0, objectStream);
+                SystemMetadata sysmeta = ExampleUtilities.generateSystemMetadata(guid, 
+                		"eml://ecoinformatics.org/eml-2.1.0", objectStream);
                 objectStream = IOUtils.toInputStream(doc);
                 sysmeta.setChecksum(checksum1);
                 Identifier rGuid = null;
@@ -251,13 +252,13 @@ public class ChecksumAnalysis  {
                 catch (Exception e) 
                 {
                     errorCollector.addError(new Throwable(createAssertMessage() + 
-                            " error in testGetChecksumAuthTokenIdentifierTypeString: " + e.getMessage()));
+                            " error in testGetChecksumSessionIdentifierTypeString: " + e.getMessage()));
                 }
             }
             catch(Exception e)
             {
                 errorCollector.addError(new Throwable(createAssertMessage() + 
-                        " unexpected error in testGetChecksumAuthTokenIdentifierTypeString: " + e.getMessage()));
+                        " unexpected error in testGetChecksumSessionIdentifierTypeString: " + e.getMessage()));
             }
         }
     }
@@ -314,4 +315,10 @@ public class ChecksumAnalysis  {
             }
         });
     }
+
+	@Override
+	protected String getTestDescription() {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }

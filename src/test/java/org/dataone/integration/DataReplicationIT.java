@@ -32,6 +32,7 @@ import org.dataone.service.exceptions.ServiceFailure;
 import org.dataone.service.exceptions.UnsupportedType;
 import org.dataone.service.types.AuthToken;
 import org.dataone.service.types.Identifier;
+import org.dataone.service.types.Session;
 import org.dataone.service.types.SystemMetadata;
 import org.dataone.service.types.util.ServiceTypeUtil;
 import org.jibx.runtime.BindingDirectory;
@@ -92,11 +93,6 @@ public class DataReplicationIT {
 	@Rule 
 	public ErrorCollector errorCollector = new ErrorCollector();
 
-    @Before
-    public void setUp() throws Exception 
-    {
-        D1Client d1 = new D1Client(TEST_CN_URL);
-    }
 
     @Test
     public void testPlaceholder() {
@@ -129,7 +125,7 @@ public class DataReplicationIT {
 		CNode cn = D1Client.getCN();
 		MNode mn1 = D1Client.getMN(mn1_Url);	
 		MNode mn2 = D1Client.getMN(mn2_Url);
-		AuthToken token = null;
+		Session token = null;
 		
 		// create new object on MN_1
 		System.out.println("creating doc");
@@ -189,7 +185,7 @@ public class DataReplicationIT {
 		CNode cn = D1Client.getCN();
 		MNode mn1 = D1Client.getMN(mn1_Url);	
 		MNode mn2 = D1Client.getMN(mn2_Url);
-		AuthToken token = null;
+		Session token = null;
 		
 		// create new object on MN_1
 		Identifier pid = ExampleUtilities.doCreateNewObject(mn1, prefix);
@@ -248,7 +244,7 @@ public class DataReplicationIT {
 		CNode cn = D1Client.getCN();
 		MNode mn1 = D1Client.getMN(mn1_Url);	
 		MNode mn2 = D1Client.getMN(mn2_Url);
-		AuthToken token = null;
+		Session token = null;
 		
 		// create new object on MN_1
 		Identifier pid = ExampleUtilities.doCreateNewObject(mn1, prefix);
@@ -282,7 +278,7 @@ public class DataReplicationIT {
 	/**
 	 * adapted from D1Node.sendRequest()
 	 */
-	private void doReplicateCall(String mnBaseURL, AuthToken token, 
+	private void doReplicateCall(String mnBaseURL, Session token, 
 			SystemMetadata sysmeta, String sourceNode) throws ServiceFailure, IOException
 	{
 	    System.out.println("doing replicate call");

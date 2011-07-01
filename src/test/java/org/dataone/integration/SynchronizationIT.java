@@ -23,6 +23,8 @@ import org.dataone.service.exceptions.UnsupportedType;
 import org.dataone.service.types.AuthToken;
 import org.dataone.service.types.Identifier;
 import org.dataone.service.types.ObjectList;
+import org.dataone.service.types.QueryType;
+import org.dataone.service.types.Session;
 import org.dataone.service.types.SystemMetadata;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -74,12 +76,7 @@ public class SynchronizationIT {
 	
 	@Rule 
 	public ErrorCollector errorCollector = new ErrorCollector();
-
-    @Before
-    public void setUp() throws Exception 
-    {
-        D1Client d1 = new D1Client(TEST_CN_URL);
-    }
+	
     
     /**
      * test the unit test harness
@@ -106,7 +103,7 @@ public class SynchronizationIT {
 		// create the players
 		CNode cn = D1Client.getCN();
 		MNode mn1 = D1Client.getMN(mn1_Url);	
-		AuthToken token = null;
+		Session token = null;
 		
 		// create new object on MN_1
 		Identifier pid = ExampleUtilities.doCreateNewObject(mn1, prefix);
@@ -154,7 +151,7 @@ public class SynchronizationIT {
 				} 
 			}
 			if (searchTodo) {
-				ObjectList ol = cn.search(token,
+				ObjectList ol = cn.search(token,QueryType.SOLR,
 						"query="+EncodingUtilities.encodeUrlQuerySegment(pid.getValue()));
 				if (ol.getCount() > 0) {
 					searchTodo = false;
@@ -184,7 +181,7 @@ public class SynchronizationIT {
 		// create the players
 		CNode cn = D1Client.getCN();
 		MNode mn1 = D1Client.getMN(mn1_Url);	
-		AuthToken token = null;
+		Session token = null;
 		
 		// create new object on MN_1
 		Identifier pid = ExampleUtilities.doCreateNewObject(mn1, prefix);
@@ -258,7 +255,7 @@ public class SynchronizationIT {
 		// create the players
 		CNode cn = D1Client.getCN();
 		MNode mn1 = D1Client.getMN(mn1_Url);	
-		AuthToken token = null;
+		Session token = null;
 		
 		// create new object on MN_1
 		Identifier pid = ExampleUtilities.doCreateNewObject(mn1, prefix);
@@ -269,7 +266,8 @@ public class SynchronizationIT {
 		int count = 0;
 		while (count == 0 && (elapsedTimeSec <= synchronizeWaitLimitSec ))
 		{			
-			ObjectList ol = cn.search(token, "query=" + EncodingUtilities.encodeUrlQuerySegment(pid.getValue()));
+			ObjectList ol = cn.search(token, QueryType.SOLR,
+					"query=" + EncodingUtilities.encodeUrlQuerySegment(pid.getValue()));
 			count = ol.getCount();
 			Thread.sleep(pollingFrequencySec * 1000); // millisec's
 			elapsedTimeSec += pollingFrequencySec;

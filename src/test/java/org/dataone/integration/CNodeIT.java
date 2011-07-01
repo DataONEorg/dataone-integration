@@ -39,31 +39,29 @@ import org.dataone.client.MNode;
 import org.dataone.service.EncodingUtilities;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.NotFound;
-import org.dataone.service.types.AuthToken;
 import org.dataone.service.types.Identifier;
-import org.dataone.service.types.ObjectFormat;
 import org.dataone.service.types.ObjectList;
 import org.dataone.service.types.ObjectLocation;
 import org.dataone.service.types.ObjectLocationList;
+import org.dataone.service.types.QueryType;
+import org.dataone.service.types.Session;
 import org.dataone.service.types.SystemMetadata;
 import org.jibx.runtime.BindingDirectory;
 import org.jibx.runtime.IBindingFactory;
 import org.jibx.runtime.IMarshallingContext;
 import org.jibx.runtime.JiBXException;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ErrorCollector;
 
 /**
  * Test the DataONE Java client methods that focus on CN services.
  * @author Matthew Jones
  */
-public class CNodeIT  {
+public class CNodeIT extends ContextAwareTestCaseDataone {
 
 //	private static String cnUrl = D1Client.getCN().getNodeBaseServiceUrl();
-    private static String cnUrl = "http://cn-dev.dataone.org/cn";
-	private static final String mnUrl = "http://cn-dev.dataone.org/knb/d1/";
+//    private static String cnBaseUrl = "http://cn-dev.dataone.org/cn";
+//	private static final String mnBaseUrl = "http://cn-dev.dataone.org/knb/d1/";
 	private static final String badIdentifier = "ThisIdentifierShouldNotExist";
 //  TODO: test against testUnicodeStrings file instead when metacat supports unicode.
 //	private static String identifierEncodingTestFile = "/d1_testdocs/encodingTestSet/testUnicodeStrings.utf8.txt";
@@ -72,15 +70,9 @@ public class CNodeIT  {
 	private static Vector<String> testPIDEncodingStrings = new Vector<String>();
 	private static Vector<String> encodedPIDStrings = new Vector<String>();
 	
-	
-	@Rule 
-	public ErrorCollector errorCollector = new ErrorCollector();
-
     
 	@Before
 	public  void generateStandardTests() {
-		
-	    D1Client d1 = new D1Client(cnUrl);
 
 		if (testPIDEncodingStrings.size() == 0) {
 			System.out.println(" * * * * * * * Unicode Test Strings * * * * * * ");
@@ -118,28 +110,28 @@ public class CNodeIT  {
 	@Test
 	public void testlistObject() throws JiBXException {
 
-		printHeader("testlistObject vs. node " + cnUrl);
+		printHeader("testlistObject vs. node " + cnBaseUrl);
 		System.out.println("Using CN: " + D1Client.getCN().getNodeBaseServiceUrl());
 		
-		MNode mn = D1Client.getMN(mnUrl);
+		MNode mn = D1Client.getMN(mnBaseUrl);
 //		String principal = "uid%3Dkepler,o%3Dunaffiliated,dc%3Decoinformatics,dc%3Dorg";
 		
 		try {
 			// creating an object to ensure that there is at least one object to list
-//			AuthToken token = mn.login(principal, "kepler");
+//			Session token = mn.login(principal, "kepler");
 //			String idString = "test:cn:listobject:" + ExampleUtilities.generateIdentifier();
 //			Identifier guid = new Identifier();
 //			guid.setValue(idString);
 //
 //			//insert a data file
 //			InputStream objectStream = this.getClass().getResourceAsStream("/d1_testdocs/knb-lter-cdr.329066.1.data");
-//			SystemMetadata sysmeta = ExampleUtilities.generateSystemMetadata(guid, ObjectFormat.TEXT_CSV);
+//			SystemMetadata sysmeta = ExampleUtilities.generateSystemMetadata(guid, "text/csv");
 //			
 //			Identifier rGuid = null;
 //			
 //			rGuid = mn.create(token, guid, objectStream, sysmeta);
 //			System.out.println("    == returned Guid (rGuid): " + rGuid.getValue());
-//			mn.setAccess(token, rGuid, "public", "read", "allow", "allowFirst");
+//			mn.setAccessPolicy(token, rGuid, buildPublicReadAccessPolicy());
 //			checkEquals(guid.getValue(), rGuid.getValue());
 
 			// test the totals that come back from each call
@@ -152,7 +144,7 @@ public class CNodeIT  {
 			
 			CNode cn = D1Client.getCN();
 		
-			ObjectList cnOL = cn.listObjects();
+			ObjectList cnOL = cn.search(null, QueryType.SOLR, null);
 			String cnOLString = serializeObjectList(cnOL);
 			String cnTotalPattern = ExampleUtilities.extractObjectListTotalAttribute(cnOLString);
 
@@ -168,33 +160,34 @@ public class CNodeIT  {
 
 //	@Test
 	public void testSearch() {
-		printHeader("testSearch vs. node " + cnUrl);
+		printHeader("testSearch vs. node " + cnBaseUrl);
         System.out.println("Using CN: " + D1Client.getCN().getNodeBaseServiceUrl());
 
-		MNode mn = D1Client.getMN(mnUrl);
+		MNode mn = D1Client.getMN(mnBaseUrl);
 		String principal = "uid%3Dkepler,o%3Dunaffiliated,dc%3Decoinformatics,dc%3Dorg";
 		
 		try {
-			AuthToken token = mn.login(principal, "kepler");
+			Session token = null; //mn.login(principal, "kepler");
 			String idString = "testCNget" + ExampleUtilities.generateIdentifier();
 			Identifier guid = new Identifier();
 			guid.setValue(idString);
 
 			//insert a data file
 			InputStream objectStream = this.getClass().getResourceAsStream("/d1_testdocs/knb-lter-cdr.329066.1.data");
-			SystemMetadata sysmeta = ExampleUtilities.generateSystemMetadata(guid, ObjectFormat.TEXT_CSV, objectStream);
+			SystemMetadata sysmeta = ExampleUtilities.generateSystemMetadata(guid, "text/csv", objectStream);
 			objectStream = this.getClass().getResourceAsStream("/d1_testdocs/knb-lter-cdr.329066.1.data");
 			
 			Identifier rGuid = null;
 			
 			rGuid = mn.create(token, guid, objectStream, sysmeta);
 			System.out.println("    == returned Guid (rGuid): " + rGuid.getValue());
-			mn.setAccess(token, rGuid, "public", "read", "allow", "allowFirst");
+			mn.setAccessPolicy(token, rGuid, buildPublicReadAccessPolicy());
 			checkEquals(guid.getValue(), rGuid.getValue());
 
 			CNode cn = D1Client.getCN();
 		
-			ObjectList ol = cn.search(null, "query="+EncodingUtilities.encodeUrlQuerySegment(rGuid.getValue()));
+			ObjectList ol = cn.search(null, QueryType.SOLR,
+					"query="+EncodingUtilities.encodeUrlQuerySegment(rGuid.getValue()));
 			
 			assertTrue("search found new object",ol.getCount() == 1);
 
@@ -212,29 +205,29 @@ public class CNodeIT  {
 	@Test
 	public void testCNGetSysMeta() throws JiBXException {
 
-		printHeader("testGetSysMeta vs. node " + cnUrl);
+		printHeader("testGetSysMeta vs. node " + cnBaseUrl);
         System.out.println("Using CN: " + D1Client.getCN().getNodeBaseServiceUrl());
 
 		// create a new object in order to retrieve its sysmeta
-		MNode mn = D1Client.getMN(mnUrl);
+		MNode mn = D1Client.getMN(mnBaseUrl);
 		String principal = "uid%3Dkepler,o%3Dunaffiliated,dc%3Decoinformatics,dc%3Dorg";
 		
 		try {
-			AuthToken token = mn.login(principal, "kepler");
+			Session token = null; //mn.login(principal, "kepler");
 			String idString = "test:cn:meta:" + ExampleUtilities.generateIdentifier();
 			Identifier guid = new Identifier();
 			guid.setValue(idString);
 
 			//insert a data file
 			InputStream objectStream = this.getClass().getResourceAsStream("/d1_testdocs/knb-lter-cdr.329066.1.data");
-			SystemMetadata sysmeta = ExampleUtilities.generateSystemMetadata(guid, ObjectFormat.TEXT_CSV, objectStream);
+			SystemMetadata sysmeta = ExampleUtilities.generateSystemMetadata(guid, "text/csv", objectStream);
 			objectStream = this.getClass().getResourceAsStream("/d1_testdocs/knb-lter-cdr.329066.1.data");
 			
 			Identifier rGuid = null;
 			
 			rGuid = mn.create(token, guid, objectStream, sysmeta);
 			System.out.println("    == returned Guid (rGuid): " + rGuid.getValue());
-			mn.setAccess(token, rGuid, "public", "read", "allow", "allowFirst");
+			mn.setAccessPolicy(token, rGuid, buildPublicReadAccessPolicy());
 			checkEquals(guid.getValue(), rGuid.getValue());
 
 			SystemMetadata mnSysMeta = mn.getSystemMetadata(token, rGuid);
@@ -259,30 +252,30 @@ public class CNodeIT  {
 	@Test
 	public void testCNGet() throws JiBXException {
 
-		printHeader("testGet vs. node " + cnUrl);
+		printHeader("testGet vs. node " + cnBaseUrl);
 
         System.out.println("Using CN: " + D1Client.getCN().getNodeBaseServiceUrl());
 
 		// create a new object in order to retrieve its sysmeta
-		MNode mn = D1Client.getMN(mnUrl);
+		MNode mn = D1Client.getMN(mnBaseUrl);
 		String principal = "uid%3Dkepler,o%3Dunaffiliated,dc%3Decoinformatics,dc%3Dorg";
 		
 		try {
-			AuthToken token = mn.login(principal, "kepler");
+			Session token = null; //mn.login(principal, "kepler");
 			String idString = "test:cn:get:" + ExampleUtilities.generateIdentifier();
 			Identifier guid = new Identifier();
 			guid.setValue(idString);
 
 			//insert a data file
 			InputStream objectStream = this.getClass().getResourceAsStream("/d1_testdocs/knb-lter-cdr.329066.1.data");
-			SystemMetadata sysmeta = ExampleUtilities.generateSystemMetadata(guid, ObjectFormat.TEXT_CSV, objectStream);
+			SystemMetadata sysmeta = ExampleUtilities.generateSystemMetadata(guid, "text/csv", objectStream);
 			objectStream = this.getClass().getResourceAsStream("/d1_testdocs/knb-lter-cdr.329066.1.data");
 			
 			Identifier rGuid = null;
 			
 			rGuid = mn.create(token, guid, objectStream, sysmeta);
 			System.out.println("    == returned Guid (rGuid): " + rGuid.getValue());
-			mn.setAccess(token, rGuid, "public", "read", "allow", "allowFirst");
+			mn.setAccessPolicy(token, rGuid, buildPublicReadAccessPolicy());
 			checkEquals(guid.getValue(), rGuid.getValue());
 
 			String mnIn = IOUtils.toString(mn.get(token, rGuid));
@@ -326,9 +319,9 @@ public class CNodeIT  {
 
 		CNode cn = D1Client.getCN();
 
-		printHeader("testInvalidResolve vs. node " + cnUrl);
-		//AuthToken token = new AuthToken();
-		AuthToken token = null;
+		printHeader("testInvalidResolve vs. node " + cnBaseUrl);
+		//Session token = new Session();
+		Session token = null;
 		Identifier guid = new Identifier();
 		guid.setValue(badIdentifier);
 		try {
@@ -370,11 +363,11 @@ public class CNodeIT  {
 		
 		CNode cn = D1Client.getCN();
 
-		MNode mn = D1Client.getMN(mnUrl);
-		String principal = "uid%3Dkepler,o%3Dunaffiliated,dc%3Decoinformatics,dc%3Dorg";
+		MNode mn = D1Client.getMN(mnBaseUrl);
+//		String principal = "uid%3Dkepler,o%3Dunaffiliated,dc%3Decoinformatics,dc%3Dorg";
 
-		try {
-			AuthToken token = mn.login(principal, "kepler");
+//		try {
+			Session token = null; //mn.login(principal, "kepler");
 			// run tests for each identifier
 			Identifier guid = new Identifier();
 			String status;
@@ -392,14 +385,14 @@ public class CNodeIT  {
 
 					//insert a data file
 					InputStream objectStream = this.getClass().getResourceAsStream("/d1_testdocs/knb-lter-cdr.329066.1.data");
-					SystemMetadata sysmeta = ExampleUtilities.generateSystemMetadata(guid, ObjectFormat.TEXT_CSV, objectStream);
+					SystemMetadata sysmeta = ExampleUtilities.generateSystemMetadata(guid, "text/csv", objectStream);
 					objectStream = this.getClass().getResourceAsStream("/d1_testdocs/knb-lter-cdr.329066.1.data");
 					
 					Identifier rGuid = null;
 
 					rGuid = mn.create(token, guid, objectStream, sysmeta);
 					System.out.println("    == returned Guid (rGuid): " + rGuid.getValue());
-					mn.setAccess(token, rGuid, "public", "read", "allow", "allowFirst");
+					mn.setAccessPolicy(token, rGuid, buildPublicReadAccessPolicy());
 					checkEquals(guid.getValue(), rGuid.getValue());
 
 
@@ -429,10 +422,10 @@ public class CNodeIT  {
 				}
 				summaryReport.add(j + " " + status + " " + ids.get(j) + "  " + message);
 			}
-		} catch (BaseException e) {
-			errorCollector.addError(new Throwable(createAssertMessage()
-					+ " error in resolveRunner at logon: " + e.getMessage()));
-		}
+//		} catch (BaseException e) {
+//			errorCollector.addError(new Throwable(createAssertMessage()
+//					+ " error in resolveRunner at logon: " + e.getMessage()));
+//		}
 		System.out.println("*********  Test Summary ************");
 
 		for (int j =0; j<summaryReport.size(); j++)
@@ -446,7 +439,7 @@ public class CNodeIT  {
 
 	private static String createAssertMessage()
 	{
-		return "test failed at url " + cnUrl;
+		return "test failed at url " + cnBaseUrl;
 	}
 
 
@@ -458,7 +451,7 @@ public class CNodeIT  {
     private void checkEquals(final String s1, final String s2) {
         errorCollector.checkSucceeds(new Callable<Object>() {
             public Object call() throws Exception {
-                assertThat("assertion failed for host " + cnUrl, s1, is(s2));
+                assertThat("assertion failed for host " + cnBaseUrl, s1, is(s2));
                 return null;
             }
         });
@@ -470,7 +463,7 @@ public class CNodeIT  {
 				{
 			public Object call() throws Exception 
 			{
-				assertThat("assertion failed for host " + cnUrl, true, is(b));
+				assertThat("assertion failed for host " + cnBaseUrl, true, is(b));
 				return null;
 			}
 				});
@@ -523,6 +516,12 @@ public class CNodeIT  {
 		IBindingFactory bfact = BindingDirectory.getFactory(type);
 		IMarshallingContext mctx = bfact.createMarshallingContext();
 		mctx.marshalDocument(object, "UTF-8", null, out);
+	}
+
+	@Override
+	protected String getTestDescription() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 	
 	

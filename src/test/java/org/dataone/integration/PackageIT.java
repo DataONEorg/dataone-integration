@@ -42,6 +42,7 @@ import org.dataone.service.types.AuthToken;
 import org.dataone.service.types.Identifier;
 import org.dataone.service.types.Node;
 import org.dataone.service.types.ObjectFormat;
+import org.dataone.service.types.Session;
 import org.dataone.service.types.SystemMetadata;
 import org.junit.Before;
 import org.junit.Rule;
@@ -52,47 +53,30 @@ import org.junit.rules.ErrorCollector;
  * Test the DataONE Java client methods.
  * @author Matthew Jones
  */
-public class PackageIT  {
-    private static final String TEST_CN_URL = "http://cn-dev.dataone.org/cn/";
-    private static final String TEST_MN_URL = "http://cn-dev.dataone.org/knb/d1/";
+public class PackageIT extends ContextAwareTestCaseDataone {
+
     private static final String TEST_MN_ID = "c3p0";
     private static final String principal = "uid%3Dkepler,o%3Dunaffiliated,dc%3Decoinformatics,dc%3Dorg";
-    private static final String password = "kepler";
+//    private static final String password = "kepler";
     private static final String prefix = "knb:testid:";
 
-    private List<Node> nodeList = null;
     private static String currentUrl;
         
-    @Rule 
-    public ErrorCollector errorCollector = new ErrorCollector();
-
-    @Before
-    public void setUp() throws Exception 
-    {
-        D1Client d1 = new D1Client(TEST_CN_URL);
-        
-        if (nodeList == null || nodeList.size() == 0) {
-            nodeList = new Vector<Node>();
-            Node n = new Node();
-            n.setBaseURL(TEST_MN_URL);
-            nodeList.add(n);
-        }
-    }
     
     /**
      * test creation of a D1Object and its download
      */
     @Test
     public void testD1Object() {
-        for (int i = 0; i < nodeList.size(); i++) {
-            currentUrl = nodeList.get(i).getBaseURL();
+        for (int i = 0; i < listOfNodes.size(); i++) {
+            currentUrl = listOfNodes.get(i).getBaseURL();
             MNode mn = D1Client.getMN(currentUrl);
 
-            printHeader("testD1Object - node " + nodeList.get(i).getBaseURL());
+            printHeader("testD1Object - node " + listOfNodes.get(i).getBaseURL());
             checkTrue(true);
-            AuthToken token;
-            try {
-                token = mn.login(principal, password);
+            Session token;
+//            try {
+                token = null;//mn.login(principal, password);
 
                 Identifier id = createDataObject(mn, token);
                 checkTrue(id != null);
@@ -100,25 +84,25 @@ public class PackageIT  {
                 D1Object d1o = new D1Object(id);
                 checkTrue(d1o != null);
                 checkEquals(id.getValue(), d1o.getIdentifier().getValue());
-            } catch (BaseException e) {
-                errorCollector.addError(new Throwable(createAssertMessage() + 
-                        " unexpected error in testD1Object: " + e.getClass().getName() + ": "
-                        + e.getMessage()));
-            }
+//            } catch (BaseException e) {
+//                errorCollector.addError(new Throwable(createAssertMessage() + 
+//                        " unexpected error in testD1Object: " + e.getClass().getName() + ": "
+//                        + e.getMessage()));
+//            }
         }
     }
     
     @Test
     public void testDataPackage() {
-        for (int i = 0; i < nodeList.size(); i++) {
-            currentUrl = nodeList.get(i).getBaseURL();
+        for (int i = 0; i < listOfNodes.size(); i++) {
+            currentUrl = listOfNodes.get(i).getBaseURL();
             MNode mn = D1Client.getMN(currentUrl);
 
-            printHeader("testDataPackage - node " + nodeList.get(i).getBaseURL());
+            printHeader("testDataPackage - node " + listOfNodes.get(i).getBaseURL());
             checkTrue(true);
-            AuthToken token;
-            try {
-                token = mn.login(principal, password);
+            Session token;
+//            try {
+                token = null;//mn.login(principal, password);
 
                 Identifier id = createDataObject(mn, token);
                 checkTrue(id != null);
@@ -137,11 +121,11 @@ public class PackageIT  {
                          System.out.println(current_id.getValue() + ": " + fmt + "(null data)");
                     }
                 }
-            } catch (BaseException e) {
-                errorCollector.addError(new Throwable(createAssertMessage() + "" +
-                		" unexpected error in testD1Object: " + e.getClass().getName() + ": "
-                        + e.getMessage()));
-            }
+//            } catch (BaseException e) {
+//                errorCollector.addError(new Throwable(createAssertMessage() + "" +
+//                		" unexpected error in testD1Object: " + e.getClass().getName() + ": "
+//                        + e.getMessage()));
+//            }
         }
     }
     
@@ -164,15 +148,15 @@ public class PackageIT  {
      */
 //    @Test
     public void testD1ObjectManualCreate() {
-        for (int i = 0; i < nodeList.size(); i++) {
-            currentUrl = nodeList.get(i).getBaseURL();
+        for (int i = 0; i < listOfNodes.size(); i++) {
+            currentUrl = listOfNodes.get(i).getBaseURL();
             MNode mn = D1Client.getMN(currentUrl);
 
-            printHeader("testD1ObjectManualCreate - node " + nodeList.get(i).getBaseURL());
+            printHeader("testD1ObjectManualCreate - node " + listOfNodes.get(i).getBaseURL());
             checkTrue(true);
-            AuthToken token;
+            Session token;
             try {
-                token = mn.login("uid%3Dkepler,o%3Dunaffiliated,dc%3Decoinformatics,dc%3Dorg", password);
+                token = null; //mn.login("uid%3Dkepler,o%3Dunaffiliated,dc%3Decoinformatics,dc%3Dorg", password);
 
                 Identifier id = new Identifier();
                 id.setValue(prefix + ExampleUtilities.generateIdentifier());
@@ -181,7 +165,7 @@ public class PackageIT  {
                 byte[] data = IOUtils.toByteArray(objectStream);
                 String[] describes = {"j.1.1", "j.2.1"};
                 String[] describedBy = {};
-                D1Object d1o = new D1Object(id, data, ObjectFormat.TEXT_CSV.toString(), principal, TEST_MN_ID, describes, describedBy);
+                D1Object d1o = new D1Object(id, data, "text/csv", principal, TEST_MN_ID, describes, describedBy);
                 checkTrue(d1o != null);
                 d1o.create(token);
                 d1o.setPublicAccess(token);
@@ -221,20 +205,20 @@ public class PackageIT  {
      * @param token a valid authentication token
      * @return the Identifer of the created object
      */
-    private Identifier createDataObject(MNode mn, AuthToken token) {
+    private Identifier createDataObject(MNode mn, Session token) {
         printHeader("createDataObject - node " + mn.getNodeBaseServiceUrl());
         String idString = prefix + ExampleUtilities.generateIdentifier();
         Identifier guid = new Identifier();
         guid.setValue(idString);
         InputStream objectStream = this.getClass().getResourceAsStream(
                 "/d1_testdocs/knb-lter-cdr.329066.1.data");
-        SystemMetadata sysmeta = ExampleUtilities.generateSystemMetadata(guid, ObjectFormat.TEXT_CSV, objectStream, TEST_MN_ID);
+        SystemMetadata sysmeta = ExampleUtilities.generateSystemMetadata(guid,"text/csv", objectStream, TEST_MN_ID);
         objectStream = this.getClass().getResourceAsStream(
             "/d1_testdocs/knb-lter-cdr.329066.1.data");
         Identifier rGuid = null;
         try {
             rGuid = mn.create(token, guid, objectStream, sysmeta);
-            mn.setAccess(token, rGuid, "public", "read", "allow", "allowFirst");
+            mn.setAccessPolicy(token, rGuid, buildPublicReadAccessPolicy());
             checkEquals(guid.getValue(), rGuid.getValue());
         } catch (Exception e) {
             errorCollector.addError(new Throwable(createAssertMessage() + 
@@ -277,4 +261,10 @@ public class PackageIT  {
             }
         });
     }
+
+	@Override
+	protected String getTestDescription() {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }
