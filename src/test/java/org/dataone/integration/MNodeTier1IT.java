@@ -68,7 +68,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
 	@BeforeClass
 	public static void overrideContext() {
 		System.setProperty(PARAM_MN_URL, "http://cn-dev.dataone.org/knb/d1/mn");
-		System.out.println("overrode the Context");
+		System.out.println("overriding the Context");
 	}
 	
     @Test
@@ -97,7 +97,8 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
 				handleFail(currentUrl,e.getDescription());
 			}
 			catch(Exception e) {
-				handleFail(currentUrl,e.getMessage());
+				e.printStackTrace();
+				handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
 			}	
 		}
 	}
@@ -123,8 +124,15 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
         	   // check that log events are created
         	   Identifier pid = new Identifier();
         	   pid.setValue(bogusId);
-        	   if (mn.isAuthorized(null, pid, Permission.WRITE)) 
-        	   {
+        	   boolean canCreate = false;
+        	   try {
+        		   canCreate = mn.isAuthorized(null, pid, Permission.WRITE);
+        	   } catch (Exception e) {
+        		   // do nothing - can't expect to create in Tier1 tests
+        		   log.info("Cannot create objects so skipping more precise logging test"
+        				   + "on node: " + currentUrl);
+        	   }
+        	   if (canCreate) { 
         		  pid = ExampleUtilities.doCreateNewObject(mn, idPrefix);
         		  Date toDate = new Date(System.currentTimeMillis());
         		  log.info("toDate is: " + toDate);
@@ -152,7 +160,8 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
 				handleFail(currentUrl,e.getDescription());
 			}
 			catch(Exception e) {
-				handleFail(currentUrl,e.getMessage());
+				e.printStackTrace();
+				handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
 			}	           
        }
     }
@@ -192,7 +201,8 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
 				handleFail(currentUrl,e.getDescription());
 			}
 			catch(Exception e) {
-				handleFail(currentUrl,e.getMessage());
+				e.printStackTrace();
+				handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
 			}
 		}	
     }
@@ -221,7 +231,8 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
 				handleFail(currentUrl,e.getDescription());
 			}
 			catch(Exception e) {
-				handleFail(currentUrl,e.getMessage());
+				e.printStackTrace();
+				handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
 			}
          }
     }
