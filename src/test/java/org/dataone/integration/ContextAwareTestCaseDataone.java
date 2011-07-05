@@ -3,6 +3,7 @@ package org.dataone.integration;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 import java.io.InputStream;
 import java.net.URL;
@@ -41,6 +42,8 @@ import org.junit.rules.ErrorCollector;
  */
 public abstract class ContextAwareTestCaseDataone implements IntegrationTestContextParameters {
 
+	private static boolean alreadySetup = false;
+	
 	protected static Log log = LogFactory.getLog(ContextAwareTestCaseDataone.class);
 	
 	// variables to the context interface parameters
@@ -49,9 +52,9 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 	protected static String mnBaseUrl;
 	protected static String nodelistUri;
 
-	public List<Node> memberNodeList = null;
-	public List<Node> coordinatingNodeList = new Vector<Node>();
-	public List<Node> monitorNodeList = new Vector<Node>();
+	public static List<Node> memberNodeList = null;
+	public static List<Node> coordinatingNodeList = new Vector<Node>();
+	public static List<Node> monitorNodeList = new Vector<Node>();
 	
 	protected abstract String getTestDescription();
 	
@@ -66,7 +69,9 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 	public void setUp() throws Exception {
 
 		// skip setUp steps if already run
-		if (testContext == null) {
+		if (!alreadySetup) {
+			alreadySetup = true;
+			
 			testContext = Settings.getConfiguration().getString(Settings.OPTIONAL_PROPERTY_CONTEXT_LABEL);			
 			cnBaseUrl = Settings.getConfiguration().getString(PARAM_CN_URL);
 			mnBaseUrl = Settings.getConfiguration().getString(PARAM_MN_URL);
@@ -244,6 +249,29 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
             		assertThat("for host: " + host + ":: " + message, false, is(b));
             	} else {
             		assertThat(message, false, is(b));
+            	}
+                return null;
+            }
+        });
+    }
+    
+    /**
+	 * performs the equivalent of the junit fail method
+	 * using the errorCollector to record the error and keep going
+	 * 
+	 * @param host
+	 * @param message
+	 */
+    protected void handleFail(final String host, final String message)
+    {
+        errorCollector.checkSucceeds(new Callable<Object>() 
+        {
+            public Object call() throws Exception 
+            {
+            	if (host != null) {	
+            		fail("for host: " + host + ":: " + message);
+            	} else {
+            		fail(message);
             	}
                 return null;
             }
