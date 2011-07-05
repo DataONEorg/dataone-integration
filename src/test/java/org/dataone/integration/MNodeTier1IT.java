@@ -20,46 +20,23 @@
 
 package org.dataone.integration;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.Date;
 import java.util.Iterator;
-import java.util.concurrent.Callable;
 
-import org.apache.commons.io.IOUtils;
-import org.apache.http.HttpException;
-import org.apache.http.client.ClientProtocolException;
 import org.dataone.client.D1Client;
-import org.dataone.client.D1RestClient;
 import org.dataone.client.MNode;
-import org.dataone.client.ObjectFormatCache;
-import org.dataone.eml.EMLDocument;
-import org.dataone.service.D1Url;
 import org.dataone.service.exceptions.BaseException;
-import org.dataone.service.exceptions.IdentifierNotUnique;
-import org.dataone.service.exceptions.InsufficientResources;
-import org.dataone.service.exceptions.InvalidRequest;
-import org.dataone.service.exceptions.InvalidSystemMetadata;
-import org.dataone.service.exceptions.InvalidToken;
-import org.dataone.service.exceptions.NotAuthorized;
-import org.dataone.service.exceptions.NotFound;
-import org.dataone.service.exceptions.NotImplemented;
-import org.dataone.service.exceptions.ServiceFailure;
-import org.dataone.service.exceptions.UnsupportedType;
 import org.dataone.service.types.Event;
 import org.dataone.service.types.Identifier;
 import org.dataone.service.types.Log;
 import org.dataone.service.types.LogEntry;
+import org.dataone.service.types.MonitorList;
 import org.dataone.service.types.Node;
-import org.dataone.service.types.Session;
-import org.dataone.service.types.SystemMetadata;
-import org.dataone.service.types.util.ServiceTypeUtil;
-import org.jibx.runtime.JiBXException;
+import org.dataone.service.types.ObjectFormatIdentifier;
+import org.dataone.service.types.Permission;
+import org.dataone.service.types.Subject;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -75,7 +52,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     private static String format_eml_210 = "eml://ecoinformatics.org/eml-2.1.0";
     private static String format_eml_211 = "eml://ecoinformatics.org/eml-2.1.1";
 
-    private static final String idPrefix = "knb:testid:";
+    private static final String idPrefix = "mnTier1:";
     private static final String bogusId = "foobarbaz214";
 
     private static String currentUrl;
@@ -103,12 +80,26 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     	System.out.println("done");
     }
 	
-	
-	
-	
+		
 	@Test
 	public void testPing() {
+		Iterator<Node> it = getMemberNodeIterator();
+		while (it.hasNext()) {
+			currentUrl = it.next().getBaseURL();
+			MNode mn = D1Client.getMN(currentUrl);
+			printTestHeader("testPing() vs. node: " + currentUrl);
 		
+			try {
+				boolean pingSuccess = mn.ping();
+				checkTrue(currentUrl,"ping response cannot be false. [Only true or exception].", pingSuccess);
+			} 
+			catch (BaseException e) {
+				handleFail(currentUrl,e.getDescription());
+			}
+			catch(Exception e) {
+				handleFail(currentUrl,e.getMessage());
+			}	
+		}
 	}
 	
 	
@@ -118,84 +109,96 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
        Iterator<Node> it = getMemberNodeIterator();
        while (it.hasNext()) {
     	   currentUrl = it.next().getBaseURL();
+           MNode mn = D1Client.getMN(currentUrl);           
+           printTestHeader("testGetLogRecords() vs. node: " + currentUrl);
 
-           MNode mn = D1Client.getMN(currentUrl);
-           
-           printTestHeader("testGetLogRecords - node:" + currentUrl);
            log.info("current time is: " + new Date());
-           try
-           {
-               Date start = new Date(System.currentTimeMillis() - 500000);
-               Session token = null;
+           Date fromDate = new Date(System.currentTimeMillis() - 7 * 24 * 60 * 60 * 1000);
+           log.info("fromDate is: " + fromDate);
 
-               String idString = idPrefix + ExampleUtilities.generateIdentifier();
-               Identifier guid = new Identifier();
-               guid.setValue(idString);
-               InputStream objectStream = this.getClass().getResourceAsStream(
-                       "/d1_testdocs/knb-lter-cdr.329066.1.data");
-               SystemMetadata sysmeta = ExampleUtilities.generateSystemMetadata(
-                       guid, format_text_csv, objectStream, TEST_MN_ID);
-               objectStream = this.getClass().getResourceAsStream(
-                   "/d1_testdocs/knb-lter-cdr.329066.1.data");
-
-               Identifier rGuid = mn.create(token, guid, objectStream, sysmeta);
-               mn.setAccessPolicy(token, rGuid, buildPublicReadAccessPolicy());
-               InputStream data = mn.get(token, rGuid);
-               String str = IOUtils.toString(data);
-               //System.out.println("str: " + str);
-               checkTrue(str.indexOf("61 66 104 2 103 900817 \"Planted\" 15.0  3.3") != -1);
-               checkEquals(guid.getValue(), rGuid.getValue());
-
-               //get the logs for the last minute
-               Date end = new Date(System.currentTimeMillis() + 500000);
-               log.info("start: " + start + " end: " + end);
-               Log logRecord = mn.getLogRecords(token, start, end, Event.CREATE, null, null);
-               log.info("log size: " + logRecord.sizeLogEntryList());
-               boolean isfound = false;
-               for(int i=0; i<logRecord.sizeLogEntryList(); i++)
-               { //check to see if our create event is in the log
-                   LogEntry le = logRecord.getLogEntry(i);
-                   log.debug("le: " + le.getIdentifier().getValue());
-                   log.debug("rGuid: " + rGuid.getValue());
-                   if(le.getIdentifier().getValue().trim().equals(rGuid.getValue().trim()))
-                   {
-                       isfound = true;
-                       System.out.println("log record found");
-                       break;
-                   }
-               }
-               log.info("isfound: " + isfound);
-               checkTrue(isfound);
-
-           } 
-           catch(BaseException be) 
-           {
-        	   be.printStackTrace();
-        	   errorCollector.addError(new Throwable(createAssertMessage() + 
-                       " threw an unexpected dataone exception: " + be.getClass().getName()));
-           } 
-           catch(Exception e)
-           {
-               e.printStackTrace();
-               errorCollector.addError(new Throwable(createAssertMessage() + 
-                       " threw an unexpected exception: " + e.getMessage()));
-           }
+           try {
+        	   Log eventLog = mn.getLogRecords(null, fromDate, null, null, null, null);
+        	   checkTrue(currentUrl,"getOperationStatistics returns a log datatype", eventLog != null);
+        	   
+        	   // check that log events are created
+        	   Identifier pid = new Identifier();
+        	   pid.setValue(bogusId);
+        	   if (mn.isAuthorized(null, pid, Permission.WRITE)) 
+        	   {
+        		  pid = ExampleUtilities.doCreateNewObject(mn, idPrefix);
+        		  Date toDate = new Date(System.currentTimeMillis());
+        		  log.info("toDate is: " + toDate);
+        		  
+        		  eventLog = mn.getLogRecords(null, fromDate, toDate, Event.CREATE, null, null);
+        		  log.info("log size: " + eventLog.sizeLogEntryList());
+        		  boolean isfound = false;
+        		  for(int i=0; i<eventLog.sizeLogEntryList(); i++)
+        		  { //check to see if our create event is in the log
+        			  LogEntry le = eventLog.getLogEntry(i);
+        			  log.debug("le: " + le.getIdentifier().getValue());
+        			  log.debug("rGuid: " + pid.getValue());
+        			  if(le.getIdentifier().getValue().trim().equals(pid.getValue().trim()))
+        			  {
+        				  isfound = true;
+        				  log.info("log record found");
+        				  break;
+        			  }
+        		  }
+        		  log.info("isfound: " + isfound);
+        		  checkTrue(currentUrl, "newly created object is in the log", isfound); 
+        	   }
+			} 
+			catch (BaseException e) {
+				handleFail(currentUrl,e.getDescription());
+			}
+			catch(Exception e) {
+				handleFail(currentUrl,e.getMessage());
+			}	           
        }
     }
 	
 	
+    @Ignore("client implementation deferred until v0.6.3")
     @Test 
     public void testGetObjectStatistics() {
-    	
+
     }
 	
     
     @Test
     public void testGetOperationStatistics() {
-    	
+		Iterator<Node> it = getMemberNodeIterator();
+		while (it.hasNext()) {
+			currentUrl = it.next().getBaseURL();
+			MNode mn = D1Client.getMN(currentUrl);
+			printTestHeader("testGetOperationStatistics() vs. node: " + currentUrl);
+		
+				
+			try {
+				MonitorList ml = mn.getOperationStatistics(null, null, null, null, null, null);
+				checkTrue(currentUrl,"getOperationStatistics returns a monitorList", ml != null);
+
+				// test using all optional parameters
+				Date startTime = new Date(System.currentTimeMillis() - 10 * 60 * 1000);
+				Date endTime = new Date(System.currentTimeMillis() - 1 * 60 * 1000);
+				Subject requestor = new Subject();
+				requestor.setValue("validSubject");
+				ObjectFormatIdentifier formatId = new ObjectFormatIdentifier();
+				formatId.setValue(format_text_csv);
+				ml = mn.getOperationStatistics(null, startTime, endTime, requestor, Event.READ, formatId);
+
+			}
+			catch (BaseException e) {
+				handleFail(currentUrl,e.getDescription());
+			}
+			catch(Exception e) {
+				handleFail(currentUrl,e.getMessage());
+			}
+		}	
     }
-	
+
     
+    @Ignore("client implementation deferred until v0.6.3")
     @Test
     public void testGetStatus() {
     	
@@ -204,94 +207,22 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     
     @Test
     public void getCapabilities() {
-    	
-//    }
-//    
-//    
-//    @Test
-//    public void testNodeResponse() {
-    	 for(int i=0; i<memberNodeList.size(); i++)
-         {
-             currentUrl = memberNodeList.get(i).getBaseURL();
-             MNode  mn = D1Client.getMN(currentUrl);
-             
-             try {
-                 printTestHeader("testNodeResponse " + memberNodeList.get(i).getBaseURL());
-             
-                 D1Url url = new D1Url(mn.getNodeBaseServiceUrl());
-                 
-                 D1RestClient rc = new D1RestClient();
-                 
-                 InputStream is = null;
-                 try {	
-                	 is = rc.doGetRequest(url.getUrl());
-                 } catch (BaseException be) {
-                	 be.printStackTrace();
-                 } catch (IllegalStateException e) {
-                	 e.printStackTrace();
-                 } catch (ClientProtocolException e) {
-                	 e.printStackTrace();
-                 } catch (IOException e) {
-                	 e.printStackTrace();
-                 } catch (HttpException e) {
-                	 e.printStackTrace();
-                 } 
-                 
-                 try {
-//                	 System.out.println(IOUtils.toString(is));
-                	 org.dataone.service.types.NodeList nl = 
-                		 (org.dataone.service.types.NodeList) ServiceTypeUtil.deserializeServiceType(
-                				 org.dataone.service.types.NodeList.class, is);
-                 } catch (Exception e) {
-                	 errorCollector.addError(new Throwable(createAssertMessage() + 
-                             " failed to create NodeList: " + 
-                             e.getMessage()));
-                 }
-             } catch (Exception e) {
-                 errorCollector.addError(new Throwable(createAssertMessage() + 
-                         " unexpected exception in testNodeResponse: " + 
-                         e.getMessage()));
-             }
+		Iterator<Node> it = getMemberNodeIterator();
+		while (it.hasNext()) {
+			currentUrl = it.next().getBaseURL();
+			MNode mn = D1Client.getMN(currentUrl);
+			printTestHeader("testCapabilities() vs. node: " + currentUrl);
+
+			try {
+				Node node = mn.getCapabilities();
+				checkTrue(currentUrl,"getOperationStatistics returns a monitorList", node != null);
+			} 
+			catch (BaseException e) {
+				handleFail(currentUrl,e.getDescription());
+			}
+			catch(Exception e) {
+				handleFail(currentUrl,e.getMessage());
+			}
          }
-    }
-    
-	@SuppressWarnings("rawtypes")
-	protected void serializeServiceType(Class type, Object object,
-			OutputStream out) throws JiBXException {
-		ServiceTypeUtil.serializeServiceType(type, object, out);
-	}
-    
-
-    
-    private static String createAssertMessage()
-    {
-        return "test failed at url " + currentUrl;
-    }
-
-    
-     
-    private void checkEquals(final String s1, final String s2)
-    {
-        errorCollector.checkSucceeds(new Callable<Object>() 
-        {
-            public Object call() throws Exception 
-            {
-                assertThat("assertion failed for host " + currentUrl, s1, is(s2));
-                //assertThat("assertion failed for host " + currentUrl, s1, is(s2 + "x"));
-                return null;
-            }
-        });
-    }
-    
-    private void checkTrue(final boolean b)
-    {
-        errorCollector.checkSucceeds(new Callable<Object>() 
-        {
-            public Object call() throws Exception 
-            {
-                assertThat("assertion failed for host " + currentUrl, true, is(b));
-                return null;
-            }
-        });
     }
 }
