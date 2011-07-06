@@ -74,6 +74,7 @@ import org.dataone.service.types.SystemMetadata;
 import org.dataone.service.types.util.ServiceTypeUtil;
 import org.jibx.runtime.JiBXException;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ErrorCollector;
@@ -105,7 +106,7 @@ public class MNodeIT extends ContextAwareTestCaseDataone  {
 	}
     
     
-    @Test
+//    @Test
     public void testSetup() {
     	System.out.println("text/csv: " + format_text_csv);//.getFormatName());
     	System.out.println("text_eml_200: " + format_eml_200);//.getFormatName());
@@ -117,6 +118,7 @@ public class MNodeIT extends ContextAwareTestCaseDataone  {
     /**
      * test the failed creation of a doc
      */
+	@Ignore("test not adapted for v0.6.x")
     @Test
     public void testFailedCreate()
     {
@@ -160,7 +162,9 @@ public class MNodeIT extends ContextAwareTestCaseDataone  {
     /**
      * test the getLogRecords call
      */
-    @Test
+
+	@Ignore("test not adapted for v0.6.x")
+	@Test
     public void testGetLogRecords()
     {
        for(int j=0; j<memberNodeList.size(); j++)
@@ -228,7 +232,8 @@ public class MNodeIT extends ContextAwareTestCaseDataone  {
      * test setting access.  this is mainly a metacat test since other nodes
      * will not have implemented this.
      */
-    @Test
+	@Ignore("test not adapted for v0.6.x")
+	@Test
     public void testsetAccessPolicy()
     {
         for(int j=0; j<memberNodeList.size(); j++)
@@ -297,7 +302,8 @@ public class MNodeIT extends ContextAwareTestCaseDataone  {
     /**
      * list objects with specified params
      */
-    @Test
+	@Ignore("test not adapted for v0.6.x")
+	@Test
     public void testListObjects()
     {
         for(int j=0; j<memberNodeList.size(); j++)
@@ -414,7 +420,8 @@ public class MNodeIT extends ContextAwareTestCaseDataone  {
     /**
      * get a systemMetadata resource
      */
-    @Test
+	@Ignore("test not adapted for v0.6.x")
+	@Test
     public void testGetSystemMetadata()
     {
         for(int i=0; i<memberNodeList.size(); i++)
@@ -455,7 +462,8 @@ public class MNodeIT extends ContextAwareTestCaseDataone  {
     /**
      * test the update of a resource
      */
-    @Test
+	@Ignore("test not adapted for v0.6.x")
+	@Test
     public void testUpdate()
     {
         for(int i=0; i<memberNodeList.size(); i++)
@@ -522,7 +530,8 @@ public class MNodeIT extends ContextAwareTestCaseDataone  {
      * test the error state where metacat fails if the id includes a .\d on
      * the end.
      */
-    @Test
+	@Ignore("test not adapted for v0.6.x")
+	@Test
     public void testFailedCreateData() {
         for(int i=0; i<memberNodeList.size(); i++)
         {
@@ -600,7 +609,8 @@ public class MNodeIT extends ContextAwareTestCaseDataone  {
     /**
      * test various create and get scenarios with different access rules
      */
-    @Test
+	@Ignore("test not adapted for v0.6.x")
+	@Test
     public void testGet() 
     {
         for(int i=0; i<memberNodeList.size(); i++)
@@ -657,7 +667,8 @@ public class MNodeIT extends ContextAwareTestCaseDataone  {
     /**
      * test the creation of the desribes and describedBy sysmeta elements
      */
-    @Test
+	@Ignore("test not adapted for v0.6.x")
+	@Test
     public void testCreateDescribedDataAndMetadata()
     {
         try
@@ -724,7 +735,8 @@ public class MNodeIT extends ContextAwareTestCaseDataone  {
      * test creation of data.  this also tests get() since it
      * is used to verify the inserted metadata
      */
-    @Test
+	@Ignore("test not adapted for v0.6.x")
+	@Test
     public void testCreateData() 
     {
         for(int i=0; i<memberNodeList.size(); i++)
@@ -764,7 +776,8 @@ public class MNodeIT extends ContextAwareTestCaseDataone  {
      * this also tests get() since it
      * is used to verify the inserted metadata
      */
-    @Test
+	@Ignore("test not adapted for v0.6.x")
+	@Test
     public void testCreateData_IdentifierEncoding() 
     {
     	printTestHeader("Testing IdentifierEncoding");
@@ -875,7 +888,8 @@ public class MNodeIT extends ContextAwareTestCaseDataone  {
     	}
     }
 
-    
+
+	@Ignore("test not adapted for v0.6.x")
     @Test
     public void testChecksum() 
     {
@@ -1005,6 +1019,7 @@ public class MNodeIT extends ContextAwareTestCaseDataone  {
      * test creation of science metadata.  this also tests get() since it
      * is used to verify the inserted metadata
      */
+	@Ignore("test not adapted for v0.6.x")
     @Test
     public void testSemiColonIdentifiers() 
     {
@@ -1049,7 +1064,8 @@ public class MNodeIT extends ContextAwareTestCaseDataone  {
      * test creation of science metadata.  this also tests get() since it
      * is used to verify the inserted metadata
      */
-    @Test
+	@Ignore("test not adapted for v0.6.x")
+	@Test
     public void testCreateScienceMetadata() 
     {
         for(int i=0; i<memberNodeList.size(); i++)
@@ -1100,7 +1116,8 @@ public class MNodeIT extends ContextAwareTestCaseDataone  {
             }
         }
     }
-    
+
+	@Ignore("test not adapted for v0.6.x")
     @Test
     public void testDelete() 
     {
@@ -1148,7 +1165,9 @@ public class MNodeIT extends ContextAwareTestCaseDataone  {
             }
         }
     }
-    
+
+	
+	@Ignore("test not adapted for v0.6.x")
     @Test
     public void testDescribe() 
     {
@@ -1197,6 +1216,8 @@ public class MNodeIT extends ContextAwareTestCaseDataone  {
         }
     }
 
+	
+	@Ignore("test not adapted for v0.6.x")
     @Test
     public void testGetNotFound() 
     {
@@ -1224,7 +1245,9 @@ public class MNodeIT extends ContextAwareTestCaseDataone  {
             }
         }
     }
-    
+
+	
+	@Ignore("test not adapted for v0.6.x")
     @Test
     public void testNodeResponse() {
     	 for(int i=0; i<memberNodeList.size(); i++)

@@ -51,6 +51,7 @@ import org.jibx.runtime.IBindingFactory;
 import org.jibx.runtime.IMarshallingContext;
 import org.jibx.runtime.JiBXException;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -107,6 +108,7 @@ public class CNodeIT extends ContextAwareTestCaseDataone {
 	 * test the listObject() operation on Coordinating Nodes
 	 * @throws JiBXException 
 	 */
+	@Ignore("test not adapted for v0.6.x")
 	@Test
 	public void testlistObject() throws JiBXException {
 
@@ -158,7 +160,8 @@ public class CNodeIT extends ContextAwareTestCaseDataone {
 		}
 	}
 
-//	@Test
+	@Ignore("test not adapted for v0.6.x")
+	@Test
 	public void testSearch() {
 		printHeader("testSearch vs. node " + cnBaseUrl);
         System.out.println("Using CN: " + D1Client.getCN().getNodeBaseServiceUrl());
@@ -202,6 +205,7 @@ public class CNodeIT extends ContextAwareTestCaseDataone {
 	 * test the getSystemMetacata() operation on Coordinating Nodes
 	 * @throws JiBXException 
 	 */
+	@Ignore("test not adapted for v0.6.x")
 	@Test
 	public void testCNGetSysMeta() throws JiBXException {
 
@@ -249,6 +253,8 @@ public class CNodeIT extends ContextAwareTestCaseDataone {
 	 * test the resolve() operation on Coordinating Nodes
 	 * @throws JiBXException 
 	 */
+
+	@Ignore("test not adapted for v0.6.x")
 	@Test
 	public void testCNGet() throws JiBXException {
 
@@ -298,6 +304,7 @@ public class CNodeIT extends ContextAwareTestCaseDataone {
 	/**
 	 * test the resolve() operation on Coordinating Nodes
 	 */
+	@Ignore("test not adapted for v0.6.x")
 	@Test
 	public void testResolve() {
 		String idString = "test" + ExampleUtilities.generateIdentifier();
@@ -313,6 +320,7 @@ public class CNodeIT extends ContextAwareTestCaseDataone {
 	/**
 	 * test the resolve() operation on Coordinating Nodes
 	 */
+	@Ignore("test not adapted for v0.6.x")
 	@Test
 	public void testInvalidResolve() {
 	    System.out.println("Using CN: " + D1Client.getCN().getNodeBaseServiceUrl());
@@ -337,6 +345,7 @@ public class CNodeIT extends ContextAwareTestCaseDataone {
 	 * Test ID encoding using the same resolve procedure
 	 * (it tests create, get, getsystemMetadata, and resolve)
 	 */
+	@Ignore("test not adapted for v0.6.x")
 	@Test
 	public void test_IdEncoding() 
 	{

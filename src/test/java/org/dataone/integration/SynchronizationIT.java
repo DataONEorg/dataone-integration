@@ -94,7 +94,7 @@ public class SynchronizationIT {
 	 * synch runs.
 	 * @throws NotFound 
 	 */
-	@Ignore("can't really run this until test environment test up")
+	@Ignore("test not adapted for v0.6.x")
 	@Test
 	public void testMDSynchronizeWithMulti() throws ServiceFailure, NotImplemented, InterruptedException, 
 	InvalidToken, NotAuthorized, InvalidRequest, IOException, IdentifierNotUnique, UnsupportedType,

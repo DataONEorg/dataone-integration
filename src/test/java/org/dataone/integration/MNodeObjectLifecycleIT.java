@@ -41,6 +41,7 @@ import org.dataone.service.types.ObjectList;
 import org.dataone.service.types.Session;
 import org.dataone.service.types.SystemMetadata;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -72,7 +73,7 @@ public class MNodeObjectLifecycleIT extends ContextAwareTestCaseDataone {
 //    	nodeInfo.put("http://daacmn.dataone.utk.edu/mn/", new String[] {"",""});
     }
 
-    
+	@Ignore("test not adapted for v0.6.x")
     @Test
     public void exerciseNodeAPIs() throws IOException {
     	Enumeration<String> nodeBaseUrls = nodeInfo.keys();

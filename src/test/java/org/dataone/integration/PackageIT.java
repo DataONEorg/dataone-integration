@@ -45,6 +45,7 @@ import org.dataone.service.types.ObjectFormat;
 import org.dataone.service.types.Session;
 import org.dataone.service.types.SystemMetadata;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ErrorCollector;
@@ -66,6 +67,7 @@ public class PackageIT extends ContextAwareTestCaseDataone {
     /**
      * test creation of a D1Object and its download
      */
+	@Ignore("test not adapted for v0.6.x")
     @Test
     public void testD1Object() {
         for (int i = 0; i < memberNodeList.size(); i++) {
@@ -92,6 +94,7 @@ public class PackageIT extends ContextAwareTestCaseDataone {
         }
     }
     
+	@Ignore("test not adapted for v0.6.x")
     @Test
     public void testDataPackage() {
         for (int i = 0; i < memberNodeList.size(); i++) {
@@ -146,7 +149,8 @@ public class PackageIT extends ContextAwareTestCaseDataone {
      *
      * test creation of a D1Object and its call to create()
      */
-//    @Test
+	@Ignore("test not adapted for v0.6.x - and see comment for method")
+	@Test
     public void testD1ObjectManualCreate() {
         for (int i = 0; i < memberNodeList.size(); i++) {
             currentUrl = memberNodeList.get(i).getBaseURL();

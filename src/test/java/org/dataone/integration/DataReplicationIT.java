@@ -93,7 +93,6 @@ public class DataReplicationIT {
 	@Rule 
 	public ErrorCollector errorCollector = new ErrorCollector();
 
-
     @Test
     public void testPlaceholder() {
     	assertTrue(true);
@@ -115,7 +114,7 @@ public class DataReplicationIT {
 	 * @throws UnsupportedType 
 	 * @throws IdentifierNotUnique 
 	 */
-	@Ignore("can't really run this until test environment test up")
+	@Ignore("test not adapted for v0.6.x")
 	@Test
 	public void testDataReplicateWithGet() throws ServiceFailure, NotImplemented, InterruptedException, 
 	InvalidToken, NotAuthorized, InvalidRequest, NotFound, IOException, IdentifierNotUnique, UnsupportedType,
@@ -175,7 +174,7 @@ public class DataReplicationIT {
 	 * @throws UnsupportedType 
 	 * @throws IdentifierNotUnique 
 	 */
-	@Ignore("can't really run this until test environment test up")
+	@Ignore("test not adapted for v0.6.x")
 	@Test
 	public void testDataReplicateWithMeta() throws ServiceFailure, NotImplemented, InterruptedException, 
 	InvalidToken, NotAuthorized, InvalidRequest, NotFound, IOException, IdentifierNotUnique, UnsupportedType,
@@ -234,7 +233,7 @@ public class DataReplicationIT {
 	 * @throws UnsupportedType 
 	 * @throws IdentifierNotUnique 
 	 */
-	@Ignore("can't really run this until test environment test up")
+	@Ignore("test not adapted for v0.6.x")
 	@Test
 	public void testDataReplicateWithResolve() throws ServiceFailure, NotImplemented, InterruptedException, 
 	InvalidToken, NotAuthorized, InvalidRequest, NotFound, IOException, IdentifierNotUnique, UnsupportedType,
