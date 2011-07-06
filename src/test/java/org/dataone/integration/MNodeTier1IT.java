@@ -65,11 +65,12 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
 	}
     
 	
-	@BeforeClass
-	public static void overrideContext() {
-		System.setProperty(PARAM_MN_URL, "http://cn-dev.dataone.org/knb/d1/mn");
-		System.out.println("overriding the Context");
-	}
+//	@BeforeClass
+//	public static void overrideContext() {		
+//		System.out.println("::::: " + Settings.getConfiguration().getString(PARAM_MN_URL));
+//		System.setProperty(PARAM_MN_URL, "http://cn-dev.dataone.org/knb/d1/mn");
+//		System.out.println("overriding the Context");
+//	}
 	
     @Test
     public void testSetup() {
