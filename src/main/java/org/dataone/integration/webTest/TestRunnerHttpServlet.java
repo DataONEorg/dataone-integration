@@ -1,15 +1,14 @@
 package org.dataone.integration.webTest;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.Writer;
-import java.net.URL;
 import java.util.ArrayList;
 
 import javax.servlet.ServletException;
 import javax.servlet.ServletOutputStream;
-import javax.servlet.http.*;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import nu.xom.Attribute;
 import nu.xom.Builder;
@@ -20,27 +19,19 @@ import nu.xom.ParsingException;
 import nu.xom.Serializer;
 import nu.xom.ValidityException;
 
-
-import org.dataone.integration.IntegrationTestContextParameters;
 import org.junit.runner.Description;
 import org.junit.runner.JUnitCore;
 import org.junit.runner.Result;
 import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunListener;
 
-public class TestRunnerHttpServlet extends HttpServlet implements IntegrationTestContextParameters
+public class TestRunnerHttpServlet extends HttpServlet
 {
 //	private static final String TESTS_DIR = "/WEB-INF/tests";
 	private static final String RESULTS_FILE_TEMPLATE = "/results.html";
 	
 	private boolean debug = true;
-	
-	private void debug(String string) {
-		if (debug)
-			System.out.println(string);
-	}
-	
-	
+		
 	/**
 	 * Handles the get call to the servlet and triggers the junit tests run
 	 */
@@ -63,7 +54,7 @@ public class TestRunnerHttpServlet extends HttpServlet implements IntegrationTes
 		serializer.setIndent(2); // pretty-print output
 		
 		
-		System.setProperty(PARAM_MN_URL, mNodeBaseUrl);
+		System.setProperty("context.mn.baseurl", mNodeBaseUrl);
 		
 		// to test that system properties are being received
 		if (debug) 
