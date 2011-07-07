@@ -20,12 +20,17 @@
 
 package org.dataone.integration;
 
+import java.io.InputStream;
 import java.util.Date;
 import java.util.Iterator;
 
 import org.dataone.client.D1Client;
 import org.dataone.client.MNode;
 import org.dataone.service.exceptions.BaseException;
+import org.dataone.service.exceptions.SynchronizationFailed;
+import org.dataone.service.types.Checksum;
+import org.dataone.service.types.ChecksumAlgorithm;
+import org.dataone.service.types.DescribeResponse;
 import org.dataone.service.types.Event;
 import org.dataone.service.types.Identifier;
 import org.dataone.service.types.Log;
@@ -33,15 +38,17 @@ import org.dataone.service.types.LogEntry;
 import org.dataone.service.types.MonitorList;
 import org.dataone.service.types.Node;
 import org.dataone.service.types.ObjectFormatIdentifier;
+import org.dataone.service.types.ObjectList;
 import org.dataone.service.types.Permission;
 import org.dataone.service.types.Subject;
+import org.dataone.service.types.SystemMetadata;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 
 /**
  * Test the DataONE Java client methods.
- * @author Matthew Jones
+ * @author Rob Nahf
  */
 public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
 
@@ -217,24 +224,187 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     
     
     @Test
-    public void getCapabilities() {
-		Iterator<Node> it = getMemberNodeIterator();
-		while (it.hasNext()) {
-			currentUrl = it.next().getBaseURL();
-			MNode mn = D1Client.getMN(currentUrl);
-			printTestHeader("testCapabilities() vs. node: " + currentUrl);
+    public void testGetCapabilities() {
+    	Iterator<Node> it = getMemberNodeIterator();
+    	while (it.hasNext()) {
+    		currentUrl = it.next().getBaseURL();
+    		MNode mn = D1Client.getMN(currentUrl);
+    		printTestHeader("testGetCapabilities() vs. node: " + currentUrl);
 
-			try {
-				Node node = mn.getCapabilities();
-				checkTrue(currentUrl,"getOperationStatistics returns a monitorList", node != null);
-			} 
-			catch (BaseException e) {
-				handleFail(currentUrl,e.getDescription());
-			}
-			catch(Exception e) {
-				e.printStackTrace();
-				handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
-			}
-         }
+    		try {
+    			Node node = mn.getCapabilities();
+    			checkTrue(currentUrl,"getCapabilities returns a Node", node != null);
+    		} 
+    		catch (BaseException e) {
+    			handleFail(currentUrl,e.getDescription());
+    		}
+    		catch(Exception e) {
+    			e.printStackTrace();
+    			handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+    		}
+    	}
+    }
+    
+    
+    @Test
+    public void testGet() {
+       	Iterator<Node> it = getMemberNodeIterator();
+    	while (it.hasNext()) {
+    		currentUrl = it.next().getBaseURL();
+    		MNode mn = D1Client.getMN(currentUrl);
+    		printTestHeader("testGet() vs. node: " + currentUrl);
+
+    		try {
+    			// TODO: get a valid Identifier
+    			Identifier pid = new Identifier();
+    			pid.setValue(bogusId);
+    			InputStream is = mn.get(null,pid);
+    			checkTrue(currentUrl,"get() returns an objectStream", is != null);
+    		} 
+    		catch (BaseException e) {
+    			handleFail(currentUrl,e.getDescription());
+    		}
+    		catch(Exception e) {
+    			e.printStackTrace();
+    			handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+    		}
+    	}
+    }
+    
+    
+    @Test
+    public void testGetSystemMetadata() {
+       	Iterator<Node> it = getMemberNodeIterator();
+    	while (it.hasNext()) {
+    		currentUrl = it.next().getBaseURL();
+    		MNode mn = D1Client.getMN(currentUrl);
+    		printTestHeader("testGetSystemMetadata() vs. node: " + currentUrl);
+
+    		try {
+    			// TODO: get a valid Identifier
+    			Identifier pid = new Identifier();
+    			pid.setValue(bogusId);
+    			SystemMetadata smd = mn.getSystemMetadata(null,pid);
+    			checkTrue(currentUrl,"getSystemMetadata() returns a SystemMetadata object", smd != null);
+    		} 
+    		catch (BaseException e) {
+    			handleFail(currentUrl,e.getDescription());
+    		}
+    		catch(Exception e) {
+    			e.printStackTrace();
+    			handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+    		}
+    	}
+    }
+    
+    
+    @Test
+    public void testDescribe() {
+       	Iterator<Node> it = getMemberNodeIterator();
+    	while (it.hasNext()) {
+    		currentUrl = it.next().getBaseURL();
+    		MNode mn = D1Client.getMN(currentUrl);
+    		printTestHeader("testDescribe() vs. node: " + currentUrl);
+
+    		try {
+    			// TODO: get a valid Identifier
+    			Identifier pid = new Identifier();
+    			pid.setValue(bogusId);
+    			DescribeResponse dr = mn.describe(null,pid);
+    			checkTrue(currentUrl,"describe() returns a DescribeResponse object", dr != null);
+    		} 
+    		catch (BaseException e) {
+    			handleFail(currentUrl,e.getDescription());
+    		}
+    		catch(Exception e) {
+    			e.printStackTrace();
+    			handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+    		}
+    	}
+    }
+
+    @Test
+    public void testGetChecksum() {
+       	Iterator<Node> it = getMemberNodeIterator();
+    	while (it.hasNext()) {
+    		currentUrl = it.next().getBaseURL();
+    		MNode mn = D1Client.getMN(currentUrl);
+    		printTestHeader("testDescribe() vs. node: " + currentUrl);
+
+    		try {
+    			// TODO: get a valid Identifier
+    			Identifier pid = new Identifier();
+    			pid.setValue(bogusId);
+    			
+    			// TODO: change method getChecksum parameter from String to ChecksumAlgorithm
+    			// what does that parameter do anyway?
+    			Checksum cs = mn.getChecksum(null,pid,ChecksumAlgorithm.MD5.toString());
+    			checkTrue(currentUrl,"getChecksum() returns a Checksum object", cs != null);
+    		} 
+    		catch (BaseException e) {
+    			handleFail(currentUrl,e.getDescription());
+    		}
+    		catch(Exception e) {
+    			e.printStackTrace();
+    			handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+    		}
+    	}
+    }
+    
+    
+    @Test
+    public void testListObjects() {
+       	Iterator<Node> it = getMemberNodeIterator();
+    	while (it.hasNext()) {
+    		currentUrl = it.next().getBaseURL();
+    		MNode mn = D1Client.getMN(currentUrl);
+    		printTestHeader("testListObjects() vs. node: " + currentUrl);
+
+    		try {
+    			ObjectList ls = mn.listObjects();
+    			checkTrue(currentUrl,"listObjects() returns an ObjectList", ls != null);
+    			
+    			Date startTime = new Date(System.currentTimeMillis() - 10 * 60 * 1000);
+				Date endTime = new Date(System.currentTimeMillis() - 1 * 60 * 1000);
+				ObjectFormatIdentifier formatId = new ObjectFormatIdentifier();
+				formatId.setValue(format_text_csv);
+    			Boolean replicaStatus = true;
+				ls = mn.listObjects(null, startTime, endTime, 
+						formatId, replicaStatus , 
+						Integer.valueOf(0),
+						Integer.valueOf(10));
+    			checkTrue(currentUrl,"listObjects(<parameters>) returns an ObjectList", ls != null);
+    		} 
+    		catch (BaseException e) {
+    			handleFail(currentUrl,e.getDescription());
+    		}
+    		catch(Exception e) {
+    			e.printStackTrace();
+    			handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+    		}
+    	}
+    }
+    
+    
+    @Test
+    public void testSynchronizationFailed() {
+       	Iterator<Node> it = getMemberNodeIterator();
+    	while (it.hasNext()) {
+    		currentUrl = it.next().getBaseURL();
+    		MNode mn = D1Client.getMN(currentUrl);
+    		printTestHeader("testSynchronizationFailed() vs. node: " + currentUrl);
+
+    		try {
+    			mn.synchronizationFailed(null, new SynchronizationFailed("0","a message"));
+    			checkTrue(currentUrl,"synchronizationFailed() does not throw exception", true);
+    		} 
+    		catch (BaseException e) {
+    			handleFail(currentUrl,e.getDescription());
+    		}
+    		catch(Exception e) {
+    			e.printStackTrace();
+    			handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+    		}
+    	}
     }
 }
