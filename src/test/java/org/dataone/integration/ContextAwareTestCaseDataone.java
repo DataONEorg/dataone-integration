@@ -17,6 +17,7 @@ import org.apache.commons.logging.LogFactory;
 import org.dataone.client.CNode;
 import org.dataone.client.D1Client;
 import org.dataone.configuration.Settings;
+import org.dataone.configuration.TestSettings;
 import org.dataone.service.types.AccessPolicy;
 import org.dataone.service.types.AccessRule;
 import org.dataone.service.types.Node;
@@ -72,13 +73,13 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 		if (!alreadySetup) {
 			alreadySetup = true;
 			
-			testContext = Settings.getConfiguration().getString(Settings.OPTIONAL_PROPERTY_CONTEXT_LABEL);			
+			testContext = Settings.getConfiguration().getString(TestSettings.CONTEXT_LABEL);			
 			cnBaseUrl = Settings.getConfiguration().getString(PARAM_CN_URL);
 			mnBaseUrl = Settings.getConfiguration().getString(PARAM_MN_URL);
 			nodelistUri = Settings.getConfiguration().getString(PARAM_NODELIST_URI);
 
 			log.debug("context: " + testContext);
-			log.debug("overrides from: " + Settings.getConfiguration().getString(Settings.OPTIONAL_PROPERTY_PROPERTIES_FILENAME));
+			log.debug("overrides from: " + Settings.getConfiguration().getString(TestSettings.CONTEXT_OVERRIDE_URI));
 		
 
 			if (mnBaseUrl != null) {
