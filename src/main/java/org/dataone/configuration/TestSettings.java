@@ -21,77 +21,122 @@ public class TestSettings {
 	public static String CONTEXT_MN_URL       = "context.mn.baseurl";
 	
 
-	
+	/**
+	 * set up the test configurations, following some simple logic:
+	 * 1. if CONTEXT_OVERRIDE_URI supplied as parameter (via system or environment)
+	 *       load that file first (will override any other properties loaded later)
+	 * 2. if one of CONTEXT_LABEL, CONTEXT_NODELIST_URI or CONTEXT_MN_URL, 
+	 *       load default test properties files supplied with the code
+	 *   (resources/org/dataone/configuration/context.<CONTEXT_LABEL_VALUE>.test.properties)
+	 * 3. load the default.common.properties file
+	 * 
+	 * @return the Configuration object
+	 * 
+	 * @throws ConfigurationException - when anything goes wrong, so as not to 
+	 *              revert to a production setting when mistakes in test settings.
+	 */
 	public static Configuration getConfiguration() throws ConfigurationException {
 		
 		CompositeConfiguration configuration = new CompositeConfiguration();
-
-		// look for certain context properties in System and Environment properties
-
-
-
-		
-		
-
 		
 		// ----- get and process the optional properties file ------- //
-		String propsFile = System.getProperty(CONTEXT_OVERRIDE_URI, System.getenv(CONTEXT_OVERRIDE_URI));
+		configuration.setProperty(CONTEXT_OVERRIDE_URI,		
+				System.getProperty(CONTEXT_OVERRIDE_URI, System.getenv(CONTEXT_OVERRIDE_URI)));
+		String propsFile = configuration.getString(CONTEXT_OVERRIDE_URI);
 		
-		if (propsFile != null && propsFile.trim().length() > 0) {
-			log.info("overriding properties file detected: " + propsFile);
-    	
-			URL url = TestSettings.class.getClassLoader().getResource(propsFile);
+		if (propsFile != null) {
+			log.info("overriding properties file detected: " + propsFile);    	
+			loadConfigurationFile(configuration, propsFile, false);
+		}
+			
+		// consolidate sys/env properties into the configuration
+		// these override any in the override file loaded from above
+		configuration.setProperty(CONTEXT_LABEL, 
+				System.getProperty(CONTEXT_LABEL, System.getenv(CONTEXT_LABEL)));
+		configuration.setProperty(CONTEXT_MN_URL,
+				System.getProperty(CONTEXT_MN_URL,System.getenv(CONTEXT_MN_URL)));
+		configuration.setProperty(CONTEXT_NODELIST_URI,
+				System.getProperty(CONTEXT_NODELIST_URI,System.getenv(CONTEXT_NODELIST_URI)));
+				
 		
-			DefaultConfigurationBuilder factory = new DefaultConfigurationBuilder();
-			factory.setURL(url);
-			Configuration config = null;
-			try {
-				config = factory.getConfiguration();
-				configuration.addConfiguration(config);
-//				configuration.addConfiguration(new PropertiesConfiguration(url));
-			} catch (ConfigurationException e) {
-				log.error("Problem loading optional overriding configurationat: '" + 
-						url + "':: " + e.getMessage());
-				throw e;
-			}
-		} 
-		
-		
-		// TODO: find a better way to set the default context - we don't want to put config files
-		// in d1_common_java (too many rebuilds), but then we shouldn't really be setting the 
-		// default context here - it needs to be managed in the same package that holds
-		// the context files.  Yes?
 		
 		// now load designated context-specific properties file
 		// the context passed in from the system properties (or environment) take precedence
-		String context =   System.getProperty(CONTEXT_LABEL, System.getenv(CONTEXT_LABEL));
-		if (context == null) {
-			// look in overriding configuration
-			context = configuration.getString(CONTEXT_LABEL);
-			if (context == null) {
-				String mnBaseUrl = System.getProperty(CONTEXT_MN_URL,System.getenv(CONTEXT_MN_URL));
-				String nodelistFile = System.getProperty(CONTEXT_NODELIST_URI,System.getenv(CONTEXT_NODELIST_URI));
-				if (mnBaseUrl != null) {
-					context = "SINGLE_MN";
-				} else {
-					if (nodelistFile != null) {
-						context = "CUSTOM_NODELIST";
-					}
-				}
-			}
-				context = "LOCAL";
-		}
-		URL url = Settings.class.getClassLoader().getResource(STD_CONFIG_PATH + "/default." + context + ".test.properties");
-		if (url != null ) {
-			try {
-				configuration.addConfiguration(new PropertiesConfiguration(url));
-			} catch (ConfigurationException e) {
-				System.out.println("configuration exception on optional context: " + url + ": " + e.getMessage());
-				log.error("ConfigurationException encountered while loading configuration: " + url, e);
-			}
-		}
+		String contextLabel = determineContext(configuration);
+		if (contextLabel != null) {
+			String fileName = STD_CONFIG_PATH + "/context." + contextLabel + ".test.properties";
+			log.info("attempting to load context-specific configuration file (context " + 
+					contextLabel + "): " + fileName);
 
-		return configuration;
+			if (contextLabel.equals("SINGLE_MN") || contextLabel.equals("CUSTOM_NODELIST")) {
+				try {
+					loadConfigurationFile(configuration, fileName,true);
+				} catch (ConfigurationException ce)  {
+					// let it fail, because not always one there for these parameters...
+				}
+			} else if (contextLabel != null) {
+				log.info("attempting to load context-specific configuration file (context " + 
+						contextLabel + "): " + fileName);
+				loadConfigurationFile(configuration, fileName,false);
+			}
+		}
 		
+		// ------ finally load the common configurations  ----- //
+		String fileName = STD_CONFIG_PATH + "/default.common.test.properties";
+		loadConfigurationFile(configuration,fileName,false);
+		
+		return configuration;
+	}
+
+	
+	private static String determineContext(Configuration config) throws ConfigurationException
+	{		
+		String label = config.getString(CONTEXT_LABEL);
+		String mnBaseUrl = config.getString(CONTEXT_MN_URL);
+		String nodelistFile = config.getString(CONTEXT_NODELIST_URI);
+
+		int count = 0;
+		if (label != null) count++;
+		if (mnBaseUrl != null) count++;
+		if (nodelistFile != null) count++;
+		if (count > 1) {
+			throw new ConfigurationException("Can only set one of properties: " + 
+					CONTEXT_LABEL + ", " + CONTEXT_MN_URL + ", or " + CONTEXT_NODELIST_URI + 
+					".  Number received: " + count);
+		}
+		
+		// CONTEXT_MN_URL overrides CONTEXT_LABEL
+		if (mnBaseUrl != null) {
+			label = "SINGLE_MN";
+		} 
+		if (nodelistFile != null) {
+			label = "CUSTOM_NODELIST";
+		}
+		config.setProperty(CONTEXT_LABEL, label);
+		// can be null...
+		return label;
+	}
+	
+	
+	private static void loadConfigurationFile(CompositeConfiguration configuration, String filename, boolean warnOnly) 
+	throws ConfigurationException  
+	{
+		URL url = TestSettings.class.getClassLoader().getResource(filename);
+		log.info("for file: " + filename);
+		System.out.println("configuration url: " + url);
+		
+		try {
+		configuration.addConfiguration(new PropertiesConfiguration(url));	
+		} catch (ConfigurationException e) {
+			String msg = "Problem loading testing configuration at: '" + 
+				url + "':: " + e.getMessage();
+			
+			if (warnOnly)
+				log.warn(msg);
+			else 
+				log.error(msg);
+			
+			throw e;
+		}
 	}
 }

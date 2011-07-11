@@ -3,12 +3,15 @@ package org.dataone.configuration;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.io.IOException;
 
 import org.apache.commons.configuration.CompositeConfiguration;
 import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.SystemConfiguration;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.Ignore;
 
@@ -16,161 +19,115 @@ import org.junit.Ignore;
 public class TestSettingsTest {
 	
 	/**
-	 * test that system properties set from within the execution thread are
-	 * picked up by SystemConfiguration instantiation.
-	 * (any that are set prior to instantiation of the SystemConfiguration)
-	 * @throws Exception
+	 * Need this one to clean up set system properties that will interfere 
+	 * with how the tests should behave.
 	 */
-//	@Test
-	public void testReadingSystemProperties() throws Exception {
-		String propValue = "dataoneValue";
-		String propKey = "dataoneTest";
-		System.setProperty(propKey,propValue);
-
-		String returnedValue = Settings.getConfiguration().getString(propKey);
-
-		System.out.println(propKey + " = " + returnedValue);
-		assertTrue("Can read the new system property",returnedValue.equals(propValue));
+	@Before
+	public void clearSetSystemProperties() {
+		System.clearProperty(TestSettings.CONTEXT_LABEL);
+		System.clearProperty(TestSettings.CONTEXT_MN_URL);
+		System.clearProperty(TestSettings.CONTEXT_NODELIST_URI);
+		System.clearProperty(TestSettings.CONTEXT_OVERRIDE_URI);
 	}
-
+	
 	
 	/**
-	 * test that system properties set from within the execution thread are
-	 * picked up by the SystemConfiguration object.
-	 * (Specifically, that any that are set after SystemConfiguration are available)
-	 * @throws Exception
+	 * Test that these unit tests can get to a fresh state using the @Before method
+	 * and Settings.getResetConfiguration().
 	 */
-//	@Test
-	public void testReadingSystemProperties_posthoc() throws Exception {
-		String propValue = "dataoneValue2";
-		String propKey = "dataoneTest2";
-		
-		// ensure the config is instantiated 
-		Configuration config = Settings.getConfiguration();
-		
-		System.setProperty(propKey,propValue);
-		
-		String returnedValue = config.getString(propKey);
-		System.out.println(propKey + " = " + returnedValue);
-		assertTrue("Can read the new system property",returnedValue.equals(propValue));
+	@Test
+	public void testResetConfiguration()  {
 
-		String returnedAgain = Settings.getConfiguration().getString(propKey);
-		System.out.println(propKey + " = " + returnedAgain);
-		assertTrue("Can read the new system property",returnedAgain.equals(propValue));
+		System.setProperty(TestSettings.CONTEXT_NODELIST_URI, "foo");
+		String propValue = Settings.getResetConfiguration().getString(TestSettings.CONTEXT_NODELIST_URI);
+		assertEquals("foo", propValue);
+		
+		System.clearProperty(TestSettings.CONTEXT_NODELIST_URI);
+		System.setProperty(TestSettings.CONTEXT_MN_URL, "bar");
+		
+		propValue = Settings.getResetConfiguration().getString(TestSettings.CONTEXT_NODELIST_URI);
+		assertNull(propValue);
+		propValue = Settings.getConfiguration().getString(TestSettings.CONTEXT_MN_URL);
+		assertEquals("bar",propValue);
+				
 	}
-
+	
+	
+	@Test
+	public void testLoadingCommonConfigurations() 
+	{		
+		String propValue = Settings.getResetConfiguration().getString("D1Client.CN_URL");
+		assertEquals("", propValue);
+		
+		propValue = Settings.getConfiguration().getString("dataone.it.propertyFileName");
+		assertEquals("defaultCommonTestProperties", propValue);
+	}
+	
 	
 	/**
 	 * Test lookup from default properties file
 	 */
 	@Test
-	public void testDefault() {
-		String foo = Settings.getConfiguration().getString("test.foo");
-		assertEquals("default", foo);	
+	public void testLoadingContextSpecificByLabel() 
+	{
+		System.setProperty(TestSettings.CONTEXT_LABEL, "DEV");
+		
+		String propValue = Settings.getResetConfiguration().getString(TestSettings.CONTEXT_LABEL);
+		assertEquals("DEV", propValue);	
 	}
 
 	
-	/**
-	 * Test looking up an overridden value
-	 */
 	@Test
-	public void testUser() {
-		String bar = Settings.getConfiguration().getString("test.bar");
-		assertEquals("user", bar);	
-	}
-	
-	
-	/**
-	 * Tests that properties put into system override those in Settings.
-	 */
-//	@Test
-	public void testOverrideWithSystemProperties() {
-		String prop = Settings.getConfiguration().getString("test.systemOverride");
-		assertEquals("user", prop);
-		System.setProperty("test.systemOverride","system");
-		prop = Settings.getConfiguration().getString("test.systemOverride");
-		assertEquals("system", prop);
-
-	}
-	
-	
-	/**
-	 * Test that resetConfiguration can get a property it couldn't before resetting
-	 * 
-	 * @throws ConfigurationException
-	 * @throws IOException
-	 */
-//	@Test
-	public void testResetConfiguration()  {
-
-		Configuration c = Settings.getConfiguration();
-		System.setProperty("opt.overriding.properties.filename", "org/dataone/configuration/optional.properties");
+	public void testLoadingContextSpecificByMN_URL() 
+	{
+		String mnUrl = "http://cn-dev.dataone.org/knb/d1/mn";
+		System.setProperty(TestSettings.CONTEXT_MN_URL, mnUrl);
 		
-		String bangValue = Settings.getConfiguration().getString("test.bang");
-		assertNull(bangValue);
+		String propValue = Settings.getResetConfiguration().getString(TestSettings.CONTEXT_LABEL);
+		assertEquals("SINGLE_MN", propValue);
 		
-		bangValue = Settings.getResetConfiguration().getString("test.bang");
-		assertEquals("optional",bangValue);
+		propValue = Settings.getConfiguration().getString(TestSettings.CONTEXT_MN_URL);
+		assertEquals(mnUrl, propValue);
 	}
 
+	
+	@Test
+	public void testLoadingContextSpecificByNodelistUri() 
+	{
+		String nodelist = "http://cn-dev.dataone.org/cn/node";
+		System.setProperty(TestSettings.CONTEXT_NODELIST_URI, nodelist);
+		
+		String propValue = Settings.getResetConfiguration().getString(TestSettings.CONTEXT_LABEL);
+		assertEquals("CUSTOM_NODELIST", propValue);
+		
+		propValue = Settings.getConfiguration().getString(TestSettings.CONTEXT_NODELIST_URI);
+		assertEquals(nodelist, propValue);
+	}
+	
 	
 	/**
 	 * Include an optional properties file using System property:
-	 * -Dopt.overriding.properties.filename=optional.properties
-	 * 
 	 */
-//	@Test
+	@Test
 	public void testOptionalFile_overrides() {
-		System.setProperty("opt.overriding.properties.filename", "org/dataone/configuration/optional.properties");
-		String bar = Settings.getResetConfiguration().getString("test.bar");
-		System.out.println("test.bar = " + bar);
-		assertEquals(bar,"optional");	
+		System.setProperty(TestSettings.CONTEXT_OVERRIDE_URI, "org/dataone/configuration/overriding.properties");
+		String propValue = Settings.getResetConfiguration().getString("dataone.it.propertyFileName");
+		assertEquals("superSpecialOverridingProperties",propValue);
 	}
 	
 	
-	/**
-	 * because interpolation of the property file only happens when the 
-	 * configuration is built (during first getConfiguration() call), setting 
-	 * a system property with the optional.properties.file after that first
-	 * getConfig() call should not do anything.  Confirming this behavior
-	 * in this test. 
-	 * 
-	 * @throws ConfigurationException
-	 * @throws IOException
-	 */
-//	@Test
-	public void testOptionalFile_lateLoadingProblem() {
 
-		System.setProperty("opt.overriding.properties.filename", "");
-		Configuration c = Settings.getResetConfiguration();
-		System.setProperty("opt.overriding.properties.filename", "org/dataone/configuration/optional.properties");
+	@Test
+	public void testBadParameterCombinationHandling() {
 		
-		String bangValue = Settings.getConfiguration().getString("test.bang");
-		System.out.println("test.bang = " + bangValue);
-		assertNull(bangValue);
-		
-		bangValue = Settings.getResetConfiguration().getString("test.bang");
-		System.out.println("test.bang = " + bangValue);
-		assertEquals(bangValue,"optional");
+		System.setProperty(TestSettings.CONTEXT_LABEL, "foo");
+		System.setProperty(TestSettings.CONTEXT_MN_URL, "bar");
+		try {
+			Settings.getConfiguration();
+			fail("should not get here, should throw exception");
+		} catch (Exception e) {
+			assertEquals(ConfigurationException.class,e);
+		}
 	}
 	
-//	@Ignore("not throwing configuration errors")
-//	@Test
-//	public void testBadOptionalFile_exceptionHandling() {
-//		
-//		System.setProperty("optional.properties.filename", "nonexistent.properties");	
-//		try {
-//			
-//			System.out.println("1) " + Settings.getConfiguration().getString("optional.properties.filename"));
-//			assertEquals(Settings.getConfiguration().getString("test.foo"),"default");
-//			fail("Should throw exception before reaching here");
-//		} catch (ConfigurationException e) {
-//			System.out.println("threw ConfigException");
-//			assertTrue("exception properly caught",true);
-//		} catch (IOException e) {
-//			System.out.println("threw IOException");
-//			assertTrue("exception properly caught",true);
-//		}
-//	}
-//	
 }
