@@ -116,7 +116,7 @@ public class TestSettingsTest {
 	}
 	
 	
-
+	@Ignore("need different test - not throwing exception by design")
 	@Test
 	public void testBadParameterCombinationHandling() {
 		
