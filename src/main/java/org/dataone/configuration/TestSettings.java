@@ -132,8 +132,8 @@ public class TestSettings {
 		} else {
 			url = TestSettings.class.getClassLoader().getResource(filename);
 		}
-		System.out.println("resource: " + filename);
-		System.out.println("configuration url: " + url);
+		log.info("resource: " + filename);
+		log.info("configuration url: " + url);
 		
 		try {
 			configuration.addConfiguration(new PropertiesConfiguration(url));	

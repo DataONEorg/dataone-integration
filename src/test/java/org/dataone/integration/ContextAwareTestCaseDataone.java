@@ -72,15 +72,16 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 		// skip setUp steps if already run
 		if (!alreadySetup) {
 			alreadySetup = true;
-			
+					
 			testContext = Settings.getConfiguration().getString(TestSettings.CONTEXT_LABEL);			
 			cnBaseUrl = Settings.getConfiguration().getString(PARAM_CN_URL);
 			mnBaseUrl = Settings.getConfiguration().getString(PARAM_MN_URL);
 			nodelistUri = Settings.getConfiguration().getString(PARAM_NODELIST_URI);
-
-			log.debug("context: " + testContext);
-			log.debug("overrides from: " + Settings.getConfiguration().getString(TestSettings.CONTEXT_OVERRIDE_URI));
-		
+			
+			log.info("****************************************************");
+			log.info("**  context:   " + testContext);
+			log.info("**  overrides: " + Settings.getConfiguration().getString(TestSettings.CONTEXT_OVERRIDE_URI));
+			log.info("****************************************************");
 
 			if (mnBaseUrl != null) {
 				// the context is standalone member node
