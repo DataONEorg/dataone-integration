@@ -3,14 +3,12 @@ package org.dataone.configuration;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
-import java.io.IOException;
+import java.io.File;
+import java.io.InputStream;
+import java.util.Date;
 
-import org.apache.commons.configuration.CompositeConfiguration;
-import org.apache.commons.configuration.Configuration;
-import org.apache.commons.configuration.ConfigurationException;
-import org.apache.commons.configuration.SystemConfiguration;
+import org.dataone.service.Constants;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.Ignore;
@@ -115,19 +113,53 @@ public class TestSettingsTest {
 		assertEquals("superSpecialOverridingProperties",propValue);
 	}
 	
+	@Ignore("haven't universalized this test yet")
+	@Test
+	public void testOptionalFile_overrides_fullPath() {
+		
+		// copy file to /tmp/
+		Date d = new Date();
+		File tmpDir = new File(Constants.TEMP_DIR);
+		File outputFile = new File(tmpDir, "propFile." + d.getTime() + ".properties");
+		String afp = outputFile.getAbsolutePath();
+		InputStream is = TestSettingsTest.class.getClassLoader().getResourceAsStream("org/dataone/configuration/overriding.properties");
+		
+		String filePath = "file:/Users/rnahf/projects/d1_integration/target/test-classes/org/dataone/configuration/overriding.properties";
+		System.setProperty(TestSettings.CONTEXT_OVERRIDE_URI, filePath);
+		String propValue = Settings.getResetConfiguration().getString("dataone.it.propertyFileName");
+		assertEquals("superSpecialOverridingProperties",propValue);
+	}
 	
-	@Ignore("need different test - not throwing exception by design")
 	@Test
 	public void testBadParameterCombinationHandling() {
 		
 		System.setProperty(TestSettings.CONTEXT_LABEL, "foo");
 		System.setProperty(TestSettings.CONTEXT_MN_URL, "bar");
-		try {
-			Settings.getConfiguration();
-			fail("should not get here, should throw exception");
-		} catch (Exception e) {
-			assertEquals(ConfigurationException.class,e);
-		}
+		String propValue = Settings.getResetConfiguration().getString("dataone.it.propertyFileName");
+		assertTrue("a common property was non loaded", propValue == null);
 	}
+
+	
+	@Test
+	public void testBadFilenameExceptionHandling() {
+		System.setProperty(TestSettings.CONTEXT_OVERRIDE_URI, "blippity blap");
+		String propValue = Settings.getResetConfiguration().getString("dataone.it.propertyFileName");
+		assertTrue("bad url causes no properties to be loaded", propValue == null);
+	}
+		
+	
+	/**
+	 * this test should fail to load any test configurations into the configuration,
+	 * and also hide the value of D1Client.CN_URL (that contains the production value) 
+	 */
+	@Test
+	public void testContextSafetyOnError() {
+		System.setProperty(TestSettings.CONTEXT_OVERRIDE_URI, "blippity blap");
+		// get a value from the default-common settings
+		String propValue = Settings.getResetConfiguration().getString("dataone.it.propertyFileName");
+		
+		String prodCNurl = Settings.getResetConfiguration().getString("D1Client.CN_URL");		
+		assertNull("D1Client.CN_URL value should be null",prodCNurl);
+	}	
 	
 }

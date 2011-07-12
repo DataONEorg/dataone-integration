@@ -1,5 +1,6 @@
 package org.dataone.configuration;
 
+import java.net.MalformedURLException;
 import java.net.URL;
 
 import org.apache.commons.configuration.CompositeConfiguration;
@@ -72,7 +73,8 @@ public class TestSettings {
 				try {
 					loadConfigurationFile(configuration, fileName,true);
 				} catch (ConfigurationException ce)  {
-					// let it fail, because not always one there for these parameters...
+					// let it fail to load and keep going, 
+					// because there's not always one there for these labels...
 				}
 			} else if (contextLabel != null) {
 				log.info("attempting to load context-specific configuration file (context " + 
@@ -121,12 +123,20 @@ public class TestSettings {
 	private static void loadConfigurationFile(CompositeConfiguration configuration, String filename, boolean warnOnly) 
 	throws ConfigurationException  
 	{
-		URL url = TestSettings.class.getClassLoader().getResource(filename);
-		log.info("for file: " + filename);
+		URL url = null;
+		if (filename.startsWith("file:")) {
+			try {
+				url = new URL(filename);
+			} catch (MalformedURLException e) {
+			}
+		} else {
+			url = TestSettings.class.getClassLoader().getResource(filename);
+		}
+		System.out.println("resource: " + filename);
 		System.out.println("configuration url: " + url);
 		
 		try {
-		configuration.addConfiguration(new PropertiesConfiguration(url));	
+			configuration.addConfiguration(new PropertiesConfiguration(url));	
 		} catch (ConfigurationException e) {
 			String msg = "Problem loading testing configuration at: '" + 
 				url + "':: " + e.getMessage();
