@@ -23,6 +23,7 @@ package org.dataone.integration;
 import java.io.InputStream;
 import java.util.Date;
 import java.util.Iterator;
+import java.util.Map;
 
 import org.dataone.client.D1Client;
 import org.dataone.client.MNode;
@@ -38,10 +39,12 @@ import org.dataone.service.types.LogEntry;
 import org.dataone.service.types.MonitorList;
 import org.dataone.service.types.Node;
 import org.dataone.service.types.ObjectFormatIdentifier;
+import org.dataone.service.types.ObjectInfo;
 import org.dataone.service.types.ObjectList;
 import org.dataone.service.types.Permission;
 import org.dataone.service.types.Subject;
 import org.dataone.service.types.SystemMetadata;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -63,28 +66,60 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     private static final String bogusId = "foobarbaz214";
 
     private static String currentUrl;
-
+    
+    private static Map<String,ObjectList> listedObjects;
     
 
 	@Override
 	protected String getTestDescription() {
 		return "Test Case that runs through the Member Node Tier 1 API methods";
 	}
-    
+
+	/**
+	 * pre-fetch an ObjectList from each member node on the list, to allow testing gets
+	 * without creating new objects.
+	 */
+	@Before
+	public void prefetchObjects() {
+		
+		if (listedObjects == null) {
+			Iterator<Node> it = getMemberNodeIterator();
+			while (it.hasNext()) {
+				currentUrl = it.next().getBaseURL();
+				MNode mn = D1Client.getMN(currentUrl);
+				try {
+					ObjectList ol = mn.listObjects(null, null, null, null, null, 0, 10);
+					listedObjects.put(currentUrl, ol);
+				} 
+				catch (BaseException e) {
+					handleFail(currentUrl,e.getDescription());
+				}
+				catch(Exception e) {
+					log.warn(e.getClass().getName() + ": " + e.getMessage());
+				}	
+			}
+		}
+	}
 	
-//	@BeforeClass
-//	public static void overrideContext() {		
-//		System.out.println("::::: " + Settings.getConfiguration().getString(PARAM_MN_URL));
-//		System.setProperty(PARAM_MN_URL, "http://cn-dev.dataone.org/knb/d1/mn");
-//		System.out.println("overriding the Context");
-//	}
 	
-    @Test
+	private ObjectInfo getPrefetchedObject(String currentUrl, Integer index)
+	{
+		if (index == null) 
+			index = new Integer(0);
+		if (index < 0) {
+			// return off the right end of the list
+			index = listedObjects.get(currentUrl).getCount() - index;
+		}
+		return listedObjects.get(currentUrl).getObjectInfo(index);
+	}
+	
+	
+//    @Test
     public void testSetup() {
-    	System.out.println("text/csv: " + format_text_csv);//.getFormatName());
-    	System.out.println("text_eml_200: " + format_eml_200);//.getFormatName());
-    	System.out.println("text_eml_201: " + format_eml_201);//.getFormatName());
-    	System.out.println("text_eml_210: " + format_eml_210);//.getFormatName());
+    	System.out.println("text/csv: " + format_text_csv);
+    	System.out.println("text_eml_200: " + format_eml_200);
+    	System.out.println("text_eml_201: " + format_eml_201);
+    	System.out.println("text_eml_210: " + format_eml_210);
     	System.out.println("done");
     }
 	
@@ -255,12 +290,15 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     		printTestHeader("testGet() vs. node: " + currentUrl);
 
     		try {
-    			// TODO: get a valid Identifier
-    			Identifier pid = new Identifier();
-    			pid.setValue(bogusId);
-    			InputStream is = mn.get(null,pid);
-    			checkTrue(currentUrl,"get() returns an objectStream", is != null);
-    		} 
+    			ObjectInfo oi = getPrefetchedObject(currentUrl,0);    			
+    			if (oi != null) {
+    				log.debug("   pid = " + oi.getIdentifier());
+    				InputStream is = mn.get(null,oi.getIdentifier());
+    				checkTrue(currentUrl,"get() returns an objectStream", is != null);
+    			} else {
+					handleFail(currentUrl,"No Objects available to test against");
+    			}
+    		}
     		catch (BaseException e) {
     			handleFail(currentUrl,e.getDescription());
     		}
@@ -281,11 +319,14 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     		printTestHeader("testGetSystemMetadata() vs. node: " + currentUrl);
 
     		try {
-    			// TODO: get a valid Identifier
-    			Identifier pid = new Identifier();
-    			pid.setValue(bogusId);
-    			SystemMetadata smd = mn.getSystemMetadata(null,pid);
-    			checkTrue(currentUrl,"getSystemMetadata() returns a SystemMetadata object", smd != null);
+    			ObjectInfo oi = getPrefetchedObject(currentUrl,0);
+    			if (oi != null) {
+    				log.debug("   pid = " + oi.getIdentifier());
+    				SystemMetadata smd = mn.getSystemMetadata(null,oi.getIdentifier());
+    				checkTrue(currentUrl,"getSystemMetadata() returns a SystemMetadata object", smd != null);
+    			} else {
+    				handleFail(currentUrl,"No Objects available to test against");
+    			}
     		} 
     		catch (BaseException e) {
     			handleFail(currentUrl,e.getDescription());
@@ -307,11 +348,15 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     		printTestHeader("testDescribe() vs. node: " + currentUrl);
 
     		try {
-    			// TODO: get a valid Identifier
-    			Identifier pid = new Identifier();
-    			pid.setValue(bogusId);
-    			DescribeResponse dr = mn.describe(null,pid);
-    			checkTrue(currentUrl,"describe() returns a DescribeResponse object", dr != null);
+    			ObjectInfo oi = getPrefetchedObject(currentUrl,0);
+    			if (oi != null) {
+    				log.debug("   pid = " + oi.getIdentifier());
+    				
+    				DescribeResponse dr = mn.describe(null,oi.getIdentifier());
+    				checkTrue(currentUrl,"describe() returns a DescribeResponse object", dr != null);
+    			} else {
+    				handleFail(currentUrl,"No Objects available to test against");
+    			}	
     		} 
     		catch (BaseException e) {
     			handleFail(currentUrl,e.getDescription());
@@ -332,14 +377,15 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     		printTestHeader("testDescribe() vs. node: " + currentUrl);
 
     		try {
-    			// TODO: get a valid Identifier
-    			Identifier pid = new Identifier();
-    			pid.setValue(bogusId);
-    			
-    			// TODO: change method getChecksum parameter from String to ChecksumAlgorithm
-    			// what does that parameter do anyway?
-    			Checksum cs = mn.getChecksum(null,pid,ChecksumAlgorithm.MD5.toString());
-    			checkTrue(currentUrl,"getChecksum() returns a Checksum object", cs != null);
+    			ObjectInfo oi = getPrefetchedObject(currentUrl,0);
+    			if (oi != null) {
+    				log.debug("   pid = " + oi.getIdentifier());
+    				
+    				Checksum cs = mn.getChecksum(null,oi.getIdentifier(),ChecksumAlgorithm.MD5.toString());
+    				checkTrue(currentUrl,"getChecksum() returns a Checksum object", cs != null);
+    			} else {
+    				handleFail(currentUrl,"No Objects available to test against");
+    			}
     		} 
     		catch (BaseException e) {
     			handleFail(currentUrl,e.getDescription());
