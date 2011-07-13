@@ -22,12 +22,14 @@ package org.dataone.integration;
 
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.Iterator;
+import java.util.List;
 
 import org.dataone.client.D1Client;
 import org.dataone.client.MNode;
@@ -169,10 +171,24 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 	  		String newIdentifierStr = ExampleUtilities.generateIdentifier();
 	      newPid = new Identifier();
 	      newPid.setValue("mNodeTier3TestUpdate" + newIdentifierStr);
+	      SystemMetadata newSysMeta = mn.getSystemMetadata(session, pid);
 	      
+	      // update the obsoletesList
+	      newSysMeta.addObsolete(pid);
+	      
+	      // update the derivedFrom list
+	      newSysMeta.addDerivedFrom(pid);
+	      
+	      // do the update
 	      Identifier updatedPid = 
 	      	mn.update(session, pid, textPlainSource, newPid, sysMeta);
+	      
+	      // get the updated system metadata
+	      SystemMetadata updatedSysMeta = mn.getSystemMetadata(session, updatedPid);
+	      
 	      assertEquals(newPid, updatedPid);
+	      assertTrue(updatedSysMeta.getObsolete(0).getValue().equals(pid));
+	      assertTrue(updatedSysMeta.getDerivedFrom(0).getValue().equals(pid));	      
       
 			} catch (UnsupportedEncodingException e) {
   	    fail("Unexpected error: " + e.getMessage());
