@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -52,6 +53,7 @@ import org.dataone.service.exceptions.UnsupportedType;
 import org.dataone.service.impl.ObjectFormatServiceImpl;
 import org.dataone.service.types.Checksum;
 import org.dataone.service.types.ChecksumAlgorithm;
+import org.dataone.service.types.Group;
 import org.dataone.service.types.Identifier;
 import org.dataone.service.types.NodeReference;
 import org.dataone.service.types.ObjectFormat;
@@ -62,6 +64,7 @@ import org.dataone.service.types.Replica;
 import org.dataone.service.types.ReplicationStatus;
 import org.dataone.service.types.Session;
 import org.dataone.service.types.Subject;
+import org.dataone.service.types.SubjectList;
 import org.dataone.service.types.SystemMetadata;
 import org.dataone.service.types.util.ServiceTypeUtil;
 
@@ -530,8 +533,36 @@ public class ExampleUtilities {
 		InputStream is = mn.get(null,guid);
 		return rGuid;
 	}
-   
-
+  
+	/**
+	 * Utility method for getting a mock session object
+	 * 
+	 * @return session - the session object with a Subject set and 
+	 */
+  protected static Session getTestSession() {
+		
+  	Session session = new Session();
+  	String subjectStr  = "uid=kepler,o=unaffiliated,dc=ecoinformatics,dc=org";
+  	List<Group> groupList= new ArrayList<Group>();
+  	Group group1 = new Group();
+  	group1.setGroupName("cn=test-group,dc=ecoinformatics,dc=org");
+  	groupList.add(group1);
+  	Group group2 = new Group();
+  	group1.setGroupName("cn=test-group2,dc=ecoinformatics,dc=org");
+  	groupList.add(group2);
+  	
+  	Subject subject = new Subject();
+  	subject.setValue(subjectStr);
+  	SubjectList subjectList = new SubjectList();
+  	subjectList.setGroupList(groupList);
+  	
+  	session.setSubject(subject);
+  	session.setSubjectList(subjectList);
+  	
+  	return session;
+  	
+  }
+	
 	protected static int countLocationsWithResolve(CNode cn, Identifier pid) throws InvalidToken, ServiceFailure,
 	NotAuthorized, NotFound, InvalidRequest, NotImplemented {
 
