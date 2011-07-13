@@ -22,8 +22,10 @@ package org.dataone.integration;
 
 import java.io.InputStream;
 import java.util.Date;
+import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Vector;
 
 import org.dataone.client.D1Client;
 import org.dataone.client.MNode;
@@ -81,8 +83,8 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
 	 */
 	@Before
 	public void prefetchObjects() {
-		
 		if (listedObjects == null) {
+			listedObjects = new Hashtable<String,ObjectList>();
 			Iterator<Node> it = getMemberNodeIterator();
 			while (it.hasNext()) {
 				currentUrl = it.next().getBaseURL();
@@ -108,7 +110,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
 			index = new Integer(0);
 		if (index < 0) {
 			// return off the right end of the list
-			index = listedObjects.get(currentUrl).getCount() - index;
+			index = listedObjects.get(currentUrl).getCount() + index;
 		}
 		return listedObjects.get(currentUrl).getObjectInfo(index);
 	}
@@ -291,13 +293,12 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
 
     		try {
     			ObjectInfo oi = getPrefetchedObject(currentUrl,0);    			
-    			if (oi != null) {
-    				log.debug("   pid = " + oi.getIdentifier());
-    				InputStream is = mn.get(null,oi.getIdentifier());
-    				checkTrue(currentUrl,"get() returns an objectStream", is != null);
-    			} else {
-					handleFail(currentUrl,"No Objects available to test against");
-    			}
+    			log.debug("   pid = " + oi.getIdentifier());
+    			InputStream is = mn.get(null,oi.getIdentifier());
+    			checkTrue(currentUrl,"get() returns an objectStream", is != null);
+    		}
+    		catch (IndexOutOfBoundsException e) {
+    			handleFail(currentUrl,"No Objects available to test against");
     		}
     		catch (BaseException e) {
     			handleFail(currentUrl,e.getDescription());
@@ -320,14 +321,13 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
 
     		try {
     			ObjectInfo oi = getPrefetchedObject(currentUrl,0);
-    			if (oi != null) {
-    				log.debug("   pid = " + oi.getIdentifier());
-    				SystemMetadata smd = mn.getSystemMetadata(null,oi.getIdentifier());
-    				checkTrue(currentUrl,"getSystemMetadata() returns a SystemMetadata object", smd != null);
-    			} else {
-    				handleFail(currentUrl,"No Objects available to test against");
-    			}
+    			log.debug("   pid = " + oi.getIdentifier());
+    			SystemMetadata smd = mn.getSystemMetadata(null,oi.getIdentifier());
+    			checkTrue(currentUrl,"getSystemMetadata() returns a SystemMetadata object", smd != null);
     		} 
+    		catch (IndexOutOfBoundsException e) {
+    			handleFail(currentUrl,"No Objects available to test against");
+    		}
     		catch (BaseException e) {
     			handleFail(currentUrl,e.getDescription());
     		}
@@ -349,15 +349,13 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
 
     		try {
     			ObjectInfo oi = getPrefetchedObject(currentUrl,0);
-    			if (oi != null) {
-    				log.debug("   pid = " + oi.getIdentifier());
-    				
-    				DescribeResponse dr = mn.describe(null,oi.getIdentifier());
-    				checkTrue(currentUrl,"describe() returns a DescribeResponse object", dr != null);
-    			} else {
-    				handleFail(currentUrl,"No Objects available to test against");
-    			}	
+    			log.debug("   pid = " + oi.getIdentifier());    				
+    			DescribeResponse dr = mn.describe(null,oi.getIdentifier());
+    			checkTrue(currentUrl,"describe() returns a DescribeResponse object", dr != null);	
     		} 
+    		catch (IndexOutOfBoundsException e) {
+    			handleFail(currentUrl,"No Objects available to test against");
+    		}
     		catch (BaseException e) {
     			handleFail(currentUrl,e.getDescription());
     		}
@@ -378,15 +376,13 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
 
     		try {
     			ObjectInfo oi = getPrefetchedObject(currentUrl,0);
-    			if (oi != null) {
-    				log.debug("   pid = " + oi.getIdentifier());
-    				
-    				Checksum cs = mn.getChecksum(null,oi.getIdentifier(),ChecksumAlgorithm.MD5.toString());
-    				checkTrue(currentUrl,"getChecksum() returns a Checksum object", cs != null);
-    			} else {
-    				handleFail(currentUrl,"No Objects available to test against");
-    			}
+    			log.debug("   pid = " + oi.getIdentifier());				
+    			Checksum cs = mn.getChecksum(null,oi.getIdentifier(),ChecksumAlgorithm.MD5.toString());
+    			checkTrue(currentUrl,"getChecksum() returns a Checksum object", cs != null);
     		} 
+    		catch (IndexOutOfBoundsException e) {
+    			handleFail(currentUrl,"No Objects available to test against");
+    		}
     		catch (BaseException e) {
     			handleFail(currentUrl,e.getDescription());
     		}
