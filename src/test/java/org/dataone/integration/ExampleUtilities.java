@@ -60,6 +60,7 @@ import org.dataone.service.types.ObjectFormat;
 import org.dataone.service.types.ObjectFormatIdentifier;
 import org.dataone.service.types.ObjectLocation;
 import org.dataone.service.types.ObjectLocationList;
+import org.dataone.service.types.Person;
 import org.dataone.service.types.Replica;
 import org.dataone.service.types.ReplicationStatus;
 import org.dataone.service.types.Session;
@@ -177,6 +178,8 @@ public class ExampleUtilities {
 		return accessBlock;
 	}
 
+	
+	
 	/*
 	 * Generates a access rule for given parameter. Note this xml portion
 	 * doesn't include <access></access>
@@ -506,6 +509,25 @@ public class ExampleUtilities {
 			totalPattern = mat.group();
 		return totalPattern;
     }    
+    
+    protected static SubjectList buildSubjectList(Object persons) {
+    	SubjectList sl = new SubjectList();
+    	for(String pString: (String[])persons) {
+    		Person p = new Person();
+    		Subject s = new Subject();
+    		s.setValue(pString);
+    		p.setSubject(s);
+    		
+    		sl.addPerson(p);
+    	}
+    	return sl;
+    }
+    
+    protected static Subject buildSubject(String subjectValue) {
+    	Subject s = new Subject();
+    	s.setValue(subjectValue);
+    	return s;
+    }
     
 	protected static Identifier doCreateNewObject(MNode mn, String idPrefix) throws ServiceFailure,
 	NotImplemented, InvalidToken, NotAuthorized, IdentifierNotUnique, UnsupportedType,
