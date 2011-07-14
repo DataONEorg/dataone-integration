@@ -34,8 +34,9 @@ This package supports test execution from 4 main environments:
     d) from a web browser
 
 It currently supports execution of java-based tests and plans to support running
-the python tests soon.  Except for Running through Eclipse, the surefire maven 
-plugin is used, producing xml reports with execution details. 
+the python tests soon.  Except when running via Eclipse, the surefire maven 
+plugin is used, producing xml reports with execution details. For web tests, the
+html output is produced by custom code listening in on a test run.
 
 See LICENSE.txt for the details of distributing this software.  
 
@@ -44,7 +45,7 @@ Usage:
 Usage for this package follows the Maven WAR packaging lifecycle.  In particular
 
 Running all tests:
- * mvn test   - used to run the webTest unit tests
+ * mvn test   - used to run the unit tests
  * mvn verify - used to run the integration tests
  * mvn install - used to install the WAR in your local maven repository
 
