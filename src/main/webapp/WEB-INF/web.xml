@@ -4,7 +4,7 @@
  <display-name>DataONE Member Node Web Service Test</display-name>
  <servlet>
   <servlet-name>D1TestRunner</servlet-name>
-  <servlet-class>org.dataone.integration.webTest.MavenTestRunnerHttpServlet</servlet-class>
+  <servlet-class>org.dataone.integration.webTest.TestRunnerHttpServlet</servlet-class>
  </servlet>
  <servlet-mapping>
   <servlet-name>D1TestRunner</servlet-name>

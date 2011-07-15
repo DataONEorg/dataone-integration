@@ -1,5 +1,6 @@
 package org.dataone.integration.webTest;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -8,6 +9,8 @@ import java.io.IOException;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 
+import org.dataone.configuration.Settings;
+import org.dataone.configuration.TestSettings;
 import org.junit.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
@@ -16,6 +19,15 @@ import org.springframework.mock.web.MockServletContext;
 
 public class TestingTestRunnerServlet {
 
+//	@Test
+//	public void testSettingsTest() {
+//		System.setProperty(TestSettings.CONTEXT_OVERRIDE_URI, "org/dataone/configuration/overriding.properties");
+//		String classNamePattern = Settings.getConfiguration().getString("webTest.mn.testCase.pattern");
+//		assertEquals("unit testing catches overriding property for 'webTest.mn.testCase.pattern'",
+//				"*MockItCase", classNamePattern);
+//	}
+	
+	
 	@Test
 	public void callServletTest() throws IOException
 	{

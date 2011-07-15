@@ -25,6 +25,7 @@ import nu.xom.ValidityException;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.dataone.configuration.Settings;
 import org.dataone.configuration.TestSettings;
 import org.junit.runner.Description;
 import org.junit.runner.JUnitCore;
@@ -38,19 +39,28 @@ public class TestRunnerHttpServlet extends HttpServlet
 //	private static final String TESTS_DIR = "/WEB-INF/tests";
 	private static final String RESULTS_FILE_TEMPLATE = "/results.html";
 	
-	private static final String TEST_SELECTOR_PATTERN = "*MNodeTier*";
-//	private static final String TEST_SELECTOR_PATTERN = "MockITCase";
+//	private static final String TEST_SELECTOR_PATTERN = Settings.getConfiguration().getString("webTest.mn.testCase.pattern");
+	private static final String TEST_SELECTOR_PATTERN = "*MockITCase";
 	
 	private boolean debug = true;
+	
+	public void doPost(HttpServletRequest req, HttpServletResponse rsp)
+	throws ServletException, IOException {
+		log.debug("Entered TestRunnerHttpServlet.doPost()");
 		
+		doGet(req,rsp);
+	} 
+	
 	/**
 	 * Handles the get call to the servlet and triggers the junit tests run
 	 */
 	public void doGet(HttpServletRequest req, HttpServletResponse rsp)
 	throws ServletException, IOException {
-				
+		log.debug("Entered TestRunnerHttpServlet.doGet()");
+		
 		if (req.getParameter("mNodeUrl") != null) {
 			try {
+				rsp.setContentType("text/html; charset=UTF-8");
 				executeJUnitRun(req.getParameter("mNodeUrl"), rsp.getOutputStream());
 			} catch (ClassNotFoundException e) {
 				throw new ServletException("Internal Configuration problem: Test classes Not Found",e);
@@ -214,7 +224,7 @@ public class TestRunnerHttpServlet extends HttpServlet
 			if (pattern == null || compareToStarPattern(pattern,className)) {
 				if (!className.equals("TestRunnerHttpServlet") ||
 						className.contains("webTest")) {
-					log.debug("Found class: " + testClass.getName());
+					log.info("Registering class: " + testClass.getName());
 					matchingClasses.add(testClass);
 				}
 			}
@@ -282,19 +292,19 @@ public class TestRunnerHttpServlet extends HttpServlet
 			pattern = pattern.substring(1);
 			if (pattern.endsWith("*")) {
 				pattern = pattern.substring(0,pattern.length()-1);
-				log.debug("  pattern: " + pattern);
+				log.debug("  pattern: contains " + pattern);
 				return className.contains(pattern);
 			} else {
-				log.debug("  pattern: " + pattern);
+				log.debug("  pattern: endsWith " + pattern);
 				return className.endsWith(pattern);
 			}
 		} else {
 			if (pattern.endsWith("*")) {
 				pattern = pattern.substring(0,pattern.length()-1);
-				log.debug("  pattern: " + pattern);
+				log.debug("  pattern: startsWith " + pattern);
 				return className.startsWith(pattern);
 			} else {
-				log.debug("  pattern: " + pattern);
+				log.debug("  pattern: equals " + pattern);
 				return className.equals(pattern);
 			}
 		}
@@ -329,7 +339,7 @@ public class TestRunnerHttpServlet extends HttpServlet
 			}
 			currentTest = new AtomicTest(testCaseName);
 			String runSummary = "RunCount=" + r.getRunCount() + 
-								"   Failed/Errors=" + r.getFailureCount() +
+								"   Failures/Errors=" + r.getFailureCount() +
 								"   Ignored=" + r.getIgnoreCount();
 			if(r.getFailureCount() > 0) {
 				currentTest.setStatus("Failed");
