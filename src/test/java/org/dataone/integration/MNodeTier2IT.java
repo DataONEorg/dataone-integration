@@ -72,16 +72,7 @@ public class MNodeTier2IT extends ContextAwareTestCaseDataone  {
 	}
 
 	
-    @Test
-    public void testSetup() {
-    	System.out.println("text/csv: " + format_text_csv);//.getFormatName());
-    	System.out.println("text_eml_200: " + format_eml_200);//.getFormatName());
-    	System.out.println("text_eml_201: " + format_eml_201);//.getFormatName());
-    	System.out.println("text_eml_210: " + format_eml_210);//.getFormatName());
-    	System.out.println("done");
-    }
-	
-		
+ 
 	@Test
 	public void testIsAuthorized() {
 		Iterator<Node> it = getMemberNodeIterator();

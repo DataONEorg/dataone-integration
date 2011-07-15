@@ -28,6 +28,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.Scanner;
 import java.util.Vector;
 import java.util.concurrent.Callable;
@@ -39,7 +42,10 @@ import org.dataone.client.MNode;
 import org.dataone.service.EncodingUtilities;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.NotFound;
+import org.dataone.service.exceptions.ServiceFailure;
 import org.dataone.service.types.Identifier;
+import org.dataone.service.types.Node;
+import org.dataone.service.types.ObjectInfo;
 import org.dataone.service.types.ObjectList;
 import org.dataone.service.types.ObjectLocation;
 import org.dataone.service.types.ObjectLocationList;
@@ -60,9 +66,7 @@ import org.junit.Test;
  */
 public class CNodeIT extends ContextAwareTestCaseDataone {
 
-//	private static String cnUrl = D1Client.getCN().getNodeBaseServiceUrl();
-//    private static String cnBaseUrl = "http://cn-dev.dataone.org/cn";
-//	private static final String mnBaseUrl = "http://cn-dev.dataone.org/knb/d1/";
+
 	private static final String badIdentifier = "ThisIdentifierShouldNotExist";
 //  TODO: test against testUnicodeStrings file instead when metacat supports unicode.
 //	private static String identifierEncodingTestFile = "/d1_testdocs/encodingTestSet/testUnicodeStrings.utf8.txt";
@@ -71,9 +75,56 @@ public class CNodeIT extends ContextAwareTestCaseDataone {
 	private static Vector<String> testPIDEncodingStrings = new Vector<String>();
 	private static Vector<String> encodedPIDStrings = new Vector<String>();
 	
-    
+	 private static String currentUrl;
+	private static Map<String,ObjectList> listedObjects;
+  
+	/**
+	 * pre-fetch an ObjectList from each member node on the list, to allow testing gets
+	 * without creating new objects.
+	 * @throws ServiceFailure 
+	 */
 	@Before
-	public  void generateStandardTests() {
+	public void setup() throws ServiceFailure {
+		prefetchObjects();
+		generateStandardTests();
+	}
+
+
+	public void prefetchObjects() throws ServiceFailure {
+		if (listedObjects == null) {
+			listedObjects = new Hashtable<String,ObjectList>();
+			Iterator<Node> it = getCoordinatingNodeIterator();
+			while (it.hasNext()) {
+				currentUrl = it.next().getBaseURL();
+				CNode cn = D1Client.getCN();
+				try {
+					ObjectList ol = cn.search(null, QueryType.SOLR, null); //  .listObjects(null, null, null, null, null, 0, 10);
+					listedObjects.put(currentUrl, ol);
+				} 
+				catch (BaseException e) {
+					handleFail(currentUrl,e.getDescription());
+				}
+				catch(Exception e) {
+					log.warn(e.getClass().getName() + ": " + e.getMessage());
+				}	
+			}
+		}
+	}
+	
+	
+	private ObjectInfo getPrefetchedObject(String currentUrl, Integer index)
+	{
+		if (index == null) 
+			index = new Integer(0);
+		if (index < 0) {
+			// return off the right end of the list
+			index = listedObjects.get(currentUrl).getCount() + index;
+		}
+		return listedObjects.get(currentUrl).getObjectInfo(index);
+	}
+	
+	
+	public void generateStandardTests() {
 
 		if (testPIDEncodingStrings.size() == 0) {
 			System.out.println(" * * * * * * * Unicode Test Strings * * * * * * ");
@@ -107,10 +158,11 @@ public class CNodeIT extends ContextAwareTestCaseDataone {
 	/**
 	 * test the listObject() operation on Coordinating Nodes
 	 * @throws JiBXException 
+	 * @throws ServiceFailure 
 	 */
 	@Ignore("test not adapted for v0.6.x")
 	@Test
-	public void testlistObject() throws JiBXException {
+	public void testlistObject() throws JiBXException, ServiceFailure {
 
 		printHeader("testlistObject vs. node " + cnBaseUrl);
 		System.out.println("Using CN: " + D1Client.getCN().getNodeBaseServiceUrl());
@@ -162,7 +214,7 @@ public class CNodeIT extends ContextAwareTestCaseDataone {
 
 	@Ignore("test not adapted for v0.6.x")
 	@Test
-	public void testSearch() {
+	public void testSearch() throws ServiceFailure {
 		printHeader("testSearch vs. node " + cnBaseUrl);
         System.out.println("Using CN: " + D1Client.getCN().getNodeBaseServiceUrl());
 
@@ -204,10 +256,11 @@ public class CNodeIT extends ContextAwareTestCaseDataone {
 	/**
 	 * test the getSystemMetacata() operation on Coordinating Nodes
 	 * @throws JiBXException 
+	 * @throws ServiceFailure 
 	 */
 	@Ignore("test not adapted for v0.6.x")
 	@Test
-	public void testCNGetSysMeta() throws JiBXException {
+	public void testCNGetSysMeta() throws JiBXException, ServiceFailure {
 
 		printHeader("testGetSysMeta vs. node " + cnBaseUrl);
         System.out.println("Using CN: " + D1Client.getCN().getNodeBaseServiceUrl());
@@ -252,11 +305,12 @@ public class CNodeIT extends ContextAwareTestCaseDataone {
 	/**
 	 * test the resolve() operation on Coordinating Nodes
 	 * @throws JiBXException 
+	 * @throws ServiceFailure 
 	 */
 
 	@Ignore("test not adapted for v0.6.x")
 	@Test
-	public void testCNGet() throws JiBXException {
+	public void testCNGet() throws JiBXException, ServiceFailure {
 
 		printHeader("testGet vs. node " + cnBaseUrl);
 
@@ -303,10 +357,11 @@ public class CNodeIT extends ContextAwareTestCaseDataone {
 	
 	/**
 	 * test the resolve() operation on Coordinating Nodes
+	 * @throws ServiceFailure 
 	 */
 	@Ignore("test not adapted for v0.6.x")
 	@Test
-	public void testResolve() {
+	public void testResolve() throws ServiceFailure {
 		String idString = "test" + ExampleUtilities.generateIdentifier();
 		Vector<String> testIDs = new Vector<String>();
 		testIDs.add(idString);
@@ -319,10 +374,11 @@ public class CNodeIT extends ContextAwareTestCaseDataone {
 
 	/**
 	 * test the resolve() operation on Coordinating Nodes
+	 * @throws ServiceFailure 
 	 */
 	@Ignore("test not adapted for v0.6.x")
 	@Test
-	public void testInvalidResolve() {
+	public void testInvalidResolve() throws ServiceFailure {
 	    System.out.println("Using CN: " + D1Client.getCN().getNodeBaseServiceUrl());
 
 		CNode cn = D1Client.getCN();
@@ -344,10 +400,11 @@ public class CNodeIT extends ContextAwareTestCaseDataone {
 	/**
 	 * Test ID encoding using the same resolve procedure
 	 * (it tests create, get, getsystemMetadata, and resolve)
+	 * @throws ServiceFailure 
 	 */
 	@Ignore("test not adapted for v0.6.x")
 	@Test
-	public void test_IdEncoding() 
+	public void test_IdEncoding() throws ServiceFailure 
 	{
 		Vector<String> testIDs  = new Vector<String>();	
 		Vector<String> encodedIDs  = new Vector<String>();	
@@ -366,7 +423,7 @@ public class CNodeIT extends ContextAwareTestCaseDataone {
 	 * a general procedure for creating and testing the return from resolve for different
 	 * identifier strings
 	 */
-	private void resolveRunner(Vector<String> ids, Vector<String> encodedIDs) {
+	private void resolveRunner(Vector<String> ids, Vector<String> encodedIDs) throws ServiceFailure {
 
 		Vector<String> summaryReport = new Vector<String>();
 		

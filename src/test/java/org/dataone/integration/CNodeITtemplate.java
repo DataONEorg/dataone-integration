@@ -9,6 +9,7 @@ import java.util.Map;
 import org.dataone.client.CNode;
 import org.dataone.client.D1Client;
 import org.dataone.service.exceptions.BaseException;
+import org.dataone.service.exceptions.ServiceFailure;
 import org.dataone.service.types.Checksum;
 import org.dataone.service.types.Group;
 import org.dataone.service.types.Identifier;
@@ -44,15 +45,16 @@ public class CNodeITtemplate extends ContextAwareTestCaseDataone {
 	/**
 	 * pre-fetch an ObjectList from each member node on the list, to allow testing gets
 	 * without creating new objects.
+	 * @throws ServiceFailure 
 	 */
 	@Before
-	public void setup() {
+	public void setup() throws ServiceFailure {
 		prefetchObjects();
 		//			generateStandardTests();
 	}
 
 
-	public void prefetchObjects() {
+	public void prefetchObjects() throws ServiceFailure {
 		if (listedObjects == null) {
 			listedObjects = new Hashtable<String,ObjectList>();
 			Iterator<Node> it = getCoordinatingNodeIterator();
