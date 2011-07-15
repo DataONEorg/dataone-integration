@@ -26,7 +26,6 @@ import nu.xom.ValidityException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.dataone.configuration.TestSettings;
-import org.dataone.integration.ContextAwareTestCaseDataone;
 import org.junit.runner.Description;
 import org.junit.runner.JUnitCore;
 import org.junit.runner.Result;
@@ -39,7 +38,7 @@ public class TestRunnerHttpServlet extends HttpServlet
 //	private static final String TESTS_DIR = "/WEB-INF/tests";
 	private static final String RESULTS_FILE_TEMPLATE = "/results.html";
 	
-	private static final String TEST_SELECTOR_PATTERN = "MNodeTier*";
+	private static final String TEST_SELECTOR_PATTERN = "*MNodeTier*";
 //	private static final String TEST_SELECTOR_PATTERN = "MockITCase";
 	
 	private boolean debug = true;
@@ -210,7 +209,7 @@ public class TestRunnerHttpServlet extends HttpServlet
 
 		for(Class testClass : testClasses) {
 			String className = testClass.getName();
-
+			log.debug("testCase: " + className);
 			// process classes to exclude first
 			if (pattern == null || compareToStarPattern(pattern,className)) {
 				if (!className.equals("TestRunnerHttpServlet") ||
@@ -313,11 +312,13 @@ public class TestRunnerHttpServlet extends HttpServlet
 	{
 		ArrayList<AtomicTest> testList = new ArrayList<AtomicTest>();
 		private AtomicTest currentTest;
+		private String testCaseName;
 		
 		public void testStarted(Description d) {
 			if (currentTest != null) {
 				testList.add(currentTest);
 			}
+			testCaseName = d.getClassName();
 			currentTest = new AtomicTest(d.getClassName() + ": " + d.getMethodName());
 			currentTest.setStatus("Success");
 		}
@@ -326,6 +327,21 @@ public class TestRunnerHttpServlet extends HttpServlet
 			if (currentTest != null) {
 				testList.add(currentTest);
 			}
+			currentTest = new AtomicTest(testCaseName);
+			String runSummary = "RunCount=" + r.getRunCount() + 
+								"   Failed/Errors=" + r.getFailureCount() +
+								"   Ignored=" + r.getIgnoreCount();
+			if(r.getFailureCount() > 0) {
+				currentTest.setStatus("Failed");
+				currentTest.setMessage("Failed Tier due to failures. [" + runSummary + "]");
+			} else if (r.getIgnoreCount() > 0) {
+				currentTest.setStatus("Ignored");
+				currentTest.setMessage("Tier Tentative Pass (Ignored Tests present). [" + runSummary + "]");
+			} else {
+				currentTest.setStatus("Success");
+				currentTest.setMessage("Tier Passed (Ignored Tests present). [" + runSummary + "]");
+			}
+			testList.add(currentTest);
 		}
 		
 		public void testIgnored(Description d) {
