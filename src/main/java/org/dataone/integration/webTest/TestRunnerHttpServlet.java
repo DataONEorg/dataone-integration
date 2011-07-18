@@ -235,21 +235,25 @@ public class TestRunnerHttpServlet extends HttpServlet
 		log.debug("Java class Path: " + System.getProperty("java.class.path") );
 		
 		ArrayList<Class> matchingClasses = new ArrayList<Class>();
-		Class[] testClasses = getClasses("org.dataone.integration");  // gets classes in subpackages, too
-
-		log.debug("testClass.pattern = " + pattern);
-		for(Class testClass : testClasses) {
-			String className = testClass.getName();
-			log.debug("testCase: " + className);
-			// process classes to exclude first
-			if (pattern == null || compareToStarPattern(pattern,className)) {
-				if (!className.equals("TestRunnerHttpServlet") ||
-						className.contains("webTest")) {
-					log.info("Registering class: " + testClass.getName());
-					matchingClasses.add(testClass);
-				}
-			}
-		}
+		matchingClasses.add(org.dataone.integration.MNodeTier1IT.class);
+		matchingClasses.add(org.dataone.integration.MNodeTier2IT.class);
+		matchingClasses.add(org.dataone.integration.MNodeTier3IT.class);
+		
+//		Class[] testClasses = getClasses("org.dataone.integration");  // gets classes in subpackages, too
+//
+//		log.debug("testClass.pattern = " + pattern);
+//		for(Class testClass : testClasses) {
+//			String className = testClass.getName();
+//			log.debug("testCase: " + className);
+//			// process classes to exclude first
+//			if (pattern == null || compareToStarPattern(pattern,className)) {
+//				if (!className.equals("TestRunnerHttpServlet") ||
+//						className.contains("webTest")) {
+//					log.info("Registering class: " + testClass.getName());
+//					matchingClasses.add(testClass);
+//				}
+//			}
+//		}
 		return matchingClasses.toArray(new Class[matchingClasses.size()]);
 	}
 	
@@ -266,6 +270,7 @@ public class TestRunnerHttpServlet extends HttpServlet
     private static Class[] getClasses(String packageName)
             throws ClassNotFoundException, IOException {
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+        
         assert classLoader != null;
         String path = packageName.replace('.', '/');
         Enumeration<URL> resources = classLoader.getResources(path);
