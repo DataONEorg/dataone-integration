@@ -44,7 +44,7 @@ public class TestingTestRunnerServlet {
 		request.setMethod("GET");
 		
 		// call the servlet
-		TestRunnerHttpServlet servlet = new TestRunnerHttpServlet();
+		TestRunnerHttpServlet servlet = new TestRunnerHttpServlet(true);
 		try {
 			servlet.doGet(request, response);
 		} catch (ServletException se) {

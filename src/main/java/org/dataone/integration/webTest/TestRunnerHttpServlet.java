@@ -39,10 +39,28 @@ public class TestRunnerHttpServlet extends HttpServlet
 //	private static final String TESTS_DIR = "/WEB-INF/tests";
 	private static final String RESULTS_FILE_TEMPLATE = "/results.html";
 	
-//	private static final String TEST_SELECTOR_PATTERN = Settings.getConfiguration().getString("webTest.mn.testCase.pattern");
-	private static final String TEST_SELECTOR_PATTERN = "*MockITCase";
+//	private static String TEST_SELECTOR_PATTERN = Settings.getConfiguration().getString("webTest.mn.testCase.pattern");
+	private static String TEST_SELECTOR_PATTERN = "*MNodeTier*";
 	
 	private boolean debug = true;
+	
+	/**
+	 * a constructor to be used for unit testings
+	 * @param isUnitTest
+	 */
+	public TestRunnerHttpServlet(boolean isUnitTest)
+	{
+		super();
+		if (isUnitTest)
+			TEST_SELECTOR_PATTERN = "*MockITCase";
+	}
+	
+	public TestRunnerHttpServlet()
+	{
+		super();
+	}
+	
+	
 	
 	public void doPost(HttpServletRequest req, HttpServletResponse rsp)
 	throws ServletException, IOException {
