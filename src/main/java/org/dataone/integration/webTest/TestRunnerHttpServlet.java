@@ -214,9 +214,12 @@ public class TestRunnerHttpServlet extends HttpServlet
 	private static Class[] getIntegrationTestClasses(String pattern) 
 	throws ClassNotFoundException, IOException 
 	{
+		log.debug("Java class Path: " + System.getProperty("java.class.path").substring(0, 2000) + "..." );
+		
 		ArrayList<Class> matchingClasses = new ArrayList<Class>();
 		Class[] testClasses = getClasses("org.dataone.integration");  // gets classes in subpackages, too
 
+		log.debug("testClass.pattern = " + pattern);
 		for(Class testClass : testClasses) {
 			String className = testClass.getName();
 			log.debug("testCase: " + className);
@@ -287,7 +290,7 @@ public class TestRunnerHttpServlet extends HttpServlet
     }
 	
 	private static boolean compareToStarPattern(String pattern, String className) {
-		log.debug("testClass.pattern = " + pattern);
+
 		if (pattern.startsWith("*")) {
 			pattern = pattern.substring(1);
 			if (pattern.endsWith("*")) {
