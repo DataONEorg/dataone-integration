@@ -232,7 +232,7 @@ public class TestRunnerHttpServlet extends HttpServlet
 	private static Class[] getIntegrationTestClasses(String pattern) 
 	throws ClassNotFoundException, IOException 
 	{
-		log.debug("Java class Path: " + System.getProperty("java.class.path").substring(0, 2000) + "..." );
+		log.debug("Java class Path: " + System.getProperty("java.class.path") );
 		
 		ArrayList<Class> matchingClasses = new ArrayList<Class>();
 		Class[] testClasses = getClasses("org.dataone.integration");  // gets classes in subpackages, too
