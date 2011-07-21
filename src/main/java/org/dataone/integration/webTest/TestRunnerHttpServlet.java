@@ -377,7 +377,7 @@ public class TestRunnerHttpServlet extends HttpServlet
 				currentTest.setStatus("Success");
 				currentTest.setMessage("Tier Passed (Ignored Tests present). [" + runSummary + "]");
 			}
-			testList.add(currentTest);
+//			testList.add(currentTest);
 		}
 		
 		public void testIgnored(Description d) {
