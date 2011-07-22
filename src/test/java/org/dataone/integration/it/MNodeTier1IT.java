@@ -18,7 +18,7 @@
  * limitations under the License.
  */
 
-package org.dataone.integration;
+package org.dataone.integration.it;
 
 import java.io.InputStream;
 import java.util.Date;

@@ -1,4 +1,4 @@
-package org.dataone.integration;
+package org.dataone.integration.it;
 
 /**
  * Defines the parameter names used by dataone integration to configure tests 

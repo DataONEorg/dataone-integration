@@ -22,7 +22,7 @@ import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.InvalidRequest;
 import org.dataone.service.exceptions.ServiceFailure;
 import org.dataone.service.types.AuthToken;
-import org.dataone.integration.ExampleUtilities;
+import org.dataone.integration.it.ExampleUtilities;
 import org.junit.Assume;
 import org.junit.Ignore;
 import org.junit.Rule;

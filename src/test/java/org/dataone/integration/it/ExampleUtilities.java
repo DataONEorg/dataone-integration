@@ -18,7 +18,7 @@
  * limitations under the License.
  */
 
-package org.dataone.integration;
+package org.dataone.integration.it;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
@@ -529,7 +529,7 @@ public class ExampleUtilities {
     	return s;
     }
     
-	protected static Identifier doCreateNewObject(MNode mn, String idPrefix) throws ServiceFailure,
+	public static Identifier doCreateNewObject(MNode mn, String idPrefix) throws ServiceFailure,
 	NotImplemented, InvalidToken, NotAuthorized, IdentifierNotUnique, UnsupportedType,
 	InsufficientResources, InvalidSystemMetadata, NotFound, InvalidRequest
 	{

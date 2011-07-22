@@ -18,7 +18,7 @@
  * limitations under the License.
  */
 
-package org.dataone.integration;
+package org.dataone.integration.it;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
@@ -28,10 +28,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Enumeration;
 import java.util.Hashtable;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.Callable;
 
 import org.apache.commons.io.IOUtils;
+import org.dataone.client.D1Client;
 import org.dataone.client.MNode;
 import org.dataone.service.types.Checksum;
 import org.dataone.service.types.DescribeResponse;
@@ -49,25 +51,25 @@ import org.junit.Test;
  * @author Rob Nahf
  */
 public class MNodeObjectLifecycleIT extends ContextAwareTestCaseDataone {
-    private static final String devPrincipal = "uid%3Dkepler,o%3Dunaffiliated,dc%3Decoinformatics,dc%3Dorg";
-    private static final String pw = "kepler";
+//    private static final String devPrincipal = "uid%3Dkepler,o%3Dunaffiliated,dc%3Decoinformatics,dc%3Dorg";
+//    private static final String pw = "kepler";
     private static final String prefix = "simpleApiTests:testid:";
     private static final String bogusId = "foobarbaz214";
-    private static final String knownId = "repl:testID201120161032499";
+//    private static final String knownId = "repl:testID201120161032499";
 
-    private List<Node> nodeList = null;
-    private Hashtable nodeInfo = null;
+//    private List<Node> nodeList = null;
+ //   private Hashtable nodeInfo = null;
     private static String currentUrl;
     //set this to false if you don't want to use the node list to get the urls for 
     //the test.  
-    private static boolean useNodeList = false;
+//    private static boolean useNodeList = false;
         
  
-    @Before
+//    @Before
     public void setUp() throws Exception 
     {        
-    	nodeInfo = new Hashtable();
-    	nodeInfo.put("http://cn-dev.dataone.org/knb/d1/", new String[] {devPrincipal, pw});
+//    	nodeInfo = new Hashtable();
+//    	nodeInfo.put("http://cn-dev.dataone.org/knb/d1/", new String[] {devPrincipal, pw});
 //    	nodeInfo.put("http://gmn-dev.dyndns.org/mn/", new String[] {"public","public"});
 //    	nodeInfo.put("http://dev-dryad-mn.dataone.org/mn/", new String[] {"",""});
 //    	nodeInfo.put("http://daacmn.dataone.utk.edu/mn/", new String[] {"",""});
@@ -76,45 +78,52 @@ public class MNodeObjectLifecycleIT extends ContextAwareTestCaseDataone {
 	@Ignore("test not adapted for v0.6.x")
     @Test
     public void exerciseNodeAPIs() throws IOException {
-    	Enumeration<String> nodeBaseUrls = nodeInfo.keys();
+		Iterator<Node> it = getMemberNodeIterator();
+		while (it.hasNext()) {
+			currentUrl = it.next().getBaseURL();
+			MNode mn = D1Client.getMN(currentUrl);
+			printTestHeader("Simple object lifecycle test vs. node: " + currentUrl);
+		
+		
+//		Enumeration<String> nodeBaseUrls = nodeInfo.keys();
 
 		printHeader("Simple object lifecycle tests");
-    	while( nodeBaseUrls.hasMoreElements() ) 
-    	{
-    		String currentBaseUrl = nodeBaseUrls.nextElement();
-    		currentUrl = currentBaseUrl;
-    		String[] currentNodeInfo = (String[]) nodeInfo.get(currentBaseUrl);
-    		String logon = currentNodeInfo[0];
-    		String cred = currentNodeInfo[1];
+//    	while( nodeBaseUrls.hasMoreElements() ) 
+//    	{
+//    		String currentBaseUrl = nodeBaseUrls.nextElement();
+//    		currentUrl = currentBaseUrl;
+//    		String[] currentNodeInfo = (String[]) nodeInfo.get(currentBaseUrl);
+//    		String logon = currentNodeInfo[0];
+//    		String cred = currentNodeInfo[1];
     		
-    		printHeader("Node: " + currentBaseUrl);
-    		MNode mn = new MNode(currentBaseUrl);
+
 
     		// objectlist - count
+			int origObjectCount = 0;
     		printSubHeader(" listObjects");
-    		ObjectList ol = null;
     		try {
-    			ol = mn.listObjects(null, null, null, null, false, 0, 10);
+    			ObjectList ol = mn.listObjects(null, null, null, null, false, 0, 10);
+    			origObjectCount = ol.getTotal();
+        		log.info("=========>> total from listObjects: " + origObjectCount);
     		} catch (Exception e) {
     			errorCollector.addError(new Throwable(createAssertMessage() + 
     					" error in mn.listObjects: " + e.getMessage()));
     		}
-    		int origObjectCount = ol.getTotal();
-    		System.out.println("=========>> total from listObjects: " + origObjectCount);
+    		
 
     		// login if necessary
     		Session token = null;
-    		try { 
-    			printSubHeader("login");
-    			if (!logon.isEmpty()) {
-    				token = null; //mn.login(logon, cred);
-    			} else
-    				System.out.println("Skipping login, no credentials for current node");
-    		} catch (Exception e) {
-    			System.out.println("error in login: " + e.getMessage());
-    			errorCollector.addError(new Throwable(createAssertMessage() + 
-    					" error in mn.login: " + e.getMessage()));
-    		}
+//    		try { 
+//    			printSubHeader("login");
+//    			if (!logon.isEmpty()) {
+//    				token = null; //mn.login(logon, cred);
+//    			} else
+//    				System.out.println("Skipping login, no credentials for current node");
+//    		} catch (Exception e) {
+//    			System.out.println("error in login: " + e.getMessage());
+//    			errorCollector.addError(new Throwable(createAssertMessage() + 
+//    					" error in mn.login: " + e.getMessage()));
+//    		}
     		
     		// assemble new object and systemMetadata (client-side)
     		String idString = prefix + ExampleUtilities.generateIdentifier();
@@ -131,9 +140,9 @@ public class MNodeObjectLifecycleIT extends ContextAwareTestCaseDataone {
     			printSubHeader("create");
     			rGuid = mn.create(token, newPid, objectStream, sysmeta);
     			assertThat("checking that returned guid matches given ", newPid.getValue(), is(rGuid.getValue()));
-    			System.out.println("new object PID: " + rGuid.getValue());
+    			log.info("new object PID: " + rGuid.getValue());
     		} catch (Exception e) {
-    			System.out.println("error in mn.create: " + e.getMessage());
+    			log.error("error in mn.create: " + e.getMessage());
     			errorCollector.addError(new Throwable(createAssertMessage() + 
     					" error in mn.create or mn.get: " + e.getMessage()));
     		}

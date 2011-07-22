@@ -98,22 +98,28 @@
 				<header>src/license-header.txt</header>
 			</configuration>
 		  </plugin>
-		  <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-jar-plugin</artifactId>
-            <version>2.3.1</version>
-            <executions>
-                <execution>
-                    <phase>prepare-package</phase>
-                    <goals>
-                        <goal>test-jar</goal>
-                    </goals>
-	                <configuration>
-		                <outputDirectory>target/d1_integration-0.6.2-SNAPSHOT/WEB-INF/lib</outputDirectory>
-                	</configuration>
-                </execution>
-            </executions>
-        </plugin>
+        <plugin>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <executions>
+          <execution>
+            <phase>prepare-package</phase>
+            <configuration>
+              <tasks>
+                 <copy todir="target/classes" >  
+                   <fileset dir="target/test-classes" includes="**"/>  
+                 </copy>
+
+              </tasks>
+            </configuration>
+            <goals>
+              <goal>run</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+        
+        
+        
 		<plugin>
 			<groupId>org.apache.maven.plugins</groupId>
 			<artifactId>maven-failsafe-plugin</artifactId>
@@ -135,7 +141,6 @@
 				</execution>
 			</executions>
 		</plugin>
-          
           <plugin>
           	<groupId>org.codehaus.mojo</groupId>
           	<artifactId>tomcat-maven-plugin</artifactId>

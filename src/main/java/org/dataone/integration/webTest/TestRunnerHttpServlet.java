@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Enumeration;
 import java.util.List;
 
@@ -25,7 +26,6 @@ import nu.xom.ValidityException;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.dataone.configuration.Settings;
 import org.dataone.configuration.TestSettings;
 import org.junit.runner.Description;
 import org.junit.runner.JUnitCore;
@@ -40,6 +40,7 @@ public class TestRunnerHttpServlet extends HttpServlet
 	private static final String RESULTS_FILE_TEMPLATE = "/results.html";
 	
 //	private static String TEST_SELECTOR_PATTERN = Settings.getConfiguration().getString("webTest.mn.testCase.pattern");
+	private static final String TEST_PACKAGE = "org.dataone.integration";
 	private static String TEST_SELECTOR_PATTERN = "*MNodeTier*";
 	
 	private boolean debug = true;
@@ -180,8 +181,15 @@ public class TestRunnerHttpServlet extends HttpServlet
 		Element table = new Element("table");
 		Element tr = new Element("tr");
 		Element name = new Element("th");
+		Element rundate = new Element("td");
+		
 		name.appendChild("Member Node Url: " + url );
 		tr.appendChild(name);
+		
+		Date date = new Date();
+		rundate.appendChild(date.toString());
+		tr.appendChild(rundate);
+		
 		table.appendChild(tr);
 		div.appendChild(table);
 	}
@@ -235,12 +243,9 @@ public class TestRunnerHttpServlet extends HttpServlet
 		log.debug("Java class Path: " + System.getProperty("java.class.path") );
 		
 		ArrayList<Class> matchingClasses = new ArrayList<Class>();
-//		matchingClasses.add(org.dataone.integration.MNodeTier1IT.class);
-//		matchingClasses.add(org.dataone.integration.MNodeTier2IT.class);
-//		matchingClasses.add(org.dataone.integration.MNodeTier3IT.class);
 		
-		Class[] testClasses = getClasses("org.dataone.integration");  // gets classes in subpackages, too
-
+		Class[] testClasses = getClasses(TEST_PACKAGE);  // gets classes in subpackages, too
+		log.debug("find classes in package: " + TEST_PACKAGE);
 		log.debug("testClass.pattern = " + pattern);
 		for(Class testClass : testClasses) {
 			String className = testClass.getName();
@@ -270,7 +275,7 @@ public class TestRunnerHttpServlet extends HttpServlet
     private static Class[] getClasses(String packageName)
             throws ClassNotFoundException, IOException {
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-        
+    	
         assert classLoader != null;
         String path = packageName.replace('.', '/');
         Enumeration<URL> resources = classLoader.getResources(path);
@@ -377,7 +382,6 @@ public class TestRunnerHttpServlet extends HttpServlet
 				currentTest.setStatus("Success");
 				currentTest.setMessage("Tier Passed (Ignored Tests present). [" + runSummary + "]");
 			}
-//			testList.add(currentTest);
 		}
 		
 		public void testIgnored(Description d) {
@@ -418,7 +422,7 @@ public class TestRunnerHttpServlet extends HttpServlet
 		
 		
 		public void setTestName(String packageQualifiedName) {
-			testName = packageQualifiedName.replaceAll("org.dataone.integration.", "");
+			testName = packageQualifiedName.replaceAll("org.dataone.integration.it.", "");
 		}
 		public String getTestName() {
 			return testName;
