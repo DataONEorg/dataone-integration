@@ -107,7 +107,6 @@ public class TestRunnerHttpServlet extends HttpServlet
 			System.setProperty("testSysProp", "setFromServlet");
 
 		JUnitCore junit = new JUnitCore();
-
 		
 		// see:
 		// http://stackoverflow.com/questions/1302815/how-to-get-access-to-the-current-junitcore-to-add-a-listener
@@ -117,7 +116,6 @@ public class TestRunnerHttpServlet extends HttpServlet
 		Result result = null;
 		for (Class testCase : getIntegrationTestClasses(TEST_SELECTOR_PATTERN)) {
 			log.debug("running tests on: " + testCase.getSimpleName());
-			System.out.println(testCase.getSimpleName());
 			result = junit.run(testCase);
 		}
 		
@@ -151,32 +149,17 @@ public class TestRunnerHttpServlet extends HttpServlet
 			
 			for(AtomicTest test : testList) {
 				div = new Element("div");
-				generateTestReport(test,div);
+				generateTestReportLine(test,div);
 				body.appendChild(div);
 			}
 		}
 		serializer.write(resultsDoc);
 		out.close();
-
-		
-//		System.out.println("\nRun Statistics");	
-//		
-//	    System.out.println("runTime = " + result.getRunTime() + "\n");
-//	    System.out.println("runCount = " + result.getRunCount());
-//	    System.out.println("failureCount = " + result.getFailureCount());
-//	    System.out.println("ignoreCount = " + result.getIgnoreCount());
-//	    System.out.println("\nFailures");
-//	    for (Failure f: result.getFailures()) {
-//	    	System.out.println("  TestHeader = " + f.getTestHeader());
-//	    	System.out.println("    Message = " + f.getMessage());
-//	    	System.out.println("    Description = " + f.getDescription());
-//	    	System.out.println("    Exception = " + f.getException());
-//	    }
 	}
 
 	private void generateURLRow(Element div, String url) {
 		
-		div.addAttribute(new Attribute("class", "grey"));
+		div.addAttribute(new Attribute("class", "greyDescr"));
 		
 		Element table = new Element("table");
 		Element tr = new Element("tr");
@@ -193,13 +176,24 @@ public class TestRunnerHttpServlet extends HttpServlet
 		table.appendChild(tr);
 		div.appendChild(table);
 	}
+
+	
+	private void generateEmptyRow(Element div) {
+		
+		div.addAttribute(new Attribute("class", "grey"));
+		Element linebreak = new Element("br");
+		div.appendChild(linebreak);
+	}
+	
+	
+	
 	
 	/**
 	 * adapted from webTester in MN package...
 	 * @param testResult
 	 * @param div
 	 */
-	private void generateTestReport(AtomicTest testResult, Element div) {
+	private void generateTestReportLine(AtomicTest testResult, Element div) {
 
 		Element table = new Element("table");
 		Element tr = new Element("tr");
@@ -361,6 +355,7 @@ public class TestRunnerHttpServlet extends HttpServlet
 			}
 			testCaseName = d.getClassName();
 			currentTest = new AtomicTest(d.getClassName() + ": " + d.getMethodName());
+			currentTest.setType("Test");
 			currentTest.setStatus("Success");
 		}
 
@@ -369,6 +364,7 @@ public class TestRunnerHttpServlet extends HttpServlet
 				testList.add(currentTest);
 			}
 			currentTest = new AtomicTest(testCaseName);
+			currentTest.setType("Summary");
 			String runSummary = "RunCount=" + r.getRunCount() + 
 								"   Failures/Errors=" + r.getFailureCount() +
 								"   Ignored=" + r.getIgnoreCount();
@@ -389,6 +385,7 @@ public class TestRunnerHttpServlet extends HttpServlet
 				testList.add(currentTest);
 			}
 			currentTest = new AtomicTest(d.getClassName() + ": " + d.getMethodName());
+			currentTest.setType("Test");
 			currentTest.setStatus("Ignored");
 			currentTest.setMessage(d.getAnnotation(org.junit.Ignore.class).value());
 		}
@@ -411,6 +408,7 @@ public class TestRunnerHttpServlet extends HttpServlet
 	
 	class AtomicTest
 	{
+		private String type;
 		private String testName;
 		private String status;
 		private String message;
@@ -446,5 +444,13 @@ public class TestRunnerHttpServlet extends HttpServlet
 		public String getMessage() {
 			return message;
 		}
+		
+		public void setType(String type) {
+			this.type = type;
+		}
+		public String getType() {
+			return type;
+		}
+
 	}	
 }

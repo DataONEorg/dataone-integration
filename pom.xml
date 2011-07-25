@@ -1,177 +1,188 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-  <modelVersion>4.0.0</modelVersion>
-  <groupId>org.dataone</groupId>
-  <artifactId>d1_integration</artifactId>
-  <packaging>war</packaging>
-  <version>0.6.2-SNAPSHOT</version>
-  <name>DataONE Integration Testing Package</name>
-  <url>http://dataone.org</url>
-    <repositories>
-        <repository>
-            <id>sonatype.org</id>
-            <url>http://repository.sonatype.org/content/repositories/central</url>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-        </repository>
-        <repository>
-            <id>dataone.org</id>
-            <url>http://dev-testing.dataone.org/maven</url>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-        </repository>
-        <repository>
-            <id>Jibx Maven Repository</id>
-            <url>http://jibx.sourceforge.net/maven/</url>
-        </repository>
-    </repositories>
-  <dependencies>
-    <dependency>
-        <groupId>org.dataone</groupId>
-        <artifactId>d1_libclient_java</artifactId>
-        <version>0.6.2-SNAPSHOT</version>
-    </dependency>
-    <dependency>
-        <groupId>junit</groupId>
-        <artifactId>junit</artifactId>
-        <version>4.7</version>
-        <type>jar</type>
-    </dependency>
-    <dependency>
-        <groupId>org.apache.httpcomponents</groupId>
-        <artifactId>httpmime</artifactId>
-        <version>4.0-beta2</version>
-    </dependency>
-	<dependency>
-		<groupId>javax.servlet</groupId>
-		<artifactId>servlet-api</artifactId>
-		<version>2.5</version>
-		<type>jar</type>
-		<scope>provided</scope>
-	</dependency>
-	<dependency>
-		<groupId>org.springframework</groupId>
-		<artifactId>spring-web</artifactId>
-		<version>3.0.5.RELEASE</version>
-		<scope>test</scope>
-	</dependency>
-	<dependency>
-		<groupId>org.springframework</groupId>
-		<artifactId>spring-test</artifactId>
-		<version>3.0.5.RELEASE</version>
-		<type>jar</type>
-		<scope>test</scope>
-	</dependency>
-	<dependency>
-      <groupId>xom</groupId>
-      <artifactId>xom</artifactId>
-      <version>1.2.5</version>
-    </dependency>
-    <dependency>
-      <groupId>commons-configuration</groupId>
-      <artifactId>commons-configuration</artifactId>
-      <version>1.6</version>
-  </dependency>
-  </dependencies>
-  <build>
-	  <plugins>
-		  <plugin>
-			<groupId>org.apache.maven.plugins</groupId>
-			<artifactId>maven-compiler-plugin</artifactId>
-			<configuration>
-				<source>1.6</source>
-				<target>1.6</target>
-			</configuration>
-		  </plugin>
-		  <plugin>
-			<groupId>com.mycila.maven-license-plugin</groupId>
-			<artifactId>maven-license-plugin</artifactId>
-			<configuration>
-				<header>src/license-header.txt</header>
-			</configuration>
-		  </plugin>
-        <plugin>
-        <artifactId>maven-antrun-plugin</artifactId>
-        <executions>
-          <execution>
-            <phase>prepare-package</phase>
-            <configuration>
-              <tasks>
-                 <copy todir="target/classes" >  
-                   <fileset dir="target/test-classes" includes="**"/>  
-                 </copy>
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>org.dataone</groupId>
+	<artifactId>d1_integration</artifactId>
+	<packaging>war</packaging>
+	<version>0.6.2-SNAPSHOT</version>
+	<name>DataONE Integration Testing Package</name>
+	<url>http://dataone.org</url>
+	<repositories>
+		<repository>
+			<id>sonatype.org</id>
+			<url>http://repository.sonatype.org/content/repositories/central</url>
+			<releases>
+				<enabled>true</enabled>
+			</releases>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</repository>
+		<repository>
+			<id>dataone.org</id>
+			<url>http://dev-testing.dataone.org/maven</url>
+			<releases>
+				<enabled>true</enabled>
+			</releases>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+		</repository>
+		<repository>
+			<id>Jibx Maven Repository</id>
+			<url>http://jibx.sourceforge.net/maven/</url>
+		</repository>
+	</repositories>
+	<dependencies>
+		<dependency>
+			<groupId>org.dataone</groupId>
+			<artifactId>d1_libclient_java</artifactId>
+			<version>0.6.2-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.7</version>
+			<type>jar</type>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpmime</artifactId>
+			<version>4.0-beta2</version>
+		</dependency>
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>servlet-api</artifactId>
+			<version>2.5</version>
+			<type>jar</type>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-web</artifactId>
+			<version>3.0.5.RELEASE</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-test</artifactId>
+			<version>3.0.5.RELEASE</version>
+			<type>jar</type>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>xom</groupId>
+			<artifactId>xom</artifactId>
+			<version>1.2.5</version>
+		</dependency>
+		<dependency>
+			<groupId>commons-configuration</groupId>
+			<artifactId>commons-configuration</artifactId>
+			<version>1.6</version>
+		</dependency>
+	</dependencies>
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<source>1.6</source>
+					<target>1.6</target>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>com.mycila.maven-license-plugin</groupId>
+				<artifactId>maven-license-plugin</artifactId>
+				<configuration>
+					<header>src/license-header.txt</header>
+				</configuration>
+			</plugin>
+			<plugin>
+				<artifactId>maven-antrun-plugin</artifactId>
+				<executions>
+					<execution>
+					    <id>execution1</id>
+						<phase>prepare-package</phase>
+						<configuration>
+							<tasks>
+								<copy todir="target/classes">
+									<fileset dir="target/test-classes" includes="**" />
+								</copy>
 
-              </tasks>
-            </configuration>
-            <goals>
-              <goal>run</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-        
-        
-        
-		<plugin>
-			<groupId>org.apache.maven.plugins</groupId>
-			<artifactId>maven-failsafe-plugin</artifactId>
-			<version>2.8.1</version>
-			<executions>
-				<execution>
-					<id>integration-test</id>
-<!-- 					<phase>integration-test</phase> -->
-					<goals>
-						<goal>integration-test</goal>
-					</goals>
-				</execution>
-				<execution>
-					<id>verify</id>
-<!-- 					<phase>verify</phase> -->
-					<goals>
-						<goal>verify</goal>
-					</goals>
-				</execution>
-			</executions>
-		</plugin>
-          <plugin>
-          	<groupId>org.codehaus.mojo</groupId>
-          	<artifactId>tomcat-maven-plugin</artifactId>
-          	<version>1.1</version>
-          	<configuration>
-          	     <url>http://localhost:8080/manager</url>
-          	     <server>tomcat</server>
-          	     <path>mntester_</path>
-          	</configuration>
-          </plugin>
-      </plugins>
-  </build>
-<!-- Enable this block if you want to be able to generate html reports from test phase -->
-<!--    using:  mvn surefire-report:report -->
-<!--   <reporting> -->
-<!--     <plugins> -->
-<!--       <plugin> -->
-<!--         <groupId>org.apache.maven.plugins</groupId> -->
-<!--         <artifactId>maven-surefire-report-plugin</artifactId> -->
-<!--         <version>2.8.1</version> -->
-<!--         <configuration> -->
-<!--           <reportsDirectories>target/failsafe-reports</reportsDirectories> -->
-<!--         </configuration> -->
-<!--       </plugin> -->
-<!--     </plugins> -->
-<!--   </reporting> -->
-  
-  <licenses>
-    <license>
-      <name>Apache License, Version 2.0</name>
-      <url>LICENSE.txt</url>
-    </license>
-  </licenses>
+							</tasks>
+						</configuration>
+						<goals>
+							<goal>run</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>execution2</id>
+						<phase>package</phase>
+						<configuration>
+							<tasks>
+								<move file="target/${project.build.finalName}.war" tofile="target/MNWebTester.war" />
+							</tasks>
+						</configuration>
+						<goals>
+							<goal>run</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+<!--         	<plugin> -->
+<!--         		<artifactId>maven-war-plugin</artifactId> -->
+<!--         		<version>2.1.1</version> -->
+<!--         		<configuration> -->
+<!--         			<finalName>webTester</finalName> -->
+<!--         		</configuration> -->
+<!--         	</plugin> -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-failsafe-plugin</artifactId>
+				<version>2.8.1</version>
+				<executions>
+					<execution>
+						<id>integration-test</id>
+						<!-- <phase>integration-test</phase> -->
+						<goals>
+							<goal>integration-test</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>verify</id>
+						<!-- <phase>verify</phase> -->
+						<goals>
+							<goal>verify</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<!-- <plugin> <groupId>org.codehaus.mojo</groupId> <artifactId>tomcat-maven-plugin</artifactId> 
+				<version>1.1</version> <configuration> <url>http://localhost:8080/manager</url> 
+				<server>tomcat</server> <path>mntester_</path> </configuration> </plugin> -->
+		</plugins>
+	</build>
+	<!-- Enable this block if you want to be able to generate html reports from 
+		test phase -->
+	<!-- using: mvn surefire-report:report -->
+	<!-- <reporting> -->
+	<!-- <plugins> -->
+	<!-- <plugin> -->
+	<!-- <groupId>org.apache.maven.plugins</groupId> -->
+	<!-- <artifactId>maven-surefire-report-plugin</artifactId> -->
+	<!-- <version>2.8.1</version> -->
+	<!-- <configuration> -->
+	<!-- <reportsDirectories>target/failsafe-reports</reportsDirectories> -->
+	<!-- </configuration> -->
+	<!-- </plugin> -->
+	<!-- </plugins> -->
+	<!-- </reporting> -->
+
+	<licenses>
+		<license>
+			<name>Apache License, Version 2.0</name>
+			<url>LICENSE.txt</url>
+		</license>
+	</licenses>
 </project>
