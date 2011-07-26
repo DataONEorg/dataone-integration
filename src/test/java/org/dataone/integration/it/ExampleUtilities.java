@@ -50,24 +50,25 @@ import org.dataone.service.exceptions.NotFound;
 import org.dataone.service.exceptions.NotImplemented;
 import org.dataone.service.exceptions.ServiceFailure;
 import org.dataone.service.exceptions.UnsupportedType;
-import org.dataone.service.impl.ObjectFormatServiceImpl;
-import org.dataone.service.types.Checksum;
-import org.dataone.service.types.ChecksumAlgorithm;
-import org.dataone.service.types.Group;
-import org.dataone.service.types.Identifier;
-import org.dataone.service.types.NodeReference;
-import org.dataone.service.types.ObjectFormat;
-import org.dataone.service.types.ObjectFormatIdentifier;
-import org.dataone.service.types.ObjectLocation;
-import org.dataone.service.types.ObjectLocationList;
-import org.dataone.service.types.Person;
-import org.dataone.service.types.Replica;
-import org.dataone.service.types.ReplicationStatus;
-import org.dataone.service.types.Session;
-import org.dataone.service.types.Subject;
-import org.dataone.service.types.SubjectList;
-import org.dataone.service.types.SystemMetadata;
-import org.dataone.service.types.util.ServiceTypeUtil;
+import org.dataone.service.types.v1.util.ChecksumUtil;
+import org.dataone.service.types.v1.util.ObjectFormatServiceImpl;
+import org.dataone.service.types.v1.Checksum;
+import org.dataone.service.types.v1.ChecksumAlgorithm;
+import org.dataone.service.types.v1.Group;
+import org.dataone.service.types.v1.Identifier;
+import org.dataone.service.types.v1.NodeReference;
+import org.dataone.service.types.v1.ObjectFormat;
+import org.dataone.service.types.v1.ObjectFormatIdentifier;
+import org.dataone.service.types.v1.ObjectLocation;
+import org.dataone.service.types.v1.ObjectLocationList;
+import org.dataone.service.types.v1.Person;
+import org.dataone.service.types.v1.Replica;
+import org.dataone.service.types.v1.ReplicationStatus;
+import org.dataone.service.types.v1.Session;
+import org.dataone.service.types.v1.Subject;
+import org.dataone.service.types.v1.SubjectList;
+import org.dataone.service.types.v1.SystemMetadata;
+
 
 /**
  * Utilities that are useful for generating test data.
@@ -422,7 +423,7 @@ public class ExampleUtilities {
         Checksum checksum = null;
         try
         {
-            checksum = ServiceTypeUtil.checksum(source, ChecksumAlgorithm.MD5);
+            checksum = ChecksumUtil.checksum(source, ChecksumAlgorithm.MD5);
         }
         catch (Exception e)
         {

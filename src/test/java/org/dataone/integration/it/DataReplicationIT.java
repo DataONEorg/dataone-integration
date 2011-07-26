@@ -6,20 +6,15 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.Date;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpResponse;
 import org.dataone.client.CNode;
 import org.dataone.client.D1Client;
 import org.dataone.client.MNode;
 import org.dataone.mimemultipart.MultipartRequestHandler;
-import org.dataone.service.Constants;
-import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.IdentifierNotUnique;
 import org.dataone.service.exceptions.InsufficientResources;
 import org.dataone.service.exceptions.InvalidRequest;
@@ -30,16 +25,12 @@ import org.dataone.service.exceptions.NotFound;
 import org.dataone.service.exceptions.NotImplemented;
 import org.dataone.service.exceptions.ServiceFailure;
 import org.dataone.service.exceptions.UnsupportedType;
-import org.dataone.service.types.AuthToken;
-import org.dataone.service.types.Identifier;
-import org.dataone.service.types.Session;
-import org.dataone.service.types.SystemMetadata;
-import org.dataone.service.types.util.ServiceTypeUtil;
-import org.jibx.runtime.BindingDirectory;
-import org.jibx.runtime.IBindingFactory;
-import org.jibx.runtime.IMarshallingContext;
+import org.dataone.service.types.v1.Identifier;
+import org.dataone.service.types.v1.Session;
+import org.dataone.service.types.v1.SystemMetadata;
+import org.dataone.service.util.Constants;
+import org.dataone.service.util.TypeMarshaller;
 import org.jibx.runtime.JiBXException;
-import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
@@ -297,7 +288,7 @@ public class DataReplicationIT {
 			MultipartRequestHandler mmpHandler = new MultipartRequestHandler(restURL, Constants.POST);
 			//mmpHandler.addParamPart("sysmeta", sysmeta.toString());
 			FileOutputStream fos = new FileOutputStream(outputFile);
-			ServiceTypeUtil.serializeServiceType(SystemMetadata.class, sysmeta, fos);
+			TypeMarshaller.marshalTypeToOutputStream(sysmeta, fos);
 			fos.flush();
 			fos.close();
 			
@@ -365,12 +356,13 @@ public class DataReplicationIT {
 	 * @param sysmeta
 	 * @return
 	 * @throws JiBXException
+	 * @throws IOException 
 	 */
 	protected ByteArrayInputStream serializeSystemMetadata(SystemMetadata sysmeta)
-			throws JiBXException {
+			throws JiBXException, IOException {
 
 		ByteArrayOutputStream sysmetaOut = new ByteArrayOutputStream();
-		ServiceTypeUtil.serializeServiceType(SystemMetadata.class, sysmeta, sysmetaOut);
+		TypeMarshaller.marshalTypeToOutputStream(sysmeta, sysmetaOut);
 		ByteArrayInputStream sysmetaStream = new ByteArrayInputStream(
                 sysmetaOut.toByteArray());
 		return sysmetaStream;

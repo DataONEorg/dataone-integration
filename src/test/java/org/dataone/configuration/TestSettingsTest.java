@@ -8,7 +8,7 @@ import java.io.File;
 import java.io.InputStream;
 import java.util.Date;
 
-import org.dataone.service.Constants;
+import org.dataone.service.util.Constants;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.Ignore;

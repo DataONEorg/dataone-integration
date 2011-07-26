@@ -17,16 +17,14 @@ import org.apache.commons.logging.LogFactory;
 import org.dataone.client.CNode;
 import org.dataone.client.D1Client;
 import org.dataone.configuration.Settings;
-import org.dataone.configuration.TestSettings;
-
-import org.dataone.service.types.AccessPolicy;
-import org.dataone.service.types.AccessRule;
-import org.dataone.service.types.Node;
-import org.dataone.service.types.NodeList;
-import org.dataone.service.types.NodeType;
-import org.dataone.service.types.Permission;
-import org.dataone.service.types.Subject;
-import org.dataone.service.types.util.ServiceTypeUtil;
+import org.dataone.service.types.v1.AccessPolicy;
+import org.dataone.service.types.v1.AccessRule;
+import org.dataone.service.types.v1.Node;
+import org.dataone.service.types.v1.NodeList;
+import org.dataone.service.types.v1.NodeType;
+import org.dataone.service.types.v1.Permission;
+import org.dataone.service.types.v1.Subject;
+import org.dataone.service.util.TypeMarshaller;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.rules.ErrorCollector;
@@ -98,7 +96,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 					System.out.println("Context is ad-hoc NodeList at: " + nodelistUri);
 					URL url = new URL(nodelistUri);
 					InputStream is = url.openStream();
-					NodeList nl = (NodeList) ServiceTypeUtil.deserializeServiceType(NodeList.class, is);
+					NodeList nl = TypeMarshaller.unmarshalTypeFromStream(NodeList.class, is);
 					memberNodeList = nl.getNodeList();
 				} else {
 					// use the context specified by D1Client

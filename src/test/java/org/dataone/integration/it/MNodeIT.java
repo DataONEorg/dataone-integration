@@ -25,10 +25,8 @@ import static org.junit.Assert.assertThat;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.security.NoSuchAlgorithmException;
 import java.util.Date;
-import java.util.List;
 import java.util.Scanner;
 import java.util.Vector;
 import java.util.concurrent.Callable;
@@ -43,8 +41,6 @@ import org.dataone.client.ObjectFormatCache;
 import org.dataone.eml.DataoneEMLParser;
 import org.dataone.eml.EMLDocument;
 import org.dataone.eml.EMLDocument.DistributionMetadata;
-import org.dataone.service.Constants;
-import org.dataone.service.D1Url;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.IdentifierNotUnique;
 import org.dataone.service.exceptions.InsufficientResources;
@@ -56,29 +52,23 @@ import org.dataone.service.exceptions.NotFound;
 import org.dataone.service.exceptions.NotImplemented;
 import org.dataone.service.exceptions.ServiceFailure;
 import org.dataone.service.exceptions.UnsupportedType;
-import org.dataone.service.impl.ObjectFormatServiceImpl;
-import org.dataone.service.types.ObjectFormatIdentifier;
-import org.dataone.service.types.Session;
-import org.dataone.service.types.Checksum;
-import org.dataone.service.types.ChecksumAlgorithm;
-import org.dataone.service.types.DescribeResponse;
-import org.dataone.service.types.Event;
-import org.dataone.service.types.Identifier;
-import org.dataone.service.types.Log;
-import org.dataone.service.types.LogEntry;
-import org.dataone.service.types.Node;
-import org.dataone.service.types.ObjectFormat;
-import org.dataone.service.types.ObjectInfo;
-import org.dataone.service.types.ObjectList;
-import org.dataone.service.types.SystemMetadata;
-import org.dataone.service.types.util.ServiceTypeUtil;
-import org.jibx.runtime.JiBXException;
-import org.junit.Before;
+import org.dataone.service.types.v1.Checksum;
+import org.dataone.service.types.v1.ChecksumAlgorithm;
+import org.dataone.service.types.v1.DescribeResponse;
+import org.dataone.service.types.v1.Event;
+import org.dataone.service.types.v1.Identifier;
+import org.dataone.service.types.v1.Log;
+import org.dataone.service.types.v1.LogEntry;
+import org.dataone.service.types.v1.NodeList;
+import org.dataone.service.types.v1.ObjectInfo;
+import org.dataone.service.types.v1.ObjectList;
+import org.dataone.service.types.v1.Session;
+import org.dataone.service.types.v1.SystemMetadata;
+import org.dataone.service.util.D1Url;
+import org.dataone.service.util.TypeMarshaller;
 import org.junit.Ignore;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ErrorCollector;
-import org.w3c.dom.NodeList;
+
 
 /**
  * Test the DataONE Java client methods.
@@ -1278,10 +1268,8 @@ public class MNodeIT extends ContextAwareTestCaseDataone  {
                  } 
                  
                  try {
-//                	 System.out.println(IOUtils.toString(is));
-                	 org.dataone.service.types.NodeList nl = 
-                		 (org.dataone.service.types.NodeList) ServiceTypeUtil.deserializeServiceType(
-                				 org.dataone.service.types.NodeList.class, is);
+                	 NodeList nl = 
+                		  TypeMarshaller.unmarshalTypeFromStream(NodeList.class, is);
                  } catch (Exception e) {
                 	 errorCollector.addError(new Throwable(createAssertMessage() + 
                              " failed to create NodeList: " + 
@@ -1294,13 +1282,7 @@ public class MNodeIT extends ContextAwareTestCaseDataone  {
              }
          }
     }
-    
-	@SuppressWarnings("rawtypes")
-	protected void serializeServiceType(Class type, Object object,
-			OutputStream out) throws JiBXException {
-		ServiceTypeUtil.serializeServiceType(type, object, out);
-	}
-    
+     
     
     /**
      * Create a test data object on the given member node, and return the Identifier that was created for that object.
@@ -1397,9 +1379,9 @@ public class MNodeIT extends ContextAwareTestCaseDataone  {
                     ObjectFormatCache.getInstance().getFormat(emld.distributionMetadata.elementAt(i).mimeType).getFmtid().getValue(),
                     instream, TEST_MN_ID);
             //add desrviedBy
-            sm.addDescribedBy(mdId);
+ //           sm.addDescribedBy(mdId);
             //add describes to the metadata doc's sm
-            mdSm.addDescribe(id);
+ //           mdSm.addDescribe(id);
             //TODO: replace this with a call to the server eventually
             instream = this.getClass().getResourceAsStream("/d1_testdocs/" + dirname + "/" + url);
 

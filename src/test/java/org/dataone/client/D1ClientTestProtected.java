@@ -16,13 +16,10 @@ import java.util.regex.Pattern;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
-import org.dataone.service.Constants;
-import org.dataone.service.D1Url;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.InvalidRequest;
 import org.dataone.service.exceptions.ServiceFailure;
-import org.dataone.service.types.AuthToken;
-import org.dataone.integration.it.ExampleUtilities;
+import org.dataone.service.util.Constants;
 import org.junit.Assume;
 import org.junit.Ignore;
 import org.junit.Rule;
@@ -143,7 +140,7 @@ public class D1ClientTestProtected {
             params += "&";
             params += "count=100";
             
-            AuthToken token = new AuthToken("public");
+//            AuthToken token = new AuthToken("public");
 
             //without trailing slash
             HttpResponse resp1 = executeGetRequest(resource,params);
@@ -204,7 +201,7 @@ public class D1ClientTestProtected {
 
             System.out.println(resource);
             
-            AuthToken token = new AuthToken("public");
+ //           AuthToken token = new AuthToken("public");
 
             //without trailing slash
             HttpResponse resp1 = executeGetRequest(resource,params);
@@ -266,7 +263,7 @@ public class D1ClientTestProtected {
 
             System.out.println(resource);
             
-            AuthToken token = new AuthToken("public");
+//            AuthToken token = new AuthToken("public");
 
             //without trailing slash
             HttpResponse resp1 = executeGetRequest(resource,params);

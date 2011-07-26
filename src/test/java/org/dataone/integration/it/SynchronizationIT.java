@@ -9,7 +9,7 @@ import java.io.InputStream;
 import org.dataone.client.CNode;
 import org.dataone.client.D1Client;
 import org.dataone.client.MNode;
-import org.dataone.service.EncodingUtilities;
+import org.dataone.service.util.EncodingUtilities;
 import org.dataone.service.exceptions.IdentifierNotUnique;
 import org.dataone.service.exceptions.InsufficientResources;
 import org.dataone.service.exceptions.InvalidRequest;
@@ -20,12 +20,11 @@ import org.dataone.service.exceptions.NotFound;
 import org.dataone.service.exceptions.NotImplemented;
 import org.dataone.service.exceptions.ServiceFailure;
 import org.dataone.service.exceptions.UnsupportedType;
-import org.dataone.service.types.AuthToken;
-import org.dataone.service.types.Identifier;
-import org.dataone.service.types.ObjectList;
-import org.dataone.service.types.QueryType;
-import org.dataone.service.types.Session;
-import org.dataone.service.types.SystemMetadata;
+import org.dataone.service.types.v1.Identifier;
+import org.dataone.service.types.v1.ObjectList;
+import org.dataone.service.types.v1.QueryType;
+import org.dataone.service.types.v1.Session;
+import org.dataone.service.types.v1.SystemMetadata;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
@@ -223,7 +222,6 @@ public class SynchronizationIT {
 		// create the players
 		CNode cn = D1Client.getCN();
 		MNode mn1 = D1Client.getMN(mn1_Url);	
-		AuthToken token = null;
 		
 		// create new object on MN_1
 		Identifier pid = ExampleUtilities.doCreateNewObject(mn1, prefix);

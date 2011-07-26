@@ -26,9 +26,7 @@ import static org.junit.Assert.assertThat;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.NoSuchAlgorithmException;
-import java.util.List;
 import java.util.Set;
-import java.util.Vector;
 import java.util.concurrent.Callable;
 
 import org.apache.commons.io.IOUtils;
@@ -38,17 +36,12 @@ import org.dataone.client.DataPackage;
 import org.dataone.client.MNode;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.IdentifierNotUnique;
-import org.dataone.service.types.AuthToken;
-import org.dataone.service.types.Identifier;
-import org.dataone.service.types.Node;
-import org.dataone.service.types.ObjectFormat;
-import org.dataone.service.types.Session;
-import org.dataone.service.types.SystemMetadata;
-import org.junit.Before;
+import org.dataone.service.types.v1.Identifier;
+import org.dataone.service.types.v1.ObjectFormat;
+import org.dataone.service.types.v1.Session;
+import org.dataone.service.types.v1.SystemMetadata;
 import org.junit.Ignore;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ErrorCollector;
 
 /**
  * Test the DataONE Java client methods.

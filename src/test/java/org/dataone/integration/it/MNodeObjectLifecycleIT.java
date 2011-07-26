@@ -26,23 +26,19 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Enumeration;
-import java.util.Hashtable;
 import java.util.Iterator;
-import java.util.List;
 import java.util.concurrent.Callable;
 
 import org.apache.commons.io.IOUtils;
 import org.dataone.client.D1Client;
 import org.dataone.client.MNode;
-import org.dataone.service.types.Checksum;
-import org.dataone.service.types.DescribeResponse;
-import org.dataone.service.types.Identifier;
-import org.dataone.service.types.Node;
-import org.dataone.service.types.ObjectList;
-import org.dataone.service.types.Session;
-import org.dataone.service.types.SystemMetadata;
-import org.junit.Before;
+import org.dataone.service.types.v1.Checksum;
+import org.dataone.service.types.v1.DescribeResponse;
+import org.dataone.service.types.v1.Identifier;
+import org.dataone.service.types.v1.Node;
+import org.dataone.service.types.v1.ObjectList;
+import org.dataone.service.types.v1.Session;
+import org.dataone.service.types.v1.SystemMetadata;
 import org.junit.Ignore;
 import org.junit.Test;
 
