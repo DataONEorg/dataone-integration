@@ -375,7 +375,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     		try {
     			ObjectInfo oi = getPrefetchedObject(currentUrl,0);
     			log.debug("   pid = " + oi.getIdentifier());				
-    			Checksum cs = mn.getChecksum(null,oi.getIdentifier(),ChecksumAlgorithm.MD5.toString());
+    			Checksum cs = mn.getChecksum(null,oi.getIdentifier(),ChecksumAlgorithm.MD5.xmlValue());
     			checkTrue(currentUrl,"getChecksum() returns a Checksum object", cs != null);
     		} 
     		catch (IndexOutOfBoundsException e) {
