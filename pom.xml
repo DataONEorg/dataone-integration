@@ -116,27 +116,20 @@
 							<goal>run</goal>
 						</goals>
 					</execution>
-					<execution>
-						<id>execution2</id>
-						<phase>package</phase>
-						<configuration>
-							<tasks>
-								<move file="target/${project.build.finalName}.war" tofile="target/MNWebTester.war" />
-							</tasks>
-						</configuration>
-						<goals>
-							<goal>run</goal>
-						</goals>
-					</execution>
+<!-- 					<execution> -->
+<!-- 						<id>execution2</id> -->
+<!-- 						<phase>package</phase> -->
+<!-- 						<configuration> -->
+<!-- 							<tasks> -->
+<!-- 								<move file="target/${project.build.finalName}.war" tofile="target/MNWebTester.war" /> -->
+<!-- 							</tasks> -->
+<!-- 						</configuration> -->
+<!-- 						<goals> -->
+<!-- 							<goal>run</goal> -->
+<!-- 						</goals> -->
+<!-- 					</execution> -->
 				</executions>
 			</plugin>
-<!--         	<plugin> -->
-<!--         		<artifactId>maven-war-plugin</artifactId> -->
-<!--         		<version>2.1.1</version> -->
-<!--         		<configuration> -->
-<!--         			<finalName>webTester</finalName> -->
-<!--         		</configuration> -->
-<!--         	</plugin> -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-failsafe-plugin</artifactId>
