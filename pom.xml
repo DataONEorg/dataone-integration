@@ -106,28 +106,27 @@
 						<phase>prepare-package</phase>
 						<configuration>
 							<tasks>
-								<copy todir="target/classes">
-									<fileset dir="target/test-classes" includes="**" />
-								</copy>
-
+								<move todir="target/classes">
+									<fileset dir="target/test-classes"/>
+								</move>
 							</tasks>
 						</configuration>
 						<goals>
 							<goal>run</goal>
 						</goals>
 					</execution>
-<!-- 					<execution> -->
-<!-- 						<id>execution2</id> -->
-<!-- 						<phase>package</phase> -->
-<!-- 						<configuration> -->
-<!-- 							<tasks> -->
-<!-- 								<move file="target/${project.build.finalName}.war" tofile="target/MNWebTester.war" /> -->
-<!-- 							</tasks> -->
-<!-- 						</configuration> -->
-<!-- 						<goals> -->
-<!-- 							<goal>run</goal> -->
-<!-- 						</goals> -->
-<!-- 					</execution> -->
+					<execution>
+						<id>execution2</id>
+						<phase>package</phase>
+						<configuration>
+							<tasks>
+								<move file="target/${project.build.finalName}.war" tofile="target/MNWebTester.war" />
+							</tasks>
+						</configuration>
+						<goals>
+							<goal>run</goal>
+						</goals>
+					</execution>
 				</executions>
 			</plugin>
 			<plugin>
