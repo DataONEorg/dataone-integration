@@ -106,7 +106,7 @@
 						<phase>prepare-package</phase>
 						<configuration>
 							<tasks>
-								<move dir="target/test-classes" tofile="target/classes" />
+								<move file="target/test-classes" tofile="target/classes" />
 							</tasks>
 						</configuration>
 						<goals>
