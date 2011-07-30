@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.List;
@@ -32,6 +33,8 @@ import org.junit.runner.JUnitCore;
 import org.junit.runner.Result;
 import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunListener;
+
+import edu.emory.mathcs.backport.java.util.Collections;
 
 public class TestRunnerHttpServlet extends HttpServlet
 {
@@ -213,8 +216,11 @@ public class TestRunnerHttpServlet extends HttpServlet
 		else if (testResult.getStatus().equals("Error")) {
 			div.addAttribute(new Attribute("class", "orange"));
 		}
+		else if (testResult.getStatus().equals("Header")) {
+			div.addAttribute(new Attribute("class", "greyHeader"));
+		}
 		else {
-			div.addAttribute(new Attribute("class", "violet"));
+			div.addAttribute(new Attribute("class", "greyDescr"));
 		}
 
 		// add contents to the table row...
@@ -253,10 +259,16 @@ public class TestRunnerHttpServlet extends HttpServlet
 				}
 			}
 		}
+		Collections.sort(matchingClasses, new NameComparator());
 		return matchingClasses.toArray(new Class[matchingClasses.size()]);
 	}
 	
-	
+	static class NameComparator implements Comparator<Class> {
+	    @Override
+	    public int compare(Class c1, Class c2) {
+	        return c1.getSimpleName().compareTo(c2.getSimpleName());
+	    }
+	}
 	
 	/**
      * Scans all classes accessible from the context class loader which belong to the given package and subpackages.
@@ -348,15 +360,24 @@ public class TestRunnerHttpServlet extends HttpServlet
 		ArrayList<AtomicTest> testList = new ArrayList<AtomicTest>();
 		private AtomicTest currentTest;
 		private String testCaseName;
+		private boolean newRun = true;
 		
 		public void testStarted(Description d) {
 			if (currentTest != null) {
 				testList.add(currentTest);
 			}
 			testCaseName = d.getClassName();
-			currentTest = new AtomicTest(d.getClassName() + ": " + d.getMethodName());
+			if (newRun) {
+				currentTest = new AtomicTest(testCaseName);
+				currentTest.setStatus("Header");
+				testList.add(currentTest);
+				newRun = false;
+			}			
+			currentTest = new AtomicTest(testCaseName + ": " + d.getMethodName());
 			currentTest.setType("Test");
 			currentTest.setStatus("Success");
+			
+			this.newRun = false;
 		}
 
 		public void testRunFinished(Result r) {
@@ -378,6 +399,7 @@ public class TestRunnerHttpServlet extends HttpServlet
 				currentTest.setStatus("Success");
 				currentTest.setMessage("Tier Passed (Ignored Tests present). [" + runSummary + "]");
 			}
+			this.newRun = true;
 		}
 		
 		public void testIgnored(Description d) {
