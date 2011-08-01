@@ -249,8 +249,9 @@ public class CNodeITtemplate extends ContextAwareTestCaseDataone {
 				ObjectInfo oi = getPrefetchedObject(currentUrl,0);    
 				log.debug("   pid = " + oi.getIdentifier());
 
-				Identifier response = cn.reserveIdentifier(null, oi.getIdentifier(), null, null);
-				checkTrue(currentUrl,"reserveIdentifier(...) returns a Identifier object", response != null);
+//				Identifier response = cn.reserveIdentifier(null, oi.getIdentifier());
+				boolean response = cn.reserveIdentifier(null, oi.getIdentifier());
+				checkTrue(currentUrl,"reserveIdentifier(...) returns true", response);
 			} 
 			catch (IndexOutOfBoundsException e) {
 				handleFail(currentUrl,"No Objects available to test against");
