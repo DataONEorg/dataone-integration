@@ -235,38 +235,6 @@ public class CNodeITtemplate extends ContextAwareTestCaseDataone {
 
 
 
-
-
-	@Test
-	public void testReserveIdentifier() {
-		Iterator<Node> it = getCoordinatingNodeIterator();
-		while (it.hasNext()) {
-			currentUrl = it.next().getBaseURL();
-			CNode cn = new CNode(currentUrl);
-			printTestHeader("testReserveIdentifier(...) vs. node: " + currentUrl);
-
-			try {
-				ObjectInfo oi = getPrefetchedObject(currentUrl,0);    
-				log.debug("   pid = " + oi.getIdentifier());
-
-//				Identifier response = cn.reserveIdentifier(null, oi.getIdentifier());
-				boolean response = cn.reserveIdentifier(null, oi.getIdentifier());
-				checkTrue(currentUrl,"reserveIdentifier(...) returns true", response);
-			} 
-			catch (IndexOutOfBoundsException e) {
-				handleFail(currentUrl,"No Objects available to test against");
-			}
-			catch (BaseException e) {
-				handleFail(currentUrl,e.getDescription());
-			}
-			catch(Exception e) {
-				e.printStackTrace();
-				handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
-			}
-		}
-	}
-
-
 	@Test
 	public void testAssertRelation() {
 		Iterator<Node> it = getCoordinatingNodeIterator();

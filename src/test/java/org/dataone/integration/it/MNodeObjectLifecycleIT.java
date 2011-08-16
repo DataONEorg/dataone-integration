@@ -26,6 +26,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.math.BigInteger;
 import java.util.Iterator;
 import java.util.concurrent.Callable;
 

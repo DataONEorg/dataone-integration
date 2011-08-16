@@ -25,6 +25,7 @@ import static org.junit.Assert.assertThat;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -397,7 +398,7 @@ public class ExampleUtilities {
         SystemMetadata sysmeta = new SystemMetadata();
         sysmeta.setIdentifier(guid);
         sysmeta.setObjectFormat(objectFormat);
-        sysmeta.setSize(12);
+        sysmeta.setSize(BigInteger.valueOf(12));
         Subject submitter = new Subject();
         String dn = "uid=jones,o=NCEAS,dc=ecoinformatics,dc=org";
         submitter.setValue(dn);
