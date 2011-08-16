@@ -1,4 +1,4 @@
-package org.dataone.integration.it;
+package org.dataone.integration.webTest;
 
 
 import static org.junit.Assert.assertTrue;
