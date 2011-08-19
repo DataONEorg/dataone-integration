@@ -391,7 +391,7 @@ public class TestRunnerHttpServlet extends HttpServlet
 								"   Ignored=" + r.getIgnoreCount();
 			if(r.getFailureCount() > 0) {
 				currentTest.setStatus("Failed");
-				currentTest.setMessage("Failed Tier due to failures. [" + runSummary + "]");
+				currentTest.setMessage("Failed Tier due to failures or exceptions. [" + runSummary + "]");
 			} else if (r.getIgnoreCount() > 0) {
 				currentTest.setStatus("Ignored");
 				currentTest.setMessage("Tier Tentative Pass (Ignored Tests present). [" + runSummary + "]");
@@ -423,6 +423,10 @@ public class TestRunnerHttpServlet extends HttpServlet
 		}
 		
 		public ArrayList<AtomicTest> getTestList() {
+			if (currentTest != null) {
+				testList.add(currentTest);
+				currentTest = null;
+			}
 			return testList;
 		}
 	}
