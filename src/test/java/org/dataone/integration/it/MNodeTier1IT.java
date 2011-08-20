@@ -104,15 +104,17 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
 	}
 	
 	
-	private ObjectInfo getPrefetchedObject(String currentUrl, Integer index)
+	private ObjectInfo getPrefetchedObject(String currentUrl, int index)
 	{
-		if (index == null) 
-			index = new Integer(0);
+		if (listedObjects.get(currentUrl).getCount() == 0) {
+			throw new IndexOutOfBoundsException();
+		}
 		if (index < 0) {
 			// return off the right end of the list
 			index = listedObjects.get(currentUrl).getCount() + index;
 		}
-		return listedObjects.get(currentUrl).getObjectInfo(index);
+		ObjectList ol = listedObjects.get(currentUrl);
+		return ol.getObjectInfo(index);
 	}
 	
 	
