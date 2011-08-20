@@ -9,6 +9,7 @@ import org.apache.http.HttpException;
 import org.apache.http.client.ClientProtocolException;
 import org.dataone.client.D1RestClient;
 import org.dataone.service.exceptions.BaseException;
+import org.dataone.service.exceptions.ServiceFailure;
 import org.dataone.service.types.v1.Node;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -28,7 +29,7 @@ public class ClientAuthIT extends ContextAwareTestCaseDataone {
 	/**
 	 * Uncomment for locally running tests against DEV environment
 	 */
-//	@BeforeClass
+	@BeforeClass
 	public static void settingContext() {
 		System.setProperty("context.label", "DEV");
 	}
@@ -39,7 +40,7 @@ public class ClientAuthIT extends ContextAwareTestCaseDataone {
 	{	
 		String url = "https://repository.dataone.org/";
 		
-		D1RestClient rc = new D1RestClient(false);
+		D1RestClient rc = new D1RestClient();
 		InputStream is = rc.doGetRequest(url);
 	}
 
@@ -67,8 +68,12 @@ public class ClientAuthIT extends ContextAwareTestCaseDataone {
 				log.info("CurrentURL = " + currentUrl);
 				InputStream is = rc.doGetRequest(currentUrl);
 			} 
-			catch (BaseException e) {
+			catch (ServiceFailure e) {
 				handleFail(currentUrl,e.getClass().getSimpleName() + ":: " + e.getDescription());
+			}
+			catch (BaseException e) {
+				log.info(currentUrl +":: exceptionThrown: " + 
+						e.getClass().getSimpleName() + ":: " + e.getDescription());
 			}
 			catch(Exception e) {
 				String msg = e.getClass().getSimpleName() + ":: " + e.getMessage();
