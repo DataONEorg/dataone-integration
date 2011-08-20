@@ -92,39 +92,34 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 				memberNodeList.add(n);
 			} else {
 				// we will be testing multiple member nodes
+				List<Node> allNodesList = new Vector<Node>();
+				memberNodeList = new Vector<Node>();
 				if (nodelistUri != null) {
 					// the list of member nodes is in this NodeList.xml file
 					System.out.println("Context is ad-hoc NodeList at: " + nodelistUri);
 					URL url = new URL(nodelistUri);
 					InputStream is = url.openStream();
 					NodeList nl = TypeMarshaller.unmarshalTypeFromStream(NodeList.class, is);
-					memberNodeList = nl.getNodeList();
+					allNodesList = nl.getNodeList();
 				} else {
 					// use the context specified by D1Client
 					CNode cn = D1Client.getCN();
 					System.out.println("Context is from D1Client: " + cn.getNodeBaseServiceUrl());
-					memberNodeList = cn.listNodes().getNodeList();
+					allNodesList = cn.listNodes().getNodeList();
 				} 
 				// divide into separate lists
-				for(int i=memberNodeList.size()-1; i<= 0; i--) {
-					Node currentNode = memberNodeList.get(i);
+				for(int i=0; i < allNodesList.size(); i++) {
+					Node currentNode = allNodesList.get(i);
 					if (currentNode.getType() == NodeType.CN) {
 						coordinatingNodeList.add(currentNode);
-						memberNodeList.remove(i);
+					} else if (currentNode.getType() == NodeType.MN) {
+						memberNodeList.add(currentNode);
 					} else if (currentNode.getType() == NodeType.MONITOR) {
 						monitorNodeList.add(currentNode);
-						memberNodeList.remove(i);	
-					} else if (currentNode.getType() != NodeType.MN) {
-						if (currentNode.getType() == null) {
-							log.warn("Node from nodelist has null NodeType. Removing from test list. " +
-									currentNode.getName() + ": " + currentNode.getBaseURL());
-							memberNodeList.remove(i);
-						} else {
-							log.warn("Node from nodelist is not of recognizable type: [" +
-									currentNode.getType() + "]. Removing from test list: " + 
-									currentNode.getName() + ": " + currentNode.getBaseURL());
-							memberNodeList.remove(i);
-						}
+					} else {
+						log.warn("Node from nodelist is not of recognizable type: [" +
+								currentNode.getType() + "]. Removing from test list: " + 
+								currentNode.getName() + ": " + currentNode.getBaseURL());
 					}
 				}			
 			} // nodelist set up

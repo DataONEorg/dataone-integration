@@ -81,11 +81,13 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
 	 */
 	@Before
 	public void prefetchObjects() {
+		
 		if (listedObjects == null) {
 			listedObjects = new Hashtable<String,ObjectList>();
 			Iterator<Node> it = getMemberNodeIterator();
 			while (it.hasNext()) {
 				currentUrl = it.next().getBaseURL();
+				log.info("prefecthing objects from: " + currentUrl);
 				MNode mn = D1Client.getMN(currentUrl);
 				try {
 					ObjectList ol = mn.listObjects(null, null, null, null, null, 0, 10);
