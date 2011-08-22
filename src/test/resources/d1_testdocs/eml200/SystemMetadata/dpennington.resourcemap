@@ -1,0 +1,28 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<ns1:systemMetadata xmlns:ns1="http://ns.dataone.org/service/types/v1">
+  <identifier>dpennington.resourcemap</identifier>
+  <objectFormat>
+    <fmtid>http://www.openarchives.org/ore/terms</fmtid>
+    <formatName>Object Reuse and Exchange Vocabulary</formatName>
+    <scienceMetadata>false</scienceMetadata>
+  </objectFormat>
+  <size>2478</size>
+  <checksum algorithm="SHA-1">883ed93c297724dca3a8dc48bef0cc1fa71426cb</checksum>
+  <submitter>dataone_integration_test_user</submitter>
+  <rightsHolder>dataone_integration_test_user</rightsHolder>
+  <accessPolicy>
+    <allow>
+      <subject>dataone_public_user</subject>
+      <permission>read</permission>
+    </allow>
+    <allow>
+      <subject>dataone_integration_test_user</subject>
+      <permission>write</permission>
+    </allow>
+  </accessPolicy>
+  <replicationPolicy replicationAllowed="true"/>
+  <dateUploaded>2011-08-22T22:31:19.003894</dateUploaded>
+  <dateSysMetadataModified>2011-08-22T22:31:19.005726</dateSysMetadataModified>
+  <originMemberNode>test_documents</originMemberNode>
+  <authoritativeMemberNode>test_documents</authoritativeMemberNode>
+</ns1:systemMetadata>
