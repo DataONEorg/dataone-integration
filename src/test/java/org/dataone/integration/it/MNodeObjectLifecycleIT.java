@@ -128,7 +128,7 @@ public class MNodeObjectLifecycleIT extends ContextAwareTestCaseDataone {
     		newPid.setValue(idString);
 
     		InputStream objectStream = this.getClass().getResourceAsStream("/d1_testdocs/knb-lter-cdr.329066.1.data");
-    		SystemMetadata sysmeta = ExampleUtilities.generateSystemMetadata(newPid, "text-csv", objectStream);
+    		SystemMetadata sysmeta = ExampleUtilities.generateSystemMetadata(newPid, "text-csv", objectStream,null);
     		objectStream = this.getClass().getResourceAsStream("/d1_testdocs/knb-lter-cdr.329066.1.data");
     		Identifier rGuid = null;
     		
@@ -248,7 +248,7 @@ public class MNodeObjectLifecycleIT extends ContextAwareTestCaseDataone {
                 createdDataObject = createdDataObject.replaceAll("61", "0");
                 objectStream = IOUtils.toInputStream(createdDataObject);
                 SystemMetadata updatedSysmeta = ExampleUtilities.generateSystemMetadata(updatedPid,
-                		"text/csv", objectStream);
+                		"text/csv", objectStream,null);
                 objectStream = IOUtils.toInputStream(createdDataObject);
                 
                 //update the document

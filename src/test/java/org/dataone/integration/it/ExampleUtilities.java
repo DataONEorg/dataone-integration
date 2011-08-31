@@ -358,46 +358,31 @@ public class ExampleUtilities {
     
     /** Generate a SystemMetadata object with bogus data. */
     protected static SystemMetadata generateSystemMetadata(
-            Identifier guid, String objectFormatIdString, InputStream source) {
-        
-        return generateSystemMetadata(guid, objectFormatIdString, source, preferredMNId);
+            Identifier guid, String objectFormatIdString, InputStream source, String mnIdentifier) {
+
+    	ObjectFormatIdentifier ofid = new ObjectFormatIdentifier();
+    	ofid.setValue(objectFormatIdString);
+    	if (mnIdentifier == null)
+    		return generateSystemMetadata(guid, ofid, source, preferredMNId);
+    	else
+    		return generateSystemMetadata(guid, ofid, source, mnIdentifier);
     }
     
     /** Generate a SystemMetadata object with bogus data. */
     protected static SystemMetadata generateSystemMetadata(
-            Identifier guid, String objectFormatIdString, InputStream source, String mnIdentifier) 
+            Identifier guid, ObjectFormatIdentifier fmtid, InputStream source) {
+
+        return generateSystemMetadata(guid, fmtid, source, preferredMNId);
+    }
+    
+    /** Generate a SystemMetadata object with bogus data. */
+    protected static SystemMetadata generateSystemMetadata(
+            Identifier guid, ObjectFormatIdentifier fmtid, InputStream source, String mnIdentifier) 
     {
     	
-
-    	ObjectFormatIdentifier ofid = new ObjectFormatIdentifier();
-    	ofid.setValue(objectFormatIdString);
-    	ObjectFormat objectFormat = null;
-    	
-    	// swallowing these exceptions for now, in v0.6.3 will be replacing 
-    	// object format with objectformatIdentifier, and won't need exception handling
-    	// (unless checking for registered format?)
-    	try {
-    		objectFormat = ObjectFormatServiceImpl.getInstance().getFormat(ofid);
-    	} catch (InvalidRequest e1) {
-    		// TODO Auto-generated catch block
-    		e1.printStackTrace();
-    	} catch (ServiceFailure e1) {
-    		// TODO Auto-generated catch block
-    		e1.printStackTrace();
-    	} catch (NotFound e1) {
-    		// TODO Auto-generated catch block
-    		e1.printStackTrace();
-    	} catch (InsufficientResources e1) {
-    		// TODO Auto-generated catch block
-    		e1.printStackTrace();
-    	} catch (NotImplemented e1) {
-    		// TODO Auto-generated catch block
-    		e1.printStackTrace();
-    	}
-
         SystemMetadata sysmeta = new SystemMetadata();
         sysmeta.setIdentifier(guid);
-        sysmeta.setFmtid(objectFormat.getFmtid());
+        sysmeta.setFmtid(fmtid);
         sysmeta.setSize(BigInteger.valueOf(12));
         Subject submitter = new Subject();
         String dn = "uid=jones,o=NCEAS,dc=ecoinformatics,dc=org";
@@ -544,7 +529,7 @@ public class ExampleUtilities {
 			new Throwable().getStackTrace()[2].getClass().getResourceAsStream("/d1_testdocs/knb-lter-cdr.329066.1.data");
 //		InputStream objectStream = Caller.getClass().getResourceAsStream(
 //				"/d1_testdocs/knb-lter-cdr.329066.1.data");
-		SystemMetadata sysmeta = ExampleUtilities.generateSystemMetadata(guid, "text/csv", objectStream);
+		SystemMetadata sysmeta = ExampleUtilities.generateSystemMetadata(guid, "text/csv", objectStream,null);
 		Identifier rGuid = null;
 		objectStream = 
             new Throwable().getStackTrace()[2].getClass().getResourceAsStream("/d1_testdocs/knb-lter-cdr.329066.1.data");

@@ -229,7 +229,7 @@ public class CNodeIT extends ContextAwareTestCaseDataone {
 
 			//insert a data file
 			InputStream objectStream = this.getClass().getResourceAsStream("/d1_testdocs/knb-lter-cdr.329066.1.data");
-			SystemMetadata sysmeta = ExampleUtilities.generateSystemMetadata(guid, "text/csv", objectStream);
+			SystemMetadata sysmeta = ExampleUtilities.generateSystemMetadata(guid, "text/csv", objectStream,null);
 			objectStream = this.getClass().getResourceAsStream("/d1_testdocs/knb-lter-cdr.329066.1.data");
 			
 			Identifier rGuid = null;
@@ -277,7 +277,7 @@ public class CNodeIT extends ContextAwareTestCaseDataone {
 
 			//insert a data file
 			InputStream objectStream = this.getClass().getResourceAsStream("/d1_testdocs/knb-lter-cdr.329066.1.data");
-			SystemMetadata sysmeta = ExampleUtilities.generateSystemMetadata(guid, "text/csv", objectStream);
+			SystemMetadata sysmeta = ExampleUtilities.generateSystemMetadata(guid, "text/csv", objectStream,null);
 			objectStream = this.getClass().getResourceAsStream("/d1_testdocs/knb-lter-cdr.329066.1.data");
 			
 			Identifier rGuid = null;
@@ -328,7 +328,7 @@ public class CNodeIT extends ContextAwareTestCaseDataone {
 
 			//insert a data file
 			InputStream objectStream = this.getClass().getResourceAsStream("/d1_testdocs/knb-lter-cdr.329066.1.data");
-			SystemMetadata sysmeta = ExampleUtilities.generateSystemMetadata(guid, "text/csv", objectStream);
+			SystemMetadata sysmeta = ExampleUtilities.generateSystemMetadata(guid, "text/csv", objectStream,null);
 			objectStream = this.getClass().getResourceAsStream("/d1_testdocs/knb-lter-cdr.329066.1.data");
 			
 			Identifier rGuid = null;
@@ -451,7 +451,7 @@ public class CNodeIT extends ContextAwareTestCaseDataone {
 
 					//insert a data file
 					InputStream objectStream = this.getClass().getResourceAsStream("/d1_testdocs/knb-lter-cdr.329066.1.data");
-					SystemMetadata sysmeta = ExampleUtilities.generateSystemMetadata(guid, "text/csv", objectStream);
+					SystemMetadata sysmeta = ExampleUtilities.generateSystemMetadata(guid, "text/csv", objectStream,null);
 					objectStream = this.getClass().getResourceAsStream("/d1_testdocs/knb-lter-cdr.329066.1.data");
 					
 					Identifier rGuid = null;

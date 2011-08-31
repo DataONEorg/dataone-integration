@@ -210,7 +210,7 @@ public class PackageIT extends ContextAwareTestCaseDataone {
         guid.setValue(idString);
         InputStream objectStream = this.getClass().getResourceAsStream(
                 "/d1_testdocs/knb-lter-cdr.329066.1.data");
-        SystemMetadata sysmeta = ExampleUtilities.generateSystemMetadata(guid,"text/csv", objectStream, TEST_MN_ID);
+        SystemMetadata sysmeta = ExampleUtilities.generateSystemMetadata(guid, "text/csv", objectStream,TEST_MN_ID);
         objectStream = this.getClass().getResourceAsStream(
             "/d1_testdocs/knb-lter-cdr.329066.1.data");
         Identifier rGuid = null;

@@ -230,7 +230,7 @@ public class ChecksumAnalysis extends ContextAwareTestCaseDataone {
                 guid.setValue(idString);
                 objectStream = IOUtils.toInputStream(doc);
                 SystemMetadata sysmeta = ExampleUtilities.generateSystemMetadata(guid, 
-                		"eml://ecoinformatics.org/eml-2.1.0", objectStream);
+                		"eml://ecoinformatics.org/eml-2.1.0", objectStream,null);
                 objectStream = IOUtils.toInputStream(doc);
                 sysmeta.setChecksum(checksum1);
                 Identifier rGuid = null;
