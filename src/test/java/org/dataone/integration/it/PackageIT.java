@@ -38,6 +38,7 @@ import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.IdentifierNotUnique;
 import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.ObjectFormat;
+import org.dataone.service.types.v1.ObjectFormatIdentifier;
 import org.dataone.service.types.v1.Session;
 import org.dataone.service.types.v1.SystemMetadata;
 import org.junit.Ignore;
@@ -109,12 +110,12 @@ public class PackageIT extends ContextAwareTestCaseDataone {
                 Set<Identifier> identifiers = dp.identifiers();
                 for (Identifier current_id : identifiers) {
                     D1Object o = dp.get(current_id);
-                    ObjectFormat fmt = o.getType();
+                    ObjectFormatIdentifier fmtid = o.getFmtId();
                     byte[] data = o.getData();
                     if (data != null) {
-                        System.out.println(current_id.getValue() + ": " + fmt + " (" + data.length + ")");
+                        System.out.println(current_id.getValue() + ": " + fmtid + " (" + data.length + ")");
                     } else {
-                         System.out.println(current_id.getValue() + ": " + fmt + "(null data)");
+                         System.out.println(current_id.getValue() + ": " + fmtid + "(null data)");
                     }
                 }
 //            } catch (BaseException e) {
@@ -170,7 +171,7 @@ public class PackageIT extends ContextAwareTestCaseDataone {
                 // Now check if the object is on the MN
                 SystemMetadata smCopy = mn.getSystemMetadata(token, id);
                 checkEquals(id.getValue(), smCopy.getIdentifier().getValue());
-                checkEquals(d1o.getType().toString(), smCopy.getObjectFormat().toString());
+                checkEquals(d1o.getFmtId().toString(), smCopy.getFmtid().toString());
                 
                 // Now check that create() fails if called a second time
                 try {

@@ -397,7 +397,7 @@ public class ExampleUtilities {
 
         SystemMetadata sysmeta = new SystemMetadata();
         sysmeta.setIdentifier(guid);
-        sysmeta.setObjectFormat(objectFormat);
+        sysmeta.setFmtid(objectFormat.getFmtid());
         sysmeta.setSize(BigInteger.valueOf(12));
         Subject submitter = new Subject();
         String dn = "uid=jones,o=NCEAS,dc=ecoinformatics,dc=org";

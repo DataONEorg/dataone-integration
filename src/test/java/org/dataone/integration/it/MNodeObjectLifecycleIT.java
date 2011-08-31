@@ -208,7 +208,7 @@ public class MNodeObjectLifecycleIT extends ContextAwareTestCaseDataone {
         		Checksum cs = dr.getDataONE_Checksum();
         		checkTrue("",cs.getValue().equals(sysmeta.getChecksum().getValue()));
         		checkTrue("",dr.getContent_Length() == sysmeta.getSize());
-        		checkTrue("",dr.getDataONE_ObjectFormat().toString().equals(sysmeta.getObjectFormat().toString())); 
+        		checkTrue("",dr.getDataONE_ObjectFormatIdentifier().toString().equals(sysmeta.getFmtid().toString())); 
     		} catch (Exception e) {
     			System.out.println("error in mn.getSystemMetadata: " + e.getMessage());
     			errorCollector.addError(new Throwable(createAssertMessage() + 
