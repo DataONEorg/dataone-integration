@@ -112,10 +112,13 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 					Node currentNode = allNodesList.get(i);
 					if (currentNode.getType() == NodeType.CN) {
 						coordinatingNodeList.add(currentNode);
+						log.info("Adding CN to list: " + currentNode.getName() + " [" + currentNode.getBaseURL() +"]");
 					} else if (currentNode.getType() == NodeType.MN) {
 						memberNodeList.add(currentNode);
+						log.info("Adding MN to list: " + currentNode.getName() + " [" + currentNode.getBaseURL() +"]");
 					} else if (currentNode.getType() == NodeType.MONITOR) {
 						monitorNodeList.add(currentNode);
+						log.info("Adding MonitorNode to list: " + currentNode.getName() + " [" + currentNode.getBaseURL() +"]");
 					} else {
 						log.warn("Node from nodelist is not of recognizable type: [" +
 								currentNode.getType() + "]. Removing from test list: " + 
