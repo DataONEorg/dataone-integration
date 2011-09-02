@@ -79,24 +79,24 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 			nodelistUri = Settings.getConfiguration().getString(PARAM_NODELIST_URI);
 			
 			log.info("****************************************************");
-			log.info("**  context:   " + testContext);
-//			log.info("**  overrides: " + Settings.getConfiguration().getString(TestSettings.CONTEXT_OVERRIDE_URI));
+			log.info("***  context label:   " + testContext);
 			log.info("****************************************************");
 
 			if (mnBaseUrl != null) {
 				// the context is standalone member node
-				System.out.println("Context is solo MemberNode: " + mnBaseUrl);
+				System.out.println("~~~ Context is solo MemberNode: " + mnBaseUrl);				
 				Node n = new Node();
 				n.setBaseURL(mnBaseUrl);
 				memberNodeList = new Vector<Node>();
 				memberNodeList.add(n);
+				log.info("*** Adding MN to list: [" + n.getBaseURL() +"]");
 			} else {
 				// we will be testing multiple member nodes
 				List<Node> allNodesList = new Vector<Node>();
 				memberNodeList = new Vector<Node>();
 				if (nodelistUri != null) {
 					// the list of member nodes is in this NodeList.xml file
-					System.out.println("Context is ad-hoc NodeList at: " + nodelistUri);
+					System.out.println("~~~ Context is ad-hoc NodeList at: " + nodelistUri);
 					URL url = new URL(nodelistUri);
 					InputStream is = url.openStream();
 					NodeList nl = TypeMarshaller.unmarshalTypeFromStream(NodeList.class, is);
@@ -104,7 +104,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 				} else {
 					// use the context specified by D1Client
 					CNode cn = D1Client.getCN();
-					System.out.println("Context is from D1Client: " + cn.getNodeBaseServiceUrl());
+					System.out.println("~~~ Context is from D1Client: " + cn.getNodeBaseServiceUrl());
 					allNodesList = cn.listNodes().getNodeList();
 				} 
 				// divide into separate lists
@@ -112,13 +112,13 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 					Node currentNode = allNodesList.get(i);
 					if (currentNode.getType() == NodeType.CN) {
 						coordinatingNodeList.add(currentNode);
-						log.info("Adding CN to list: " + currentNode.getName() + " [" + currentNode.getBaseURL() +"]");
+						log.info("*** Adding CN to list: " + currentNode.getName() + " [" + currentNode.getBaseURL() +"]");
 					} else if (currentNode.getType() == NodeType.MN) {
 						memberNodeList.add(currentNode);
-						log.info("Adding MN to list: " + currentNode.getName() + " [" + currentNode.getBaseURL() +"]");
+						log.info("*** Adding MN to list: " + currentNode.getName() + " [" + currentNode.getBaseURL() +"]");
 					} else if (currentNode.getType() == NodeType.MONITOR) {
 						monitorNodeList.add(currentNode);
-						log.info("Adding MonitorNode to list: " + currentNode.getName() + " [" + currentNode.getBaseURL() +"]");
+						log.info("*** Adding MonitorNode to list: " + currentNode.getName() + " [" + currentNode.getBaseURL() +"]");
 					} else {
 						log.warn("Node from nodelist is not of recognizable type: [" +
 								currentNode.getType() + "]. Removing from test list: " + 
@@ -126,6 +126,8 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 					}
 				}			
 			} // nodelist set up
+
+			log.info("****************************************************");
 		}  // settings already set up
 	}
 	

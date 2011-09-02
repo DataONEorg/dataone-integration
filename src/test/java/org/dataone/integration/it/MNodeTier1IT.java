@@ -81,7 +81,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
 	 */
 	@Before
 	public void prefetchObjects() {
-		
+		log.debug("~~~~~ prefectching Objects");
 		if (listedObjects == null) {
 			listedObjects = new Hashtable<String,ObjectList>();
 			Iterator<Node> it = getMemberNodeIterator();
@@ -92,6 +92,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
 				try {
 					ObjectList ol = mn.listObjects(null, null, null, null, null, 0, 10);
 					listedObjects.put(currentUrl, ol);
+					log.info("~~~~ objects fetched: " + ol.getCount());
 				} 
 				catch (BaseException e) {
 					handleFail(currentUrl,e.getClass().getSimpleName() + ":: " + e.getDescription());
@@ -129,7 +130,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
 	
 		
 	@Test
-	public void testPing() {
+	public void testMNCore_Ping() {
 		Iterator<Node> it = getMemberNodeIterator();
 		while (it.hasNext()) {
 			currentUrl = it.next().getBaseURL();
@@ -152,7 +153,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
 	
 	
     @Test
-    public void testGetLogRecords()
+    public void testMNCore_GetLogRecords()
     {
        Iterator<Node> it = getMemberNodeIterator();
        while (it.hasNext()) {
@@ -176,7 +177,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
         		   canCreate = mn.isAuthorized(null, pid, Permission.WRITE);
         	   } catch (Exception e) {
         		   // do nothing - can't expect to create in Tier1 tests
-        		   log.info("Cannot create objects so skipping more precise logging test"
+        		   log.info("Cannot create objects so skipping more precise logging test "
         				   + "on node: " + currentUrl);
         	   }
         	   if (canCreate) { 
@@ -214,7 +215,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     }
 	
 	
-    @Ignore("client implementation deferred until v0.6.3")
+    @Ignore("client implementation deferred")
     @Test 
     public void testGetObjectStatistics() {
 
@@ -222,7 +223,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
 	
     
     @Test
-    public void testGetOperationStatistics() {
+    public void testMNCore_GetOperationStatistics() {
 		Iterator<Node> it = getMemberNodeIterator();
 		while (it.hasNext()) {
 			currentUrl = it.next().getBaseURL();
@@ -255,7 +256,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     }
 
     
-    @Ignore("client implementation deferred until v0.6.3")
+    @Ignore("client implementation deferred")
     @Test
     public void testGetStatus() {
     	
@@ -263,7 +264,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     
     
     @Test
-    public void testGetCapabilities() {
+    public void testMNCore_GetCapabilities() {
     	Iterator<Node> it = getMemberNodeIterator();
     	while (it.hasNext()) {
     		currentUrl = it.next().getBaseURL();
@@ -286,7 +287,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     
     
     @Test
-    public void testGet() {
+    public void testMNRead_Get() {
        	Iterator<Node> it = getMemberNodeIterator();
     	while (it.hasNext()) {
     		currentUrl = it.next().getBaseURL();
@@ -314,7 +315,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     
     
     @Test
-    public void testGetSystemMetadata() {
+    public void testMNRead_GetSystemMetadata() {
        	Iterator<Node> it = getMemberNodeIterator();
     	while (it.hasNext()) {
     		currentUrl = it.next().getBaseURL();
@@ -342,7 +343,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     
     
     @Test
-    public void testDescribe() {
+    public void testMNRead_Describe() {
        	Iterator<Node> it = getMemberNodeIterator();
     	while (it.hasNext()) {
     		currentUrl = it.next().getBaseURL();
@@ -369,7 +370,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     }
 
     @Test
-    public void testGetChecksum() {
+    public void testMNRead_GetChecksum() {
        	Iterator<Node> it = getMemberNodeIterator();
     	while (it.hasNext()) {
     		currentUrl = it.next().getBaseURL();
@@ -397,7 +398,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     
     
     @Test
-    public void testListObjects() {
+    public void testMNRead_ListObjects() {
        	Iterator<Node> it = getMemberNodeIterator();
     	while (it.hasNext()) {
     		currentUrl = it.next().getBaseURL();
@@ -431,7 +432,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     
     
     @Test
-    public void testSynchronizationFailed() {
+    public void testMNRead_SynchronizationFailed() {
        	Iterator<Node> it = getMemberNodeIterator();
     	while (it.hasNext()) {
     		currentUrl = it.next().getBaseURL();
