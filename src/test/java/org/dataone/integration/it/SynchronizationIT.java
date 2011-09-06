@@ -22,7 +22,6 @@ import org.dataone.service.exceptions.ServiceFailure;
 import org.dataone.service.exceptions.UnsupportedType;
 import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.ObjectList;
-import org.dataone.service.types.v1.QueryType;
 import org.dataone.service.types.v1.Session;
 import org.dataone.service.types.v1.SystemMetadata;
 import org.junit.Before;
@@ -46,7 +45,7 @@ import org.junit.rules.ErrorCollector;
  * @author rnahf
  *
  */
-public class SynchronizationIT {
+public class SynchronizationIT extends ContextAwareTestCaseDataone {
 	private static final String cn_id = "cn-dev";
     private static final String TEST_CN_URL = "http://cn-dev.dataone.org/cn";
 	//private static final String cn_Url = "http://cn-dev.dataone.org/cn/";
@@ -150,7 +149,7 @@ public class SynchronizationIT {
 				} 
 			}
 			if (searchTodo) {
-				ObjectList ol = cn.search(token,QueryType.SOLR,
+				ObjectList ol = cn.search(token,QUERYTYPE_SOLR,
 						"query="+EncodingUtilities.encodeUrlQuerySegment(pid.getValue()));
 				if (ol.getCount() > 0) {
 					searchTodo = false;
@@ -264,7 +263,7 @@ public class SynchronizationIT {
 		int count = 0;
 		while (count == 0 && (elapsedTimeSec <= synchronizeWaitLimitSec ))
 		{			
-			ObjectList ol = cn.search(token, QueryType.SOLR,
+			ObjectList ol = cn.search(token, QUERYTYPE_SOLR,
 					"query=" + EncodingUtilities.encodeUrlQuerySegment(pid.getValue()));
 			count = ol.getCount();
 			Thread.sleep(pollingFrequencySec * 1000); // millisec's
@@ -272,6 +271,12 @@ public class SynchronizationIT {
 			System.out.println("Time elapsed: " + elapsedTimeSec);
 		} 
 		assertTrue("Metadata synchronized to the CN " + cn_id, count > 0);
+	}
+
+	@Override
+	protected String getTestDescription() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }						

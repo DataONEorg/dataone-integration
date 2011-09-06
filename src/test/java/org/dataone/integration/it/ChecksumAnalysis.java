@@ -39,7 +39,6 @@ import org.dataone.client.MNode;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.types.v1.Session;
 import org.dataone.service.types.v1.Checksum;
-import org.dataone.service.types.v1.ChecksumAlgorithm;
 import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Node;
 import org.dataone.service.types.v1.ObjectFormat;
@@ -219,7 +218,7 @@ public class ChecksumAnalysis extends ContextAwareTestCaseDataone {
                 Checksum checksum1 = new Checksum();
                 String checksum1str = ExampleUtilities.checksum(IOUtils.toInputStream(doc), "MD5");
                 checksum1.setValue(checksum1str);
-                checksum1.setAlgorithm(ChecksumAlgorithm.MD5);
+                checksum1.setAlgorithm("MD5");
                 System.out.println("Checksum1: " + checksum1.getValue());
                 objectStream.close();
                 

@@ -49,7 +49,6 @@ import org.dataone.service.types.v1.ObjectInfo;
 import org.dataone.service.types.v1.ObjectList;
 import org.dataone.service.types.v1.ObjectLocation;
 import org.dataone.service.types.v1.ObjectLocationList;
-import org.dataone.service.types.v1.QueryType;
 import org.dataone.service.types.v1.Session;
 import org.dataone.service.types.v1.SystemMetadata;
 import org.jibx.runtime.BindingDirectory;
@@ -66,6 +65,7 @@ import org.junit.Test;
  */
 public class CNodeIT extends ContextAwareTestCaseDataone {
 
+	
 
 	private static final String badIdentifier = "ThisIdentifierShouldNotExist";
 //  TODO: test against testUnicodeStrings file instead when metacat supports unicode.
@@ -98,7 +98,7 @@ public class CNodeIT extends ContextAwareTestCaseDataone {
 				currentUrl = it.next().getBaseURL();
 				CNode cn = D1Client.getCN();
 				try {
-					ObjectList ol = cn.search(null, QueryType.SOLR, null); //  .listObjects(null, null, null, null, null, 0, 10);
+					ObjectList ol = cn.search(null, QUERYTYPE_SOLR, null); 
 					listedObjects.put(currentUrl, ol);
 				} 
 				catch (BaseException e) {
@@ -198,7 +198,7 @@ public class CNodeIT extends ContextAwareTestCaseDataone {
 			
 			CNode cn = D1Client.getCN();
 		
-			ObjectList cnOL = cn.search(null, QueryType.SOLR, null);
+			ObjectList cnOL = cn.search(null, QUERYTYPE_SOLR, null);
 			String cnOLString = serializeObjectList(cnOL);
 			String cnTotalPattern = ExampleUtilities.extractObjectListTotalAttribute(cnOLString);
 
@@ -241,7 +241,7 @@ public class CNodeIT extends ContextAwareTestCaseDataone {
 
 			CNode cn = D1Client.getCN();
 		
-			ObjectList ol = cn.search(null, QueryType.SOLR,
+			ObjectList ol = cn.search(null, QUERYTYPE_SOLR,
 					"query="+EncodingUtilities.encodeUrlQuerySegment(rGuid.getValue()));
 			
 			assertTrue("search found new object",ol.getCount() == 1);

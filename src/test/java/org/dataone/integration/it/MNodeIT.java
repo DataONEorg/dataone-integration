@@ -54,7 +54,6 @@ import org.dataone.service.exceptions.NotImplemented;
 import org.dataone.service.exceptions.ServiceFailure;
 import org.dataone.service.exceptions.UnsupportedType;
 import org.dataone.service.types.v1.Checksum;
-import org.dataone.service.types.v1.ChecksumAlgorithm;
 import org.dataone.service.types.v1.DescribeResponse;
 import org.dataone.service.types.v1.Event;
 import org.dataone.service.types.v1.Identifier;
@@ -953,10 +952,10 @@ public class MNodeIT extends ContextAwareTestCaseDataone  {
     	if (append != null)
     		doc += append;
     	
-    	String checksum1str = ExampleUtilities.checksum(IOUtils.toInputStream(doc), "MD5");
+    	String checksum1str = ExampleUtilities.checksum(IOUtils.toInputStream(doc), CHECKSUM_ALGORITHM);
     	Checksum checksum1 = new Checksum();
     	checksum1.setValue(checksum1str);
-    	checksum1.setAlgorithm(ChecksumAlgorithm.MD5);
+    	checksum1.setAlgorithm(CHECKSUM_ALGORITHM);
     	System.out.println("Checksum 1: " + checksum1.getValue());
     	
     	Session token = null;
@@ -982,13 +981,13 @@ public class MNodeIT extends ContextAwareTestCaseDataone  {
     	{
     		// getChecksum in metacat simply returns the checksum provided at create / update
     		// this better be the same, but doesn't mean much if it is
-    		Checksum checksum2 = mn.getChecksum(token, rGuid, "MD5");
+    		Checksum checksum2 = mn.getChecksum(token, rGuid, CHECKSUM_ALGORITHM);
     		System.out.println("getChecksum value: " + checksum2.getValue());
     		checkEquals(checksum1.getValue(), checksum2.getValue());
     		
     		// check that retrieved object has same checksum as submitted
     		InputStream objStream = mn.get(token,rGuid);
-    		String checksum3str = ExampleUtilities.checksum(objStream, "MD5");
+    		String checksum3str = ExampleUtilities.checksum(objStream, CHECKSUM_ALGORITHM);
     		System.out.println("retrieved object checksum: " + checksum3str);
     		checkEquals(checksum1.getValue(),checksum3str);
     		

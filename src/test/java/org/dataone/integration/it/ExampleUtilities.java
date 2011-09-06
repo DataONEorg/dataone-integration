@@ -54,7 +54,6 @@ import org.dataone.service.exceptions.UnsupportedType;
 import org.dataone.service.types.v1.util.ChecksumUtil;
 import org.dataone.service.types.v1.util.ObjectFormatServiceImpl;
 import org.dataone.service.types.v1.Checksum;
-import org.dataone.service.types.v1.ChecksumAlgorithm;
 import org.dataone.service.types.v1.Group;
 import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.NodeReference;
@@ -75,6 +74,9 @@ import org.dataone.service.types.v1.SystemMetadata;
  * Utilities that are useful for generating test data.
  */
 public class ExampleUtilities {
+	
+	public static final String CHECKSUM_ALGORITHM = "MD5";
+	
 	protected final static String preferredMNId = "c3p0";
 	protected final static String EML2_0_0 = "EML2_0_0";
 	protected final static String EML2_0_1 = "EML2_0_1";
@@ -409,7 +411,7 @@ public class ExampleUtilities {
         Checksum checksum = null;
         try
         {
-            checksum = ChecksumUtil.checksum(source, ChecksumAlgorithm.MD5);
+            checksum = ChecksumUtil.checksum(source, CHECKSUM_ALGORITHM);
         }
         catch (Exception e)
         {

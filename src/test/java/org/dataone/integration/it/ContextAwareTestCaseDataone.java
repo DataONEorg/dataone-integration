@@ -43,6 +43,10 @@ import org.junit.rules.ErrorCollector;
  */
 public abstract class ContextAwareTestCaseDataone implements IntegrationTestContextParameters {
 
+	public static final String QUERYTYPE_SOLR = "solr";
+	public static final String CHECKSUM_ALGORITHM = "MD5";
+	
+	
 	private static boolean alreadySetup = false;
 	
 	protected static Log log = LogFactory.getLog(ContextAwareTestCaseDataone.class);

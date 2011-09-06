@@ -31,7 +31,6 @@ import org.dataone.client.MNode;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.SynchronizationFailed;
 import org.dataone.service.types.v1.Checksum;
-import org.dataone.service.types.v1.ChecksumAlgorithm;
 import org.dataone.service.types.v1.DescribeResponse;
 import org.dataone.service.types.v1.Event;
 import org.dataone.service.types.v1.Identifier;
@@ -380,7 +379,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     		try {
     			ObjectInfo oi = getPrefetchedObject(currentUrl,0);
     			log.debug("   pid = " + oi.getIdentifier());				
-    			Checksum cs = mn.getChecksum(null,oi.getIdentifier(),ChecksumAlgorithm.MD5.xmlValue());
+    			Checksum cs = mn.getChecksum(null,oi.getIdentifier(),CHECKSUM_ALGORITHM);
     			checkTrue(currentUrl,"getChecksum() returns a Checksum object", cs != null);
     		} 
     		catch (IndexOutOfBoundsException e) {

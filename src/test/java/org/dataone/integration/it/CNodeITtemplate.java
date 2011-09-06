@@ -23,7 +23,6 @@ import org.dataone.service.types.v1.ObjectList;
 import org.dataone.service.types.v1.ObjectLocationList;
 import org.dataone.service.types.v1.Permission;
 import org.dataone.service.types.v1.Person;
-import org.dataone.service.types.v1.QueryType;
 import org.dataone.service.types.v1.ReplicationPolicy;
 import org.dataone.service.types.v1.ReplicationStatus;
 import org.dataone.service.types.v1.Subject;
@@ -61,7 +60,7 @@ public class CNodeITtemplate extends ContextAwareTestCaseDataone {
 				currentUrl = it.next().getBaseURL();
 				CNode cn = D1Client.getCN();
 				try {
-					ObjectList ol = cn.search(null, QueryType.SOLR, null); //  .listObjects(null, null, null, null, null, 0, 10);
+					ObjectList ol = cn.search(null, QUERYTYPE_SOLR, null);
 					listedObjects.put(currentUrl, ol);
 				} 
 				catch (BaseException e) {
@@ -132,7 +131,7 @@ public class CNodeITtemplate extends ContextAwareTestCaseDataone {
 			printTestHeader("testSearch(...) vs. node: " + currentUrl);
 
 			try {
-				ObjectList response = cn.search(null, QueryType.SOLR, null);
+				ObjectList response = cn.search(null, QUERYTYPE_SOLR, null);
 				checkTrue(currentUrl,"search(...) returns a ObjectList object", response != null);
 			} 
 			catch (BaseException e) {
