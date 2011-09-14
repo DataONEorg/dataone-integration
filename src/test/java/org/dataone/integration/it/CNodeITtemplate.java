@@ -900,13 +900,16 @@ public class CNodeITtemplate extends ContextAwareTestCaseDataone {
 		while (it.hasNext()) {
 			currentUrl = it.next().getBaseURL();
 			CNode cn = new CNode(currentUrl);
+			NodeReference cnRef = new NodeReference();
+			cnRef.setValue(cn.getNodeId());
 			printTestHeader("testSetReplicationStatus(...) vs. node: " + currentUrl);
 
 			try {
 				ObjectInfo oi = getPrefetchedObject(currentUrl,0);    
 				log.debug("   pid = " + oi.getIdentifier());
 
-				boolean response = cn.setReplicationStatus(null, oi.getIdentifier(),ReplicationStatus.COMPLETED);
+				boolean response = cn.setReplicationStatus(null, 
+						oi.getIdentifier(),cnRef, ReplicationStatus.COMPLETED);
 				checkTrue(currentUrl,"response cannot be false. [Only true or exception].", response);
 			} 
 			catch (IndexOutOfBoundsException e) {

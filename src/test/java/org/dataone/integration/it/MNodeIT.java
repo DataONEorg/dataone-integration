@@ -25,7 +25,6 @@ import static org.junit.Assert.assertThat;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.math.BigInteger;
 import java.security.NoSuchAlgorithmException;
 import java.util.Date;
 import java.util.Scanner;
