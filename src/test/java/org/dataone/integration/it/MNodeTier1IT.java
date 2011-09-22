@@ -221,38 +221,38 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
 //    }
 	
     
-    @Test
-    public void testMNCore_GetOperationStatistics() {
-		Iterator<Node> it = getMemberNodeIterator();
-		while (it.hasNext()) {
-			currentUrl = it.next().getBaseURL();
-			MNode mn = D1Client.getMN(currentUrl);
-			printTestHeader("testGetOperationStatistics() vs. node: " + currentUrl);
-		
-				
-			try {
-				MonitorList ml = mn.getOperationStatistics(null, null, null, null, null, null);
-				checkTrue(currentUrl,"getOperationStatistics returns a monitorList", ml != null);
-
-				// test using all optional parameters
-				Date startTime = new Date(System.currentTimeMillis() - 10 * 60 * 1000);
-				Date endTime = new Date(System.currentTimeMillis() - 1 * 60 * 1000);
-				Subject requestor = new Subject();
-				requestor.setValue("validSubject");
-				ObjectFormatIdentifier formatId = new ObjectFormatIdentifier();
-				formatId.setValue(format_text_csv);
-				ml = mn.getOperationStatistics(null, startTime, endTime, requestor, Event.READ, formatId);
-
-			}
-			catch (BaseException e) {
-				handleFail(currentUrl,e.getClass().getSimpleName() + ":: " + e.getDescription());
-			}
-			catch(Exception e) {
-				e.printStackTrace();
-				handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
-			}
-		}	
-    }
+//    @Test
+//    public void testMNCore_GetOperationStatistics() {
+//		Iterator<Node> it = getMemberNodeIterator();
+//		while (it.hasNext()) {
+//			currentUrl = it.next().getBaseURL();
+//			MNode mn = D1Client.getMN(currentUrl);
+//			printTestHeader("testGetOperationStatistics() vs. node: " + currentUrl);
+//		
+//				
+//			try {
+//				MonitorList ml = mn.getOperationStatistics(null, null, null, null, null, null);
+//				checkTrue(currentUrl,"getOperationStatistics returns a monitorList", ml != null);
+//
+//				// test using all optional parameters
+//				Date startTime = new Date(System.currentTimeMillis() - 10 * 60 * 1000);
+//				Date endTime = new Date(System.currentTimeMillis() - 1 * 60 * 1000);
+//				Subject requestor = new Subject();
+//				requestor.setValue("validSubject");
+//				ObjectFormatIdentifier formatId = new ObjectFormatIdentifier();
+//				formatId.setValue(format_text_csv);
+//				ml = mn.getOperationStatistics(null, startTime, endTime, requestor, Event.READ, formatId);
+//
+//			}
+//			catch (BaseException e) {
+//				handleFail(currentUrl,e.getClass().getSimpleName() + ":: " + e.getDescription());
+//			}
+//			catch(Exception e) {
+//				e.printStackTrace();
+//				handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+//			}
+//		}	
+//    }
 
     
 //    @Ignore("client implementation deferred")
@@ -295,7 +295,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
 
     		try {
     			ObjectInfo oi = getPrefetchedObject(currentUrl,0);    			
-    			log.debug("   pid = " + oi.getIdentifier());
+    			log.debug("   pid = " + oi.getIdentifier().getValue());
     			InputStream is = mn.get(null,oi.getIdentifier());
     			checkTrue(currentUrl,"get() returns an objectStream", is != null);
     		}
@@ -323,7 +323,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
 
     		try {
     			ObjectInfo oi = getPrefetchedObject(currentUrl,0);
-    			log.debug("   pid = " + oi.getIdentifier());
+    			log.debug("   pid = " + oi.getIdentifier().getValue());
     			SystemMetadata smd = mn.getSystemMetadata(null,oi.getIdentifier());
     			checkTrue(currentUrl,"getSystemMetadata() returns a SystemMetadata object", smd != null);
     		} 
@@ -351,7 +351,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
 
     		try {
     			ObjectInfo oi = getPrefetchedObject(currentUrl,0);
-    			log.debug("   pid = " + oi.getIdentifier());    				
+    			log.debug("   pid = " + oi.getIdentifier().getValue());    				
     			DescribeResponse dr = mn.describe(null,oi.getIdentifier());
     			checkTrue(currentUrl,"describe() returns a DescribeResponse object", dr != null);	
     		} 
@@ -374,11 +374,11 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     	while (it.hasNext()) {
     		currentUrl = it.next().getBaseURL();
     		MNode mn = D1Client.getMN(currentUrl);
-    		printTestHeader("testDescribe() vs. node: " + currentUrl);
+    		printTestHeader("testGetChecksum() vs. node: " + currentUrl);
 
     		try {
     			ObjectInfo oi = getPrefetchedObject(currentUrl,0);
-    			log.debug("   pid = " + oi.getIdentifier());				
+    			log.debug("   pid = " + oi.getIdentifier().getValue());				
     			Checksum cs = mn.getChecksum(null,oi.getIdentifier(),CHECKSUM_ALGORITHM);
     			checkTrue(currentUrl,"getChecksum() returns a Checksum object", cs != null);
     		} 
@@ -439,11 +439,15 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     		printTestHeader("testSynchronizationFailed() vs. node: " + currentUrl);
 
     		try {
-    			mn.synchronizationFailed(null, new SynchronizationFailed("0","a message"));
+    			ObjectInfo oi = getPrefetchedObject(currentUrl,0);
+    			log.debug("   pid = " + oi.getIdentifier().getValue());
+    			mn.synchronizationFailed(null, 
+    					new SynchronizationFailed("0","a message",oi.getIdentifier().getValue(),null));
     			checkTrue(currentUrl,"synchronizationFailed() does not throw exception", true);
     		} 
     		catch (BaseException e) {
-    			handleFail(currentUrl,e.getClass().getSimpleName() + ":: " + e.getDescription());
+    			handleFail(currentUrl,e.getClass().getSimpleName() + ":: " + 
+    					e.getDetail_code() + " " + e.getDescription());
     		}
     		catch(Exception e) {
     			e.printStackTrace();
