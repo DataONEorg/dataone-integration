@@ -214,11 +214,11 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     }
 	
 	
-    @Ignore("client implementation deferred")
-    @Test 
-    public void testGetObjectStatistics() {
-
-    }
+//    @Ignore("client implementation deferred")
+//    @Test 
+//    public void testGetObjectStatistics() {
+//
+//    }
 	
     
     @Test
@@ -255,11 +255,11 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     }
 
     
-    @Ignore("client implementation deferred")
-    @Test
-    public void testGetStatus() {
-    	
-    }
+//    @Ignore("client implementation deferred")
+//    @Test
+//    public void testGetStatus() {
+//    	
+//    }
     
     
     @Test
