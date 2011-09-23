@@ -67,8 +67,9 @@ public class MNodeTier2IT extends ContextAwareTestCaseDataone  {
 		
 			try {
 				// TODO: get a valid Identifier
-    			Identifier pid = new Identifier();
-    			pid.setValue(bogusId);
+				Identifier pid = mn.listObjects().getObjectInfo(0).getIdentifier();
+//    			pid = new Identifier();
+//    			pid.setValue(bogusId);
 				boolean success = mn.isAuthorized(null, pid, Permission.READ);
 				checkTrue(currentUrl,"isAuthorized response cannot be false. [Only true or exception].", success);
 			} 
