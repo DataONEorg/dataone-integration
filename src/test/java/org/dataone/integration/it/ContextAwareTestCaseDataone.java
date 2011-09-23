@@ -26,6 +26,7 @@ import org.dataone.service.types.v1.NodeType;
 import org.dataone.service.types.v1.Permission;
 import org.dataone.service.types.v1.Subject;
 import org.dataone.service.util.TypeMarshaller;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.rules.ErrorCollector;
@@ -63,6 +64,16 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 	
 	protected abstract String getTestDescription();
 	
+	/**
+	 * this is needed for running from a servlet, which keeps the
+	 * runner (and this class) initialized after execution.
+	 * 
+	 * @throws Exception
+	 */
+	@AfterClass
+	public static void teardown() throws Exception {
+		alreadySetup = false;
+	}
 	
 	/**
 	 * sets static variables based on properties returned from org.dataone.configuration.Settings object

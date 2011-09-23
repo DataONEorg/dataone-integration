@@ -27,6 +27,7 @@ import nu.xom.ValidityException;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.dataone.configuration.Settings;
 import org.dataone.configuration.TestSettings;
 import org.junit.runner.Description;
 import org.junit.runner.JUnitCore;
@@ -97,13 +98,14 @@ public class TestRunnerHttpServlet extends HttpServlet
 	
 	private void executeJUnitRun(String mNodeBaseUrl, ServletOutputStream out) 
 	throws IOException, ClassNotFoundException 
-	{
-		
+	{	
 		Serializer serializer = new Serializer(out);
 		serializer.setIndent(2); // pretty-print output
 		
-		
+		log.info("setting system property '" + TestSettings.CONTEXT_MN_URL +
+				"' to value '" + mNodeBaseUrl + "'");
 		System.setProperty(TestSettings.CONTEXT_MN_URL, mNodeBaseUrl);
+		Settings.getResetConfiguration();
 		
 		// to test that system properties are being received
 		if (debug) 
