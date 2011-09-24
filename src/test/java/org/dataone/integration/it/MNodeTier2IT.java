@@ -20,14 +20,20 @@
 
 package org.dataone.integration.it;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+import java.io.ByteArrayInputStream;
 import java.util.Iterator;
 
 import org.dataone.client.D1Client;
 import org.dataone.client.MNode;
+import org.dataone.client.auth.CertificateManager;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Node;
 import org.dataone.service.types.v1.Permission;
+import org.dataone.service.types.v1.SystemMetadata;
 import org.junit.Test;
 
 /**
@@ -66,10 +72,8 @@ public class MNodeTier2IT extends ContextAwareTestCaseDataone  {
 			printTestHeader("testIsAuthorized() vs. node: " + currentUrl);
 		
 			try {
-				// TODO: get a valid Identifier
+				// should be a valid Identifier
 				Identifier pid = mn.listObjects().getObjectInfo(0).getIdentifier();
-//    			pid = new Identifier();
-//    			pid.setValue(bogusId);
 				boolean success = mn.isAuthorized(null, pid, Permission.READ);
 				checkTrue(currentUrl,"isAuthorized response cannot be false. [Only true or exception].", success);
 			} 
@@ -85,28 +89,54 @@ public class MNodeTier2IT extends ContextAwareTestCaseDataone  {
 	
 	
     @Test
-    public void testSetAccessPolicy()
-    {
-       Iterator<Node> it = getMemberNodeIterator();
-       while (it.hasNext()) {
-    	   currentUrl = it.next().getBaseURL();
-           MNode mn = D1Client.getMN(currentUrl);           
-           printTestHeader("testSetAccessPolicy() vs. node: " + currentUrl);
+	public void testSetAccessPolicy() {
+		Iterator<Node> it = getMemberNodeIterator();
+		while (it.hasNext()) {
+			currentUrl = it.next().getBaseURL();
+			MNode mn = D1Client.getMN(currentUrl);
+			printTestHeader("testSetAccessPolicy() vs. node: " + currentUrl);
 
-           try {
-			// TODO: get a valid Identifier
-        	   Identifier pid = new Identifier();
-        	   pid.setValue(bogusId);
-        	   boolean success = mn.setAccessPolicy(null, pid, buildPublicReadAccessPolicy());
-			} 
-			catch (BaseException e) {
-				handleFail(currentUrl,e.getDescription());
-			}
-			catch(Exception e) {
+			try {
+				// create the identifier
+				Identifier guid = new Identifier();
+				guid.setValue("mNodeTier2TestSetAccessPolicy." + ExampleUtilities.generateIdentifier());
+
+				// get some data bytes as an input stream
+				ByteArrayInputStream textPlainSource = 
+					new ByteArrayInputStream("Plain text source".getBytes("UTF-8"));
+
+				// build the system metadata object
+				SystemMetadata sysMeta = 
+					ExampleUtilities.generateSystemMetadata(guid, "text/plain", textPlainSource, null);
+
+				// make the submitter the same as the cert DN 
+				try {
+					String ownerDN = CertificateManager.getInstance().loadCertificate().getSubjectDN().toString();
+					String ownerX500 = CertificateManager.getInstance().loadCertificate().getSubjectX500Principal().toString();
+					sysMeta.getRightsHolder().setValue(ownerX500);
+				} catch (Exception e) {
+					// warn about this?
+					e.printStackTrace();
+				}
+			      
+				// create a test object
+				Identifier pid = mn.create(null, guid, textPlainSource, sysMeta);
+				assertEquals(guid, pid);
+
+				// set access on the object
+				boolean success = mn.setAccessPolicy(null, pid, buildPublicReadAccessPolicy());
+				assertTrue(success);
+
+				// TODO: check the access by switching users or trashing the cert
+				// mn.isAuthorized(session, pid, Permission.READ);
+
+			} catch (BaseException e) {
+				handleFail(currentUrl, e.getDescription());
+			} catch (Exception e) {
 				e.printStackTrace();
-				handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
-			}	           
-       }
-    }
+				handleFail(currentUrl, e.getClass().getName() + ": " + e.getMessage());
+			}
+		}
+	}
 
 }
