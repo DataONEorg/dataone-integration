@@ -33,6 +33,7 @@ import java.util.List;
 
 import org.dataone.client.D1Client;
 import org.dataone.client.MNode;
+import org.dataone.client.auth.CertificateManager;
 import org.dataone.service.exceptions.IdentifierNotUnique;
 import org.dataone.service.exceptions.InsufficientResources;
 import org.dataone.service.exceptions.InvalidRequest;
@@ -166,12 +167,22 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 	      sysMeta = 
 	      	ExampleUtilities.generateSystemMetadata(guid, format_text_plain, textPlainSource,null);
 	      
+	      // match the submitter as the cert DN 
+	      try {
+	    	  String ownerDN = CertificateManager.getInstance().loadCertificate().getSubjectDN().toString();
+	    	  String ownerX500 = CertificateManager.getInstance().loadCertificate().getSubjectX500Principal().toString();
+	    	  sysMeta.getRightsHolder().setValue(ownerX500);
+	      } catch (Exception e) {
+	    	  // warn about this
+	    	  e.printStackTrace();
+	      }
+	      
 	      // get a pid to update
 	      Identifier pid = mn.create(session, guid, textPlainSource, sysMeta);
 	  		String newIdentifierStr = ExampleUtilities.generateIdentifier();
 	      newPid = new Identifier();
-	      newPid.setValue("mNodeTier3TestUpdate" + newIdentifierStr);
-	      SystemMetadata newSysMeta = mn.getSystemMetadata(session, pid);
+	      newPid.setValue("mNodeTier3TestUpdate." + newIdentifierStr);
+//	      SystemMetadata newSysMeta = mn.getSystemMetadata(session, pid);
 
 	      // TODO: reinstated the checks when obsolete behavior refactored.
 	      // update the obsoletesList
@@ -180,6 +191,9 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 	      // update the derivedFrom list
 //	      newSysMeta.addDerivedFrom(pid);
 	      
+	      // set the new pid on the sysmeta object
+	      // TODO: should the MN do this?
+	      sysMeta.setIdentifier(newPid);
 	      // do the update
 	      Identifier updatedPid = 
 	      	mn.update(session, pid, textPlainSource, newPid, sysMeta);
@@ -259,6 +273,16 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 	      // build the system metadata object
 	      sysMeta = 
 	      	ExampleUtilities.generateSystemMetadata(guid, format_text_plain, textPlainSource,null);
+	      
+	      // match the submitter as the cert DN 
+	      try {
+	    	  String ownerDN = CertificateManager.getInstance().loadCertificate().getSubjectDN().toString();
+	    	  String ownerX500 = CertificateManager.getInstance().loadCertificate().getSubjectX500Principal().toString();
+	    	  sysMeta.getRightsHolder().setValue(ownerX500);
+	      } catch (Exception e) {
+	    	  // warn about this
+	    	  e.printStackTrace();
+	      }
 	      
 	      // get a pid to delete
 	      Identifier pid = mn.create(session, guid, textPlainSource, sysMeta);
