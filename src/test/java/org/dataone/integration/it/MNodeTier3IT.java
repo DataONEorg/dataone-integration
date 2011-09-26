@@ -55,9 +55,9 @@ import org.junit.Test;
 
 public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 
-  private static String format_text_plain = "text/plain";
+  private static final String format_text_plain = "text/plain";
   
-  private static String currentUrl;
+  private  String currentUrl;
 
   @Before
   public void setUp() throws Exception {

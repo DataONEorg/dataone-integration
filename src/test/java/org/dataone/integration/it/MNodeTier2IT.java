@@ -43,14 +43,13 @@ import org.junit.Test;
  */
 public class MNodeTier2IT extends ContextAwareTestCaseDataone  {
 
-    private static final String TEST_MN_ID = "c3p0";
-    private static String format_text_csv = "text/csv";
-    private static String format_eml_200 = "eml://ecoinformatics.org/eml-2.0.0";
-    private static String format_eml_201 = "eml://ecoinformatics.org/eml-2.0.1";
-    private static String format_eml_210 = "eml://ecoinformatics.org/eml-2.1.0";
-    private static String format_eml_211 = "eml://ecoinformatics.org/eml-2.1.1";
+    private  String format_text_csv = "text/csv";
+    private  String format_eml_200 = "eml://ecoinformatics.org/eml-2.0.0";
+    private  String format_eml_201 = "eml://ecoinformatics.org/eml-2.0.1";
+    private  String format_eml_210 = "eml://ecoinformatics.org/eml-2.1.0";
+    private  String format_eml_211 = "eml://ecoinformatics.org/eml-2.1.1";
 
-    private static final String idPrefix = "mnTier1:";
+    private static final String idPrefix = "mnTier2:";
     private static final String bogusId = "foobarbaz214";
 
     private static String currentUrl;
@@ -65,7 +64,10 @@ public class MNodeTier2IT extends ContextAwareTestCaseDataone  {
 	
  
 	@Test
-	public void testIsAuthorized() {
+	public void testIsAuthorized() 
+	{
+		setupClientSubject_Reader();
+		
 		Iterator<Node> it = getMemberNodeIterator();
 		while (it.hasNext()) {
 			currentUrl = it.next().getBaseURL();
@@ -76,7 +78,7 @@ public class MNodeTier2IT extends ContextAwareTestCaseDataone  {
 				// should be a valid Identifier
 				Identifier pid = mn.listObjects().getObjectInfo(0).getIdentifier();
 				boolean success = mn.isAuthorized(null, pid, Permission.READ);
-				checkTrue(currentUrl,"isAuthorized response cannot be false. [Only true or exception].", success);
+				checkTrue(currentUrl,"isAuthorized response should never be false. [Only true or exception].", success);
 			} 
 			catch (BaseException e) {
 				handleFail(currentUrl,e.getDescription());
@@ -90,7 +92,10 @@ public class MNodeTier2IT extends ContextAwareTestCaseDataone  {
 	
 	
     @Test
-	public void testSetAccessPolicy() {
+	public void testSetAccessPolicy() 
+    {	
+    	setupClientSubject_Writer();
+    	
 		Iterator<Node> it = getMemberNodeIterator();
 		while (it.hasNext()) {
 			currentUrl = it.next().getBaseURL();

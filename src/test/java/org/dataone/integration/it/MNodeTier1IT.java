@@ -55,18 +55,18 @@ import org.junit.Test;
 public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
 
     private static final String TEST_MN_ID = "c3p0";
-    private static String format_text_csv = "text/csv";
-    private static String format_eml_200 = "eml://ecoinformatics.org/eml-2.0.0";
-    private static String format_eml_201 = "eml://ecoinformatics.org/eml-2.0.1";
-    private static String format_eml_210 = "eml://ecoinformatics.org/eml-2.1.0";
-    private static String format_eml_211 = "eml://ecoinformatics.org/eml-2.1.1";
+    private  String format_text_csv = "text/csv";
+    private  String format_eml_200 = "eml://ecoinformatics.org/eml-2.0.0";
+    private  String format_eml_201 = "eml://ecoinformatics.org/eml-2.0.1";
+    private  String format_eml_210 = "eml://ecoinformatics.org/eml-2.1.0";
+    private  String format_eml_211 = "eml://ecoinformatics.org/eml-2.1.1";
 
     private static final String idPrefix = "mnTier1:";
     private static final String bogusId = "foobarbaz214";
 
-    private static String currentUrl;
+    private  String currentUrl;
     
-    private static Map<String,ObjectList> listedObjects;
+    private  Map<String,ObjectList> listedObjects;
     
 
 	@Override

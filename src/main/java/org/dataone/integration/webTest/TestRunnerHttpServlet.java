@@ -49,6 +49,8 @@ public class TestRunnerHttpServlet extends HttpServlet
 	
 	private boolean debug = true;
 	
+	private int junitSleepSeconds = 0;
+	
 	/**
 	 * a constructor to be used for unit testings
 	 * @param isUnitTest
@@ -56,6 +58,8 @@ public class TestRunnerHttpServlet extends HttpServlet
 	public TestRunnerHttpServlet(boolean isUnitTest)
 	{
 		super();
+		junitSleepSeconds = Settings.getConfiguration()
+			.getInt("mnwebtester.junitcore.sleep.seconds",junitSleepSeconds);
 		if (isUnitTest)
 			TEST_SELECTOR_PATTERN = "*MockITCase";
 	}
@@ -63,6 +67,8 @@ public class TestRunnerHttpServlet extends HttpServlet
 	public TestRunnerHttpServlet()
 	{
 		super();
+		junitSleepSeconds = Settings.getConfiguration()
+			.getInt("mnwebtester.junitcore.sleep.seconds",junitSleepSeconds);
 	}
 	
 	
@@ -120,6 +126,14 @@ public class TestRunnerHttpServlet extends HttpServlet
 
 		Result result = null;
 		for (Class testCase : getIntegrationTestClasses(TEST_SELECTOR_PATTERN)) {
+			if (junitSleepSeconds == 0) {
+				try {
+					log.info("sleeping between test cases for " + junitSleepSeconds + " seconds...");
+					Thread.sleep(junitSleepSeconds * 1000);
+				} catch (InterruptedException e) {
+					log.warn("sleep interrupted: " + e.getMessage());
+				}
+			}
 			log.debug("running tests on: " + testCase.getSimpleName());
 			result = junit.run(testCase);
 		}

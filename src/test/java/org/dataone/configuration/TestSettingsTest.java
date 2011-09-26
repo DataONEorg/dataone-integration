@@ -9,6 +9,7 @@ import java.io.InputStream;
 import java.util.Date;
 
 import org.dataone.service.util.Constants;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.Ignore;
@@ -21,12 +22,23 @@ public class TestSettingsTest {
 	 * with how the tests should behave.
 	 */
 	@Before
+	public void setUp() {
+		clearSetSystemProperties();
+	}
+	
 	public void clearSetSystemProperties() {
 		System.clearProperty(TestSettings.CONTEXT_LABEL);
 		System.clearProperty(TestSettings.CONTEXT_MN_URL);
 		System.clearProperty(TestSettings.CONTEXT_NODELIST_URI);
 		System.clearProperty(TestSettings.CONTEXT_OVERRIDE_URI);
 	}
+	
+	@After
+	public void cleanUp() {
+		clearSetSystemProperties();
+	}
+
+
 	
 	
 	/**

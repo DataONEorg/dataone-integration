@@ -16,6 +16,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.dataone.client.CNode;
 import org.dataone.client.D1Client;
+import org.dataone.client.auth.CertificateManager;
 import org.dataone.configuration.Settings;
 import org.dataone.configuration.TestSettings;
 import org.dataone.service.types.v1.AccessPolicy;
@@ -48,32 +49,32 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 	public static final String CHECKSUM_ALGORITHM = "MD5";
 	
 	
-	private static boolean alreadySetup = false;
+	private  boolean alreadySetup = false;
 	
 	protected static Log log = LogFactory.getLog(ContextAwareTestCaseDataone.class);
 	
 	// variables to the context interface parameters
-	protected static String testContext;
-	protected static String cnBaseUrl;
-	protected static String mnBaseUrl;
-	protected static String nodelistUri;
+	protected  String testContext = null;
+	protected  String cnBaseUrl = null;
+	protected  String mnBaseUrl = null;
+	protected  String nodelistUri = null;
 
-	public static List<Node> memberNodeList = null;
-	public static List<Node> coordinatingNodeList = new Vector<Node>();
-	public static List<Node> monitorNodeList = new Vector<Node>();
+	public  List<Node> memberNodeList = null;
+	public  List<Node> coordinatingNodeList = new Vector<Node>();
+	public  List<Node> monitorNodeList = new Vector<Node>();
 	
 	protected abstract String getTestDescription();
 	
-	/**
-	 * this is needed for running from a servlet, which keeps the
-	 * runner (and this class) initialized after execution.
-	 * 
-	 * @throws Exception
-	 */
-	@AfterClass
-	public static void teardown() throws Exception {
-		alreadySetup = false;
-	}
+//	/**
+//	 * this is needed for running from a servlet, which keeps the
+//	 * runner (and this class) initialized after execution.
+//	 * 
+//	 * @throws Exception
+//	 */
+//	@AfterClass
+//	public static void teardown() throws Exception {
+//		alreadySetup = false;
+//	}
 	
 	/**
 	 * sets static variables based on properties returned from org.dataone.configuration.Settings object
@@ -158,7 +159,50 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 		return monitorNodeList.iterator();
 	}
 	
-   
+	/**
+	 * uses the property "test.subject.writer.certLocation" to setup
+	 * the CertificateManager to use the certificate found at that path
+	 * @return
+	 */
+	protected Subject setupClientSubject_Writer(){
+		return setupClientSubject("test.subject.writer.certLocation");
+	}
+	
+	/**
+	 * uses the property "test.subject.reader.certLocation" to setup
+	 * the CertificateManager to use the certificate found at that path
+	 * @return
+	 */
+	protected Subject setupClientSubject_Reader(){
+		return setupClientSubject("test.subject.reader.certLocation");
+	}
+	
+	/**
+	 * uses the property "test.subject.norights.certLocation" to setup
+	 * the CertificateManager to use the certificate found at that path
+	 * @return
+	 */
+	protected Subject setupClientSubject_NoRights(){
+		return setupClientSubject("test.subject.norights.certLocation");
+	}
+	
+	/**
+	 * uses the value of the property passed to setup the
+	 * CertificateManager to use the certificate found at that path
+	 * @return
+	 */
+	protected Subject setupClientSubject(String certificatePathKeyName) 
+	{
+		String certPath = (String) Settings.getConfiguration().getProperty(certificatePathKeyName);	
+		URL url = ContextAwareTestCaseDataone.class.getClassLoader().getResource(certPath);
+		CertificateManager.getInstance().setCertificateLocation(url.getPath());
+		String subjectDN = CertificateManager.getInstance().loadCertificate().getSubjectDN().toString();//getSession(null);
+		Subject subject = new Subject();
+		subject.setValue(subjectDN);
+		return subject;
+	}
+	
+	
 	
 	/**
 	 * create an accessPolicy that assigns read permission to public subject.
