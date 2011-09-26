@@ -39,7 +39,6 @@ import org.apache.commons.io.IOUtils;
 import org.dataone.client.CNode;
 import org.dataone.client.D1Client;
 import org.dataone.client.MNode;
-import org.dataone.service.util.EncodingUtilities;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.NotFound;
 import org.dataone.service.exceptions.ServiceFailure;
@@ -51,6 +50,7 @@ import org.dataone.service.types.v1.ObjectLocation;
 import org.dataone.service.types.v1.ObjectLocationList;
 import org.dataone.service.types.v1.Session;
 import org.dataone.service.types.v1.SystemMetadata;
+import org.dataone.service.util.EncodingUtilities;
 import org.jibx.runtime.BindingDirectory;
 import org.jibx.runtime.IBindingFactory;
 import org.jibx.runtime.IMarshallingContext;
@@ -503,7 +503,7 @@ public class CNodeIT extends ContextAwareTestCaseDataone {
 
 
 
-	private static String createAssertMessage()
+	private  String createAssertMessage()
 	{
 		return "test failed at url " + cnBaseUrl;
 	}

@@ -151,7 +151,7 @@ public class ChecksumAnalysis extends ContextAwareTestCaseDataone {
         			"csAlg",
         			"oiCsStatus",
         			"gCsStatus",
-        	    	"oi.objectFormat",
+        			"fmtid",
         	    	"oi.size",
         	    	"obj.byteLength",
         	    	"oi.sysMetadataModified");
