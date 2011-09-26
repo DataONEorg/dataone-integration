@@ -28,6 +28,7 @@ import static org.junit.Assert.fail;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.security.cert.X509Certificate;
 import java.util.Iterator;
 import java.util.List;
 
@@ -96,6 +97,16 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 				sysMeta = 
 					ExampleUtilities.generateSystemMetadata(guid, format_text_plain, textPlainSource,null);
 				
+				// match the submitter as the cert DN 
+				try {
+					X509Certificate certificate = CertificateManager.getInstance().loadCertificate();
+					String ownerX500 = CertificateManager.getInstance().getSubjectDN(certificate);
+					sysMeta.getRightsHolder().setValue(ownerX500);
+				} catch (Exception e) {
+					// warn about this
+					e.printStackTrace();
+				}
+			      
 				// try the create
 				Identifier pid = mn.create(session, guid, textPlainSource, sysMeta);
 				
@@ -169,8 +180,8 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 	      
 	      // match the submitter as the cert DN 
 	      try {
-	    	  String ownerDN = CertificateManager.getInstance().loadCertificate().getSubjectDN().toString();
-	    	  String ownerX500 = CertificateManager.getInstance().loadCertificate().getSubjectX500Principal().toString();
+	    	  X509Certificate certificate = CertificateManager.getInstance().loadCertificate();
+	    	  String ownerX500 = CertificateManager.getInstance().getSubjectDN(certificate);
 	    	  sysMeta.getRightsHolder().setValue(ownerX500);
 	      } catch (Exception e) {
 	    	  // warn about this
@@ -276,8 +287,8 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 	      
 	      // match the submitter as the cert DN 
 	      try {
-	    	  String ownerDN = CertificateManager.getInstance().loadCertificate().getSubjectDN().toString();
-	    	  String ownerX500 = CertificateManager.getInstance().loadCertificate().getSubjectX500Principal().toString();
+	    	  X509Certificate certificate = CertificateManager.getInstance().loadCertificate();
+	    	  String ownerX500 = CertificateManager.getInstance().getSubjectDN(certificate);
 	    	  sysMeta.getRightsHolder().setValue(ownerX500);
 	      } catch (Exception e) {
 	    	  // warn about this

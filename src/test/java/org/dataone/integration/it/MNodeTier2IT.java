@@ -24,6 +24,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.io.ByteArrayInputStream;
+import java.security.cert.X509Certificate;
 import java.util.Iterator;
 
 import org.dataone.client.D1Client;
@@ -111,8 +112,8 @@ public class MNodeTier2IT extends ContextAwareTestCaseDataone  {
 
 				// make the submitter the same as the cert DN 
 				try {
-					String ownerDN = CertificateManager.getInstance().loadCertificate().getSubjectDN().toString();
-					String ownerX500 = CertificateManager.getInstance().loadCertificate().getSubjectX500Principal().toString();
+					X509Certificate certificate = CertificateManager.getInstance().loadCertificate();
+					String ownerX500 = CertificateManager.getInstance().getSubjectDN(certificate);
 					sysMeta.getRightsHolder().setValue(ownerX500);
 				} catch (Exception e) {
 					// warn about this?
