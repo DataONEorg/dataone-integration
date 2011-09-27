@@ -25,6 +25,7 @@ import nu.xom.ParsingException;
 import nu.xom.Serializer;
 import nu.xom.ValidityException;
 
+import org.apache.commons.configuration.Configuration;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.dataone.configuration.Settings;
@@ -111,7 +112,8 @@ public class TestRunnerHttpServlet extends HttpServlet
 		log.info("setting system property '" + TestSettings.CONTEXT_MN_URL +
 				"' to value '" + mNodeBaseUrl + "'");
 		System.setProperty(TestSettings.CONTEXT_MN_URL, mNodeBaseUrl);
-		Settings.getResetConfiguration();
+		Configuration c = Settings.getResetConfiguration();
+		c.setProperty("thread." + Thread.currentThread().getId() + ".mn.baseurl", mNodeBaseUrl);
 		
 		// to test that system properties are being received
 		if (debug) 

@@ -88,12 +88,23 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 		// skip setUp steps if already run
 		if (!alreadySetup) {
 			alreadySetup = true;
-					
+				
 			testContext = Settings.getConfiguration().getString(TestSettings.CONTEXT_LABEL);			
 			cnBaseUrl = Settings.getConfiguration().getString(PARAM_CN_URL);
 			mnBaseUrl = Settings.getConfiguration().getString(PARAM_MN_URL);
 			nodelistUri = Settings.getConfiguration().getString(PARAM_NODELIST_URI);
 			
+			// for running under servlet context (MNWebTester), the TestRunnerHttpServlet will copy the 
+			// PARAM_MN_URL to a property containing the thread ID, to avoid any concurrency
+			// issues (settings getting changed by another client).
+			String urlThrID = Settings.getConfiguration()
+				.getString("thread." + Thread.currentThread().getId() + ".mn.baseurl");
+			if (urlThrID != null) {
+				log.info("mn.baseurl obtained from thread.X.mn.baseurl property");
+				mnBaseUrl = urlThrID;
+			} else {
+				log.info("mn.baseurl set from context.mn.baseurl property");
+			}
 			log.info("****************************************************");
 			log.info("***  context label:   " + testContext);
 			log.info("****************************************************");
