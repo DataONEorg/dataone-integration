@@ -503,7 +503,7 @@ public class CNodeIT extends ContextAwareTestCaseDataone {
 
 
 
-	private  String createAssertMessage()
+	private String createAssertMessage()
 	{
 		return "test failed at url " + cnBaseUrl;
 	}

@@ -59,9 +59,9 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
   
   private  String currentUrl;
 
-  @Before
-  public void setUp() throws Exception {
-  }
+//  @Before
+//  public void setUp() throws Exception {
+//  }
 
   @After
   public void tearDown() throws Exception {
@@ -72,6 +72,8 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
    */
   @Test
   public void testCreate() {
+	  
+	  setupClientSubject_Writer();
   	
     Iterator<Node> it = getMemberNodeIterator();  	
   	
@@ -153,6 +155,8 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
    */
   @Test
   public void testUpdate() {
+	  
+	  setupClientSubject_Writer();
     
   	Iterator<Node> it = getMemberNodeIterator();
   	
@@ -261,6 +265,8 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
   @Test
   public void testDelete() {
   	
+	  setupClientSubject_Writer();
+	  
   	Iterator<Node> it = getMemberNodeIterator();
   	
   	while ( it.hasNext() ) {
