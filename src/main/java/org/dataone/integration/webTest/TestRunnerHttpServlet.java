@@ -44,9 +44,10 @@ public class TestRunnerHttpServlet extends HttpServlet
 //	private static final String TESTS_DIR = "/WEB-INF/tests";
 	private static final String RESULTS_FILE_TEMPLATE = "/results.html";
 	
-//	private static String TEST_SELECTOR_PATTERN = Settings.getConfiguration().getString("webTest.mn.testCase.pattern");
+	private static String TEST_SELECTOR_PATTERN = Settings.getConfiguration()
+		.getString("mnwebtester.testCase.pattern","*MNodeTier*");
 	private static final String TEST_PACKAGE = "org.dataone.integration";
-	private static String TEST_SELECTOR_PATTERN = "*MNodeTier*";
+//	private static String TEST_SELECTOR_PATTERN = "*MNodeTier*";
 	
 	private boolean debug = true;
 	
@@ -77,7 +78,6 @@ public class TestRunnerHttpServlet extends HttpServlet
 	public void doPost(HttpServletRequest req, HttpServletResponse rsp)
 	throws ServletException, IOException {
 		log.debug("Entered TestRunnerHttpServlet.doPost()");
-		
 		doGet(req,rsp);
 	} 
 	
@@ -87,6 +87,7 @@ public class TestRunnerHttpServlet extends HttpServlet
 	public void doGet(HttpServletRequest req, HttpServletResponse rsp)
 	throws ServletException, IOException {
 		log.debug("Entered TestRunnerHttpServlet.doGet()");
+		log.debug("current thread: " + Thread.currentThread().getId());
 		
 		if (req.getParameter("mNodeUrl") != null) {
 			try {
@@ -112,8 +113,10 @@ public class TestRunnerHttpServlet extends HttpServlet
 		log.info("setting system property '" + TestSettings.CONTEXT_MN_URL +
 				"' to value '" + mNodeBaseUrl + "'");
 		System.setProperty(TestSettings.CONTEXT_MN_URL, mNodeBaseUrl);
+		String threadProperty = "mnwebtester.thread." + Thread.currentThread().getId() + ".mn.baseurl";
+		System.setProperty(threadProperty, mNodeBaseUrl);
 		Configuration c = Settings.getResetConfiguration();
-		c.setProperty("thread." + Thread.currentThread().getId() + ".mn.baseurl", mNodeBaseUrl);
+		
 		
 		// to test that system properties are being received
 		if (debug) 

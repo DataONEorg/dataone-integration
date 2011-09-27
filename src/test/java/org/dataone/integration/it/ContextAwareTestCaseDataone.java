@@ -85,6 +85,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 	@Before
 	public void setUp() throws Exception {
 
+		log.debug("Current Thread: " + Thread.currentThread().getId());
 		// skip setUp steps if already run
 		if (!alreadySetup) {
 			alreadySetup = true;
@@ -94,19 +95,22 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 			mnBaseUrl = Settings.getConfiguration().getString(PARAM_MN_URL);
 			nodelistUri = Settings.getConfiguration().getString(PARAM_NODELIST_URI);
 			
+			log.info("****************************************************");
+			log.info("***  context label:   " + testContext);
+			
 			// for running under servlet context (MNWebTester), the TestRunnerHttpServlet will copy the 
 			// PARAM_MN_URL to a property containing the thread ID, to avoid any concurrency
 			// issues (settings getting changed by another client).
-			String urlThrID = Settings.getConfiguration()
-				.getString("thread." + Thread.currentThread().getId() + ".mn.baseurl");
+			
+			String urlThrID = System.getProperty("mnwebtester.thread." 
+					+ Thread.currentThread().getId() + ".mn.baseurl");
 			if (urlThrID != null) {
-				log.info("mn.baseurl obtained from thread.X.mn.baseurl property");
+				log.info("*** mn.baseurl obtained from thread.X.mn.baseurl property");
 				mnBaseUrl = urlThrID;
-			} else {
-				log.info("mn.baseurl set from context.mn.baseurl property");
+			} else if (mnBaseUrl != null) {
+				log.info("*** mn.baseurl set from context.mn.baseurl property");
 			}
-			log.info("****************************************************");
-			log.info("***  context label:   " + testContext);
+			
 			log.info("****************************************************");
 
 			if (mnBaseUrl != null) {
