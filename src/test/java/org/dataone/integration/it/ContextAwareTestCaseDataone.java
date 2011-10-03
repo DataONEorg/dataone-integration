@@ -179,7 +179,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 	 * the CertificateManager to use the certificate found at that path
 	 * @return
 	 */
-	protected Subject setupClientSubject_Writer(){
+	protected static Subject setupClientSubject_Writer(){
 		return setupClientSubject("test.subject.writer.certLocation");
 	}
 	
@@ -188,7 +188,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 	 * the CertificateManager to use the certificate found at that path
 	 * @return
 	 */
-	protected Subject setupClientSubject_Reader(){
+	protected static Subject setupClientSubject_Reader(){
 		return setupClientSubject("test.subject.reader.certLocation");
 	}
 	
@@ -197,8 +197,17 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 	 * the CertificateManager to use the certificate found at that path
 	 * @return
 	 */
-	protected Subject setupClientSubject_NoRights(){
+	protected static Subject setupClientSubject_NoRights(){
 		return setupClientSubject("test.subject.norights.certLocation");
+	}
+	
+	/**
+	 * uses a bad certificate location "/bogus/certificate/location" to setup the client
+	 * with no certificate
+	 * @return
+	 */
+	public static void setupClientSubject_NoCert(){
+		CertificateManager.getInstance().setCertificateLocation("/bogus");
 	}
 	
 	/**
@@ -206,7 +215,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 	 * CertificateManager to use the certificate found at that path
 	 * @return
 	 */
-	protected Subject setupClientSubject(String certificatePathKeyName) 
+	protected static Subject setupClientSubject(String certificatePathKeyName) 
 	{
 		String certPath = (String) Settings.getConfiguration().getProperty(certificatePathKeyName);	
 		URL url = ContextAwareTestCaseDataone.class.getClassLoader().getResource(certPath);
@@ -237,6 +246,36 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
     	return ap;
 	}
 
+	
+//	/**
+//	 * create an accessPolicy that assigns read permission to public subject.
+//	 * This is a common test scenario...
+//	 */
+//	protected static AccessPolicy buildSingleRuleAccessPolicy(String[] subjectStrings, Permission[] permissions) {
+//	}
+//		
+//	protected static AccessPolicy buildSingleRuleAccessPolicy(Subject[] subject, Permission[] permissions) {
+//
+//		AccessRule ar = new AccessRule();
+//		for (Permission permission: permissions) {
+//			ar.addPermission(permission);
+//		}
+//
+//		for (Object subject : subjectStrings) {			
+//			Subject s = null;
+//			if (subject instanceof String) {
+//				s = new Subject();
+//				s.setValue((String)subject);
+//			} else if (subject instanceof Subject) {
+//				s = (Subject) subject;
+//			}
+//			ar.addSubject(s);
+//		}
+//		
+//		AccessPolicy ap = new AccessPolicy();
+//		ap.addAllow(ar);
+//    	return ap;
+//	}
 	
 	
 	/**

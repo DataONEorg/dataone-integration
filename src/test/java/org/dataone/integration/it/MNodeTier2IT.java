@@ -31,6 +31,7 @@ import org.dataone.client.D1Client;
 import org.dataone.client.MNode;
 import org.dataone.client.auth.CertificateManager;
 import org.dataone.service.exceptions.BaseException;
+import org.dataone.service.exceptions.InvalidRequest;
 import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Node;
 import org.dataone.service.types.v1.Permission;
@@ -38,7 +39,22 @@ import org.dataone.service.types.v1.SystemMetadata;
 import org.junit.Test;
 
 /**
- * Test the DataONE Java client methods.
+ * Test the dataONE Tier2 Member Node service APIs. (MNAuthorization).
+ * Tier2 methods (and higher) require authorized clients, so each method is 
+ * tested at least for both success and failure due to lack of client credentials.
+ * <p>
+ * Member nodes under test are assumed to accept 3 certificates signed by the 
+ * dataONE certificate authority ("d1CA").  They are:
+ * <ol>
+ * <li> CN=testUserWriter,DC=dataone,DC=org </li>
+ * <li> CN=testUserReader,DC=dataone,DC=org </li>
+ * <li> CN=testUserNoRights,DC=dataone,DC=org </li>
+ * </ol>
+ * Testing for proper behavior in the context of anonymous clients is 
+ * accomplished by pointing the client's CertificateManager to a bogus 
+ * location for loading the client certificate.  Therefore, some error/log output
+ * will be generated warning that "/bogus/certificate/location" was not found.
+ *  
  * @author Rob Nahf
  */
 public class MNodeTier2IT extends ContextAwareTestCaseDataone  {
@@ -62,7 +78,11 @@ public class MNodeTier2IT extends ContextAwareTestCaseDataone  {
 	}
 
 	
- 
+	/**
+	 * Tests the dataONE service API isAuthorized() method, checking for Read 
+	 * permission on the first object returned from the Tier1 listObjects() method.  
+	 * Anything other than the boolean true is considered a test failure.
+	 */
 	@Test
 	public void testIsAuthorized() 
 	{
@@ -81,7 +101,7 @@ public class MNodeTier2IT extends ContextAwareTestCaseDataone  {
 				checkTrue(currentUrl,"isAuthorized response should never be false. [Only true or exception].", success);
 			} 
 			catch (BaseException e) {
-				handleFail(currentUrl,e.getDescription());
+				handleFail(currentUrl,e.getClass().getSimpleName() + ": " + e.getDescription());
 			}
 			catch(Exception e) {
 				e.printStackTrace();
@@ -91,10 +111,51 @@ public class MNodeTier2IT extends ContextAwareTestCaseDataone  {
 	}
 	
 	
+	/**
+	 * Tests the dataONE service API isAuthorized method, but trying the call 
+	 * without a client certificate.  As with testIsAuthorized, checking for Read 
+	 * permission on the first object returned from the Tier1 listObjects() method.  
+	 * Expecting the InvalidRequest exception to be returned.
+	 */
+	@Test
+	public void testIsAuthorized_noCert() 
+	{
+		setupClientSubject_NoCert();
+		
+		Iterator<Node> it = getMemberNodeIterator();
+		while (it.hasNext()) {
+			currentUrl = it.next().getBaseURL();
+			MNode mn = D1Client.getMN(currentUrl);
+			printTestHeader("testIsAuthorized() vs. node: " + currentUrl);
+		
+			try {
+				// should be a valid Identifier
+				Identifier pid = mn.listObjects().getObjectInfo(0).getIdentifier();
+				boolean success = mn.isAuthorized(null, pid, Permission.READ);
+				handleFail(currentUrl,"isAuthorized response response should through exception if no session/token");
+			} 
+			catch (BaseException e) {
+				checkTrue(currentUrl,e.getDescription(),e instanceof InvalidRequest);
+			}
+			catch(Exception e) {
+				e.printStackTrace();
+				handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+			}	
+		}
+	}
+	
+	
+	/**
+	 * Tests the dataONE service API setAccessPolicy method, first calling the
+	 * Tier 3 create method, to setup an object whose access policy can be 
+	 * manipulated for the test. 
+	 * on the first object returned from the Tier1 listObjects() method.  
+	 * Anything other than the boolean true is considered a test failure.
+	 */
     @Test
 	public void testSetAccessPolicy() 
     {	
-    	setupClientSubject_Writer();
+    	
     	
 		Iterator<Node> it = getMemberNodeIterator();
 		while (it.hasNext()) {
@@ -102,6 +163,8 @@ public class MNodeTier2IT extends ContextAwareTestCaseDataone  {
 			MNode mn = D1Client.getMN(currentUrl);
 			printTestHeader("testSetAccessPolicy() vs. node: " + currentUrl);
 
+			setupClientSubject_Writer();
+			
 			try {
 				// create the identifier
 				Identifier guid = new Identifier();
@@ -137,7 +200,7 @@ public class MNodeTier2IT extends ContextAwareTestCaseDataone  {
 				// mn.isAuthorized(session, pid, Permission.READ);
 
 			} catch (BaseException e) {
-				handleFail(currentUrl, e.getDescription());
+				handleFail(currentUrl, e.getClass().getSimpleName() + ": " + e.getDescription());
 			} catch (Exception e) {
 				e.printStackTrace();
 				handleFail(currentUrl, e.getClass().getName() + ": " + e.getMessage());

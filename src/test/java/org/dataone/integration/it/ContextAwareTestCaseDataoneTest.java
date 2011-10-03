@@ -2,7 +2,12 @@ package org.dataone.integration.it;
 
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
+import java.security.Principal;
+import java.security.cert.X509Certificate;
+
+import org.dataone.client.auth.CertificateManager;
 import org.dataone.configuration.Settings;
 import org.dataone.service.types.v1.Subject;
 import org.junit.After;
@@ -47,6 +52,17 @@ public class ContextAwareTestCaseDataoneTest extends ContextAwareTestCaseDataone
 
 	}
 
+	
+	@Test
+	public void testSetupClientSubject_NoCert() throws Exception
+	{
+		setupClientSubject_NoCert();
+		X509Certificate cert = CertificateManager.getInstance().loadCertificate();
+		System.out.println("subjectDN is: " + cert);
+		assertNull(cert);
+	}
+	
+	
 	@Override
 	protected String getTestDescription() {
 		// TODO Auto-generated method stub
