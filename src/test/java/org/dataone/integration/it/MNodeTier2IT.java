@@ -20,9 +20,6 @@
 
 package org.dataone.integration.it;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
 import java.io.ByteArrayInputStream;
 import java.security.cert.X509Certificate;
 import java.util.Iterator;
@@ -32,10 +29,13 @@ import org.dataone.client.MNode;
 import org.dataone.client.auth.CertificateManager;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.InvalidRequest;
+import org.dataone.service.exceptions.NotAuthorized;
+import org.dataone.service.exceptions.NotFound;
 import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Node;
 import org.dataone.service.types.v1.Permission;
 import org.dataone.service.types.v1.SystemMetadata;
+import org.dataone.service.types.v1.util.AccessUtil;
 import org.junit.Test;
 
 /**
@@ -126,7 +126,7 @@ public class MNodeTier2IT extends ContextAwareTestCaseDataone  {
 		while (it.hasNext()) {
 			currentUrl = it.next().getBaseURL();
 			MNode mn = D1Client.getMN(currentUrl);
-			printTestHeader("testIsAuthorized() vs. node: " + currentUrl);
+			printTestHeader("testIsAuthorized_noCert() vs. node: " + currentUrl);
 		
 			try {
 				// should be a valid Identifier
@@ -145,7 +145,8 @@ public class MNodeTier2IT extends ContextAwareTestCaseDataone  {
 	}
 	
 	
-	/**
+
+    /**
 	 * Tests the dataONE service API setAccessPolicy method, first calling the
 	 * Tier 3 create method, to setup an object whose access policy can be 
 	 * manipulated for the test. 
@@ -155,8 +156,6 @@ public class MNodeTier2IT extends ContextAwareTestCaseDataone  {
     @Test
 	public void testSetAccessPolicy() 
     {	
-    	
-    	
 		Iterator<Node> it = getMemberNodeIterator();
 		while (it.hasNext()) {
 			currentUrl = it.next().getBaseURL();
@@ -190,14 +189,88 @@ public class MNodeTier2IT extends ContextAwareTestCaseDataone  {
 			      
 				// create a test object
 				Identifier pid = mn.create(null, guid, textPlainSource, sysMeta);
-				assertEquals(guid, pid);
+				checkEquals(currentUrl,"0. returned pid from create should match what was given",
+						guid.getValue(), pid.getValue());
 
-				// set access on the object
-				boolean success = mn.setAccessPolicy(null, pid, buildPublicReadAccessPolicy());
-				assertTrue(success);
+				
+				
+				// try unsuccessfully to read it as the testReader
+				setupClientSubject_Reader();
+				try {
+					mn.get(null, pid);
+					handleFail(currentUrl,"1. getting the newly created object as reader should fail");
+				} catch (NotFound nf) {
+					// this is what we want
+				}
+				try {
+					mn.isAuthorized(null, pid,Permission.READ);
+					handleFail(currentUrl,"2. isAuthorized by the reader should fail by default");
+				} catch (NotFound nf) {
+					// this is what we want
+				}
+				
+				
+				
+				// open up read permission to the testReader
+				String readerSubject = CertificateManager.getInstance()
+					.getSubjectDN(CertificateManager.getInstance().loadCertificate());
+				
+				setupClientSubject_Writer();
+				boolean success = mn.setAccessPolicy(null, pid, 
+						AccessUtil.createSingleRuleAccessPolicy(new String[] {readerSubject},
+								new Permission[] {Permission.READ}));
 
-				// TODO: check the access by switching users or trashing the cert
-				// mn.isAuthorized(session, pid, Permission.READ);
+				checkTrue(currentUrl,"3. writer should be able to set the access policy",success);
+
+				// now try to read as the testReader
+				setupClientSubject_Reader();
+				try {
+					mn.isAuthorized(null, pid, Permission.READ);
+				} catch (NotAuthorized na) {
+					handleFail(currentUrl,"4. testReader should be authorized to read this pid '" 
+							+ pid.getValue() + "'");
+				}
+				
+				try {
+					mn.get(null, pid);
+				} catch (NotFound nf) {
+					handleFail(currentUrl,"5. testReader should now be able to get the object");
+				}
+				
+				// now try to read as a known user with no rights to the object
+				setupClientSubject_NoRights();
+				try {
+					mn.get(null, pid);
+					handleFail(currentUrl,"6. testNoRights should not be able to get the object");
+				} catch (NotFound nf) {
+					// this is what we want
+				}
+				
+				try {
+					mn.isAuthorized(null, pid, Permission.READ);
+					handleFail(currentUrl,"7. testNoRights should not be able to get the object");
+				} catch (NotAuthorized na) {
+					// this is what we want
+				}
+				
+				
+				// finally test permissions with certificateless client
+				setupClientSubject_NoCert();
+				try {
+					mn.get(null, pid);
+					handleFail(currentUrl,"8. anonymous client (no certificate) should not be" +
+							"able to get the object");
+				} catch (NotFound nf) {
+					// this is what we want
+				}
+				
+				try {
+					mn.isAuthorized(null, pid, Permission.READ);
+					handleFail(currentUrl,"9. anonymous client (no certificate) should not be " +
+							"able to get successful response from isAuthorized()");
+				} catch (NotAuthorized na) {
+					// this is what we want
+				}
 
 			} catch (BaseException e) {
 				handleFail(currentUrl, e.getClass().getSimpleName() + ": " + e.getDescription());
@@ -207,5 +280,64 @@ public class MNodeTier2IT extends ContextAwareTestCaseDataone  {
 			}
 		}
 	}
+    
+    /**
+	 * Tests the dataONE service API setAccessPolicy method, calling it with
+	 * no subject/certificate, after first calling the Tier 3 create method, 
+	 * to setup an object whose access policy can be manipulated for the test. 
+	 * <p>
+	 * Anything other than the boolean true is considered a test failure.
+	 */
+    @Test
+	public void testSetAccessPolicy_NoCert() 
+    {	
+		Iterator<Node> it = getMemberNodeIterator();
+		while (it.hasNext()) {
+			currentUrl = it.next().getBaseURL();
+			MNode mn = D1Client.getMN(currentUrl);
+			printTestHeader("testSetAccessPolicy() vs. node: " + currentUrl);
 
+			setupClientSubject_Writer();
+			
+			try {
+				// create the identifier
+				Identifier guid = new Identifier();
+				guid.setValue("mNodeTier2TestSetAccessPolicy." + ExampleUtilities.generateIdentifier());
+
+				// get some data bytes as an input stream
+				ByteArrayInputStream textPlainSource = 
+					new ByteArrayInputStream("Plain text source".getBytes("UTF-8"));
+
+				// build the system metadata object
+				SystemMetadata sysMeta = 
+					ExampleUtilities.generateSystemMetadata(guid, "text/plain", textPlainSource, null);
+
+				// make the submitter the same as the cert DN 
+				try {
+					X509Certificate certificate = CertificateManager.getInstance().loadCertificate();
+					String ownerX500 = CertificateManager.getInstance().getSubjectDN(certificate);
+					sysMeta.getRightsHolder().setValue(ownerX500);
+				} catch (Exception e) {
+					// warn about this?
+					e.printStackTrace();
+				}
+			      
+				// create a test object
+				Identifier pid = mn.create(null, guid, textPlainSource, sysMeta);
+				checkEquals(currentUrl,"pid returned from create should match that given",
+						guid.getValue(), pid.getValue());
+
+				// set access on the object
+				boolean success = mn.setAccessPolicy(null, pid, buildPublicReadAccessPolicy());
+				checkTrue(currentUrl,"setAccessPolicy should return true",success);
+
+
+			} catch (BaseException e) {
+				handleFail(currentUrl, e.getClass().getSimpleName() + ": " + e.getDescription());
+			} catch (Exception e) {
+				e.printStackTrace();
+				handleFail(currentUrl, e.getClass().getName() + ": " + e.getMessage());
+			}
+		}
+	}
 }
