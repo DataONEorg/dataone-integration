@@ -34,6 +34,7 @@ import org.dataone.service.exceptions.NotFound;
 import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Node;
 import org.dataone.service.types.v1.Permission;
+import org.dataone.service.types.v1.Subject;
 import org.dataone.service.types.v1.SystemMetadata;
 import org.dataone.service.types.v1.util.AccessUtil;
 import org.junit.Test;
@@ -113,12 +114,12 @@ public class MNodeTier2IT extends ContextAwareTestCaseDataone  {
 	
 	/**
 	 * Tests the dataONE service API isAuthorized method, but trying the call 
-	 * without a client certificate.  As with testIsAuthorized, checking for Read 
-	 * permission on the first object returned from the Tier1 listObjects() method.  
-	 * Expecting the InvalidRequest exception to be returned.
+	 * without a client certificate.  Checking for Write permission on the first
+	 * object returned from the Tier1 listObjects() method.  
+	 * Expect the NotAuthorized exception to be returned.
 	 */
 	@Test
-	public void testIsAuthorized_noCert() 
+	public void testIsAuthorizedforWrite_noCert() 
 	{
 		setupClientSubject_NoCert();
 		
@@ -131,11 +132,11 @@ public class MNodeTier2IT extends ContextAwareTestCaseDataone  {
 			try {
 				// should be a valid Identifier
 				Identifier pid = mn.listObjects().getObjectInfo(0).getIdentifier();
-				boolean success = mn.isAuthorized(null, pid, Permission.READ);
-				handleFail(currentUrl,"isAuthorized response response should through exception if no session/token");
+				boolean success = mn.isAuthorized(null, pid, Permission.WRITE);
+				handleFail(currentUrl,"isAuthorized response should throw exception if no session/token");
 			} 
 			catch (BaseException e) {
-				checkTrue(currentUrl,e.getDescription(),e instanceof InvalidRequest);
+				checkTrue(currentUrl,e.getClass().getSimpleName() + ": " + e.getDescription(),e instanceof NotAuthorized);
 			}
 			catch(Exception e) {
 				e.printStackTrace();
@@ -187,14 +188,14 @@ public class MNodeTier2IT extends ContextAwareTestCaseDataone  {
 					e.printStackTrace();
 				}
 			      
-				// create a test object
+				log.info("create a test object");
 				Identifier pid = mn.create(null, guid, textPlainSource, sysMeta);
 				checkEquals(currentUrl,"0. returned pid from create should match what was given",
 						guid.getValue(), pid.getValue());
 
 				
 				
-				// try unsuccessfully to read it as the testReader
+				log.info("try unsuccessfully to get it as the testReader");
 				setupClientSubject_Reader();
 				try {
 					mn.get(null, pid);
@@ -202,16 +203,18 @@ public class MNodeTier2IT extends ContextAwareTestCaseDataone  {
 				} catch (NotFound nf) {
 					// this is what we want
 				}
+
+				log.info("try isAuthorized on it as the testReader");
 				try {
 					mn.isAuthorized(null, pid,Permission.READ);
 					handleFail(currentUrl,"2. isAuthorized by the reader should fail by default");
-				} catch (NotFound nf) {
+				} catch (NotAuthorized na) {
 					// this is what we want
 				}
 				
 				
 				
-				// open up read permission to the testReader
+				log.info("open up read permission to the testReader");
 				String readerSubject = CertificateManager.getInstance()
 					.getSubjectDN(CertificateManager.getInstance().loadCertificate());
 				
@@ -222,7 +225,7 @@ public class MNodeTier2IT extends ContextAwareTestCaseDataone  {
 
 				checkTrue(currentUrl,"3. writer should be able to set the access policy",success);
 
-				// now try to read as the testReader
+				log.info("now try isAuthorized on it as the testReader");
 				setupClientSubject_Reader();
 				try {
 					mn.isAuthorized(null, pid, Permission.READ);
@@ -231,13 +234,14 @@ public class MNodeTier2IT extends ContextAwareTestCaseDataone  {
 							+ pid.getValue() + "'");
 				}
 				
+				log.info("now try to get it as the testReader");
 				try {
 					mn.get(null, pid);
 				} catch (NotFound nf) {
 					handleFail(currentUrl,"5. testReader should now be able to get the object");
 				}
 				
-				// now try to read as a known user with no rights to the object
+				log.info("now try to get as a known user with no rights to the object");
 				setupClientSubject_NoRights();
 				try {
 					mn.get(null, pid);
@@ -245,7 +249,7 @@ public class MNodeTier2IT extends ContextAwareTestCaseDataone  {
 				} catch (NotFound nf) {
 					// this is what we want
 				}
-				
+				log.info("now try isAuthorized() on it as a known user with no rights to the object");
 				try {
 					mn.isAuthorized(null, pid, Permission.READ);
 					handleFail(currentUrl,"7. testNoRights should not be able to get the object");
@@ -254,7 +258,7 @@ public class MNodeTier2IT extends ContextAwareTestCaseDataone  {
 				}
 				
 				
-				// finally test permissions with certificateless client
+				log.info("finally test getting it with certificateless client");
 				setupClientSubject_NoCert();
 				try {
 					mn.get(null, pid);
@@ -264,6 +268,7 @@ public class MNodeTier2IT extends ContextAwareTestCaseDataone  {
 					// this is what we want
 				}
 				
+				log.info("and test isAuthorized on it with certificateless client");
 				try {
 					mn.isAuthorized(null, pid, Permission.READ);
 					handleFail(currentUrl,"9. anonymous client (no certificate) should not be " +
@@ -295,10 +300,11 @@ public class MNodeTier2IT extends ContextAwareTestCaseDataone  {
 		while (it.hasNext()) {
 			currentUrl = it.next().getBaseURL();
 			MNode mn = D1Client.getMN(currentUrl);
-			printTestHeader("testSetAccessPolicy() vs. node: " + currentUrl);
+			printTestHeader("testSetAccessPolicy_NoCert() vs. node: " + currentUrl);
 
-			setupClientSubject_Writer();
-			
+			Subject s = setupClientSubject_Writer();
+			log.info("  subject set to: " + s.getValue());
+
 			try {
 				// create the identifier
 				Identifier guid = new Identifier();
@@ -321,19 +327,24 @@ public class MNodeTier2IT extends ContextAwareTestCaseDataone  {
 					// warn about this?
 					e.printStackTrace();
 				}
-			      
+			
+	
 				// create a test object
 				Identifier pid = mn.create(null, guid, textPlainSource, sysMeta);
 				checkEquals(currentUrl,"pid returned from create should match that given",
 						guid.getValue(), pid.getValue());
 
+				setupClientSubject_NoCert();
+				log.info("  subject cleared");
 				// set access on the object
-				boolean success = mn.setAccessPolicy(null, pid, buildPublicReadAccessPolicy());
-				checkTrue(currentUrl,"setAccessPolicy should return true",success);
+				boolean success = mn.setAccessPolicy(null, pid, 
+						AccessUtil.createSingleRuleAccessPolicy(new String[]{"foo"},
+								new Permission[]{Permission.READ}));
+				handleFail(currentUrl,"with no client certificate, setAccessPolicy should throw exception");
 
 
 			} catch (BaseException e) {
-				handleFail(currentUrl, e.getClass().getSimpleName() + ": " + e.getDescription());
+				checkEquals(currentUrl, "with no client certificate: ", e.getClass().getSimpleName(), "NotAuthorized");
 			} catch (Exception e) {
 				e.printStackTrace();
 				handleFail(currentUrl, e.getClass().getName() + ": " + e.getMessage());
