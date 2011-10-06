@@ -83,7 +83,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 	 * @throws Exception
 	 */
 	@Before
-	public void setUp() throws Exception {
+	public void setUpContext() throws Exception {
 
 		log.debug("Current Thread: " + Thread.currentThread().getId());
 		// skip setUp steps if already run
