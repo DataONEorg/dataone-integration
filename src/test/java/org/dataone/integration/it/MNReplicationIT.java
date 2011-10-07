@@ -123,7 +123,7 @@ public class MNReplicationIT extends ContextAwareTestCaseDataone {
     }
   	
     // get a Session object
-    Session session = ExampleUtilities.getTestSession();
+    Session session = null;
     String identifierStr = ExampleUtilities.generateIdentifier();
     Identifier guid = new Identifier();
     guid.setValue("mNodeTier4TestReplicationOnCreate." + identifierStr);
