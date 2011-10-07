@@ -179,7 +179,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 	 * the CertificateManager to use the certificate found at that path
 	 * @return
 	 */
-	protected static Subject setupClientSubject_Writer(){
+	public static Subject setupClientSubject_Writer(){
 		return setupClientSubject("test.subject.writer.certLocation");
 	}
 	
@@ -188,7 +188,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 	 * the CertificateManager to use the certificate found at that path
 	 * @return
 	 */
-	protected static Subject setupClientSubject_Reader(){
+	public static Subject setupClientSubject_Reader(){
 		return setupClientSubject("test.subject.reader.certLocation");
 	}
 	
@@ -197,7 +197,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 	 * the CertificateManager to use the certificate found at that path
 	 * @return
 	 */
-	protected static Subject setupClientSubject_NoRights(){
+	public static Subject setupClientSubject_NoRights(){
 		return setupClientSubject("test.subject.norights.certLocation");
 	}
 	
