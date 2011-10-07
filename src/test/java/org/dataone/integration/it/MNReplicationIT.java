@@ -68,7 +68,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-public class MNReplicationTest extends ContextAwareTestCaseDataone {
+public class MNReplicationIT extends ContextAwareTestCaseDataone {
 
   private static final String format_text_plain = "text/plain";
   
