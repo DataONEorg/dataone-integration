@@ -22,13 +22,24 @@ package org.dataone.integration.it;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.security.cert.X509Certificate;
 import java.util.Iterator;
+import java.util.List;
 
 import org.dataone.client.D1Client;
 import org.dataone.client.MNode;
 import org.dataone.client.auth.CertificateManager;
 import org.dataone.service.exceptions.BaseException;
+import org.dataone.service.exceptions.IdentifierNotUnique;
+import org.dataone.service.exceptions.InsufficientResources;
+import org.dataone.service.exceptions.InvalidRequest;
+import org.dataone.service.exceptions.InvalidSystemMetadata;
+import org.dataone.service.exceptions.InvalidToken;
+import org.dataone.service.exceptions.NotAuthorized;
+import org.dataone.service.exceptions.NotImplemented;
+import org.dataone.service.exceptions.ServiceFailure;
+import org.dataone.service.exceptions.UnsupportedType;
 import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Node;
 import org.dataone.service.types.v1.Session;
@@ -64,38 +75,13 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 			currentUrl = it.next().getBaseURL();
 			MNode mn = D1Client.getMN(currentUrl);
 
-			// get a Session object
-			Session session = ExampleUtilities.getTestSession();
-			String identifierStr = ExampleUtilities.generateIdentifier();
-			Identifier guid = new Identifier();
-			guid.setValue("mNodeTier3TestCreate." + identifierStr);
-			SystemMetadata sysMeta = new SystemMetadata();
-			InputStream textPlainSource;
-
 			try {
-				// get some data bytes as an input stream
-				textPlainSource =
-					new ByteArrayInputStream("Plain text source".getBytes("UTF-8"));
-
-				// build the system metadata object
-				sysMeta = 
-					ExampleUtilities.generateSystemMetadata(guid, format_text_plain, textPlainSource,null);
-
-				// match the submitter as the cert DN 
-				try {
-					X509Certificate certificate = CertificateManager.getInstance().loadCertificate();
-					String ownerX500 = CertificateManager.getInstance().getSubjectDN(certificate);
-					sysMeta.getRightsHolder().setValue(ownerX500);
-				} catch (Exception e) {
-					// warn about this
-					e.printStackTrace();
-				}
-
-				// try the create
-				Identifier pid = mn.create(session, guid, textPlainSource, sysMeta);
-
+				Object[] dataPackage = generateTestDataPackage("mNodeTier3TestCreate");				
+				Identifier pid = mn.create(null,(Identifier) dataPackage[0],
+						(InputStream) dataPackage[1], (SystemMetadata) dataPackage[2]);	
+				
 				checkEquals(currentUrl,"pid of created object should equal that given",
-						guid.getValue(), pid.getValue());
+						((Identifier)dataPackage[0]).getValue(), pid.getValue());
 			}
 			catch (BaseException e) {
 				handleFail(currentUrl,e.getClass().getSimpleName() + ": " + e.getDescription());
@@ -105,9 +91,43 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 				handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
 			}	
 		}
-
 	}
 
+	/**
+	 *  Test MNStorage.create() functionality
+	 */
+	@Test
+	public void testCreate_NoCert() {
+
+		setupClientSubject_NoCert();
+
+		Iterator<Node> it = getMemberNodeIterator();  	
+
+		while (it.hasNext()) {
+			currentUrl = it.next().getBaseURL();
+			MNode mn = D1Client.getMN(currentUrl);
+
+			try {
+				Object[] dataPackage = generateTestDataPackage("mNodeTier3TestCreate");
+				
+				Identifier pid = mn.create(null,(Identifier) dataPackage[0],
+						(InputStream) dataPackage[1], (SystemMetadata) dataPackage[2]);			
+				handleFail(currentUrl,"should not be able to create an object if no certificate");
+			}
+			catch (NotAuthorized na) {
+				// expected behavior
+			}
+			catch (BaseException e) {
+				handleFail(currentUrl,e.getClass().getSimpleName() + ": " + e.getDescription());
+			}
+			catch(Exception e) {
+				e.printStackTrace();
+				handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+			}	
+		}
+	}
+
+	
 	/**
 	 *  Test MNStorage.update() functionality
 	 */
@@ -123,59 +143,41 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 			currentUrl = it.next().getBaseURL();
 			MNode mn = D1Client.getMN(currentUrl);
 
-			Session session = ExampleUtilities.getTestSession();
-			String identifierStr = ExampleUtilities.generateIdentifier();
-			Identifier guid = new Identifier();
-			guid.setValue("mNodeTier3TestUpdate." + identifierStr);
-			SystemMetadata sysMeta = new SystemMetadata();
-			InputStream textPlainSource;
-			Identifier newPid;
-
+			
 			try {
-				// get some data bytes as an input stream
-				textPlainSource = 
-					new ByteArrayInputStream("Plain text source".getBytes("UTF-8"));
-
-				// build the system metadata object
-				sysMeta = 
-					ExampleUtilities.generateSystemMetadata(guid, format_text_plain, textPlainSource,null);
-
-				// match the submitter as the cert DN 
-				try {
-					X509Certificate certificate = CertificateManager.getInstance().loadCertificate();
-					String ownerX500 = CertificateManager.getInstance().getSubjectDN(certificate);
-					sysMeta.getRightsHolder().setValue(ownerX500);
-				} catch (Exception e) {
-					// warn about this
-					e.printStackTrace();
-				}
-
-				// get a pid to update
-				Identifier pid = mn.create(session, guid, textPlainSource, sysMeta);
-				String newIdentifierStr = ExampleUtilities.generateIdentifier();
-				newPid = new Identifier();
-				newPid.setValue("mNodeTier3TestUpdate." + newIdentifierStr);
-				//	      SystemMetadata newSysMeta = mn.getSystemMetadata(session, pid);
-
+				Object[] dataPackage = generateTestDataPackage("mNodeTier3TestUpdate");
+				SystemMetadata sysmeta = (SystemMetadata) dataPackage[2];
+				Identifier pid = mn.create(null,(Identifier) dataPackage[0],
+						(InputStream) dataPackage[1], sysmeta);
+				
+				// create the new data package to update with
+				dataPackage = generateTestDataPackage("mNodeTier3TestUpdate");
+				
 				// TODO: reinstated the checks when obsolete behavior refactored.
 				// update the obsoletesList
 				//	      newSysMeta.addObsolete(pid);
 
 				// update the derivedFrom list
 				//	      newSysMeta.addDerivedFrom(pid);
-
+				
 				// set the new pid on the sysmeta object
 				// TODO: should the MN do this?
-				sysMeta.setIdentifier(newPid);
+				sysmeta.setIdentifier((Identifier)dataPackage[0]);  
+				
+				
 				// do the update
-				Identifier updatedPid = 
-					mn.update(session, pid, textPlainSource, newPid, sysMeta);
+				Identifier updatedPid = mn.update(null,
+						pid,                          // old pid
+						(InputStream) dataPackage[1], // new data
+						(Identifier) dataPackage[0],  // new pid
+						sysmeta                       // modified sysmeta
+						);
+		
+				checkEquals(currentUrl,"pid returned from update should match that given",
+						((Identifier)dataPackage[0]).getValue(), updatedPid.getValue());
 
 				// get the updated system metadata
-				SystemMetadata updatedSysMeta = mn.getSystemMetadata(session, updatedPid);
-
-				checkEquals(currentUrl,"pid returned from update should match that given",
-						newPid.getValue(), updatedPid.getValue());
+				// SystemMetadata updatedSysMeta = mn.getSystemMetadata(null, updatedPid);
 				//	      assertTrue(updatedSysMeta.getObsolete(0).getValue().equals(pid));
 				//	      assertTrue(updatedSysMeta.getDerivedFrom(0).getValue().equals(pid));	      
 
@@ -188,59 +190,132 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 				handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
 			}	
 		}
-
 	}
 
-	/**
-	 *  Test MNStorage.delete() functionality
-	 */
 	@Test
-	public void testDelete() {
-
-		setupClientSubject_Writer();
+	public void testUpdate_NoCert() {
 
 		Iterator<Node> it = getMemberNodeIterator();
 
 		while ( it.hasNext() ) {
+			setupClientSubject_Writer();
+			
+			currentUrl = it.next().getBaseURL();
+			MNode mn = D1Client.getMN(currentUrl);
+
+			
+			try {
+				Object[] dataPackage = generateTestDataPackage("mNodeTier3TestUpdate");
+				SystemMetadata sysmeta = (SystemMetadata) dataPackage[2];
+				Identifier pid = mn.create(null,(Identifier) dataPackage[0],
+						(InputStream) dataPackage[1], sysmeta);
+				
+				// create the new data package to update with
+				dataPackage = generateTestDataPackage("mNodeTier3TestUpdate");
+				
+				// TODO: reinstated the checks when obsolete behavior refactored.
+				// update the obsoletesList
+				//	      newSysMeta.addObsolete(pid);
+
+				// update the derivedFrom list
+				//	      newSysMeta.addDerivedFrom(pid);
+				
+				// set the new pid on the sysmeta object
+				// TODO: should the MN do this?
+				sysmeta.setIdentifier((Identifier)dataPackage[0]);  
+				
+				
+				setupClientSubject_NoCert();
+				// do the update
+				Identifier updatedPid = mn.update(null,
+						pid,                          // old pid
+						(InputStream) dataPackage[1], // new data
+						(Identifier) dataPackage[0],  // new pid
+						sysmeta                       // modified sysmeta
+						);
+		
+				handleFail(currentUrl,"should not be able to create an object if no certificate");
+			}
+			catch (NotAuthorized na) {
+				// expected behavior
+			}
+			catch (BaseException e) {
+				handleFail(currentUrl,e.getClass().getSimpleName() + ": " + e.getDescription());
+			}
+			catch(Exception e) {
+				e.printStackTrace();
+				handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+			}	
+		}
+	}
+	
+	/**
+	 *  Test MNStorage.delete() functionality
+	 */
+	@Test
+	public void testDelete() 
+	{
+		Iterator<Node> it = getMemberNodeIterator();
+
+		while ( it.hasNext() ) {
+			setupClientSubject_Writer();
 
 			currentUrl = it.next().getBaseURL();
 			MNode mn = D1Client.getMN(currentUrl);
 
-			Session session = ExampleUtilities.getTestSession();
-			String identifierStr = ExampleUtilities.generateIdentifier();
-			Identifier guid = new Identifier();
-			guid.setValue("mNodeTier3TestDelete." + identifierStr);
-			SystemMetadata sysMeta = new SystemMetadata();
-			InputStream textPlainSource;
-			Identifier deletedPid;
-
+			Identifier pid = null;
 			try {
-				// get some data bytes as an input stream
-				textPlainSource = 
-					new ByteArrayInputStream("Plain text source".getBytes("UTF-8"));
-
-				// build the system metadata object
-				sysMeta = 
-					ExampleUtilities.generateSystemMetadata(guid, format_text_plain, textPlainSource,null);
-
-				// match the submitter as the cert DN 
-				try {
-					X509Certificate certificate = CertificateManager.getInstance().loadCertificate();
-					String ownerX500 = CertificateManager.getInstance().getSubjectDN(certificate);
-					sysMeta.getRightsHolder().setValue(ownerX500);
-				} catch (Exception e) {
-					// warn about this
-					e.printStackTrace();
-				}
-
-				// get a pid to delete
-				Identifier pid = mn.create(session, guid, textPlainSource, sysMeta);
-
+				Object[] dataPackage = generateTestDataPackage("mNodeTier3TestDelete");
+				pid = mn.create(null,(Identifier) dataPackage[0],
+						(InputStream) dataPackage[1], (SystemMetadata) dataPackage[2]);
+				
 				// try the delete
-				deletedPid = mn.delete(session, pid);
-				checkEquals(currentUrl,"pid returned from delete should match that given",
-						deletedPid.getValue(), pid.getValue());
+				Identifier deletedPid = mn.delete(null, pid);
 
+				checkEquals(currentUrl,"pid returned from delete should match that given",
+						((Identifier)dataPackage[0]).getValue(), deletedPid.getValue());
+				
+				InputStream is = mn.get(null, pid);
+			}
+			catch (BaseException e) {
+				handleFail(currentUrl,e.getClass().getSimpleName() + ": " + e.getDescription());
+			}
+			catch(Exception e) {
+				e.printStackTrace();
+				handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+			}	
+		}
+	}
+	
+	@Test
+	public void testDelete_NoCert() 
+	{
+		Iterator<Node> it = getMemberNodeIterator();
+
+		while ( it.hasNext() ) {
+			setupClientSubject_Writer();
+
+			currentUrl = it.next().getBaseURL();
+			MNode mn = D1Client.getMN(currentUrl);
+
+			Identifier pid = null;
+			try {
+				Object[] dataPackage = generateTestDataPackage("mNodeTier3TestDelete");
+				pid = mn.create(null,(Identifier) dataPackage[0],
+						(InputStream) dataPackage[1], (SystemMetadata) dataPackage[2]);
+				
+				setupClientSubject_NoCert();
+				// try the delete
+				Identifier deletedPid = mn.delete(null, pid);
+				handleFail(currentUrl,"should not be able to delete an object if no certificate");
+			}
+			catch (NotAuthorized na) {
+				try {
+					InputStream is = mn.get(null, pid);	
+				}
+				catch (BaseException e) {
+					handleFail(currentUrl,e.getClass().getSimpleName() + ": " + e.getDescription());
+				}
 			}
 			catch (BaseException e) {
 				handleFail(currentUrl,e.getClass().getSimpleName() + ": " + e.getDescription());
@@ -253,6 +328,41 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 
 	}
 
+
+	/*
+	 * creates the identifier, data inputstream, and sysmetadata for testing purposes
+	 * the rightsHolder is set to the subject of the current certificate (user)
+	 */
+	private Object[] generateTestDataPackage(String idPrefix) 
+	throws UnsupportedEncodingException
+	{
+		String identifierStr = ExampleUtilities.generateIdentifier();
+		
+		Identifier guid = new Identifier();
+		guid.setValue(idPrefix + "." + identifierStr);
+
+		// get some data bytes as an input stream
+		InputStream textPlainSource = 
+			new ByteArrayInputStream("Plain text source".getBytes("UTF-8"));
+
+		// build the system metadata object
+		SystemMetadata sysMeta = 
+			ExampleUtilities.generateSystemMetadata(guid, format_text_plain, textPlainSource,null);
+
+		// match the submitter as the cert DN 
+		try {
+			X509Certificate certificate = CertificateManager.getInstance().loadCertificate();
+			String ownerX500 = CertificateManager.getInstance().getSubjectDN(certificate);
+			sysMeta.getRightsHolder().setValue(ownerX500);
+		} catch (Exception e) {
+			// warn about this
+			e.printStackTrace();
+		}
+
+		return new Object[]{guid,textPlainSource,sysMeta};
+	}
+	
+	
 	@Override
 	protected String getTestDescription() {
 		return "Test Case that runs through the Member Node Tier 3 (Storage) API methods";
