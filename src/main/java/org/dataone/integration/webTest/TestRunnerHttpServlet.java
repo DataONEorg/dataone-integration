@@ -171,9 +171,10 @@ public class TestRunnerHttpServlet extends HttpServlet
 			generateURLRow(div,mNodeBaseUrl);
 			body.appendChild(div);
 			
+			int rowIndex = 1;
 			for(AtomicTest test : testList) {
 				div = new Element("div");
-				generateTestReportLine(test,div);
+				generateTestReportLine(test,div,rowIndex++);
 				body.appendChild(div);
 			}
 		}
@@ -217,7 +218,7 @@ public class TestRunnerHttpServlet extends HttpServlet
 	 * @param testResult
 	 * @param div
 	 */
-	private void generateTestReportLine(AtomicTest testResult, Element div) {
+	private void generateTestReportLine(AtomicTest testResult, Element div, int rowIndex) {
 
 		Element table = new Element("table");
 		Element tr = new Element("tr");
@@ -248,14 +249,66 @@ public class TestRunnerHttpServlet extends HttpServlet
 		name.appendChild(testResult.getTestName());
 		tr.appendChild(name);
 
+		
 		description.appendChild(testResult.getMessage());
 		tr.appendChild(description);
-
 		table.appendChild(tr);
 		div.appendChild(table);
+
+		// add trace information if any (in separate table in the div)
+		if (testResult.getTrace() != null) {		
+			// append toggle link to existing description
+			description.appendChild(buildTraceViewControl(rowIndex));
+			// add another table to the div
+			div.appendChild(buildTraceView(rowIndex, testResult));
+		}
 	}
 
+	private Element buildTraceViewControl(int rowID)
+	{
+		Element toggleText = new Element("a");
+		toggleText.addAttribute(new Attribute("id", "toggleControl"+rowID));
+		toggleText.addAttribute(new Attribute("href", 
+				"javascript:toggleTrace('traceContent"+rowID + "','toggleControl"+ rowID + "');"));
+		toggleText.appendChild("show trace");
+		return toggleText;
+	}
 	
+	
+	private Element buildTraceView(int rowID, AtomicTest testResult)
+	{
+		Element traceTable = new Element("table");
+		Element traceRow = new Element("tr");
+		traceRow.appendChild(new Element("td"));
+		
+		// create the hide-able text
+		Element traceData = new Element("td");
+		
+		Element traceDiv = new Element("div");
+		traceDiv.addAttribute(new Attribute("id","traceContent" + rowID));
+		traceDiv.addAttribute(new Attribute("style","display: none;"));
+		
+		// shorten the stack trace to remove precursor JUnit runner frames
+		// use the testName to find the last line to include from the stackTrace
+		//   the rest is JUnitCore stuff 
+		String searchString = testResult.getTestName().replace(": ",".");		
+		int methodNameStart = testResult.getTrace().indexOf(searchString);
+		// lookahead to end of the line ( all lines end with ")" )
+		int lastChar = testResult.getTrace().indexOf(")", methodNameStart);
+		
+		String conciseTrace = testResult.getTrace().substring(0, lastChar+1).replace("\n","\r\n");
+		
+		Element formattedText = new Element("pre");
+		formattedText.appendChild(conciseTrace);
+		
+		traceDiv.appendChild(formattedText);
+		traceData.appendChild(traceDiv);
+		traceRow.appendChild(traceData);
+		traceTable.appendChild(traceRow);
+		
+		
+		return traceTable;
+	}
 	
 	@SuppressWarnings("rawtypes")
 	private static Class[] getIntegrationTestClasses(String pattern) 
@@ -440,7 +493,8 @@ public class TestRunnerHttpServlet extends HttpServlet
 			} else {
 				currentTest.setStatus("Error");
 			}
-			currentTest.setMessage( t.getClass().getSimpleName() + ": " + f.getMessage());
+			currentTest.setMessage( t.getClass().getSimpleName() + ": " + f.getMessage());		
+			currentTest.setTrace(f.getTrace());
 		}
 		
 		public ArrayList<AtomicTest> getTestList() {
@@ -459,6 +513,7 @@ public class TestRunnerHttpServlet extends HttpServlet
 		private String testName;
 		private String status;
 		private String message;
+		private String trace;
 		
 		public AtomicTest(String name)
 		{
@@ -497,6 +552,13 @@ public class TestRunnerHttpServlet extends HttpServlet
 		}
 		public String getType() {
 			return type;
+		}
+		
+		public void setTrace(String trace) {
+			this.trace = trace;
+		}
+		public String getTrace() {
+			return this.trace;
 		}
 
 	}	

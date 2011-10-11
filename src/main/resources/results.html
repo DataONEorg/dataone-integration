@@ -15,6 +15,20 @@
 			.yellow {background-image: url('images/yellow.png'); background-repeat: no-repeat; padding: 10px; padding-left: 70px;}
 			.greyHeader {background: grey; padding: 10px; padding-left: 30px;}
 		</style>
+		<script language="javascript">
+function toggleTrace(showHideDiv, switchTextDiv) {
+    var ele = document.getElementById(showHideDiv);
+    var text = document.getElementById(switchTextDiv);
+    if(ele.style.display == "block") {
+    ele.style.display = "none";
+    text.innerHTML = "show trace";
+    }
+    else {
+    ele.style.display = "block";
+    text.innerHTML = "hide trace";
+    }
+}
+</script>		
     </head>
     <body>
         <div style="background: #ccc; padding: 20px; font-weight: bold;">DataONE Member Node Web
