@@ -25,7 +25,7 @@ public class ContextAwareTestCaseDataoneTest extends ContextAwareTestCaseDataone
 		// which is not needed here (cannot be called)
 	}
 	
-	@Test
+//	@Test
 	public void testSetupClientSubject_Writer() throws Exception
 	{
 		Subject s = setupClientSubject_Writer();
@@ -34,7 +34,7 @@ public class ContextAwareTestCaseDataoneTest extends ContextAwareTestCaseDataone
 
 	}
 	
-	@Test
+//	@Test
 	public void testSetupClientSubject_Reader() throws Exception
 	{
 		Subject s = setupClientSubject_Reader();
@@ -43,7 +43,7 @@ public class ContextAwareTestCaseDataoneTest extends ContextAwareTestCaseDataone
 
 	}
 	
-	@Test
+//	@Test
 	public void testSetupClientSubject_NoRights() throws Exception
 	{
 		Subject s = setupClientSubject_NoRights();
@@ -53,7 +53,7 @@ public class ContextAwareTestCaseDataoneTest extends ContextAwareTestCaseDataone
 	}
 
 	
-	@Test
+//	@Test
 	public void testSetupClientSubject_NoCert() throws Exception
 	{
 		setupClientSubject_NoCert();

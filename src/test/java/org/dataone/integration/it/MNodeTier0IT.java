@@ -1,0 +1,100 @@
+/**
+ * This work was created by participants in the DataONE project, and is
+ * jointly copyrighted by participating institutions in DataONE. For
+ * more information on DataONE, see our web site at http://dataone.org.
+ *
+ *   Copyright ${year}
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.dataone.integration.it;
+
+import java.io.InputStream;
+import java.util.Date;
+import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.Map;
+
+import org.dataone.client.D1Client;
+import org.dataone.client.D1RestClient;
+import org.dataone.client.MNode;
+import org.dataone.service.exceptions.BaseException;
+import org.dataone.service.exceptions.SynchronizationFailed;
+import org.dataone.service.types.v1.Checksum;
+import org.dataone.service.types.v1.DescribeResponse;
+import org.dataone.service.types.v1.Event;
+import org.dataone.service.types.v1.Identifier;
+import org.dataone.service.types.v1.Log;
+import org.dataone.service.types.v1.LogEntry;
+import org.dataone.service.types.v1.MonitorList;
+import org.dataone.service.types.v1.Node;
+import org.dataone.service.types.v1.NodeList;
+import org.dataone.service.types.v1.ObjectFormatIdentifier;
+import org.dataone.service.types.v1.ObjectInfo;
+import org.dataone.service.types.v1.ObjectList;
+import org.dataone.service.types.v1.Permission;
+import org.dataone.service.types.v1.Subject;
+import org.dataone.service.types.v1.SystemMetadata;
+import org.dataone.service.util.D1Url;
+import org.dataone.service.util.TypeMarshaller;
+import org.junit.Before;
+import org.junit.Ignore;
+import org.junit.Test;
+
+/**
+ * Test the DataONE Java client methods.
+ * @author Rob Nahf
+ */
+public class MNodeTier0IT extends ContextAwareTestCaseDataone  {
+
+    private  String currentUrl;
+    
+	@Override
+	protected String getTestDescription() {
+		return "Test Case to run basic connectivity tests";
+	}
+
+	/**
+	 * calling the baseUrl directly (without further path elements) should
+	 * be the same as mn.getCapabilities()  - should return a nodelist.
+	 */
+	@Test
+	public void testBaseUrlResponse() {
+		Iterator<Node> it = getMemberNodeIterator();
+		while (it.hasNext()) {
+			currentUrl = it.next().getBaseURL();
+			MNode mn = D1Client.getMN(currentUrl);
+			printTestHeader("testBaseUrlResponse() vs. node: " + currentUrl);
+		
+			D1Url url = new D1Url(mn.getNodeBaseServiceUrl());
+            D1RestClient rc = new D1RestClient();
+
+			try {
+				InputStream is = rc.doGetRequest(url.getUrl());
+				Node node = TypeMarshaller.unmarshalTypeFromStream(Node.class, is);
+				log.info(node.getBaseURL());
+			} 
+			catch (BaseException e) {
+				handleFail(currentUrl,e.getClass().getSimpleName() + ":: " + e.getDescription());
+			}
+			catch(Exception e) {
+				e.printStackTrace();
+				handleFail(currentUrl,"failed to create Node object from input stream" 
+						+ e.getClass().getName() + ": " + e.getMessage());
+			}	
+		}
+	}
+
+	
+}
