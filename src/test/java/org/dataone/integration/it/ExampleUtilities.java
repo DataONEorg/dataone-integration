@@ -66,6 +66,7 @@ import org.dataone.service.types.v1.Replica;
 import org.dataone.service.types.v1.ReplicationStatus;
 import org.dataone.service.types.v1.Session;
 import org.dataone.service.types.v1.Subject;
+import org.dataone.service.types.v1.SubjectInfo;
 import org.dataone.service.types.v1.SubjectList;
 import org.dataone.service.types.v1.SystemMetadata;
 
@@ -507,7 +508,7 @@ public class ExampleUtilities {
     		s.setValue(pString);
     		p.setSubject(s);
     		
-    		sl.addPerson(p);
+    		sl.addSubject(p.getSubject());
     	}
     	return sl;
     }
@@ -564,11 +565,11 @@ public class ExampleUtilities {
   	
   	Subject subject = new Subject();
   	subject.setValue(subjectStr);
-  	SubjectList subjectList = new SubjectList();
-  	subjectList.setGroupList(groupList);
+  	SubjectInfo subjectInfo = new SubjectInfo();
+  	subjectInfo.setGroupList(groupList);
   	
   	session.setSubject(subject);
-  	session.setSubjectList(subjectList);
+  	session.setSubjectInfo(subjectInfo);
   	
   	return session;
   	

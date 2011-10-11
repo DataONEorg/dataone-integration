@@ -26,6 +26,7 @@ import org.dataone.service.types.v1.Person;
 import org.dataone.service.types.v1.ReplicationPolicy;
 import org.dataone.service.types.v1.ReplicationStatus;
 import org.dataone.service.types.v1.Subject;
+import org.dataone.service.types.v1.SubjectInfo;
 import org.dataone.service.types.v1.SubjectList;
 import org.dataone.service.types.v1.SystemMetadata;
 import org.junit.Before;
@@ -759,7 +760,7 @@ public class CNodeITtemplate extends ContextAwareTestCaseDataone {
 			printTestHeader("testListSubjects(...) vs. node: " + currentUrl);
 
 			try {
-				SubjectList response = cn.listSubjects(null, "need query semantics",null,null);
+				SubjectInfo response = cn.listSubjects(null, "need query semantics",null,null,null);
 				checkTrue(currentUrl,"listSubjects(...) returns a SubjectList object", response != null);
 			}
 			catch (BaseException e) {
@@ -782,7 +783,7 @@ public class CNodeITtemplate extends ContextAwareTestCaseDataone {
 			printTestHeader("testGetSubjectInfo(...) vs. node: " + currentUrl);
 
 			try {
-				SubjectList response = cn.getSubjectInfo(null, new Subject());
+				SubjectInfo response = cn.getSubjectInfo(null, new Subject());
 				checkTrue(currentUrl,"getSubjectInfo(...) returns a SubjectList object", response != null);
 			}
 			catch (BaseException e) {
