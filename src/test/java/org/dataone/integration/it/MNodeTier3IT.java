@@ -452,6 +452,7 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 			X509Certificate certificate = CertificateManager.getInstance().loadCertificate();
 			String ownerX500 = CertificateManager.getInstance().getSubjectDN(certificate);
 			sysMeta.getRightsHolder().setValue(ownerX500);
+			sysMeta.getSubmitter().setValue(ownerX500);
 		} catch (Exception e) {
 			// warn about this
 			e.printStackTrace();
