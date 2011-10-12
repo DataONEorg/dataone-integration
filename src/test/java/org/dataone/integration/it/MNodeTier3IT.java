@@ -36,8 +36,11 @@ import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.NotAuthorized;
 import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Node;
+import org.dataone.service.types.v1.Permission;
 import org.dataone.service.types.v1.Session;
 import org.dataone.service.types.v1.SystemMetadata;
+import org.dataone.service.types.v1.util.AccessUtil;
+import org.dataone.service.util.Constants;
 import org.junit.After;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -405,6 +408,7 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 			}
 			catch (NotAuthorized na) {
 				try {
+					setupClientSubject_Writer();
 					InputStream is = mn.get(null, pid);	
 				}
 				catch (BaseException e) {
@@ -452,7 +456,10 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 			// warn about this
 			e.printStackTrace();
 		}
-
+		sysMeta.setAccessPolicy(AccessUtil.createSingleRuleAccessPolicy(
+				new String[] {Constants.SUBJECT_PUBLIC},
+				new Permission[] {Permission.READ}));
+		
 		return new Object[]{guid,textPlainSource,sysMeta};
 	}
 	
