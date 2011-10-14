@@ -88,7 +88,162 @@ public class MNReplicationIT extends ContextAwareTestCaseDataone {
    *  Test MNReplication.replicate() functionality when a new object is inserted
    */
   @Test
-  public void testReplicateOnCreate() {
+  public void testReplicateOnCreateWithoutPreferredList() {
+	  
+    
+	  subject = setupClientSubject_Writer();
+	  System.out.println("Subject is: " + subject.getValue());
+	  
+    Iterator<Node> it = getMemberNodeIterator();  	
+    
+    // iterate over the node list and set the source and target nodes
+    while (it.hasNext()) {
+  		
+  	  Node currentNode = it.next();
+  	  String currentNodeId = currentNode.getIdentifier().getValue();
+  	
+  	  if ( currentNodeId.equals(originMNId) ) {
+  	      originNode = currentNode;
+  	      
+  	  } else if ( currentNodeId.equals(targetMNId) ) {
+  	      targetNode = currentNode;
+  	      
+  	  }
+  	  
+    }
+    
+  	// get callable MN objects    
+    try {
+        originMN = D1Client.getMN(originNode.getIdentifier());
+        targetMN = D1Client.getMN(targetNode.getIdentifier());
+        
+    } catch (ServiceFailure e) {
+        fail("Couldn't get origin or target node objects: " + e.getMessage());   
+        
+    }
+  	
+    // get a Session object
+    Session session = null;
+    String identifierStr = ExampleUtilities.generateIdentifier();
+    Identifier guid = new Identifier();
+    guid.setValue("mNodeTier4TestReplicationOnCreate." + identifierStr);
+    
+    try {
+        textPlainSource =
+          new ByteArrayInputStream("Plain text source".getBytes("UTF-8"));
+        System.out.println("Data string is: " + textPlainSource.toString());
+    } catch (UnsupportedEncodingException e) {
+        
+      fail("Couldn't get an example input stream: " + e.getMessage());          
+    }
+    
+    // build the system metadata object
+    sysMeta = 
+        ExampleUtilities.generateSystemMetadata(guid, format_text_plain, textPlainSource, null);
+    
+    // Ensure we have valid system metadata fields for replication
+
+  	// build a valid ReplicationPolicy
+  	ReplicationPolicy policy = new ReplicationPolicy();
+  	policy.setReplicationAllowed(true);
+  	policy.setNumberReplicas(1);
+  	
+  	List<NodeReference> preferredList = new ArrayList<NodeReference>();
+  	//preferredList.add(targetNode.getIdentifier());  	
+    List<NodeReference> blockedList = new ArrayList<NodeReference>();
+    
+
+    policy.setBlockedMemberNodeList(blockedList);
+    policy.setPreferredMemberNodeList(preferredList);
+  	sysMeta.setReplicationPolicy(policy);
+  	
+  	// build a valid Replica list
+    sysMeta.clearReplicaList();
+    Replica validReplica = new Replica();
+  	validReplica.setReplicaMemberNode(targetNode.getIdentifier());
+  	validReplica.setReplicationStatus(ReplicationStatus.COMPLETED);
+
+  	List<Replica> replicaList = new ArrayList<Replica>();
+  	replicaList.add(validReplica);
+    sysMeta.setReplicaList(replicaList);
+
+  	// build a valid access policy
+  	AccessPolicy accessPolicy = new AccessPolicy();
+  	AccessRule allowRule = new AccessRule();
+  	Subject publicSubject = new Subject();
+  	publicSubject.setValue("public");
+  	allowRule.addSubject(publicSubject);
+  	allowRule.addPermission(Permission.READ);
+  	accessPolicy.addAllow(allowRule);
+  	sysMeta.setAccessPolicy(accessPolicy);
+  	
+  	// update other critical fields for replication
+  	sysMeta.setAuthoritativeMemberNode(originNode.getIdentifier());
+  	sysMeta.setOriginMemberNode(originNode.getIdentifier());
+  	
+  	// set the submitter as the cert DN
+  	try {
+  	    X509Certificate certificate = CertificateManager.getInstance().loadCertificate();
+  	    String ownerX500 = CertificateManager.getInstance().getSubjectDN(certificate);
+  	    sysMeta.getRightsHolder().setValue(ownerX500);
+  	    sysMeta.getSubmitter().setValue(ownerX500);
+  	    
+  	} catch (Exception e) {
+  	    // warn about this
+  	    e.printStackTrace();
+  	    
+  	}
+  	  	      
+  	// try the create
+    try {
+      Identifier pid = originMN.create(session, guid, textPlainSource, sysMeta);
+  	  Thread.sleep(240000L); // wait four minutes to check replica
+  	  ByteArrayInputStream returnedObject = (ByteArrayInputStream) targetMN.get(session, pid);
+      System.out.println("Returned data string is: " + returnedObject.toString());
+
+  	  assertEquals(textPlainSource.toString(), returnedObject.toString());
+  	    
+  	} catch (InvalidToken e) {
+  	    fail("Unexpected error: " + e.getMessage());
+  	      
+  	} catch (ServiceFailure e) {
+  	    fail("Unexpected error: " + e.getMessage());
+  	  
+  	} catch (NotAuthorized e) {
+  	    fail("Unexpected error: " + e.getMessage());
+  	  
+  	} catch (IdentifierNotUnique e) {
+  	    fail("Unexpected error: " + e.getMessage());
+  	  
+  	} catch (UnsupportedType e) {
+  	    fail("Unexpected error: " + e.getMessage());
+  	  
+  	} catch (InsufficientResources e) {
+  	    fail("Unexpected error: " + e.getMessage());
+  	  
+  	} catch (InvalidSystemMetadata e) {
+  	    fail("Unexpected error: " + e.getMessage());
+  	  
+  	} catch (NotImplemented e) {
+  	    fail("Unexpected error: " + e.getMessage());
+  	  
+  	} catch (InvalidRequest e) {
+  	    fail("Unexpected error: " + e.getMessage());
+  	  
+  	} catch (InterruptedException e) {
+        fail("Unexpected error: " + e.getMessage());
+    } catch (NotFound e) {
+
+        fail("Unexpected error: " + e.getMessage());
+    }
+    
+  }
+
+  /**
+   *  Test MNReplication.replicate() functionality when a new object is inserted
+   */
+  @Test
+  public void testReplicateOnCreateWithPreferredList() {
 	  
     
 	  subject = setupClientSubject_Writer();
