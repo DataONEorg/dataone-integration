@@ -29,6 +29,7 @@ public class TestSettingsTest {
 	public void clearSetSystemProperties() {
 		System.clearProperty(TestSettings.CONTEXT_LABEL);
 		System.clearProperty(TestSettings.CONTEXT_MN_URL);
+		System.clearProperty(TestSettings.CONTEXT_CN_URL);
 		System.clearProperty(TestSettings.CONTEXT_NODELIST_URI);
 		System.clearProperty(TestSettings.CONTEXT_OVERRIDE_URI);
 	}
@@ -101,6 +102,19 @@ public class TestSettingsTest {
 	}
 
 	
+	@Test
+	public void testLoadingContextSpecificByCN_URL() 
+	{
+		String cnUrl = "http://cn-dev.dataone.org/cn";
+		System.setProperty(TestSettings.CONTEXT_CN_URL, cnUrl);
+		
+		String propValue = Settings.getResetConfiguration().getString(TestSettings.CONTEXT_LABEL);
+		assertEquals("SINGLE_CN", propValue);
+		
+		propValue = Settings.getConfiguration().getString(TestSettings.CONTEXT_CN_URL);
+		assertEquals(cnUrl, propValue);
+	}
+
 	@Test
 	public void testLoadingContextSpecificByNodelistUri() 
 	{

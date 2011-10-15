@@ -20,13 +20,14 @@ public class TestSettings {
 	public static String CONTEXT_LABEL        = "context.label";
 	public static String CONTEXT_NODELIST_URI = "context.nodelist.uri";
 	public static String CONTEXT_MN_URL       = "context.mn.baseurl";
+	public static String CONTEXT_CN_URL       = "context.cn.baseurl";
 	
 
 	/**
 	 * set up the test configurations, following some simple logic:
 	 * 1. if CONTEXT_OVERRIDE_URI supplied as parameter (via system or environment)
 	 *       load that file first (will override any other properties loaded later)
-	 * 2. if one of CONTEXT_LABEL, CONTEXT_NODELIST_URI or CONTEXT_MN_URL, 
+	 * 2. if one of CONTEXT_LABEL, CONTEXT_NODELIST_URI or CONTEXT_MN_URL, CONTEXT_CN_URL
 	 *       load default test properties files supplied with the code
 	 *   (resources/org/dataone/configuration/context.<CONTEXT_LABEL_VALUE>.test.properties)
 	 * 3. load the default.common.properties file
@@ -56,6 +57,8 @@ public class TestSettings {
 				System.getProperty(CONTEXT_LABEL, System.getenv(CONTEXT_LABEL)));
 		configuration.setProperty(CONTEXT_MN_URL,
 				System.getProperty(CONTEXT_MN_URL,System.getenv(CONTEXT_MN_URL)));
+		configuration.setProperty(CONTEXT_CN_URL,
+				System.getProperty(CONTEXT_CN_URL,System.getenv(CONTEXT_CN_URL)));
 		configuration.setProperty(CONTEXT_NODELIST_URI,
 				System.getProperty(CONTEXT_NODELIST_URI,System.getenv(CONTEXT_NODELIST_URI)));
 				
@@ -69,7 +72,9 @@ public class TestSettings {
 			log.info("attempting to load context-specific configuration file (context " + 
 					contextLabel + "): " + fileName);
 
-			if (contextLabel.equals("SINGLE_MN") || contextLabel.equals("CUSTOM_NODELIST")) {
+			if (contextLabel.equals("SINGLE_MN") || 
+					contextLabel.equals("SINGLE_CN") ||
+					contextLabel.equals("CUSTOM_NODELIST")) {
 				try {
 					loadConfigurationFile(configuration, fileName,true);
 				} catch (ConfigurationException ce)  {
@@ -95,15 +100,18 @@ public class TestSettings {
 	{		
 		String label = config.getString(CONTEXT_LABEL);
 		String mnBaseUrl = config.getString(CONTEXT_MN_URL);
+		String cnBaseUrl = config.getString(CONTEXT_CN_URL);
 		String nodelistFile = config.getString(CONTEXT_NODELIST_URI);
 
 		int count = 0;
 		if (label != null) count++;
 		if (mnBaseUrl != null) count++;
+		if (cnBaseUrl != null) count++;
 		if (nodelistFile != null) count++;
 		if (count > 1) {
 			throw new ConfigurationException("Can only set one of properties: " + 
-					CONTEXT_LABEL + ", " + CONTEXT_MN_URL + ", or " + CONTEXT_NODELIST_URI + 
+					CONTEXT_LABEL + ", " + CONTEXT_MN_URL + ", " + CONTEXT_CN_URL +
+					", or " + CONTEXT_NODELIST_URI + 
 					".  Number received: " + count);
 		}
 		
@@ -111,6 +119,10 @@ public class TestSettings {
 		if (mnBaseUrl != null) {
 			label = "SINGLE_MN";
 		} 
+		// CONTEXT_CN_URL overrides CONTEXT_LABEL
+		if (cnBaseUrl != null) {
+			label = "SINGLE_CN";
+		}
 		if (nodelistFile != null) {
 			label = "CUSTOM_NODELIST";
 		}

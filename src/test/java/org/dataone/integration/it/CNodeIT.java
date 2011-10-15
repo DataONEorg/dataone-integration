@@ -40,7 +40,11 @@ import org.dataone.client.CNode;
 import org.dataone.client.D1Client;
 import org.dataone.client.MNode;
 import org.dataone.service.exceptions.BaseException;
+import org.dataone.service.exceptions.InvalidRequest;
+import org.dataone.service.exceptions.InvalidToken;
+import org.dataone.service.exceptions.NotAuthorized;
 import org.dataone.service.exceptions.NotFound;
+import org.dataone.service.exceptions.NotImplemented;
 import org.dataone.service.exceptions.ServiceFailure;
 import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Node;
@@ -85,8 +89,8 @@ public class CNodeIT extends ContextAwareTestCaseDataone {
 	 */
 	@Before
 	public void setup() throws ServiceFailure {
-		prefetchObjects();
-		generateStandardTests();
+//		prefetchObjects();
+//		generateStandardTests();
 	}
 
 
@@ -98,7 +102,7 @@ public class CNodeIT extends ContextAwareTestCaseDataone {
 				currentUrl = it.next().getBaseURL();
 				CNode cn = D1Client.getCN();
 				try {
-					ObjectList ol = cn.search(null, QUERYTYPE_SOLR, null); 
+					ObjectList ol = cn.search(null, QUERYTYPE_SOLR, ""); 
 					listedObjects.put(currentUrl, ol);
 				} 
 				catch (BaseException e) {
@@ -155,6 +159,17 @@ public class CNodeIT extends ContextAwareTestCaseDataone {
 		}
 	}
 	
+	@Test
+	public void testSearch_Solr() throws Exception
+	{
+		cnBaseUrl = "http://cn-dev.test.dataone.org/cn";
+		CNode cn = new CNode(cnBaseUrl);
+
+		ObjectList ol = cn.search(null, "SOLR", "*:*");
+		log.info("objectList size: " + ol.getCount());
+	}
+	
+	
 	/**
 	 * test the listObject() operation on Coordinating Nodes
 	 * @throws JiBXException 
@@ -198,7 +213,7 @@ public class CNodeIT extends ContextAwareTestCaseDataone {
 			
 			CNode cn = D1Client.getCN();
 		
-			ObjectList cnOL = cn.search(null, QUERYTYPE_SOLR, null);
+			ObjectList cnOL = cn.search(null, QUERYTYPE_SOLR, "");
 			String cnOLString = serializeObjectList(cnOL);
 			String cnTotalPattern = ExampleUtilities.extractObjectListTotalAttribute(cnOLString);
 

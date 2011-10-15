@@ -45,7 +45,7 @@ import org.junit.rules.ErrorCollector;
  */
 public abstract class ContextAwareTestCaseDataone implements IntegrationTestContextParameters {
 
-	public static final String QUERYTYPE_SOLR = "solr";
+	public static final String QUERYTYPE_SOLR = "SOLR";
 	public static final String CHECKSUM_ALGORITHM = "MD5";
 	
 	
@@ -121,6 +121,13 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 				memberNodeList = new Vector<Node>();
 				memberNodeList.add(n);
 				log.info("*** Adding MN to list: [" + n.getBaseURL() +"]");
+			} else if (cnBaseUrl != null) {
+				CNode cn = new CNode(cnBaseUrl);
+				System.out.println("~~~ Context is solo CoordinatingNode: " + cn.getNodeBaseServiceUrl());
+				memberNodeList = new Vector<Node>();
+				Node n = new Node();
+				n.setBaseURL(cnBaseUrl);
+				coordinatingNodeList.add(n);	
 			} else {
 				// we will be testing multiple member nodes
 				List<Node> allNodesList = new Vector<Node>();

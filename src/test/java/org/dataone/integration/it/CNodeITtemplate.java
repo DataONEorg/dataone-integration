@@ -61,7 +61,7 @@ public class CNodeITtemplate extends ContextAwareTestCaseDataone {
 				currentUrl = it.next().getBaseURL();
 				CNode cn = D1Client.getCN();
 				try {
-					ObjectList ol = cn.search(null, QUERYTYPE_SOLR, null);
+					ObjectList ol = cn.search(null, QUERYTYPE_SOLR, "");
 					listedObjects.put(currentUrl, ol);
 				} 
 				catch (BaseException e) {
@@ -132,7 +132,7 @@ public class CNodeITtemplate extends ContextAwareTestCaseDataone {
 			printTestHeader("testSearch(...) vs. node: " + currentUrl);
 
 			try {
-				ObjectList response = cn.search(null, QUERYTYPE_SOLR, null);
+				ObjectList response = cn.search(null, QUERYTYPE_SOLR, "");
 				checkTrue(currentUrl,"search(...) returns a ObjectList object", response != null);
 			} 
 			catch (BaseException e) {
