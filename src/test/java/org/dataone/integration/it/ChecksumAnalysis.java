@@ -163,7 +163,7 @@ public class ChecksumAnalysis extends ContextAwareTestCaseDataone {
     			oi.getChecksum().getAlgorithm(),
     			oiStatus,
     			gStatus,    	    	
-    	    	oi.getFmtid(),
+    	    	oi.getFormatId(),
     	    	oi.getSize(),
     	    	obj.length,
     	    	oi.getDateSysMetadataModified());

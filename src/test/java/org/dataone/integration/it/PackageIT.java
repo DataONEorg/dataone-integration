@@ -171,7 +171,7 @@ public class PackageIT extends ContextAwareTestCaseDataone {
                 // Now check if the object is on the MN
                 SystemMetadata smCopy = mn.getSystemMetadata(token, id);
                 checkEquals(id.getValue(), smCopy.getIdentifier().getValue());
-                checkEquals(d1o.getFmtId().toString(), smCopy.getFmtid().toString());
+                checkEquals(d1o.getFmtId().toString(), smCopy.getFormatId().toString());
                 
                 // Now check that create() fails if called a second time
                 try {

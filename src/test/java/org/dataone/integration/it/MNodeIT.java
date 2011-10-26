@@ -1189,7 +1189,7 @@ public class MNodeIT extends ContextAwareTestCaseDataone  {
                     Checksum cs = dr.getDataONE_Checksum();
                     checkTrue(cs.getValue().equals(sysmeta.getChecksum().getValue()));
                     checkTrue(dr.getContent_Length() == sysmeta.getSize());
-                    checkTrue(dr.getDataONE_ObjectFormatIdentifier().toString().equals(sysmeta.getFmtid().toString()));                    
+                    checkTrue(dr.getDataONE_ObjectFormatIdentifier().toString().equals(sysmeta.getFormatId().toString()));                    
                 } 
                 catch (Exception e) 
                 {
@@ -1333,11 +1333,11 @@ public class MNodeIT extends ContextAwareTestCaseDataone  {
         UnsupportedType, InsufficientResources, InvalidSystemMetadata, NotImplemented, NotFound, InvalidRequest
     {
         String dirname;
-        if(emld.format.getFmtid().getValue() == format_eml_200)
+        if(emld.format.getFormatId().getValue() == format_eml_200)
             dirname = "eml200";
-        else if(emld.format.getFmtid().getValue() == format_eml_201)
+        else if(emld.format.getFormatId().getValue() == format_eml_201)
             dirname = "eml201";
-        else if(emld.format.getFmtid().getValue() == format_eml_210)
+        else if(emld.format.getFormatId().getValue() == format_eml_210)
             dirname = "eml210";
         else
             dirname = "";
@@ -1347,7 +1347,7 @@ public class MNodeIT extends ContextAwareTestCaseDataone  {
         Identifier mdId = new Identifier();
         mdId.setValue(idString);
         
-        SystemMetadata mdSm = ExampleUtilities.generateSystemMetadata(mdId, emld.format.getFmtid().getValue(), is, TEST_MN_ID);
+        SystemMetadata mdSm = ExampleUtilities.generateSystemMetadata(mdId, emld.format.getFormatId().getValue(), is, TEST_MN_ID);
 
         //get the document(s) listed in the EML distribution elements
         //for the sake of this method, we're just going to get them from the resources directory
@@ -1375,7 +1375,7 @@ public class MNodeIT extends ContextAwareTestCaseDataone  {
             id.setValue(idString);
             //create system metadata for the dist documents with a describedBy tag
             SystemMetadata sm = ExampleUtilities.generateSystemMetadata(id, 
-                    ObjectFormatCache.getInstance().getFormat(emld.distributionMetadata.elementAt(i).mimeType).getFmtid().getValue(),
+                    ObjectFormatCache.getInstance().getFormat(emld.distributionMetadata.elementAt(i).mimeType).getFormatId().getValue(),
                     instream, TEST_MN_ID);
             //add desrviedBy
  //           sm.addDescribedBy(mdId);
