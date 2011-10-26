@@ -737,7 +737,7 @@ public class CNodeITtemplate extends ContextAwareTestCaseDataone {
 			printTestHeader("testMapIdentity(...) vs. node: " + currentUrl);
 
 			try {
-				boolean response = cn.mapIdentity(null, new Subject());
+				boolean response = cn.mapIdentity(null, new Subject(), new Subject());
 				checkTrue(currentUrl,"response cannot be false. [Only true or exception].", response);
 			} 
 			catch (BaseException e) {
