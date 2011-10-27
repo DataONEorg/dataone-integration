@@ -40,6 +40,13 @@
 			<version>1.0.0-SNAPSHOT</version>
 		</dependency>
 		<dependency>
+			<groupId>org.dataone</groupId>
+			<artifactId>d1_test_resources</artifactId>
+			<version>1.0.0-SNAPSHOT</version>
+			<type>jar</type>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 			<version>4.7</version>
@@ -99,16 +106,43 @@
 				</configuration>
 			</plugin>
 			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>buildnumber-maven-plugin</artifactId>
+				<executions>
+					<execution>
+						<phase>validate</phase>
+						<goals>
+							<goal>create</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<doCheck>true</doCheck>
+					<doUpdate>true</doUpdate>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-war-plugin</artifactId>
+				<configuration>
+					<archive>
+						<manifestEntries>
+							<SCM-Revision>${buildNumber}</SCM-Revision>
+						</manifestEntries>
+					</archive>
+				</configuration>
+			</plugin>
+			<plugin>
 				<artifactId>maven-antrun-plugin</artifactId>
 				<executions>
- 					<execution>
-					    <id>execution1</id>
+					<execution>
+						<id>execution1</id>
 						<phase>prepare-package</phase>
 						<configuration>
 							<tasks>
 								<copy todir="target/classes">
-    								<fileset dir="target/test-classes"/>
-  								</copy>
+									<fileset dir="target/test-classes" />
+								</copy>
 							</tasks>
 						</configuration>
 						<goals>
@@ -134,10 +168,10 @@
 				<artifactId>maven-failsafe-plugin</artifactId>
 				<version>2.8.1</version>
 				<configuration>
-                    <excludes>
-                        <exclude>**/MockITCase.java</exclude>
-                    </excludes>
-                </configuration>
+					<excludes>
+						<exclude>**/MockITCase.java</exclude>
+					</excludes>
+				</configuration>
 				<executions>
 					<execution>
 						<id>integration-test</id>
@@ -156,13 +190,13 @@
 				</executions>
 			</plugin>
 
-            <!-- to generate javadocs for the MNWebTester -->
+			<!-- to generate javadocs for the MNWebTester -->
 			<plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <version>2.8</version>
-            </plugin>
-            				
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>2.8</version>
+			</plugin>
+
 			<!-- <plugin> <groupId>org.codehaus.mojo</groupId> <artifactId>tomcat-maven-plugin</artifactId> 
 				<version>1.1</version> <configuration> <url>http://localhost:8080/manager</url> 
 				<server>tomcat</server> <path>mntester_</path> </configuration> </plugin> -->
@@ -190,4 +224,10 @@
 			<url>LICENSE.txt</url>
 		</license>
 	</licenses>
+	<scm>
+		<url>https://repository.dataone.org/software/cicore</url>
+		<connection>scm:svn:https://repository.dataone.org/software/cicore</connection>
+		<developerConnection>scm:svn:https://repository.dataone.org/software/cicore</developerConnection>
+		<tag>HEAD</tag>
+	</scm>
 </project>
