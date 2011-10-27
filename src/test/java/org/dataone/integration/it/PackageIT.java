@@ -64,28 +64,30 @@ public class PackageIT extends ContextAwareTestCaseDataone {
 	@Ignore("test not adapted for v0.6.x")
     @Test
     public void testD1Object() {
-        for (int i = 0; i < memberNodeList.size(); i++) {
-            currentUrl = memberNodeList.get(i).getBaseURL();
-            MNode mn = D1Client.getMN(currentUrl);
-
-            printHeader("testD1Object - node " + memberNodeList.get(i).getBaseURL());
-            checkTrue(true);
-            Session token;
-//            try {
-                token = null;//mn.login(principal, password);
-
-                Identifier id = createDataObject(mn, token);
-                checkTrue(id != null);
-                
-                D1Object d1o = new D1Object(id);
-                checkTrue(d1o != null);
-                checkEquals(id.getValue(), d1o.getIdentifier().getValue());
-//            } catch (BaseException e) {
-//                errorCollector.addError(new Throwable(createAssertMessage() + 
-//                        " unexpected error in testD1Object: " + e.getClass().getName() + ": "
-//                        + e.getMessage()));
-//            }
-        }
+//        for (int i = 0; i < memberNodeList.size(); i++) {
+//            currentUrl = memberNodeList.get(i).getBaseURL();
+//            MNode mn = D1Client.getMN(currentUrl);
+//
+//            printHeader("testD1Object - node " + memberNodeList.get(i).getBaseURL());
+//            checkTrue(true);
+//            Session token;
+////            try {
+//                token = null;//mn.login(principal, password);
+//
+//                Identifier id = createDataObject(mn, token);
+//                checkTrue(id != null);
+//                
+//
+//                D1Object d1o = new D1Object(id);
+//
+//                checkTrue(d1o != null);
+//                checkEquals(id.getValue(), d1o.getIdentifier().getValue());
+////            } catch (BaseException e) {
+////                errorCollector.addError(new Throwable(createAssertMessage() + 
+////                        " unexpected error in testD1Object: " + e.getClass().getName() + ": "
+////                        + e.getMessage()));
+////            }
+//        }
     }
     
 	@Ignore("test not adapted for v0.6.x")
@@ -161,9 +163,9 @@ public class PackageIT extends ContextAwareTestCaseDataone {
                 InputStream objectStream = this.getClass().getResourceAsStream(
                     "/d1_testdocs/knb-lter-cdr.329066.1.data");
                 byte[] data = IOUtils.toByteArray(objectStream);
-                String[] describes = {"j.1.1", "j.2.1"};
-                String[] describedBy = {};
-                D1Object d1o = new D1Object(id, data, "text/csv", principal, TEST_MN_ID, describes, describedBy);
+//                String[] describes = {"j.1.1", "j.2.1"};
+//                String[] describedBy = {};
+                D1Object d1o = new D1Object(id, data, "text/csv", principal, TEST_MN_ID);
                 checkTrue(d1o != null);
                 d1o.create(token);
                 d1o.setPublicAccess(token);
