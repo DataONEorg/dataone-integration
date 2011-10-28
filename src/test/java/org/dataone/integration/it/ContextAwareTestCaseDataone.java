@@ -230,6 +230,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 		String subjectDN = CertificateManager.getInstance().loadCertificate().getSubjectDN().toString();//getSession(null);
 		Subject subject = new Subject();
 		subject.setValue(subjectDN);
+		log.info("client setup as Subject: " + subjectDN);
 		return subject;
 	}
 	

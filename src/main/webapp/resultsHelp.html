@@ -1,0 +1,47 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+	<head>
+		<title>DataONE Member Node Web Service Test: results Help</title>
+		<style type="text/css">
+			div { padding-left: 10px; padding-right: 10px; }
+			body { font-family: serif; margin: 0px; }
+			div.padded { margin-top: 20px; }
+		</style>
+	</head>
+	<body>
+		<div style="background: #ccc; padding: 30px; font-weight: bold;">DataONE Member Node Web
+			Service Tests: results Help</div>
+		<div class="padded">While meaningful messages are attempted for most error situations,
+		they don't always provide a complete picture.  The follow are good things to know about
+		how the tests are run.
+		</div>
+		<div class="padded"><h3>Tier 0</h3>
+		    Tier 0 is really just checking that the URL submitted will correctly get you to the 
+		    your server.  If this one fails, it is usually because the url has typos or the version
+		    path segment was included by mistake.  Check the error message, too, of course.
+        </div>
+        <div class="padded">
+            <h3>Tier 1</h3>
+            Tier 1 includes all of the public methods.  MNRead methods for the most part require
+            prefetching an object identifier via listObjects, so if you are seeing "No Objects available
+            to test against" but are sure you have objects (try an /mn/v1/object call from a browser)"
+            go to the listObjects Test to see if that is working.  A failing listObjects will cause
+            the "No Objects..." message even if there are objects on your node.
+        </div>
+        <div class="padded">
+            <h3>Tier 2</h3>
+            Tier 2 tests authorization and access control.  These tests attempt to prefetch objects
+            that the pre-defined test subject "testUserWriter" has changePermission permission for.
+            (At Tier2, we still cannot create objects to test with, and rely on something already
+             present and with the right accessPolicy) <i>However</i>, if the node under test is
+             set up to be a Tier3 node, the tests will try to create an object (as the above Subject). 
+        </div>
+         <div class="padded">
+            <h3>Tier 3</h3>
+            Tier 3 tests the ability to create, update and delete objects.  The additional
+            requirement for these tests is that the testUserWriter can create objects. 
+        </div>
+	</body>
+</html>
