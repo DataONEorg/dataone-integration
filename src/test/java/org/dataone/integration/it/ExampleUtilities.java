@@ -409,6 +409,7 @@ public class ExampleUtilities {
         firstReplica.setReplicationStatus(ReplicationStatus.COMPLETED);
         firstReplica.setReplicaVerified(new Date());
         sysmeta.addReplica(firstReplica);
+        sysmeta.setSerialVersion(BigInteger.valueOf(1));
         Checksum checksum = null;
         try
         {
