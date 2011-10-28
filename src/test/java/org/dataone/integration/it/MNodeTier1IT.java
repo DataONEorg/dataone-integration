@@ -78,7 +78,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
 	 * pre-fetch an ObjectList from each member node on the list, to allow testing gets
 	 * without creating new objects.
 	 */
-	@Before
+//	@Before
 	public void prefetchObjects() {
 		log.debug("~~~~~ prefetching Objects");
 		if (listedObjects == null) {
@@ -106,9 +106,12 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
 	
 	private ObjectInfo getPrefetchedObject(String currentUrl, int index)
 	{
-		if (listedObjects.get(currentUrl).getCount() == 0) {
+		// if no objects to prefetch need to throw an appropriate exception
+		if (listedObjects.get(currentUrl) == null)
 			throw new IndexOutOfBoundsException();
-		}
+		if (listedObjects.get(currentUrl).getCount() == 0) 
+			throw new IndexOutOfBoundsException();
+		
 		if (index < 0) {
 			// return off the right end of the list
 			index = listedObjects.get(currentUrl).getCount() + index;
@@ -286,117 +289,6 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     
     
     @Test
-    public void testMNRead_Get() {
-       	Iterator<Node> it = getMemberNodeIterator();
-    	while (it.hasNext()) {
-    		currentUrl = it.next().getBaseURL();
-    		MNode mn = D1Client.getMN(currentUrl);
-    		printTestHeader("testGet() vs. node: " + currentUrl);
-
-    		try {
-    			ObjectInfo oi = getPrefetchedObject(currentUrl,0);    			
-    			log.debug("   pid = " + oi.getIdentifier().getValue());
-    			InputStream is = mn.get(null,oi.getIdentifier());
-    			checkTrue(currentUrl,"get() returns an objectStream", is != null);
-    		}
-    		catch (IndexOutOfBoundsException e) {
-    			handleFail(currentUrl,"No Objects available to test against");
-    		}
-    		catch (BaseException e) {
-    			handleFail(currentUrl,e.getClass().getSimpleName() + ":: " + e.getDescription());
-    		}
-    		catch(Exception e) {
-    			e.printStackTrace();
-    			handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
-    		}
-    	}
-    }
-    
-    
-    @Test
-    public void testMNRead_GetSystemMetadata() {
-       	Iterator<Node> it = getMemberNodeIterator();
-    	while (it.hasNext()) {
-    		currentUrl = it.next().getBaseURL();
-    		MNode mn = D1Client.getMN(currentUrl);
-    		printTestHeader("testGetSystemMetadata() vs. node: " + currentUrl);
-
-    		try {
-    			ObjectInfo oi = getPrefetchedObject(currentUrl,0);
-    			log.debug("   pid = " + oi.getIdentifier().getValue());
-    			SystemMetadata smd = mn.getSystemMetadata(null,oi.getIdentifier());
-    			checkTrue(currentUrl,"getSystemMetadata() returns a SystemMetadata object", smd != null);
-    		} 
-    		catch (IndexOutOfBoundsException e) {
-    			handleFail(currentUrl,"No Objects available to test against");
-    		}
-    		catch (BaseException e) {
-    			handleFail(currentUrl,e.getClass().getSimpleName() + ":: " + e.getDescription());
-    		}
-    		catch(Exception e) {
-    			e.printStackTrace();
-    			handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
-    		}
-    	}
-    }
-    
-    
-    @Test
-    public void testMNRead_Describe() {
-       	Iterator<Node> it = getMemberNodeIterator();
-    	while (it.hasNext()) {
-    		currentUrl = it.next().getBaseURL();
-    		MNode mn = D1Client.getMN(currentUrl);
-    		printTestHeader("testDescribe() vs. node: " + currentUrl);
-
-    		try {
-    			ObjectInfo oi = getPrefetchedObject(currentUrl,0);
-    			log.debug("   pid = " + oi.getIdentifier().getValue());    				
-    			DescribeResponse dr = mn.describe(null,oi.getIdentifier());
-    			checkTrue(currentUrl,"describe() returns a DescribeResponse object", dr != null);	
-    		} 
-    		catch (IndexOutOfBoundsException e) {
-    			handleFail(currentUrl,"No Objects available to test against");
-    		}
-    		catch (BaseException e) {
-    			handleFail(currentUrl,e.getClass().getSimpleName() + ":: " + e.getDescription());
-    		}
-    		catch(Exception e) {
-    			e.printStackTrace();
-    			handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
-    		}
-    	}
-    }
-
-    @Test
-    public void testMNRead_GetChecksum() {
-       	Iterator<Node> it = getMemberNodeIterator();
-    	while (it.hasNext()) {
-    		currentUrl = it.next().getBaseURL();
-    		MNode mn = D1Client.getMN(currentUrl);
-    		printTestHeader("testGetChecksum() vs. node: " + currentUrl);
-
-    		try {
-    			ObjectInfo oi = getPrefetchedObject(currentUrl,0);
-    			log.debug("   pid = " + oi.getIdentifier().getValue());				
-    			Checksum cs = mn.getChecksum(null,oi.getIdentifier(),CHECKSUM_ALGORITHM);
-    			checkTrue(currentUrl,"getChecksum() returns a Checksum object", cs != null);
-    		} 
-    		catch (IndexOutOfBoundsException e) {
-    			handleFail(currentUrl,"No Objects available to test against");
-    		}
-    		catch (BaseException e) {
-    			handleFail(currentUrl,e.getClass().getSimpleName() + ":: " + e.getDescription());
-    		}
-    		catch(Exception e) {
-    			e.printStackTrace();
-    			handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
-    		}
-    	}
-    }
-    
-    
-    @Test
     public void testMNRead_ListObjects() {
        	Iterator<Node> it = getMemberNodeIterator();
     	while (it.hasNext()) {
@@ -431,7 +323,123 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     
     
     @Test
+    public void testMNRead_Get() {
+    	prefetchObjects();
+       	Iterator<Node> it = getMemberNodeIterator();
+    	while (it.hasNext()) {
+    		currentUrl = it.next().getBaseURL();
+    		MNode mn = D1Client.getMN(currentUrl);
+    		printTestHeader("testGet() vs. node: " + currentUrl);
+
+    		try {
+    			ObjectInfo oi = getPrefetchedObject(currentUrl,0);    			
+    			log.debug("   pid = " + oi.getIdentifier().getValue());
+    			InputStream is = mn.get(null,oi.getIdentifier());
+    			checkTrue(currentUrl,"get() returns an objectStream", is != null);
+    		}
+    		catch (IndexOutOfBoundsException e) {
+    			handleFail(currentUrl,"No Objects available to test against");
+    		}
+    		catch (BaseException e) {
+    			handleFail(currentUrl,e.getClass().getSimpleName() + ":: " + e.getDescription());
+    		}
+    		catch(Exception e) {
+    			e.printStackTrace();
+    			handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+    		}
+    	}
+    }
+    
+    
+    @Test
+    public void testMNRead_GetSystemMetadata() {
+    	prefetchObjects();
+       	Iterator<Node> it = getMemberNodeIterator();
+    	while (it.hasNext()) {
+    		currentUrl = it.next().getBaseURL();
+    		MNode mn = D1Client.getMN(currentUrl);
+    		printTestHeader("testGetSystemMetadata() vs. node: " + currentUrl);
+
+    		try {
+    			ObjectInfo oi = getPrefetchedObject(currentUrl,0);
+    			log.debug("   pid = " + oi.getIdentifier().getValue());
+    			SystemMetadata smd = mn.getSystemMetadata(null,oi.getIdentifier());
+    			checkTrue(currentUrl,"getSystemMetadata() returns a SystemMetadata object", smd != null);
+    		} 
+    		catch (IndexOutOfBoundsException e) {
+    			handleFail(currentUrl,"No Objects available to test against");
+    		}
+    		catch (BaseException e) {
+    			handleFail(currentUrl,e.getClass().getSimpleName() + ":: " + e.getDescription());
+    		}
+    		catch(Exception e) {
+    			e.printStackTrace();
+    			handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+    		}
+    	}
+    }
+    
+    
+    @Test
+    public void testMNRead_Describe() {
+    	prefetchObjects();
+       	Iterator<Node> it = getMemberNodeIterator();
+    	while (it.hasNext()) {
+    		currentUrl = it.next().getBaseURL();
+    		MNode mn = D1Client.getMN(currentUrl);
+    		printTestHeader("testDescribe() vs. node: " + currentUrl);
+
+    		try {
+    			ObjectInfo oi = getPrefetchedObject(currentUrl,0);
+    			log.debug("   pid = " + oi.getIdentifier().getValue());    				
+    			DescribeResponse dr = mn.describe(null,oi.getIdentifier());
+    			checkTrue(currentUrl,"describe() returns a DescribeResponse object", dr != null);	
+    		} 
+    		catch (IndexOutOfBoundsException e) {
+    			handleFail(currentUrl,"No Objects available to test against");
+    		}
+    		catch (BaseException e) {
+    			handleFail(currentUrl,e.getClass().getSimpleName() + ":: " + e.getDescription());
+    		}
+    		catch(Exception e) {
+    			e.printStackTrace();
+    			handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+    		}
+    	}
+    }
+
+    @Test
+    public void testMNRead_GetChecksum() {
+    	prefetchObjects();
+       	Iterator<Node> it = getMemberNodeIterator();
+    	while (it.hasNext()) {
+    		currentUrl = it.next().getBaseURL();
+    		MNode mn = D1Client.getMN(currentUrl);
+    		printTestHeader("testGetChecksum() vs. node: " + currentUrl);
+
+    		try {
+    			ObjectInfo oi = getPrefetchedObject(currentUrl,0);
+    			log.debug("   pid = " + oi.getIdentifier().getValue());				
+    			Checksum cs = mn.getChecksum(null,oi.getIdentifier(),CHECKSUM_ALGORITHM);
+    			checkTrue(currentUrl,"getChecksum() returns a Checksum object", cs != null);
+    		} 
+    		catch (IndexOutOfBoundsException e) {
+    			handleFail(currentUrl,"No Objects available to test against");
+    		}
+    		catch (BaseException e) {
+    			handleFail(currentUrl,e.getClass().getSimpleName() + ":: " + e.getDescription());
+    		}
+    		catch(Exception e) {
+    			e.printStackTrace();
+    			handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+    		}
+    	}
+    }
+    
+    
+    @Test
     public void testMNRead_SynchronizationFailed() {
+    	prefetchObjects();
        	Iterator<Node> it = getMemberNodeIterator();
     	while (it.hasNext()) {
     		currentUrl = it.next().getBaseURL();
@@ -444,7 +452,10 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     			mn.synchronizationFailed(null, 
     					new SynchronizationFailed("0","a message",oi.getIdentifier().getValue(),null));
     			checkTrue(currentUrl,"synchronizationFailed() does not throw exception", true);
-    		} 
+    		}
+    		catch (IndexOutOfBoundsException e) {
+    			handleFail(currentUrl,"No Objects available to test against");
+    		}
     		catch (BaseException e) {
     			handleFail(currentUrl,e.getClass().getSimpleName() + ":: " + 
     					e.getDetail_code() + " " + e.getDescription());
