@@ -21,35 +21,15 @@
 package org.dataone.integration.it;
 
 import java.io.InputStream;
-import java.util.Date;
-import java.util.Hashtable;
 import java.util.Iterator;
-import java.util.Map;
 
 import org.dataone.client.D1Client;
 import org.dataone.client.D1RestClient;
 import org.dataone.client.MNode;
 import org.dataone.service.exceptions.BaseException;
-import org.dataone.service.exceptions.SynchronizationFailed;
-import org.dataone.service.types.v1.Checksum;
-import org.dataone.service.types.v1.DescribeResponse;
-import org.dataone.service.types.v1.Event;
-import org.dataone.service.types.v1.Identifier;
-import org.dataone.service.types.v1.Log;
-import org.dataone.service.types.v1.LogEntry;
-import org.dataone.service.types.v1.MonitorList;
 import org.dataone.service.types.v1.Node;
-import org.dataone.service.types.v1.NodeList;
-import org.dataone.service.types.v1.ObjectFormatIdentifier;
-import org.dataone.service.types.v1.ObjectInfo;
-import org.dataone.service.types.v1.ObjectList;
-import org.dataone.service.types.v1.Permission;
-import org.dataone.service.types.v1.Subject;
-import org.dataone.service.types.v1.SystemMetadata;
 import org.dataone.service.util.D1Url;
 import org.dataone.service.util.TypeMarshaller;
-import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 /**

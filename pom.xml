@@ -127,6 +127,7 @@
 				<configuration>
 					<archive>
 						<manifestEntries>
+							<D1-version>${project.version}</D1-version>
 							<SCM-Revision>${buildNumber}</SCM-Revision>
 <!--  non informative things you can also get from build number plugin -->							
 <!-- 							<SCM-Branch>${buildScmBranch}</SCM-Branch> -->
