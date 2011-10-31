@@ -70,7 +70,6 @@ public class MNodeTier2IT extends ContextAwareTestCaseDataone  {
 	}
 
 
-	
 	/**
 	 * Tests the dataONE service API isAuthorized() method, checking for Read 
 	 * permission on the first object returned from the Tier1 listObjects() method.  
@@ -87,16 +86,8 @@ public class MNodeTier2IT extends ContextAwareTestCaseDataone  {
 			MNode mn = D1Client.getMN(currentUrl);
 			printTestHeader("testIsAuthorized() vs. node: " + currentUrl);
 		
-			try {
-				// should be a valid Identifier
-				ObjectList ol = mn.listObjects();
-				if (ol.getTotal() == 0) {
-					throw new IndexOutOfBoundsException();
-				}
-				if (ol.getObjectInfo(0) == null) {
-					throw new IndexOutOfBoundsException();
-				}
-				Identifier pid = ol.getObjectInfo(0).getIdentifier();
+			Identifier pid = procureTestObject(mn, new Permission[]{Permission.READ});
+			try {				
 				boolean success = mn.isAuthorized(null, pid, Permission.READ);
 				checkTrue(currentUrl,"isAuthorized response should never be false. [Only true or exception].", success);
 			} 
@@ -132,17 +123,8 @@ public class MNodeTier2IT extends ContextAwareTestCaseDataone  {
 			MNode mn = D1Client.getMN(currentUrl);
 			printTestHeader("testIsAuthorized_noCert() vs. node: " + currentUrl);
 		
+			Identifier pid = procureTestObject(mn, new Permission[] {Permission.READ});
 			try {
-				// should be a valid Identifier
-				ObjectList ol = mn.listObjects();
-				if (ol.getTotal() == 0) {
-					throw new IndexOutOfBoundsException();
-				}
-				if (ol.getObjectInfo(0) == null) {
-					throw new IndexOutOfBoundsException();
-				}
-				Identifier pid = ol.getObjectInfo(0).getIdentifier();
-				
 				boolean success = mn.isAuthorized(null, pid, Permission.WRITE);
 				handleFail(currentUrl,"isAuthorized response should throw exception if no session/token");
 			}
@@ -164,65 +146,65 @@ public class MNodeTier2IT extends ContextAwareTestCaseDataone  {
 	 * search the objectlist for an object whose AccessPolicy can be changed.
 	 * try to create one if none found, and return null if not able.
 	 */
-	private Identifier getOrCreateChangeableObject(MNode mn) 
-	{
-		setupClientSubject_Writer();
-		Identifier id = null;
-		try {
-			ObjectList ol = mn.listObjects();
-			for(int i=0; i<= ol.sizeObjectInfoList(); i++) {
-				id = ol.getObjectInfo(i).getIdentifier();
-				try {
-					mn.isAuthorized(null,id, Permission.CHANGE_PERMISSION);
-					break;
-				} catch (NotAuthorized na) {}							
-				id = null;
-			}
-			
-			if (id == null) {
-				//try creating one
-				// create the identifier
-				Identifier pid = new Identifier();
-				pid.setValue("mNodeTier2TestSetAccessPolicy." + ExampleUtilities.generateIdentifier());
-
-				// get some data bytes as an input stream
-				ByteArrayInputStream textPlainSource = 
-					new ByteArrayInputStream("Plain text source".getBytes("UTF-8"));
-
-				// build the system metadata object
-				SystemMetadata sysMeta = 
-					ExampleUtilities.generateSystemMetadata(pid, "text/plain", textPlainSource, null);
-
-				// make the submitter the same as the cert DN 
-				try {
-					X509Certificate certificate = CertificateManager.getInstance().loadCertificate();
-					String ownerX500 = CertificateManager.getInstance().getSubjectDN(certificate);
-					sysMeta.getRightsHolder().setValue(ownerX500);
-				} catch (Exception e) {
-					// warn about this?
-					e.printStackTrace();
-				}
-			      
-				log.info("create a test object");
-				Identifier retPid = mn.create(null, pid, textPlainSource, sysMeta);
-				checkEquals(currentUrl,"0. returned pid from create should match what was given",
-						pid.getValue(), retPid.getValue());
-				id = retPid;
-			}
-		} 
-		catch (BaseException e) {
-			handleFail(currentUrl,e.getClass().getSimpleName() + ":: " + e.getDescription());
-		}
-		catch(Exception e) {
-			log.warn(e.getClass().getName() + ": " + e.getMessage());
-		}
-		if (id == null) {
-			log.info(" ====>>>>> pid with changePermission for restWriter: null");
-		} else {
-			log.info(" ====>>>>> pid with changePermission for restWriter: " + id.getValue());
-		}
-		return id;
-	}
+//	private Identifier getOrCreateChangeableObject(MNode mn) 
+//	{
+//		setupClientSubject_Writer();
+//		Identifier id = null;
+//		try {
+//			ObjectList ol = mn.listObjects();
+//			for(int i=0; i<= ol.sizeObjectInfoList(); i++) {
+//				id = ol.getObjectInfo(i).getIdentifier();
+//				try {
+//					mn.isAuthorized(null,id, Permission.CHANGE_PERMISSION);
+//					break;
+//				} catch (NotAuthorized na) {}							
+//				id = null;
+//			}
+//			
+//			if (id == null) {
+//				//try creating one
+//				// create the identifier
+//				Identifier pid = new Identifier();
+//				pid.setValue("mNodeTier2TestSetAccessPolicy." + ExampleUtilities.generateIdentifier());
+//
+//				// get some data bytes as an input stream
+//				ByteArrayInputStream textPlainSource = 
+//					new ByteArrayInputStream("Plain text source".getBytes("UTF-8"));
+//
+//				// build the system metadata object
+//				SystemMetadata sysMeta = 
+//					ExampleUtilities.generateSystemMetadata(pid, "text/plain", textPlainSource, null);
+//
+//				// make the submitter the same as the cert DN 
+//				try {
+//					X509Certificate certificate = CertificateManager.getInstance().loadCertificate();
+//					String ownerX500 = CertificateManager.getInstance().getSubjectDN(certificate);
+//					sysMeta.getRightsHolder().setValue(ownerX500);
+//				} catch (Exception e) {
+//					// warn about this?
+//					e.printStackTrace();
+//				}
+//			      
+//				log.info("create a test object");
+//				Identifier retPid = mn.create(null, pid, textPlainSource, sysMeta);
+//				checkEquals(currentUrl,"0. returned pid from create should match what was given",
+//						pid.getValue(), retPid.getValue());
+//				id = retPid;
+//			}
+//		} 
+//		catch (BaseException e) {
+//			handleFail(currentUrl,e.getClass().getSimpleName() + ":: " + e.getDescription());
+//		}
+//		catch(Exception e) {
+//			log.warn(e.getClass().getName() + ": " + e.getMessage());
+//		}
+//		if (id == null) {
+//			log.info(" ====>>>>> pid with changePermission for restWriter: null");
+//		} else {
+//			log.info(" ====>>>>> pid with changePermission for restWriter: " + id.getValue());
+//		}
+//		return id;
+//	}
 	
 	
 
@@ -248,7 +230,8 @@ public class MNodeTier2IT extends ContextAwareTestCaseDataone  {
 			printTestHeader("testSetAccessPolicy() vs. node: " + currentUrl);
 
 			setupClientSubject_Writer();
-			Identifier changeableObject = getOrCreateChangeableObject(mn);
+			Identifier changeableObject = procureTestObject(mn, 
+					new Permission[] {Permission.READ, Permission.WRITE, Permission.CHANGE_PERMISSION}); //getOrCreateChangeableObject(mn);
 			if (changeableObject != null)
 			{
 				try {				
@@ -360,7 +343,8 @@ public class MNodeTier2IT extends ContextAwareTestCaseDataone  {
 			printTestHeader("testSetAccessPolicy_NoCert() vs. node: " + currentUrl);
 
 			setupClientSubject_Writer();
-			Identifier changeableObject = getOrCreateChangeableObject(mn);
+			Identifier changeableObject = procureTestObject(mn, 
+					new Permission[] {Permission.READ, Permission.WRITE, Permission.CHANGE_PERMISSION}); //getOrCreateChangeableObject(mn);
 			if (changeableObject != null) {
 				try {	
 					setupClientSubject_NoCert();
@@ -424,7 +408,8 @@ public class MNodeTier2IT extends ContextAwareTestCaseDataone  {
 
 			try {
 				setupClientSubject_Writer();
-				Identifier changeableObject = getOrCreateChangeableObject(mn);
+				Identifier changeableObject = procureTestObject(mn, 
+						new Permission[] {Permission.READ, Permission.WRITE, Permission.CHANGE_PERMISSION}); //getOrCreateChangeableObject(mn);
 				if (changeableObject != null)
 				{
 					log.info("clear the AccessPolicy");
@@ -432,7 +417,7 @@ public class MNodeTier2IT extends ContextAwareTestCaseDataone  {
 
 					// ensure subject under test isn't authorized with get, isAuthorized
 					// prior to setting up the symbolic principal in accessPolicy
-					clientSetupMethod.invoke(null, (Class<?>) null);// setupClientSubject_Reader();				
+					clientSetupMethod.invoke(null, null);// setupClientSubject_Reader();				
 					try {
 						mn.isAuthorized(null, changeableObject, Permission.READ);
 						handleFail(currentUrl,"1. isAuthorized by " + subject + " should fail");

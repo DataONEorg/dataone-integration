@@ -22,9 +22,7 @@ package org.dataone.integration.it;
 
 import java.io.InputStream;
 import java.util.Date;
-import java.util.Hashtable;
 import java.util.Iterator;
-import java.util.Map;
 
 import org.dataone.client.D1Client;
 import org.dataone.client.MNode;
@@ -36,16 +34,11 @@ import org.dataone.service.types.v1.Event;
 import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Log;
 import org.dataone.service.types.v1.LogEntry;
-import org.dataone.service.types.v1.MonitorList;
 import org.dataone.service.types.v1.Node;
 import org.dataone.service.types.v1.ObjectFormatIdentifier;
-import org.dataone.service.types.v1.ObjectInfo;
 import org.dataone.service.types.v1.ObjectList;
 import org.dataone.service.types.v1.Permission;
-import org.dataone.service.types.v1.Subject;
 import org.dataone.service.types.v1.SystemMetadata;
-import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -54,85 +47,23 @@ import org.junit.Test;
  */
 public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
 
-    private static final String TEST_MN_ID = "c3p0";
+
     private  String format_text_csv = "text/csv";
-    private  String format_eml_200 = "eml://ecoinformatics.org/eml-2.0.0";
-    private  String format_eml_201 = "eml://ecoinformatics.org/eml-2.0.1";
-    private  String format_eml_210 = "eml://ecoinformatics.org/eml-2.1.0";
-    private  String format_eml_211 = "eml://ecoinformatics.org/eml-2.1.1";
 
     private static final String idPrefix = "mnTier1:";
     private static final String bogusId = "foobarbaz214";
 
     private  String currentUrl;
     
-    private  Map<String,ObjectList> listedObjects;
-    
 
 	@Override
 	protected String getTestDescription() {
 		return "Test Case that runs through the Member Node Tier 1 API methods";
 	}
-
-	/**
-	 * pre-fetch an ObjectList from each member node on the list, to allow testing gets
-	 * without creating new objects.
-	 */
-//	@Before
-	public void prefetchObjects() {
-		log.debug("~~~~~ prefetching Objects");
-		if (listedObjects == null) {
-			listedObjects = new Hashtable<String,ObjectList>();
-			Iterator<Node> it = getMemberNodeIterator();
-			while (it.hasNext()) {
-				currentUrl = it.next().getBaseURL();
-				log.info("prefetching objects from: " + currentUrl);
-				MNode mn = D1Client.getMN(currentUrl);
-				try {
-					ObjectList ol = mn.listObjects(null, null, null, null, null, 0, 10);
-					listedObjects.put(currentUrl, ol);
-					log.info("~~~~ objects fetched: " + ol.getCount());
-				} 
-				catch (BaseException e) {
-					handleFail(currentUrl,e.getClass().getSimpleName() + ":: " + e.getDescription());
-				}
-				catch(Exception e) {
-					log.warn(e.getClass().getName() + ": " + e.getMessage());
-				}	
-			}
-		}
-	}
-	
-	
-	private ObjectInfo getPrefetchedObject(String currentUrl, int index)
-	{
-		// if no objects to prefetch need to throw an appropriate exception
-		if (listedObjects.get(currentUrl) == null)
-			throw new IndexOutOfBoundsException();
-		if (listedObjects.get(currentUrl).getCount() == 0) 
-			throw new IndexOutOfBoundsException();
-		
-		if (index < 0) {
-			// return off the right end of the list
-			index = listedObjects.get(currentUrl).getCount() + index;
-		}
-		ObjectList ol = listedObjects.get(currentUrl);
-		return ol.getObjectInfo(index);
-	}
-	
-	
-//    @Test
-    public void testSetup() {
-    	System.out.println("text/csv: " + format_text_csv);
-    	System.out.println("text_eml_200: " + format_eml_200);
-    	System.out.println("text_eml_201: " + format_eml_201);
-    	System.out.println("text_eml_210: " + format_eml_210);
-    	System.out.println("done");
-    }
-	
 		
 	@Test
 	public void testMNCore_Ping() {
+		setupClientSubject_NoCert();
 		Iterator<Node> it = getMemberNodeIterator();
 		while (it.hasNext()) {
 			currentUrl = it.next().getBaseURL();
@@ -157,7 +88,8 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     @Test
     public void testMNCore_GetLogRecords()
     {
-       Iterator<Node> it = getMemberNodeIterator();
+    	setupClientSubject_NoCert();
+    	Iterator<Node> it = getMemberNodeIterator();
        while (it.hasNext()) {
     	   currentUrl = it.next().getBaseURL();
            MNode mn = D1Client.getMN(currentUrl);           
@@ -267,6 +199,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     
     @Test
     public void testMNCore_GetCapabilities() {
+    	setupClientSubject_NoCert();
     	Iterator<Node> it = getMemberNodeIterator();
     	while (it.hasNext()) {
     		currentUrl = it.next().getBaseURL();
@@ -324,17 +257,16 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     
     @Test
     public void testMNRead_Get() {
-    	prefetchObjects();
+ //   	setupClientSubject_NoCert();
        	Iterator<Node> it = getMemberNodeIterator();
     	while (it.hasNext()) {
     		currentUrl = it.next().getBaseURL();
     		MNode mn = D1Client.getMN(currentUrl);
     		printTestHeader("testGet() vs. node: " + currentUrl);
 
+    		Identifier id = procureTestObject(mn, new Permission[] {Permission.READ});
     		try {
-    			ObjectInfo oi = getPrefetchedObject(currentUrl,0);    			
-    			log.debug("   pid = " + oi.getIdentifier().getValue());
-    			InputStream is = mn.get(null,oi.getIdentifier());
+    			InputStream is = mn.get(null,id);
     			checkTrue(currentUrl,"get() returns an objectStream", is != null);
     		}
     		catch (IndexOutOfBoundsException e) {
@@ -353,17 +285,16 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     
     @Test
     public void testMNRead_GetSystemMetadata() {
-    	prefetchObjects();
+    	setupClientSubject_NoCert();
        	Iterator<Node> it = getMemberNodeIterator();
     	while (it.hasNext()) {
     		currentUrl = it.next().getBaseURL();
     		MNode mn = D1Client.getMN(currentUrl);
     		printTestHeader("testGetSystemMetadata() vs. node: " + currentUrl);
-
+    		
+    		Identifier id = procureTestObject(mn, new Permission[] {Permission.READ});
     		try {
-    			ObjectInfo oi = getPrefetchedObject(currentUrl,0);
-    			log.debug("   pid = " + oi.getIdentifier().getValue());
-    			SystemMetadata smd = mn.getSystemMetadata(null,oi.getIdentifier());
+    			SystemMetadata smd = mn.getSystemMetadata(null,id);
     			checkTrue(currentUrl,"getSystemMetadata() returns a SystemMetadata object", smd != null);
     		} 
     		catch (IndexOutOfBoundsException e) {
@@ -382,17 +313,16 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     
     @Test
     public void testMNRead_Describe() {
-    	prefetchObjects();
+    	setupClientSubject_NoCert();
        	Iterator<Node> it = getMemberNodeIterator();
     	while (it.hasNext()) {
     		currentUrl = it.next().getBaseURL();
-    		MNode mn = D1Client.getMN(currentUrl);
+    		MNode mn = D1Client.getMN(currentUrl);  		
     		printTestHeader("testDescribe() vs. node: " + currentUrl);
 
-    		try {
-    			ObjectInfo oi = getPrefetchedObject(currentUrl,0);
-    			log.debug("   pid = " + oi.getIdentifier().getValue());    				
-    			DescribeResponse dr = mn.describe(null,oi.getIdentifier());
+    		Identifier id = procureTestObject(mn, new Permission[] {Permission.READ});
+    		try {				
+    			DescribeResponse dr = mn.describe(null,id);
     			checkTrue(currentUrl,"describe() returns a DescribeResponse object", dr != null);	
     		} 
     		catch (IndexOutOfBoundsException e) {
@@ -410,17 +340,16 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
 
     @Test
     public void testMNRead_GetChecksum() {
-    	prefetchObjects();
+    	setupClientSubject_NoCert();
        	Iterator<Node> it = getMemberNodeIterator();
     	while (it.hasNext()) {
     		currentUrl = it.next().getBaseURL();
     		MNode mn = D1Client.getMN(currentUrl);
     		printTestHeader("testGetChecksum() vs. node: " + currentUrl);
 
-    		try {
-    			ObjectInfo oi = getPrefetchedObject(currentUrl,0);
-    			log.debug("   pid = " + oi.getIdentifier().getValue());				
-    			Checksum cs = mn.getChecksum(null,oi.getIdentifier(),CHECKSUM_ALGORITHM);
+    		Identifier id = procureTestObject(mn, new Permission[] {Permission.READ});
+    		try {   							
+    			Checksum cs = mn.getChecksum(null,id,CHECKSUM_ALGORITHM);
     			checkTrue(currentUrl,"getChecksum() returns a Checksum object", cs != null);
     		} 
     		catch (IndexOutOfBoundsException e) {
@@ -439,18 +368,19 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     
     @Test
     public void testMNRead_SynchronizationFailed() {
-    	prefetchObjects();
+    	setupClientSubject_NoCert();
        	Iterator<Node> it = getMemberNodeIterator();
     	while (it.hasNext()) {
     		currentUrl = it.next().getBaseURL();
     		MNode mn = D1Client.getMN(currentUrl);
     		printTestHeader("testSynchronizationFailed() vs. node: " + currentUrl);
 
+    		Identifier id = procureTestObject(mn, new Permission[] {Permission.READ});
     		try {
-    			ObjectInfo oi = getPrefetchedObject(currentUrl,0);
-    			log.debug("   pid = " + oi.getIdentifier().getValue());
+    			SynchronizationFailed sf = new SynchronizationFailed("0","a message",id.getValue(),null);
+    			System.out.println(sf.serialize(SynchronizationFailed.FMT_XML));
     			mn.synchronizationFailed(null, 
-    					new SynchronizationFailed("0","a message",oi.getIdentifier().getValue(),null));
+    					new SynchronizationFailed("0","a message",id.getValue(),null));
     			checkTrue(currentUrl,"synchronizationFailed() does not throw exception", true);
     		}
     		catch (IndexOutOfBoundsException e) {

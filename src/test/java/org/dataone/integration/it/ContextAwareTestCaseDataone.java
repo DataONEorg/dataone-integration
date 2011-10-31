@@ -5,8 +5,12 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
+import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.URL;
+import java.security.cert.X509Certificate;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Vector;
@@ -16,16 +20,31 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.dataone.client.CNode;
 import org.dataone.client.D1Client;
+import org.dataone.client.MNode;
 import org.dataone.client.auth.CertificateManager;
 import org.dataone.configuration.Settings;
 import org.dataone.configuration.TestSettings;
+import org.dataone.service.exceptions.BaseException;
+import org.dataone.service.exceptions.IdentifierNotUnique;
+import org.dataone.service.exceptions.InsufficientResources;
+import org.dataone.service.exceptions.InvalidRequest;
+import org.dataone.service.exceptions.InvalidSystemMetadata;
+import org.dataone.service.exceptions.InvalidToken;
+import org.dataone.service.exceptions.NotAuthorized;
+import org.dataone.service.exceptions.NotImplemented;
+import org.dataone.service.exceptions.ServiceFailure;
+import org.dataone.service.exceptions.UnsupportedType;
 import org.dataone.service.types.v1.AccessPolicy;
 import org.dataone.service.types.v1.AccessRule;
+import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Node;
 import org.dataone.service.types.v1.NodeList;
 import org.dataone.service.types.v1.NodeType;
+import org.dataone.service.types.v1.ObjectList;
 import org.dataone.service.types.v1.Permission;
 import org.dataone.service.types.v1.Subject;
+import org.dataone.service.types.v1.SystemMetadata;
+import org.dataone.service.types.v1.util.AccessUtil;
 import org.dataone.service.util.TypeMarshaller;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -234,6 +253,132 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 		return subject;
 	}
 	
+	
+	/**
+	 * get an existing object from the member node, if none available, try to 
+	 * create one (not all MN's will allow this).
+	 * @param  mNode - the MNode object from where to procure the object Identifier
+	 * @param  permission - the permission-level of the object retrieved needed
+	 * @return - Identifier for the readable object.
+	 * @throws - IndexOutOfBoundsException  - when can't procure an object Identifier
+	 */
+	protected Identifier procureTestObject(MNode mNode, Permission[] permissions) 
+	{
+		Identifier id = null;
+		try {
+			ObjectList ol = mNode.listObjects();
+			if (ol.getTotal() > 0) {
+				// found one
+				if (permissions.length == 1 && permissions[0] == Permission.READ) {
+					id = ol.getObjectInfo(0).getIdentifier();
+				} else {
+					for(int i=0; i<= ol.sizeObjectInfoList(); i++) {
+						id = ol.getObjectInfo(i).getIdentifier();
+						// check all permissions 
+						try {
+							for (Permission p : permissions) {
+								mNode.isAuthorized(null,id, p);
+							}
+							break;  // the outer for loop
+						} catch (NotAuthorized na) {
+							// effectively break out of the inner for loop (give up on current pid)
+						}
+						id = null;
+					}
+				}
+			} else {
+				id = createTestObject(mNode,permissions);
+			}
+		} 
+		catch (BaseException e) {
+			handleFail(mNode.getNodeBaseServiceUrl(),e.getClass().getSimpleName() + ":: " + e.getDescription());
+		}
+		catch(Exception e) {
+			log.warn(e.getClass().getName() + ": " + e.getMessage());
+		}
+		if (id == null) {
+			throw new IndexOutOfBoundsException();
+		} 
+		log.info(" ====>>>>> pid of procured test Object: " + id.getValue());
+		return id;
+	}
+
+	/**
+	 * create a test object, giving the current user/subject the permissions specified.
+	 * The object will be created by the testUserWriter, and client user will be reset
+	 * to the one it was coming in.   
+	 * @param mNode - the member node on which to create the object
+	 * @param permission - the permissions to be granted to the starting/current user/subject
+	 * @return Identifier - the identifier of the object created
+	 * @throws InvalidRequest 
+	 * @throws NotImplemented 
+	 * @throws InvalidSystemMetadata 
+	 * @throws InsufficientResources 
+	 * @throws UnsupportedType 
+	 * @throws IdentifierNotUnique 
+	 * @throws NotAuthorized 
+	 * @throws ServiceFailure 
+	 * @throws InvalidToken 
+	 * @throws UnsupportedEncodingException 
+	 */
+	protected Identifier createTestObject(MNode mNode, Permission[] permissions) throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique, UnsupportedType, InsufficientResources, InvalidSystemMetadata, NotImplemented, InvalidRequest, UnsupportedEncodingException 
+	{
+		// remember who the client currently is
+		X509Certificate certificate = CertificateManager.getInstance().loadCertificate();
+		String startingCertLoc = CertificateManager.getInstance().getCertificateLocation();
+		String startingClientSubject = CertificateManager.getInstance().getSubjectDN(certificate);
+		
+		// do the create as the test Writer subject
+		setupClientSubject_Writer();
+		
+		Identifier pid = new Identifier();
+		pid.setValue("MNodeTier1IT." + ExampleUtilities.generateIdentifier());
+
+		// get some data bytes as an input stream
+		ByteArrayInputStream textPlainSource = 
+			new ByteArrayInputStream("Plain text source".getBytes("UTF-8"));
+
+		// build the system metadata object
+		SystemMetadata sysMeta = 
+			ExampleUtilities.generateSystemMetadata(pid, "text/plain", textPlainSource, null);
+		
+		try {
+			// make the submitter the same as the cert DN 
+			certificate = CertificateManager.getInstance().loadCertificate();
+			String ownerX500 = CertificateManager.getInstance().getSubjectDN(certificate);
+			sysMeta.getRightsHolder().setValue(ownerX500);
+			
+			// extend the appropriate access to starting client subject
+			File certloc = new File(startingCertLoc);
+			AccessPolicy ap = null;
+			if (certloc.exists()) {
+				 ap = AccessUtil.createSingleRuleAccessPolicy(
+						new String[] {startingClientSubject},permissions);
+			} else {
+				// it's the public user and public can only be given Permission.READ
+				ap = buildPublicReadAccessPolicy();
+			}
+			sysMeta.setAccessPolicy(ap);
+
+		} catch (Exception e) {
+			// warn about this?
+			e.printStackTrace();
+			throw new IndexOutOfBoundsException("could not set AccessPolicy: " + e.getMessage());
+		}
+	      
+		log.info("create a test object");
+		
+		Identifier retPid = mNode.create(null, pid, textPlainSource, sysMeta);
+		checkEquals(mNode.getNodeBaseServiceUrl(),
+				"procureTestObject(): returned pid from the create() should match what was given",
+				pid.getValue(), retPid.getValue());
+
+		// reset the client to the starting subject/certificate
+		// (this should work for public user, too, since we create a public user by 
+		// using a bogus certificate location)
+		CertificateManager.getInstance().setCertificateLocation(startingCertLoc);
+		return retPid;
+	}
 	
 	
 	/**
