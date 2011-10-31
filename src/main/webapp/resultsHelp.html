@@ -34,9 +34,11 @@
             <h3>Tier 2</h3>
             Tier 2 tests authorization and access control.  These tests attempt to prefetch objects
             that the pre-defined test subject "testUserWriter" has changePermission permission for.
-            (At Tier2, we still cannot create objects to test with, and rely on something already
-             present and with the right accessPolicy) <i>However</i>, if the node under test is
-             set up to be a Tier3 node, the tests will try to create an object (as the above Subject). 
+            To do this, it uses listObjects() and isAuthorized(..for ChangePermission..) on 
+            the returned objectList.  (At Tier2, we still cannot create objects to test with, 
+            and rely on something already present and with the right accessPolicy).
+             <i>However</i>, if the node under test is set up to be a Tier3 node, the tests
+             will try to create an object (as the above Subject). 
         </div>
          <div class="padded">
             <h3>Tier 3</h3>
