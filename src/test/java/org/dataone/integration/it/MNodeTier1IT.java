@@ -264,8 +264,8 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     		MNode mn = D1Client.getMN(currentUrl);
     		printTestHeader("testGet() vs. node: " + currentUrl);
 
-    		Identifier id = procureTestObject(mn, new Permission[] {Permission.READ});
     		try {
+    			Identifier id = procureTestObject(mn, new Permission[] {Permission.READ});
     			InputStream is = mn.get(null,id);
     			checkTrue(currentUrl,"get() returns an objectStream", is != null);
     		}
@@ -292,8 +292,8 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     		MNode mn = D1Client.getMN(currentUrl);
     		printTestHeader("testGetSystemMetadata() vs. node: " + currentUrl);
     		
-    		Identifier id = procureTestObject(mn, new Permission[] {Permission.READ});
     		try {
+    			Identifier id = procureTestObject(mn, new Permission[] {Permission.READ});
     			SystemMetadata smd = mn.getSystemMetadata(null,id);
     			checkTrue(currentUrl,"getSystemMetadata() returns a SystemMetadata object", smd != null);
     		} 
@@ -319,9 +319,9 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     		currentUrl = it.next().getBaseURL();
     		MNode mn = D1Client.getMN(currentUrl);  		
     		printTestHeader("testDescribe() vs. node: " + currentUrl);
-
-    		Identifier id = procureTestObject(mn, new Permission[] {Permission.READ});
-    		try {				
+		
+    		try {
+    			Identifier id = procureTestObject(mn, new Permission[] {Permission.READ});
     			DescribeResponse dr = mn.describe(null,id);
     			checkTrue(currentUrl,"describe() returns a DescribeResponse object", dr != null);	
     		} 
@@ -347,8 +347,8 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     		MNode mn = D1Client.getMN(currentUrl);
     		printTestHeader("testGetChecksum() vs. node: " + currentUrl);
 
-    		Identifier id = procureTestObject(mn, new Permission[] {Permission.READ});
-    		try {   							
+    		try {   
+    			Identifier id = procureTestObject(mn, new Permission[] {Permission.READ});
     			Checksum cs = mn.getChecksum(null,id,CHECKSUM_ALGORITHM);
     			checkTrue(currentUrl,"getChecksum() returns a Checksum object", cs != null);
     		} 
@@ -374,9 +374,9 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     		currentUrl = it.next().getBaseURL();
     		MNode mn = D1Client.getMN(currentUrl);
     		printTestHeader("testSynchronizationFailed() vs. node: " + currentUrl);
-
-    		Identifier id = procureTestObject(mn, new Permission[] {Permission.READ});
+ 		
     		try {
+    			Identifier id = procureTestObject(mn, new Permission[] {Permission.READ});
     			SynchronizationFailed sf = new SynchronizationFailed("0","a message",id.getValue(),null);
     			System.out.println(sf.serialize(SynchronizationFailed.FMT_XML));
     			mn.synchronizationFailed(null, 

@@ -85,9 +85,9 @@ public class MNodeTier2IT extends ContextAwareTestCaseDataone  {
 			currentUrl = it.next().getBaseURL();
 			MNode mn = D1Client.getMN(currentUrl);
 			printTestHeader("testIsAuthorized() vs. node: " + currentUrl);
-		
-			Identifier pid = procureTestObject(mn, new Permission[]{Permission.READ});
-			try {				
+				
+			try {	
+				Identifier pid = procureTestObject(mn, new Permission[]{Permission.READ});
 				boolean success = mn.isAuthorized(null, pid, Permission.READ);
 				checkTrue(currentUrl,"isAuthorized response should never be false. [Only true or exception].", success);
 			} 
@@ -122,9 +122,9 @@ public class MNodeTier2IT extends ContextAwareTestCaseDataone  {
 			currentUrl = it.next().getBaseURL();
 			MNode mn = D1Client.getMN(currentUrl);
 			printTestHeader("testIsAuthorized_noCert() vs. node: " + currentUrl);
-		
-			Identifier pid = procureTestObject(mn, new Permission[] {Permission.READ});
+			
 			try {
+				Identifier pid = procureTestObject(mn, new Permission[] {Permission.READ});
 				boolean success = mn.isAuthorized(null, pid, Permission.WRITE);
 				handleFail(currentUrl,"isAuthorized response should throw exception if no session/token");
 			}
@@ -229,12 +229,12 @@ public class MNodeTier2IT extends ContextAwareTestCaseDataone  {
 			MNode mn = D1Client.getMN(currentUrl);
 			printTestHeader("testSetAccessPolicy() vs. node: " + currentUrl);
 
-			setupClientSubject_Writer();
-			Identifier changeableObject = procureTestObject(mn, 
+			try {
+				setupClientSubject_Writer();
+				Identifier changeableObject = procureTestObject(mn, 
 					new Permission[] {Permission.READ, Permission.WRITE, Permission.CHANGE_PERMISSION}); //getOrCreateChangeableObject(mn);
-			if (changeableObject != null)
-			{
-				try {				
+				if (changeableObject != null)
+				{					
 					log.info("clear the AccessPolicy");
 					boolean success = mn.setAccessPolicy(null, changeableObject, new AccessPolicy());
 
@@ -313,15 +313,14 @@ public class MNodeTier2IT extends ContextAwareTestCaseDataone  {
 					} catch (NotAuthorized na) {
 						// this is what we want
 					}
-				
-				} catch (BaseException e) {
-					handleFail(currentUrl, e.getClass().getSimpleName() + ": " + e.getDescription());
-				} catch (Exception e) {
-					e.printStackTrace();
-					handleFail(currentUrl, e.getClass().getName() + ": " + e.getMessage());
 				}
-			} else {
-				handleFail(currentUrl,"No Object available to setAccessPolicy with");
+			} catch (IndexOutOfBoundsException e) {
+				handleFail(currentUrl,"No Objects available to test against");
+			} catch (BaseException e) {
+				handleFail(currentUrl, e.getClass().getSimpleName() + ": " + e.getDescription());
+			} catch (Exception e) {
+				e.printStackTrace();
+				handleFail(currentUrl, e.getClass().getName() + ": " + e.getMessage());
 			}
 		}
 	}

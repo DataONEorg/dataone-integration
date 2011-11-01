@@ -45,6 +45,7 @@ import org.dataone.service.types.v1.Permission;
 import org.dataone.service.types.v1.Subject;
 import org.dataone.service.types.v1.SystemMetadata;
 import org.dataone.service.types.v1.util.AccessUtil;
+import org.dataone.service.util.Constants;
 import org.dataone.service.util.TypeMarshaller;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -326,8 +327,12 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 		// remember who the client currently is
 		X509Certificate certificate = CertificateManager.getInstance().loadCertificate();
 		String startingCertLoc = CertificateManager.getInstance().getCertificateLocation();
-		String startingClientSubject = CertificateManager.getInstance().getSubjectDN(certificate);
-		
+		String startingClientSubject = null;
+		if (certificate != null) {
+			startingClientSubject = CertificateManager.getInstance().getSubjectDN(certificate);
+		} else {
+			startingClientSubject = Constants.SUBJECT_PUBLIC;
+		}
 		// do the create as the test Writer subject
 		setupClientSubject_Writer();
 		
