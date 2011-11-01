@@ -20,12 +20,9 @@
 
 package org.dataone.integration.it;
 
-import java.io.ByteArrayInputStream;
 import java.lang.reflect.Method;
-import java.security.cert.X509Certificate;
 import java.util.Iterator;
 
-import org.apache.bcel.Constants;
 import org.dataone.client.D1Client;
 import org.dataone.client.MNode;
 import org.dataone.client.auth.CertificateManager;
@@ -34,9 +31,7 @@ import org.dataone.service.exceptions.NotAuthorized;
 import org.dataone.service.types.v1.AccessPolicy;
 import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Node;
-import org.dataone.service.types.v1.ObjectList;
 import org.dataone.service.types.v1.Permission;
-import org.dataone.service.types.v1.SystemMetadata;
 import org.dataone.service.types.v1.util.AccessUtil;
 import org.junit.Test;
 
