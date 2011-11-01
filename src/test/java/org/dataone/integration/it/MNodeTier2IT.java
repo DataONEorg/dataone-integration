@@ -336,11 +336,12 @@ public class MNodeTier2IT extends ContextAwareTestCaseDataone  {
 			MNode mn = D1Client.getMN(currentUrl);
 			printTestHeader("testSetAccessPolicy_NoCert() vs. node: " + currentUrl);
 
-			setupClientSubject_Writer();
-			Identifier changeableObject = procureTestObject(mn, 
-					new Permission[] {Permission.READ, Permission.WRITE, Permission.CHANGE_PERMISSION}); //getOrCreateChangeableObject(mn);
-			if (changeableObject != null) {
-				try {	
+			try {
+				setupClientSubject_Writer();
+				Identifier changeableObject = procureTestObject(mn, 
+						new Permission[] {Permission.READ, Permission.WRITE, Permission.CHANGE_PERMISSION}); //getOrCreateChangeableObject(mn);
+				if (changeableObject != null) 
+				{	
 					setupClientSubject_NoCert();
 					log.info("  subject cleared");
 					// set access on the object
@@ -348,22 +349,19 @@ public class MNodeTier2IT extends ContextAwareTestCaseDataone  {
 							AccessUtil.createSingleRuleAccessPolicy(new String[]{"foo"},
 									new Permission[]{Permission.READ}));
 					handleFail(currentUrl,"with no client certificate, setAccessPolicy should throw exception");
-
-
-				} catch (BaseException e) {
-
-					checkEquals(currentUrl, "with no client certificate: " + e.getDetail_code() + ": " + e.getDescription(), 
-							e.getClass().getSimpleName(), "NotAuthorized");
-				} catch (Exception e) {
-					e.printStackTrace();
-					handleFail(currentUrl, e.getClass().getName() + ": " + e.getMessage());
 				}
-			} else {
-				handleFail(currentUrl,"No object available to setAccessPolicy with");
+			} catch (IndexOutOfBoundsException e) {
+				handleFail(currentUrl,"No Objects available to test against");
+			} catch (BaseException e) {
+				checkEquals(currentUrl, "with no client certificate: " + e.getDetail_code() + ": " + e.getDescription(), 
+						e.getClass().getSimpleName(), "NotAuthorized");
+			} catch (Exception e) {
+				e.printStackTrace();
+				handleFail(currentUrl, e.getClass().getName() + ": " + e.getMessage());
 			}
 		}
-	}
-    
+    }
+
     
     @Test
 	public void testSetAccess_Public() throws SecurityException, NoSuchMethodException 
@@ -457,7 +455,8 @@ public class MNodeTier2IT extends ContextAwareTestCaseDataone  {
 				} else {
 					handleFail(currentUrl,"No object available to setAccessPolicy with");
 				}
-				
+			} catch (IndexOutOfBoundsException e) {
+				handleFail(currentUrl,"No Objects available to test against");
 			} catch (BaseException e) {
 				handleFail(currentUrl, e.getClass().getSimpleName() + ": " + e.getDescription());
 			} catch (Exception e) {
