@@ -156,8 +156,14 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 				if (nodelistUri != null) {
 					// the list of member nodes is in this NodeList.xml file
 					System.out.println("~~~ Context is ad-hoc NodeList at: " + nodelistUri);
-					URL url = new URL(nodelistUri);
-					InputStream is = url.openStream();
+					InputStream is = null;
+					try {
+						URL url = new URL(nodelistUri);
+						is = url.openStream();
+					} catch (Exception e) {
+						is = ContextAwareTestCaseDataone.class.getClassLoader()
+								.getResourceAsStream(nodelistUri);
+					}
 					NodeList nl = TypeMarshaller.unmarshalTypeFromStream(NodeList.class, is);
 					allNodesList = nl.getNodeList();
 				} else {

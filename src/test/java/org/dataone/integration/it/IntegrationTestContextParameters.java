@@ -29,7 +29,7 @@ public interface IntegrationTestContextParameters {
 	
 	public final static String PARAM_CN_URL = "context.cn.baseurl";    // the base url for the cn within the environment 
 	public final static String PARAM_MN_URL = "context.mn.baseurl";    // the base url for the MN being tested
-	public final static String PARAM_NODELIST_URI = "context.test.nodelist.uri";  // a uri (file or url) of the nodelist to use to set the environment
+	public final static String PARAM_NODELIST_URI = "context.nodelist.uri";  // a uri (file or url) of the nodelist to use to set the environment
 
 	
 	public final static String PARAM_TEST_SETTINGS_URI = "opt.overriding.properties.filename";
