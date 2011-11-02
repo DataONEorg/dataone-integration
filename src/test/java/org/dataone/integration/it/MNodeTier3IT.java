@@ -119,7 +119,8 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 				// expected behavior
 			}
 			catch (BaseException e) {
-				handleFail(currentUrl,e.getClass().getSimpleName() + ": " + e.getDescription());
+				handleFail(currentUrl,"Expected InvalidToken, got: " +
+						e.getClass().getSimpleName() + ": " + e.getDescription());
 			}
 			catch(Exception e) {
 				e.printStackTrace();
@@ -339,7 +340,8 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 				// expected behavior
 			}
 			catch (BaseException e) {
-				handleFail(currentUrl,e.getClass().getSimpleName() + ": " + e.getDescription());
+				handleFail(currentUrl,"Expected InvalidToken, got: " +
+						e.getClass().getSimpleName() + ": " + e.getDescription());
 			}
 			catch(Exception e) {
 				e.printStackTrace();
@@ -416,11 +418,13 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 					InputStream is = mn.get(null, pid);	
 				}
 				catch (BaseException e) {
-					handleFail(currentUrl,e.getClass().getSimpleName() + ": " + e.getDescription());
+					handleFail(currentUrl,"Got InvalidToken, but couldn't perform subsequent get(). Instead: " +
+							e.getClass().getSimpleName() + ": " + e.getDescription());
 				}
 			}
 			catch (BaseException e) {
-				handleFail(currentUrl,e.getClass().getSimpleName() + ": " + e.getDescription());
+				handleFail(currentUrl,"Expected InvalidToken, got: " +
+						e.getClass().getSimpleName() + ": " + e.getDescription());
 			}
 			catch(Exception e) {
 				e.printStackTrace();
