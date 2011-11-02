@@ -9,6 +9,7 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.math.BigInteger;
 import java.net.URL;
 import java.security.cert.X509Certificate;
 import java.util.Iterator;
@@ -340,12 +341,15 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 		pid.setValue("MNodeTier1IT." + ExampleUtilities.generateIdentifier());
 
 		// get some data bytes as an input stream
+		byte[] contentBytes = "Plain text source".getBytes("UTF-8");
 		ByteArrayInputStream textPlainSource = 
-			new ByteArrayInputStream("Plain text source".getBytes("UTF-8"));
+			new ByteArrayInputStream(contentBytes);
 
 		// build the system metadata object
 		SystemMetadata sysMeta = 
 			ExampleUtilities.generateSystemMetadata(pid, "text/plain", textPlainSource, null);
+		// need the size to be accurate
+		sysMeta.setSize(BigInteger.valueOf(contentBytes.length));
 		
 		try {
 			// make the submitter the same as the cert DN 

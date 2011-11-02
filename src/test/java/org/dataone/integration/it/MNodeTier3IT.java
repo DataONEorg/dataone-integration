@@ -21,8 +21,11 @@
 package org.dataone.integration.it;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.math.BigInteger;
+import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
 import java.util.Iterator;
 import java.util.Scanner;
@@ -30,19 +33,19 @@ import java.util.Vector;
 
 import org.apache.commons.io.IOUtils;
 import org.dataone.client.D1Client;
+import org.dataone.client.D1Object;
 import org.dataone.client.MNode;
 import org.dataone.client.auth.CertificateManager;
 import org.dataone.service.exceptions.BaseException;
-import org.dataone.service.exceptions.NotAuthorized;
+import org.dataone.service.exceptions.InvalidRequest;
+import org.dataone.service.exceptions.InvalidToken;
+import org.dataone.service.exceptions.NotFound;
 import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Node;
 import org.dataone.service.types.v1.Permission;
-import org.dataone.service.types.v1.Session;
 import org.dataone.service.types.v1.SystemMetadata;
 import org.dataone.service.types.v1.util.AccessUtil;
 import org.dataone.service.util.Constants;
-import org.junit.After;
-import org.junit.Ignore;
 import org.junit.Test;
 
 public class MNodeTier3IT extends ContextAwareTestCaseDataone {
@@ -112,7 +115,7 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 						(InputStream) dataPackage[1], (SystemMetadata) dataPackage[2]);			
 				handleFail(currentUrl,"should not be able to create an object if no certificate");
 			}
-			catch (NotAuthorized na) {
+			catch (InvalidToken na) {
 				// expected behavior
 			}
 			catch (BaseException e) {
@@ -129,7 +132,6 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
     /**
      * test creation of data with challenging unicode identifier.
      */
-	@Ignore("not running until create working")
 	@Test
     public void testCreateData_IdentifierEncoding() 
     {
@@ -203,9 +205,11 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 					data.close();
 				}
 				catch (BaseException e) {
+					status = "Error";
 					handleFail(currentUrl,e.getClass().getSimpleName() + ": " + e.getDescription());
 				}
 				catch(Exception e) {
+					status = "Error";
 					e.printStackTrace();
 					handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
 				}	
@@ -214,7 +218,7 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 			System.out.println();
 			for (int k=0; k<nodeSummary.size(); k++) 
 			{
-				System.out.println(nodeSummary.get(k));
+				log.info(nodeSummary.get(k));
 			}
 			System.out.println();
 		}
@@ -331,7 +335,7 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 		
 				handleFail(currentUrl,"should not be able to create an object if no certificate");
 			}
-			catch (NotAuthorized na) {
+			catch (InvalidToken na) {
 				// expected behavior
 			}
 			catch (BaseException e) {
@@ -406,7 +410,7 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 				Identifier deletedPid = mn.delete(null, pid);
 				handleFail(currentUrl,"should not be able to delete an object if no certificate");
 			}
-			catch (NotAuthorized na) {
+			catch (InvalidToken na) {
 				try {
 					setupClientSubject_Writer();
 					InputStream is = mn.get(null, pid);	
@@ -432,7 +436,7 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 	 * the rightsHolder is set to the subject of the current certificate (user)
 	 */
 	private Object[] generateTestDataPackage(String idPrefix) 
-	throws UnsupportedEncodingException
+	throws NoSuchAlgorithmException, NotFound, InvalidRequest, IOException
 	{
 		String identifierStr = ExampleUtilities.generateIdentifier();
 		
@@ -440,28 +444,32 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 		guid.setValue(idPrefix + "." + identifierStr);
 
 		// get some data bytes as an input stream
-		InputStream textPlainSource = 
-			new ByteArrayInputStream("Plain text source".getBytes("UTF-8"));
+		byte[] contentBytes = "Plain text source".getBytes("UTF-8");
 
-		// build the system metadata object
-		SystemMetadata sysMeta = 
-			ExampleUtilities.generateSystemMetadata(guid, format_text_plain, textPlainSource,null);
-
-		// match the submitter as the cert DN 
+		// figure out who we are
+		String ownerX500 = null;
 		try {
-			X509Certificate certificate = CertificateManager.getInstance().loadCertificate();
-			String ownerX500 = CertificateManager.getInstance().getSubjectDN(certificate);
-			sysMeta.getRightsHolder().setValue(ownerX500);
-			sysMeta.getSubmitter().setValue(ownerX500);
+			X509Certificate certificate = CertificateManager.getInstance().loadCertificate();			
+			if (certificate != null) {
+				ownerX500 = CertificateManager.getInstance().getSubjectDN(certificate);
+//				sysMeta.getRightsHolder().setValue(ownerX500);
+//				sysMeta.getSubmitter().setValue(ownerX500);
+			}
 		} catch (Exception e) {
-			// warn about this
-			e.printStackTrace();
+			ownerX500 = "MNodeTier3ITunknownCert";
 		}
+			
+		D1Object d1o = new D1Object(guid, contentBytes, format_text_plain, ownerX500, "authNode");
+		SystemMetadata sysMeta = d1o.getSystemMetadata();
+		
+		// match the submitter as the cert DN 
+		
 		sysMeta.setAccessPolicy(AccessUtil.createSingleRuleAccessPolicy(
 				new String[] {Constants.SUBJECT_PUBLIC},
 				new Permission[] {Permission.READ}));
 		
-		return new Object[]{guid,textPlainSource,sysMeta};
+		ByteArrayInputStream bis = new ByteArrayInputStream(d1o.getData());
+		return new Object[]{guid,bis,sysMeta};
 	}
 	
 	
