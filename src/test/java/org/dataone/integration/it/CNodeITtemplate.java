@@ -282,7 +282,7 @@ public class CNodeITtemplate extends ContextAwareTestCaseDataone {
 
 				Subject subject = new Subject();
 				subject.setValue("Public");
-				Identifier response = cn.setOwner(null, oi.getIdentifier(), subject);
+				Identifier response = cn.setOwner(null, oi.getIdentifier(), subject, 1);
 				checkTrue(currentUrl,"setOwner(...) returns a Identifier object", response != null);
 			} 
 			catch (IndexOutOfBoundsException e) {
@@ -340,7 +340,7 @@ public class CNodeITtemplate extends ContextAwareTestCaseDataone {
 				ObjectInfo oi = getPrefetchedObject(currentUrl,0);    
 				log.debug("   pid = " + oi.getIdentifier());
 
-				boolean response = cn.setAccessPolicy(null,oi.getIdentifier(),buildPublicReadAccessPolicy());
+				boolean response = cn.setAccessPolicy(null,oi.getIdentifier(),buildPublicReadAccessPolicy(),1);
 			} 
 			catch (IndexOutOfBoundsException e) {
 				handleFail(currentUrl,"No Objects available to test against");
@@ -878,7 +878,7 @@ public class CNodeITtemplate extends ContextAwareTestCaseDataone {
 				ObjectInfo oi = getPrefetchedObject(currentUrl,0);    
 				log.debug("   pid = " + oi.getIdentifier());
 
-				boolean response = cn.setReplicationPolicy(null,oi.getIdentifier(),new ReplicationPolicy());
+				boolean response = cn.setReplicationPolicy(null,oi.getIdentifier(),new ReplicationPolicy(),1);
 				checkTrue(currentUrl,"response cannot be false. [Only true or exception].", response);
 			} 
 			catch (IndexOutOfBoundsException e) {
@@ -910,7 +910,7 @@ public class CNodeITtemplate extends ContextAwareTestCaseDataone {
 				log.debug("   pid = " + oi.getIdentifier());
 
 				boolean response = cn.setReplicationStatus(null, 
-						oi.getIdentifier(),cnRef, ReplicationStatus.COMPLETED);
+						oi.getIdentifier(),cnRef, ReplicationStatus.COMPLETED,1);
 				checkTrue(currentUrl,"response cannot be false. [Only true or exception].", response);
 			} 
 			catch (IndexOutOfBoundsException e) {
