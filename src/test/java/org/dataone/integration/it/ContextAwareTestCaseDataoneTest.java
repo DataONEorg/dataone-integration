@@ -3,6 +3,7 @@ package org.dataone.integration.it;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import java.security.Principal;
 import java.security.cert.X509Certificate;
@@ -24,6 +25,13 @@ public class ContextAwareTestCaseDataoneTest extends ContextAwareTestCaseDataone
 		// do nothing except override the setUp method in the base class
 		// which is not needed here (cannot be called)
 	}
+	
+	@Test
+	public void testTrue() throws Exception
+	{
+		assertTrue(true);
+	}
+	
 	
 //	@Test
 	public void testSetupClientSubject_Writer() throws Exception
