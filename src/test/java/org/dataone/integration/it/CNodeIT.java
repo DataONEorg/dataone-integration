@@ -205,7 +205,7 @@ public class CNodeIT extends ContextAwareTestCaseDataone {
 
 			// test the totals that come back from each call
 			
-			ObjectList mnOL = mn.listObjects();
+			ObjectList mnOL = mn.listObjects(null);
 			String mnOLString = serializeObjectList(mnOL);
 			String mnTotalPattern = ExampleUtilities.extractObjectListTotalAttribute(mnOLString);
 			

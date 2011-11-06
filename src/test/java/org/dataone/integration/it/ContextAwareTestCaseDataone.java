@@ -274,7 +274,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 	{
 		Identifier id = null;
 		try {
-			ObjectList ol = mNode.listObjects();
+			ObjectList ol = mNode.listObjects(null);
 			if (ol.getTotal() > 0) {
 				// found one
 				if (permissions.length == 1 && permissions[0] == Permission.READ) {

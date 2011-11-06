@@ -148,13 +148,6 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
        }
     }
 	
-	
-//    @Ignore("client implementation deferred")
-//    @Test 
-//    public void testGetObjectStatistics() {
-//
-//    }
-	
     
 //    @Test
 //    public void testMNCore_GetOperationStatistics() {
@@ -230,7 +223,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     		printTestHeader("testListObjects() vs. node: " + currentUrl);
 
     		try {
-    			ObjectList ls = mn.listObjects();
+    			ObjectList ls = mn.listObjects(null);
     			checkTrue(currentUrl,"listObjects() returns an ObjectList", ls != null);
     			
     			Date startTime = new Date(System.currentTimeMillis() - 10 * 60 * 1000);
