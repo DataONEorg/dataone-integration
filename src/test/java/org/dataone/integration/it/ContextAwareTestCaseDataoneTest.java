@@ -15,7 +15,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-public class ContextAwareTestCaseDataoneTest extends ContextAwareTestCaseDataone {
+public class ContextAwareTestCaseDataoneTest { 
 
 
 	@Before
@@ -33,47 +33,40 @@ public class ContextAwareTestCaseDataoneTest extends ContextAwareTestCaseDataone
 	}
 	
 	
-//	@Test
+	@Test
 	public void testSetupClientSubject_Writer() throws Exception
 	{
-		Subject s = setupClientSubject_Writer();
+		Subject s = ContextAwareTestCaseDataone.setupClientSubject_Writer();
 		System.out.println("subject is: " + s.getValue());
 		assertEquals("CN=testUserWriter,DC=dataone,DC=org",s.getValue());
 
 	}
 	
-//	@Test
+	@Test
 	public void testSetupClientSubject_Reader() throws Exception
 	{
-		Subject s = setupClientSubject_Reader();
+		Subject s = ContextAwareTestCaseDataone.setupClientSubject_Reader();
 		System.out.println("subject is: " + s.getValue());
 		assertEquals("CN=testUserReader,DC=dataone,DC=org",s.getValue());
 
 	}
 	
-//	@Test
+	@Test
 	public void testSetupClientSubject_NoRights() throws Exception
 	{
-		Subject s = setupClientSubject_NoRights();
+		Subject s = ContextAwareTestCaseDataone.setupClientSubject_NoRights();
 		System.out.println("subject is: " + s.getValue());
 		assertEquals("CN=testUserNoRights,DC=dataone,DC=org",s.getValue());
 
 	}
 
 	
-//	@Test
+	@Test
 	public void testSetupClientSubject_NoCert() throws Exception
 	{
-		setupClientSubject_NoCert();
+		ContextAwareTestCaseDataone.setupClientSubject_NoCert();
 		X509Certificate cert = CertificateManager.getInstance().loadCertificate();
 		System.out.println("subjectDN is: " + cert);
 		assertNull(cert);
-	}
-	
-	
-	@Override
-	protected String getTestDescription() {
-		// TODO Auto-generated method stub
-		return null;
 	}
 }

@@ -37,7 +37,7 @@
 		<dependency>
 			<groupId>org.dataone</groupId>
 			<artifactId>d1_libclient_java</artifactId>
-			<version>1.0.0-SNAPSHOT</version>
+			<version>1.0.1-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>org.dataone</groupId>
@@ -117,8 +117,8 @@
 					</execution>
 				</executions>
 				<configuration>
-					<doCheck>true</doCheck>
-					<doUpdate>true</doUpdate>
+					<doCheck>false</doCheck>
+					<doUpdate>false</doUpdate>
 				</configuration>
 			</plugin>
 			<plugin>
@@ -128,10 +128,9 @@
 					<archive>
 						<manifestEntries>
 							<D1-version>${project.version}</D1-version>
-							<SCM-Revision>${buildNumber}</SCM-Revision>
-<!--  non informative things you can also get from build number plugin -->							
-<!-- 							<SCM-Branch>${buildScmBranch}</SCM-Branch> -->
-<!-- 							<SCM-TimeStamp>${timestamp}</SCM-TimeStamp> -->
+							<D1-SCM-Revision>${buildNumber}</D1-SCM-Revision>
+							<D1-SCM-Branch>${scmBranch}</D1-SCM-Branch>
+                            <D1-Build-TimeStamp>${timestamp}</D1-Build-TimeStamp>
 						</manifestEntries>
 					</archive>
 				</configuration>
