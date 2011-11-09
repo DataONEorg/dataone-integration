@@ -7,7 +7,7 @@
     command:: generate_sysmeta.py -f dpennington.resourcemap -i dpennington.resourcemap -t http://www.openarchives.org/ore/terms
     -->
   <identifier>dpennington.resourcemap</identifier>
-  <fmtid>http://www.openarchives.org/ore/terms</fmtid>
+  <formatId>http://www.openarchives.org/ore/terms</formatId>
   <size>2478</size>
   <checksum algorithm="SHA-1">883ed93c297724dca3a8dc48bef0cc1fa71426cb</checksum>
   <submitter>dataone_integration_test_user</submitter>

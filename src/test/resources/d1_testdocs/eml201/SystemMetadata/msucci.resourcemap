@@ -7,7 +7,7 @@
     command:: generate_sysmeta.py -f msucci.resourcemap -i msucci.resourcemap -t http://www.openarchives.org/ore/terms
     -->
   <identifier>msucci.resourcemap</identifier>
-  <fmtid>http://www.openarchives.org/ore/terms</fmtid>
+  <formatId>http://www.openarchives.org/ore/terms</formatId>
   <size>2420</size>
   <checksum algorithm="SHA-1">2895f262f661718994742375e22e35e323560770</checksum>
   <submitter>dataone_integration_test_user</submitter>

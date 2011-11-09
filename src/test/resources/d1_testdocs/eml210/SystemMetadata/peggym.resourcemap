@@ -7,7 +7,7 @@
     command:: generate_sysmeta.py -f peggym.resourcemap -i peggym.resourcemap -t http://www.openarchives.org/ore/terms
     -->
   <identifier>peggym.resourcemap</identifier>
-  <fmtid>http://www.openarchives.org/ore/terms</fmtid>
+  <formatId>http://www.openarchives.org/ore/terms</formatId>
   <size>3206</size>
   <checksum algorithm="SHA-1">c39c3b9c8da4b2ae0c5136d378cfe3480ea78190</checksum>
   <submitter>dataone_integration_test_user</submitter>
