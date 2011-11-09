@@ -7,32 +7,50 @@ import org.junit.runner.Result;
 import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunListener;
 
-public class WebTestListener extends RunListener 
+/**
+ * Extended class used to catch the output from junit and put it in usable form.
+ * 
+ * @author rnahf
+ *
+ */
+class WebTestListener extends RunListener 
 {
-	ArrayList<AtomicTestResult> testList = new ArrayList<AtomicTestResult>();
-	private AtomicTestResult currentTest;
+	ArrayList<AtomicTest> testList = new ArrayList<AtomicTest>();
+	private AtomicTest currentTest;
 	private String testCaseName;
+	private boolean newRun = true;
+	
 	
 	public void testStarted(Description d) {
 		if (currentTest != null) {
 			testList.add(currentTest);
 		}
 		testCaseName = d.getClassName();
-		currentTest = new AtomicTestResult(d.getClassName() + ": " + d.getMethodName());
+		if (newRun) {
+			currentTest = new AtomicTest(testCaseName);
+			currentTest.setStatus("Header");
+			testList.add(currentTest);
+			newRun = false;
+		}			
+		currentTest = new AtomicTest(testCaseName + ": " + d.getMethodName());
+		currentTest.setType("Test");
 		currentTest.setStatus("Success");
+		
+		this.newRun = false;
 	}
 
 	public void testRunFinished(Result r) {
 		if (currentTest != null) {
 			testList.add(currentTest);
 		}
-		currentTest = new AtomicTestResult(testCaseName);
+		currentTest = new AtomicTest(testCaseName);
+		currentTest.setType("Summary");
 		String runSummary = "RunCount=" + r.getRunCount() + 
 							"   Failures/Errors=" + r.getFailureCount() +
 							"   Ignored=" + r.getIgnoreCount();
 		if(r.getFailureCount() > 0) {
 			currentTest.setStatus("Failed");
-			currentTest.setMessage("Failed Tier due to failures. [" + runSummary + "]");
+			currentTest.setMessage("Failed Tier due to failures or exceptions. [" + runSummary + "]");
 		} else if (r.getIgnoreCount() > 0) {
 			currentTest.setStatus("Ignored");
 			currentTest.setMessage("Tier Tentative Pass (Ignored Tests present). [" + runSummary + "]");
@@ -40,13 +58,15 @@ public class WebTestListener extends RunListener
 			currentTest.setStatus("Success");
 			currentTest.setMessage("Tier Passed (Ignored Tests present). [" + runSummary + "]");
 		}
+		this.newRun = true;
 	}
 	
 	public void testIgnored(Description d) {
 		if (currentTest != null) {
 			testList.add(currentTest);
 		}
-		currentTest = new AtomicTestResult(d.getClassName() + ": " + d.getMethodName());
+		currentTest = new AtomicTest(d.getClassName() + ": " + d.getMethodName());
+		currentTest.setType("Test");
 		currentTest.setStatus("Ignored");
 		currentTest.setMessage(d.getAnnotation(org.junit.Ignore.class).value());
 	}
@@ -58,10 +78,16 @@ public class WebTestListener extends RunListener
 		} else {
 			currentTest.setStatus("Error");
 		}
-		currentTest.setMessage( t.getClass().getSimpleName() + ": " + f.getMessage());
+		currentTest.setMessage( t.getClass().getSimpleName() + ": " + f.getMessage());		
+		currentTest.setTrace(f.getTrace());
 	}
 	
-	public ArrayList<AtomicTestResult> getTestList() {
+	public ArrayList<AtomicTest> getTestList() {
+		if (currentTest != null) {
+			testList.add(currentTest);
+			currentTest = null;
+		}
 		return testList;
 	}
 }
+

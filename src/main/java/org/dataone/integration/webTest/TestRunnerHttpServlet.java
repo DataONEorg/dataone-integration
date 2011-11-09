@@ -9,6 +9,9 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.Vector;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.servlet.ServletException;
 import javax.servlet.ServletOutputStream;
@@ -126,7 +129,7 @@ public class TestRunnerHttpServlet extends HttpServlet
 		
 		// see:
 		// http://stackoverflow.com/questions/1302815/how-to-get-access-to-the-current-junitcore-to-add-a-listener
-		TestStartListener listener = new TestStartListener();
+		WebTestListener listener = new WebTestListener();
 		junit.addListener(listener);
 
 		Result result = null;
@@ -245,8 +248,8 @@ public class TestRunnerHttpServlet extends HttpServlet
 			div.addAttribute(new Attribute("class", "greyDescr"));
 		}
 
-		// add contents to the table row...
-		name.appendChild(testResult.getTestName());
+		// add contents to the table row...	
+		name.appendChild(formatTestName(testResult.getTestName()));
 		tr.appendChild(name);
 
 		
@@ -263,6 +266,29 @@ public class TestRunnerHttpServlet extends HttpServlet
 			div.appendChild(buildTraceView(rowIndex, testResult));
 		}
 	}
+	
+	
+	/*
+	 * Want to make test names human readable, but the test case also 
+	 * passes through this, so need to format differently.  The basic idea
+	 * here is to keep the last segment of the raw name, where the segments
+	 * are {package}.{package}.{testCase}: {method_subtest}
+	 */
+	private String formatTestName(String rawTestName)
+	{
+		String improvedTestName = null;
+		if (rawTestName.contains(":")) {
+			// keep just the method and subtest
+			improvedTestName = rawTestName.replaceAll(".*\\: ", "");
+			improvedTestName = improvedTestName.replaceAll("_", " : ");
+		} else {
+			// keep the TestCase segment
+			improvedTestName = rawTestName.replaceAll(".*\\.", "");
+		}
+//		improvedTestName = humaniseCamelCase(improvedTestName);
+		return improvedTestName;
+	}
+	
 
 	private Element buildTraceViewControl(int rowID)
 	{
@@ -421,145 +447,182 @@ public class TestRunnerHttpServlet extends HttpServlet
 		}
 	}	
 	
-	
-	
-	
 	/**
-	 * extended class used to catch the output from junit and put it in usable form
-	 * @author rnahf
+	 * Converts a camelCase to a more human form, with spaces. E.g. 'Camel case'
 	 *
 	 */
-	class TestStartListener extends RunListener
-	{
-		ArrayList<AtomicTest> testList = new ArrayList<AtomicTest>();
-		private AtomicTest currentTest;
-		private String testCaseName;
-		private boolean newRun = true;
-		
-		public void testStarted(Description d) {
-			if (currentTest != null) {
-				testList.add(currentTest);
-			}
-			testCaseName = d.getClassName();
-			if (newRun) {
-				currentTest = new AtomicTest(testCaseName);
-				currentTest.setStatus("Header");
-				testList.add(currentTest);
-				newRun = false;
-			}			
-			currentTest = new AtomicTest(testCaseName + ": " + d.getMethodName());
-			currentTest.setType("Test");
-			currentTest.setStatus("Success");
-			
-			this.newRun = false;
-		}
+	private String humaniseCamelCase(String word) {
+	    Pattern pattern = Pattern.compile("([A-Z]|[a-z])[a-z]*");
 
-		public void testRunFinished(Result r) {
-			if (currentTest != null) {
-				testList.add(currentTest);
-			}
-			currentTest = new AtomicTest(testCaseName);
-			currentTest.setType("Summary");
-			String runSummary = "RunCount=" + r.getRunCount() + 
-								"   Failures/Errors=" + r.getFailureCount() +
-								"   Ignored=" + r.getIgnoreCount();
-			if(r.getFailureCount() > 0) {
-				currentTest.setStatus("Failed");
-				currentTest.setMessage("Failed Tier due to failures or exceptions. [" + runSummary + "]");
-			} else if (r.getIgnoreCount() > 0) {
-				currentTest.setStatus("Ignored");
-				currentTest.setMessage("Tier Tentative Pass (Ignored Tests present). [" + runSummary + "]");
-			} else {
-				currentTest.setStatus("Success");
-				currentTest.setMessage("Tier Passed (Ignored Tests present). [" + runSummary + "]");
-			}
-			this.newRun = true;
-		}
-		
-		public void testIgnored(Description d) {
-			if (currentTest != null) {
-				testList.add(currentTest);
-			}
-			currentTest = new AtomicTest(d.getClassName() + ": " + d.getMethodName());
-			currentTest.setType("Test");
-			currentTest.setStatus("Ignored");
-			currentTest.setMessage(d.getAnnotation(org.junit.Ignore.class).value());
-		}
-		
-		public void testFailure(Failure f) {
-			Throwable t = f.getException();
-			if (t instanceof java.lang.AssertionError) {
-				currentTest.setStatus("Failed");
-			} else {
-				currentTest.setStatus("Error");
-			}
-			currentTest.setMessage( t.getClass().getSimpleName() + ": " + f.getMessage());		
-			currentTest.setTrace(f.getTrace());
-		}
-		
-		public ArrayList<AtomicTest> getTestList() {
-			if (currentTest != null) {
-				testList.add(currentTest);
-				currentTest = null;
-			}
-			return testList;
-		}
+	    Vector<String> tokens = new Vector<String>();
+	    Matcher matcher = pattern.matcher(word);
+	    String acronym = "";
+	    while(matcher.find()) {
+	        String found = matcher.group();
+	        if(found.matches("^[A-Z]$")) {
+	            acronym += found;
+	        } else {
+	            if(acronym.length() > 0) {
+	                //we have an acronym to add before we continue
+	                tokens.add(acronym);
+	                acronym  = "";
+	            }
+	            tokens.add(found.toLowerCase());
+	        }
+	    }
+	    if(acronym.length() > 0) {
+	        tokens.add(acronym);
+	    }
+	    if (tokens.size() > 0) {
+	    	String firstToken = tokens.remove(0);
+	    	String humanisedString = firstToken.substring(0, 1).toUpperCase() 
+	    		+ firstToken.substring(1);       
+	        for (String s : tokens) {
+	            humanisedString +=  " " + s;
+	        }
+	        return humanisedString;
+	    }
+
+	    return word;
 	}
 	
-	
-	class AtomicTest
-	{
-		private String type;
-		private String testName;
-		private String status;
-		private String message;
-		private String trace;
-		
-		public AtomicTest(String name)
-		{
-			setTestName(name);
-		}
-		
-		
-		public void setTestName(String packageQualifiedName) {
-			testName = packageQualifiedName.replaceAll("org.dataone.integration.it.", "");
-		}
-		public String getTestName() {
-			return testName;
-		}
-		
-		
-		public void setStatus(String status) {
-			this.status = status;
-		}
-		public String getStatus() {
-			return status;
-		}
-		public boolean wasSuccessful() {
-			return getStatus().equals("Success");
-		}
-		
-		
-		public void setMessage(String message) {
-			this.message = message;
-		}
-		public String getMessage() {
-			return message;
-		}
-		
-		public void setType(String type) {
-			this.type = type;
-		}
-		public String getType() {
-			return type;
-		}
-		
-		public void setTrace(String trace) {
-			this.trace = trace;
-		}
-		public String getTrace() {
-			return this.trace;
-		}
-
-	}	
+//	
+//	/**
+//	 * extended class used to catch the output from junit and put it in usable form
+//	 * @author rnahf
+//	 *
+//	 */
+//	class TestStartListener extends RunListener
+//	{
+//		ArrayList<AtomicTest> testList = new ArrayList<AtomicTest>();
+//		private AtomicTest currentTest;
+//		private String testCaseName;
+//		private boolean newRun = true;
+//		
+//		public void testStarted(Description d) {
+//			if (currentTest != null) {
+//				testList.add(currentTest);
+//			}
+//			testCaseName = d.getClassName();
+//			if (newRun) {
+//				currentTest = new AtomicTest(testCaseName);
+//				currentTest.setStatus("Header");
+//				testList.add(currentTest);
+//				newRun = false;
+//			}			
+//			currentTest = new AtomicTest(testCaseName + ": " + d.getMethodName());
+//			currentTest.setType("Test");
+//			currentTest.setStatus("Success");
+//			
+//			this.newRun = false;
+//		}
+//
+//		public void testRunFinished(Result r) {
+//			if (currentTest != null) {
+//				testList.add(currentTest);
+//			}
+//			currentTest = new AtomicTest(testCaseName);
+//			currentTest.setType("Summary");
+//			String runSummary = "RunCount=" + r.getRunCount() + 
+//								"   Failures/Errors=" + r.getFailureCount() +
+//								"   Ignored=" + r.getIgnoreCount();
+//			if(r.getFailureCount() > 0) {
+//				currentTest.setStatus("Failed");
+//				currentTest.setMessage("Failed Tier due to failures or exceptions. [" + runSummary + "]");
+//			} else if (r.getIgnoreCount() > 0) {
+//				currentTest.setStatus("Ignored");
+//				currentTest.setMessage("Tier Tentative Pass (Ignored Tests present). [" + runSummary + "]");
+//			} else {
+//				currentTest.setStatus("Success");
+//				currentTest.setMessage("Tier Passed (Ignored Tests present). [" + runSummary + "]");
+//			}
+//			this.newRun = true;
+//		}
+//		
+//		public void testIgnored(Description d) {
+//			if (currentTest != null) {
+//				testList.add(currentTest);
+//			}
+//			currentTest = new AtomicTest(d.getClassName() + ": " + d.getMethodName());
+//			currentTest.setType("Test");
+//			currentTest.setStatus("Ignored");
+//			currentTest.setMessage(d.getAnnotation(org.junit.Ignore.class).value());
+//		}
+//		
+//		public void testFailure(Failure f) {
+//			Throwable t = f.getException();
+//			if (t instanceof java.lang.AssertionError) {
+//				currentTest.setStatus("Failed");
+//			} else {
+//				currentTest.setStatus("Error");
+//			}
+//			currentTest.setMessage( t.getClass().getSimpleName() + ": " + f.getMessage());		
+//			currentTest.setTrace(f.getTrace());
+//		}
+//		
+//		public ArrayList<AtomicTest> getTestList() {
+//			if (currentTest != null) {
+//				testList.add(currentTest);
+//				currentTest = null;
+//			}
+//			return testList;
+//		}
+//	}
+//	
+//	
+//	class AtomicTest
+//	{
+//		private String type;
+//		private String testName;
+//		private String status;
+//		private String message;
+//		private String trace;
+//		
+//		public AtomicTest(String name)
+//		{
+//			setTestName(name);
+//		}
+//		
+//		
+//		public void setTestName(String packageQualifiedName) {
+//			testName = packageQualifiedName.replaceAll("org.dataone.integration.it.", "");
+//		}
+//		public String getTestName() {
+//			return testName;
+//		}
+//		
+//		
+//		public void setStatus(String status) {
+//			this.status = status;
+//		}
+//		public String getStatus() {
+//			return status;
+//		}
+//		public boolean wasSuccessful() {
+//			return getStatus().equals("Success");
+//		}
+//		
+//		
+//		public void setMessage(String message) {
+//			this.message = message;
+//		}
+//		public String getMessage() {
+//			return message;
+//		}
+//		
+//		public void setType(String type) {
+//			this.type = type;
+//		}
+//		public String getType() {
+//			return type;
+//		}
+//		
+//		public void setTrace(String trace) {
+//			this.trace = trace;
+//		}
+//		public String getTrace() {
+//			return this.trace;
+//		}
+//
+//	}	
 }

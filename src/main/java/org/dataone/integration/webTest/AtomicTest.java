@@ -1,19 +1,23 @@
 package org.dataone.integration.webTest;
 
-public class AtomicTestResult
+class AtomicTest
 {
+	private String type;
 	private String testName;
 	private String status;
 	private String message;
+	private String trace;
 
-	public AtomicTestResult(String name)
+	public AtomicTest(String name)
 	{
 		setTestName(name);
 	}
 
 
 	public void setTestName(String packageQualifiedName) {
-		testName = packageQualifiedName.replaceAll("org.dataone.integration.it.", "");
+		//testName = packageQualifiedName.replaceAll(prefixToRemove, "");
+		// remove package name
+		testName = packageQualifiedName; //.replaceAll(".*\\.", "");
 	}
 	public String getTestName() {
 		return testName;
@@ -36,6 +40,20 @@ public class AtomicTestResult
 	}
 	public String getMessage() {
 		return message;
+	}
+
+	public void setType(String type) {
+		this.type = type;
+	}
+	public String getType() {
+		return type;
+	}
+
+	public void setTrace(String trace) {
+		this.trace = trace;
+	}
+	public String getTrace() {
+		return this.trace;
 	}
 }	
 
