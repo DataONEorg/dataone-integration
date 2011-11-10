@@ -79,6 +79,7 @@ public class MNodeTier2IT extends ContextAwareTestCaseDataone  {
 		while (it.hasNext()) {
 			currentUrl = it.next().getBaseURL();
 			MNode mn = D1Client.getMN(currentUrl);
+			currentUrl = mn.getNodeBaseServiceUrl();
 			printTestHeader("testIsAuthorized() vs. node: " + currentUrl);
 				
 			try {	
@@ -116,6 +117,7 @@ public class MNodeTier2IT extends ContextAwareTestCaseDataone  {
 		while (it.hasNext()) {
 			currentUrl = it.next().getBaseURL();
 			MNode mn = D1Client.getMN(currentUrl);
+			currentUrl = mn.getNodeBaseServiceUrl();
 			printTestHeader("testIsAuthorized_noCert() vs. node: " + currentUrl);
 			
 			try {
@@ -222,6 +224,7 @@ public class MNodeTier2IT extends ContextAwareTestCaseDataone  {
 		while (it.hasNext()) {
 			currentUrl = it.next().getBaseURL();
 			MNode mn = D1Client.getMN(currentUrl);
+			currentUrl = mn.getNodeBaseServiceUrl();
 			printTestHeader("testSetAccessPolicy() vs. node: " + currentUrl);
 
 			try {
@@ -334,6 +337,7 @@ public class MNodeTier2IT extends ContextAwareTestCaseDataone  {
 		while (it.hasNext()) {
 			currentUrl = it.next().getBaseURL();
 			MNode mn = D1Client.getMN(currentUrl);
+			currentUrl = mn.getNodeBaseServiceUrl();
 			printTestHeader("testSetAccessPolicy_NoCert() vs. node: " + currentUrl);
 
 			try {
@@ -396,6 +400,7 @@ public class MNodeTier2IT extends ContextAwareTestCaseDataone  {
 		while (it.hasNext()) {
 			currentUrl = it.next().getBaseURL();
 			MNode mn = D1Client.getMN(currentUrl);
+			currentUrl = mn.getNodeBaseServiceUrl();
 			printTestHeader("testSetAccess_" + subject + "() vs. node: " + currentUrl);
 
 			try {

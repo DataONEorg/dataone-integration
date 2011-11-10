@@ -68,6 +68,7 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 		while (it.hasNext()) {
 			currentUrl = it.next().getBaseURL();
 			MNode mn = D1Client.getMN(currentUrl);
+			currentUrl = mn.getNodeBaseServiceUrl();
 			printTestHeader("testCreate() vs. node: " + currentUrl);
 
 			try {
@@ -106,6 +107,7 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 		while (it.hasNext()) {
 			currentUrl = it.next().getBaseURL();
 			MNode mn = D1Client.getMN(currentUrl);
+			currentUrl = mn.getNodeBaseServiceUrl();
 			printTestHeader("testCreate_NoCert() vs. node: " + currentUrl);
 
 			try {
@@ -137,8 +139,8 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
     public void testCreateData_IdentifierEncoding() 
     {
 		setupClientSubject_Writer();
-		Iterator<Node> it = getMemberNodeIterator();  
-		printTestHeader("testCreateData_IdentifierEncoding() vs. node: " + currentUrl);
+		Iterator<Node> it = getMemberNodeIterator();
+		printTestHeader("Testing IdentifierEncoding - setting up identifiers to check");
 
 		// get identifiers to check with
 		Vector<String> unicodeString = new Vector<String>();
@@ -168,8 +170,9 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 		while (it.hasNext()) {
 			currentUrl = it.next().getBaseURL();
 			MNode mn = D1Client.getMN(currentUrl);
-
-			printTestHeader("Testing IdentifierEncoding");
+			currentUrl = mn.getNodeBaseServiceUrl();
+			printTestHeader("testCreateData_IdentifierEncoding() vs. node: " + currentUrl);
+			
 
 			Vector<String> nodeSummary = new Vector<String>();
 			nodeSummary.add("Node Test Summary for node: " + currentUrl );
@@ -240,6 +243,7 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 
 			currentUrl = it.next().getBaseURL();
 			MNode mn = D1Client.getMN(currentUrl);
+			currentUrl = mn.getNodeBaseServiceUrl();
 			printTestHeader("testUpdate() vs. node: " + currentUrl);
 
 			
@@ -301,6 +305,7 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 			
 			currentUrl = it.next().getBaseURL();
 			MNode mn = D1Client.getMN(currentUrl);
+			currentUrl = mn.getNodeBaseServiceUrl();
 			printTestHeader("testUpdate_NoCert() vs. node: " + currentUrl);
 
 			
@@ -363,6 +368,7 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 
 			currentUrl = it.next().getBaseURL();
 			MNode mn = D1Client.getMN(currentUrl);
+			currentUrl = mn.getNodeBaseServiceUrl();
 			printTestHeader("testDelete() vs. node: " + currentUrl);
 
 			Identifier pid = null;
@@ -399,6 +405,7 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 
 			currentUrl = it.next().getBaseURL();
 			MNode mn = D1Client.getMN(currentUrl);
+			currentUrl = mn.getNodeBaseServiceUrl();
 			printTestHeader("testDelete_NoCert() vs. node: " + currentUrl);
 
 			Identifier pid = null;

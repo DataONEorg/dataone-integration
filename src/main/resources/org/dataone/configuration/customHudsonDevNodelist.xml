@@ -36,7 +36,7 @@
 		</synchronization>
 		<subject>cn=r2d2,dc=dataone,dc=org</subject>
 	</node>
-	<node replicate="true" synchronize="true" type="mn" state="up">
+<!-- 	<node replicate="true" synchronize="true" type="mn" state="up">
 		<identifier>m0t1</identifier>
 		<name>knb-demo-2</name>
 		<description>Development Metacat Member node</description>
@@ -56,7 +56,7 @@
 			</lastCompleteHarvest>
 		</synchronization>
 		<subject>cn=m0t1,dc=dataone,dc=org</subject>
-	</node>
+	</node> -->
 <!-- 	<node replicate="false" synchronize="true" type="mn" state="up">
 		<identifier>DAAC</identifier>
 		<name>ORNL DAAC</name>

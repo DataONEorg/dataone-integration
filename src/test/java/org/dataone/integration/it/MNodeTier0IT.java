@@ -55,6 +55,7 @@ public class MNodeTier0IT extends ContextAwareTestCaseDataone  {
 		while (it.hasNext()) {
 			currentUrl = it.next().getBaseURL();
 			MNode mn = D1Client.getMN(currentUrl);
+			currentUrl = mn.getNodeBaseServiceUrl();
 			printTestHeader("testBaseUrlResponse() vs. node: " + currentUrl);
 		
 			D1Url url = new D1Url(mn.getNodeBaseServiceUrl());
@@ -62,8 +63,8 @@ public class MNodeTier0IT extends ContextAwareTestCaseDataone  {
 
 			try {
 				InputStream is = rc.doGetRequest(url.getUrl());
+				log.info("called GET to " + url.getUrl());
 				Node node = TypeMarshaller.unmarshalTypeFromStream(Node.class, is);
-				log.info(node.getBaseURL());
 			} 
 			catch (BaseException e) {
 				handleFail(currentUrl,e.getClass().getSimpleName() + ":: " + e.getDescription());

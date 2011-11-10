@@ -62,12 +62,13 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
 	}
 		
 	@Test
-	public void testMNCore_Ping() {
+	public void testPing() {
 		setupClientSubject_NoCert();
 		Iterator<Node> it = getMemberNodeIterator();
 		while (it.hasNext()) {
 			currentUrl = it.next().getBaseURL();
 			MNode mn = D1Client.getMN(currentUrl);
+			currentUrl = mn.getNodeBaseServiceUrl();
 			printTestHeader("testPing() vs. node: " + currentUrl);
 		
 			try {
@@ -86,13 +87,14 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
 	
 	
     @Test
-    public void testMNCore_GetLogRecords()
+    public void testGetLogRecords()
     {
     	setupClientSubject_NoCert();
     	Iterator<Node> it = getMemberNodeIterator();
        while (it.hasNext()) {
     	   currentUrl = it.next().getBaseURL();
-           MNode mn = D1Client.getMN(currentUrl);           
+           MNode mn = D1Client.getMN(currentUrl);  
+           currentUrl = mn.getNodeBaseServiceUrl();
            printTestHeader("testGetLogRecords() vs. node: " + currentUrl);
 
            log.info("current time is: " + new Date());
@@ -155,6 +157,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
 //		while (it.hasNext()) {
 //			currentUrl = it.next().getBaseURL();
 //			MNode mn = D1Client.getMN(currentUrl);
+//          currentUrl = mn.getNodeBaseServiceUrl();
 //			printTestHeader("testGetOperationStatistics() vs. node: " + currentUrl);
 //		
 //				
@@ -191,12 +194,13 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     
     
     @Test
-    public void testMNCore_GetCapabilities() {
+    public void testGetCapabilities() {
     	setupClientSubject_NoCert();
     	Iterator<Node> it = getMemberNodeIterator();
     	while (it.hasNext()) {
     		currentUrl = it.next().getBaseURL();
     		MNode mn = D1Client.getMN(currentUrl);
+    		currentUrl = mn.getNodeBaseServiceUrl();
     		printTestHeader("testGetCapabilities() vs. node: " + currentUrl);
 
     		try {
@@ -215,11 +219,12 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     
     
     @Test
-    public void testMNRead_ListObjects() {
+    public void testListObjects() {
        	Iterator<Node> it = getMemberNodeIterator();
     	while (it.hasNext()) {
     		currentUrl = it.next().getBaseURL();
     		MNode mn = D1Client.getMN(currentUrl);
+    		currentUrl = mn.getNodeBaseServiceUrl();
     		printTestHeader("testListObjects() vs. node: " + currentUrl);
 
     		try {
@@ -249,12 +254,13 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     
     
     @Test
-    public void testMNRead_Get() {
+    public void testGet() {
  //   	setupClientSubject_NoCert();
        	Iterator<Node> it = getMemberNodeIterator();
     	while (it.hasNext()) {
     		currentUrl = it.next().getBaseURL();
     		MNode mn = D1Client.getMN(currentUrl);
+    		currentUrl = mn.getNodeBaseServiceUrl();
     		printTestHeader("testGet() vs. node: " + currentUrl);
 
     		try {
@@ -277,12 +283,13 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     
     
     @Test
-    public void testMNRead_GetSystemMetadata() {
+    public void testGetSystemMetadata() {
     	setupClientSubject_NoCert();
        	Iterator<Node> it = getMemberNodeIterator();
     	while (it.hasNext()) {
     		currentUrl = it.next().getBaseURL();
     		MNode mn = D1Client.getMN(currentUrl);
+    		currentUrl = mn.getNodeBaseServiceUrl();
     		printTestHeader("testGetSystemMetadata() vs. node: " + currentUrl);
     		
     		try {
@@ -305,12 +312,13 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     
     
     @Test
-    public void testMNRead_Describe() {
+    public void testDescribe() {
     	setupClientSubject_NoCert();
        	Iterator<Node> it = getMemberNodeIterator();
     	while (it.hasNext()) {
     		currentUrl = it.next().getBaseURL();
-    		MNode mn = D1Client.getMN(currentUrl);  		
+    		MNode mn = D1Client.getMN(currentUrl); 
+    		currentUrl = mn.getNodeBaseServiceUrl();
     		printTestHeader("testDescribe() vs. node: " + currentUrl);
 		
     		try {
@@ -332,12 +340,13 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     }
 
     @Test
-    public void testMNRead_GetChecksum() {
+    public void testGetChecksum() {
     	setupClientSubject_NoCert();
        	Iterator<Node> it = getMemberNodeIterator();
     	while (it.hasNext()) {
     		currentUrl = it.next().getBaseURL();
     		MNode mn = D1Client.getMN(currentUrl);
+    		currentUrl = mn.getNodeBaseServiceUrl();
     		printTestHeader("testGetChecksum() vs. node: " + currentUrl);
 
     		try {   
@@ -360,12 +369,13 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     
     
     @Test
-    public void testMNRead_SynchronizationFailed() {
+    public void testSynchronizationFailed() {
     	setupClientSubject_NoCert();
        	Iterator<Node> it = getMemberNodeIterator();
     	while (it.hasNext()) {
     		currentUrl = it.next().getBaseURL();
     		MNode mn = D1Client.getMN(currentUrl);
+    		currentUrl = mn.getNodeBaseServiceUrl();
     		printTestHeader("testSynchronizationFailed() vs. node: " + currentUrl);
  		
     		try {
