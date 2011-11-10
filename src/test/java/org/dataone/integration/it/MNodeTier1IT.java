@@ -76,7 +76,8 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
 				checkTrue(currentUrl,"ping response cannot be false. [Only true or exception].", pingSuccess);
 			} 
 			catch (BaseException e) {
-				handleFail(currentUrl,e.getClass().getSimpleName() + ":: " + e.getDescription());
+				handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
+						e.getDetail_code() + ":: " + e.getDescription());
 			}
 			catch(Exception e) {
 				e.printStackTrace();
@@ -141,7 +142,8 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
         	   }
 			} 
 			catch (BaseException e) {
-				handleFail(currentUrl,e.getClass().getSimpleName() + ": " + e.getDescription());
+				handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
+						e.getDetail_code() + ": " + e.getDescription());
 			}
 			catch(Exception e) {
 				e.printStackTrace();
@@ -208,7 +210,8 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     			checkTrue(currentUrl,"getCapabilities returns a Node", node != null);
     		} 
     		catch (BaseException e) {
-    			handleFail(currentUrl,e.getClass().getSimpleName() + ":: " + e.getDescription());
+    			handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
+    					e.getDetail_code() + ":: " + e.getDescription());
     		}
     		catch(Exception e) {
     			e.printStackTrace();
@@ -243,7 +246,8 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     			checkTrue(currentUrl,"listObjects(<parameters>) returns an ObjectList", ls != null);
     		} 
     		catch (BaseException e) {
-    			handleFail(currentUrl,e.getClass().getSimpleName() + ":: " + e.getDescription());
+    			handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
+    					e.getDetail_code() + ":: " + e.getDescription());
     		}
     		catch(Exception e) {
     			e.printStackTrace();
@@ -272,7 +276,8 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     			handleFail(currentUrl,"No Objects available to test against");
     		}
     		catch (BaseException e) {
-    			handleFail(currentUrl,e.getClass().getSimpleName() + ":: " + e.getDescription());
+    			handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
+    					e.getDetail_code() + ":: " + e.getDescription());
     		}
     		catch(Exception e) {
     			e.printStackTrace();
@@ -301,7 +306,8 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     			handleFail(currentUrl,"No Objects available to test against");
     		}
     		catch (BaseException e) {
-    			handleFail(currentUrl,e.getClass().getSimpleName() + ":: " + e.getDescription());
+    			handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
+    					e.getDetail_code() + ":: " + e.getDescription());
     		}
     		catch(Exception e) {
     			e.printStackTrace();
@@ -330,7 +336,8 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     			handleFail(currentUrl,"No Objects available to test against");
     		}
     		catch (BaseException e) {
-    			handleFail(currentUrl,e.getClass().getSimpleName() + ":: " + e.getDescription());
+    			handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
+    					e.getDetail_code() + ":: " + e.getDescription());
     		}
     		catch(Exception e) {
     			e.printStackTrace();
@@ -358,7 +365,8 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     			handleFail(currentUrl,"No Objects available to test against");
     		}
     		catch (BaseException e) {
-    			handleFail(currentUrl,e.getClass().getSimpleName() + ":: " + e.getDescription());
+    			handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
+    					e.getDetail_code() + ":: " + e.getDescription());
     		}
     		catch(Exception e) {
     			e.printStackTrace();

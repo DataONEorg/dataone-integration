@@ -505,9 +505,9 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
             public Object call() throws Exception 
             {
             	if (host != null) {	
-            		assertThat("for host: " + host + ":: " + message, true, is(b));
+            		assertThat("for host: " + host + ":: " + message, b, is(true));
             	} else {
-            		assertThat(message, true, is(b));
+            		assertThat(message, b, is(true));
             	}
                 return null;
             }
@@ -529,9 +529,9 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
             public Object call() throws Exception 
             {
             	if (host != null) {	
-            		assertThat("for host: " + host + ":: " + message, false, is(b));
+            		assertThat("for host: " + host + ":: " + message, b, is(false));
             	} else {
-            		assertThat(message, false, is(b));
+            		assertThat(message, b, is(false));
             	}
                 return null;
             }

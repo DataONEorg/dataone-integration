@@ -39,6 +39,7 @@ import org.dataone.client.auth.CertificateManager;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.InvalidRequest;
 import org.dataone.service.exceptions.InvalidToken;
+import org.dataone.service.exceptions.NotAuthorized;
 import org.dataone.service.exceptions.NotFound;
 import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Node;
@@ -85,7 +86,8 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 						objectData.contains("Plain text source"));
 			}
 			catch (BaseException e) {
-				handleFail(currentUrl,e.getClass().getSimpleName() + ": " + e.getDescription());
+				handleFail(currentUrl,e.getClass().getSimpleName() + ": " 
+						+ e.getDetail_code() + ": " + e.getDescription());
 			}
 			catch(Exception e) {
 				e.printStackTrace();
@@ -117,12 +119,13 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 						(InputStream) dataPackage[1], (SystemMetadata) dataPackage[2]);			
 				handleFail(currentUrl,"should not be able to create an object if no certificate");
 			}
-			catch (InvalidToken na) {
+			catch (NotAuthorized na) {
 				// expected behavior
 			}
 			catch (BaseException e) {
-				handleFail(currentUrl,"Expected InvalidToken, got: " +
-						e.getClass().getSimpleName() + ": " + e.getDescription());
+				handleFail(currentUrl,"Expected NotAuthorized, got: " +
+						e.getClass().getSimpleName() + ": " 
+						+ e.getDetail_code() + ": " + e.getDescription());
 			}
 			catch(Exception e) {
 				e.printStackTrace();
@@ -210,7 +213,8 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 				}
 				catch (BaseException e) {
 					status = "Error";
-					handleFail(currentUrl,e.getClass().getSimpleName() + ": " + e.getDescription());
+					handleFail(currentUrl,e.getClass().getSimpleName() +
+							": " + e.getDetail_code() + ": " + e.getDescription());
 				}
 				catch(Exception e) {
 					status = "Error";
@@ -286,7 +290,8 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 
 			}
 			catch (BaseException e) {
-				handleFail(currentUrl,e.getClass().getSimpleName() + ": " + e.getDescription());
+				handleFail(currentUrl,e.getClass().getSimpleName() + 
+						": " + e.getDetail_code() + ": " + e.getDescription());
 			}
 			catch(Exception e) {
 				e.printStackTrace();
@@ -341,12 +346,13 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 		
 				handleFail(currentUrl,"should not be able to create an object if no certificate");
 			}
-			catch (InvalidToken na) {
+			catch (NotAuthorized na) {
 				// expected behavior
 			}
 			catch (BaseException e) {
-				handleFail(currentUrl,"Expected InvalidToken, got: " +
-						e.getClass().getSimpleName() + ": " + e.getDescription());
+				handleFail(currentUrl,"Expected NotAuthorized, got: " +
+						e.getClass().getSimpleName() + ": " + e.getDetail_code() + 
+						": " + e.getDescription());
 			}
 			catch(Exception e) {
 				e.printStackTrace();
@@ -386,7 +392,8 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 				InputStream is = mn.get(null, pid);
 			}
 			catch (BaseException e) {
-				handleFail(currentUrl,e.getClass().getSimpleName() + ": " + e.getDescription());
+				handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
+						e.getDetail_code() + ": " + e.getDescription());
 			}
 			catch(Exception e) {
 				e.printStackTrace();
@@ -426,12 +433,14 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 				}
 				catch (BaseException e) {
 					handleFail(currentUrl,"Got InvalidToken, but couldn't perform subsequent get(). Instead: " +
-							e.getClass().getSimpleName() + ": " + e.getDescription());
+							e.getClass().getSimpleName() + ": " + e.getDetail_code() + 
+							": " + e.getDescription());
 				}
 			}
 			catch (BaseException e) {
 				handleFail(currentUrl,"Expected InvalidToken, got: " +
-						e.getClass().getSimpleName() + ": " + e.getDescription());
+						e.getClass().getSimpleName() + ": " + e.getDetail_code() + 
+						": " + e.getDescription());
 			}
 			catch(Exception e) {
 				e.printStackTrace();
@@ -465,6 +474,8 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 				ownerX500 = CertificateManager.getInstance().getSubjectDN(certificate);
 //				sysMeta.getRightsHolder().setValue(ownerX500);
 //				sysMeta.getSubmitter().setValue(ownerX500);
+			} else {
+				ownerX500 = "MNodeTeir3ITunknownCert";
 			}
 		} catch (Exception e) {
 			ownerX500 = "MNodeTier3ITunknownCert";

@@ -93,7 +93,8 @@ public class MNodeTier4IT extends ContextAwareTestCaseDataone {
 						objectData.contains("Plain text source"));
 			}
 			catch (BaseException e) {
-				handleFail(currentUrl,e.getClass().getSimpleName() + ": " + e.getDescription());
+				handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
+						e.getDetail_code() + ": " + e.getDescription());
 			}
 			catch(Exception e) {
 				e.printStackTrace();
@@ -130,7 +131,8 @@ public class MNodeTier4IT extends ContextAwareTestCaseDataone {
 			}
 			catch (BaseException e) {
 				handleFail(currentUrl,"Expected InvalidToken, got: " +
-						e.getClass().getSimpleName() + ": " + e.getDescription());
+						e.getClass().getSimpleName() + ": " + 
+						e.getDetail_code() + ": " + e.getDescription());
 			}
 			catch(Exception e) {
 				e.printStackTrace();
