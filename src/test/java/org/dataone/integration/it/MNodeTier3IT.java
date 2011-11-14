@@ -27,6 +27,7 @@ import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.Scanner;
 import java.util.Vector;
@@ -38,15 +39,19 @@ import org.dataone.client.MNode;
 import org.dataone.client.auth.CertificateManager;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.InvalidRequest;
+import org.dataone.service.exceptions.InvalidSystemMetadata;
 import org.dataone.service.exceptions.InvalidToken;
 import org.dataone.service.exceptions.NotAuthorized;
 import org.dataone.service.exceptions.NotFound;
 import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Node;
+import org.dataone.service.types.v1.ObjectInfo;
+import org.dataone.service.types.v1.ObjectList;
 import org.dataone.service.types.v1.Permission;
 import org.dataone.service.types.v1.SystemMetadata;
 import org.dataone.service.types.v1.util.AccessUtil;
 import org.dataone.service.util.Constants;
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class MNodeTier3IT extends ContextAwareTestCaseDataone {
@@ -119,11 +124,11 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 						(InputStream) dataPackage[1], (SystemMetadata) dataPackage[2]);			
 				handleFail(currentUrl,"should not be able to create an object if no certificate");
 			}
-			catch (NotAuthorized na) {
+			catch (InvalidToken na) {
 				// expected behavior
 			}
 			catch (BaseException e) {
-				handleFail(currentUrl,"Expected NotAuthorized, got: " +
+				handleFail(currentUrl,"Expected InvalidToken, got: " +
 						e.getClass().getSimpleName() + ": " 
 						+ e.getDetail_code() + ": " + e.getDescription());
 			}
@@ -138,6 +143,7 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
     /**
      * test creation of data with challenging unicode identifier.
      */
+//	@Ignore("ignoring to save time for local testing");
 	@Test
     public void testCreateData_IdentifierEncoding() 
     {
@@ -253,41 +259,53 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 			
 			try {
 				Object[] dataPackage = generateTestDataPackage("mNodeTier3TestUpdate",true);
-				SystemMetadata sysmeta = (SystemMetadata) dataPackage[2];
-				Identifier pid = mn.create(null,(Identifier) dataPackage[0],
-						(InputStream) dataPackage[1], sysmeta);
 				
-				// create the new data package to update with
-				dataPackage = generateTestDataPackage("mNodeTier3TestUpdate",true);
-				
-				// TODO: reinstated the checks when obsolete behavior refactored.
-				// update the obsoletesList
-				//	      newSysMeta.addObsolete(pid);
+				Identifier originalPid = mn.create(null,(Identifier) dataPackage[0],
+						(InputStream) dataPackage[1], (SystemMetadata) dataPackage[2]);
 
-				// update the derivedFrom list
-				//	      newSysMeta.addDerivedFrom(pid);
+				// prep for checking update time. 
+				Thread.sleep(100);
+				Date now = new Date();
+				Thread.sleep(100);
 				
-				// set the new pid on the sysmeta object
-				// TODO: should the MN do this?
-				sysmeta.setIdentifier((Identifier)dataPackage[0]);  
-				
+				// create the new data package to update with. 
+				dataPackage = generateTestDataPackage("mNodeTier3TestUpdate",true);
+				Identifier newPid = (Identifier) dataPackage[0];
 				
 				// do the update
 				Identifier updatedPid = mn.update(null,
-						pid,                          // old pid
-						(InputStream) dataPackage[1], // new data
-						(Identifier) dataPackage[0],  // new pid
-						sysmeta                       // modified sysmeta
+						originalPid,
+						(InputStream) dataPackage[1],    // new data
+						newPid,
+						(SystemMetadata) dataPackage[2]  // new sysmeta
 						);
 		
 				checkEquals(currentUrl,"pid returned from update should match that given",
-						((Identifier)dataPackage[0]).getValue(), updatedPid.getValue());
+						newPid.getValue(), updatedPid.getValue());
 
-				// get the updated system metadata
-				// SystemMetadata updatedSysMeta = mn.getSystemMetadata(null, updatedPid);
-				//	      assertTrue(updatedSysMeta.getObsolete(0).getValue().equals(pid));
-				//	      assertTrue(updatedSysMeta.getDerivedFrom(0).getValue().equals(pid));	      
-
+				// check obsoletes and obsoletedBy fields
+				 SystemMetadata updatedSysmeta = mn.getSystemMetadata(null, updatedPid);
+				 checkEquals(currentUrl,"sysmeta of updatePid should have the originalPid in obsoletes field",
+						 updatedSysmeta.getObsoletes().getValue(),originalPid.getValue());
+				 
+				 checkTrue(currentUrl, "MN should be setting the dateSystemMetadataModified property",
+						 updatedSysmeta.getDateSysMetadataModified() != null);
+				 
+				 SystemMetadata oldSysmeta = mn.getSystemMetadata(null, originalPid);
+				 checkEquals(currentUrl,"sysmeta of original Pid should have new pid in obsoletedBy field",
+						 oldSysmeta.getObsoletedBy().getValue(),updatedPid.getValue());
+				 
+				 // the old pid needs to be in a timebound listObject search
+				 ObjectList ol = mn.listObjects(null, now, null, null, null, null, null);
+				 boolean foundUpdatedSysmeta = false;
+				 for (ObjectInfo oi : ol.getObjectInfoList()) {
+					 if (oi.getIdentifier().getValue().equals(originalPid.getValue())) {
+						 foundUpdatedSysmeta = true;
+					 }
+				 }
+				 checkTrue(currentUrl,"should find original pid in time-bound listObject " +
+				 		"where start time is after original create and before update",foundUpdatedSysmeta);
+				 
 			}
 			catch (BaseException e) {
 				handleFail(currentUrl,e.getClass().getSimpleName() + 
@@ -300,6 +318,114 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 		}
 	}
 
+	
+	@Test
+	public void testUpdate_badObsoletedByInfo() {
+
+		setupClientSubject_Writer();
+
+		Iterator<Node> it = getMemberNodeIterator();
+
+		while ( it.hasNext() ) {
+
+			currentUrl = it.next().getBaseURL();
+			MNode mn = D1Client.getMN(currentUrl);
+			currentUrl = mn.getNodeBaseServiceUrl();
+			printTestHeader("testUpdate() vs. node: " + currentUrl);
+
+			
+			try {
+				Object[] dataPackage = generateTestDataPackage("mNodeTier3TestUpdate",true);
+				
+				Identifier originalPid = mn.create(null,(Identifier) dataPackage[0],
+						(InputStream) dataPackage[1], (SystemMetadata) dataPackage[2]);
+				
+				// create the new data package to update with. 
+				dataPackage = generateTestDataPackage("mNodeTier3TestUpdate",true);
+				Identifier newPid = (Identifier) dataPackage[0];
+				
+				//  incorrectly set the obsoletedBy property instead of obsoletes
+				SystemMetadata smd = (SystemMetadata) dataPackage[2];
+				smd.setObsoletedBy(originalPid);
+				// do the update
+				Identifier updatedPid = mn.update(null,
+						originalPid,
+						(InputStream) dataPackage[1],    // new data
+						newPid, smd);
+				smd = mn.getSystemMetadata(null, updatedPid);
+				if (smd.getObsoletedBy() != null) {
+					handleFail(currentUrl,"should not be able to update with obsoletedBy " +
+						"field set (for pid = " + updatedPid.getValue() + ")");		
+				}
+			}
+			catch (InvalidSystemMetadata e) {
+				// expected outcome
+			}
+			catch (BaseException e) {
+				handleFail(currentUrl,e.getClass().getSimpleName() + 
+						": " + e.getDetail_code() + ": " + e.getDescription());
+			}
+			catch(Exception e) {
+				e.printStackTrace();
+				handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+			}	
+		}
+	}
+
+	
+	@Test
+	public void testUpdate_badObsoletesInfo() {
+
+		setupClientSubject_Writer();
+
+		Iterator<Node> it = getMemberNodeIterator();
+
+		while ( it.hasNext() ) {
+
+			currentUrl = it.next().getBaseURL();
+			MNode mn = D1Client.getMN(currentUrl);
+			currentUrl = mn.getNodeBaseServiceUrl();
+			printTestHeader("testUpdate() vs. node: " + currentUrl);
+
+			
+			try {
+				Object[] dataPackage = generateTestDataPackage("mNodeTier3TestUpdate",true);
+				
+				Identifier originalPid = mn.create(null,(Identifier) dataPackage[0],
+						(InputStream) dataPackage[1], (SystemMetadata) dataPackage[2]);
+				
+				// create the new data package to update with. 
+				dataPackage = generateTestDataPackage("mNodeTier3TestUpdate",true);
+				Identifier newPid = (Identifier) dataPackage[0];
+				
+				//  incorrectly set the obsoletedBy property instead of obsoletes
+				SystemMetadata smd = (SystemMetadata) dataPackage[2];
+				Identifier phonyId = new Identifier();
+				phonyId.setValue("phonyId");
+				smd.setObsoletes(phonyId);
+				// do the update
+				Identifier updatedPid = mn.update(null,
+						originalPid,
+						(InputStream) dataPackage[1],    // new data
+						newPid, smd);
+				handleFail(currentUrl,"should not be able to update with faulty " +
+					"obsoletes information (for pid = " + updatedPid.getValue() + ")");		
+			}
+			catch (InvalidSystemMetadata e) {
+				// expected outcome
+			}
+			catch (BaseException e) {
+				handleFail(currentUrl,e.getClass().getSimpleName() + 
+						": " + e.getDetail_code() + ": " + e.getDescription());
+			}
+			catch(Exception e) {
+				e.printStackTrace();
+				handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+			}	
+		}
+	}
+	
+	
 	@Test
 	public void testUpdate_NoCert() {
 
@@ -333,24 +459,31 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 				// set the new pid on the sysmeta object
 				// TODO: should the MN do this?
 				sysmeta.setIdentifier((Identifier)dataPackage[0]);  
-				
+
 				
 				setupClientSubject_NoCert();
 				// do the update
-				Identifier updatedPid = mn.update(null,
+				try {
+					Identifier updatedPid = mn.update(null,
 						pid,                          // old pid
 						(InputStream) dataPackage[1], // new data
 						(Identifier) dataPackage[0],  // new pid
 						sysmeta                       // modified sysmeta
 						);
 		
-				handleFail(currentUrl,"should not be able to create an object if no certificate");
-			}
-			catch (NotAuthorized na) {
-				// expected behavior
+					handleFail(currentUrl,"should not be able to create an object if no certificate");
+				} 
+				catch (InvalidToken na) {
+						// expected behavior
+				}
+				catch (BaseException e) {
+					handleFail(currentUrl,"Expected InvalidToken, got: " +
+						e.getClass().getSimpleName() + ": " + e.getDetail_code() + 
+						": " + e.getDescription());
+				}
 			}
 			catch (BaseException e) {
-				handleFail(currentUrl,"Expected NotAuthorized, got: " +
+				handleFail(currentUrl,"Exception while setting up test (mn.create): " +
 						e.getClass().getSimpleName() + ": " + e.getDetail_code() + 
 						": " + e.getDescription());
 			}
@@ -390,10 +523,50 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 						((Identifier)dataPackage[0]).getValue(), deletedPid.getValue());
 				
 				InputStream is = mn.get(null, pid);
+				handleFail(currentUrl,"should not be able to get deleted item (pid = " + pid.getValue());
 			}
 			catch (BaseException e) {
 				handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
 						e.getDetail_code() + ": " + e.getDescription());
+			}
+			catch(Exception e) {
+				e.printStackTrace();
+				handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+			}	
+		}
+	}
+	
+	/**
+	 *  Test MNStorage.delete() functionality
+	 */
+	@Test
+	public void testDelete_NotFound() 
+	{
+		Iterator<Node> it = getMemberNodeIterator();
+
+		while ( it.hasNext() ) {
+			setupClientSubject_Writer();
+
+			currentUrl = it.next().getBaseURL();
+			MNode mn = D1Client.getMN(currentUrl);
+			currentUrl = mn.getNodeBaseServiceUrl();
+			printTestHeader("testDelete() vs. node: " + currentUrl);
+
+			try {
+				// try the delete
+				Identifier fakePid = new Identifier();
+				fakePid.setValue("fakeID." + ExampleUtilities.generateIdentifier());
+				Identifier deletedPid = mn.delete(null, fakePid);
+
+				handleFail(currentUrl,"member node should return NotFound if pid" +
+						"to be deleted does not exist there.");
+			}
+			catch (NotFound e) {
+				// expected outcome
+			}
+			catch (BaseException e) {
+				handleFail(currentUrl,"Expected NotFound, got: " + e.getClass().getSimpleName() +
+						": " + e.getDetail_code() + ": " + e.getDescription());
 			}
 			catch(Exception e) {
 				e.printStackTrace();
@@ -449,6 +622,78 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 		}
 
 	}
+	
+	@Ignore("cannot run test until we create a testCN certificate is generated")
+	@Test
+	public void testSystemMetadataChanged() {
+		Iterator<Node> it = getMemberNodeIterator();
+
+		while ( it.hasNext() ) {
+			setupClientSubject_Writer();
+
+			currentUrl = it.next().getBaseURL();
+			MNode mn = D1Client.getMN(currentUrl);
+			currentUrl = mn.getNodeBaseServiceUrl();
+			printTestHeader("testSystemMetadataChanged() vs. node: " + currentUrl);
+		
+			try {
+				Object[] dataPackage = generateTestDataPackage("mNodeTier3TestDelete",true);
+		
+				Identifier pid = mn.create(null,(Identifier) dataPackage[0],
+						(InputStream) dataPackage[1], (SystemMetadata) dataPackage[2]);
+
+				Date afterCreate = new Date();
+				mn.systemMetadataChanged(null, pid, 10, afterCreate);
+			}	
+			catch (BaseException e) {
+				handleFail(currentUrl,"Expected InvalidToken, got: " +
+						e.getClass().getSimpleName() + ": " + e.getDetail_code() + 
+						": " + e.getDescription());
+			}
+			catch(Exception e) {
+				e.printStackTrace();
+				handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+			}	
+		}
+	}
+	
+
+	@Test
+	public void testSystemMetadataChanged_authenticatedITKuser() {
+		Iterator<Node> it = getMemberNodeIterator();
+
+		while ( it.hasNext() ) {
+			setupClientSubject_Writer();
+
+			currentUrl = it.next().getBaseURL();
+			MNode mn = D1Client.getMN(currentUrl);
+			currentUrl = mn.getNodeBaseServiceUrl();
+			printTestHeader("testSystemMetadataChanged_authITKuser() vs. node: " + currentUrl);
+		
+			try {
+				Object[] dataPackage = generateTestDataPackage("mNodeTier3",true);
+		
+				Identifier pid = mn.create(null,(Identifier) dataPackage[0],
+						(InputStream) dataPackage[1], (SystemMetadata) dataPackage[2]);
+
+				Date afterCreate = new Date();
+				mn.systemMetadataChanged(null, pid, 10, afterCreate);
+			}
+			catch (InvalidToken e) {
+				// expected response
+			}
+			catch (BaseException e) {
+				handleFail(currentUrl,"Expected InvalidToken, got: " +
+						e.getClass().getSimpleName() + ": " + e.getDetail_code() + 
+						": " + e.getDescription());
+			}
+			catch(Exception e) {
+				e.printStackTrace();
+				handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+			}	
+		}
+	}
+	
 
 
 	/*
