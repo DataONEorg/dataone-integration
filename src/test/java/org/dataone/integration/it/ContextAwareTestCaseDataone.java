@@ -329,7 +329,10 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 	 * @throws InvalidToken 
 	 * @throws UnsupportedEncodingException 
 	 */
-	protected Identifier createTestObject(MNode mNode, Permission[] permissions) throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique, UnsupportedType, InsufficientResources, InvalidSystemMetadata, NotImplemented, InvalidRequest, UnsupportedEncodingException 
+	protected Identifier createTestObject(MNode mNode, Permission[] permissions) 
+	throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique, 
+	UnsupportedType, InsufficientResources, InvalidSystemMetadata, NotImplemented, 
+	InvalidRequest, UnsupportedEncodingException 
 	{
 		// remember who the client currently is
 		X509Certificate certificate = CertificateManager.getInstance().loadCertificate();

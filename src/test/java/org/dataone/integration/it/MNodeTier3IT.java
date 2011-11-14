@@ -73,7 +73,7 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 			printTestHeader("testCreate() vs. node: " + currentUrl);
 
 			try {
-				Object[] dataPackage = generateTestDataPackage("mNodeTier3TestCreate");				
+				Object[] dataPackage = generateTestDataPackage("mNodeTier3TestCreate",true);				
 				Identifier pid = mn.create(null,(Identifier) dataPackage[0],
 						(InputStream) dataPackage[1], (SystemMetadata) dataPackage[2]);	
 				
@@ -113,7 +113,7 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 			printTestHeader("testCreate_NoCert() vs. node: " + currentUrl);
 
 			try {
-				Object[] dataPackage = generateTestDataPackage("mNodeTier3TestCreate");
+				Object[] dataPackage = generateTestDataPackage("mNodeTier3TestCreate",true);
 				
 				Identifier pid = mn.create(null,(Identifier) dataPackage[0],
 						(InputStream) dataPackage[1], (SystemMetadata) dataPackage[2]);			
@@ -193,7 +193,7 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 					String idStringEscaped = idPrefix  + ExampleUtilities.generateIdentifier() + "_" + escapedString.get(j);
 
 
-					Object[] dataPackage = generateTestDataPackage(idPrefix);
+					Object[] dataPackage = generateTestDataPackage(idStringEscaped,false);
 
 					// rGuid is either going to be the escaped ID or the non-escaped ID
 					Identifier rGuid = null;
@@ -201,7 +201,7 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 					rGuid = mn.create(null, (Identifier) dataPackage[0], 
 							(InputStream)dataPackage[1], (SystemMetadata)dataPackage[2]);
 					System.out.println("    == returned Guid (rGuid): " + rGuid.getValue());
-					mn.setAccessPolicy(null, rGuid, buildPublicReadAccessPolicy());
+//					mn.setAccessPolicy(null, rGuid, buildPublicReadAccessPolicy());
 					checkEquals(currentUrl,"guid returned from create should equal that given",
 							((Identifier)dataPackage[0]).getValue(), rGuid.getValue());
 					InputStream data = mn.get(null, rGuid);
@@ -252,13 +252,13 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 
 			
 			try {
-				Object[] dataPackage = generateTestDataPackage("mNodeTier3TestUpdate");
+				Object[] dataPackage = generateTestDataPackage("mNodeTier3TestUpdate",true);
 				SystemMetadata sysmeta = (SystemMetadata) dataPackage[2];
 				Identifier pid = mn.create(null,(Identifier) dataPackage[0],
 						(InputStream) dataPackage[1], sysmeta);
 				
 				// create the new data package to update with
-				dataPackage = generateTestDataPackage("mNodeTier3TestUpdate");
+				dataPackage = generateTestDataPackage("mNodeTier3TestUpdate",true);
 				
 				// TODO: reinstated the checks when obsolete behavior refactored.
 				// update the obsoletesList
@@ -315,13 +315,13 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 
 			
 			try {
-				Object[] dataPackage = generateTestDataPackage("mNodeTier3TestUpdate");
+				Object[] dataPackage = generateTestDataPackage("mNodeTier3TestUpdate",true);
 				SystemMetadata sysmeta = (SystemMetadata) dataPackage[2];
 				Identifier pid = mn.create(null,(Identifier) dataPackage[0],
 						(InputStream) dataPackage[1], sysmeta);
 				
 				// create the new data package to update with
-				dataPackage = generateTestDataPackage("mNodeTier3TestUpdate");
+				dataPackage = generateTestDataPackage("mNodeTier3TestUpdate",true);
 				
 				// TODO: reinstated the checks when obsolete behavior refactored.
 				// update the obsoletesList
@@ -379,7 +379,7 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 
 			Identifier pid = null;
 			try {
-				Object[] dataPackage = generateTestDataPackage("mNodeTier3TestDelete");
+				Object[] dataPackage = generateTestDataPackage("mNodeTier3TestDelete",true);
 				pid = mn.create(null,(Identifier) dataPackage[0],
 						(InputStream) dataPackage[1], (SystemMetadata) dataPackage[2]);
 				
@@ -417,7 +417,7 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 
 			Identifier pid = null;
 			try {
-				Object[] dataPackage = generateTestDataPackage("mNodeTier3TestDelete");
+				Object[] dataPackage = generateTestDataPackage("mNodeTier3TestDelete",true);
 				pid = mn.create(null,(Identifier) dataPackage[0],
 						(InputStream) dataPackage[1], (SystemMetadata) dataPackage[2]);
 				
@@ -455,13 +455,14 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 	 * creates the identifier, data inputstream, and sysmetadata for testing purposes
 	 * the rightsHolder is set to the subject of the current certificate (user)
 	 */
-	private Object[] generateTestDataPackage(String idPrefix) 
+	private Object[] generateTestDataPackage(String idString, boolean isPrefix) 
 	throws NoSuchAlgorithmException, NotFound, InvalidRequest, IOException
 	{
-		String identifierStr = ExampleUtilities.generateIdentifier();
-		
+		if (isPrefix) {
+			idString += ExampleUtilities.generateIdentifier();
+		}
 		Identifier guid = new Identifier();
-		guid.setValue(idPrefix + "." + identifierStr);
+		guid.setValue(idString);
 
 		// get some data bytes as an input stream
 		byte[] contentBytes = "Plain text source".getBytes("UTF-8");

@@ -25,15 +25,10 @@ import static org.junit.Assert.assertTrue;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
-import java.math.BigInteger;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
 import java.util.Iterator;
-import java.util.Scanner;
-import java.util.Vector;
 
-import org.apache.commons.io.IOUtils;
 import org.dataone.client.D1Client;
 import org.dataone.client.D1Object;
 import org.dataone.client.MNode;
@@ -41,6 +36,7 @@ import org.dataone.client.auth.CertificateManager;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.InvalidRequest;
 import org.dataone.service.exceptions.InvalidToken;
+import org.dataone.service.exceptions.NotAuthorized;
 import org.dataone.service.exceptions.NotFound;
 import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Node;
@@ -48,6 +44,7 @@ import org.dataone.service.types.v1.Permission;
 import org.dataone.service.types.v1.SystemMetadata;
 import org.dataone.service.types.v1.util.AccessUtil;
 import org.dataone.service.util.Constants;
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class MNodeTier4IT extends ContextAwareTestCaseDataone {
@@ -64,9 +61,11 @@ public class MNodeTier4IT extends ContextAwareTestCaseDataone {
 	}
 	
 	/**
-	 *  Test MNReplication.getReplica() functionality
+	 *  Test MNReplication.getReplica() functionality.  This tests the normal usage
+	 *  where the caller is a MemberNode. Other callers should fail.
 	 */
-//	@Test
+	@Ignore("cannot test until testMN certificate is created")
+	@Test
 	public void testGetReplica() {
 
 		setupClientSubject_Writer();
@@ -77,37 +76,74 @@ public class MNodeTier4IT extends ContextAwareTestCaseDataone {
 			currentUrl = it.next().getBaseURL();
 			MNode mn = D1Client.getMN(currentUrl);
 			currentUrl = mn.getNodeBaseServiceUrl();
-			printTestHeader("testCreate() vs. node: " + currentUrl);
+			printTestHeader("testGetReplica() vs. node: " + currentUrl);
 
 			try {
-				Object[] dataPackage = generateTestDataPackage("mNodeTier3TestCreate");				
-				Identifier pid = mn.create(null,(Identifier) dataPackage[0],
-						(InputStream) dataPackage[1], (SystemMetadata) dataPackage[2]);	
-				
-				checkEquals(currentUrl,"pid of created object should equal that given",
-						((Identifier)dataPackage[0]).getValue(), pid.getValue());
-				
-				InputStream theDataObject = mn.get(null,pid);
-				String objectData = IOUtils.toString(theDataObject);
-				checkTrue(currentUrl,"should get back an object containing submitted text:" + objectData,
-						objectData.contains("Plain text source"));
+				Identifier pid = procureTestObject(mn, new Permission[] {Permission.READ});			
+				InputStream is = mn.getReplica(null, pid);
+				checkTrue(currentUrl,"get() returns an objectStream", is != null);
 			}
-			catch (BaseException e) {
-				handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
-						e.getDetail_code() + ": " + e.getDescription());
-			}
-			catch(Exception e) {
-				e.printStackTrace();
-				handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
-			}	
+			catch (IndexOutOfBoundsException e) {
+    			handleFail(currentUrl,"No Objects available to test against");
+    		}
+    		catch (BaseException e) {
+    			handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
+    					e.getDetail_code() + ":: " + e.getDescription());
+    		}
+    		catch(Exception e) {
+    			e.printStackTrace();
+    			handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+    		}
 		}
 	}
-
+	
+	
 	/**
-	 *  Test MN.Replicate() functionality
+	 *  Test MNReplication.getReplica() functionality.  This tests for expected 
+	 *  exception when a non-MemberNode client calls the method.
 	 */
-//	@Test
-	public void testReplicate() {
+	@Test
+	public void testGetReplica_AuthenticatedITKUser() {
+
+		setupClientSubject_Writer();
+
+		Iterator<Node> it = getMemberNodeIterator();  	
+
+		while (it.hasNext()) {
+			currentUrl = it.next().getBaseURL();
+			MNode mn = D1Client.getMN(currentUrl);
+			currentUrl = mn.getNodeBaseServiceUrl();
+			printTestHeader("testGetReplica_AuthenticateITKUser() vs. node: " + currentUrl);
+
+			try {
+				Identifier pid = procureTestObject(mn, new Permission[] {Permission.READ});			
+				InputStream is = mn.getReplica(null, pid);
+				checkTrue(currentUrl,"get() returns an objectStream", is != null);
+			}
+			catch (IndexOutOfBoundsException e) {
+    			handleFail(currentUrl,"No Objects available to test against");
+    		}
+			catch (InvalidToken e) {
+				// expected behavior
+			}
+    		catch (BaseException e) {
+    			handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
+    					e.getDetail_code() + ":: " + e.getDescription());
+    		}
+    		catch(Exception e) {
+    			e.printStackTrace();
+    			handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+    		}
+		}
+	}
+	
+	
+	/**
+	 *  Test MNReplication.getReplica() functionality.  Normal usage is the caller
+	 *  being another MemberNode.  Others should fail.  This tests the latter case.   
+	 */
+	@Test
+	public void testGetReplica_NoCertificate() {
 
 		setupClientSubject_NoCert();
 
@@ -117,20 +153,63 @@ public class MNodeTier4IT extends ContextAwareTestCaseDataone {
 			currentUrl = it.next().getBaseURL();
 			MNode mn = D1Client.getMN(currentUrl);
 			currentUrl = mn.getNodeBaseServiceUrl();
-			printTestHeader("testCreate_NoCert() vs. node: " + currentUrl);
+			printTestHeader("testGetReplica_NoCert() vs. node: " + currentUrl);
 
 			try {
-				Object[] dataPackage = generateTestDataPackage("mNodeTier3TestCreate");
-				
-				Identifier pid = mn.create(null,(Identifier) dataPackage[0],
-						(InputStream) dataPackage[1], (SystemMetadata) dataPackage[2]);			
-				handleFail(currentUrl,"should not be able to create an object if no certificate");
+				Identifier pid = procureTestObject(mn, new Permission[] {Permission.READ});			
+				InputStream is = mn.getReplica(null, pid);
+				handleFail(currentUrl,"with no client certificate, getReplica() should throw exception");
 			}
-			catch (InvalidToken na) {
+			catch (IndexOutOfBoundsException e) {
+    			handleFail(currentUrl,"No Objects available to test against");
+    		}
+			catch (InvalidToken e) {
+				// expected behavior
+			}
+    		catch (BaseException e) {
+    			handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
+    					e.getDetail_code() + ":: " + e.getDescription());
+    		}
+    		catch(Exception e) {
+    			e.printStackTrace();
+    			handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+    		}
+		}
+	}
+
+	@Ignore("test not implemented")
+	@Test
+	public void testReplicate() {
+		
+	}
+	
+
+	/**
+	 *  Test MN.Replicate() functionality
+	 */
+	@Test
+	public void testReplicate_NoCertificate() {
+
+		setupClientSubject_NoCert();
+
+		Iterator<Node> it = getMemberNodeIterator();  	
+
+		while (it.hasNext()) {
+			currentUrl = it.next().getBaseURL();
+			MNode mn = D1Client.getMN(currentUrl);
+			currentUrl = mn.getNodeBaseServiceUrl();
+			printTestHeader("testReplicate_NoCertificate vs. node: " + currentUrl);
+
+			try {
+				Object[] dataPackage = generateTestDataPackage("mNodeTier4");				
+				mn.replicate(null, (SystemMetadata) dataPackage[2], null);	
+				handleFail(currentUrl,"should not be able to initiate replication without a certificate");
+			}
+			catch (NotAuthorized na) {
 				// expected behavior
 			}
 			catch (BaseException e) {
-				handleFail(currentUrl,"Expected InvalidToken, got: " +
+				handleFail(currentUrl,"Expected NotAuthorized, got: " +
 						e.getClass().getSimpleName() + ": " + 
 						e.getDetail_code() + ": " + e.getDescription());
 			}
@@ -140,6 +219,45 @@ public class MNodeTier4IT extends ContextAwareTestCaseDataone {
 			}	
 		}
 	}
+	
+	
+	/**
+	 *  Test MN.Replicate() functionality
+	 */
+	@Ignore("need to create testCN certificate to run this subtest")
+	@Test
+	public void testReplicate_FaultyNodeReference() {
+
+//		setupClientSubject_CN();
+
+		Iterator<Node> it = getMemberNodeIterator();  	
+
+		while (it.hasNext()) {
+			currentUrl = it.next().getBaseURL();
+			MNode mn = D1Client.getMN(currentUrl);
+			currentUrl = mn.getNodeBaseServiceUrl();
+			printTestHeader("testReplicate_NoCertificate vs. node: " + currentUrl);
+
+			try {
+				Object[] dataPackage = generateTestDataPackage("mNodeTier4");				
+				mn.replicate(null, (SystemMetadata) dataPackage[2], null);	
+				handleFail(currentUrl,"replicate call should not succeed with faulty node reference");
+			}
+			catch (InvalidRequest na) {
+				// expected behavior ??
+			}
+			catch (BaseException e) {
+				handleFail(currentUrl,"Expected InvalidRequest, got: " +
+						e.getClass().getSimpleName() + ": " + 
+						e.getDetail_code() + ": " + e.getDescription());
+			}
+			catch(Exception e) {
+				e.printStackTrace();
+				handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+			}	
+		}
+	}
+	
 	
 	
 	/*
