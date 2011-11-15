@@ -12,8 +12,13 @@ import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 import java.net.URL;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.Vector;
 import java.util.concurrent.Callable;
 
@@ -267,35 +272,77 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 	 * create one (not all MN's will allow this).
 	 * @param  mNode - the MNode object from where to procure the object Identifier
 	 * @param  permission - the permission-level of the object retrieved needed
+
 	 * @return - Identifier for the readable object.
 	 * @throws - IndexOutOfBoundsException  - when can't procure an object Identifier
 	 */
 	protected Identifier procureTestObject(MNode mNode, Permission[] permissions) 
 	{
+		return procureTestObject(mNode,permissions,null);
+	}
+	
+	/**
+	 * get an existing object from the member node, if none available, try to 
+	 * create one (not all MN's will allow this).
+	 * @param  mNode - the MNode object from where to procure the object Identifier
+	 * @param  permission - the permission-level of the object retrieved needed
+	 * @param  subjectFilter - if not null, means the permissions specified have to be 
+	 * 						   explicitly assigned in the systemmetadata accessPolicy
+	 * 						   to the provided subject
+	 * @return - Identifier for the readable object.
+	 * @throws - IndexOutOfBoundsException  - when can't procure an object Identifier
+	 */
+	protected Identifier procureTestObject(MNode mNode, Permission[] permissions, Subject subjectFilter) 
+	{
 		Identifier id = null;
+		List permissionsList = Arrays.asList(permissions);
 		try {
 			ObjectList ol = mNode.listObjects(null);
 			if (ol.getTotal() > 0) {
 				// found one
-				if (permissions.length == 1 && permissions[0] == Permission.READ) {
-					id = ol.getObjectInfo(0).getIdentifier();
+				if (subjectFilter == null) {
+					if (permissions.length == 1 && permissions[0] == Permission.READ) 
+					{
+						// listObjects implied READ permission for current user
+						id = ol.getObjectInfo(0).getIdentifier();
+					
+					} else {
+						// check permissions one by one on returned list
+						for(int i=0; i<= ol.sizeObjectInfoList(); i++) {
+							id = ol.getObjectInfo(i).getIdentifier();
+							try {
+								// check all permissions 
+								for (Permission p : permissions) {
+									// exception moves us on to next identifier
+									mNode.isAuthorized(null,id, p);
+								}
+								// only reach here if break not called, and only break on success
+								break;  // the outer for loop
+							} catch (NotAuthorized na) {
+							// effectively break out of the inner for loop (give up on current pid)
+							}
+							id = null;
+						}
+					}
 				} else {
+					// pull the sysmeta and examine the accessPolicy
 					for(int i=0; i<= ol.sizeObjectInfoList(); i++) {
 						id = ol.getObjectInfo(i).getIdentifier();
-						// check all permissions 
-						try {
-							for (Permission p : permissions) {
-								mNode.isAuthorized(null,id, p);
+						SystemMetadata smd = mNode.getSystemMetadata(null, id);
+						HashMap<Subject,Set<Permission>> permMap = AccessUtil.getPermissionMap(smd.getAccessPolicy());
+						if (permMap.containsKey(subjectFilter)) {
+							// this readable object contains the subject of interest	
+							if (permMap.get(subjectFilter).containsAll(permissionsList)) {
+								break; 							
 							}
-							break;  // the outer for loop
-						} catch (NotAuthorized na) {
-							// effectively break out of the inner for loop (give up on current pid)
-						}
+						} 
+						// only reach here if break not called, and only break on success
 						id = null;
 					}
 				}
-			} else {
-				id = createTestObject(mNode,permissions);
+			}
+			if (id == null) {
+				id = createTestObject(mNode, permissions, subjectFilter);
 			}
 		} 
 		catch (BaseException e) {
@@ -329,7 +376,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 	 * @throws InvalidToken 
 	 * @throws UnsupportedEncodingException 
 	 */
-	protected Identifier createTestObject(MNode mNode, Permission[] permissions) 
+	protected Identifier createTestObject(MNode mNode, Permission[] permissions, Subject subject) 
 	throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique, 
 	UnsupportedType, InsufficientResources, InvalidSystemMetadata, NotImplemented, 
 	InvalidRequest, UnsupportedEncodingException 

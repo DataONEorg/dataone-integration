@@ -371,61 +371,57 @@ public class MNodeTier2IT extends ContextAwareTestCaseDataone  {
 
     
 //    @Test
-	public void testSetAccess_Public() throws SecurityException, NoSuchMethodException 
+	public void testIsAuthorized_PublicSymbolicPrincipal() throws SecurityException, NoSuchMethodException 
     {	
-    	runSetAccessForSymbolicPrincipal(org.dataone.service.util.Constants.SUBJECT_PUBLIC,
-    			this.getClass().getMethod("setupClientSubject_NoCert"));
+    	runIsAuthorizedForSymbolicPrincipal(org.dataone.service.util.Constants.SUBJECT_PUBLIC,
+    			Permission.READ, this.getClass().getMethod("setupClientSubject_NoCert"));
     }
     
 //    @Test
-	public void testSetAccess_AuthenticatedUser() throws SecurityException, NoSuchMethodException 
+	public void testIsAuthorized_AuthenticatedUserSymbolicPrincipal() throws SecurityException, NoSuchMethodException 
     {	
-    	runSetAccessForSymbolicPrincipal(org.dataone.service.util.Constants.SUBJECT_AUTHENTICATED_USER,
-    			ContextAwareTestCaseDataone.class.getMethod("setupClientSubject_Reader"));
+    	runIsAuthorizedForSymbolicPrincipal(org.dataone.service.util.Constants.SUBJECT_AUTHENTICATED_USER,
+    			Permission.READ, this.getClass().getMethod("setupClientSubject_Reader"));
     }
     
 //    @Test
-	public void testSetAccess_VerifiedUser() throws SecurityException, NoSuchMethodException 
+	public void testIsAuthorized_VerifiedUserSymbolicPrincipal() throws SecurityException, NoSuchMethodException 
     {	
-    	runSetAccessForSymbolicPrincipal(org.dataone.service.util.Constants.SUBJECT_VERIFIED_USER,
-    			this.getClass().getMethod("setupClientSubject_Reader"));
+    	runIsAuthorizedForSymbolicPrincipal(org.dataone.service.util.Constants.SUBJECT_VERIFIED_USER,
+    			Permission.READ, this.getClass().getMethod("setupClientSubject_Reader"));
     }
-    
     
     /** 
-     * Implementation for setAccess Tests for various types of users
-     * @param subject - the subject that 
+     * Implementation for isAuthorized Tests for various types of users
+     * @param subject - the subject
      * @param clientSetupMethod
      */
-	private void runSetAccessForSymbolicPrincipal(String subject, Method clientSetupMethod)
+	private void runIsAuthorizedForSymbolicPrincipal(String subject, Permission
+			permission, Method clientSetupMethod)
 	{
     Iterator<Node> it = getMemberNodeIterator();
 		while (it.hasNext()) {
 			currentUrl = it.next().getBaseURL();
 			MNode mn = D1Client.getMN(currentUrl);
 			currentUrl = mn.getNodeBaseServiceUrl();
-			printTestHeader("testSetAccess_" + subject + "() vs. node: " + currentUrl);
+			printTestHeader("testIsAuthorized_" + subject + "() vs. node: " + currentUrl);
 
 			try {
-				setupClientSubject_Writer();
-				Identifier changeableObject = procureTestObject(mn, 
-						new Permission[] {Permission.READ, Permission.WRITE, Permission.CHANGE_PERMISSION}); //getOrCreateChangeableObject(mn);
-				if (changeableObject != null)
-				{
-					log.info("clear the AccessPolicy");
-					mn.setAccessPolicy(null, changeableObject, new AccessPolicy());
-
-					// ensure subject under test isn't authorized with get, isAuthorized
-					// prior to setting up the symbolic principal in accessPolicy
-					clientSetupMethod.invoke(null, null);// setupClientSubject_Reader();				
+				
+				clientSetupMethod.invoke(null, null);	
+				//setupClientSubject_Writer();
+				Identifier pid = procureTestObject(mn, 
+						new Permission[] {Permission.READ}); //getOrCreateChangeableObject(mn);
+				if (pid != null)
+				{					
 					try {
-						mn.isAuthorized(null, changeableObject, Permission.READ);
+						mn.isAuthorized(null, pid, Permission.READ);
 						handleFail(currentUrl,"1. isAuthorized by " + subject + " should fail");
 					} catch (NotAuthorized na) {
 						// should fail
 					}
 					try {
-						mn.get(null, changeableObject);
+						mn.get(null, pid);
 						handleFail(currentUrl,"2. getting the object as " + subject + " should fail");
 					} catch (NotAuthorized na) {
 						// this is what we want
@@ -433,7 +429,7 @@ public class MNodeTier2IT extends ContextAwareTestCaseDataone  {
 
 					try {
 						setupClientSubject_Writer();
-						mn.setAccessPolicy(null, changeableObject, 
+						mn.setAccessPolicy(null, pid, 
 								AccessUtil.createSingleRuleAccessPolicy(
 										new String[]{subject},
 										new Permission[]{Permission.READ}));
@@ -448,16 +444,16 @@ public class MNodeTier2IT extends ContextAwareTestCaseDataone  {
 					log.info("trying isAuthorized as " + clientSetupMethod.getName() + " (as " + subject + ")");
 					clientSetupMethod.invoke(null,null);  //ClientSubject_NoCert();			
 					try {
-						mn.isAuthorized(null, changeableObject, Permission.READ);
+						mn.isAuthorized(null, pid, Permission.READ);
 					} catch (NotAuthorized na) {
 						handleFail(currentUrl,"4. " + subject + " should be authorized to read this pid '" 
-								+ changeableObject.getValue() + "'\n" + na.getClass().getSimpleName() + ": "
+								+ pid.getValue() + "'\n" + na.getClass().getSimpleName() + ": "
 								+ na.getDetail_code() + ": " + na.getDescription());
 					}
 
 					log.info("trying get as " + clientSetupMethod.getName() + " (as " + subject + ")");
 					try {
-						mn.get(null, changeableObject);
+						mn.get(null, pid);
 					} catch (NotAuthorized na) {
 						handleFail(currentUrl,"5. " + subject + " should now be able to get the object");
 					}
@@ -475,5 +471,86 @@ public class MNodeTier2IT extends ContextAwareTestCaseDataone  {
 			}
 			
 		}
-	}
+	}   
+//    /** 
+//     * Implementation for setAccess Tests for various types of users
+//     * @param subject - the subject that 
+//     * @param clientSetupMethod
+//     */
+//	private void runSetAccessForSymbolicPrincipal(String subject, Method clientSetupMethod)
+//	{
+//    Iterator<Node> it = getMemberNodeIterator();
+//		while (it.hasNext()) {
+//			currentUrl = it.next().getBaseURL();
+//			MNode mn = D1Client.getMN(currentUrl);
+//			printTestHeader("testSetAccess_" + subject + "() vs. node: " + currentUrl);
+//
+//			try {
+//				setupClientSubject_Writer();
+//				Identifier changeableObject = procureTestObject(mn, 
+//						new Permission[] {Permission.READ, Permission.WRITE, Permission.CHANGE_PERMISSION}); //getOrCreateChangeableObject(mn);
+//				if (changeableObject != null)
+//				{
+//					log.info("clear the AccessPolicy");
+//					mn.setAccessPolicy(null, changeableObject, new AccessPolicy());
+//
+//					// ensure subject under test isn't authorized with get, isAuthorized
+//					// prior to setting up the symbolic principal in accessPolicy
+//					clientSetupMethod.invoke(null, null);// setupClientSubject_Reader();				
+//					try {
+//						mn.isAuthorized(null, changeableObject, Permission.READ);
+//						handleFail(currentUrl,"1. isAuthorized by " + subject + " should fail");
+//					} catch (NotAuthorized na) {
+//						// should fail
+//					}
+//					try {
+//						mn.get(null, changeableObject);
+//						handleFail(currentUrl,"2. getting the object as " + subject + " should fail");
+//					} catch (NotAuthorized na) {
+//						// this is what we want
+//					}
+//
+//					try {
+//						setupClientSubject_Writer();
+//						mn.setAccessPolicy(null, changeableObject, 
+//								AccessUtil.createSingleRuleAccessPolicy(
+//										new String[]{subject},
+//										new Permission[]{Permission.READ}));
+//					}
+//					catch (BaseException e) {
+//						handleFail(currentUrl, "3. testWriter should be able to set the access policy, " +
+//								"but got: " + e.getClass().getSimpleName() + ": " + e.getDescription());
+//					}
+//
+//					// test for success
+//					log.info("trying isAuthorized as " + clientSetupMethod.getName() + " (as " + subject + ")");
+//					clientSetupMethod.invoke(null,null);  //ClientSubject_NoCert();			
+//					try {
+//						mn.isAuthorized(null, changeableObject, Permission.READ);
+//					} catch (NotAuthorized na) {
+//						handleFail(currentUrl,"4. " + subject + " should be authorized to read this pid '" 
+//								+ changeableObject.getValue() + "'\n" + na.getClass().getSimpleName() + ": "
+//								+ na.getDetail_code() + ": " + na.getDescription());
+//					}
+//
+//					log.info("trying get as " + clientSetupMethod.getName() + " (as " + subject + ")");
+//					try {
+//						mn.get(null, changeableObject);
+//					} catch (NotAuthorized na) {
+//						handleFail(currentUrl,"5. " + subject + " should now be able to get the object");
+//					}
+//				} else {
+//					handleFail(currentUrl,"No object available to setAccessPolicy with");
+//				}
+//			} catch (IndexOutOfBoundsException e) {
+//				handleFail(currentUrl,"No Objects available to test against");
+//			} catch (BaseException e) {
+//				handleFail(currentUrl, e.getClass().getSimpleName() + ": " + e.getDescription());
+//			} catch (Exception e) {
+//				e.printStackTrace();
+//				handleFail(currentUrl, e.getClass().getName() + ": " + e.getMessage());
+//			}
+//			
+//		}
+//	}
 }
