@@ -11,8 +11,34 @@
 		</style>
 	</head>
 	<body>
+	<%
+		String version = (String)request.getAttribute("d1_version");
+		String revision = (String)request.getAttribute("d1_revision");
+		String buildTime = (String)request.getAttribute("d1_buildTime");
+		String sourceBranch = (String)request.getAttribute("d1_sourceBranch");
+	%>
 		<div style="background: #ccc; padding: 30px; font-weight: bold;">DataONE Member Node Web
-			Service Tests</div>
+			Service Tests:</div>
+		<div class="padded">
+			<table>
+				<tr>
+					<td>Test Version:</td>
+					<td><%=version%></td>
+				</tr>
+				<tr>
+					<td>Source Branch:</td>
+					<td><%=sourceBranch%></td>
+				</tr>
+				<tr>
+					<td>Test Revision:</td>
+					<td><%=revision%></td>
+				</tr>
+				<tr>
+					<td>Build Time:</td>
+					<td><%=buildTime%></td>
+				</tr>
+			</table>
+		</div>
 		<div class="padded">This service runs basic tests to check the correctness of a DataONE
 			Member Node Web Services interface. Tier 4 methods are currently excluded, as they
 			require interaction with 2 other nodes.  (Tests for Tier 4 methods will necessitate

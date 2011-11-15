@@ -10,4 +10,15 @@
   <servlet-name>D1TestRunner</servlet-name>
   <url-pattern>/mntester_</url-pattern>
  </servlet-mapping>
+ 
+ <servlet>
+  <servlet-name>D1TestIndex</servlet-name>
+  <servlet-class>org.dataone.integration.webTest.TestRunnerIndexServlet</servlet-class>
+ </servlet>
+ <servlet-mapping>
+  <servlet-name>D1TestIndex</servlet-name>
+  <url-pattern>/index.html</url-pattern>
+ </servlet-mapping> 
+ 
+ 
 </web-app>
