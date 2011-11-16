@@ -78,7 +78,7 @@ public class MNodeTier4IT extends ContextAwareTestCaseDataone {
 			printTestHeader("testGetReplica() vs. node: " + currentUrl);
 
 			try {
-				Identifier pid = procureTestObject(mn, new Permission[] {Permission.READ});			
+				Identifier pid = procureTestObject(mn, null, new Permission[] {Permission.READ});			
 				InputStream is = mn.getReplica(null, pid);
 				checkTrue(currentUrl,"get() returns an objectStream", is != null);
 			}
@@ -115,7 +115,7 @@ public class MNodeTier4IT extends ContextAwareTestCaseDataone {
 			printTestHeader("testGetReplica_AuthenticateITKUser() vs. node: " + currentUrl);
 
 			try {
-				Identifier pid = procureTestObject(mn, new Permission[] {Permission.READ});			
+				Identifier pid = procureTestObject(mn, null, new Permission[] {Permission.READ});			
 				InputStream is = mn.getReplica(null, pid);
 				checkTrue(currentUrl,"get() returns an objectStream", is != null);
 			}
@@ -155,7 +155,7 @@ public class MNodeTier4IT extends ContextAwareTestCaseDataone {
 			printTestHeader("testGetReplica_NoCert() vs. node: " + currentUrl);
 
 			try {
-				Identifier pid = procureTestObject(mn, new Permission[] {Permission.READ});			
+				Identifier pid = procureTestObject(mn, null, new Permission[] {Permission.READ});			
 				InputStream is = mn.getReplica(null, pid);
 				handleFail(currentUrl,"with no client certificate, getReplica() should throw exception");
 			}
