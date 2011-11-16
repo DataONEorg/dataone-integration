@@ -40,6 +40,7 @@ import org.dataone.service.exceptions.NotAuthorized;
 import org.dataone.service.exceptions.NotFound;
 import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Node;
+import org.dataone.service.types.v1.NodeReference;
 import org.dataone.service.types.v1.Permission;
 import org.dataone.service.types.v1.SystemMetadata;
 import org.dataone.service.types.v1.util.AccessUtil;
@@ -198,9 +199,11 @@ public class MNodeTier4IT extends ContextAwareTestCaseDataone {
 			currentUrl = mn.getNodeBaseServiceUrl();
 			printTestHeader("testReplicate_NoCertificate vs. node: " + currentUrl);
 
+			NodeReference sourceNode = new NodeReference();
+			sourceNode.setValue("bad");
 			try {
 				Object[] dataPackage = generateTestDataPackage("mNodeTier4", true);				
-				mn.replicate(null, (SystemMetadata) dataPackage[2], null);	
+				mn.replicate(null, (SystemMetadata) dataPackage[2], sourceNode);	
 				handleFail(currentUrl,"should not be able to initiate replication without a certificate");
 			}
 			catch (NotAuthorized na) {
@@ -236,9 +239,11 @@ public class MNodeTier4IT extends ContextAwareTestCaseDataone {
 			currentUrl = mn.getNodeBaseServiceUrl();
 			printTestHeader("testReplicate_NoCertificate vs. node: " + currentUrl);
 
+			NodeReference sourceNode = new NodeReference();
+			sourceNode.setValue("bad");
 			try {
-				Object[] dataPackage = generateTestDataPackage("mNodeTier4", true);				
-				mn.replicate(null, (SystemMetadata) dataPackage[2], null);	
+				Object[] dataPackage = generateTestDataPackage("mNodeTier4", true);
+				mn.replicate(null, (SystemMetadata) dataPackage[2], sourceNode);	
 				handleFail(currentUrl,"replicate call should not succeed with faulty node reference");
 			}
 			catch (InvalidRequest na) {
