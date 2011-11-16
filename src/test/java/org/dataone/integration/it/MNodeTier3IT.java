@@ -56,8 +56,6 @@ import org.junit.Test;
 
 public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 
-	private static final String format_text_plain = "text/plain";
-
 	private  String currentUrl;
 	private String idPrefix = "testMNodeTier3:";
 
@@ -696,52 +694,6 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 				handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
 			}	
 		}
-	}
-	
-
-
-	/*
-	 * creates the identifier, data inputstream, and sysmetadata for testing purposes
-	 * the rightsHolder is set to the subject of the current certificate (user)
-	 */
-	private Object[] generateTestDataPackage(String idString, boolean isPrefix) 
-	throws NoSuchAlgorithmException, NotFound, InvalidRequest, IOException
-	{
-		if (isPrefix) {
-			idString += ExampleUtilities.generateIdentifier();
-		}
-		Identifier guid = new Identifier();
-		guid.setValue(idString);
-
-		// get some data bytes as an input stream
-		byte[] contentBytes = "Plain text source".getBytes("UTF-8");
-
-		// figure out who we are
-		String ownerX500 = null;
-		try {
-			X509Certificate certificate = CertificateManager.getInstance().loadCertificate();			
-			if (certificate != null) {
-				ownerX500 = CertificateManager.getInstance().getSubjectDN(certificate);
-//				sysMeta.getRightsHolder().setValue(ownerX500);
-//				sysMeta.getSubmitter().setValue(ownerX500);
-			} else {
-				ownerX500 = "MNodeTeir3ITunknownCert";
-			}
-		} catch (Exception e) {
-			ownerX500 = "MNodeTier3ITunknownCert";
-		}
-			
-		D1Object d1o = new D1Object(guid, contentBytes, format_text_plain, ownerX500, "authNode");
-		SystemMetadata sysMeta = d1o.getSystemMetadata();
-		
-		// match the submitter as the cert DN 
-		
-		sysMeta.setAccessPolicy(AccessUtil.createSingleRuleAccessPolicy(
-				new String[] {Constants.SUBJECT_PUBLIC},
-				new Permission[] {Permission.READ}));
-		
-		ByteArrayInputStream bis = new ByteArrayInputStream(d1o.getData());
-		return new Object[]{guid,bis,sysMeta};
 	}
 	
 	

@@ -49,8 +49,6 @@ import org.junit.Test;
 
 public class MNodeTier4IT extends ContextAwareTestCaseDataone {
 
-	private static final String format_text_plain = "text/plain";
-
 	private  String currentUrl;
 	private String idPrefix = "testMNodeTier4:";
 
@@ -201,7 +199,7 @@ public class MNodeTier4IT extends ContextAwareTestCaseDataone {
 			printTestHeader("testReplicate_NoCertificate vs. node: " + currentUrl);
 
 			try {
-				Object[] dataPackage = generateTestDataPackage("mNodeTier4");				
+				Object[] dataPackage = generateTestDataPackage("mNodeTier4", true);				
 				mn.replicate(null, (SystemMetadata) dataPackage[2], null);	
 				handleFail(currentUrl,"should not be able to initiate replication without a certificate");
 			}
@@ -239,7 +237,7 @@ public class MNodeTier4IT extends ContextAwareTestCaseDataone {
 			printTestHeader("testReplicate_NoCertificate vs. node: " + currentUrl);
 
 			try {
-				Object[] dataPackage = generateTestDataPackage("mNodeTier4");				
+				Object[] dataPackage = generateTestDataPackage("mNodeTier4", true);				
 				mn.replicate(null, (SystemMetadata) dataPackage[2], null);	
 				handleFail(currentUrl,"replicate call should not succeed with faulty node reference");
 			}
@@ -256,49 +254,6 @@ public class MNodeTier4IT extends ContextAwareTestCaseDataone {
 				handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
 			}	
 		}
-	}
-	
-	
-	
-	/*
-	 * creates the identifier, data inputstream, and sysmetadata for testing purposes
-	 * the rightsHolder is set to the subject of the current certificate (user)
-	 */
-	private Object[] generateTestDataPackage(String idPrefix) 
-	throws NoSuchAlgorithmException, NotFound, InvalidRequest, IOException
-	{
-		String identifierStr = ExampleUtilities.generateIdentifier();
-		
-		Identifier guid = new Identifier();
-		guid.setValue(idPrefix + "." + identifierStr);
-
-		// get some data bytes as an input stream
-		byte[] contentBytes = "Plain text source".getBytes("UTF-8");
-
-		// figure out who we are
-		String ownerX500 = null;
-		try {
-			X509Certificate certificate = CertificateManager.getInstance().loadCertificate();			
-			if (certificate != null) {
-				ownerX500 = CertificateManager.getInstance().getSubjectDN(certificate);
-//				sysMeta.getRightsHolder().setValue(ownerX500);
-//				sysMeta.getSubmitter().setValue(ownerX500);
-			}
-		} catch (Exception e) {
-			ownerX500 = "MNodeTier3ITunknownCert";
-		}
-			
-		D1Object d1o = new D1Object(guid, contentBytes, format_text_plain, ownerX500, "authNode");
-		SystemMetadata sysMeta = d1o.getSystemMetadata();
-		
-		// match the submitter as the cert DN 
-		
-		sysMeta.setAccessPolicy(AccessUtil.createSingleRuleAccessPolicy(
-				new String[] {Constants.SUBJECT_PUBLIC},
-				new Permission[] {Permission.READ}));
-		
-		ByteArrayInputStream bis = new ByteArrayInputStream(d1o.getData());
-		return new Object[]{guid,bis,sysMeta};
 	}
 	
 	@Override

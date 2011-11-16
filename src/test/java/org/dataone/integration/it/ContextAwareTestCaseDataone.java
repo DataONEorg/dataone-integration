@@ -7,14 +7,14 @@ import static org.junit.Assert.fail;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 import java.net.URL;
+import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -26,6 +26,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.dataone.client.CNode;
 import org.dataone.client.D1Client;
+import org.dataone.client.D1Object;
 import org.dataone.client.MNode;
 import org.dataone.client.auth.CertificateManager;
 import org.dataone.configuration.Settings;
@@ -37,6 +38,7 @@ import org.dataone.service.exceptions.InvalidRequest;
 import org.dataone.service.exceptions.InvalidSystemMetadata;
 import org.dataone.service.exceptions.InvalidToken;
 import org.dataone.service.exceptions.NotAuthorized;
+import org.dataone.service.exceptions.NotFound;
 import org.dataone.service.exceptions.NotImplemented;
 import org.dataone.service.exceptions.ServiceFailure;
 import org.dataone.service.exceptions.UnsupportedType;
@@ -53,7 +55,6 @@ import org.dataone.service.types.v1.SystemMetadata;
 import org.dataone.service.types.v1.util.AccessUtil;
 import org.dataone.service.util.Constants;
 import org.dataone.service.util.TypeMarshaller;
-import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.rules.ErrorCollector;
@@ -74,6 +75,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 	public static final String QUERYTYPE_SOLR = "SOLR";
 	public static final String CHECKSUM_ALGORITHM = "MD5";
 	
+	protected static final String format_text_plain = "text/plain";
 	
 	private  boolean alreadySetup = false;
 	
@@ -264,6 +266,48 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 		subject.setValue(subjectDN);
 		log.info("client setup as Subject: " + subjectDN);
 		return subject;
+	}
+	
+	/**
+	 * creates the identifier, data inputstream, and sysmetadata for testing purposes
+	 * the rightsHolder is set to the subject of the current certificate (user)
+	 */
+	protected Object[] generateTestDataPackage(String idString, boolean isPrefix) 
+	throws NoSuchAlgorithmException, NotFound, InvalidRequest, IOException
+	{
+		if (isPrefix) {
+			idString += ExampleUtilities.generateIdentifier();
+		}
+		Identifier guid = new Identifier();
+		guid.setValue(idString);
+
+		// get some data bytes as an input stream
+		byte[] contentBytes = "Plain text source".getBytes("UTF-8");
+
+		// figure out who we are
+		String ownerX500 = idString + "_unknownCert";
+		try {
+			X509Certificate certificate = CertificateManager.getInstance().loadCertificate();			
+			if (certificate != null) {
+				ownerX500 = CertificateManager.getInstance().getSubjectDN(certificate);
+//				sysMeta.getRightsHolder().setValue(ownerX500);
+//				sysMeta.getSubmitter().setValue(ownerX500);
+			}
+		} catch (Exception e) {
+			// ignore
+		}
+			
+		D1Object d1o = new D1Object(guid, contentBytes, format_text_plain, ownerX500, "authNode");
+		SystemMetadata sysMeta = d1o.getSystemMetadata();
+		
+		// match the submitter as the cert DN 
+		
+		sysMeta.setAccessPolicy(AccessUtil.createSingleRuleAccessPolicy(
+				new String[] {Constants.SUBJECT_PUBLIC},
+				new Permission[] {Permission.READ}));
+		
+		ByteArrayInputStream bis = new ByteArrayInputStream(d1o.getData());
+		return new Object[]{guid,bis,sysMeta};
 	}
 	
 	
