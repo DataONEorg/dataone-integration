@@ -681,7 +681,7 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 				Date afterCreate = new Date();
 				mn.systemMetadataChanged(null, pid, 10, afterCreate);
 			}
-			catch (InvalidToken e) {
+			catch (NotAuthorized e) {
 				// expected response
 			}
 			catch (BaseException e) {
