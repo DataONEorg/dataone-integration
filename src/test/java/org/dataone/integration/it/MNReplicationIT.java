@@ -45,7 +45,6 @@ import org.dataone.service.types.v1.NodeReference;
 import org.dataone.service.types.v1.Permission;
 import org.dataone.service.types.v1.Replica;
 import org.dataone.service.types.v1.ReplicationPolicy;
-import org.dataone.service.types.v1.Session;
 import org.dataone.service.types.v1.Subject;
 import org.dataone.service.types.v1.SystemMetadata;
 import org.junit.Test;
@@ -54,7 +53,7 @@ public class MNReplicationIT extends ContextAwareTestCaseDataone {
 	
 	private static final String format_text_plain = "text/plain";
 
-	private static final long replicationDelay = 240000; //how many minutes? 4?
+	private static final long replicationDelay = 0; //240000; //how many minutes? 4?
 
 	private Subject subject;
 	private String currentUrl;
@@ -138,7 +137,7 @@ public class MNReplicationIT extends ContextAwareTestCaseDataone {
 
 		// the subject nad certificate
 		subject = setupClientSubject_Writer();
-		System.out.println("Subject is: " + subject.getValue());
+		log.debug("Subject is: " + subject.getValue());
 
 		Iterator<Node> it = getMemberNodeIterator();
 
@@ -162,8 +161,6 @@ public class MNReplicationIT extends ContextAwareTestCaseDataone {
 					+ e.getMessage());
 		}
 
-		// get a Session object -- use null for default
-		Session session = null;
 		String identifierStr = ExampleUtilities.generateIdentifier();
 		Identifier guid = new Identifier();
 		guid.setValue("mNodeTier4TestReplicationOnCreate." + identifierStr);
@@ -171,7 +168,7 @@ public class MNReplicationIT extends ContextAwareTestCaseDataone {
 		try {
 			textPlainSource = 
 				new ByteArrayInputStream("Plain text source".getBytes("UTF-8"));
-			System.out.println("Data string is: " + textPlainSource.toString());
+			log.debug("Data string is: " + textPlainSource.toString());
 		} catch (UnsupportedEncodingException e) {
 			fail("Couldn't get an example input stream: " + e.getMessage());
 		}
@@ -220,6 +217,7 @@ public class MNReplicationIT extends ContextAwareTestCaseDataone {
 
 		// try the create
 		try {
+			log.debug("adding object to origin node " + originMNId);
 			Identifier pid = 
 				originMN.create(null, sysMeta.getIdentifier(), textPlainSource, sysMeta);
 		} catch (Exception e) {
@@ -235,11 +233,13 @@ public class MNReplicationIT extends ContextAwareTestCaseDataone {
 		// look for it on the target
 		try {
 			// wait for replication
+			log.debug("Waiting for replication, delay=" + replicationDelay);
 			Thread.sleep(replicationDelay);
 			
 			// now check
+			log.debug("checking target node for object, node=" + targetMNId);
 			InputStream returnedObject = targetMN.get(null, sysMeta.getIdentifier());
-			System.out.println(
+			log.debug(
 					"Returned data string is: " + IOUtils.toString(returnedObject));
 			assertTrue(IOUtils.contentEquals(textPlainSource, returnedObject));
 		} catch (Exception e) {
@@ -256,11 +256,14 @@ public class MNReplicationIT extends ContextAwareTestCaseDataone {
 		// look for it on the target
 		try {
 			// wait for replication
+			log.debug("Waiting for replication, delay=" + replicationDelay);
 			Thread.sleep(replicationDelay);
 			
 			// look at the CN's sysmeta
 			int replicaCount = 1;
 			NodeReference otherTarget = null;
+			log.debug("checking CN for system metadata, pid=" + sysMeta.getIdentifier());
+
 			SystemMetadata sysMetaCN = D1Client.getCN().getSystemMetadata(null, sysMeta.getIdentifier());
 			for (Replica replica: sysMetaCN.getReplicaList()) {
 				// if it's on another node besides the orign, increment the count
@@ -269,17 +272,15 @@ public class MNReplicationIT extends ContextAwareTestCaseDataone {
 					otherTarget = replica.getReplicaMemberNode();
 				}
 			}
-			
+			log.debug("CN reports replica count=" + replicaCount);
+
 			// we have enough replicas
 			assertTrue(replicaCount >= sysMeta.getReplicationPolicy().getNumberReplicas());
 
-			// it actually made it to one of the targets
-			D1Client.getMN(otherTarget).get(null, sysMeta.getIdentifier());
-			
 			// now check that other node
+			log.debug("checking other target node for object, node=" + otherTarget.getValue());
 			InputStream returnedObject = D1Client.getMN(otherTarget).get(null, sysMeta.getIdentifier());
-			System.out.println(
-					"Returned data string is: " + IOUtils.toString(returnedObject));
+			log.debug("Returned data string is: " + IOUtils.toString(returnedObject));
 			assertTrue(IOUtils.contentEquals(textPlainSource, returnedObject));
 		} catch (Exception e) {
 			fail("Unexpected error: " + e.getMessage());
