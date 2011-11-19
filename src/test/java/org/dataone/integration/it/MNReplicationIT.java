@@ -36,6 +36,7 @@ import org.apache.commons.io.IOUtils;
 import org.dataone.client.D1Client;
 import org.dataone.client.MNode;
 import org.dataone.client.auth.CertificateManager;
+import org.dataone.service.exceptions.NotFound;
 import org.dataone.service.exceptions.ServiceFailure;
 import org.dataone.service.types.v1.AccessPolicy;
 import org.dataone.service.types.v1.AccessRule;
@@ -53,17 +54,18 @@ public class MNReplicationIT extends ContextAwareTestCaseDataone {
 	
 	private static final String format_text_plain = "text/plain";
 
-	private static final long replicationDelay = 0; //240000; //how many minutes? 4?
+	private static final long replicationDelay = 120000; //240000; //how many minutes? 2? 4?
 
 	private Subject subject;
-	private String currentUrl;
 	private String originMNId = "DEMO1";
 	private String targetMNId = "DEMO2";
-	private String blockedNode = "DEMO4";
+	private String blockedMNId = "DEMO4";
 	MNode originMN;
 	MNode targetMN;
+	MNode blockedMN;
 	Node originNode;
 	Node targetNode;
+	Node blockedNode;
 	private InputStream textPlainSource;
 	private SystemMetadata sysMeta;
 
@@ -82,7 +84,6 @@ public class MNReplicationIT extends ContextAwareTestCaseDataone {
 		policy.setNumberReplicas(1);
 
 		List<NodeReference> preferredList = new ArrayList<NodeReference>();
-		// preferredList.add(targetNode.getIdentifier());
 		List<NodeReference> blockedList = new ArrayList<NodeReference>();
 
 		policy.setBlockedMemberNodeList(blockedList);
@@ -128,7 +129,40 @@ public class MNReplicationIT extends ContextAwareTestCaseDataone {
 		checkTarget();
 
 	}
-  
+
+	/**
+	 * Test replication from origin to any node other than blocked node
+	 * 
+	 */
+	@Test
+	public void testReplicateOnCreateWithBlockedList() {
+
+		// set up the common member variables
+		setup();
+		
+		// Ensure we have valid system metadata fields for this test
+		// build a valid ReplicationPolicy
+		ReplicationPolicy policy = new ReplicationPolicy();
+		policy.setReplicationAllowed(true);
+		policy.setNumberReplicas(1);
+		
+		// the blocked list of targets
+		List<NodeReference> preferredList = new ArrayList<NodeReference>();
+		List<NodeReference> blockedList = new ArrayList<NodeReference>();
+		blockedList.add(blockedNode.getIdentifier());
+		
+		policy.setBlockedMemberNodeList(blockedList);
+		policy.setPreferredMemberNodeList(preferredList);
+		sysMeta.setReplicationPolicy(policy);
+
+		// create the object on the origin node
+		submit();
+		
+		// check the blocked node to make sure it is node there
+		checkBlockedTarget();
+
+	}
+	
   	/**
 	 * Set up the usual scenario -- individual tests should mutate the 
 	 * sysMeta object for their specific needs
@@ -149,6 +183,8 @@ public class MNReplicationIT extends ContextAwareTestCaseDataone {
 				originNode = currentNode;
 			} else if (currentNodeId.equals(targetMNId)) {
 				targetNode = currentNode;
+			} else if (currentNodeId.equals(blockedMNId)) {
+				blockedNode = currentNode;
 			}
 		}
 
@@ -156,9 +192,10 @@ public class MNReplicationIT extends ContextAwareTestCaseDataone {
 		try {
 			originMN = D1Client.getMN(originNode.getIdentifier());
 			targetMN = D1Client.getMN(targetNode.getIdentifier());
+			blockedMN = D1Client.getMN(blockedNode.getIdentifier());
+
 		} catch (ServiceFailure e) {
-			fail("Couldn't get origin or target node objects: "
-					+ e.getMessage());
+			fail("Couldn't get origin or target node objects: " + e.getMessage());
 		}
 
 		String identifierStr = ExampleUtilities.generateIdentifier();
@@ -177,7 +214,7 @@ public class MNReplicationIT extends ContextAwareTestCaseDataone {
 		sysMeta = 
 			ExampleUtilities.generateSystemMetadata(guid, format_text_plain, textPlainSource, null);
 
-		// Ensure we have valid system metadata fields for replication
+		// Ensure we have valid system metadata fields for tests
 
 		// clear the Replica list
 		sysMeta.clearReplicaList();
@@ -237,7 +274,7 @@ public class MNReplicationIT extends ContextAwareTestCaseDataone {
 			Thread.sleep(replicationDelay);
 			
 			// now check
-			log.debug("checking target node for object, node=" + targetMNId);
+			log.debug("checking target node for object, pid=" + sysMeta.getIdentifier().getValue());
 			InputStream returnedObject = targetMN.get(null, sysMeta.getIdentifier());
 			log.debug(
 					"Returned data string is: " + IOUtils.toString(returnedObject));
@@ -248,10 +285,9 @@ public class MNReplicationIT extends ContextAwareTestCaseDataone {
 	}
 	
 	/**
-	 * check the CN node after a time delay
-	 * Finds the replicas and checks that one of them was successful
+	 * Check that a replica DID NOT end up on a blocked MN
 	 */
-	protected void checkAnyTarget() {
+	protected void checkBlockedTarget() {
 
 		// look for it on the target
 		try {
@@ -261,27 +297,31 @@ public class MNReplicationIT extends ContextAwareTestCaseDataone {
 			
 			// look at the CN's sysmeta
 			int replicaCount = 1;
-			NodeReference otherTarget = null;
-			log.debug("checking CN for system metadata, pid=" + sysMeta.getIdentifier());
-
+			log.debug("checking CN for system metadata, pid=" + sysMeta.getIdentifier().getValue());
 			SystemMetadata sysMetaCN = D1Client.getCN().getSystemMetadata(null, sysMeta.getIdentifier());
+			// check that there is no replica for the blocked node 
 			for (Replica replica: sysMetaCN.getReplicaList()) {
-				// if it's on another node besides the orign, increment the count
-				if (!replica.getReplicaMemberNode().getValue().equals(originMNId)) {
-					replicaCount++;
-					otherTarget = replica.getReplicaMemberNode();
+				// if it's on the blocked node, this is bad
+				if (replica.getReplicaMemberNode().getValue().equals(blockedMNId)) {
+					fail("Replica is reported by CN to be on blocked node, " + blockedMNId);
 				}
+				replicaCount++;
 			}
 			log.debug("CN reports replica count=" + replicaCount);
 
 			// we have enough replicas
 			assertTrue(replicaCount >= sysMeta.getReplicationPolicy().getNumberReplicas());
 
-			// now check that other node
-			log.debug("checking other target node for object, node=" + otherTarget.getValue());
-			InputStream returnedObject = D1Client.getMN(otherTarget).get(null, sysMeta.getIdentifier());
-			log.debug("Returned data string is: " + IOUtils.toString(returnedObject));
-			assertTrue(IOUtils.contentEquals(textPlainSource, returnedObject));
+			// now double check that the blocked node does not have the object
+			log.debug("checking other target node for object, node=" + blockedMNId);
+			
+			try {
+				InputStream returnedObject = blockedMN.get(null, sysMeta.getIdentifier());
+				fail("Replica found on blocked node, " + blockedMNId);
+			} catch (NotFound e) {
+				// this is what we want
+				log.debug("Object not found on the blocked node");
+			}
 		} catch (Exception e) {
 			fail("Unexpected error: " + e.getMessage());
 		}
@@ -291,6 +331,46 @@ public class MNReplicationIT extends ContextAwareTestCaseDataone {
 	protected String getTestDescription() {
 		return "Test Case that runs through the Member Node Tier 4 (Replication) API methods";
 
+	}
+
+	/**
+	 * check the CN node after a time delay
+	 * Finds the replicas and checks that one of them was successful
+	 */
+	protected void checkAnyTarget() {
+	
+		// look for it on the target
+		try {
+			// wait for replication
+			log.debug("Waiting for replication, delay=" + replicationDelay);
+			Thread.sleep(replicationDelay);
+			
+			// look at the CN's sysmeta
+			int replicaCount = 1;
+			NodeReference otherTarget = null;
+			log.debug("checking CN for system metadata, pid=" + sysMeta.getIdentifier().getValue());
+	
+			SystemMetadata sysMetaCN = D1Client.getCN().getSystemMetadata(null, sysMeta.getIdentifier());
+			for (Replica replica: sysMetaCN.getReplicaList()) {
+				// if it's on another node besides the orign, increment the count
+				if (!replica.getReplicaMemberNode().getValue().equals(originMNId)) {
+					replicaCount++;
+					otherTarget = replica.getReplicaMemberNode();
+				}
+			}
+			log.debug("CN reports replica count=" + replicaCount);
+	
+			// we have enough replicas
+			assertTrue(replicaCount >= sysMeta.getReplicationPolicy().getNumberReplicas());
+	
+			// now check that other node
+			log.debug("checking other target node for object, node=" + otherTarget.getValue());
+			InputStream returnedObject = D1Client.getMN(otherTarget).get(null, sysMeta.getIdentifier());
+			log.debug("Returned data string is: " + IOUtils.toString(returnedObject));
+			assertTrue(IOUtils.contentEquals(textPlainSource, returnedObject));
+		} catch (Exception e) {
+			fail("Unexpected error: " + e.getMessage());
+		}
 	}
 
 }
