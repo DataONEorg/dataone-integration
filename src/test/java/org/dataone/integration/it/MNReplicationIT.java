@@ -58,7 +58,7 @@ public class MNReplicationIT extends ContextAwareTestCaseDataone {
 
 	private Subject subject;
 	private String originMNId = "DEMO1";
-	private String targetMNId = "r2d2";
+	private String targetMNId = "DEMO2";
 	private String blockedMNId = "DEMO4";
 	MNode originMN;
 	MNode targetMN;
@@ -72,7 +72,7 @@ public class MNReplicationIT extends ContextAwareTestCaseDataone {
   	/**
 	 * Test replication from origin to at least one other target node
 	 */
-	//@Test
+	@Test
 	public void testReplicateOnCreateWithoutPreferredList() {
 		// set up the common member variables
 		setup();
@@ -81,7 +81,7 @@ public class MNReplicationIT extends ContextAwareTestCaseDataone {
 		// build a valid ReplicationPolicy
 		ReplicationPolicy policy = new ReplicationPolicy();
 		policy.setReplicationAllowed(true);
-		policy.setNumberReplicas(4);
+		policy.setNumberReplicas(1);
 
 		List<NodeReference> preferredList = new ArrayList<NodeReference>();
 		List<NodeReference> blockedList = new ArrayList<NodeReference>();
@@ -104,29 +104,34 @@ public class MNReplicationIT extends ContextAwareTestCaseDataone {
 	@Test
 	public void testReplicateOnCreateWithPreferredList() {
 
-		// set up the common member variables
-		setup();
+		int count = 1; //10;
+		while (count > 0) {
+			count--;
 		
-		// Ensure we have valid system metadata fields for this test
-		// build a valid ReplicationPolicy
-		ReplicationPolicy policy = new ReplicationPolicy();
-		policy.setReplicationAllowed(true);
-		policy.setNumberReplicas(1);
-		
-		// the preferred list of targets
-		List<NodeReference> preferredList = new ArrayList<NodeReference>();
-		preferredList.add(targetNode.getIdentifier());
-		List<NodeReference> blockedList = new ArrayList<NodeReference>();
-
-		policy.setBlockedMemberNodeList(blockedList);
-		policy.setPreferredMemberNodeList(preferredList);
-		sysMeta.setReplicationPolicy(policy);
-
-		// create the object on the origin node
-		submit();
-		
-		// check the target node
-		checkTarget();
+			// set up the common member variables
+			setup();
+			
+			// Ensure we have valid system metadata fields for this test
+			// build a valid ReplicationPolicy
+			ReplicationPolicy policy = new ReplicationPolicy();
+			policy.setReplicationAllowed(true);
+			policy.setNumberReplicas(1);
+			
+			// the preferred list of targets
+			List<NodeReference> preferredList = new ArrayList<NodeReference>();
+			preferredList.add(targetNode.getIdentifier());
+			List<NodeReference> blockedList = new ArrayList<NodeReference>();
+	
+			policy.setBlockedMemberNodeList(blockedList);
+			policy.setPreferredMemberNodeList(preferredList);
+			sysMeta.setReplicationPolicy(policy);
+	
+			// create the object on the origin node
+			submit();
+			
+			// check the target node
+			//checkTarget();
+		}
 
 	}
 
@@ -134,7 +139,7 @@ public class MNReplicationIT extends ContextAwareTestCaseDataone {
 	 * Test replication from origin to any node other than blocked node
 	 * 
 	 */
-	//@Test
+	@Test
 	public void testReplicateOnCreateWithBlockedList() {
 
 		// set up the common member variables
@@ -144,7 +149,7 @@ public class MNReplicationIT extends ContextAwareTestCaseDataone {
 		// build a valid ReplicationPolicy
 		ReplicationPolicy policy = new ReplicationPolicy();
 		policy.setReplicationAllowed(true);
-		policy.setNumberReplicas(2);
+		policy.setNumberReplicas(1);
 		
 		// the blocked list of targets
 		List<NodeReference> preferredList = new ArrayList<NodeReference>();
@@ -160,6 +165,27 @@ public class MNReplicationIT extends ContextAwareTestCaseDataone {
 		
 		// check the blocked node to make sure it is node there
 		checkBlockedTarget();
+
+	}
+	
+	/**
+	 * Test replication from origin when no policy is given
+	 * 
+	 */
+	//@Test
+	public void testReplicateOnCreateNoPolicy() {
+
+		// set up the common member variables
+		setup();
+		
+		// Ensure we have valid system metadata fields for this test
+		sysMeta.setReplicationPolicy(null);
+
+		// create the object on the origin node
+		submit();
+		
+		// check that there are NOT replicas
+		checkAllTargets(false);
 
 	}
 	
@@ -204,7 +230,7 @@ public class MNReplicationIT extends ContextAwareTestCaseDataone {
 
 		try {
 			textPlainSource = 
-				new ByteArrayInputStream("Plain text source".getBytes("UTF-8"));
+				new ByteArrayInputStream("<test>Plain text source</test>".getBytes("UTF-8"));
 			log.debug("Data string is: " + IOUtils.toString(textPlainSource));
 		} catch (Exception e) {
 			fail("Couldn't get an example input stream: " + e.getMessage());
@@ -213,6 +239,8 @@ public class MNReplicationIT extends ContextAwareTestCaseDataone {
 		// build the system metadata object
 		sysMeta = 
 			ExampleUtilities.generateSystemMetadata(guid, format_text_plain, textPlainSource, null);
+			//ExampleUtilities.generateSystemMetadata(guid, "eml://ecoinformatics.org/eml-2.1.0", textPlainSource, null);
+
 
 		// Ensure we have valid system metadata fields for tests
 
@@ -369,6 +397,58 @@ public class MNReplicationIT extends ContextAwareTestCaseDataone {
 			InputStream returnedObject = D1Client.getMN(otherTarget).get(null, sysMeta.getIdentifier());
 			log.debug("Returned data string is: " + IOUtils.toString(returnedObject));
 			assertTrue(IOUtils.contentEquals(textPlainSource, returnedObject));
+		} catch (Exception e) {
+			fail("Unexpected error: " + e.getMessage());
+		}
+	}
+	
+	/**
+	 * check the CN node after a time delay
+	 * Finds the replicas and checks that they all exist
+	 */
+	protected void checkAllTargets(boolean exists) {
+	
+		// look for it on the target
+		try {
+			// wait for replication
+			log.debug("Waiting for replication, delay=" + replicationDelay);
+			Thread.sleep(replicationDelay);
+			
+			// look at the CN's sysmeta
+			int replicaCount = 1;
+			NodeReference otherTarget = null;
+			log.debug("checking CN for system metadata, pid=" + sysMeta.getIdentifier().getValue());
+	
+			SystemMetadata sysMetaCN = D1Client.getCN().getSystemMetadata(null, sysMeta.getIdentifier());
+			for (Replica replica: sysMetaCN.getReplicaList()) {
+				// if it's on another node besides the origin, increment the count
+				if (!replica.getReplicaMemberNode().getValue().equals(originMNId)) {
+					replicaCount++;
+					otherTarget = replica.getReplicaMemberNode();
+					
+					// now check that other node has it or not
+					InputStream returnedObject = null;
+					try {
+						log.debug("checking other target node for object, node=" + otherTarget.getValue());
+						returnedObject = D1Client.getMN(otherTarget).get(null, sysMeta.getIdentifier());
+						log.debug("Returned data string is: " + IOUtils.toString(returnedObject));
+					} catch (NotFound nfe) {
+						if (exists) {
+							fail("Replica not found where it should be, node=" + otherTarget.getValue());
+						} else {
+							// this passes for the node
+							assertTrue(IOUtils.contentEquals(textPlainSource, returnedObject));
+						}
+					}
+				}
+			}
+			log.debug("CN reports replica count=" + replicaCount);
+	
+			// we have enough replicas, where applicable?
+			if (sysMeta.getReplicationPolicy() != null) {
+				assertTrue(replicaCount >= sysMeta.getReplicationPolicy().getNumberReplicas());
+			}
+			
 		} catch (Exception e) {
 			fail("Unexpected error: " + e.getMessage());
 		}
