@@ -58,7 +58,7 @@ public class MNReplicationIT extends ContextAwareTestCaseDataone {
 
 	private Subject subject;
 	private String originMNId = "DEMO1";
-	private String targetMNId = "DEMO2";
+	private String targetMNId = "r2d2";
 	private String blockedMNId = "DEMO4";
 	MNode originMN;
 	MNode targetMN;
@@ -72,7 +72,7 @@ public class MNReplicationIT extends ContextAwareTestCaseDataone {
   	/**
 	 * Test replication from origin to at least one other target node
 	 */
-	@Test
+	//@Test
 	public void testReplicateOnCreateWithoutPreferredList() {
 		// set up the common member variables
 		setup();
@@ -81,7 +81,7 @@ public class MNReplicationIT extends ContextAwareTestCaseDataone {
 		// build a valid ReplicationPolicy
 		ReplicationPolicy policy = new ReplicationPolicy();
 		policy.setReplicationAllowed(true);
-		policy.setNumberReplicas(1);
+		policy.setNumberReplicas(4);
 
 		List<NodeReference> preferredList = new ArrayList<NodeReference>();
 		List<NodeReference> blockedList = new ArrayList<NodeReference>();
@@ -134,7 +134,7 @@ public class MNReplicationIT extends ContextAwareTestCaseDataone {
 	 * Test replication from origin to any node other than blocked node
 	 * 
 	 */
-	@Test
+	//@Test
 	public void testReplicateOnCreateWithBlockedList() {
 
 		// set up the common member variables
@@ -144,7 +144,7 @@ public class MNReplicationIT extends ContextAwareTestCaseDataone {
 		// build a valid ReplicationPolicy
 		ReplicationPolicy policy = new ReplicationPolicy();
 		policy.setReplicationAllowed(true);
-		policy.setNumberReplicas(1);
+		policy.setNumberReplicas(2);
 		
 		// the blocked list of targets
 		List<NodeReference> preferredList = new ArrayList<NodeReference>();
@@ -200,13 +200,13 @@ public class MNReplicationIT extends ContextAwareTestCaseDataone {
 
 		String identifierStr = ExampleUtilities.generateIdentifier();
 		Identifier guid = new Identifier();
-		guid.setValue("mNodeTier4TestReplicationOnCreate." + identifierStr);
+		guid.setValue("MNReplicationIT." + identifierStr);
 
 		try {
 			textPlainSource = 
 				new ByteArrayInputStream("Plain text source".getBytes("UTF-8"));
-			log.debug("Data string is: " + textPlainSource.toString());
-		} catch (UnsupportedEncodingException e) {
+			log.debug("Data string is: " + IOUtils.toString(textPlainSource));
+		} catch (Exception e) {
 			fail("Couldn't get an example input stream: " + e.getMessage());
 		}
 
@@ -257,6 +257,7 @@ public class MNReplicationIT extends ContextAwareTestCaseDataone {
 			log.debug("adding object to origin node " + originMNId);
 			Identifier pid = 
 				originMN.create(null, sysMeta.getIdentifier(), textPlainSource, sysMeta);
+			log.debug("Created object, pid=" + pid.getValue());
 		} catch (Exception e) {
 			fail("Unexpected error: " + e.getMessage());
 		}
