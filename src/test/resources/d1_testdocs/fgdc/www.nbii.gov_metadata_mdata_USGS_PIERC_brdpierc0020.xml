@@ -1,0 +1,287 @@
+<?xml version="1.0"?>
+<metadata><Source>http://www.nbii.gov/metadata/mdata/USGS_PIERC/brdpierc0020.xml</Source>
+<idinfo>
+<citation>
+<citeinfo>
+<origin>Gerald D. Lindsey, Thane K. Pratt, Michelle H. Reynolds, and James D. Jacobi</origin>
+<origin>United States Geological Survey, Biological Resources Division, Pacific Island Ecosystems Research Center, Hawaii Field Station (now known as Kilauea Field Station)</origin>
+<pubdate>199706</pubdate>
+<title>Response of six species of Hawaiian forest birds to a 1991-1992 El Nino drought</title>
+<pubinfo>
+<pubplace>Hawaii National Park, HI</pubplace>
+<publish>U.S. Geological Survey, Biological Resources Division, Pacific Island Ecosystems Research Center, Hawaii Field Station (now known as Kilauea Field Station)</publish>
+</pubinfo>
+<othercit>
+This metadata file can be found at:
+ftp://cameron.cr.usgs.gov/pub/nbii_metadata/brdpierc0020.txt
+(text format)
+and
+ftp://cameron.cr.usgs.gov/pub/nbii_metadata/brdpierc0020.html
+(HTML format)
+and
+ftp://cameron.cr.usgs.gov/pub/nbii_metadata/brdpierc0020.sgml
+(SGML format).
+</othercit>
+</citeinfo>
+</citation>
+<descript>
+<abstract>A short-term effect of an El Nino-Southern Oscillation (ENSO) drought on capture rates, fat scores, and active nests of 6 resident forest birds in a dryland mamane-naio forest on Mauna Kea, Hawaii was recorded.  In 1991-1992, an ENSO resulted in a 9-month drought from October through June.  Total rainfall (&lt;67 mm) in our study area was approximately 17% of average.  The overall capture rate (number of birds per 100 net-h) for the 6 species combined was 49.9 in 1991, 19.2 in 1992, and 47.5 in 1993.  In 1992, the ENSO drought reduced capture rates for 4 species, fat scores for 4 species, and number of active nests for at least 2 species compared to 1991.</abstract>
+<purpose>To study the response of six species of Hawaiian forest birds to a 1991-1992 El Nino drought.</purpose>
+<supplinf>From April through September 1991-1993, 10 mist nets were operated.  See methodology for more details.</supplinf>
+</descript>
+<timeperd>
+<timeinfo>
+<rngdates>
+<begdate>199104</begdate>
+<enddate>199309</enddate>
+</rngdates>
+</timeinfo>
+<current>Ground Condition</current>
+</timeperd>
+<status>
+<progress>Complete</progress>
+<update>None Planned</update>
+</status>
+<spdom>
+<descgeog>Study conducted on the island of Hawaii in the dryland mamane (Sophor chrysophylla)-naio (Myoporum sandwicense) forest near Puu Laau on the southwestern slope of Mauna Kea.</descgeog>
+<bounding>
+<westbc>-155.58333</westbc>
+<eastbc>-155.58333</eastbc>
+<northbc>19.83333</northbc>
+<southbc>19.83333</southbc>
+</bounding>
+</spdom>
+<keywords>
+<theme>
+<themekt>None</themekt>
+<themekey>El Nino Southern Oscillation</themekey>
+<themekey>ENSO</themekey>
+<themekey>drought</themekey>
+<themekey>bird capture rates</themekey>
+<themekey>fat levels</themekey>
+<themekey>nesting attempts</themekey>
+</theme>
+<place>
+<placekt>None</placekt>
+<placekey>Mauna Kea</placekey>
+<placekey>Hawaii</placekey>
+<placekey>HI</placekey>
+<placekey>Puu Laau</placekey>
+</place>
+<temporal>
+<tempkt>None</tempkt>
+<tempkey>None</tempkey>
+</temporal>
+</keywords>
+<taxonomy>
+<taxonkey>Hemignathus virens</taxonkey>
+<taxonkey>Loxioides bailleui</taxonkey>
+<taxonkey>Chasiempis sandwichensis</taxonkey>
+<taxonkey>Zosterops japonicus</taxonkey>
+<taxonkey>Hawaii Amakihi</taxonkey>
+<taxonkey>Palila</taxonkey>
+<taxonkey>Elepaio</taxonkey>
+<taxonkey>Japanese White-eye</taxonkey>
+<taxonkey>Red-billed Leiothrix</taxonkey>
+<taxonkey>House Finch</taxonkey>
+<taxonkey>Leiothrix lutea</taxonkey>
+<taxonkey>Carpodacus mexicanus</taxonkey>
+<taxoncov>
+<taxoninf>
+<kingdom>Animal</kingdom>
+<phylum>Chordata</phylum>
+<class>Aves</class>
+<order>Passeriformes</order>
+<family>Fringillidae</family>
+<genus>Hemignathus</genus>
+<species>Hemignathus virens</species>
+<common>Hawaii Amakihi</common>
+</taxoninf>
+<taxongen>Hawaiian birds and honeycreepers</taxongen>
+</taxoncov>
+<taxoncov>
+<taxoninf>
+<kingdom>Animal</kingdom>
+<phylum>Chordata</phylum>
+<class>Aves</class>
+<order>Passeriformes</order>
+<family>Fringillidae</family>
+<genus>Loxioides</genus>
+<species>Loxioides bailleui</species>
+<common>Palila</common>
+</taxoninf>
+</taxoncov>
+<taxoncov>
+<taxoninf>
+<kingdom>Animal</kingdom>
+<phylum>Chordata</phylum>
+<class>Aves</class>
+<genus>Chasiempis</genus>
+<species>Chasiempis sandwichensis</species>
+<common>Elepaio</common>
+</taxoninf>
+</taxoncov>
+<taxoncov>
+<taxoninf>
+<kingdom>Animal</kingdom>
+<phylum>Chordata</phylum>
+<class>Aves</class>
+<genus>Zosterops</genus>
+<species>Zosterops japonicus</species>
+<common>Japanese White-eye</common>
+</taxoninf>
+</taxoncov>
+<taxoncov>
+<taxoninf>
+<kingdom>Animal</kingdom>
+<phylum>Chordata</phylum>
+<class>Aves</class>
+<genus>Leiothrix</genus>
+<species>Leiothrix lutex</species>
+<common>Red-billed Leiothrix</common>
+</taxoninf>
+</taxoncov>
+<taxoncov>
+<taxoninf>
+<kingdom>Animal</kingdom>
+<phylum>Chordata</phylum>
+<class>Aves</class>
+<genus>Carpodacus</genus>
+<species>Carpodacus mexicanus</species>
+<common>House finch</common>
+</taxoninf>
+</taxoncov>
+</taxonomy>
+<accconst>None</accconst>
+<useconst>None</useconst>
+<ptcontac>
+<cntinfo>
+<cntperp>
+<cntper>Gerald Lindsey</cntper>
+<cntorg>U.S. Geological Survey, Biological Resources Division, Pacific Island Ecosystems Research Center, Kilauea Field Station</cntorg>
+</cntperp>
+<cntpos>Principle investigator</cntpos>
+<cntaddr>
+<addrtype>Mailing Address</addrtype>
+<address>P.O. Box 44 - Building 344</address>
+<city>Hawaii National Park, HI</city>
+<state>HI</state>
+<postal>96718</postal>
+</cntaddr>
+<cntvoice>808-967-7396, ext. 232</cntvoice>
+<cntfax>808-967-8568</cntfax>
+<cntemail>gerald_lindsey@usgs.gov</cntemail>
+</cntinfo>
+</ptcontac>
+<crossref>
+<citeinfo>
+<origin>Gerald D. Lindsey, Thane K. Pratt, Michelle H. Reynolds, James D. Jacobi</origin>
+<origin>United States Geological Survey, Biological Resources Division, Pacific Island Ecosystems Research Center, Hawaii Field Station (now known as Kilauea Field Station)</origin>
+<pubdate>1997</pubdate>
+<title>Response of six species of Hawaiian forest birds to a 1991-1992 El Nino drought</title>
+<serinfo>
+<sername>Wilson Bulletin</sername>
+<issue>109(2)</issue>
+</serinfo>
+<othercit>pp. 339-343.</othercit>
+</citeinfo>
+</crossref>
+</idinfo>
+<dataqual>
+<attracc>
+<attraccr>unknown</attraccr>
+</attracc>
+<logic>not applicable</logic>
+<complete>unknown</complete>
+<lineage>
+<method>
+<methtype>Field</methtype>
+<methodid>
+<methkt>None</methkt>
+<methkey>fixed banding stations</methkey>
+<methkey>mist nets</methkey>
+</methodid>
+<methdesc>From April through September 1991-1993, they operated 10 mist nets at each of four fixed banding stations to capture birds within the study area.  Nets were opened 1-4 days monthly at each banding station.  Each bird captured was identified to species, marked with a USFWS aluminum band, and scored for visible fat within the furcular region before being released.  Fat scores ranged from zero for no visible fat to four for the interclavicular fossa bulging with fat.  Active nests  were searched by walking 24 strip transects (each 40 m X 1 km) at monthly intervals during the same six-month period each year.  A nest was considered active if eggs or nestlings were found.  Capture data were compared by the paired comparison t test and fat scores by the Mann-Whitney U test (Sprent 1993).</methdesc>
+<methcite>
+<citeinfo>
+<origin>Sprent, P.</origin>
+<pubdate>1993</pubdate>
+<title>Applied nonparametric statistical methods.</title>
+<pubinfo>
+<pubplace>London, United Kingdom</pubplace>
+<publish>Chapman &amp; Hall</publish>
+</pubinfo>
+</citeinfo>
+</methcite>
+</method>
+<procstep>
+<procdesc>Unknown</procdesc>
+<procdate>Unknown</procdate>
+</procstep>
+</lineage>
+</dataqual>
+<spdoinfo>
+<indspref>Based on local reference names.</indspref>
+</spdoinfo>
+<spref></spref>
+<eainfo>
+<overview>
+<eaover>Entity - six species of Hawaiian forest birds; Associated attributes - capture rates, fat scores, and active nests</eaover>
+<eadetcit>unknown</eadetcit>
+<eaover>Entity - six Hawaiian forest birds - Hawaii Amakihi, Palila, Elepaio, Japenese White-eye, Red-billed Leiothrix, and House Finch; Associated attributes - mean monthly capture rates, mean monthly fat scores</eaover>
+<eadetcit>unknown</eadetcit>
+</overview>
+</eainfo>
+<distinfo>
+<distrib>
+<cntinfo>
+<cntperp>
+<cntper>Gerald Lindsey</cntper>
+<cntorg>U.S. Geological Survey, Biological Resources Division, Pacific Island Ecosystems Research Center, Kilauea Field Station</cntorg>
+</cntperp>
+<cntpos>Principle investigator</cntpos>
+<cntaddr>
+<addrtype>Mailing Address</addrtype>
+<address>P.O. Box 44 - Building 344</address>
+<city>Hawaii National Park, HI</city>
+<state>HI</state>
+<postal>96718</postal>
+</cntaddr>
+<cntvoice>808-967-7396, ext. 232</cntvoice>
+<cntfax>808-967-8568</cntfax>
+<cntemail>gerald_lindsey@usgs.gov</cntemail>
+</cntinfo>
+</distrib>
+<distliab>Although these data have been processed successfully on a computer system at the Biological Resources Division, no warranty expressed or implied is made regarding the accuracy or utility of the data on any other system or for general or scientific purposes, nor shall the act of distribution constitute any such warranty. This disclaimer applies both to individual use of the data and aggregate use with other data.  It is strongly recommended that these data are directly acquired from a Biological Resources Division server, and not indirectly through other sources which may have changed the data in some way.  It is also strongly recommended that careful attention be paid to the contents of the metadata file associated with these data.  The Biological Resources Division shall not be held liable for improper or incorrect use of the data described and/or contained herein. This data set was developed and is meant to be used at the 1:100,000-scale 1:100,000-scale (or smaller scale) for the purpose of assessing the conservation status of vegetation types over large geographic regions. The distributor makes no claims as to the data's suitability for other purposes.</distliab>
+<custom>Contact distributor in Section 6.1.</custom>
+</distinfo>
+<metainfo>
+<metd>1997</metd>
+<metrd>199711</metrd>
+<metfrd>19981231</metfrd>
+<metc>
+<cntinfo>
+<cntorgp>
+<cntorg>Raytheon STX</cntorg>
+<cntper>Cheryl Solomon</cntper>
+</cntorgp>
+<cntpos>Ecosystem Coordinator</cntpos>
+<cntaddr>
+<addrtype>Mailing and Physical Address</addrtype>
+<address>7701 Greenbelt Road, Suite 400</address>
+<city>Greenbelt</city>
+<state>MD</state>
+<postal>20770</postal>
+<country>USA</country>
+</cntaddr>
+<cntvoice>301 441-4249</cntvoice>
+<cntfax>301 441-9486</cntfax>
+<cntemail>solomon@gcmd.gsfc.nasa.gov</cntemail>
+</cntinfo>
+</metc>
+<metstdn>NBS Content Standards for National Biological Information Infrastructure Metadata</metstdn>
+<metstdv>NBII Draft of December 1995, Based FGDC of June 8, 1994</metstdv>
+<metac>None</metac>
+<metuc>None</metuc>
+</metainfo>
+</metadata>

@@ -1,0 +1,371 @@
+<?xml version="1.0"?>
+<metadata><Source>http://www.nbii.gov/metadata/mdata/NASA/nasa_d_FEDGPS1293.xml</Source>
+	<idinfo>
+    <citation>
+      <citeinfo>
+        <origin>Elizabeth M. Nel; NASA Goddard Space Flight Center, Forest Ecosystem Dynamics Project</origin>
+        <pubdate>1994</pubdate>
+        <title>Global Positioning System Ground Control Points Acquired 1993 for the Forest Ecosystem Dynamics Project Spatial Data Archive</title>
+        <geoform>Maps and Data</geoform>
+        <onlink>http://fedwww.gsfc.nasa.gov/</onlink>
+      </citeinfo>
+    </citation>
+    <descript>
+      <abstract>The Biospheric Sciences Branch (formerly Earth Resources Branch) within the Laboratory for Terrestrial Physics at NASA's Goddard Space Flight Center and associated University investigators are involved in a research program entitled Forest Ecosystem Dynamics (FED) which is fundamentally concerned with vegetation change of forest ecosystems at local to regional spatial scales (100 to 10,000 meters) and temporal scales ranging from monthly to decadal periods (10 to 100 years). The nature and extent of the impacts of these changes, as well as the feedbacks to global climate, may be addressed through modeling the interactions of the vegetation, soil, and energy components of the boreal ecosystem.
+      
+
+
+The Howland Forest research site lies within the Northern Experimental Forest of International Paper. The natural stands in this boreal-northern hardwood transitional forest consist of spruce-hemlock-fir, aspen-birch, and hemlock-hardwood mixtures. The topography of the region varies from flat to gently rolling, with a maximum elevation change of less than 68 m within 10 km. Due to the region's glacial history, soil drainage classes within a small area may vary widely, from well drained to poorly drained. Consequently, an elaborate patchwork of forest communities has developed, supporting exceptional local species diversity.
+      
+
+
+This data set is in ARC/INFO export format and contains Global Positioning Systems (GPS) ground control points in and around the International Paper Experimental Forest, Howland ME.</abstract>
+      <purpose>The field measurements component of the FED project was initiated to acquire data which are needed to:
+
+
+    * improve our understanding of vegetation, soil, and energy dynamics, and other biotic and abiotic processes within forested ecosystems so that the models can be parameterized, updated and modified; and to
+
+
+    * acquire in situ field observations for comparison with model results and conceptual model refinement. 
+</purpose>
+    </descript>
+    <timeperd>
+      <timeinfo>
+        <rngdates>
+          <begdate>19931201</begdate>
+          <enddate>19931231</enddate>
+        </rngdates>
+      </timeinfo>
+      <current>publication date</current>
+    </timeperd>
+    <status>
+      <progress>Complete</progress>
+      <update>As needed</update>
+    </status>
+    <spdom>
+      <descgeog>The study site is located 56 km north of Bangor, Maine in Penobscot County (45 12'N, 68 44'W). The area is within the 7000 ha Northern Experimental Forest (NEF) owned by International Paper. </descgeog>
+      <bounding>
+        <westbc>-68.0</westbc>
+        <eastbc>-68.0</eastbc>
+        <northbc>45</northbc>
+        <southbc>45.0</southbc>
+      </bounding>
+    </spdom>
+    <keywords>
+      <theme>
+        <themekt>ISO Topic Category</themekt>
+        <themekey>ENVIRONMENT</themekey>
+        <themekey>IMAGERY/BASE MAPS/EARTH COVER</themekey>
+        <themekey>PLANNING CADASTRE</themekey>
+      </theme>
+      <theme>
+        <themekt>GCMD Science Keywords</themekt>
+        <themekey>EARTH SCIENCE &gt; HUMAN DIMENSIONS &gt; LAND USE/LAND COVER &gt; LAND MANAGEMENT &gt; GROUND CONTROL POINT</themekey>
+        <themekey>SATELLITES</themekey>
+        <themekey>GPS &gt; GLOBAL POSITIONING SYSTEM</themekey>
+        <themekey>FED &gt; FOREST ECOSYSTEM DYNAMICS</themekey>
+      </theme>
+      <theme>
+        <themekt>None</themekt>
+        <themekey>Easting</themekey>
+        <themekey>GIS</themekey>
+        <themekey>Northing</themekey>
+      </theme>
+      <place>
+        <placekt>GCMD</placekt>
+        <placekey>CONTINENT &gt; NORTH AMERICA</placekey>
+        <placekey>CONTINENT &gt; NORTH AMERICA &gt; UNITED STATES OF AMERICA &gt; MAINE</placekey>
+      </place>
+    </keywords>
+    <accconst>None</accconst>
+    <useconst>Some coordinates are corrected to a greater positional accuracy than others.</useconst>
+    <ptcontac>
+      <cntinfo>
+        <cntperp>
+          <cntper>Darrel L. Williams</cntper>
+        </cntperp>
+        <cntpos>TECHNICAL CONTACT</cntpos>
+        <cntaddr>
+          <addrtype>Mailing and Physical Address</addrtype>
+          <address>NASA's Goddard Space Flight Center</address>
+          <address>Mailstop 614.0</address>
+          <city>Greenbelt</city>
+          <state>MD</state>
+          <postal>21227</postal>
+          <country>USA</country>
+        </cntaddr>
+        <cntvoice>301.614.6049</cntvoice>
+        <cntemail>Darrel.L.Williams@nasa.gov</cntemail>
+      </cntinfo>
+    </ptcontac>
+    <native>UNIX</native>
+    <crossref>
+      <citeinfo>
+        <origin>Nel, E.M. and M.E. Jackson</origin>
+        <pubdate>1993</pubdate>
+        <title>An Independent Evaluation of the Accuracy of Handheld GPS Receivers</title>
+        <geoform>Publication</geoform>
+        <serinfo>
+          <sername>Unpublished Report</sername>
+          <issue>n/a</issue>
+        </serinfo>
+      </citeinfo>
+    </crossref>
+    <crossref>
+      <citeinfo>
+        <origin>Levine, E., K.J. Ranson, J.A. Smith, D.L. Williams, R.G. Knox, H.H. Shugart, D.L. Urban, and W.T. Lawrence</origin>
+        <pubdate>Unknown</pubdate>
+        <title>Forest ecosystem dynamics: linking forest succession, soil process and radiation models</title>
+        <geoform>Publication</geoform>
+        <serinfo>
+          <sername>Ecological Modeling </sername>
+          <issue>65: 199-219</issue>
+        </serinfo>
+      </citeinfo>
+    </crossref>
+  </idinfo>
+  <dataqual>
+    <attracc>
+      <attraccr>Information available at the FED website: http://fedwww.gsfc.nasa.gov/</attraccr>
+    </attracc>
+    <logic>Point features present.</logic>
+    <complete>A Trimble roving receiver placed on the top of the cab of a pick-up truck and leveled was used to collect position information at selected sites (road intersections) across the FED project study area. The field collected data was differentially corrected using base files measured by a Trimble Community Base Station. The Community Base Station is run by the Forestry Department at the University of Maine, Orono (UMO). The base station was surveyed by the Surveying Engineering Department at UMO using classical geodetic methods. Trimble software was used to produce coordinates in Universal Transverse Mercator (UTM) WGS84. Coordinates were adjusted based on field notes. All points were collected during December 1993 and differentially corrected.</complete>
+    <lineage>
+      <procstep>
+        <procdesc>GENERATE LIZEGPS_84</procdesc>
+        <procdate>199501</procdate>
+        <proctime>1521</proctime>
+      </procstep>
+      <procstep>
+        <procdesc>BUILD LIZEGPS_84 POINT</procdesc>
+        <procdate>199501</procdate>
+        <proctime>1522</proctime>
+      </procstep>
+      <procstep>
+        <procdesc>COPY LIZEGPS_84 /NET/FOREST/HOME/FED-GIS/GPS_GCP/LIZEGPS_84</procdesc>
+        <procdate>199502</procdate>
+        <proctime>1524</proctime>
+      </procstep>
+      <procstep>
+        <procdesc>LARA RENAME LIZEGPS_84 GPS_1293</procdesc>
+        <procdate>199502</procdate>
+        <proctime>1731</proctime>
+      </procstep>
+      <procstep>
+        <procdesc>LARA DOCUMENT GPS_1293 CREATE LARA</procdesc>
+        <procdate>199502</procdate>
+        <proctime>1745</proctime>
+      </procstep>
+      <procstep>
+        <procdesc>LARA PROJECTDEFINE COVER GPS_1293</procdesc>
+        <procdate>199502</procdate>
+        <proctime>1836</proctime>
+      </procstep>
+    </lineage>
+  </dataqual>
+  <spdoinfo>
+    <direct>Point</direct>
+    <ptvctinf>
+      <sdtsterm>
+        <sdtstype>Point</sdtstype>
+        <ptvctcnt>27</ptvctcnt>
+      </sdtsterm>
+      <sdtsterm>
+        <sdtstype>String</sdtstype>
+      </sdtsterm>
+      <sdtsterm>
+        <sdtstype>Ring composed of chains</sdtstype>
+      </sdtsterm>
+    </ptvctinf>
+  </spdoinfo>
+  <spref>
+    <horizsys>
+      <planar>
+        <gridsys>
+          <gridsysn>Universal Transverse Mercator</gridsysn>
+          <utm>
+            <utmzone>19</utmzone>
+            <transmer>
+              <sfctrmer>0.9996</sfctrmer>
+              <longcm>0</longcm>
+              <latprjo>0</latprjo>
+              <feast>0</feast>
+              <fnorth>0</fnorth>
+            </transmer>
+          </utm>
+        </gridsys>
+        <planci>
+          <plance>coordinate pair</plance>
+          <coordrep>
+            <absres>40</absres>
+            <ordres>40</ordres>
+          </coordrep>
+          <plandu>meters</plandu>
+        </planci>
+      </planar>
+      <geodetic>
+        <ellips>World Geodetic System of 1984</ellips>
+        <semiaxis>6378137</semiaxis>
+        <denflat>298.25722210088</denflat>
+      </geodetic>
+    </horizsys>
+  </spref>
+  <eainfo>
+    <detailed>
+      <enttyp>
+        <enttypl>GPS_1293.PAT</enttypl>
+        <enttypd>GPS differential correction information</enttypd>
+        <enttypds>E. Nel</enttypds>
+      </enttyp>
+      <attr>
+        <attrlabl>AREA</attrlabl>
+        <attrdef>Degenerate area of point</attrdef>
+        <attrdefs>FED</attrdefs>
+        <attrdomv>
+          <edom>
+            <edomv>'0'</edomv>
+            <edomvd>number</edomvd>
+            <edomvds>none</edomvds>
+          </edom>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>PERIMETER</attrlabl>
+        <attrdef>Degenerate perimeter of point</attrdef>
+        <attrdefs>FED</attrdefs>
+        <attrdomv>
+          <edom>
+            <edomv>'0'</edomv>
+            <edomvd>number</edomvd>
+            <edomvds>none</edomvds>
+          </edom>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>GPS_1293#</attrlabl>
+        <attrdef>Internal feature number</attrdef>
+        <attrdefs>Computed</attrdefs>
+        <attrdomv>
+          <edom>
+            <edomv>Sequential unique positive integer</edomv>
+            <edomvd>number</edomvd>
+            <edomvds>none</edomvds>
+          </edom>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>GPS_1293-ID</attrlabl>
+        <attrdef>User-assigned feature number</attrdef>
+        <attrdefs>User-defined</attrdefs>
+        <attrdomv>
+          <edom>
+            <edomv>Integer</edomv>
+            <edomvd>number</edomvd>
+            <edomvds>none</edomvds>
+          </edom>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>CODE</attrlabl>
+        <attrdef>Site ID</attrdef>
+        <attrdefs>E. Nel</attrdefs>
+        <attrdomv>
+          <edom>
+            <edomv>Real numbers</edomv>
+            <edomvd>number</edomvd>
+            <edomvds>none</edomvds>
+          </edom>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>NUM_MEAS</attrlabl>
+        <attrdef>Number of GPS fixes at location</attrdef>
+        <attrdefs>E. Nel</attrdefs>
+        <attrdomv>
+          <edom>
+            <edomv>Real numbers</edomv>
+            <edomvd>number</edomvd>
+            <edomvds>none</edomvds>
+          </edom>
+        </attrdomv>
+      </attr>
+    </detailed>
+    <overview>
+      <eaover>Num_meas - Number of measurements used for differential correction.
+
+If num_meas is 180 or greater, the positional accuracy of the GPS coordinate is sub-meter.
+
+If num_meas is less than 180 but greater that 0, the positional accuracy is estimated at 10 meters based on Nels and Jackson, 1993.
+
+If num_meas is 0, the positional accuracy is estimated at 12 to 40 meters, based on published median error ranges.</eaover>
+      <eadetcit>The following measurements are included: Site ID, Number of GPS Fixes at Location, Degenerate Area/Perimeter of Point</eadetcit>
+    </overview>
+  </eainfo>
+  <distinfo>
+    <distrib>
+      <cntinfo>
+        <cntorgp>
+          <cntorg>Forest Ecosystem Dynamics Project, Biospheric Sciences Branch, Hydrospheric and Biospheric Sciences Laboratory, Earth Sciences Division, Science and Exploration Directorate, Goddard Space Flight Center, NASA</cntorg>
+          <cntper>KENNETH JON RANSON</cntper>
+        </cntorgp>
+        <cntpos>DATA CENTER CONTACT</cntpos>
+        <cntaddr>
+          <addrtype>Mailing and Physical Address</addrtype>
+          <address>NASA</address>
+          <address>Goddard Space Flight Center</address>
+          <address>Mailstop 614.4</address>
+          <city>Greenbelt</city>
+          <state>MD</state>
+          <postal>20771</postal>
+          <country>USA</country>
+        </cntaddr>
+        <cntvoice>301-614-6650</cntvoice>
+        <cntfax>301-614-6695</cntfax>
+        <cntemail>Kenneth.J.Ranson@nasa.gov</cntemail>
+      </cntinfo>
+    </distrib>
+    <distliab>None</distliab>
+    <stdorder>
+      <digform>
+        <digtinfo>
+          <formname>ARC/INFO</formname>
+          <filedec>No compression applied</filedec>
+        </digtinfo>
+        <digtopt>
+          <onlinopt>
+            <computer>
+              <networka>
+                <networkr>http://fedwww.gsfc.nasa.gov/gis_data/gps_1293.e00</networkr>
+              </networka>
+            </computer>
+            <accinstr>FED Data: GPS ground control points and field site locations from 12/93</accinstr>
+          </onlinopt>
+        </digtopt>
+      </digform>
+      <fees>None</fees>
+    </stdorder>
+  </distinfo>
+  <metainfo>
+    <metd>20090322</metd>
+    <metc>
+      <cntinfo>
+        <cntorgp>
+          <cntorg>NASA (National Aeronautics and Space Administration)/GCMD (Goddard Space Flight Center)</cntorg>
+        </cntorgp>
+        <cntaddr>
+          <addrtype>Mailing and Physical Address</addrtype>
+          <address>Goddard Space Flight Center</address>
+          <address>Code 610.2</address>
+          <city>Greenbelt</city>
+          <state>MD</state>
+          <postal>20771</postal>
+          <country>USA</country>
+        </cntaddr>
+        <cntvoice>301.614.6163</cntvoice>
+        <cntemail>gsfc-gcmduso@mail.nasa.gov</cntemail>
+      </cntinfo>
+    </metc>
+    <metstdn>FGDC Content Standard for Digital Geospatial Metadata</metstdn>
+    <metstdv>FGDC-STD-001-1998</metstdv>
+  </metainfo>
+</metadata>

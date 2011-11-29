@@ -1,0 +1,300 @@
+<?xml version="1.0"?>
+<metadata><Source>http://www.nbii.gov/metadata/mdata/CSIRO/csiro_d_abayadultprawns.xml</Source>
+<idinfo>
+<citation>
+<citeinfo>
+<origin>CSIRO Marine Research (formerly CSIRO Division of Fisheries/Fisheries Research)</origin>
+<pubdate>1993</pubdate>
+<title>Albatross Bay Adult Prawn Data 1986-1992</title>
+<geoform>maps data</geoform>
+<pubinfo>
+<pubplace>Australia</pubplace>
+<publish>CSIRO Division of Marine Research</publish>
+</pubinfo>
+</citeinfo>
+</citation>
+<descript>
+<abstract>Adult prawn species, size, sex, reproductive stage, moult stage, and parasites were measured at 20 stations in Albatross Bay, Gulf of Carpentaria. Sampling was carried out monthly between 1986 and 1992. This metadata record is sourced from 'MarLIN', the CSIRO Marine Laboratories Information Network.</abstract>
+<purpose>The purpose of the dataset is to provide information about adult prawn species in Albatross Bay, Gulf of Carpentaria.</purpose>
+<supplinf>Information was obtained from http://www.marine.csiro.au/marine/mcdd/data/CSIRODMR/CSIRODMR_datasets.html.
+
+The previous online linkage was determined to be broken in October 2010 and moved here.  The previous online linkage was:
+http://www.marine.csiro.au/marine/mcdd/data/CSIRODMR/Albatross_Bay_Adult_Prawn_Data_1986_1992.HTML</supplinf>
+</descript>
+<timeperd>
+<timeinfo>
+<rngdates>
+<begdate>19860301</begdate>
+<enddate>19920401</enddate>
+</rngdates>
+</timeinfo>
+<current>ground condition</current>
+</timeperd>
+<status>
+<progress>Complete</progress>
+<update>None planned</update>
+</status>
+<spdom>
+<descgeog>Australia, Gulf of Carpentaria</descgeog>
+<bounding>
+<westbc>141.5</westbc>
+<eastbc>142</eastbc>
+<northbc>-12.5</northbc>
+<southbc>-13</southbc>
+</bounding>
+</spdom>
+<keywords>
+<theme>
+<themekt>none</themekt>
+<themekey>adult prawn data</themekey>
+<themekey>size</themekey>
+<themekey>sex</themekey>
+<themekey>reproductive stage</themekey>
+<themekey>moult stage</themekey>
+<themekey>parasites</themekey>
+</theme>
+<place>
+<placekt>none</placekt>
+<placekey>Australlia</placekey>
+<placekey>Gulf of Carpentaria</placekey>
+<placekey>Albatross Bay</placekey>
+</place>
+</keywords>
+<taxonomy>
+<keywtax>
+<taxonkt>none</taxonkt>
+<taxonkey>prawns</taxonkey>
+<taxonkey>shrimps</taxonkey>
+<taxonkey>crustaceans</taxonkey>
+</keywtax>
+<taxonsys>
+<classsys>
+<classcit>
+<citeinfo>
+<origin>Agencies listed below</origin>
+<pubdate>2002</pubdate>
+<title>Integrated Taxonomic Information System</title>
+<geoform>Database</geoform>
+<pubinfo>
+<pubplace>Washington, D.C.</pubplace>
+<publish>U.S. Department of Agriculture</publish>
+</pubinfo>
+<othercit>Department of Commerce, National Oceanic and Atmospheric Administration (NOAA),  Department of Interior (DOI), Geological Survey (USGS), Environmental Protection Agency (EPA), Department of Agriculture (USDA), Agriculture Research Service (ARS) Natural Resources Conservation Service (NRCS) Smithsonian Institution National Museum of Natural History (NMNH).</othercit>
+<onlink>http://www.itis.usda.gov/</onlink>
+</citeinfo>
+</classcit>
+</classsys>
+</taxonsys>
+<taxoncl>
+<taxonrn>Kingdom</taxonrn>
+<taxonrv>Animalia</taxonrv>
+<common>animals</common>
+<taxoncl>
+<taxonrn>Phylum</taxonrn>
+<taxonrv>Arthropoda</taxonrv>
+<common>arthropods</common>
+<taxoncl>
+<taxonrn>Subphylum</taxonrn>
+<taxonrv>Crustacea</taxonrv>
+<common>crustaceans</common>
+<taxoncl>
+<taxonrn>Class</taxonrn>
+<taxonrv>Malacostraca</taxonrv>
+<taxoncl>
+<taxonrn>Subclass</taxonrn>
+<taxonrv>Eumalacostraca</taxonrv>
+<taxoncl>
+<taxonrn>Superorder</taxonrn>
+<taxonrv>Eucarida</taxonrv>
+<taxoncl>
+<taxonrn>Order</taxonrn>
+<taxonrv>Decapoda</taxonrv>
+<common>crabs</common>
+<common>crayfishes</common>
+<common>lobsters</common>
+<common>prawns</common>
+<common>shrimp</common>
+</taxoncl>
+</taxoncl>
+</taxoncl>
+</taxoncl>
+</taxoncl>
+</taxoncl>
+</taxoncl>
+</taxonomy>
+<accconst>Release with the permission of the custodian.</accconst>
+<useconst>None</useconst>
+<ptcontac>
+<cntinfo>
+<cntperp>
+<cntper>Peter Crocos</cntper>
+<cntorg>CSIRO Division of Marine Research-Cleveland</cntorg>
+</cntperp>
+<cntaddr>
+<addrtype>mailing address</addrtype>
+<address>P.O. Box 120</address>
+<city>Cleveland</city>
+<state>Queensland</state>
+<postal>4163</postal>
+<country>Australia</country>
+</cntaddr>
+<cntvoice>unknown</cntvoice>
+<cntfax>unknown</cntfax>
+<cntemail>peter.crocos@csiro.au</cntemail>
+</cntinfo>
+</ptcontac>
+<crossref>
+<citeinfo>
+<origin>CSIRO Division of Marine Research</origin>
+<pubdate>Unknown</pubdate>
+<title>Albatross Bay Chlorophyll Data 1986-1992</title>
+<geoform>unknown</geoform>
+<pubinfo>
+<pubplace>Australia</pubplace>
+<publish>CSIRO Division of Marine Research</publish>
+</pubinfo>
+</citeinfo>
+</crossref>
+<crossref>
+<citeinfo>
+<origin>Stephen Blaber, David Brewer, John Salini, J. Kerr</origin>
+<pubdate>Unknown</pubdate>
+<title>Albatross Bay Fish Data 1986-1988</title>
+<geoform>unknown</geoform>
+<pubinfo>
+<pubplace>Australia</pubplace>
+<publish>CSIRO Division of Marine Research</publish>
+</pubinfo>
+</citeinfo>
+</crossref>
+<crossref>
+<citeinfo>
+<origin>Stever Blaber, CSIRO Division of Marine Research</origin>
+<pubdate>Unknown</pubdate>
+<title>Albatross Bay Nearshore Fish Study 1991-1992</title>
+<geoform>unknown</geoform>
+<pubinfo>
+<pubplace>Australia</pubplace>
+<publish>CSIRO Division of Marine Research</publish>
+</pubinfo>
+</citeinfo>
+</crossref>
+<crossref>
+<citeinfo>
+<origin>CSIRO Division of Marine Research</origin>
+<pubdate>Unknown</pubdate>
+<title>Albatross Bay Nutrient Data 1992</title>
+<geoform>unknown</geoform>
+<pubinfo>
+<pubplace>Australia</pubplace>
+<publish>CSIRO Division of Marine Research</publish>
+</pubinfo>
+</citeinfo>
+</crossref>
+<crossref>
+<citeinfo>
+<origin>Chris Jackson, CSIRO Division of Marine Research</origin>
+<pubdate>Unknown</pubdate>
+<title>Albatross Bay Phytoplankton Data 1986-1992</title>
+<geoform>unknown</geoform>
+<pubinfo>
+<pubplace>Queensland, Australia</pubplace>
+<publish>CSIRO Division of Marine Research</publish>
+</pubinfo>
+</citeinfo>
+</crossref>
+<crossref>
+<citeinfo>
+<origin>CSIRO Division of Marine Research</origin>
+<pubdate>Unknown</pubdate>
+<title>Albatross Bay Prawn Larval Data</title>
+<geoform>unknown</geoform>
+<pubinfo>
+<pubplace>Queensland, Australia</pubplace>
+<publish>CSIRO Division of Marine Research</publish>
+</pubinfo>
+</citeinfo>
+</crossref>
+<crossref>
+<citeinfo>
+<origin>CSIRO Division of Marine Research</origin>
+<pubdate>Unknown</pubdate>
+<title>Albatross Bay Primary Productivity</title>
+<geoform>unknown</geoform>
+<pubinfo>
+<pubplace>Queensland, Australia</pubplace>
+<publish>CSIRO Division of Marine Research</publish>
+</pubinfo>
+</citeinfo>
+</crossref>
+</idinfo>
+<dataqual>
+<logic>not applicable</logic>
+<complete>Twenty stations were sampled.</complete>
+<lineage>
+<method>
+<methtype>Field</methtype>
+<methdesc>unknown</methdesc>
+</method>
+<procstep>
+<procdesc>unknown</procdesc>
+<procdate>Unknown</procdate>
+</procstep>
+</lineage>
+</dataqual>
+<spdoinfo>
+<direct>Point</direct>
+</spdoinfo>
+<eainfo>
+<overview>
+<eaover>Entity - Adult Prawn in Albatross Bay, Gulf of Carpentaria, Australia; Attributes - size, sex, reproductive stage, moult stage, parasites</eaover>
+<eadetcit>unknown</eadetcit>
+</overview>
+</eainfo>
+<distinfo>
+<distrib>
+<cntinfo>
+<cntperp>
+<cntper>Tony Rees</cntper>
+<cntorg>CSIRO Division of Marine Research-Hobart</cntorg>
+</cntperp>
+<cntaddr>
+<addrtype>mailing address</addrtype>
+<city>Hobart</city>
+<country>Australia</country>
+</cntaddr>
+<cntvoice>unknown</cntvoice>
+<cntfax>unknown</cntfax>
+<cntemail>Tony.Rees@csiro.au</cntemail>
+</cntinfo>
+</distrib>
+<distliab>You accept all risks and responsibility for losses, damages, costs and other consequences resulting directly or indirectly from using this site and andinformation or material available from it. To the maximum permitted by law, CSIRO excludes all liability to any person arising directly or indirectly from using this site and any information or material available from it.</distliab>
+<custom>Please contact distributor.</custom>
+</distinfo>
+<metainfo>
+<metd>19980710</metd>
+<metrd>20020930</metrd>
+<metfrd>20030930</metfrd>
+<metc>
+<cntinfo>
+<cntperp>
+<cntper>Cheryl Solomon</cntper>
+<cntorg>Science Systems and Applications, Inc.</cntorg>
+</cntperp>
+<cntpos>Metadata specialist</cntpos>
+<cntaddr>
+<addrtype>mailing and physical address</addrtype>
+<address>10210 Greenbelt Road, Suite 500</address>
+<city>Lanham</city>
+<state>Maryland</state>
+<postal>20706</postal>
+</cntaddr>
+<cntvoice>301 867-2080</cntvoice>
+<cntfax>301-867-2149.</cntfax>
+<cntemail>solomon@gcmd.nasa.gov</cntemail>
+</cntinfo>
+</metc>
+<metstdn>FGDC Biological Data Profile of the Content Standard for Digital Geospatial Metadata</metstdn>
+<metstdv>FGDC-STD-001.1-1999</metstdv>
+</metainfo>
+</metadata>
