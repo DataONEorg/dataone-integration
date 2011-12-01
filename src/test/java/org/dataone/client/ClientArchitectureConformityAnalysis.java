@@ -80,32 +80,35 @@ public class ClientArchitectureConformityAnalysis {
 
 	@Test
 	public void testHarness() {
+		assertTrue("test", true);	
+	}
+	
+	/**
+	 * want to test a particularly confusing bit of logic for the path matching test
+	 * Note, (String).matches() method will only return true if the pattern includes
+	 * the entire String under test. 
+	 */
+	@Test
+	public void testEscapedPattern() {
 		
 		String x = "/werth/rtyudfgh/xcvbg/{pid}";
 		String pathPattern = x.replaceAll("\\{\\w+\\}", "\\\\w+\\$");
 		
 		String y = "/werth/rtyudfgh/xcvbg/testIdentifier";
-		if (y.matches(pathPattern)) {
-			System.out.println("pathPattern matched: " + pathPattern);
-		} else {
-			System.out.println("pathPattern did not match: " + pathPattern);
-		}
-		assertTrue("test", true);
-	
-		this.getClass().getAnnotations();
-	
+		assertTrue("backslash pattern in replace should find target", y.matches(pathPattern));
 	}
 
-	/*
+
+	/**
 	 * method to generate unique meaningful key for each method (includes entire signature)
 	 */
-	private String buildMethodListKey(Method method) {
+	private static String buildMethodListKey(Method method) {
 		String methodString = method.toString();
 		String qualifiedName = methodString.substring(methodString.indexOf(method.getName()+"("));
 		return qualifiedName;
 	}
 	
-	private ArrayList<Method> getCNInterfaceMethods() {
+	private static ArrayList<Method> getCNInterfaceMethods() {
 
 		if (methodListCN == null) {
 			// build a list of interface methods for the class under test
@@ -119,7 +122,7 @@ public class ClientArchitectureConformityAnalysis {
 					interfaceMethodList.add(buildMethodListKey(m));
 				}
 			}
-			Method[] methods = MNode.class.getMethods();  // gets only public methods
+			Method[] methods = CNode.class.getMethods();  // gets only public methods
 			ArrayList<Method> clientInterfaceMethods = new ArrayList<Method>();
 			for (Method method : methods) {
 				if (interfaceMethodList.contains(buildMethodListKey(method))) {
@@ -132,7 +135,7 @@ public class ClientArchitectureConformityAnalysis {
 	}
 	
 	
-	private ArrayList<Method> getMNInterfaceMethods() {
+	private static ArrayList<Method> getMNInterfaceMethods() {
 
 		if (methodListMN == null) {
 			// build a list of interface methods for the class under test
@@ -173,7 +176,41 @@ public class ClientArchitectureConformityAnalysis {
 		runInterfaceTest(cn, "CN");
 	}
 
-
+	/**
+	 * expect the echo service to return an http status in the 400s
+	 * whereupon the client exception handler will not be able to 
+	 * parse the response into a d1 exception, and will instead wrap
+	 * the response text into a ServiceFailure.  
+	 * 
+	 * @param d1node - either a CN or MN instance intended to be called by
+	 *                 the passed in method.
+	 * @param method - the method object that will be invoked
+	 * @return - the response from the echo service
+	 */
+	private String getEchoResponse(D1Node d1node, Method method) {
+		String echoResponse = null;
+		try {
+			Object[] paramObjects = buildParameterObjectInstances(method);
+			method.invoke(d1node,paramObjects);
+		} catch (InvocationTargetException e) {	
+			if (!(e.getCause() instanceof ServiceFailure)) {
+				e.printStackTrace();
+				handleFail("","Error invoking method " + method.getName());
+			} else {
+				ServiceFailure sf = (ServiceFailure) e.getCause();
+				echoResponse = "\ndetail code = " + sf.getDetail_code() + "\n" +
+				sf.getDescription();
+			}
+		} catch (Exception e) {
+			log.debug("invocation class: " + d1node.getClass());
+			log.debug("class of method being invoked: " + method.getDeclaringClass());
+			e.printStackTrace();
+			handleFail(buildMethodListKey(method),"Error building parameters for or invoking method " + method.getName());
+		}
+		log.debug("echo response: " + echoResponse);	
+		return echoResponse;
+	}
+	
 	
 	private void runInterfaceTest(D1Node d1node, String nodeType) throws InterruptedException {
 		
@@ -188,34 +225,12 @@ public class ClientArchitectureConformityAnalysis {
 		}
 		
 		for (Method method : clientMethodList) {			
-			log.debug("**** testing ::::: " + buildMethodListKey(method));
-			
-			// call the echomm test and get echo response
-			// trap all other errors in the errorCollector
-			try {
-				Object[] paramObjects = buildParameterObjectInstances(method);
-				method.invoke(d1node,paramObjects);
-			} catch (InvocationTargetException e) {	
-				////////////////////////////////////////////////////////////////
-				// expect echo service to return an http status in the 400s   //
-				// the client exception handler will not be able to parse the //
-				// response into a d1 exception, so will instead wrap the     //
-				// response text into a ServiceFailure                        //
-				////////////////////////////////////////////////////////////////
-				
-				if (!(e.getCause() instanceof ServiceFailure)) {
-					e.printStackTrace();
-					handleFail("","Error invoking method " + method.getName());
-				}
-				String echoResponse = ((ServiceFailure) e.getCause()).getDescription();
-				log.debug(echoResponse);	
-				
-				/* run the test */
+			log.info("**** testing ::::: " + buildMethodListKey(method));
+			String echoResponse = getEchoResponse(d1node,method);
+			if (echoResponse != null) {
 				checkEchoResponseVsArchitecture(echoResponse,nodeType,method);
-				
-			} catch (Exception e) {
-				e.printStackTrace();
-				handleFail(buildMethodListKey(method),"Error building parameters for or invoking method " + method.getName());
+			} else {
+				handleFail(nodeType + "." + method.getName(),"no echo response received");
 			}
 		}
 	}
@@ -301,7 +316,7 @@ public class ClientArchitectureConformityAnalysis {
 		Class<?>[] params = method.getParameterTypes();
 		Object[] paramObjects = new Object[params.length];
 		for (int i = 0; i<params.length; i++) {
-			log.debug(params[i].getCanonicalName());					
+			log.debug("building instance for: " + params[i].getCanonicalName());					
 			paramObjects[i] = buildParamObject(params[i]);
 			if (paramObjects[i] instanceof Date) {
 				Thread.sleep(1000); // to ensure different times for dates
@@ -356,7 +371,7 @@ public class ClientArchitectureConformityAnalysis {
 			try {
 				Method mm = c.getMethod("setValue", new Class[]{String.class});
 				mm.invoke(o, "test" + c.getSimpleName());
-				log.debug("    setValue : testValue");
+				log.debug("    setValue : test" + c.getSimpleName());
 			} catch (NoSuchMethodException e) {
 				// ok, object doesn't have that method...
 			}
