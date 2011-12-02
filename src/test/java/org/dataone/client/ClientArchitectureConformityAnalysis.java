@@ -15,9 +15,13 @@ import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.concurrent.Callable;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -47,8 +51,11 @@ import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ErrorCollector;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameters;
 
-
+@RunWith(value = Parameterized.class)
 public class ClientArchitectureConformityAnalysis {
 
 	/* configuration information for the echo service */
@@ -65,8 +72,25 @@ public class ClientArchitectureConformityAnalysis {
 	private static HashMap<String,HashMap<String,List<String>>> methodMap;
 	
 	/* lists of methods to hold the client interface methods */
-	private static ArrayList<Method> methodListMN;
-	private static ArrayList<Method> methodListCN;
+	private static HashMap<String,Method> clientMethodMapMN;
+	private static HashMap<String,Method> clientMethodMapCN;
+	
+	private String currentMethodKey;
+//	private String currentMethodMapKey;
+	private NodeType nodeType;
+	
+	
+	public ClientArchitectureConformityAnalysis(String methodKey) {
+		
+		if (methodKey.startsWith("CN.")) {
+			this.nodeType = NodeType.CN;
+		} else if (methodKey.startsWith("MN.")) {
+			this.nodeType = NodeType.MN;
+		} else {
+			this.nodeType = null;
+		}
+		this.currentMethodKey = methodKey;
+	}
 	
 	
 	/**
@@ -77,8 +101,29 @@ public class ClientArchitectureConformityAnalysis {
 	@Rule 
     public ErrorCollector errorCollector = new ErrorCollector();
 	
+	
+	@Parameters
+	public static Collection<Object[]> setUpTestParameters() throws IOException
+	{
+		setUpMethodDocumentationMap();
+		
+		// creating a superset of methodKeys - if it exists in documentation or
+		// implementation we're gonna test it
+		
+		TreeSet<String> methodKeys = new TreeSet<String>(getCNInterfaceMethods().keySet());
+		methodKeys.addAll(new TreeSet<String>(getMNInterfaceMethods().keySet()));
+		methodKeys.addAll(new TreeSet<String>(methodMap.keySet()));
+	
+		// create the return data structure
+		ArrayList<Object[]> paramList = new ArrayList<Object[]>();
+		for (String key : methodKeys) {
+			paramList.add(new Object[] {key});
+		}
+		return paramList;
+	}
+	
 
-	@Test
+	//	@Test
 	public void testHarness() {
 		assertTrue("test", true);	
 	}
@@ -88,7 +133,7 @@ public class ClientArchitectureConformityAnalysis {
 	 * Note, (String).matches() method will only return true if the pattern includes
 	 * the entire String under test. 
 	 */
-	@Test
+//	@Test
 	public void testEscapedPattern() {
 		
 		String x = "/werth/rtyudfgh/xcvbg/{pid}";
@@ -101,6 +146,7 @@ public class ClientArchitectureConformityAnalysis {
 
 	/**
 	 * method to generate unique meaningful key for each method (includes entire signature)
+	 * in order to weed out non-interface methods from list of implemented methods
 	 */
 	private static String buildMethodListKey(Method method) {
 		String methodString = method.toString();
@@ -108,9 +154,9 @@ public class ClientArchitectureConformityAnalysis {
 		return qualifiedName;
 	}
 	
-	private static ArrayList<Method> getCNInterfaceMethods() {
+	private static HashMap<String,Method> getCNInterfaceMethods() {
 
-		if (methodListCN == null) {
+		if (clientMethodMapCN == null) {
 			// build a list of interface methods for the class under test
 			ArrayList<String> interfaceMethodList = new ArrayList<String>();
 			Class<?>[] interfaces = CNode.class.getInterfaces();
@@ -123,21 +169,23 @@ public class ClientArchitectureConformityAnalysis {
 				}
 			}
 			Method[] methods = CNode.class.getMethods();  // gets only public methods
-			ArrayList<Method> clientInterfaceMethods = new ArrayList<Method>();
+			HashMap<String,Method> clientInterfaceMethods = new HashMap<String,Method>();
 			for (Method method : methods) {
-				if (interfaceMethodList.contains(buildMethodListKey(method))) {
-					clientInterfaceMethods.add(method);
+				String methodKey = buildMethodListKey(method);
+				if (interfaceMethodList.contains(methodKey)) {
+					String methodMapKey = "CN." + method.getName();
+					clientInterfaceMethods.put(methodMapKey,method);
 				}
 			}
-			methodListCN = clientInterfaceMethods;
+			clientMethodMapCN = clientInterfaceMethods;
 		}
-		return methodListCN;
+		return clientMethodMapCN;
 	}
 	
 	
-	private static ArrayList<Method> getMNInterfaceMethods() {
+	private static HashMap<String,Method> getMNInterfaceMethods() {
 
-		if (methodListMN == null) {
+		if (clientMethodMapMN == null) {
 			// build a list of interface methods for the class under test
 			ArrayList<String> interfaceMethodList = new ArrayList<String>();
 			Class<?>[] interfaces = MNode.class.getInterfaces();
@@ -151,31 +199,205 @@ public class ClientArchitectureConformityAnalysis {
 			}
 			
 			Method[] methods = MNode.class.getMethods();  // gets only public methods
-			ArrayList<Method> clientInterfaceMethods = new ArrayList<Method>();
+			HashMap<String,Method> clientInterfaceMethods = new HashMap<String,Method>();
 			for (Method method : methods) {
-				if (interfaceMethodList.contains(buildMethodListKey(method))) {
-					clientInterfaceMethods.add(method);
+				String methodKey = buildMethodListKey(method);
+				if (interfaceMethodList.contains(methodKey)) {
+					String methodMapKey = "MN." + method.getName();
+					clientInterfaceMethods.put(methodMapKey,method);
 				}
 			}
-			methodListMN = clientInterfaceMethods;
+			clientMethodMapMN = clientInterfaceMethods;
 		}
-		return methodListMN;
+		return clientMethodMapMN;
 	}
 	
+
+
+	/**
+	 * Is the list of methods in documentation the same as the ones under test?
+	 * comparing number and signature
+	 */
+//	@Test
+	public void testMethodListAgreement()
+	{
+		try {
+			Set<String> docMapKeys= new TreeSet(methodMap.keySet());
+			Set<String> cnMapKeys = new TreeSet(getCNInterfaceMethods().keySet());
+			Set<String> mnMapKeys = new TreeSet(getMNInterfaceMethods().keySet());
+			Set<String> bothInterfacesMapKeys = cnMapKeys;
+			System.out.println(docMapKeys.getClass());
+			System.out.println(cnMapKeys.getClass());
+			System.out.println(mnMapKeys.getClass());
+				bothInterfacesMapKeys.addAll(mnMapKeys);
+				
+			if (!docMapKeys.equals(bothInterfacesMapKeys)) {
+				Set<String> tmpDoc = new TreeSet<String>(docMapKeys);
+				Set<String> tmpImpl = new TreeSet<String>(bothInterfacesMapKeys);
+				tmpDoc.removeAll(bothInterfacesMapKeys);
+				tmpImpl.removeAll(docMapKeys);
+				String onlyDocumented = tmpDoc.toString();
+				String onlyImplemented = tmpImpl.toString();
+				handleFail("","document map and implementation map should be identical.\n" +
+						"onlyDocumented = " + onlyDocumented +"\n" +
+								"onlyImplemented = " + onlyImplemented);
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			handleFail(currentMethodKey,"unexpected error: " + e.getClass().getName() + 
+					": " + e.getMessage());
+		}
+	}
+	
+	@Test
+	public void testIsDocumented()
+	{
+		checkTrue(currentMethodKey,"method should be documented.",
+				methodMap.containsKey(currentMethodKey));
+	}
+	
+	@Test
+	public void testIsImplemented()
+	{
+		checkTrue(currentMethodKey,"method shold be implemented.",
+				getCNInterfaceMethods().containsKey(currentMethodKey) ||
+				getMNInterfaceMethods().containsKey(currentMethodKey)
+				);
+	}
+	
+	@Test
+	public void testHttpVerb()
+	{
+		String exceptionLocation = null;
+		try {	
+			exceptionLocation = "getEchoResponse";
+			String echoResponse = getEchoResponse(ECHO_MMP);
+			exceptionLocation = "get verb from documentMap";
+			String docVerb = methodMap.get(currentMethodKey).get("verb").get(0);
+			checkEquals(currentMethodKey, "method verb should agree",
+					docVerb,
+					getVerb(echoResponse));
+		} catch (Exception e) {
+			e.printStackTrace();
+			handleFail(currentMethodKey,"unexpected error at " + exceptionLocation +
+					" " + e.getClass().getName() + ": " + e.getMessage());
+		}
+	}
 	
 	
 	@Test
-	public void testMNInterface() throws InterruptedException {
-		MNode mn = new MNode(TEST_SERVICE_BASE + ECHO_MMP);
-		runInterfaceTest(mn, "MN");
-	}
+	public void testPath()
+	{
+		String exceptionLocation = null;
 		
-	@Test
-	public void testCNInterface() throws InterruptedException {
-		CNode cn = new CNode(TEST_SERVICE_BASE + ECHO_MMP);		
-		runInterfaceTest(cn, "CN");
+		try {
+			// create pattern from docMap path entry to match against echo response
+			exceptionLocation = "creating pathMatch";
+			String pathMatch = pathInfoBase + 
+			methodMap.get(currentMethodKey).get("path").get(0).replaceAll("\\{\\w+\\}", "\\\\w+\\$");
+			log.debug("testPath() pathMatch: " + pathMatch);
+
+			exceptionLocation = "getEchoResponse";
+			String echoResponse = getEchoResponse(ECHO_MMP);
+
+			checkTrue(currentMethodKey, "path_info should be matched by " + pathMatch,
+					verifyUrlPath(pathMatch, echoResponse));
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			handleFail(currentMethodKey,"unexpected error at " + exceptionLocation +
+					" " + e.getClass().getName() + ": " + e.getMessage());
+		}
 	}
 
+	
+	@Test
+	public void checkMethodParameters()
+	{
+		String exceptionLocation = null;
+		try {	
+			exceptionLocation = "getEchoResponse";
+			String echoResponse = getEchoResponse(ECHO_MMP);
+			if (methodMap.containsKey(currentMethodKey)) {
+				ArrayList<String> parameters = (ArrayList<String>) methodMap.get(currentMethodKey).get("params");
+				ArrayList<String> paramTypes = (ArrayList<String>) methodMap.get(currentMethodKey).get("paramTypes");
+			
+				
+				if (parameters != null && paramTypes != null) {
+					
+					Pattern pat = Pattern.compile("(\\w+).*");
+					if (parameters.size() != paramTypes.size()) {
+						handleFail(currentMethodKey,"documentation error: the number of params" +
+								" and paramTypes in the documentation are not equal.");
+					} else {
+						int i = 0;			
+						for (String param : parameters) {
+							if (param == null || param.trim().isEmpty())
+								continue;
+							
+							// get the corresponding type from paramType
+							// pick out the param name from the text
+							String paramType = null;
+							if (paramTypes != null) {
+								paramType = paramTypes.get(i++);
+							}
+							Matcher matcher = pat.matcher(param);
+							String paramKey = null;
+							if (matcher.find()) {
+								paramKey = matcher.group(1);
+							}
+	
+							String actualLocation = findParameterLocation(echoResponse,paramKey,"test" + paramType);
+							
+							String expectedLocation = calcExpectedParamLocation(paramKey,paramType,currentMethodKey);
+							checkEquals(currentMethodKey, "parameter '" + paramKey + "' is not in expected location",
+									actualLocation, expectedLocation);
+							
+						}
+					}
+				}
+			} else {
+				handleFail(currentMethodKey, "did not find method in documentation map");
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			handleFail(currentMethodKey,"unexpected error at " + exceptionLocation +
+					" " + e.getClass().getName() + ": " + e.getMessage());
+		}
+			
+	}
+	
+	
+	
+////	@Test
+//	public void testMNInterface() throws InterruptedException {
+//		MNode mn = new MNode(TEST_SERVICE_BASE + ECHO_MMP);
+//		runInterfaceTest(mn, "MN");
+//	}
+//		
+////	@Test
+//	public void testCNInterface() throws InterruptedException {
+//		CNode cn = new CNode(TEST_SERVICE_BASE + ECHO_MMP);		
+//		runInterfaceTest(cn, "CN");
+//	}
+
+	private String getEchoResponse(String testResource) {
+		String echoResponse = null;
+		D1Node d1node = null;
+		if (nodeType.equals(NodeType.CN)) {
+			d1node = new CNode(TEST_SERVICE_BASE + testResource);
+		} else {
+			d1node = new MNode(TEST_SERVICE_BASE + testResource);
+		}
+		echoResponse = getEchoResponse(d1node,getCNInterfaceMethods().get(currentMethodKey));
+		pathInfoBase = d1node.getNodeBaseServiceUrl().replaceAll(TEST_SERVICE_BASE, "");
+		log.info("set PATH_INFO base (prefix): " + pathInfoBase);
+
+		return echoResponse;
+	}
+	
+	
 	/**
 	 * expect the echo service to return an http status in the 400s
 	 * whereupon the client exception handler will not be able to 
@@ -212,104 +434,29 @@ public class ClientArchitectureConformityAnalysis {
 	}
 	
 	
-	private void runInterfaceTest(D1Node d1node, String nodeType) throws InterruptedException {
-		
-		pathInfoBase = d1node.getNodeBaseServiceUrl().replaceAll(TEST_SERVICE_BASE, "");
-		log.info("set PATH_INFO base (prefix): " +pathInfoBase);
-
-		ArrayList<Method> clientMethodList = null;
-		if (nodeType.equals("CN")) {
-			clientMethodList = getCNInterfaceMethods();
-		} else if (nodeType.equals("MN")) {
-			clientMethodList = getMNInterfaceMethods();
-		}
-		
-		for (Method method : clientMethodList) {			
-			log.info("**** testing ::::: " + buildMethodListKey(method));
-			String echoResponse = getEchoResponse(d1node,method);
-			if (echoResponse != null) {
-				checkEchoResponseVsArchitecture(echoResponse,nodeType,method);
-			} else {
-				handleFail(nodeType + "." + method.getName(),"no echo response received");
-			}
-		}
-	}
+//	private void runInterfaceTest(D1Node d1node, String nodeType) throws InterruptedException {
+//		
+//
+//
+//		HashMap<String,Method> clientMethodList = null;
+//		if (nodeType.equals("CN")) {
+//			clientMethodList = getCNInterfaceMethods();
+//		} else if (nodeType.equals("MN")) {
+//			clientMethodList = getMNInterfaceMethods();
+//		}
+//		
+////		for (Method method : clientMethodList) {			
+////			log.info("**** testing ::::: " + buildMethodListKey(method));
+////			String echoResponse = getEchoResponse(d1node,method);
+////			if (echoResponse != null) {
+////				checkEchoResponseVsArchitecture(echoResponse,nodeType,method);
+////			} else {
+////				handleFail(nodeType + "." + method.getName(),"no echo response received");
+////			}
+////		}
+//	}
 	
 
-	private void checkEchoResponseVsArchitecture(String echoResponse, String nodeType, Method method)
-	{
-		String methodMapKey = nodeType + "." + method.getName();
-		if (methodMap.containsKey(methodMapKey)) {
-			ArrayList<String> parameters = (ArrayList<String>) methodMap.get(methodMapKey).get("params");
-			ArrayList<String> paramTypes = (ArrayList<String>) methodMap.get(methodMapKey).get("paramTypes");
-		
-			
-			//check verb
-			checkEquals(methodMapKey, "method verb should agree",
-					methodMap.get(methodMapKey).get("verb").get(0),
-					getVerb(echoResponse));
-
-			// check path
-			// 
-			// first have to adapt paths containing parameters
-			String pathMatch = pathInfoBase + 
-					methodMap.get(methodMapKey).get("path").get(0).replaceAll("\\{\\w+\\}", "\\\\w+\\$");
-			log.debug("pathMatch: " + pathMatch);
-							
-			checkTrue(methodMapKey, "path_info should be matched by " + pathMatch,
-					verifyUrlPath(pathMatch, echoResponse));
-
-			// check params
-			
-			if (parameters != null && paramTypes != null) {
-				
-				Pattern pat = Pattern.compile("(\\w+).*");
-				if (parameters.size() != paramTypes.size()) {
-					handleFail(methodMapKey,"documentation error: the number of params" +
-							" and paramTypes in the documentation are not equal.");
-				} else {
-					int i = 0;			
-					for (String param : parameters) {
-						if (param == null || param.trim().isEmpty())
-							continue;
-						
-						// get the corresponding type from paramType
-						// pick out the param name from the text
-						String paramType = null;
-						if (paramTypes != null) {
-							paramType = paramTypes.get(i++);
-						}
-						Matcher matcher = pat.matcher(param);
-						String paramKey = null;
-						if (matcher.find()) {
-							paramKey = matcher.group(1);
-						}
-
-						String location = calcParamLocation(paramKey,paramType,methodMapKey);
-						if (location.equals("path")) {
-							checkTrue(methodMapKey, "parameter '" + paramKey + "' should be on the path as 'test" +
-									paramType + "'", isUrlPath("test" + paramType,echoResponse));
-						} else if (location.equals("queryString")) {
-							checkTrue(methodMapKey, "parameter '" + paramKey + "' should be on the query string",
-									isUrlQueryString(paramKey,echoResponse));
-						} else if (location.equals("filePart")) {
-							checkTrue(methodMapKey, "parameter '" + paramKey + "' should be in the MMP body as a FilePart",
-									isFilePart(paramKey,echoResponse));
-						} else if (location.equals("paramPart")) {
-							checkTrue(methodMapKey, "parameter '" + paramKey + "' should be in the MMP body as a paramPart",
-									isParamPart(paramKey,echoResponse));
-						} else if (location.equals("session")) {
-							// ignore - doesn't go into message or URL
-						} else {
-							handleFail(methodMapKey, "how did we get here? (location = " + location);
-						}
-					}
-				}
-			}
-		} else {
-			handleFail(methodMapKey, "did not find method in documentation map");
-		}
-	}
 	
 	private Object[] buildParameterObjectInstances(Method method) 
 	throws Exception {
@@ -477,6 +624,34 @@ public class ClientArchitectureConformityAnalysis {
 		return false;
 	}
 	
+	private String findParameterLocation(String echoText,String parameterName, String paramTestObject)
+	{
+		String[] textLines = echoText.split("\n");
+		String location = null;
+		for (String line : textLines) {
+			if (line.startsWith("request.META[ PATH_INFO ]")) {
+				if (line.endsWith(paramTestObject)) {
+					location = "path";
+				}
+			} else if (line.contains(parameterName)) {
+				if (line.startsWith("request.META[ QUERY_STRING ]")) {
+					location = "queryString";
+				} else if (line.startsWith("request.POST=<QueryDict:")) {
+					location = "paramPart";
+				} else if (line.startsWith("request.FILES=<MultiValueDict:")) {
+					location = "filePart";
+				} else if (line.startsWith("request.PUT=<QueryDict:")) {
+					location = "paramPart";
+				} else if (line.startsWith("request.DELETE=<QueryDict:")) {
+					location = "paramPart";
+				}
+				if (location != null)
+					break;
+			} 
+		}
+		return location;
+	}
+	
 
 	private boolean verifyUrlPath(String key, String echoText)
 	{
@@ -517,7 +692,7 @@ public class ClientArchitectureConformityAnalysis {
 	}
 
 
-	@BeforeClass
+
 	public static void setUpMethodDocumentationMap() throws IOException  {
 		// get and parse architecture document
 		URL url = new URL(methodRefDoc);
@@ -702,11 +877,11 @@ public class ClientArchitectureConformityAnalysis {
 		return value;
 	}
 	
-	public String calcParamLocation(String key, String keyType, String methodMapKey) 
+	public String calcExpectedParamLocation(String key, String keyType, String methodMapKey) 
 	{
 		String location = "bad methodMapKey";
 		if (key.toLowerCase().equals("session")) {
-			location = "session";
+			location = null;
 		}
 		else if (methodMap.containsKey(methodMapKey) ) {
 			if (methodMapKey.endsWith("listObjects")) {
