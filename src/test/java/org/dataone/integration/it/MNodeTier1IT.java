@@ -36,6 +36,7 @@ import org.dataone.service.types.v1.Log;
 import org.dataone.service.types.v1.LogEntry;
 import org.dataone.service.types.v1.Node;
 import org.dataone.service.types.v1.ObjectFormatIdentifier;
+import org.dataone.service.types.v1.ObjectInfo;
 import org.dataone.service.types.v1.ObjectList;
 import org.dataone.service.types.v1.Permission;
 import org.dataone.service.types.v1.SystemMetadata;
@@ -220,7 +221,9 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     	}
     }
     
-    
+    /**
+     * Tests the parameterless and parameterized listObject methods for propert returns.
+     */
     @Test
     public void testListObjects() {
        	Iterator<Node> it = getMemberNodeIterator();
@@ -231,19 +234,79 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     		printTestHeader("testListObjects() vs. node: " + currentUrl);
 
     		try {
-    			ObjectList ls = mn.listObjects(null);
-    			checkTrue(currentUrl,"listObjects() returns an ObjectList", ls != null);
+    			ObjectList ol = mn.listObjects(null);
+    			checkTrue(currentUrl,"listObjects() should return an ObjectList", ol != null);
     			
     			Date startTime = new Date(System.currentTimeMillis() - 10 * 60 * 1000);
 				Date endTime = new Date(System.currentTimeMillis() - 1 * 60 * 1000);
 				ObjectFormatIdentifier formatId = new ObjectFormatIdentifier();
 				formatId.setValue(format_text_csv);
     			Boolean replicaStatus = true;
-				ls = mn.listObjects(null, startTime, endTime, 
+				ol = mn.listObjects(null, startTime, endTime, 
 						formatId, replicaStatus , 
 						Integer.valueOf(0),
 						Integer.valueOf(10));
-    			checkTrue(currentUrl,"listObjects(<parameters>) returns an ObjectList", ls != null);
+    			checkTrue(currentUrl,"listObjects(<parameters>) returns an ObjectList", ol != null);
+    		} 
+    		catch (BaseException e) {
+    			handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
+    					e.getDetail_code() + ":: " + e.getDescription());
+    		}
+    		catch(Exception e) {
+    			e.printStackTrace();
+    			handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+    		}
+    	}
+    }
+    
+    
+    /**
+     * Tests that the startTime parameter successfully filters out records where
+     * the systemMetadataModified date/time is earler than startTime.
+     */
+    @Test
+    public void testListObjects_StartTimeTest() {
+       	Iterator<Node> it = getMemberNodeIterator();
+    	while (it.hasNext()) {
+    		currentUrl = it.next().getBaseURL();
+    		MNode mn = D1Client.getMN(currentUrl);
+    		currentUrl = mn.getNodeBaseServiceUrl();
+    		printTestHeader("testListObjects() vs. node: " + currentUrl);
+
+    		try {
+    			ObjectList ol = mn.listObjects(null);
+    			checkTrue(currentUrl,"listObjects() should return an ObjectList", ol != null);
+    			
+    			ObjectInfo oi0 = ol.getObjectInfo(0);
+    			Date startTime = null;
+   				ObjectInfo excludedObjectInfo = null;
+   				for (ObjectInfo oi: ol.getObjectInfoList()) {
+   					if (!oi.getDateSysMetadataModified().equals(oi0.getDateSysMetadataModified())) {
+   						// which is earlier?  can't assume chronological order of objectlist
+   						if (oi.getDateSysMetadataModified().after(oi0.getDateSysMetadataModified())) {
+   							startTime = oi.getDateSysMetadataModified();
+   							excludedObjectInfo = oi0;
+   						} else {
+   							startTime = oi0.getDateSysMetadataModified();
+   							excludedObjectInfo = oi;
+   						}
+   						break;
+   					}
+   				}
+   				if (excludedObjectInfo == null) {
+    				handleFail(currentUrl,"could not find 2 objects with different sysmeta modified dates");
+    			} else {
+   				
+    				// call listObjects with a startTime
+    				ol = mn.listObjects(null, startTime, null, null, null, null, null);
+
+    				for (ObjectInfo oi: ol.getObjectInfoList()) {
+    					if (oi.getIdentifier().equals(excludedObjectInfo.getIdentifier())) {
+    						handleFail(currentUrl,"identifier " + excludedObjectInfo.getIdentifier() +
+    								" should not be in the objectList where startTime set to " + startTime);
+    					}
+    				}
+    			}
     		} 
     		catch (BaseException e) {
     			handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
