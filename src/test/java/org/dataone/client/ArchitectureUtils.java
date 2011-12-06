@@ -68,8 +68,11 @@ public class ArchitectureUtils {
 				continue;
 			}
 			int rows = sheet.getPhysicalNumberOfRows();
-//			System.out.println("Sheet " + k + " \"" + wb.getSheetName(k) + "\" has " 
-//					+ rows + " row(s).");
+			log.info("Sheet " + k + " \"" + wb.getSheetName(k) + "\" has " 
+				+ rows + " physically defined row(s).");
+			rows = sheet.getLastRowNum();
+			log.info("Sheet " + k + " \"" + wb.getSheetName(k) + "\" has " 
+					+ rows + " logical row(s).");
 			
 			int moduleCol = -1;
 			int functionCol = -1;
@@ -133,7 +136,8 @@ public class ArchitectureUtils {
 						continue;
 					}
 					String apiDesignator = moduleString.substring(0,2);
-					String methodMapKey = apiDesignator + "." + functionString;				
+					String methodMapKey = apiDesignator + "." + functionString;	
+					log.debug("mapKey = " + methodMapKey);
 					
 					if (methodMapKey.contains("search")) {
 						System.out.println("method map key: " + methodMapKey);
@@ -153,6 +157,7 @@ public class ArchitectureUtils {
 					}
 					
 					value = getCellValue(row.getCell(restCol));
+					log.debug("rest column (verb & path) " + value); 
 					if (value != null) {
 						if (value.trim().equals("GET /  and  GET /node")) {
 							methodDetailsMap.put("verb", Arrays.asList(new String[] {"GET"}));

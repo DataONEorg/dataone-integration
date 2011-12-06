@@ -34,6 +34,7 @@ import org.dataone.service.types.v1.NodeState;
 import org.dataone.service.types.v1.NodeType;
 import org.dataone.service.types.v1.Permission;
 import org.dataone.service.types.v1.Person;
+import org.dataone.service.types.v1.Replica;
 import org.dataone.service.types.v1.ReplicationStatus;
 import org.dataone.service.types.v1.Subject;
 import org.junit.Rule;
@@ -54,7 +55,7 @@ public class ClientArchitectureConformityIT {
 	
 	protected static Log log = LogFactory.getLog(ClientArchitectureConformityIT.class);
 
-
+	private static String methodMatchPattern = System.getenv("test.method.match");
 	
 	private static HashMap<String,HashMap<String,List<String>>> methodMap;
 	
@@ -63,7 +64,6 @@ public class ClientArchitectureConformityIT {
 	private static HashMap<String,Method> clientMethodMapCN;
 	
 	private String currentMethodKey;
-//	private String currentMethodMapKey;
 	private NodeType nodeType;
 	
 	
@@ -104,7 +104,7 @@ public class ClientArchitectureConformityIT {
 		// create the return data structure
 		ArrayList<Object[]> paramList = new ArrayList<Object[]>();
 		
-		String methodMatchPattern = System.getenv("test.method.match");
+
 		if (methodMatchPattern != null) {
 			for (String key : methodKeys) {
 				if (key.matches(methodMatchPattern)) {
@@ -147,8 +147,10 @@ public class ClientArchitectureConformityIT {
 	 */
 	private static String buildMethodListKey(Method method) {
 		String methodString = method.toString();
+		// remove the class and package from beginning
 		String qualifiedName = methodString.substring(methodString.indexOf(method.getName()+"("));
-		return qualifiedName;
+		// remove the "throws" clause
+		return qualifiedName.replaceAll("\\sthrows\\s.*", "");
 	}
 	
 	private static HashMap<String,Method> getCNInterfaceMethods() {
@@ -221,7 +223,7 @@ public class ClientArchitectureConformityIT {
 	@Test
 	public void testMethodIsImplemented()
 	{
-		checkTrue(currentMethodKey,"method shold be implemented.",
+		checkTrue(currentMethodKey,"method should be implemented.",
 				getCNInterfaceMethods().containsKey(currentMethodKey) ||
 				getMNInterfaceMethods().containsKey(currentMethodKey)
 				);
@@ -250,8 +252,8 @@ public class ClientArchitectureConformityIT {
 		}
 		
 		// check that there are equal number of parameters
-		checkEquals(currentMethodKey,"number of parameters should agree between " +
-				"documentation and implementation", docParamTypes.size(), implParamTypes.length);
+		checkEquals(currentMethodKey,"number of parameters in implemented method should match " +
+				"number of parameters in documentation", implParamTypes.length, docParamTypes.size());
 		
 		// check that types agree
 		for (int i=0; i<docParamTypes.size(); i++) {
@@ -281,8 +283,8 @@ public class ClientArchitectureConformityIT {
 					getVerb(echoResponse));
 		} catch (Exception e) {
 			e.printStackTrace();
-			handleFail(currentMethodKey,"unexpected error at " + exceptionLocation +
-					" " + e.getClass().getName() + ": " + e.getMessage());
+			handleFail(currentMethodKey,"unexpected error at '" + exceptionLocation +
+					"' " + e.getClass().getName() + ": " + e.getMessage());
 		}
 	}
 	
@@ -302,7 +304,8 @@ public class ClientArchitectureConformityIT {
 			exceptionLocation = "getEchoResponse";
 			String echoResponse = getEchoResponse(ECHO_MMP);
 
-			checkTrue(currentMethodKey, "path_info should be matched by " + pathMatch,
+			checkTrue(currentMethodKey, "path_info should be matched by " + pathMatch 
+					+ ". got: " + getUrlPath(echoResponse),
 					verifyUrlPath(pathMatch, echoResponse));
 
 		} catch (Exception e) {
@@ -317,6 +320,7 @@ public class ClientArchitectureConformityIT {
 	public void checkMethodParameters()
 	{
 		String exceptionLocation = null;
+		// catch all exceptions into errorHandler
 		try {	
 			exceptionLocation = "getEchoResponse";
 			String echoResponse = getEchoResponse(ECHO_MMP);
@@ -352,8 +356,18 @@ public class ClientArchitectureConformityIT {
 							String actualLocation = findParameterLocation(echoResponse,paramKey,"test" + paramType);
 							
 							String expectedLocation = calcExpectedParamLocation(paramKey,paramType,currentMethodKey);
-							checkEquals(currentMethodKey, "parameter '" + paramKey + "' is not in expected location",
+							if (expectedLocation != null && 
+								(expectedLocation.equals("filePart")  || 
+									 expectedLocation.equals("paramPart")) && 
+								getVerb(echoResponse).equals("PUT") && 
+								actualLocation == null) {
+								   handleFail(currentMethodKey, "PUT operation: parameter '" + paramKey + "' " +
+								   		"is expected to be in a file or param part, but cannot be properly tested " +
+								   		"in a PUT operation against the echo service. (actual location WAS null)");
+							} else {
+								checkEquals(currentMethodKey, "parameter '" + paramKey + "' is not in expected location",
 									actualLocation, expectedLocation);				
+							}
 						}
 					}
 				}
@@ -380,7 +394,7 @@ public class ClientArchitectureConformityIT {
 			for (int i=0; i< exceptions.size(); i++) {
 				exceptionName = exceptions.get(i);
 				log.info(" : : : : : checking: " + exceptionName);
-				String actualException = getExceptionResponse(exceptionName);
+				String actualException =  getExceptionResponse(exceptionName);
 			
 				checkEquals(currentMethodKey, "exception '" + exceptionName + "' is not returned by the method",
 						actualException, exceptionName);
@@ -507,6 +521,8 @@ public class ClientArchitectureConformityIT {
 			o = new Boolean(true);
 		} else if (c.getCanonicalName().equals("java.lang.String")) {
 			o = new String("testString");
+			
+		// dataone types needing special instruction (required fields in xsd)	
 		} else if (c.getCanonicalName().endsWith("Event")) {
 			o = org.dataone.service.types.v1.Event.READ;
 		} else if (c.getCanonicalName().endsWith("Permission")) {
@@ -528,7 +544,7 @@ public class ClientArchitectureConformityIT {
 		} else if (c.getCanonicalName().endsWith("SynchronizationFailed")) {
 			o = new SynchronizationFailed("detailCodeString","descriptionString");
 
-		
+		// 
 		} else {
 			Constructor co = c.getConstructor(new Class[]{});		
 			o = co.newInstance((Object[]) null);
@@ -558,6 +574,12 @@ public class ClientArchitectureConformityIT {
 			((Person)o).setSubject(s);
 			((Person)o).setGivenNameList(Arrays.asList(new String[]{"Sleepy"}));
 			((Person)o).setFamilyName("Dwarf");
+		} else if (c.getCanonicalName().endsWith("Replica")) {
+			NodeReference nf = new NodeReference();
+			nf.setValue("testNodeReference");
+			((Replica)o).setReplicaMemberNode(nf);
+			((Replica)o).setReplicationStatus(ReplicationStatus.REQUESTED);
+			((Replica)o).setReplicaVerified(new Date());
 		}
 		return o;
 	}
@@ -594,21 +616,25 @@ public class ClientArchitectureConformityIT {
 
 	private boolean verifyUrlPath(String key, String echoText)
 	{
-		String[] textLines = echoText.split("\n");
-		String pathInfoLine = null;
-		for (String s : textLines) {
-			if (s.startsWith("request.META[ PATH_INFO ]")) {
-				pathInfoLine = s;
-				break;
-			}
-		}
-		if (pathInfoLine == null)
-			return false;
-		pathInfoLine = pathInfoLine.replace("request.META[ PATH_INFO ] = ", "");
+		String pathInfoLine = getUrlPath(echoText);
 		if ( pathInfoLine.matches(key) ) {
 			return true;
 		}
 		return false;
+	}
+	
+	
+	private String getUrlPath(String echoText)
+	{
+		String[] textLines = echoText.split("\n");
+		String pathInfoLine = null;
+		for (String s : textLines) {
+			if (s.startsWith("request.META[ PATH_INFO ]")) {
+				pathInfoLine = s.replace("request.META[ PATH_INFO ] = ", "");
+				break;
+			}
+		}
+		return pathInfoLine;
 	}
 
 	
@@ -646,29 +672,42 @@ public class ClientArchitectureConformityIT {
 			}
 			if (methodMap.get(methodMapKey).get("path").get(0).contains("{" + key + "}")) {
 				location =  "path";
-			} 
-			else if (methodMap.get(methodMapKey).containsKey("query") ) {		
-				String queryString = methodMap.get(methodMapKey).get("query").get(0);
-				if (methodMap.get(methodMapKey).get("query").get(0).toLowerCase().contains(key.toLowerCase()+"=")) {
-					location = "queryString";
-				}
-			} 
-			// parameter is in the message body. 
-			//  determine ParamPart vs FilePart
-			else if (keyType != null) {
-				if (keyType.equals("Subject") || keyType.endsWith("Identifier") ||
-					keyType.equals("Permission") || keyType.equals("NodeReference") ||
-					keyType.equals("boolean") || keyType.equals("DateTime") ||
-					key.equals("scheme") || key.equals("fragment")) 
-				{
-					location = "paramPart";
-				} else {
-					location = "filePart";
-				}
 			} else {
-				location = "null keyType";
+				// 
+				if (methodMap.get(methodMapKey).get("verb").get(0).equals("GET") ||
+					methodMap.get(methodMapKey).get("verb").get(0).equals("HEAD")) 
+				{
+					// has to be on queryString by default, since these are no-body requests
+					location = "queryString";
+				} 
+				else {
+					// will check all remaining options
+					// starting with queryString
+					if (methodMap.get(methodMapKey).containsKey("query")) {
+						String queryString = methodMap.get(methodMapKey).get("query").get(0);
+						if (methodMap.get(methodMapKey).get("query").get(0).toLowerCase().contains(key.toLowerCase()+"=")) {
+							location = "queryString";
+						}
+					} else {
+						try {
+							if (keyType.equals("Subject") || keyType.endsWith("Identifier") ||
+								keyType.equals("Permission") || keyType.equals("NodeReference") ||
+								keyType.equals("boolean") || keyType.equals("DateTime") ||
+								key.equals("scheme") || key.equals("fragment") ||
+								keyType.equals("long") || keyType.equals("unsigned long")
+								) 
+							{
+								location = "paramPart";
+							} else {
+								location = "filePart";
+							}
+						} catch (NullPointerException npe) {
+							location = "null key or keyType";
+						}
+					}
+				}
 			}
-		}	
+		}
 		return location;
 	}
 	
