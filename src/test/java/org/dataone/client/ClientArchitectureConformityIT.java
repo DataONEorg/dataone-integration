@@ -44,7 +44,7 @@ import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
 @RunWith(value = Parameterized.class)
-public class ClientArchitectureConformityAnalysis {
+public class ClientArchitectureConformityIT {
 
 	/* configuration information for the echo service */
 	protected static final String TEST_SERVICE_BASE = "http://dev-testing.dataone.org/testsvc";
@@ -52,7 +52,7 @@ public class ClientArchitectureConformityAnalysis {
 	protected static final String EXCEPTION_SERVICE = "/exception";
 	protected static String pathInfoBase;
 	
-	protected static Log log = LogFactory.getLog(ClientArchitectureConformityAnalysis.class);
+	protected static Log log = LogFactory.getLog(ClientArchitectureConformityIT.class);
 
 
 	
@@ -67,7 +67,7 @@ public class ClientArchitectureConformityAnalysis {
 	private NodeType nodeType;
 	
 	
-	public ClientArchitectureConformityAnalysis(String methodKey) {
+	public ClientArchitectureConformityIT(String methodKey) {
 		
 		if (methodKey.startsWith("CN.")) {
 			this.nodeType = NodeType.CN;
