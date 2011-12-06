@@ -7,20 +7,16 @@ import static org.junit.Assert.fail;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.Callable;
 import java.util.regex.Matcher;
@@ -28,14 +24,7 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.poi.hssf.usermodel.HSSFCell;
-import org.apache.poi.hssf.usermodel.HSSFRow;
-import org.apache.poi.hssf.usermodel.HSSFSheet;
-import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-import org.dataone.client.CNode;
-import org.dataone.client.D1Node;
-import org.dataone.client.D1Object;
-import org.dataone.client.MNode;
+import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.ServiceFailure;
 import org.dataone.service.exceptions.SynchronizationFailed;
 import org.dataone.service.types.v1.Identifier;
@@ -47,7 +36,6 @@ import org.dataone.service.types.v1.Permission;
 import org.dataone.service.types.v1.Person;
 import org.dataone.service.types.v1.ReplicationStatus;
 import org.dataone.service.types.v1.Subject;
-import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ErrorCollector;
@@ -61,13 +49,12 @@ public class ClientArchitectureConformityAnalysis {
 	/* configuration information for the echo service */
 	protected static final String TEST_SERVICE_BASE = "http://dev-testing.dataone.org/testsvc";
 	protected static final String ECHO_MMP = "/echomm";
+	protected static final String EXCEPTION_SERVICE = "/exception";
 	protected static String pathInfoBase;
 	
 	protected static Log log = LogFactory.getLog(ClientArchitectureConformityAnalysis.class);
 
-	private static String methodRefDoc = 
-			"https://repository.dataone.org/documents/Projects/cicore/" +
-			"architecture/api-documentation/MethodCrossReference.xls";
+
 	
 	private static HashMap<String,HashMap<String,List<String>>> methodMap;
 	
@@ -105,7 +92,7 @@ public class ClientArchitectureConformityAnalysis {
 	@Parameters
 	public static Collection<Object[]> setUpTestParameters() throws IOException
 	{
-		setUpMethodDocumentationMap();
+		methodMap = ArchitectureUtils.setUpMethodDocumentationMap();
 		
 		// creating a superset of methodKeys - if it exists in documentation or
 		// implementation we're gonna test it
@@ -116,8 +103,18 @@ public class ClientArchitectureConformityAnalysis {
 	
 		// create the return data structure
 		ArrayList<Object[]> paramList = new ArrayList<Object[]>();
-		for (String key : methodKeys) {
-			paramList.add(new Object[] {key});
+		
+		String methodMatchPattern = System.getenv("test.method.match");
+		if (methodMatchPattern != null) {
+			for (String key : methodKeys) {
+				if (key.matches(methodMatchPattern)) {
+					paramList.add(new Object[] {key});
+				}
+			}
+		} else {
+			for (String key : methodKeys) {
+				paramList.add(new Object[] {key});
+			}
 		}
 		return paramList;
 	}
@@ -213,57 +210,61 @@ public class ClientArchitectureConformityAnalysis {
 	}
 	
 
-
-	/**
-	 * Is the list of methods in documentation the same as the ones under test?
-	 * comparing number and signature
-	 */
-//	@Test
-	public void testMethodListAgreement()
-	{
-		try {
-			Set<String> docMapKeys= new TreeSet(methodMap.keySet());
-			Set<String> cnMapKeys = new TreeSet(getCNInterfaceMethods().keySet());
-			Set<String> mnMapKeys = new TreeSet(getMNInterfaceMethods().keySet());
-			Set<String> bothInterfacesMapKeys = cnMapKeys;
-			System.out.println(docMapKeys.getClass());
-			System.out.println(cnMapKeys.getClass());
-			System.out.println(mnMapKeys.getClass());
-				bothInterfacesMapKeys.addAll(mnMapKeys);
-				
-			if (!docMapKeys.equals(bothInterfacesMapKeys)) {
-				Set<String> tmpDoc = new TreeSet<String>(docMapKeys);
-				Set<String> tmpImpl = new TreeSet<String>(bothInterfacesMapKeys);
-				tmpDoc.removeAll(bothInterfacesMapKeys);
-				tmpImpl.removeAll(docMapKeys);
-				String onlyDocumented = tmpDoc.toString();
-				String onlyImplemented = tmpImpl.toString();
-				handleFail("","document map and implementation map should be identical.\n" +
-						"onlyDocumented = " + onlyDocumented +"\n" +
-								"onlyImplemented = " + onlyImplemented);
-			}
-
-		} catch (Exception e) {
-			e.printStackTrace();
-			handleFail(currentMethodKey,"unexpected error: " + e.getClass().getName() + 
-					": " + e.getMessage());
-		}
-	}
 	
 	@Test
-	public void testIsDocumented()
+	public void testMethodIsDocumented()
 	{
 		checkTrue(currentMethodKey,"method should be documented.",
 				methodMap.containsKey(currentMethodKey));
 	}
 	
 	@Test
-	public void testIsImplemented()
+	public void testMethodIsImplemented()
 	{
 		checkTrue(currentMethodKey,"method shold be implemented.",
 				getCNInterfaceMethods().containsKey(currentMethodKey) ||
 				getMNInterfaceMethods().containsKey(currentMethodKey)
 				);
+	}
+	
+	
+	@Test
+	public void testMethodParameterAgreement()
+	{
+		List<String> docParamTypes = methodMap.get(currentMethodKey).get("paramTypes");
+		Class<?>[] implParamTypes = null;
+		if (nodeType == NodeType.CN) {
+			implParamTypes = getCNInterfaceMethods().get(currentMethodKey).getParameterTypes();
+		} else  if (nodeType == NodeType.MN) {
+			implParamTypes = getMNInterfaceMethods().get(currentMethodKey).getParameterTypes();
+		} else {
+			handleFail(currentMethodKey,"bad nodeType value: " + nodeType.xmlValue());
+		}
+		
+		// make null equal to zero size list, to avoid null pointer exceptions
+		if (implParamTypes == null) {
+			implParamTypes = new Class<?>[]{};
+		}
+		if (docParamTypes == null) {
+			docParamTypes = new ArrayList<String>();
+		}
+		
+		// check that there are equal number of parameters
+		checkEquals(currentMethodKey,"number of parameters should agree between " +
+				"documentation and implementation", docParamTypes.size(), implParamTypes.length);
+		
+		// check that types agree
+		for (int i=0; i<docParamTypes.size(); i++) {
+			if (i < implParamTypes.length) {
+				String paramTypeSimpleName = implParamTypes[i].getSimpleName(); // don't have to worry about arrays
+				checkTrue(currentMethodKey,"Implemented parameter type ("+ paramTypeSimpleName +
+						") at position " + i + " should match documented type ("+ docParamTypes.get(i) +")", 
+					ArchitectureUtils.checkDocTypeEqualsJavaType(docParamTypes.get(i), 
+							paramTypeSimpleName));
+			} else {
+				handleFail(currentMethodKey,"Implementation does not have parameter at position " + i);
+			}
+		}
 	}
 	
 	@Test
@@ -352,8 +353,7 @@ public class ClientArchitectureConformityAnalysis {
 							
 							String expectedLocation = calcExpectedParamLocation(paramKey,paramType,currentMethodKey);
 							checkEquals(currentMethodKey, "parameter '" + paramKey + "' is not in expected location",
-									actualLocation, expectedLocation);
-							
+									actualLocation, expectedLocation);				
 						}
 					}
 				}
@@ -369,28 +369,42 @@ public class ClientArchitectureConformityAnalysis {
 	}
 	
 	
-	
-////	@Test
-//	public void testMNInterface() throws InterruptedException {
-//		MNode mn = new MNode(TEST_SERVICE_BASE + ECHO_MMP);
-//		runInterfaceTest(mn, "MN");
-//	}
-//		
-////	@Test
-//	public void testCNInterface() throws InterruptedException {
-//		CNode cn = new CNode(TEST_SERVICE_BASE + ECHO_MMP);		
-//		runInterfaceTest(cn, "CN");
-//	}
+	@Test
+	public void checkExceptionHandling()
+	{
+		log.info("::::::: checkExceptionHandling vs. " + currentMethodKey);
+		String exceptionName = null;
+		try {	
+			ArrayList<String> exceptions = (ArrayList<String>) methodMap.get(currentMethodKey).get("exceptions");
+
+			for (int i=0; i< exceptions.size(); i++) {
+				exceptionName = exceptions.get(i);
+				log.info(" : : : : : checking: " + exceptionName);
+				String actualException = getExceptionResponse(exceptionName);
+			
+				checkEquals(currentMethodKey, "exception '" + exceptionName + "' is not returned by the method",
+						actualException, exceptionName);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			handleFail(currentMethodKey,"unexpected error at " + exceptionName +
+					" " + e.getClass().getName() + ": " + e.getMessage());
+		}
+	}
+
+
 
 	private String getEchoResponse(String testResource) {
 		String echoResponse = null;
 		D1Node d1node = null;
 		if (nodeType.equals(NodeType.CN)) {
 			d1node = new CNode(TEST_SERVICE_BASE + testResource);
+			echoResponse = getEchoResponse(d1node,getCNInterfaceMethods().get(currentMethodKey));
 		} else {
 			d1node = new MNode(TEST_SERVICE_BASE + testResource);
+			echoResponse = getEchoResponse(d1node,getMNInterfaceMethods().get(currentMethodKey));
 		}
-		echoResponse = getEchoResponse(d1node,getCNInterfaceMethods().get(currentMethodKey));
+		
 		pathInfoBase = d1node.getNodeBaseServiceUrl().replaceAll(TEST_SERVICE_BASE, "");
 		log.info("set PATH_INFO base (prefix): " + pathInfoBase);
 
@@ -429,33 +443,37 @@ public class ClientArchitectureConformityAnalysis {
 			e.printStackTrace();
 			handleFail(buildMethodListKey(method),"Error building parameters for or invoking method " + method.getName());
 		}
+		
 		log.debug("echo response: " + echoResponse);	
 		return echoResponse;
 	}
 	
 	
-//	private void runInterfaceTest(D1Node d1node, String nodeType) throws InterruptedException {
-//		
-//
-//
-//		HashMap<String,Method> clientMethodList = null;
-//		if (nodeType.equals("CN")) {
-//			clientMethodList = getCNInterfaceMethods();
-//		} else if (nodeType.equals("MN")) {
-//			clientMethodList = getMNInterfaceMethods();
-//		}
-//		
-////		for (Method method : clientMethodList) {			
-////			log.info("**** testing ::::: " + buildMethodListKey(method));
-////			String echoResponse = getEchoResponse(d1node,method);
-////			if (echoResponse != null) {
-////				checkEchoResponseVsArchitecture(echoResponse,nodeType,method);
-////			} else {
-////				handleFail(nodeType + "." + method.getName(),"no echo response received");
-////			}
-////		}
-//	}
-	
+	private String getExceptionResponse(String exception) throws Exception
+	{
+		String exceptionReturned = null;
+		D1Node d1node = null;
+		Method method = null;
+		log.debug("  - - - -  calling " + TEST_SERVICE_BASE + EXCEPTION_SERVICE +
+				"/" + exception);
+		if (nodeType.equals(NodeType.CN)) {
+			d1node = new CNode(TEST_SERVICE_BASE + EXCEPTION_SERVICE +
+					"/" + exception); // + "/v1/object");
+			method = getCNInterfaceMethods().get(currentMethodKey);
+		} else {
+			d1node = new MNode(TEST_SERVICE_BASE + EXCEPTION_SERVICE +
+					"/" + exception); // + "/v1/object");
+			method = getMNInterfaceMethods().get(currentMethodKey);
+		}
+		try {
+			Object[] paramObjects = buildParameterObjectInstances(method);
+			method.invoke(d1node,paramObjects);
+		} catch (InvocationTargetException e) {	
+			log.debug("exceptionReturned: " + ((BaseException)e.getCause()).getDescription());
+			exceptionReturned = e.getCause().getClass().getSimpleName();
+		}
+		return exceptionReturned;
+	}
 
 	
 	private Object[] buildParameterObjectInstances(Method method) 
@@ -545,85 +563,6 @@ public class ClientArchitectureConformityAnalysis {
 	}
 
 	
-	
-	
-	
-	private boolean isFilePart(String key, String echoText) 
-	{
-		String[] textLines = echoText.split("\n");
-		String filesLine = null;
-		for (String s : textLines) {
-			if (s.startsWith("request.FILES=<MultiValueDict:")) {
-				filesLine = s;
-				break;
-			}
-		}
-		if (filesLine == null)
-			return false;
-		
-		if (filesLine.contains(key)) {
-			return true;
-		}
-		return false;
-	}
-
-	private boolean isParamPart(String key, String echoText)
-	{
-		String[] textLines = echoText.split("\n");
-		String paramLine = null;
-		for (String s : textLines) {
-			if (s.startsWith("request.POST=<QueryDict:")) {
-				paramLine = s;
-				break;
-			}
-		}
-		if (paramLine == null)
-			return false;
-		
-		if (paramLine.contains(key)) {
-			return true;
-		}
-		return false;
-	}
-	
-	private boolean isUrlQueryString(String key, String echoText)
-	{
-		String[] textLines = echoText.split("\n");
-		String queryLine = null;
-		for (String s : textLines) {
-			if (s.startsWith("request.META[ QUERY_STRING ]")) {
-				queryLine = s;
-				break;
-			}
-		}
-		if (queryLine == null)
-			return false;
-		
-		if (queryLine.contains(key+"=")) {
-			return true;
-		}
-		return false;
-	}
-	
-	private boolean isUrlPath(String objectValue, String echoText)
-	{
-		String[] textLines = echoText.split("\n");
-		String lineOfInterest = null;
-		for (String s : textLines) {
-			if (s.startsWith("request.META[ PATH_INFO ]")) {
-				lineOfInterest = s;
-				break;
-			}
-		}
-		if (lineOfInterest == null)
-			return false;
-		
-		if (lineOfInterest.endsWith(objectValue)) {
-			return true;
-		}
-		return false;
-	}
-	
 	private String findParameterLocation(String echoText,String parameterName, String paramTestObject)
 	{
 		String[] textLines = echoText.split("\n");
@@ -693,189 +632,7 @@ public class ClientArchitectureConformityAnalysis {
 
 
 
-	public static void setUpMethodDocumentationMap() throws IOException  {
-		// get and parse architecture document
-		URL url = new URL(methodRefDoc);
-		InputStream is = url.openStream();
-		HSSFWorkbook wb = new HSSFWorkbook(is);
-//		System.out.println("Data dump:\n");
-		
-		// map<method,map<aspect,set<stringValue>>>
-		// eg: methodMap.get("ping").get("params")
-		methodMap = new HashMap<String,HashMap<String,List<String>>>();
-		
-		for (int k = 0; k < wb.getNumberOfSheets(); k++) {
-			HSSFSheet sheet = wb.getSheetAt(k);
-			if (!wb.getSheetName(k).equals("Functions")) {
-				continue;
-			}
-			int rows = sheet.getPhysicalNumberOfRows();
-//			System.out.println("Sheet " + k + " \"" + wb.getSheetName(k) + "\" has " 
-//					+ rows + " row(s).");
-			
-			int moduleCol = -1;
-			int functionCol = -1;
-			int restCol = -1;
-			int paramsCol = -1;
-			int paramTypeCol = -1;
-			int exceptionsCol = -1;
-			int returnsCol = -1;
-			HSSFRow headerRow = sheet.getRow(0);
-			for (int c = 0; c < headerRow.getPhysicalNumberOfCells(); c++) {
-				String columnName = headerRow.getCell(c).getStringCellValue();
-				if (columnName.equals("Module")) {
-					moduleCol = c;
-				}
-				if (columnName.equals("Function")) {
-					functionCol = c;
-				}
-				if (columnName.equals("REST")) {
-					restCol = c;
-				}
-				if (columnName.equals("Params")) {
-					paramsCol = c;
-				}
-				if (columnName.equals("ParamType")) {
-					paramTypeCol = c;
-				}
-				if (columnName.equals("Return")) {
-					returnsCol = c;
-				}
-				if (columnName.equals("Exceptions")) {
-					exceptionsCol = c;
-				}
-			}
-			
-			
-			// http://poi.apache.org/apidocs/org/apache/poi/hssf/usermodel/HSSFRow.html
-			boolean parse = false;
 
-			for (int r = 1; r < rows; r++) {
-				HSSFRow row = sheet.getRow(r);
-				if (row == null) {
-					log.debug("ROW " + r + " is null");
-				} else {
-					int cells = row.getPhysicalNumberOfCells();
-					log.debug("ROW " + r + " has " + cells + " cell(s).");
-								
-					if (parse == false) {
-						if (row.getCell(0).getStringCellValue().equals("START")) {
-							parse = true;
-						} else {
-							continue;
-						}
-					}
-
-					// http://poi.apache.org/apidocs/org/apache/poi/hssf/usermodel/HSSFCell.html
-					String moduleString = getCellValue(row.getCell(moduleCol));
-					String functionString = getCellValue(row.getCell(functionCol));
-					// TODO: pulling CN/ MN off the beginning of module
-					// might make things brittle.  What else to use?
-					if (moduleString == null) {
-						continue;
-					}
-					String apiDesignator = moduleString.substring(0,2);
-					String methodMapKey = apiDesignator + "." + functionString;				
-					
-					if (methodMapKey.contains("search")) {
-						System.out.println("method map key: " + methodMapKey);
-					}
-					// get the details map for the appropriate method
-					// each line of a record block in the method cross reference
-					// contains the functionName and module so we can use this
-					// to add information to the proper method.
-					if (!methodMap.containsKey(methodMapKey)) {
-						methodMap.put(methodMapKey, new HashMap<String,List<String>>());
-					}
-					HashMap<String,List<String>> methodDetailsMap = methodMap.get(methodMapKey);
-					
-					String value = getCellValue(row.getCell(returnsCol));
-					if (value != null) {
-						methodDetailsMap.put("returnValue", Arrays.asList(new String[] {value}));
-					}
-					
-					value = getCellValue(row.getCell(restCol));
-					if (value != null) {
-						if (value.trim().equals("GET /  and  GET /node")) {
-							methodDetailsMap.put("verb", Arrays.asList(new String[] {"GET"}));
-							methodDetailsMap.put("path", Arrays.asList(new String[] {"/node"}));
-						} else {
-							
-							String[] verbPath = value.split("\\s+", 2);
-							String[] pathQuery = verbPath[1].split("\\?");
-							if (pathQuery[0].endsWith("[")) {
-								pathQuery[0] = pathQuery[0].substring(0, pathQuery[0].length()-1);
-							}
-							methodDetailsMap.put("verb", Arrays.asList(new String[] {verbPath[0]}));
-							methodDetailsMap.put("path", Arrays.asList(new String[] {pathQuery[0]}));
-							if (pathQuery.length > 1) {
-								methodDetailsMap.put("query", Arrays.asList(new String[] {pathQuery[1]}));
-							}
-						}
-					}
-					
-					value = getCellValue(row.getCell(exceptionsCol));
-					if (value != null) {
-						if (methodDetailsMap.get("exceptions") == null) {
-							ArrayList<String> al = new ArrayList<String>();
-							methodDetailsMap.put("exceptions", al);
-						} 
-						((ArrayList<String>) methodDetailsMap.get("exceptions")).add(value);
-
-					}
-					
-					value = getCellValue(row.getCell(paramsCol));
-					if (value != null) {
-						if (methodDetailsMap.get("params") == null) {
-							ArrayList<String> al = new ArrayList<String>();
-							methodDetailsMap.put("params", al);
-						} 
-						((ArrayList<String>) methodDetailsMap.get("params")).add(value);
-					}
-
-					value = getCellValue(row.getCell(paramTypeCol));
-					if (value != null) {
-						if (methodDetailsMap.get("paramTypes") == null) {
-							ArrayList<String> al = new ArrayList<String>();
-							methodDetailsMap.put("paramTypes", al);
-						} 
-						((ArrayList<String>) methodDetailsMap.get("paramTypes")).add(value);
-					}
-				}
-			}
-		}
-	}
-
-	
-	private static String getCellValue(HSSFCell cell)
-	{
-		String value = null;
-		if (cell != null) {
-			switch (cell.getCellType()) 
-			{
-			case HSSFCell.CELL_TYPE_FORMULA:
-				value = cell.getStringCellValue();
-				break;
-
-			case HSSFCell.CELL_TYPE_NUMERIC:
-				value = String.valueOf(cell.getNumericCellValue());
-				break;
-
-			case HSSFCell.CELL_TYPE_STRING:
-				value =  cell.getStringCellValue();
-				break;
-
-			default:
-			}
-		} 
-		if (value != null) {
-			value = value.trim();
-			if (value.isEmpty()) {
-				value = null;	
-			}
-		}
-		return value;
-	}
 	
 	public String calcExpectedParamLocation(String key, String keyType, String methodMapKey) 
 	{
@@ -901,7 +658,8 @@ public class ClientArchitectureConformityAnalysis {
 			else if (keyType != null) {
 				if (keyType.equals("Subject") || keyType.endsWith("Identifier") ||
 					keyType.equals("Permission") || keyType.equals("NodeReference") ||
-					keyType.equals("boolean") || keyType.equals("DateTime")) 
+					keyType.equals("boolean") || keyType.equals("DateTime") ||
+					key.equals("scheme") || key.equals("fragment")) 
 				{
 					location = "paramPart";
 				} else {
@@ -910,13 +668,29 @@ public class ClientArchitectureConformityAnalysis {
 			} else {
 				location = "null keyType";
 			}
-		}
-		
+		}	
 		return location;
 	}
 	
 	
 	public void checkEquals(final String host, final String message, final String s1, final String s2)
+    {
+        errorCollector.checkSucceeds(new Callable<Object>() 
+        {
+            public Object call() throws Exception 
+            {
+                if (host != null) {
+                	assertThat("for method: " + host + ":: " + message, s1, is(s2));
+                } else {
+                	assertThat(message, s1, is(s2));
+                }
+                return null;
+            }
+        });
+    }
+	
+	
+	public void checkEquals(final String host, final String message, final int s1, final int s2)
     {
         errorCollector.checkSucceeds(new Callable<Object>() 
         {
