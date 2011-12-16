@@ -40,6 +40,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.dataone.client.CNode;
+import org.dataone.client.D1Node;
 import org.dataone.client.MNode;
 import org.dataone.service.exceptions.IdentifierNotUnique;
 import org.dataone.service.exceptions.InsufficientResources;
@@ -520,7 +521,7 @@ public class ExampleUtilities {
     	return s;
     }
     
-	public static Identifier doCreateNewObject(MNode mn, String idPrefix) throws ServiceFailure,
+	public static Identifier doCreateNewObject(D1Node d1Node, String idPrefix) throws ServiceFailure,
 	NotImplemented, InvalidToken, NotAuthorized, IdentifierNotUnique, UnsupportedType,
 	InsufficientResources, InvalidSystemMetadata, NotFound, InvalidRequest
 	{
@@ -538,12 +539,16 @@ public class ExampleUtilities {
 		objectStream = 
             new Throwable().getStackTrace()[2].getClass().getResourceAsStream("/d1_testdocs/knb-lter-cdr.329066.1.data");
 
-		rGuid = mn.create(token, guid, objectStream, sysmeta);
+		if (d1Node instanceof MNode) {
+			rGuid = ((MNode) d1Node).create(token, guid, objectStream, sysmeta);
+		} else {
+			rGuid = ((CNode) d1Node).create(token, guid, objectStream, sysmeta);
+		}
 		assertThat("checking that returned guid matches given ", guid.getValue(), is(rGuid.getValue()));
 //		mn.setAccessPolicy(token, rGuid, ContextAwareTestCaseDataone.buildPublicReadAccessPolicy());
-		System.out.println("new document created on " + mn.getNodeBaseServiceUrl() + 
+		System.out.println("new document created on " + d1Node.getNodeBaseServiceUrl() + 
 		        " with guid " + rGuid.getValue());
-		InputStream is = mn.get(null,guid);
+		InputStream is = d1Node.get(null,guid);
 		return rGuid;
 	}
   

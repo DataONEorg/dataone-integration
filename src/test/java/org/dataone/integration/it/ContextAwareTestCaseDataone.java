@@ -590,7 +590,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 	 * into the log (INFO level)
 	 * @param methodName
 	 */
-	protected void printTestHeader(String methodName)
+	public static void printTestHeader(String methodName)
     {
         log.info("\n***************** running test for " + methodName + " *****************");
     }
@@ -602,7 +602,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 	 * the check methods 
 	 */
 	@Rule 
-    public ErrorCollector errorCollector = new ErrorCollector();
+    public static ErrorCollector errorCollector = new ErrorCollector();
 	
 	/**
 	 * performs the junit assertThat method using the errorCollector
@@ -612,7 +612,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 	 * @param s1
 	 * @param s2
 	 */
-    protected void checkEquals(final String host, final String message, final String s1, final String s2)
+    public static void checkEquals(final String host, final String message, final String s1, final String s2)
     {
         errorCollector.checkSucceeds(new Callable<Object>() 
         {
@@ -637,7 +637,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 	 * @param s1
 	 * @param s2
 	 */
-    protected void checkTrue(final String host, final String message, final boolean b)
+    public static void checkTrue(final String host, final String message, final boolean b)
     {
         errorCollector.checkSucceeds(new Callable<Object>() 
         {
@@ -661,7 +661,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 	 * @param s1
 	 * @param s2
 	 */
-    protected void checkFalse(final String host, final String message, final boolean b)
+    public static void checkFalse(final String host, final String message, final boolean b)
     {
         errorCollector.checkSucceeds(new Callable<Object>() 
         {
@@ -684,7 +684,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 	 * @param host
 	 * @param message
 	 */
-    protected void handleFail(final String host, final String message)
+    public static void handleFail(final String host, final String message)
     {
         errorCollector.checkSucceeds(new Callable<Object>() 
         {
