@@ -6,15 +6,19 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
+import java.util.Enumeration;
+import java.util.Formatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.TreeSet;
@@ -25,8 +29,10 @@ import java.util.regex.Pattern;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.dataone.service.exceptions.BaseException;
+import org.dataone.service.exceptions.NotImplemented;
 import org.dataone.service.exceptions.ServiceFailure;
 import org.dataone.service.exceptions.SynchronizationFailed;
+import org.dataone.service.types.v1.Group;
 import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Node;
 import org.dataone.service.types.v1.NodeReference;
@@ -56,12 +62,14 @@ public class ClientArchitectureConformityIT {
 	protected static Log log = LogFactory.getLog(ClientArchitectureConformityIT.class);
 
 	private static String methodMatchPattern = System.getenv("test.method.match");
+	private static boolean ignorePUTexceptions = true;
 	
 	private static HashMap<String,HashMap<String,List<String>>> methodMap;
 	
 	/* lists of methods to hold the client interface methods */
 	private static HashMap<String,Method> clientMethodMapMN;
 	private static HashMap<String,Method> clientMethodMapCN;
+	private static List<String> d1ExceptionList;
 	
 	private String currentMethodKey;
 	private NodeType nodeType;
@@ -211,6 +219,56 @@ public class ClientArchitectureConformityIT {
 		return clientMethodMapMN;
 	}
 	
+	
+	private static List<String> getD1Exceptions() throws IOException, ClassNotFoundException {
+
+		if (d1ExceptionList == null) {
+			String packageName = BaseException.class.getPackage().getName();
+			ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+			assert classLoader != null;
+			String path = packageName.replace('.', '/');
+			Enumeration<URL> resources = classLoader.getResources(path);
+			List<File> dirs = new ArrayList<File>();
+			while (resources.hasMoreElements()) {
+				URL resource = resources.nextElement();
+				dirs.add(new File(resource.getFile()));
+			}
+			ArrayList<String> classes = new ArrayList<String>();
+			for (File directory : dirs) {
+				classes.addAll(findClasses(directory, packageName));
+			}
+			classes.remove("BaseException");
+			d1ExceptionList = classes;
+		}
+		return d1ExceptionList;
+	}
+
+	   /**
+     * Recursive method used to find all classes in a given directory and subdirs.
+     *
+     * @param directory   The base directory
+     * @param packageName The package name for classes found inside the base directory
+     * @return The classes
+     * @throws ClassNotFoundException
+     */
+    private static List<String> findClasses(File directory, String packageName) throws ClassNotFoundException {
+        List<String> classes = new ArrayList<String>();
+        if (!directory.exists()) {
+            return classes;
+        }
+        File[] files = directory.listFiles();
+        for (File file : files) {
+            if (file.isDirectory()) {
+                assert !file.getName().contains(".");
+                classes.addAll(findClasses(file, packageName + "." + file.getName()));
+            } else if (file.getName().endsWith(".class")) {
+                classes.add(file.getName().substring(0, file.getName().length() - 6));
+            }
+        }
+        return classes;
+    }
+	
+	
 
 	
 	@Test
@@ -317,7 +375,7 @@ public class ClientArchitectureConformityIT {
 
 	
 	@Test
-	public void checkMethodParameters()
+	public void testMethodParameters()
 	{
 		String exceptionLocation = null;
 		// catch all exceptions into errorHandler
@@ -353,17 +411,25 @@ public class ClientArchitectureConformityIT {
 								paramKey = matcher.group(1);
 							}
 	
-							String actualLocation = findParameterLocation(echoResponse,paramKey,"test" + paramType);
-							
+							String actualLocation = findParameterLocation(echoResponse,paramKey,"test" + paramType);					
 							String expectedLocation = calcExpectedParamLocation(paramKey,paramType,currentMethodKey);
-							if (expectedLocation != null && 
-								(expectedLocation.equals("filePart")  || 
-									 expectedLocation.equals("paramPart")) && 
-								getVerb(echoResponse).equals("PUT") && 
-								actualLocation == null) {
-								   handleFail(currentMethodKey, "PUT operation: parameter '" + paramKey + "' " +
+							
+							String echoedVerb = getVerb(echoResponse);
+							if (expectedLocation != null 
+								&& (expectedLocation.equals("filePart")  || 
+										expectedLocation.equals("paramPart")) 
+								&& (echoedVerb.equals("PUT") || echoedVerb.equals("DELETE")) 
+								&& actualLocation == null) 
+							{
+								if (!ignorePUTexceptions) {
+									
+								   handleFail(currentMethodKey, String.format("%s operation: parameter '%s'" +
 								   		"is expected to be in a file or param part, but cannot be properly tested " +
-								   		"in a PUT operation against the echo service. (actual location WAS null)");
+								   		"in a %s operation against the echo service. (actual location WAS null)",
+								   		echoedVerb,
+								   		paramKey,
+								   		echoedVerb));
+								}
 							} else {
 								checkEquals(currentMethodKey, "parameter '" + paramKey + "' is not in expected location",
 									actualLocation, expectedLocation);				
@@ -384,20 +450,38 @@ public class ClientArchitectureConformityIT {
 	
 	
 	@Test
-	public void checkExceptionHandling()
+	public void testMethodExceptionHandling()
 	{
 		log.info("::::::: checkExceptionHandling vs. " + currentMethodKey);
 		String exceptionName = null;
 		try {	
-			ArrayList<String> exceptions = (ArrayList<String>) methodMap.get(currentMethodKey).get("exceptions");
-
-			for (int i=0; i< exceptions.size(); i++) {
-				exceptionName = exceptions.get(i);
-				log.info(" : : : : : checking: " + exceptionName);
-				String actualException =  getExceptionResponse(exceptionName);
+			ArrayList<String> docExceptions = (ArrayList<String>) methodMap.get(currentMethodKey).get("exceptions");
+			Class<?>[] implExceptions = null;
+			if (nodeType.equals(NodeType.CN)) {
+				implExceptions = getCNInterfaceMethods().get(currentMethodKey).getExceptionTypes();
+			} else if (nodeType.equals(NodeType.MN)) {
+				implExceptions = getMNInterfaceMethods().get(currentMethodKey).getExceptionTypes();
+			} else {
+				handleFail(currentMethodKey,"test misconfiguration - NodeType is " + nodeType);
+			}
 			
-				checkEquals(currentMethodKey, "exception '" + exceptionName + "' is not returned by the method",
-						actualException, exceptionName);
+			ArrayList<String> implExList = new ArrayList<String>();
+			for (Class<?> exceptionClass : implExceptions) {
+				implExList.add(exceptionClass.getClass().getSimpleName());
+			}
+			List<String> d1ExceptionList = getD1Exceptions();
+			for (String d1Exception : d1ExceptionList) {
+				log.info(" : : : : : checking: " + d1Exception);
+				String actualException =  getExceptionResponse(d1Exception);
+				if (docExceptions.contains(d1Exception)) {
+					checkEquals(currentMethodKey, "method should throw exception '" +
+						d1Exception + "'",
+						actualException, d1Exception);
+				} else {
+					checkEquals(currentMethodKey, "method should recast '" + 
+						d1Exception + "' to 'ServiceFailure'",
+						actualException, "ServiceFailure");
+				}
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -523,6 +607,8 @@ public class ClientArchitectureConformityIT {
 			o = new String("testString");
 			
 		// dataone types needing special instruction (required fields in xsd)	
+		} else if (c.getCanonicalName().endsWith("BaseException")) {
+			o = new NotImplemented("detailCodeString","descriptionString");
 		} else if (c.getCanonicalName().endsWith("Event")) {
 			o = org.dataone.service.types.v1.Event.READ;
 		} else if (c.getCanonicalName().endsWith("Permission")) {
@@ -574,6 +660,12 @@ public class ClientArchitectureConformityIT {
 			((Person)o).setSubject(s);
 			((Person)o).setGivenNameList(Arrays.asList(new String[]{"Sleepy"}));
 			((Person)o).setFamilyName("Dwarf");
+		} else if (c.getCanonicalName().endsWith("Group")) {
+			Subject s = new Subject();
+			s.setValue("testSubject");
+			((Group)o).setSubject(s);
+			((Group)o).setGroupName("testGroupName");
+			((Group)o).setRightsHolderList(Arrays.asList(new Subject[]{s}));
 		} else if (c.getCanonicalName().endsWith("Replica")) {
 			NodeReference nf = new NodeReference();
 			nf.setValue("testNodeReference");
@@ -589,26 +681,37 @@ public class ClientArchitectureConformityIT {
 	{
 		String[] textLines = echoText.split("\n");
 		String location = null;
-		for (String line : textLines) {
-			if (line.startsWith("request.META[ PATH_INFO ]")) {
-				if (line.endsWith(paramTestObject)) {
-					location = "path";
-				}
-			} else if (line.contains(parameterName)) {
+		String pathLocation = null;
+		for (String line : textLines) {			
+			if (line.contains(parameterName)) {
 				if (line.startsWith("request.META[ QUERY_STRING ]")) {
 					location = "queryString";
+					break;
 				} else if (line.startsWith("request.POST=<QueryDict:")) {
 					location = "paramPart";
+					break;
 				} else if (line.startsWith("request.FILES=<MultiValueDict:")) {
 					location = "filePart";
+					break;
 				} else if (line.startsWith("request.PUT=<QueryDict:")) {
 					location = "paramPart";
+					break;
 				} else if (line.startsWith("request.DELETE=<QueryDict:")) {
 					location = "paramPart";
-				}
-				if (location != null)
 					break;
-			} 
+				}
+			}
+			
+			// if parameter is on the path, can't use the parameter name 
+			// to determine its location - so look for the line and match on 
+			// the string value of that parameter (in the form 'test{Type}')
+			// will use this value if param name not elsewhere
+			if (line.startsWith("request.META[ PATH_INFO ]") && line.endsWith("/" + paramTestObject)) {	
+				pathLocation = "path";
+			}
+		}
+		if (location == null) {
+			location = pathLocation;
 		}
 		return location;
 	}
