@@ -251,7 +251,7 @@ public class CNodeIT extends ContextAwareTestCaseDataone {
 			
 			rGuid = mn.create(token, guid, objectStream, sysmeta);
 			System.out.println("    == returned Guid (rGuid): " + rGuid.getValue());
-			mn.setAccessPolicy(token, rGuid, buildPublicReadAccessPolicy());
+//			mn.setAccessPolicy(token, rGuid, buildPublicReadAccessPolicy());
 			checkEquals(guid.getValue(), rGuid.getValue());
 
 			CNode cn = D1Client.getCN();
@@ -299,7 +299,7 @@ public class CNodeIT extends ContextAwareTestCaseDataone {
 			
 			rGuid = mn.create(token, guid, objectStream, sysmeta);
 			System.out.println("    == returned Guid (rGuid): " + rGuid.getValue());
-			mn.setAccessPolicy(token, rGuid, buildPublicReadAccessPolicy());
+//			mn.setAccessPolicy(token, rGuid, buildPublicReadAccessPolicy());
 			checkEquals(guid.getValue(), rGuid.getValue());
 
 			SystemMetadata mnSysMeta = mn.getSystemMetadata(token, rGuid);
@@ -350,7 +350,7 @@ public class CNodeIT extends ContextAwareTestCaseDataone {
 			
 			rGuid = mn.create(token, guid, objectStream, sysmeta);
 			System.out.println("    == returned Guid (rGuid): " + rGuid.getValue());
-			mn.setAccessPolicy(token, rGuid, buildPublicReadAccessPolicy());
+//			mn.setAccessPolicy(token, rGuid, buildPublicReadAccessPolicy());
 			checkEquals(guid.getValue(), rGuid.getValue());
 
 			String mnIn = IOUtils.toString(mn.get(token, rGuid));
@@ -473,7 +473,7 @@ public class CNodeIT extends ContextAwareTestCaseDataone {
 
 					rGuid = mn.create(token, guid, objectStream, sysmeta);
 					System.out.println("    == returned Guid (rGuid): " + rGuid.getValue());
-					mn.setAccessPolicy(token, rGuid, buildPublicReadAccessPolicy());
+//					mn.setAccessPolicy(token, rGuid, buildPublicReadAccessPolicy());
 					checkEquals(guid.getValue(), rGuid.getValue());
 
 

@@ -540,7 +540,7 @@ public class ExampleUtilities {
 
 		rGuid = mn.create(token, guid, objectStream, sysmeta);
 		assertThat("checking that returned guid matches given ", guid.getValue(), is(rGuid.getValue()));
-		mn.setAccessPolicy(token, rGuid, ContextAwareTestCaseDataone.buildPublicReadAccessPolicy());
+//		mn.setAccessPolicy(token, rGuid, ContextAwareTestCaseDataone.buildPublicReadAccessPolicy());
 		System.out.println("new document created on " + mn.getNodeBaseServiceUrl() + 
 		        " with guid " + rGuid.getValue());
 		InputStream is = mn.get(null,guid);

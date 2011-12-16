@@ -220,116 +220,116 @@ public class MNodeTier2IT extends ContextAwareTestCaseDataone  {
 	 * Anything other than the boolean true is considered a test failure.
 	 */
 //    @Test
-	public void testSetAccessPolicy() 
-    {	
-    	setupClientSubject_Reader();
-    	String readerSubject = CertificateManager.getInstance()
-    		.getSubjectDN(CertificateManager.getInstance().loadCertificate());
-	
-    	
-    	Iterator<Node> it = getMemberNodeIterator();
-		while (it.hasNext()) {
-			currentUrl = it.next().getBaseURL();
-			MNode mn = D1Client.getMN(currentUrl);
-			currentUrl = mn.getNodeBaseServiceUrl();
-			printTestHeader("testSetAccessPolicy() vs. node: " + currentUrl);
-
-			try {
-				setupClientSubject_Writer();
-				Identifier changeableObject = procureTestObject(mn, null,
-					new Permission[] {Permission.READ, Permission.WRITE, Permission.CHANGE_PERMISSION});
-				if (changeableObject != null)
-				{					
-					log.info("clear the AccessPolicy");
-					boolean success = mn.setAccessPolicy(null, changeableObject, new AccessPolicy());
-
-					// ensure blank policy with get, isAuthorized
-					setupClientSubject_Reader();				
-					try {
-						mn.isAuthorized(null, changeableObject, Permission.READ);
-						handleFail(currentUrl,"1. isAuthorized by the reader should fail");
-					} catch (NotAuthorized na) {
-						// should fail
-					}
-					try {
-						mn.get(null, changeableObject);
-						handleFail(currentUrl,"2. getting the newly created object as reader should fail");
-					} catch (NotAuthorized na) {
-						// this is what we want
-					}
-
-
-					log.info("allow read permission for testReader");
-					setupClientSubject_Writer();
-					success = mn.setAccessPolicy(null, changeableObject, 
-							AccessUtil.createSingleRuleAccessPolicy(new String[] {readerSubject},
-									new Permission[] {Permission.READ}));
-					checkTrue(currentUrl,"3. testWriter should be able to set the access policy",success);
-
-
-					// test for success
-					log.info("trying isAuthorized as the testReader");
-					setupClientSubject_Reader();			
-					try {
-						mn.isAuthorized(null, changeableObject, Permission.READ);
-					} catch (NotAuthorized na) {
-						handleFail(currentUrl,"4. testReader should be authorized to read this pid '" 
-								+ changeableObject.getValue() + "'");
-					}
-
-					log.info("now trying get as the testReader");
-					try {
-						mn.get(null, changeableObject);
-					} catch (NotAuthorized na) {
-						handleFail(currentUrl,"5. testReader should now be able to get the object");
-					}
-
-					log.info("now try to get as a known user with no rights to the object (should not be able)");
-					setupClientSubject_NoRights();
-					try {
-						mn.get(null, changeableObject);
-						handleFail(currentUrl,"6. testNoRights should not be able to get the object");
-					} catch (NotAuthorized na) {
-						// this is what we want
-					}
-					log.info("now try isAuthorized() on it as a known user with no rights to the object");
-					try {
-						mn.isAuthorized(null, changeableObject, Permission.READ);
-						handleFail(currentUrl,"7. testNoRights should not be able to get the object");
-					} catch (NotAuthorized na) {
-						// this is what we want
-					}
-
-					log.info("finally test access against anonymous client");
-					setupClientSubject_NoCert();
-					try {
-						mn.get(null, changeableObject);
-						handleFail(currentUrl,"8. anonymous client (no certificate) should not be" +
-						"able to get the object");
-					} catch (NotAuthorized na) {
-						// this is what we want
-					}
-
-					log.info("and test isAuthorized on it with certificateless client");
-					try {
-						mn.isAuthorized(null, changeableObject, Permission.READ);
-						handleFail(currentUrl,"9. anonymous client (no certificate) should not be " +
-						"able to get successful response from isAuthorized()");
-					} catch (NotAuthorized na) {
-						// this is what we want
-					}
-				}
-			} catch (IndexOutOfBoundsException e) {
-				handleFail(currentUrl,"No Objects available to test against");
-			} catch (BaseException e) {
-				handleFail(currentUrl, e.getClass().getSimpleName() + ": " + 
-						e.getDetail_code() + ": " + e.getDescription());
-			} catch (Exception e) {
-				e.printStackTrace();
-				handleFail(currentUrl, e.getClass().getName() + ": " + e.getMessage());
-			}
-		}
-	}
+//	public void testSetAccessPolicy() 
+//    {	
+//    	setupClientSubject_Reader();
+//    	String readerSubject = CertificateManager.getInstance()
+//    		.getSubjectDN(CertificateManager.getInstance().loadCertificate());
+//	
+//    	
+//    	Iterator<Node> it = getMemberNodeIterator();
+//		while (it.hasNext()) {
+//			currentUrl = it.next().getBaseURL();
+//			MNode mn = D1Client.getMN(currentUrl);
+//			currentUrl = mn.getNodeBaseServiceUrl();
+//			printTestHeader("testSetAccessPolicy() vs. node: " + currentUrl);
+//
+//			try {
+//				setupClientSubject_Writer();
+//				Identifier changeableObject = procureTestObject(mn, null,
+//					new Permission[] {Permission.READ, Permission.WRITE, Permission.CHANGE_PERMISSION});
+//				if (changeableObject != null)
+//				{					
+//					log.info("clear the AccessPolicy");
+//					boolean success = mn.setAccessPolicy(null, changeableObject, new AccessPolicy());
+//
+//					// ensure blank policy with get, isAuthorized
+//					setupClientSubject_Reader();				
+//					try {
+//						mn.isAuthorized(null, changeableObject, Permission.READ);
+//						handleFail(currentUrl,"1. isAuthorized by the reader should fail");
+//					} catch (NotAuthorized na) {
+//						// should fail
+//					}
+//					try {
+//						mn.get(null, changeableObject);
+//						handleFail(currentUrl,"2. getting the newly created object as reader should fail");
+//					} catch (NotAuthorized na) {
+//						// this is what we want
+//					}
+//
+//
+//					log.info("allow read permission for testReader");
+//					setupClientSubject_Writer();
+//					success = mn.setAccessPolicy(null, changeableObject, 
+//							AccessUtil.createSingleRuleAccessPolicy(new String[] {readerSubject},
+//									new Permission[] {Permission.READ}));
+//					checkTrue(currentUrl,"3. testWriter should be able to set the access policy",success);
+//
+//
+//					// test for success
+//					log.info("trying isAuthorized as the testReader");
+//					setupClientSubject_Reader();			
+//					try {
+//						mn.isAuthorized(null, changeableObject, Permission.READ);
+//					} catch (NotAuthorized na) {
+//						handleFail(currentUrl,"4. testReader should be authorized to read this pid '" 
+//								+ changeableObject.getValue() + "'");
+//					}
+//
+//					log.info("now trying get as the testReader");
+//					try {
+//						mn.get(null, changeableObject);
+//					} catch (NotAuthorized na) {
+//						handleFail(currentUrl,"5. testReader should now be able to get the object");
+//					}
+//
+//					log.info("now try to get as a known user with no rights to the object (should not be able)");
+//					setupClientSubject_NoRights();
+//					try {
+//						mn.get(null, changeableObject);
+//						handleFail(currentUrl,"6. testNoRights should not be able to get the object");
+//					} catch (NotAuthorized na) {
+//						// this is what we want
+//					}
+//					log.info("now try isAuthorized() on it as a known user with no rights to the object");
+//					try {
+//						mn.isAuthorized(null, changeableObject, Permission.READ);
+//						handleFail(currentUrl,"7. testNoRights should not be able to get the object");
+//					} catch (NotAuthorized na) {
+//						// this is what we want
+//					}
+//
+//					log.info("finally test access against anonymous client");
+//					setupClientSubject_NoCert();
+//					try {
+//						mn.get(null, changeableObject);
+//						handleFail(currentUrl,"8. anonymous client (no certificate) should not be" +
+//						"able to get the object");
+//					} catch (NotAuthorized na) {
+//						// this is what we want
+//					}
+//
+//					log.info("and test isAuthorized on it with certificateless client");
+//					try {
+//						mn.isAuthorized(null, changeableObject, Permission.READ);
+//						handleFail(currentUrl,"9. anonymous client (no certificate) should not be " +
+//						"able to get successful response from isAuthorized()");
+//					} catch (NotAuthorized na) {
+//						// this is what we want
+//					}
+//				}
+//			} catch (IndexOutOfBoundsException e) {
+//				handleFail(currentUrl,"No Objects available to test against");
+//			} catch (BaseException e) {
+//				handleFail(currentUrl, e.getClass().getSimpleName() + ": " + 
+//						e.getDetail_code() + ": " + e.getDescription());
+//			} catch (Exception e) {
+//				e.printStackTrace();
+//				handleFail(currentUrl, e.getClass().getName() + ": " + e.getMessage());
+//			}
+//		}
+//	}
     
     /**
 	 * Tests the dataONE service API setAccessPolicy method, calling it with
@@ -339,40 +339,40 @@ public class MNodeTier2IT extends ContextAwareTestCaseDataone  {
 	 * Anything other than the boolean true is considered a test failure.
 	 */
 //    @Test
-	public void testSetAccessPolicy_NoCert() 
-    {	
-		Iterator<Node> it = getMemberNodeIterator();
-		while (it.hasNext()) {
-			currentUrl = it.next().getBaseURL();
-			MNode mn = D1Client.getMN(currentUrl);
-			currentUrl = mn.getNodeBaseServiceUrl();
-			printTestHeader("testSetAccessPolicy_NoCert() vs. node: " + currentUrl);
-
-			try {
-				setupClientSubject_Writer();
-				Identifier changeableObject = procureTestObject(mn, null, 
-						new Permission[] {Permission.READ, Permission.WRITE, Permission.CHANGE_PERMISSION}); //getOrCreateChangeableObject(mn);
-				if (changeableObject != null) 
-				{	
-					setupClientSubject_NoCert();
-					log.info("  subject cleared");
-					// set access on the object
-					boolean success = mn.setAccessPolicy(null, changeableObject, 
-							AccessUtil.createSingleRuleAccessPolicy(new String[]{"foo"},
-									new Permission[]{Permission.READ}));
-					handleFail(currentUrl,"with no client certificate, setAccessPolicy should throw exception");
-				}
-			} catch (IndexOutOfBoundsException e) {
-				handleFail(currentUrl,"No Objects available to test against");
-			} catch (BaseException e) {
-				checkEquals(currentUrl, "with no client certificate: " + e.getDetail_code() + ": " + e.getDescription(), 
-						e.getClass().getSimpleName(), "NotAuthorized");
-			} catch (Exception e) {
-				e.printStackTrace();
-				handleFail(currentUrl, e.getClass().getName() + ": " + e.getMessage());
-			}
-		}
-    }
+//	public void testSetAccessPolicy_NoCert() 
+//    {	
+//		Iterator<Node> it = getMemberNodeIterator();
+//		while (it.hasNext()) {
+//			currentUrl = it.next().getBaseURL();
+//			MNode mn = D1Client.getMN(currentUrl);
+//			currentUrl = mn.getNodeBaseServiceUrl();
+//			printTestHeader("testSetAccessPolicy_NoCert() vs. node: " + currentUrl);
+//
+//			try {
+//				setupClientSubject_Writer();
+//				Identifier changeableObject = procureTestObject(mn, null, 
+//						new Permission[] {Permission.READ, Permission.WRITE, Permission.CHANGE_PERMISSION}); //getOrCreateChangeableObject(mn);
+//				if (changeableObject != null) 
+//				{	
+//					setupClientSubject_NoCert();
+//					log.info("  subject cleared");
+//					// set access on the object
+//					boolean success = mn.setAccessPolicy(null, changeableObject, 
+//							AccessUtil.createSingleRuleAccessPolicy(new String[]{"foo"},
+//									new Permission[]{Permission.READ}));
+//					handleFail(currentUrl,"with no client certificate, setAccessPolicy should throw exception");
+//				}
+//			} catch (IndexOutOfBoundsException e) {
+//				handleFail(currentUrl,"No Objects available to test against");
+//			} catch (BaseException e) {
+//				checkEquals(currentUrl, "with no client certificate: " + e.getDetail_code() + ": " + e.getDescription(), 
+//						e.getClass().getSimpleName(), "NotAuthorized");
+//			} catch (Exception e) {
+//				e.printStackTrace();
+//				handleFail(currentUrl, e.getClass().getName() + ": " + e.getMessage());
+//			}
+//		}
+//    }
 
     
     @Test

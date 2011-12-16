@@ -27,6 +27,7 @@ import java.util.Iterator;
 import org.dataone.client.D1Client;
 import org.dataone.client.MNode;
 import org.dataone.service.exceptions.BaseException;
+import org.dataone.service.exceptions.ServiceFailure;
 import org.dataone.service.exceptions.SynchronizationFailed;
 import org.dataone.service.types.v1.Checksum;
 import org.dataone.service.types.v1.DescribeResponse;
@@ -73,8 +74,10 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
 			printTestHeader("testPing() vs. node: " + currentUrl);
 		
 			try {
-				boolean pingSuccess = mn.ping();
-				checkTrue(currentUrl,"ping response cannot be false. [Only true or exception].", pingSuccess);
+				Date pingDate = mn.ping();
+				
+				checkTrue(currentUrl,"ping should return a valid date", pingDate != null);
+				// other invalid dates will be thrown as IOExceptions cast to ServiceFailures
 			} 
 			catch (BaseException e) {
 				handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 

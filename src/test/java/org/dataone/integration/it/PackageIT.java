@@ -218,7 +218,7 @@ public class PackageIT extends ContextAwareTestCaseDataone {
         Identifier rGuid = null;
         try {
             rGuid = mn.create(token, guid, objectStream, sysmeta);
-            mn.setAccessPolicy(token, rGuid, buildPublicReadAccessPolicy());
+//            mn.setAccessPolicy(token, rGuid, buildPublicReadAccessPolicy());
             checkEquals(guid.getValue(), rGuid.getValue());
         } catch (Exception e) {
             errorCollector.addError(new Throwable(createAssertMessage() + 

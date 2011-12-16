@@ -283,7 +283,7 @@ public class CNodeITtemplate extends ContextAwareTestCaseDataone {
 
 				Subject subject = new Subject();
 				subject.setValue("Public");
-				Identifier response = cn.setOwner(null, oi.getIdentifier(), subject, 1);
+				Identifier response = cn.setRightsHolder(null, oi.getIdentifier(), subject, 1);
 				checkTrue(currentUrl,"setOwner(...) returns a Identifier object", response != null);
 			} 
 			catch (IndexOutOfBoundsException e) {
@@ -366,15 +366,14 @@ public class CNodeITtemplate extends ContextAwareTestCaseDataone {
 			printTestHeader("testCreateGroup(...) vs. node: " + currentUrl);
 
 			try {
+				Subject subject = new Subject();
+				subject.setValue("Public");
 				Group group = new Group();
-				// TODO: fill out details for group instance
-
-//				Subject subject = new Subject();
-//				subject.setValue("Public");
+				group.setSubject(subject);
 				Subject response = cn.createGroup(null,group);
 				checkTrue(currentUrl,"createGroup(...) returns a Subject object", response != null);
 				checkTrue(currentUrl,"createGroup(...) returns a Subject object with the same value", 
-						response.getValue() == group.getSubject().getValue());
+						response.getValue() == subject.getValue());
 			} 
 			catch (BaseException e) {
 				handleFail(currentUrl,e.getDescription());
@@ -670,8 +669,8 @@ public class CNodeITtemplate extends ContextAwareTestCaseDataone {
 //			}
 //		}
 //	}
-
-
+//
+//
 //	@Test
 //	public void testAddGroupMembers() {
 //		Iterator<Node> it = getCoordinatingNodeIterator();
@@ -741,7 +740,7 @@ public class CNodeITtemplate extends ContextAwareTestCaseDataone {
 			printTestHeader("testMapIdentity(...) vs. node: " + currentUrl);
 
 			try {
-				boolean response = cn.mapIdentity(null, new Subject(), new Subject());
+				boolean response = cn.mapIdentity(null, new Subject());
 				checkTrue(currentUrl,"response cannot be false. [Only true or exception].", response);
 			} 
 			catch (BaseException e) {
@@ -899,36 +898,37 @@ public class CNodeITtemplate extends ContextAwareTestCaseDataone {
 	}
 
 
-//	@Test
-//	public void testSetReplicationStatus() {
-//		Iterator<Node> it = getCoordinatingNodeIterator();
-//		while (it.hasNext()) {
-//			currentUrl = it.next().getBaseURL();
-//			CNode cn = new CNode(currentUrl);
-//			NodeReference cnRef = new NodeReference();
-//			cnRef.setValue(cn.getNodeId());
-//			printTestHeader("testSetReplicationStatus(...) vs. node: " + currentUrl);
-//
-//			try {
-//				ObjectInfo oi = getPrefetchedObject(currentUrl,0);    
-//				log.debug("   pid = " + oi.getIdentifier());
-//
-//				boolean response = cn.setReplicationStatus(null, 
-//						oi.getIdentifier(),cnRef, ReplicationStatus.COMPLETED,1);
-//				checkTrue(currentUrl,"response cannot be false. [Only true or exception].", response);
-//			} 
-//			catch (IndexOutOfBoundsException e) {
-//				handleFail(currentUrl,"No Objects available to test against");
-//			}
-//			catch (BaseException e) {
-//				handleFail(currentUrl,e.getDescription());
-//			}
-//			catch(Exception e) {
-//				e.printStackTrace();
-//				handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
-//			}
-//		}
-//	}
+	@Test
+	public void testSetReplicationStatus() {
+		Iterator<Node> it = getCoordinatingNodeIterator();
+		while (it.hasNext()) {
+			currentUrl = it.next().getBaseURL();
+			CNode cn = new CNode(currentUrl);
+			NodeReference cnRef = new NodeReference();
+			cnRef.setValue(cn.getNodeId());
+			printTestHeader("testSetReplicationStatus(...) vs. node: " + currentUrl);
+
+			try {
+				ObjectInfo oi = getPrefetchedObject(currentUrl,0);    
+				log.debug("   pid = " + oi.getIdentifier());
+
+				boolean response = cn.setReplicationStatus(null, 
+						oi.getIdentifier(),cnRef, ReplicationStatus.COMPLETED,
+						new ServiceFailure("", ""));
+				checkTrue(currentUrl,"response cannot be false. [Only true or exception].", response);
+			} 
+			catch (IndexOutOfBoundsException e) {
+				handleFail(currentUrl,"No Objects available to test against");
+			}
+			catch (BaseException e) {
+				handleFail(currentUrl,e.getDescription());
+			}
+			catch(Exception e) {
+				e.printStackTrace();
+				handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+			}
+		}
+	}
 
 
 	@Override

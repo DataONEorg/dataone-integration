@@ -5,12 +5,6 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.InetAddress;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.UnknownHostException;
 import java.util.Iterator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -21,7 +15,6 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
 import org.dataone.client.CNode;
-import org.dataone.client.D1Client;
 import org.dataone.client.MNode;
 import org.dataone.client.RestClient;
 import org.dataone.service.exceptions.BaseException;
@@ -31,12 +24,7 @@ import org.dataone.service.types.v1.Node;
 import org.dataone.service.util.Constants;
 import org.dataone.service.util.D1Url;
 import org.dataone.service.util.ExceptionHandler;
-import org.junit.Assume;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ErrorCollector;
 
 
 public class XNodeWebServerBasicIT extends ContextAwareTestCaseDataone {

@@ -136,7 +136,7 @@ public class MNodeIT extends ContextAwareTestCaseDataone  {
                     errorCollector.addError(new Throwable(createAssertMessage() + 
                             " Should have thrown exception since the xml file created was currupt"));
                     // just incase both statements above do not throw exceptions...
-                    mn.setAccessPolicy(token, rGuid, buildPublicReadAccessPolicy());
+//                    mn.setAccessPolicy(token, rGuid, buildPublicReadAccessPolicy());
                 } catch (Exception e) {
                 }
             }
@@ -179,7 +179,7 @@ public class MNodeIT extends ContextAwareTestCaseDataone  {
                    "/d1_testdocs/knb-lter-cdr.329066.1.data");
 
                Identifier rGuid = mn.create(token, guid, objectStream, sysmeta);
-               mn.setAccessPolicy(token, rGuid, buildPublicReadAccessPolicy());
+ //              mn.setAccessPolicy(token, rGuid, buildPublicReadAccessPolicy());
                InputStream data = mn.get(token, rGuid);
                String str = IOUtils.toString(data);
                //System.out.println("str: " + str);
@@ -266,7 +266,7 @@ public class MNodeIT extends ContextAwareTestCaseDataone  {
                 }
                 
                 //make the inserted documents public
-                mn.setAccessPolicy(token, rGuid, buildPublicReadAccessPolicy());
+//                mn.setAccessPolicy(token, rGuid, buildPublicReadAccessPolicy());
                 
                 try
                 {
@@ -323,7 +323,7 @@ public class MNodeIT extends ContextAwareTestCaseDataone  {
                 checkEquals(rGuid.getValue(), guid.getValue());
                 
                 //make the inserted documents public
-                mn.setAccessPolicy(token, rGuid, buildPublicReadAccessPolicy());
+//                mn.setAccessPolicy(token, rGuid, buildPublicReadAccessPolicy());
 
                 //get the objectList and make sure our created doc is in it
                 ObjectList ol = mn.listObjects(token, null, null, null, false, 0, 100000);
@@ -363,7 +363,7 @@ public class MNodeIT extends ContextAwareTestCaseDataone  {
                 checkEquals(guid.getValue(), rGuid.getValue());
                 
                 //make the inserted documents public
-                mn.setAccessPolicy(token, rGuid, buildPublicReadAccessPolicy());
+//               mn.setAccessPolicy(token, rGuid, buildPublicReadAccessPolicy());
 
                 Date date2 = new Date(System.currentTimeMillis() + 1000000);
 
@@ -434,7 +434,7 @@ public class MNodeIT extends ContextAwareTestCaseDataone  {
                 Identifier rGuid = mn.create(token, guid, objectStream, sysmeta);
                 checkEquals(guid.getValue(), rGuid.getValue());
                 //System.out.println("create success, id returned is " + rGuid.getValue());
-                mn.setAccessPolicy(token, rGuid, buildPublicReadAccessPolicy());
+//                mn.setAccessPolicy(token, rGuid, buildPublicReadAccessPolicy());
                 //get the system metadata
                 SystemMetadata sm = mn.getSystemMetadata(token, rGuid);
                 checkTrue(guid.getValue().equals(sm.getIdentifier().getValue()));
@@ -478,7 +478,7 @@ public class MNodeIT extends ContextAwareTestCaseDataone  {
                 System.out.println("d1 created " + rGuid.getValue());
                 checkEquals(guid.getValue(), rGuid.getValue());
                 //System.out.println("create success, id returned is " + rGuid.getValue());
-                mn.setAccessPolicy(token, rGuid, buildPublicReadAccessPolicy());
+//                mn.setAccessPolicy(token, rGuid, buildPublicReadAccessPolicy());
                 //get the document
                 InputStream data = mn.get(token, rGuid);
                 checkTrue(null != data);
@@ -498,7 +498,7 @@ public class MNodeIT extends ContextAwareTestCaseDataone  {
                 System.out.println("d1 update newguid: "+ newguid.getValue() + " old guid: " + rGuid.getValue());
                 Identifier nGuid = mn.update(token, rGuid, objectStream, newguid,updatedSysmeta);
                 System.out.println("d1 updated success, id returned is " + nGuid.getValue());
-                mn.setAccessPolicy(token, nGuid, buildPublicReadAccessPolicy());
+//                mn.setAccessPolicy(token, nGuid, buildPublicReadAccessPolicy());
                 //perform tests
                 data = mn.get(token, nGuid);
                 checkTrue(null != data);
@@ -641,7 +641,7 @@ public class MNodeIT extends ContextAwareTestCaseDataone  {
                 }*/
 
                 //change the perms, then try to get it again
-                mn.setAccessPolicy(token, rGuid, buildPublicReadAccessPolicy());
+//                mn.setAccessPolicy(token, rGuid, buildPublicReadAccessPolicy());
                 InputStream data = mn.get(publicToken, rGuid);
             }
             catch(Exception e)
@@ -844,7 +844,7 @@ public class MNodeIT extends ContextAwareTestCaseDataone  {
     				try {
     					rGuid = mn.create(token, guid, objectStream, sysmeta);
     					System.out.println("    == returned Guid (rGuid): " + rGuid.getValue());
-    					mn.setAccessPolicy(token, rGuid, buildPublicReadAccessPolicy());
+//    					mn.setAccessPolicy(token, rGuid, buildPublicReadAccessPolicy());
     					checkEquals(guid.getValue(), rGuid.getValue());
     					InputStream data = mn.get(token, rGuid);
     					checkTrue(null != data);
@@ -970,7 +970,7 @@ public class MNodeIT extends ContextAwareTestCaseDataone  {
     	try {
     		rGuid = mn.create(token, guid, objectStream, sysmeta);
     		checkEquals(guid.getValue(), rGuid.getValue());
-                mn.setAccessPolicy(token, rGuid, buildPublicReadAccessPolicy());
+//                mn.setAccessPolicy(token, rGuid, buildPublicReadAccessPolicy());
     	} catch (Exception e) {
     		errorCollector.addError(new Throwable(createAssertMessage() + 
     				" error in testChecksum: " + e.getMessage()));
@@ -1035,7 +1035,7 @@ public class MNodeIT extends ContextAwareTestCaseDataone  {
                 try {
                     rGuid = mn.create(token, guid, objectStream, sysmeta);
                     checkEquals(guid.getValue(), rGuid.getValue());
-                    mn.setAccessPolicy(token, rGuid, buildPublicReadAccessPolicy());
+//                    mn.setAccessPolicy(token, rGuid, buildPublicReadAccessPolicy());
                 } catch (Exception e) {
                     errorCollector.addError(new Throwable(createAssertMessage() + 
                             " error in testCreateScienceMetadata: " + e.getMessage()));
@@ -1080,7 +1080,7 @@ public class MNodeIT extends ContextAwareTestCaseDataone  {
                 try {
                     rGuid = mn.create(token, guid, objectStream, sysmeta);
                     checkEquals(guid.getValue(), rGuid.getValue());
-                    mn.setAccessPolicy(token, rGuid, buildPublicReadAccessPolicy());
+//                    mn.setAccessPolicy(token, rGuid, buildPublicReadAccessPolicy());
                 } catch (Exception e) {
                     errorCollector.addError(new Throwable(createAssertMessage() + 
                             " error in testCreateScienceMetadata: " + e.getMessage()));
@@ -1134,7 +1134,7 @@ public class MNodeIT extends ContextAwareTestCaseDataone  {
                 {
                     rGuid = mn.create(token, guid, objectStream, sysmeta);
                     checkEquals(guid.getValue(), rGuid.getValue());
-                    mn.setAccessPolicy(token, rGuid, buildPublicReadAccessPolicy());
+//                    mn.setAccessPolicy(token, rGuid, buildPublicReadAccessPolicy());
                     Thread.sleep(2000);
                     Identifier delId = mn.delete(token, rGuid);
                     checkTrue(delId.getValue().equals(rGuid.getValue()));
@@ -1184,7 +1184,7 @@ public class MNodeIT extends ContextAwareTestCaseDataone  {
                 {
                     rGuid = mn.create(token, guid, objectStream, sysmeta);
                     checkEquals(guid.getValue(), rGuid.getValue());
-                    mn.setAccessPolicy(token, rGuid, buildPublicReadAccessPolicy());
+ //                   mn.setAccessPolicy(token, rGuid, buildPublicReadAccessPolicy());
                     DescribeResponse dr = mn.describe(token, rGuid);
                     Checksum cs = dr.getDataONE_Checksum();
                     checkTrue(cs.getValue().equals(sysmeta.getChecksum().getValue()));
@@ -1301,7 +1301,7 @@ public class MNodeIT extends ContextAwareTestCaseDataone  {
         Identifier rGuid = null;
         try {
             rGuid = mn.create(token, guid, objectStream, sysmeta);
-            mn.setAccessPolicy(token, rGuid, buildPublicReadAccessPolicy());
+//            mn.setAccessPolicy(token, rGuid, buildPublicReadAccessPolicy());
             checkEquals(guid.getValue(), rGuid.getValue());
         } catch (Exception e) {
             errorCollector.addError(new Throwable(createAssertMessage() + 
@@ -1385,7 +1385,7 @@ public class MNodeIT extends ContextAwareTestCaseDataone  {
             instream = this.getClass().getResourceAsStream("/d1_testdocs/" + dirname + "/" + url);
 
             Identifier createdDataId = mn.create(token, id, instream, sm);
-            mn.setAccessPolicy(token, createdDataId, buildPublicReadAccessPolicy());
+ //           mn.setAccessPolicy(token, createdDataId, buildPublicReadAccessPolicy());
             checkEquals(createdDataId.getValue(), id.getValue());
             System.out.println("Data ID: " + id.getValue());
         }
@@ -1393,7 +1393,7 @@ public class MNodeIT extends ContextAwareTestCaseDataone  {
         //send the EML doc to create
         is = this.getClass().getResourceAsStream("/d1_testdocs/" + dirname + "/" + file);
         Identifier createdMdId = mn.create(token, mdId, is, mdSm);
-        mn.setAccessPolicy(token, createdMdId, buildPublicReadAccessPolicy());
+//        mn.setAccessPolicy(token, createdMdId, buildPublicReadAccessPolicy());
         checkEquals(createdMdId.getValue(), mdId.getValue());
         System.out.println("Metadata ID: " + createdMdId.getValue());
     }

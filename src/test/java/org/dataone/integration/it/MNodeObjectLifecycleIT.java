@@ -166,8 +166,8 @@ public class MNodeObjectLifecycleIT extends ContextAwareTestCaseDataone {
     				errorCollector.addError(new Throwable(createAssertMessage() + 
     					" mn.get should have failed since the doc does not have public access."));
     			} catch (Exception e) {}
-    			System.out.println("Setting access...");
-    			mn.setAccessPolicy(token, newPid, buildPublicReadAccessPolicy());
+//    			System.out.println("Setting access...");
+//    			mn.setAccessPolicy(token, newPid, buildPublicReadAccessPolicy());
     		} catch (Exception e) {
     			System.out.println("error in mn.setAccess: " + e.getMessage());
     			errorCollector.addError(new Throwable(createAssertMessage() + 
