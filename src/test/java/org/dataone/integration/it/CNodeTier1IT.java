@@ -20,35 +20,24 @@
 
 package org.dataone.integration.it;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.Date;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.Vector;
-import java.util.concurrent.Callable;
 
 import org.apache.commons.io.IOUtils;
 import org.dataone.client.CNode;
 import org.dataone.client.D1Client;
-import org.dataone.client.MNode;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.IdentifierNotUnique;
 import org.dataone.service.exceptions.InvalidRequest;
-import org.dataone.service.exceptions.InvalidToken;
-import org.dataone.service.exceptions.NotAuthorized;
 import org.dataone.service.exceptions.NotFound;
-import org.dataone.service.exceptions.NotImplemented;
 import org.dataone.service.exceptions.ServiceFailure;
 import org.dataone.service.types.v1.ChecksumAlgorithmList;
+import org.dataone.service.types.v1.DescribeResponse;
 import org.dataone.service.types.v1.Event;
 import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Log;
@@ -60,18 +49,10 @@ import org.dataone.service.types.v1.ObjectFormatIdentifier;
 import org.dataone.service.types.v1.ObjectFormatList;
 import org.dataone.service.types.v1.ObjectInfo;
 import org.dataone.service.types.v1.ObjectList;
-import org.dataone.service.types.v1.ObjectLocation;
 import org.dataone.service.types.v1.ObjectLocationList;
 import org.dataone.service.types.v1.Permission;
-import org.dataone.service.types.v1.Session;
 import org.dataone.service.types.v1.SystemMetadata;
-import org.dataone.service.util.EncodingUtilities;
-import org.jibx.runtime.BindingDirectory;
-import org.jibx.runtime.IBindingFactory;
-import org.jibx.runtime.IMarshallingContext;
-import org.jibx.runtime.JiBXException;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -80,11 +61,10 @@ import org.junit.Test;
  */
 public class CNodeTier1IT extends ContextAwareTestCaseDataone {
 
-    private static final String idPrefix = "mnTier1:";
-    private static final String bogusId = "foobarbaz214";
+	private  String format_text_csv = "text/csv";
+	
     private static Identifier reservedIdentifier = null;
 
-	private static final String badIdentifier = "ThisIdentifierShouldNotExist";
 //  TODO: test against testUnicodeStrings file instead when metacat supports unicode.
 //	private static String identifierEncodingTestFile = "/d1_testdocs/encodingTestSet/testUnicodeStrings.utf8.txt";
 	private static String identifierEncodingTestFile = "/d1_testdocs/encodingTestSet/testAsciiStrings.utf8.txt";
@@ -331,35 +311,6 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
     }
 
 
-//    @Test
-//    public void testGetLogRecords() {
-//	Iterator<Node> it = getCoordinatingNodeIterator();
-//	while (it.hasNext()) {
-//	    currentUrl = it.next().getBaseURL();
-//	    CNode cn = new CNode(currentUrl);
-//	    printTestHeader("testGetLogRecords(...) vs. node: " + currentUrl);
-//	    
-//	    try {
-//		ObjectInfo oi = getPrefetchedObject(currentUrl,0);    
-//		log.debug("   pid = " + oi.getIdentifier());
-//
-//		Log response = cn.getLogRecords();
-//		checkTrue(currentUrl,"getLogRecords(...) returns a Log object", response != null);
-//		// checkTrue(currentUrl,"response cannot be false. [Only true or exception].", response);
-//	    } 
-//	    catch (IndexOutOfBoundsException e) {
-//		handleFail(currentUrl,"No Objects available to test against");
-//	    }
-//	    catch (BaseException e) {
-//		handleFail(currentUrl,e.getDescription());
-//	    }
-//	    catch(Exception e) {
-//		e.printStackTrace();
-//		handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
-//	    }
-//	}
-//    }
-
     @Test
     public void testGetLogRecords()
     {
@@ -590,8 +541,8 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
     				Identifier pid = new Identifier();
     				pid.setValue(ExampleUtilities.generateIdentifier());
     				cn.reserveIdentifier(null, pid );
+    				response = cn.hasReservation(null,pid);
     			}
-    			// TODO:  test the return better
     			checkTrue(currentUrl,"response cannot be false. [Only true or exception].", response);
     		} 
     		catch (IndexOutOfBoundsException e) {
@@ -606,246 +557,332 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
     		}
     	}
     }
+    
+    
+    @Test
+    public void testHasReservation_noReservation() {
+    	Iterator<Node> it = getCoordinatingNodeIterator();
+    	while (it.hasNext()) {
+    		currentUrl = it.next().getBaseURL();
+    		CNode cn = new CNode(currentUrl);
+    		printTestHeader("testHasReservation(...) vs. node: " + currentUrl);
+
+    		try {
+    			boolean response = false;
+    			Identifier pid = new Identifier();
+    			pid.setValue(ExampleUtilities.generateIdentifier());
+    			response = cn.hasReservation(null,pid);
+
+    			checkTrue(currentUrl,"response cannot be false. [Only true or exception].", 
+    					response);
+    		} 
+    		catch (IndexOutOfBoundsException e) {
+    			handleFail(currentUrl,"No Objects available to test against");
+    		}
+    		catch (BaseException e) {
+    			handleFail(currentUrl,e.getDescription());
+    		}
+    		catch(Exception e) {
+    			e.printStackTrace();
+    			handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+    		}
+    	}
+    }
+
+    
+	@Test
+	public void testCreate() {
+
+		setupClientSubject_Writer();
+
+		Iterator<Node> it = getMemberNodeIterator();  	
+
+		while (it.hasNext()) {
+			currentUrl = it.next().getBaseURL();
+			CNode cn = new CNode(currentUrl);
+			currentUrl = cn.getNodeBaseServiceUrl();
+			printTestHeader("testCreate() vs. node: " + currentUrl);
+
+			try {
+				Object[] dataPackage = generateTestDataPackage("cNodeTier1TestCreate",true);				
+				Identifier pid = cn.create(null,(Identifier) dataPackage[0],
+						(InputStream) dataPackage[1], (SystemMetadata) dataPackage[2]);	
+				
+				checkEquals(currentUrl,"pid of created object should equal that given",
+						((Identifier)dataPackage[0]).getValue(), pid.getValue());
+				
+				InputStream theDataObject = cn.get(null,pid);
+				String objectData = IOUtils.toString(theDataObject);
+				checkTrue(currentUrl,"should get back an object containing submitted text:" + objectData,
+						objectData.contains("Plain text source"));
+			}
+			catch (BaseException e) {
+				handleFail(currentUrl,e.getClass().getSimpleName() + ": " 
+						+ e.getDetail_code() + ": " + e.getDescription());
+			}
+			catch(Exception e) {
+				e.printStackTrace();
+				handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+			}	
+		}
+	}
+    
+
+	@Test
+	public void testRegisterSystemMetadata() {
+
+		setupClientSubject_Writer();
+
+		Iterator<Node> it = getMemberNodeIterator();  	
+
+		while (it.hasNext()) {
+			currentUrl = it.next().getBaseURL();
+			CNode cn = new CNode(currentUrl);
+			currentUrl = cn.getNodeBaseServiceUrl();
+			printTestHeader("testCreate() vs. node: " + currentUrl);
+
+			try {
+				Object[] dataPackage = generateTestDataPackage("cNodeTier1TestCreate",true);
+				SystemMetadata smd = (SystemMetadata) dataPackage[2];
+				Identifier pid = cn.registerSystemMetadata(null,(Identifier) dataPackage[0], smd);	
+				
+				checkEquals(currentUrl,"pid of registered sysmetadata should equal that given",
+						((Identifier)dataPackage[0]).getValue(), pid.getValue());
+				
+				SystemMetadata smdReturned = cn.getSystemMetadata(null,pid);
+				checkEquals(currentUrl,"should be able to get registered sysmeta",
+						smdReturned.getIdentifier().getValue(),
+						smd.getIdentifier().getValue());
+			}
+			catch (BaseException e) {
+				handleFail(currentUrl,e.getClass().getSimpleName() + ": " 
+						+ e.getDetail_code() + ": " + e.getDescription());
+			}
+			catch(Exception e) {
+				e.printStackTrace();
+				handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+			}	
+		}
+	}
+
+    
+    /**
+     * Tests the parameterless and parameterized listObject methods for propert returns.
+     */
+    @Test
+    public void testListObjects() {
+       	Iterator<Node> it = getMemberNodeIterator();
+    	while (it.hasNext()) {
+    		currentUrl = it.next().getBaseURL();
+    		CNode cn = new CNode(currentUrl);
+    		currentUrl = cn.getNodeBaseServiceUrl();
+    		printTestHeader("testListObjects() vs. node: " + currentUrl);
+
+    		try {
+    			ObjectList ol = cn.listObjects(null);
+    			checkTrue(currentUrl,"listObjects() should return an ObjectList", ol != null);
+    			
+    			Date startTime = new Date(System.currentTimeMillis() - 10 * 60 * 1000);
+				Date endTime = new Date(System.currentTimeMillis() - 1 * 60 * 1000);
+				ObjectFormatIdentifier formatId = new ObjectFormatIdentifier();
+				formatId.setValue(format_text_csv);
+    			Boolean replicaStatus = true;
+				ol = cn.listObjects(null, startTime, endTime, 
+						formatId, replicaStatus , 
+						Integer.valueOf(0),
+						Integer.valueOf(10));
+    			checkTrue(currentUrl,"listObjects(<parameters>) returns an ObjectList", ol != null);
+    		} 
+    		catch (BaseException e) {
+    			handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
+    					e.getDetail_code() + ":: " + e.getDescription());
+    		}
+    		catch(Exception e) {
+    			e.printStackTrace();
+    			handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+    		}
+    	}
+    }
+    
+    
+    /**
+     * Tests that the startTime parameter successfully filters out records where
+     * the systemMetadataModified date/time is earler than startTime.
+     */
+    @Test
+    public void testListObjects_StartTimeTest() {
+       	Iterator<Node> it = getMemberNodeIterator();
+    	while (it.hasNext()) {
+    		currentUrl = it.next().getBaseURL();
+    		CNode cn = new CNode(currentUrl);
+    		currentUrl = cn.getNodeBaseServiceUrl();
+    		printTestHeader("testListObjects() vs. node: " + currentUrl);
+
+    		try {
+    			ObjectList ol = cn.listObjects(null);
+    			checkTrue(currentUrl,"listObjects() should return an ObjectList", ol != null);
+    			
+    			ObjectInfo oi0 = ol.getObjectInfo(0);
+    			Date startTime = null;
+   				ObjectInfo excludedObjectInfo = null;
+   				for (ObjectInfo oi: ol.getObjectInfoList()) {
+   					if (!oi.getDateSysMetadataModified().equals(oi0.getDateSysMetadataModified())) {
+   						// which is earlier?  can't assume chronological order of objectlist
+   						if (oi.getDateSysMetadataModified().after(oi0.getDateSysMetadataModified())) {
+   							startTime = oi.getDateSysMetadataModified();
+   							excludedObjectInfo = oi0;
+   						} else {
+   							startTime = oi0.getDateSysMetadataModified();
+   							excludedObjectInfo = oi;
+   						}
+   						break;
+   					}
+   				}
+   				if (excludedObjectInfo == null) {
+    				handleFail(currentUrl,"could not find 2 objects with different sysmeta modified dates");
+    			} else {
+   				
+    				// call listObjects with a startTime
+    				ol = cn.listObjects(null, startTime, null, null, null, null, null);
+
+    				for (ObjectInfo oi: ol.getObjectInfoList()) {
+    					if (oi.getIdentifier().equals(excludedObjectInfo.getIdentifier())) {
+    						handleFail(currentUrl,"identifier " + excludedObjectInfo.getIdentifier() +
+    								" should not be in the objectList where startTime set to " + startTime);
+    					}
+    				}
+    			}
+    		} 
+    		catch (BaseException e) {
+    			handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
+    					e.getDetail_code() + ":: " + e.getDescription());
+    		}
+    		catch(Exception e) {
+    			e.printStackTrace();
+    			handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+    		}
+    	}
+    }
+    
+    
+    @Test
+    public void testGet() {
+ //   	setupClientSubject_NoCert();
+       	Iterator<Node> it = getMemberNodeIterator();
+    	while (it.hasNext()) {
+    		currentUrl = it.next().getBaseURL();
+    		CNode cn = new CNode(currentUrl);
+    		currentUrl = cn.getNodeBaseServiceUrl();
+    		printTestHeader("testGet() vs. node: " + currentUrl);
+
+    		try {
+    			Identifier id = procureTestObject(cn, new Permission[] {Permission.READ});
+    			InputStream is = cn.get(null,id);
+    			checkTrue(currentUrl,"get() returns an objectStream", is != null);
+    		}
+    		catch (IndexOutOfBoundsException e) {
+    			handleFail(currentUrl,"No Objects available to test against");
+    		}
+    		catch (BaseException e) {
+    			handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
+    					e.getDetail_code() + ":: " + e.getDescription());
+    		}
+    		catch(Exception e) {
+    			e.printStackTrace();
+    			handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+    		}
+    	}
+    }
+
+    @Test
+    public void testGetSystemMetadata() {
+    	setupClientSubject_NoCert();
+       	Iterator<Node> it = getMemberNodeIterator();
+    	while (it.hasNext()) {
+    		currentUrl = it.next().getBaseURL();
+    		CNode cn = new CNode(currentUrl);
+    		currentUrl = cn.getNodeBaseServiceUrl();
+    		printTestHeader("testGetSystemMetadata() vs. node: " + currentUrl);
+    		
+    		try {
+    			Identifier id = procureTestObject(cn, new Permission[] {Permission.READ});
+    			SystemMetadata smd = cn.getSystemMetadata(null,id);
+    			checkTrue(currentUrl,"getSystemMetadata() returns a SystemMetadata object", smd != null);
+    		} 
+    		catch (IndexOutOfBoundsException e) {
+    			handleFail(currentUrl,"No Objects available to test against");
+    		}
+    		catch (BaseException e) {
+    			handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
+    					e.getDetail_code() + ":: " + e.getDescription());
+    		}
+    		catch(Exception e) {
+    			e.printStackTrace();
+    			handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+    		}
+    	}
+    }
+    
+    
+    @Test
+    public void testDescribe() {
+    	setupClientSubject_NoCert();
+       	Iterator<Node> it = getMemberNodeIterator();
+    	while (it.hasNext()) {
+    		currentUrl = it.next().getBaseURL();
+    		CNode cn = new CNode(currentUrl); 
+    		currentUrl = cn.getNodeBaseServiceUrl();
+    		printTestHeader("testDescribe() vs. node: " + currentUrl);
+		
+    		try {
+    			Identifier id = procureTestObject(cn, new Permission[] {Permission.READ});
+    			DescribeResponse dr = cn.describe(null,id);
+    			checkTrue(currentUrl,"describe() returns a DescribeResponse object", dr != null);	
+    		} 
+    		catch (IndexOutOfBoundsException e) {
+    			handleFail(currentUrl,"No Objects available to test against");
+    		}
+    		catch (BaseException e) {
+    			handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
+    					e.getDetail_code() + ":: " + e.getDescription());
+    		}
+    		catch(Exception e) {
+    			e.printStackTrace();
+    			handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+    		}
+    	}
+    }
+    
 
 
-//    @Test
-//    public void testCreate() {
-//	Iterator<Node> it = getCoordinatingNodeIterator();
-//	while (it.hasNext()) {
-//	    currentUrl = it.next().getBaseURL();
-//	    CNode cn = new CNode(currentUrl);
-//	    printTestHeader("testCreate(...) vs. node: " + currentUrl);
-//	    
-//	    try {
-//		ObjectInfo oi = getPrefetchedObject(currentUrl,0);    
-//		log.debug("   pid = " + oi.getIdentifier());
-//
-//		Identifier response = cn.create();
-//		checkTrue(currentUrl,"create(...) returns a Identifier object", response != null);
-//		// checkTrue(currentUrl,"response cannot be false. [Only true or exception].", response);
-//	    } 
-//	    catch (IndexOutOfBoundsException e) {
-//		handleFail(currentUrl,"No Objects available to test against");
-//	    }
-//	    catch (BaseException e) {
-//		handleFail(currentUrl,e.getDescription());
-//	    }
-//	    catch(Exception e) {
-//		e.printStackTrace();
-//		handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
-//	    }
-//	}
-//    }
-//
-//
-//    @Test
-//    public void testRegisterSystemMetadata() {
-//	Iterator<Node> it = getCoordinatingNodeIterator();
-//	while (it.hasNext()) {
-//	    currentUrl = it.next().getBaseURL();
-//	    CNode cn = new CNode(currentUrl);
-//	    printTestHeader("testRegisterSystemMetadata(...) vs. node: " + currentUrl);
-//	    
-//	    try {
-//		ObjectInfo oi = getPrefetchedObject(currentUrl,0);    
-//		log.debug("   pid = " + oi.getIdentifier());
-//
-//		Identifier response = cn.registerSystemMetadata();
-//		checkTrue(currentUrl,"registerSystemMetadata(...) returns a Identifier object", response != null);
-//		// checkTrue(currentUrl,"response cannot be false. [Only true or exception].", response);
-//	    } 
-//	    catch (IndexOutOfBoundsException e) {
-//		handleFail(currentUrl,"No Objects available to test against");
-//	    }
-//	    catch (BaseException e) {
-//		handleFail(currentUrl,e.getDescription());
-//	    }
-//	    catch(Exception e) {
-//		e.printStackTrace();
-//		handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
-//	    }
-//	}
-//    }
-//
-//
-//    @Test
-//    public void testListObjects() {
-//	Iterator<Node> it = getCoordinatingNodeIterator();
-//	while (it.hasNext()) {
-//	    currentUrl = it.next().getBaseURL();
-//	    CNode cn = new CNode(currentUrl);
-//	    printTestHeader("testListObjects(...) vs. node: " + currentUrl);
-//	    
-//	    try {
-//		ObjectInfo oi = getPrefetchedObject(currentUrl,0);    
-//		log.debug("   pid = " + oi.getIdentifier());
-//
-//		ObjectList response = cn.listObjects();
-//		checkTrue(currentUrl,"listObjects(...) returns a ObjectList object", response != null);
-//		// checkTrue(currentUrl,"response cannot be false. [Only true or exception].", response);
-//	    } 
-//	    catch (IndexOutOfBoundsException e) {
-//		handleFail(currentUrl,"No Objects available to test against");
-//	    }
-//	    catch (BaseException e) {
-//		handleFail(currentUrl,e.getDescription());
-//	    }
-//	    catch(Exception e) {
-//		e.printStackTrace();
-//		handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
-//	    }
-//	}
-//    }
-//
-//
-//    @Test
-//    public void testListObjects() {
-//	Iterator<Node> it = getCoordinatingNodeIterator();
-//	while (it.hasNext()) {
-//	    currentUrl = it.next().getBaseURL();
-//	    CNode cn = new CNode(currentUrl);
-//	    printTestHeader("testListObjects(...) vs. node: " + currentUrl);
-//	    
-//	    try {
-//		ObjectInfo oi = getPrefetchedObject(currentUrl,0);    
-//		log.debug("   pid = " + oi.getIdentifier());
-//
-//		ObjectList response = cn.listObjects();
-//		checkTrue(currentUrl,"listObjects(...) returns a ObjectList object", response != null);
-//		// checkTrue(currentUrl,"response cannot be false. [Only true or exception].", response);
-//	    } 
-//	    catch (IndexOutOfBoundsException e) {
-//		handleFail(currentUrl,"No Objects available to test against");
-//	    }
-//	    catch (BaseException e) {
-//		handleFail(currentUrl,e.getDescription());
-//	    }
-//	    catch(Exception e) {
-//		e.printStackTrace();
-//		handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
-//	    }
-//	}
-//    }
-//
-//
-//    @Test
-//    public void testGet() {
-//	Iterator<Node> it = getCoordinatingNodeIterator();
-//	while (it.hasNext()) {
-//	    currentUrl = it.next().getBaseURL();
-//	    CNode cn = new CNode(currentUrl);
-//	    printTestHeader("testGet(...) vs. node: " + currentUrl);
-//	    
-//	    try {
-//		ObjectInfo oi = getPrefetchedObject(currentUrl,0);    
-//		log.debug("   pid = " + oi.getIdentifier());
-//
-//		InputStream response = cn.get();
-//		checkTrue(currentUrl,"get(...) returns a InputStream object", response != null);
-//		// checkTrue(currentUrl,"response cannot be false. [Only true or exception].", response);
-//	    } 
-//	    catch (IndexOutOfBoundsException e) {
-//		handleFail(currentUrl,"No Objects available to test against");
-//	    }
-//	    catch (BaseException e) {
-//		handleFail(currentUrl,e.getDescription());
-//	    }
-//	    catch(Exception e) {
-//		e.printStackTrace();
-//		handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
-//	    }
-//	}
-//    }
-//
-//
-//    @Test
-//    public void testGetSystemMetadata() {
-//	Iterator<Node> it = getCoordinatingNodeIterator();
-//	while (it.hasNext()) {
-//	    currentUrl = it.next().getBaseURL();
-//	    CNode cn = new CNode(currentUrl);
-//	    printTestHeader("testGetSystemMetadata(...) vs. node: " + currentUrl);
-//	    
-//	    try {
-//		ObjectInfo oi = getPrefetchedObject(currentUrl,0);    
-//		log.debug("   pid = " + oi.getIdentifier());
-//
-//		SystemMetadata response = cn.getSystemMetadata();
-//		checkTrue(currentUrl,"getSystemMetadata(...) returns a SystemMetadata object", response != null);
-//		// checkTrue(currentUrl,"response cannot be false. [Only true or exception].", response);
-//	    } 
-//	    catch (IndexOutOfBoundsException e) {
-//		handleFail(currentUrl,"No Objects available to test against");
-//	    }
-//	    catch (BaseException e) {
-//		handleFail(currentUrl,e.getDescription());
-//	    }
-//	    catch(Exception e) {
-//		e.printStackTrace();
-//		handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
-//	    }
-//	}
-//    }
-//
-//
-//    @Test
-//    public void testDescribe() {
-//	Iterator<Node> it = getCoordinatingNodeIterator();
-//	while (it.hasNext()) {
-//	    currentUrl = it.next().getBaseURL();
-//	    CNode cn = new CNode(currentUrl);
-//	    printTestHeader("testDescribe(...) vs. node: " + currentUrl);
-//	    
-//	    try {
-//		ObjectInfo oi = getPrefetchedObject(currentUrl,0);    
-//		log.debug("   pid = " + oi.getIdentifier());
-//
-//		DescribeResponse response = cn.describe();
-//		checkTrue(currentUrl,"describe(...) returns a DescribeResponse object", response != null);
-//		// checkTrue(currentUrl,"response cannot be false. [Only true or exception].", response);
-//	    } 
-//	    catch (IndexOutOfBoundsException e) {
-//		handleFail(currentUrl,"No Objects available to test against");
-//	    }
-//	    catch (BaseException e) {
-//		handleFail(currentUrl,e.getDescription());
-//	    }
-//	    catch(Exception e) {
-//		e.printStackTrace();
-//		handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
-//	    }
-//	}
-//    }
-//
-//
-//    @Test
-//    public void testResolve() {
-//	Iterator<Node> it = getCoordinatingNodeIterator();
-//	while (it.hasNext()) {
-//	    currentUrl = it.next().getBaseURL();
-//	    CNode cn = new CNode(currentUrl);
-//	    printTestHeader("testResolve(...) vs. node: " + currentUrl);
-//	    
-//	    try {
-//		ObjectInfo oi = getPrefetchedObject(currentUrl,0);    
-//		log.debug("   pid = " + oi.getIdentifier());
-//
-//		ObjectLocationList response = cn.resolve();
-//		checkTrue(currentUrl,"resolve(...) returns a ObjectLocationList object", response != null);
-//		// checkTrue(currentUrl,"response cannot be false. [Only true or exception].", response);
-//	    } 
-//	    catch (IndexOutOfBoundsException e) {
-//		handleFail(currentUrl,"No Objects available to test against");
-//	    }
-//	    catch (BaseException e) {
-//		handleFail(currentUrl,e.getDescription());
-//	    }
-//	    catch(Exception e) {
-//		e.printStackTrace();
-//		handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
-//	    }
-//	}
-//    }
+    @Test
+    public void testResolve() {
+    	Iterator<Node> it = getCoordinatingNodeIterator();
+    	while (it.hasNext()) {
+    		currentUrl = it.next().getBaseURL();
+    		CNode cn = new CNode(currentUrl);
+    		printTestHeader("testResolve(...) vs. node: " + currentUrl);
+
+    		try {
+    			ObjectInfo oi = getPrefetchedObject(currentUrl,0);    
+    			log.debug("   pid = " + oi.getIdentifier());
+
+    			ObjectLocationList response = cn.resolve(null,oi.getIdentifier());
+    			checkTrue(currentUrl,"resolve(...) returns a ObjectLocationList object",
+    					response != null && response instanceof ObjectLocationList);
+    		} 
+    		catch (IndexOutOfBoundsException e) {
+    			handleFail(currentUrl,"No Objects available to test against");
+    		}
+    		catch (BaseException e) {
+    			handleFail(currentUrl,e.getDescription());
+    		}
+    		catch(Exception e) {
+    			e.printStackTrace();
+    			handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+    		}
+    	}
+    }
 
 	@Override
 	protected String getTestDescription() {
