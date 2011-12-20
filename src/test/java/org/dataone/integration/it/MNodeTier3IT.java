@@ -520,12 +520,8 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 				checkEquals(currentUrl,"pid returned from delete should match that given",
 						((Identifier)dataPackage[0]).getValue(), deletedPid.getValue());
 				
-				try {
-					InputStream is = mn.get(null, pid);
-					handleFail(currentUrl,"should not be able to get deleted item (pid = " + pid.getValue());
-				} catch (NotFound nfe) {
-					// expecting this error now that we deleted it
-				}
+				SystemMetadata smd = mn.getSystemMetadata(null, pid);
+				checkTrue(currentUrl, "sysmeta for deleted object should be has status of archived",smd.getArchived());
 			}
 			catch (BaseException e) {
 				handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
