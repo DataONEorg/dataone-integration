@@ -609,7 +609,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 	 * the check methods 
 	 */
 	@Rule 
-    public static ErrorCollector errorCollector = new ErrorCollector();
+    public ErrorCollector errorCollector = new ErrorCollector();
 	
 	/**
 	 * performs the junit assertThat method using the errorCollector
@@ -619,7 +619,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 	 * @param s1
 	 * @param s2
 	 */
-    public static void checkEquals(final String host, final String message, final String s1, final String s2)
+    public void checkEquals(final String host, final String message, final String s1, final String s2)
     {
         errorCollector.checkSucceeds(new Callable<Object>() 
         {
@@ -644,7 +644,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 	 * @param s1
 	 * @param s2
 	 */
-    public static void checkTrue(final String host, final String message, final boolean b)
+    public void checkTrue(final String host, final String message, final boolean b)
     {
         errorCollector.checkSucceeds(new Callable<Object>() 
         {
@@ -668,7 +668,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 	 * @param s1
 	 * @param s2
 	 */
-    public static void checkFalse(final String host, final String message, final boolean b)
+    public  void checkFalse(final String host, final String message, final boolean b)
     {
         errorCollector.checkSucceeds(new Callable<Object>() 
         {
@@ -691,7 +691,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 	 * @param host
 	 * @param message
 	 */
-    public static void handleFail(final String host, final String message)
+    public void handleFail(final String host, final String message)
     {
         errorCollector.checkSucceeds(new Callable<Object>() 
         {

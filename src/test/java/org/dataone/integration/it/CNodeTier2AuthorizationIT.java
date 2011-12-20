@@ -20,15 +20,7 @@
 
 package org.dataone.integration.it;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.lang.reflect.Method;
 import java.math.BigInteger;
 import java.util.Hashtable;
@@ -36,9 +28,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.Vector;
-import java.util.concurrent.Callable;
 
-import org.apache.commons.io.IOUtils;
 import org.dataone.client.CNode;
 import org.dataone.client.D1Client;
 import org.dataone.client.MNode;
@@ -55,19 +45,11 @@ import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Node;
 import org.dataone.service.types.v1.ObjectInfo;
 import org.dataone.service.types.v1.ObjectList;
-import org.dataone.service.types.v1.ObjectLocation;
-import org.dataone.service.types.v1.ObjectLocationList;
 import org.dataone.service.types.v1.Permission;
-import org.dataone.service.types.v1.Session;
 import org.dataone.service.types.v1.Subject;
 import org.dataone.service.types.v1.SystemMetadata;
 import org.dataone.service.types.v1.util.AccessUtil;
 import org.dataone.service.util.Constants;
-import org.dataone.service.util.EncodingUtilities;
-import org.jibx.runtime.BindingDirectory;
-import org.jibx.runtime.IBindingFactory;
-import org.jibx.runtime.IMarshallingContext;
-import org.jibx.runtime.JiBXException;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -109,9 +91,9 @@ public class CNodeTier2AuthorizationIT extends ContextAwareTestCaseDataone {
 			Iterator<Node> it = getCoordinatingNodeIterator();
 			while (it.hasNext()) {
 				currentUrl = it.next().getBaseURL();
-				CNode cn = D1Client.getCN();
+				CNode cn = new CNode(currentUrl);
 				try {
-					ObjectList ol = cn.search(null, QUERYTYPE_SOLR, ""); 
+					ObjectList ol = cn.listObjects(null);
 					listedObjects.put(currentUrl, ol);
 				} 
 				catch (BaseException e) {
@@ -170,6 +152,7 @@ public class CNodeTier2AuthorizationIT extends ContextAwareTestCaseDataone {
 	
 	@Test
 	public void testSetRightsHolder() {
+		setupClientSubject_Writer();
 		Iterator<Node> it = getCoordinatingNodeIterator();
 		while (it.hasNext()) {
 			currentUrl = it.next().getBaseURL();
@@ -178,19 +161,22 @@ public class CNodeTier2AuthorizationIT extends ContextAwareTestCaseDataone {
 
 			try {
 //				Identifier myObject = procureTestObject(cn,new Permission[] {Permission.CHANGE_PERMISSION});
-				ObjectList oll = cn.search(null,"solr","rightsHolder=");
-				if (oll.getTotal() == 0) {
+				
+				ObjectList ol = getFirstOwnedObject(cn);
+				// TODO:  if nothing from existing, will need to create one
+				
+				if (ol == null || ol.getTotal() == 0) {
 					handleFail(currentUrl,"do not have an object that am rightsHolder to use to test setRightsHolder");
 				} else {
 					// TODO: create a real request
-					Identifier pidToGiveAway = oll.getObjectInfo(0).getIdentifier();
+					Identifier pidToGiveAway = ol.getObjectInfo(0).getIdentifier();
 					SystemMetadata smd = cn.getSystemMetadata(null, pidToGiveAway);
 					BigInteger serialVersion = smd.getSerialVersion();
 				 
 					Subject inheritor = new Subject();
 					inheritor.setValue("testReaderSubject");
 					Identifier response = cn.setRightsHolder(null, 
-							oll.getObjectInfo(0).getIdentifier(),
+							ol.getObjectInfo(0).getIdentifier(),
 							inheritor, serialVersion.longValue());
 				
 					checkTrue(currentUrl,"setRightsHolder(...) returns a Identifier object", response != null);
@@ -209,6 +195,29 @@ public class CNodeTier2AuthorizationIT extends ContextAwareTestCaseDataone {
 		}
 	}
 
+	
+	private ObjectList getFirstOwnedObject(CNode cn) {
+
+//		Subject me = ClientAuthUtils.whoami();
+//		Subject me2 = getCurrentClientSubject();
+		ObjectList ol = null;
+		try {
+			ol = cn.search(null, null, "rightsHolder=");// + me.getValue());
+		} catch (InvalidToken e) {
+			//allow object list to be null
+		} catch (ServiceFailure e) {
+			//allow object list to be null
+		} catch (NotAuthorized e) {
+			//allow object list to be null
+		} catch (InvalidRequest e) {
+			//allow object list to be null
+		} catch (NotImplemented e) {
+			//allow object list to be null
+		}
+		return ol;
+	}
+	
+	
 	/**
 	 * Tests the dataONE service API isAuthorized() method, checking for Read 
 	 * permission on the first object returned from the Tier1 listObjects() method.  

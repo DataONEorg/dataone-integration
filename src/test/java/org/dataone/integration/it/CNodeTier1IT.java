@@ -36,6 +36,7 @@ import org.dataone.service.exceptions.IdentifierNotUnique;
 import org.dataone.service.exceptions.InvalidRequest;
 import org.dataone.service.exceptions.NotFound;
 import org.dataone.service.exceptions.ServiceFailure;
+import org.dataone.service.types.v1.Checksum;
 import org.dataone.service.types.v1.ChecksumAlgorithmList;
 import org.dataone.service.types.v1.DescribeResponse;
 import org.dataone.service.types.v1.Event;
@@ -54,6 +55,7 @@ import org.dataone.service.types.v1.Permission;
 import org.dataone.service.types.v1.SystemMetadata;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.Ignore;
 
 /**
  * Test the DataONE Java client methods that focus on CN services.
@@ -82,8 +84,8 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
 	 */
 	@Before
 	public void setup() throws ServiceFailure {
-//		prefetchObjects();
-//		generateStandardTests();
+		prefetchObjects();
+		generateStandardTests();
 	}
 
 
@@ -93,9 +95,9 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
 			Iterator<Node> it = getCoordinatingNodeIterator();
 			while (it.hasNext()) {
 				currentUrl = it.next().getBaseURL();
-				CNode cn = D1Client.getCN();
+				CNode cn = new CNode(currentUrl);
 				try {
-					ObjectList ol = cn.search(null, QUERYTYPE_SOLR, ""); 
+					ObjectList ol = cn.listObjects(null); 
 					listedObjects.put(currentUrl, ol);
 				} 
 				catch (BaseException e) {
@@ -864,7 +866,7 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
     		printTestHeader("testResolve(...) vs. node: " + currentUrl);
 
     		try {
-    			ObjectInfo oi = getPrefetchedObject(currentUrl,0);    
+    			ObjectInfo oi = getPrefetchedObject(currentUrl,1);    
     			log.debug("   pid = " + oi.getIdentifier());
 
     			ObjectLocationList response = cn.resolve(null,oi.getIdentifier());
@@ -883,6 +885,94 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
     		}
     	}
     }
+    
+    @Ignore("test not finished - don't have any valid relationships defined anywhere")
+	@Test
+	public void testAssertRelation() {
+		Iterator<Node> it = getCoordinatingNodeIterator();
+		while (it.hasNext()) {
+			currentUrl = it.next().getBaseURL();
+			CNode cn = new CNode(currentUrl);
+			printTestHeader("testAssertRelation(...) vs. node: " + currentUrl);
+
+			try {
+				ObjectInfo oi = getPrefetchedObject(currentUrl,0);    
+				log.debug("   pid = " + oi.getIdentifier());
+
+				boolean response = cn.assertRelation(null,new Identifier(), "theRelationship",  new Identifier());
+				checkTrue(currentUrl,"response cannot be false. [Only true or exception].", response);
+			} 
+			catch (IndexOutOfBoundsException e) {
+				handleFail(currentUrl,"No Objects available to test against");
+			}
+			catch (BaseException e) {
+				handleFail(currentUrl,e.getDescription());
+			}
+			catch(Exception e) {
+				e.printStackTrace();
+				handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+			}
+		}
+	}
+
+
+	@Test
+	public void testGetChecksum() {
+    	setupClientSubject_NoCert();
+		Iterator<Node> it = getCoordinatingNodeIterator();
+		while (it.hasNext()) {
+			currentUrl = it.next().getBaseURL();
+			CNode cn = new CNode(currentUrl);
+			currentUrl = cn.getNodeBaseServiceUrl();
+			printTestHeader("testGetChecksum(...) vs. node: " + currentUrl);
+
+			try {   
+    			Identifier id = procureTestObject(cn, new Permission[] {Permission.READ});
+    			Checksum cs = cn.getChecksum(null,id);
+    			checkTrue(currentUrl,"getChecksum() returns a Checksum object", cs != null);
+    		} 
+    		catch (IndexOutOfBoundsException e) {
+    			handleFail(currentUrl,"No Objects available to test against");
+    		}
+    		catch (BaseException e) {
+    			handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
+    					e.getDetail_code() + ":: " + e.getDescription());
+    		}
+    		catch(Exception e) {
+    			e.printStackTrace();
+    			handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+    		}
+		}
+	}
+	
+ 
+	@Test
+	public void testSearch() {
+		Iterator<Node> it = getCoordinatingNodeIterator();
+		while (it.hasNext()) {
+			currentUrl = it.next().getBaseURL();
+			CNode cn = new CNode(currentUrl);
+			currentUrl = cn.getNodeBaseServiceUrl();
+			printTestHeader("testSearch(...) vs. node: " + currentUrl);
+
+			try {
+				ObjectList response = cn.search(null,"solr","*:*");
+				checkTrue(currentUrl,"search(...) returns a ObjectList object", response != null);
+			} 
+			catch (IndexOutOfBoundsException e) {
+				handleFail(currentUrl,"No Objects available to test against");
+			}
+			catch (BaseException e) {
+				handleFail(currentUrl,e.getDescription());
+			}
+			catch(Exception e) {
+				e.printStackTrace();
+				handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+			}
+		}
+	}
+
+
 
 	@Override
 	protected String getTestDescription() {
