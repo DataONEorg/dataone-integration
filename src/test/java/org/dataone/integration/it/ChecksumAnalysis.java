@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.concurrent.Callable;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.ArrayUtils;
 import org.dataone.client.D1Client;
 import org.dataone.client.MNode;
 import org.dataone.service.exceptions.BaseException;
@@ -45,6 +46,7 @@ import org.dataone.service.types.v1.ObjectFormat;
 import org.dataone.service.types.v1.ObjectInfo;
 import org.dataone.service.types.v1.ObjectList;
 import org.dataone.service.types.v1.SystemMetadata;
+import org.dataone.service.types.v1.util.ChecksumUtil;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -174,17 +176,18 @@ public class ChecksumAnalysis extends ContextAwareTestCaseDataone {
     {
     	String algStr = null;
     	try {
-    		algStr = cs.getAlgorithm().toString();
-    		String calcCs;
+    		algStr = cs.getAlgorithm();
 
-    		calcCs = ExampleUtilities.checksum(object, algStr);
+    		Checksum calcCs = ChecksumUtil.checksum(object, algStr);
 
     		if (cs.getValue().equals(calcCs)) 
     			return "calc:" + algStr;
 
-    		byte[][] newlineAdded = { object, "\n".getBytes() };
-    		String recalcCs = ExampleUtilities.checksum(newlineAdded, algStr);
-    		if (cs.getValue().equals(recalcCs))
+    		// add a newline and recalculate checksum
+    		byte[] newlineAdded = (byte[]) ArrayUtils.addAll(object, "\n".getBytes());
+    		
+    		Checksum recalcCs = ChecksumUtil.checksum(newlineAdded, algStr);
+    		if (cs.getValue().equals(recalcCs.getValue()))
     			return "recalc:" + algStr;
 
     	} catch (NoSuchAlgorithmException e) {
@@ -215,10 +218,7 @@ public class ChecksumAnalysis extends ContextAwareTestCaseDataone {
                 InputStream objectStream = this.getClass().getResourceAsStream(
                 "/d1_testdocs/knb-lter-luq.76.2.xml");
                 String doc = IOUtils.toString(objectStream);
-                Checksum checksum1 = new Checksum();
-                String checksum1str = ExampleUtilities.checksum(IOUtils.toInputStream(doc), "MD5");
-                checksum1.setValue(checksum1str);
-                checksum1.setAlgorithm("MD5");
+                Checksum checksum1 = ChecksumUtil.checksum(IOUtils.toInputStream(doc), "MD5");           
                 System.out.println("Checksum1: " + checksum1.getValue());
                 objectStream.close();
                 

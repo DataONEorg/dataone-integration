@@ -63,6 +63,7 @@ import org.dataone.service.types.v1.ObjectInfo;
 import org.dataone.service.types.v1.ObjectList;
 import org.dataone.service.types.v1.Session;
 import org.dataone.service.types.v1.SystemMetadata;
+import org.dataone.service.types.v1.util.ChecksumUtil;
 import org.dataone.service.util.D1Url;
 import org.dataone.service.util.TypeMarshaller;
 import org.junit.Ignore;
@@ -951,10 +952,10 @@ public class MNodeIT extends ContextAwareTestCaseDataone  {
     	if (append != null)
     		doc += append;
     	
-    	String checksum1str = ExampleUtilities.checksum(IOUtils.toInputStream(doc), CHECKSUM_ALGORITHM);
-    	Checksum checksum1 = new Checksum();
-    	checksum1.setValue(checksum1str);
-    	checksum1.setAlgorithm(CHECKSUM_ALGORITHM);
+    	Checksum checksum1 = ChecksumUtil.checksum(IOUtils.toInputStream(doc), CHECKSUM_ALGORITHM);
+//    	Checksum checksum1 = new Checksum();
+//    	checksum1.setValue(checksum1str);
+//    	checksum1.setAlgorithm(CHECKSUM_ALGORITHM);
     	System.out.println("Checksum 1: " + checksum1.getValue());
     	
     	Session token = null;
@@ -986,9 +987,9 @@ public class MNodeIT extends ContextAwareTestCaseDataone  {
     		
     		// check that retrieved object has same checksum as submitted
     		InputStream objStream = mn.get(token,rGuid);
-    		String checksum3str = ExampleUtilities.checksum(objStream, CHECKSUM_ALGORITHM);
-    		System.out.println("retrieved object checksum: " + checksum3str);
-    		checkEquals(checksum1.getValue(),checksum3str);
+    		Checksum checksum3 = ChecksumUtil.checksum(objStream, CHECKSUM_ALGORITHM);
+    		System.out.println("retrieved object checksum: " + checksum3.getValue());
+    		checkEquals(checksum1.getValue(),checksum3.getValue());
     		
     		
     	} 
