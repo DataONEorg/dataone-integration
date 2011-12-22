@@ -39,6 +39,9 @@ import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.mail.internet.AddressException;
+import javax.mail.internet.InternetAddress;
+
 import org.dataone.client.CNode;
 import org.dataone.client.D1Node;
 import org.dataone.client.MNode;
@@ -269,7 +272,38 @@ public class ExampleUtilities {
   	return session;
   	
   }
-	
+  
+  public Person buildPerson(Subject subject, String familyName, 
+		  String givenName, String emailString) 
+  {
+	  String[] badParam = new String[]{};
+	  Person person = new Person();
+//	  try {
+//		InternetAddress ia = new InternetAddress(emailString, true);
+		if (emailString == null || emailString.trim().equals(""))
+			badParam[badParam.length] = "emailString";
+		if (familyName == null || familyName.trim().equals(""))
+			badParam[badParam.length] = "familyName";
+		if (givenName == null || givenName.trim().equals(""))
+			badParam[badParam.length] = "givenName";
+		if (subject == null || subject.getValue().equals(""))
+			badParam[badParam.length] = "subject";
+		
+		if (badParam.length > 0)
+			throw new IllegalArgumentException("null or empty string values for parameters: " + badParam);
+		
+//	} catch (AddressException e) {
+//		// thrown by IndernetAddress constructor
+//	}
+	  
+	  person.addEmail(emailString);
+	  person.addGivenName(givenName);
+	  person.setFamilyName(familyName);
+	  person.setSubject(subject);
+	  return person;
+  }
+
+  
 	protected static int countLocationsWithResolve(CNode cn, Identifier pid) throws InvalidToken, ServiceFailure,
 	NotAuthorized, NotFound, InvalidRequest, NotImplemented {
 
