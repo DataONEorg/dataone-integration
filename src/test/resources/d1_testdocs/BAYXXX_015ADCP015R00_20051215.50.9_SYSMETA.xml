@@ -24,25 +24,14 @@
 <d1:systemMetadata
  xmlns:d1="http://ns.dataone.org/service/types/v1"
  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
- xsi:schemaLocation="http://ns.dataone.org/service/types/v1  https://repository.dataone.org/software/cicore/tags/D1_SCHEMA_0_6_3/dataoneTypes.xsd">
+ xsi:schemaLocation="http://ns.dataone.org/service/types/v1 https://repository.dataone.org/software/cicore/tags/D1_SCHEMA_1_0_0/dataoneTypes.xsd">
     <identifier>BAYXXX_015ADCP015R00_20051215.50.9</identifier>
-    <objectFormat>eml://ecoinformatics.org/eml-2.0.1</objectFormat>
+    <formatId>eml://ecoinformatics.org/eml-2.0.1</formatId>
     <size>34543</size>
+    <checksum algorithm="MD5">884f1452814899d7ba988d187491f493</checksum>
     <submitter>Dr. Libe Washburn</submitter>
     <rightsHolder>Partnership for Interdisciplinary Studies of Coastal Oceans (PISCO)</rightsHolder>
-    <describes>BAYXXX_015ADCP015R00_20051215.40</describes>
-    <checksum algorithm="MD5">884f1452814899d7ba988d187491f493</checksum>
-    <embargoExpires>2010-05-04T12:13:51.0Z</embargoExpires>
-    <accessRule rule="allow" service="read" principal="public"/>
-    <replicationPolicy replicationAllowed="true" numberReplicas="2">
-        <preferredMemberNode>r2d2</preferredMemberNode>
-        <blockedMemberNode>d1m3</blockedMemberNode>
-    </replicationPolicy>
-    <replica>
-        <replicaMemberNode>c3p0</replicaMemberNode>
-        <replicationStatus>completed</replicationStatus>
-        <replicaVerified>2011-05-01T20:47:05.679+00:00</replicaVerified>
-    </replica>
+
     <dateUploaded>2010-05-04T12:13:51.0Z</dateUploaded>
     <dateSysMetadataModified>2010-05-04T15:13:51.0Z</dateSysMetadataModified>
     <originMemberNode>r2d2</originMemberNode>
