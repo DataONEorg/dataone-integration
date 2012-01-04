@@ -886,35 +886,6 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
     	}
     }
     
-    @Ignore("test not finished - don't have any valid relationships defined anywhere")
-	@Test
-	public void testAssertRelation() {
-		Iterator<Node> it = getCoordinatingNodeIterator();
-		while (it.hasNext()) {
-			currentUrl = it.next().getBaseURL();
-			CNode cn = new CNode(currentUrl);
-			printTestHeader("testAssertRelation(...) vs. node: " + currentUrl);
-
-			try {
-				ObjectInfo oi = getPrefetchedObject(currentUrl,0);    
-				log.debug("   pid = " + oi.getIdentifier());
-
-				boolean response = cn.assertRelation(null,new Identifier(), "theRelationship",  new Identifier());
-				checkTrue(currentUrl,"response cannot be false. [Only true or exception].", response);
-			} 
-			catch (IndexOutOfBoundsException e) {
-				handleFail(currentUrl,"No Objects available to test against");
-			}
-			catch (BaseException e) {
-				handleFail(currentUrl,e.getDescription());
-			}
-			catch(Exception e) {
-				e.printStackTrace();
-				handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
-			}
-		}
-	}
-
 
 	@Test
 	public void testGetChecksum() {
