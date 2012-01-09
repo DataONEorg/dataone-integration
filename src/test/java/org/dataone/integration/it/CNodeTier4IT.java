@@ -20,45 +20,32 @@
 
 package org.dataone.integration.it;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.math.BigInteger;
 import java.util.Hashtable;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
-import java.util.Scanner;
-import java.util.Vector;
-import java.util.concurrent.Callable;
 
-import org.apache.commons.io.IOUtils;
 import org.dataone.client.CNode;
 import org.dataone.client.D1Client;
-import org.dataone.client.MNode;
+import org.dataone.client.auth.ClientIdentityManager;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.InvalidRequest;
 import org.dataone.service.exceptions.InvalidToken;
 import org.dataone.service.exceptions.NotAuthorized;
 import org.dataone.service.exceptions.NotFound;
-import org.dataone.service.exceptions.NotImplemented;
 import org.dataone.service.exceptions.ServiceFailure;
+import org.dataone.service.exceptions.VersionMismatch;
 import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Node;
+import org.dataone.service.types.v1.NodeReference;
 import org.dataone.service.types.v1.ObjectInfo;
 import org.dataone.service.types.v1.ObjectList;
-import org.dataone.service.types.v1.ObjectLocation;
-import org.dataone.service.types.v1.ObjectLocationList;
-import org.dataone.service.types.v1.Session;
+import org.dataone.service.types.v1.Replica;
+import org.dataone.service.types.v1.ReplicationPolicy;
+import org.dataone.service.types.v1.ReplicationStatus;
+import org.dataone.service.types.v1.Subject;
 import org.dataone.service.types.v1.SystemMetadata;
-import org.dataone.service.util.EncodingUtilities;
-import org.jibx.runtime.BindingDirectory;
-import org.jibx.runtime.IBindingFactory;
-import org.jibx.runtime.IMarshallingContext;
-import org.jibx.runtime.JiBXException;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -72,16 +59,18 @@ public class CNodeTier4IT extends ContextAwareTestCaseDataone {
 	
 
 	private static final String badIdentifier = "ThisIdentifierShouldNotExist";
-//  TODO: test against testUnicodeStrings file instead when metacat supports unicode.
-//	private static String identifierEncodingTestFile = "/d1_testdocs/encodingTestSet/testUnicodeStrings.utf8.txt";
-	private static String identifierEncodingTestFile = "/d1_testdocs/encodingTestSet/testAsciiStrings.utf8.txt";
-//	private static HashMap<String,String> StandardTests = new HashMap<String,String>();
-	private static Vector<String> testPIDEncodingStrings = new Vector<String>();
-	private static Vector<String> encodedPIDStrings = new Vector<String>();
-	
-	 private static String currentUrl;
+
+	private static String currentUrl;
 	private static Map<String,ObjectList> listedObjects;
-  
+ 
+	
+	@Override
+	protected String getTestDescription() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
+	
 	/**
 	 * pre-fetch an ObjectList from each member node on the list, to allow testing gets
 	 * without creating new objects.
@@ -89,8 +78,7 @@ public class CNodeTier4IT extends ContextAwareTestCaseDataone {
 	 */
 	@Before
 	public void setup() throws ServiceFailure {
-//		prefetchObjects();
-//		generateStandardTests();
+		prefetchObjects();
 	}
 
 
@@ -128,316 +116,724 @@ public class CNodeTier4IT extends ContextAwareTestCaseDataone {
 	}
 	
 	
-	public void generateStandardTests() {
+	@Ignore("tests for Tier4 not implemented")
+	@Test public void testTier4() {
+	}
+	
+	
 
-		if (testPIDEncodingStrings.size() == 0) {
-			System.out.println(" * * * * * * * Unicode Test Strings * * * * * * ");
-			
-			InputStream is = this.getClass().getResourceAsStream(identifierEncodingTestFile);
-			Scanner s = new Scanner(is,"UTF-8");
-			String[] temp;
-			int c = 0;
-			try
-			{
-				while (s.hasNextLine()) 
-				{
-					String line = s.nextLine();
-					if (line.startsWith("common-") || line.startsWith("path-"))
-					{
-						System.out.println(c++ + "   " + line);
-						temp = line.split("\t");
-						if (temp.length > 1)
-							testPIDEncodingStrings.add(temp[0]);
-							encodedPIDStrings.add(temp[1]);
-					}
-				}	
-				System.out.println("");
-			} finally {
-				s.close();
+
+	/**
+	 * Test the that the membernode can set the replication status for on an object
+	 */
+	@Test
+	public void testSetReplicationStatus_NotAuthorized() {
+		setupClientSubject_NoRights();
+		Iterator<Node> it = getCoordinatingNodeIterator();
+		while (it.hasNext()) {
+			currentUrl = it.next().getBaseURL();
+			CNode cn = new CNode(currentUrl);
+			printTestHeader("testSetReplicationStatus(...) vs. node: " + currentUrl);
+
+			try {
+				ObjectInfo oi = getPrefetchedObject(currentUrl,0);    
+				log.debug("   pid = " + oi.getIdentifier());
+
+				boolean response = cn.setReplicationStatus(null,oi.getIdentifier(),new NodeReference(),
+						ReplicationStatus.FAILED,new ServiceFailure("0000","a test exception"));
+
+//				checkTrue(currentUrl,"response cannot be false. [Only true or exception].", response);
+				
+				handleFail(currentUrl,"setReplicationStatus should fail when using no-rights client subject");
+			} 
+			catch (IndexOutOfBoundsException e) {
+				handleFail(currentUrl,"No Objects available to test against");
 			}
-			System.out.println("");
+			catch (NotAuthorized e) {
+				// the expected outcome
+			}
+			catch (BaseException e) {
+				handleFail(currentUrl,"expected fail with NotAuthorized. Got: " + e.getClass() + 
+						":: " + e.getDescription());
+			}
+			catch(Exception e) {
+				e.printStackTrace();
+				handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+			}
+		}
+	}
+	
+	
+	/**
+	 * Test the that the membernode can set the replication status for on an object
+	 */
+	@Test
+	public void testSetReplicationStatus_InvalidRequest() {
+		//TODO: implement a memberNode test subject
+//		setupClientSubject_MemberNode();
+		Iterator<Node> it = getCoordinatingNodeIterator();
+		while (it.hasNext()) {
+			currentUrl = it.next().getBaseURL();
+			CNode cn = new CNode(currentUrl);
+			printTestHeader("testSetReplicationStatus(...) vs. node: " + currentUrl);
+
+			try {
+				Identifier pid = new Identifier();
+				pid.setValue("CNodeTier4test: " + ExampleUtilities.generateIdentifier());
+
+				boolean response = cn.setReplicationStatus(null,pid, new NodeReference(),
+						ReplicationStatus.COMPLETED, new ServiceFailure("0000","a test exception"));
+
+				handleFail(currentUrl,"setReplicationStatus should fail when bogus nodeReference passed in");
+			} 
+			catch (IndexOutOfBoundsException e) {
+				handleFail(currentUrl,"No Objects available to test against");
+			}
+			catch (InvalidRequest e) {
+				// the expected outcome
+			}
+			catch (BaseException e) {
+				handleFail(currentUrl,"expected fail with InvalidRequest. Got: " + e.getClass() + 
+						":: " + e.getDescription());
+			}
+			catch(Exception e) {
+				e.printStackTrace();
+				handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+			}
+		}
+	}
+	
+	/**
+	 * Test the that the membernode can set the replication status for on an object
+	 */
+	@Test
+	public void testSetReplicationStatus_NotFound() {
+		//TODO: implement a memberNode test subject
+//		setupClientSubject_MemberNode();
+		Iterator<Node> it = getCoordinatingNodeIterator();
+		while (it.hasNext()) {
+			currentUrl = it.next().getBaseURL();
+			CNode cn = new CNode(currentUrl);
+			printTestHeader("testSetReplicationStatus(...) vs. node: " + currentUrl);
+
+			try {
+				Identifier pid = new Identifier();
+				pid.setValue("CNodeTier4test: " + ExampleUtilities.generateIdentifier());
+
+				boolean response = cn.setReplicationStatus(null,pid, new NodeReference(),
+						ReplicationStatus.FAILED, new ServiceFailure("0000","a test exception"));
+
+				handleFail(currentUrl,"setReplicationStatus should fail when fictitious pid passed in");
+			} 
+			catch (NotFound e) {
+				// the expected outcome
+			}
+			catch (BaseException e) {
+				handleFail(currentUrl,"expected fail with NotFound. Got: " + e.getClass() + 
+						":: " + e.getDescription());
+			}
+			catch(Exception e) {
+				e.printStackTrace();
+				handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+			}
+		}
+	}
+	
+	
+
+
+
+
+	@Test
+	public void testSetReplicationPolicy() {
+		setupClientSubject_Writer();
+		Iterator<Node> it = getCoordinatingNodeIterator();
+		while (it.hasNext()) {
+			currentUrl = it.next().getBaseURL();
+			CNode cn = new CNode(currentUrl);
+			printTestHeader("testSetReplicationPolicy(...) vs. node: " + currentUrl);
+
+			try {
+				ObjectInfo oi = getPrefetchedObject(currentUrl,0);    
+				log.debug("   pid = " + oi.getIdentifier());
+				
+				BigInteger serialVersion = cn.getSystemMetadata(null, oi.getIdentifier()).getSerialVersion();
+
+				ReplicationPolicy policy = new ReplicationPolicy();
+				policy.setNumberReplicas(4);
+				
+				boolean response = cn.setReplicationPolicy(null,oi.getIdentifier(),
+						policy, serialVersion.longValue());
+				checkTrue(currentUrl,"response cannot be false. [Only true or exception].", response);
+			} 
+			catch (IndexOutOfBoundsException e) {
+				handleFail(currentUrl,"No Objects available to test against");
+			}
+			catch (BaseException e) {
+				handleFail(currentUrl,e.getDescription());
+			}
+			catch(Exception e) {
+				e.printStackTrace();
+				handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+			}
+		}
+	}
+	
+	
+	@Test
+	public void testSetReplicationPolicy_NotAuthorized() {
+		setupClientSubject_NoRights();
+		Iterator<Node> it = getCoordinatingNodeIterator();
+		while (it.hasNext()) {
+			currentUrl = it.next().getBaseURL();
+			CNode cn = new CNode(currentUrl);
+			printTestHeader("testSetReplicationPolicy(...) vs. node: " + currentUrl);
+
+			try {
+				ObjectInfo oi = getPrefetchedObject(currentUrl,0);    
+				log.debug("   pid = " + oi.getIdentifier());
+				
+				BigInteger serialVersion = cn.getSystemMetadata(null, oi.getIdentifier()).getSerialVersion();
+
+				ReplicationPolicy policy = new ReplicationPolicy();
+				policy.setNumberReplicas(4);
+				
+				boolean response = cn.setReplicationPolicy(null,oi.getIdentifier(),
+						policy, serialVersion.longValue());
+				handleFail(currentUrl,"setReplicationPolicy should fail when using no-right client subject");
+			} 
+			catch (IndexOutOfBoundsException e) {
+				handleFail(currentUrl,"No Objects available to test against");
+			}
+			catch (NotAuthorized e) {
+				// the expected outcome
+			}
+			catch (BaseException e) {
+				handleFail(currentUrl,"expected fail with NotAuthorized. Got: " + e.getClass() + 
+						":: " + e.getDescription());
+			}
+			catch(Exception e) {
+				e.printStackTrace();
+				handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+			}
+		}
+	}
+	
+	
+	@Test
+	public void testSetReplicationPolicy_NotFound() {
+		setupClientSubject_NoRights();
+		Iterator<Node> it = getCoordinatingNodeIterator();
+		while (it.hasNext()) {
+			currentUrl = it.next().getBaseURL();
+			CNode cn = new CNode(currentUrl);
+			printTestHeader("testSetReplicationPolicy(...) vs. node: " + currentUrl);
+
+			try {
+				Identifier pid = new Identifier();
+				pid.setValue("CNodeTier4test: " + ExampleUtilities.generateIdentifier());
+				
+				ReplicationPolicy policy = new ReplicationPolicy();
+				policy.setNumberReplicas(4);
+				
+				boolean response = cn.setReplicationPolicy(null,pid,
+						policy, 100);
+				handleFail(currentUrl,"setReplicationPolicy should fail when passing in fictitious pid");
+			} 
+			
+			catch (NotFound e) {
+				// the expected outcome
+			}
+			catch (BaseException e) {
+				handleFail(currentUrl,"expected fail with NotFound. Got: " + e.getClass() + 
+						":: " + e.getDescription());
+			}
+			catch(Exception e) {
+				e.printStackTrace();
+				handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+			}
+		}
+	}
+	
+	
+	@Test
+	public void testSetReplicationPolicy_VersionMismatch() {
+		setupClientSubject_Writer();
+		Iterator<Node> it = getCoordinatingNodeIterator();
+		while (it.hasNext()) {
+			currentUrl = it.next().getBaseURL();
+			CNode cn = new CNode(currentUrl);
+			printTestHeader("testSetReplicationPolicy(...) vs. node: " + currentUrl);
+
+			try {
+				ObjectInfo oi = getPrefetchedObject(currentUrl,0);    
+				log.debug("   pid = " + oi.getIdentifier());
+				
+				BigInteger serialVersion = cn.getSystemMetadata(null, oi.getIdentifier()).getSerialVersion();
+				
+				ReplicationPolicy policy = new ReplicationPolicy();
+				policy.setNumberReplicas(4);
+
+				boolean response = cn.setReplicationPolicy(null,oi.getIdentifier(),
+						policy, serialVersion.longValue()+10);
+				handleFail(currentUrl,"setReplicationPolicy should fail when setting a bogus serial version of the sysmeta");
+			} 
+			catch (IndexOutOfBoundsException e) {
+				handleFail(currentUrl,"No Objects available to test against");
+			}
+			catch (VersionMismatch e) {
+				// the expected outcome
+			}
+			catch (BaseException e) {
+				handleFail(currentUrl,"expected fail with VersionMismatch. Got: " + e.getClass() + 
+						":: " + e.getDescription());
+			}
+			catch(Exception e) {
+				e.printStackTrace();
+				handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+			}
+		}
+	}
+	
+	
+	@Test
+	public void testSetReplicationPolicy_InvalidRequest() {
+		setupClientSubject_Writer();
+		Iterator<Node> it = getCoordinatingNodeIterator();
+		while (it.hasNext()) {
+			currentUrl = it.next().getBaseURL();
+			CNode cn = new CNode(currentUrl);
+			printTestHeader("testSetReplicationPolicy(...) vs. node: " + currentUrl);
+
+			try {
+				ObjectInfo oi = getPrefetchedObject(currentUrl,0);    
+				log.debug("   pid = " + oi.getIdentifier());
+				
+				long serialVersion = cn.getSystemMetadata(null, oi.getIdentifier()).getSerialVersion().longValue();
+
+				ReplicationPolicy policy = new ReplicationPolicy();
+				policy.setNumberReplicas(-1);
+				
+				boolean response = cn.setReplicationPolicy(null,oi.getIdentifier(),
+						policy, serialVersion);
+				handleFail(currentUrl,"setReplicationPolicy should fail when setting number of replicas to -1");
+			} 
+			catch (IndexOutOfBoundsException e) {
+				handleFail(currentUrl,"No Objects available to test against");
+			}
+			catch (InvalidRequest e) {
+				// the expected outcome
+			}
+			catch (BaseException e) {
+				handleFail(currentUrl,"expected fail with InvalidRequest. Got: " + e.getClass() + 
+						":: " + e.getDescription());
+			}
+			catch(Exception e) {
+				e.printStackTrace();
+				handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+			}
 		}
 	}
 	
 
-	
 
+	@Test
+	public void testIsNodeAuthorized_InvalidToken() {
+		setupClientSubject_NoRights();
 
-
-	@Ignore("tests for Tier4 not implemented")
-	@Test public void testTier4() {
 		
-	}
-//	@Test
-//	public void testUpdateNodeCapabilities() {
-//		Iterator<Node> it = getCoordinatingNodeIterator();
-//		while (it.hasNext()) {
-//			currentUrl = it.next().getBaseURL();
-//			CNode cn = new CNode(currentUrl);
-//			printTestHeader("testUpdateNodeCapabilities(...) vs. node: " + currentUrl);
-//
-//			try {
-//				ObjectInfo oi = getPrefetchedObject(currentUrl,0);    
-//				log.debug("   pid = " + oi.getIdentifier());
-//
-//				boolean response = cn.updateNodeCapabilities();
-//				checkTrue(currentUrl,"updateNodeCapabilities(...) returns a boolean object", response != null);
-//				// checkTrue(currentUrl,"response cannot be false. [Only true or exception].", response);
-//			} 
-//			catch (IndexOutOfBoundsException e) {
-//				handleFail(currentUrl,"No Objects available to test against");
-//			}
-//			catch (BaseException e) {
-//				handleFail(currentUrl,e.getDescription());
-//			}
-//			catch(Exception e) {
-//				e.printStackTrace();
-//				handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
-//			}
-//		}
-//	}
+		Iterator<Node> it = getCoordinatingNodeIterator();
+		while (it.hasNext()) {
+			currentUrl = it.next().getBaseURL();
+			CNode cn = new CNode(currentUrl);
+			printTestHeader("testIsNodeAuthorized(...) vs. node: " + currentUrl);
 
-//
-//	@Test
-//	public void testRegister() {
-//		Iterator<Node> it = getCoordinatingNodeIterator();
-//		while (it.hasNext()) {
-//			currentUrl = it.next().getBaseURL();
-//			CNode cn = new CNode(currentUrl);
-//			printTestHeader("testRegister(...) vs. node: " + currentUrl);
-//
-//			try {
-//				ObjectInfo oi = getPrefetchedObject(currentUrl,0);    
-//				log.debug("   pid = " + oi.getIdentifier());
-//
-//				NodeReference response = cn.register();
-//				checkTrue(currentUrl,"register(...) returns a NodeReference object", response != null);
-//				// checkTrue(currentUrl,"response cannot be false. [Only true or exception].", response);
-//			} 
-//			catch (IndexOutOfBoundsException e) {
-//				handleFail(currentUrl,"No Objects available to test against");
-//			}
-//			catch (BaseException e) {
-//				handleFail(currentUrl,e.getDescription());
-//			}
-//			catch(Exception e) {
-//				e.printStackTrace();
-//				handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
-//			}
-//		}
-//	}
-//
-//
-//	@Test
-//	public void testSetReplicationStatus() {
-//		Iterator<Node> it = getCoordinatingNodeIterator();
-//		while (it.hasNext()) {
-//			currentUrl = it.next().getBaseURL();
-//			CNode cn = new CNode(currentUrl);
-//			printTestHeader("testSetReplicationStatus(...) vs. node: " + currentUrl);
-//
-//			try {
-//				ObjectInfo oi = getPrefetchedObject(currentUrl,0);    
-//				log.debug("   pid = " + oi.getIdentifier());
-//
-//				boolean response = cn.setReplicationStatus();
-//				checkTrue(currentUrl,"setReplicationStatus(...) returns a boolean object", response != null);
-//				// checkTrue(currentUrl,"response cannot be false. [Only true or exception].", response);
-//			} 
-//			catch (IndexOutOfBoundsException e) {
-//				handleFail(currentUrl,"No Objects available to test against");
-//			}
-//			catch (BaseException e) {
-//				handleFail(currentUrl,e.getDescription());
-//			}
-//			catch(Exception e) {
-//				e.printStackTrace();
-//				handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
-//			}
-//		}
-//	}
-//
-//
-//	@Test
-//	public void testSetReplicationPolicy() {
-//		Iterator<Node> it = getCoordinatingNodeIterator();
-//		while (it.hasNext()) {
-//			currentUrl = it.next().getBaseURL();
-//			CNode cn = new CNode(currentUrl);
-//			printTestHeader("testSetReplicationPolicy(...) vs. node: " + currentUrl);
-//
-//			try {
-//				ObjectInfo oi = getPrefetchedObject(currentUrl,0);    
-//				log.debug("   pid = " + oi.getIdentifier());
-//
-//				boolean response = cn.setReplicationPolicy();
-//				checkTrue(currentUrl,"setReplicationPolicy(...) returns a boolean object", response != null);
-//				// checkTrue(currentUrl,"response cannot be false. [Only true or exception].", response);
-//			} 
-//			catch (IndexOutOfBoundsException e) {
-//				handleFail(currentUrl,"No Objects available to test against");
-//			}
-//			catch (BaseException e) {
-//				handleFail(currentUrl,e.getDescription());
-//			}
-//			catch(Exception e) {
-//				e.printStackTrace();
-//				handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
-//			}
-//		}
-//	}
-//
-//
-//	@Test
-//	public void testIsNodeAuthorized() {
-//		Iterator<Node> it = getCoordinatingNodeIterator();
-//		while (it.hasNext()) {
-//			currentUrl = it.next().getBaseURL();
-//			CNode cn = new CNode(currentUrl);
-//			printTestHeader("testIsNodeAuthorized(...) vs. node: " + currentUrl);
-//
-//			try {
-//				ObjectInfo oi = getPrefetchedObject(currentUrl,0);    
-//				log.debug("   pid = " + oi.getIdentifier());
-//
-//				boolean response = cn.isNodeAuthorized();
-//				checkTrue(currentUrl,"isNodeAuthorized(...) returns a boolean object", response != null);
-//				// checkTrue(currentUrl,"response cannot be false. [Only true or exception].", response);
-//			} 
-//			catch (IndexOutOfBoundsException e) {
-//				handleFail(currentUrl,"No Objects available to test against");
-//			}
-//			catch (BaseException e) {
-//				handleFail(currentUrl,e.getDescription());
-//			}
-//			catch(Exception e) {
-//				e.printStackTrace();
-//				handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
-//			}
-//		}
-//	}
-//
-//
-//	@Test
-//	public void testUpdateReplicationMetadata() {
-//		Iterator<Node> it = getCoordinatingNodeIterator();
-//		while (it.hasNext()) {
-//			currentUrl = it.next().getBaseURL();
-//			CNode cn = new CNode(currentUrl);
-//			printTestHeader("testUpdateReplicationMetadata(...) vs. node: " + currentUrl);
-//
-//			try {
-//				ObjectInfo oi = getPrefetchedObject(currentUrl,0);    
-//				log.debug("   pid = " + oi.getIdentifier());
-//
-//				boolean response = cn.updateReplicationMetadata();
-//				checkTrue(currentUrl,"updateReplicationMetadata(...) returns a boolean object", response != null);
-//				// checkTrue(currentUrl,"response cannot be false. [Only true or exception].", response);
-//			} 
-//			catch (IndexOutOfBoundsException e) {
-//				handleFail(currentUrl,"No Objects available to test against");
-//			}
-//			catch (BaseException e) {
-//				handleFail(currentUrl,e.getDescription());
-//			}
-//			catch(Exception e) {
-//				e.printStackTrace();
-//				handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
-//			}
-//		}
-//	}
-	
-	
-	
-	
+			try {
+				ObjectInfo oi = getPrefetchedObject(currentUrl,0);    
+				log.debug("   pid = " + oi.getIdentifier());
 
-	private String createAssertMessage()
-	{
-		return "test failed at url " + cnBaseUrl;
-	}
-
-
-	private void printHeader(String test)
-	{
-		System.out.println("\n***************** running test for " + test + " *****************");
-	}
-
-    private void checkEquals(final String s1, final String s2) {
-        errorCollector.checkSucceeds(new Callable<Object>() {
-            public Object call() throws Exception {
-                assertThat("assertion failed for host " + cnBaseUrl, s1, is(s2));
-                return null;
-            }
-        });
-    }
-
-	private void checkTrue(final boolean b)
-	{
-		errorCollector.checkSucceeds(new Callable<Object>() 
-				{
-			public Object call() throws Exception 
-			{
-				assertThat("assertion failed for host " + cnBaseUrl, true, is(b));
-				return null;
+				// TODO: should not be current identity, but Subject of a listed member node
+				Subject subject = ClientIdentityManager.getCurrentIdentity();
+				
+				boolean response = cn.isNodeAuthorized(null, subject, oi.getIdentifier());
+				
+//				checkTrue(currentUrl,"response cannot be false. [Only true or exception].", response);
+				handleFail(currentUrl,"isNodeAuthorized should fail when using no-rights client subject");
+			} 
+			catch (IndexOutOfBoundsException e) {
+				handleFail(currentUrl,"No Objects available to test against");
 			}
-				});
-	}
-
-	/**
-	 * Serialize the objectList object to a ByteArrayInputStream
-	 * @param sysmeta
-	 * @return
-	 * @throws JiBXException
-	 */
-	private String serializeObjectList(ObjectList objectlist)
-			throws JiBXException {
-
-		ByteArrayOutputStream responseOut = new ByteArrayOutputStream();
-		serializeServiceType(SystemMetadata.class, objectlist, responseOut);
-		return responseOut.toString();
-	}
-
-	
-	/**
-	 * Serialize the system metadata object to a ByteArrayInputStream
-	 * @param sysmeta
-	 * @return
-	 * @throws JiBXException
-	 */
-	private String serializeSystemMetadata(SystemMetadata sysmeta)
-			throws JiBXException {
-
-		ByteArrayOutputStream sysmetaOut = new ByteArrayOutputStream();
-		serializeServiceType(SystemMetadata.class, sysmeta, sysmetaOut);
-		return sysmetaOut.toString();
+			catch (InvalidToken e) {
+				// the expected outcome
+			}
+			catch (BaseException e) {
+				handleFail(currentUrl,"expected fail with InvalidToken. Got: " + e.getClass() + 
+						":: " + e.getDescription());
+			}
+			catch(Exception e) {
+				e.printStackTrace();
+				handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+			}
+		}
 	}
 	
-	/**
-	 * serialize an object of type to out
-	 * 
-	 * @param type
-	 *            the class of the object to serialize (i.e.
-	 *            SystemMetadata.class)
-	 * @param object
-	 *            the object to serialize
-	 * @param out
-	 *            the stream to serialize it to
-	 * @throws JiBXException
-	 */
-	@SuppressWarnings("rawtypes")
-	private void serializeServiceType(Class type, Object object,
-			OutputStream out) throws JiBXException {
-		IBindingFactory bfact = BindingDirectory.getFactory(type);
-		IMarshallingContext mctx = bfact.createMarshallingContext();
-		mctx.marshalDocument(object, "UTF-8", null, out);
-	}
+	@Test
+	public void testIsNodeAuthorized_NotAuthorized() {
+		setupClientSubject_NoRights();
+		Subject noRightsSubject = ClientIdentityManager.getCurrentIdentity();
+		// TODO: 
+//		setupClientSubject_MemberNode();
+		
+		Iterator<Node> it = getCoordinatingNodeIterator();
+		while (it.hasNext()) {
+			currentUrl = it.next().getBaseURL();
+			CNode cn = new CNode(currentUrl);
+			printTestHeader("testIsNodeAuthorized(...) vs. node: " + currentUrl);
 
-	@Override
-	protected String getTestDescription() {
-		// TODO Auto-generated method stub
-		return null;
+			try {
+				ObjectInfo oi = getPrefetchedObject(currentUrl,0);    
+				log.debug("   pid = " + oi.getIdentifier());
+			
+				boolean response = cn.isNodeAuthorized(null, noRightsSubject, oi.getIdentifier());
+				
+//				checkTrue(currentUrl,"response cannot be false. [Only true or exception].", response);
+				handleFail(currentUrl,"isNodeAuthorized should fail when using no-rights client subject");
+			} 
+			catch (IndexOutOfBoundsException e) {
+				handleFail(currentUrl,"No Objects available to test against");
+			}
+			catch (NotAuthorized e) {
+				// the expected outcome
+			}
+			catch (BaseException e) {
+				handleFail(currentUrl,"expected fail with NotAuthorized. Got: " + e.getClass() + 
+						":: " + e.getDescription());
+			}
+			catch(Exception e) {
+				e.printStackTrace();
+				handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+			}
+		}
 	}
 	
 	
+	@Test
+	public void testIsNodeAuthorized_InvalidRequest() {
+		// TODO: 
+//		setupClientSubject_MemberNode();
+		
+		Iterator<Node> it = getCoordinatingNodeIterator();
+		while (it.hasNext()) {
+			currentUrl = it.next().getBaseURL();
+			CNode cn = new CNode(currentUrl);
+			printTestHeader("testIsNodeAuthorized(...) vs. node: " + currentUrl);
+
+			try {
+				ObjectInfo oi = getPrefetchedObject(currentUrl,0);    
+				log.debug("   pid = " + oi.getIdentifier());
+				
+				// passing in a null value for subject
+				boolean response = cn.isNodeAuthorized(null, null, oi.getIdentifier());
+				
+				handleFail(currentUrl,"isNodeAuthorized should fail when passing in null subject (omitting subject)");
+			} 
+			catch (IndexOutOfBoundsException e) {
+				handleFail(currentUrl,"No Objects available to test against");
+			}
+			catch (InvalidRequest e) {
+				// the expected outcome
+			}
+			catch (BaseException e) {
+				handleFail(currentUrl,"expected fail with InvalidRequest. Got: " + e.getClass() + 
+						":: " + e.getDescription());
+			}
+			catch(Exception e) {
+				e.printStackTrace();
+				handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+			}
+		}
+	}
+	
+	
+	@Test
+	public void testIsNodeAuthorized_NotFound() {
+		// TODO: 
+//		setupClientSubject_MemberNode();
+		
+		Iterator<Node> it = getCoordinatingNodeIterator();
+		while (it.hasNext()) {
+			currentUrl = it.next().getBaseURL();
+			CNode cn = new CNode(currentUrl);
+			printTestHeader("testIsNodeAuthorized(...) vs. node: " + currentUrl);
+
+			try {
+				Identifier pid = new Identifier();
+				pid.setValue("CNodeTier4test: " + ExampleUtilities.generateIdentifier());
+				
+				Subject subject = ClientIdentityManager.getCurrentIdentity();
+				
+				// passing in a null value for subject
+				boolean response = cn.isNodeAuthorized(null, subject, pid);
+				
+				handleFail(currentUrl,"isNodeAuthorized should fail when passing in fictitious pid");
+			}
+			catch (NotFound e) {
+				// the expected outcome
+			}
+			catch (BaseException e) {
+				handleFail(currentUrl,"expected fail with NotFound. Got: " + e.getClass() + 
+						":: " + e.getDescription());
+			}
+			catch(Exception e) {
+				e.printStackTrace();
+				handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+			}
+		}
+	}
+
+
+	@Test
+	public void testUpdateReplicationMetadata() {
+		//TODO:
+//		setupClientSubject_MemberNode();
+		Iterator<Node> it = getCoordinatingNodeIterator();
+		while (it.hasNext()) {
+			currentUrl = it.next().getBaseURL();
+			CNode cn = new CNode(currentUrl);
+			printTestHeader("testUpdateReplicationMetadata(...) vs. node: " + currentUrl);
+
+			try {
+				// want to get an object already replicated
+				// will apply set logic:  allObjects - unreplicatedObject => replicatedObjects
+				List<ObjectInfo> allObjects = listedObjects.get(currentUrl).getObjectInfoList();
+				List<ObjectInfo> unreplicatedObjects = cn.listObjects(null, null, null, null, false, null, null).getObjectInfoList();
+
+				allObjects.removeAll(unreplicatedObjects);
+				Identifier replicatedObject = allObjects.get(0).getIdentifier();				
+				log.debug("   pid = " + replicatedObject);
+				
+				
+				SystemMetadata smd = cn.getSystemMetadata(null, replicatedObject);
+				long serialVersion = smd.getSerialVersion().longValue();
+				Replica replica = smd.getReplica(0);
+				
+				// try an update to the replica by replacing it with itself... (no changes)
+				boolean response = cn.updateReplicationMetadata(null, replicatedObject, replica, serialVersion);
+
+				checkTrue(currentUrl,"response cannot be false. [Only true or exception].", response);
+			}
+			catch (IndexOutOfBoundsException e) {
+				handleFail(currentUrl,"No Objects available to test against");
+			}
+			catch (BaseException e) {
+				handleFail(currentUrl,e.getDescription());
+			}
+			 
+			catch(Exception e) {
+				e.printStackTrace();
+				handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+			}
+		}
+	}
+	
+	
+	@Test
+	public void testUpdateReplicationMetadata_NotAuthorized() {
+		setupClientSubject_NoRights();
+		Iterator<Node> it = getCoordinatingNodeIterator();
+		while (it.hasNext()) {
+			currentUrl = it.next().getBaseURL();
+			CNode cn = new CNode(currentUrl);
+			printTestHeader("testUpdateReplicationMetadata(...) vs. node: " + currentUrl);
+
+			try {
+				// want to get an object already replicated
+				// will apply set logic:  allObjects - unreplicatedObject => replicatedObjects
+				List<ObjectInfo> allObjects = listedObjects.get(currentUrl).getObjectInfoList();
+				List<ObjectInfo> unreplicatedObjects = cn.listObjects(null, null, null, null, false, null, null).getObjectInfoList();
+
+				allObjects.removeAll(unreplicatedObjects);
+				Identifier replicatedObject = allObjects.get(0).getIdentifier();				
+				log.debug("   pid = " + replicatedObject);
+				
+				
+				SystemMetadata smd = cn.getSystemMetadata(null, replicatedObject);
+				long serialVersion = smd.getSerialVersion().longValue();
+				Replica replica = smd.getReplica(0);
+				
+				// try an update to the replica by replacing it with itself... (no changes)
+				boolean response = cn.updateReplicationMetadata(null, replicatedObject, replica, serialVersion);
+
+				handleFail(currentUrl,"updateReplicaMetadata should fail when using no-rights subject");
+			}
+			catch (IndexOutOfBoundsException e) {
+				handleFail(currentUrl,"No Objects available to test against");
+			}
+			catch (NotAuthorized e) {
+				// the expected outcome
+			}
+			catch (BaseException e) {
+				handleFail(currentUrl,"expected fail with NotAuthorized. Got: " + e.getClass() + 
+						":: " + e.getDescription());
+			}
+			catch(Exception e) {
+				e.printStackTrace();
+				handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+			}
+		}
+	}
+	
+	
+	@Test
+	public void testUpdateReplicationMetadata_NotFound() {
+		//TODO:
+//		setupClientSubject_MemberNode();
+		Iterator<Node> it = getCoordinatingNodeIterator();
+		while (it.hasNext()) {
+			currentUrl = it.next().getBaseURL();
+			CNode cn = new CNode(currentUrl);
+			printTestHeader("testUpdateReplicationMetadata(...) vs. node: " + currentUrl);
+
+			try {
+				// want to get an object already replicated
+				// will apply set logic:  allObjects - unreplicatedObject => replicatedObjects
+				List<ObjectInfo> allObjects = listedObjects.get(currentUrl).getObjectInfoList();
+				List<ObjectInfo> unreplicatedObjects = cn.listObjects(null, null, null, null, false, null, null).getObjectInfoList();
+
+				allObjects.removeAll(unreplicatedObjects);
+				Identifier replicatedObject = allObjects.get(0).getIdentifier();				
+				log.debug("   pid = " + replicatedObject);
+
+				Identifier badPid = new Identifier();
+				badPid.setValue("CNodeTier4test: " + ExampleUtilities.generateIdentifier());
+
+				
+				SystemMetadata smd = cn.getSystemMetadata(null, replicatedObject);
+				long serialVersion = smd.getSerialVersion().longValue();
+				Replica replica = smd.getReplica(0);
+				
+				// try an update to the replica by replacing it with itself... (no changes)
+				boolean response = cn.updateReplicationMetadata(null, badPid, replica, serialVersion);
+
+				handleFail(currentUrl,"updateReplicaMetadata should fail when using no-rights subject");
+			}
+			catch (IndexOutOfBoundsException e) {
+				handleFail(currentUrl,"No Objects available to test against");
+			}
+			catch (NotFound e) {
+				// the expected outcome
+			}
+			catch (BaseException e) {
+				handleFail(currentUrl,"expected fail with NotFound. Got: " + e.getClass() + 
+						":: " + e.getDescription());
+			}
+			catch(Exception e) {
+				e.printStackTrace();
+				handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+			}
+		}
+	}
+	
+	@Ignore("not finished")
+	@Test
+	public void testUpdateReplicationMetadata_InvalidRequest() {
+		//TODO:
+//		setupClientSubject_MemberNode();
+		Iterator<Node> it = getCoordinatingNodeIterator();
+		while (it.hasNext()) {
+			currentUrl = it.next().getBaseURL();
+			CNode cn = new CNode(currentUrl);
+			printTestHeader("testUpdateReplicationMetadata(...) vs. node: " + currentUrl);
+
+			try {
+				// want to get an object already replicated
+				// will apply set logic:  allObjects - unreplicatedObject => replicatedObjects
+				List<ObjectInfo> allObjects = listedObjects.get(currentUrl).getObjectInfoList();
+				List<ObjectInfo> unreplicatedObjects = cn.listObjects(null, null, null, null, false, null, null).getObjectInfoList();
+
+				allObjects.removeAll(unreplicatedObjects);
+				Identifier replicatedObject = allObjects.get(0).getIdentifier();				
+				log.debug("   pid = " + replicatedObject);
+
+				Identifier badPid = new Identifier();
+				badPid.setValue("CNodeTier4test: " + ExampleUtilities.generateIdentifier());
+
+				
+				SystemMetadata smd = cn.getSystemMetadata(null, replicatedObject);
+				long serialVersion = smd.getSerialVersion().longValue();
+				Replica replica = smd.getReplica(0);
+				
+				// try an update to the replica by replacing it with itself... (no changes)
+				boolean response = cn.updateReplicationMetadata(null, badPid, replica, serialVersion);
+
+				handleFail(currentUrl,"updateReplicaMetadata should fail when using no-rights subject");
+			}
+			catch (IndexOutOfBoundsException e) {
+				handleFail(currentUrl,"No Objects available to test against");
+			}
+			catch (InvalidRequest e) {
+				// the expected outcome
+			}
+			catch (BaseException e) {
+				handleFail(currentUrl,"expected fail with InvalidRequest. Got: " + e.getClass() + 
+						":: " + e.getDescription());
+			}
+			catch(Exception e) {
+				e.printStackTrace();
+				handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+			}
+		}
+	}
+	
+	@Ignore("not finished")
+	@Test
+	public void testUpdateReplicationMetadata_VersionMismatch() {
+		//TODO:
+//		setupClientSubject_MemberNode();
+		Iterator<Node> it = getCoordinatingNodeIterator();
+		while (it.hasNext()) {
+			currentUrl = it.next().getBaseURL();
+			CNode cn = new CNode(currentUrl);
+			printTestHeader("testUpdateReplicationMetadata(...) vs. node: " + currentUrl);
+
+			try {
+				// want to get an object already replicated
+				// will apply set logic:  allObjects - unreplicatedObject => replicatedObjects
+				List<ObjectInfo> allObjects = listedObjects.get(currentUrl).getObjectInfoList();
+				List<ObjectInfo> unreplicatedObjects = cn.listObjects(null, null, null, null, false, null, null).getObjectInfoList();
+
+				allObjects.removeAll(unreplicatedObjects);
+				Identifier replicatedObject = allObjects.get(0).getIdentifier();				
+				log.debug("   pid = " + replicatedObject);
+
+				Identifier badPid = new Identifier();
+				badPid.setValue("CNodeTier4test: " + ExampleUtilities.generateIdentifier());
+
+				
+				SystemMetadata smd = cn.getSystemMetadata(null, replicatedObject);
+				long serialVersion = smd.getSerialVersion().longValue();
+				Replica replica = smd.getReplica(0);
+				
+				// try an update to the replica by replacing it with itself... (no changes)
+				boolean response = cn.updateReplicationMetadata(null, badPid, replica, serialVersion);
+
+				handleFail(currentUrl,"updateReplicaMetadata should fail when using no-rights subject");
+			}
+			catch (IndexOutOfBoundsException e) {
+				handleFail(currentUrl,"No Objects available to test against");
+			}
+			catch (VersionMismatch e) {
+				// the expected outcome
+			}
+			catch (BaseException e) {
+				handleFail(currentUrl,"expected fail with VersionMismatch. Got: " + e.getClass() + 
+						":: " + e.getDescription());
+			}
+			catch(Exception e) {
+				e.printStackTrace();
+				handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+			}
+		}
+	}
 
 }
