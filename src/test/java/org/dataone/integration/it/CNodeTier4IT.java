@@ -734,7 +734,7 @@ public class CNodeTier4IT extends ContextAwareTestCaseDataone {
 		}
 	}
 	
-	@Ignore("not finished")
+	
 	@Test
 	public void testUpdateReplicationMetadata_InvalidRequest() {
 		//TODO:
@@ -755,16 +755,13 @@ public class CNodeTier4IT extends ContextAwareTestCaseDataone {
 				Identifier replicatedObject = allObjects.get(0).getIdentifier();				
 				log.debug("   pid = " + replicatedObject);
 
-				Identifier badPid = new Identifier();
-				badPid.setValue("CNodeTier4test: " + ExampleUtilities.generateIdentifier());
-
 				
 				SystemMetadata smd = cn.getSystemMetadata(null, replicatedObject);
 				long serialVersion = smd.getSerialVersion().longValue();
 				Replica replica = smd.getReplica(0);
 				
-				// try an update to the replica by replacing it with itself... (no changes)
-				boolean response = cn.updateReplicationMetadata(null, badPid, replica, serialVersion);
+				// try an update to the replica by replacing it with a null value
+				boolean response = cn.updateReplicationMetadata(null, replicatedObject, null, serialVersion);
 
 				handleFail(currentUrl,"updateReplicaMetadata should fail when using no-rights subject");
 			}
@@ -785,7 +782,7 @@ public class CNodeTier4IT extends ContextAwareTestCaseDataone {
 		}
 	}
 	
-	@Ignore("not finished")
+
 	@Test
 	public void testUpdateReplicationMetadata_VersionMismatch() {
 		//TODO:
@@ -806,18 +803,15 @@ public class CNodeTier4IT extends ContextAwareTestCaseDataone {
 				Identifier replicatedObject = allObjects.get(0).getIdentifier();				
 				log.debug("   pid = " + replicatedObject);
 
-				Identifier badPid = new Identifier();
-				badPid.setValue("CNodeTier4test: " + ExampleUtilities.generateIdentifier());
-
 				
 				SystemMetadata smd = cn.getSystemMetadata(null, replicatedObject);
 				long serialVersion = smd.getSerialVersion().longValue();
 				Replica replica = smd.getReplica(0);
 				
 				// try an update to the replica by replacing it with itself... (no changes)
-				boolean response = cn.updateReplicationMetadata(null, badPid, replica, serialVersion);
+				boolean response = cn.updateReplicationMetadata(null, replicatedObject, replica, serialVersion + 10);
 
-				handleFail(currentUrl,"updateReplicaMetadata should fail when using no-rights subject");
+				handleFail(currentUrl,"updateReplicaMetadata should fail when passing in a bad serialVersion");
 			}
 			catch (IndexOutOfBoundsException e) {
 				handleFail(currentUrl,"No Objects available to test against");
