@@ -38,6 +38,9 @@ public class CNCNReplicationIT extends ContextAwareTestCaseDataone {
 		while (it.hasNext()) {
 			Node node = (Node) it.next();
 			String currentUrl = node.getBaseURL();
+			
+//			if (currentUrl.contains("cn-dev-2"))
+//				continue;
 
 			CNode cn = new CNode(currentUrl);
 					
@@ -73,8 +76,10 @@ public class CNCNReplicationIT extends ContextAwareTestCaseDataone {
 		
 		// check individual lists against the superset
 		int c = 0;
-		for (String serializedInfo: allObjects) {
-			for (String nodeStr: objectListMap.keySet()) {
+
+		for (String nodeStr: objectListMap.keySet()) {
+			log.info("Checking all objects against node: " + nodeStr );
+			for (String serializedInfo: allObjects) {
 				log.debug(c++);
 				checkTrue(nodeStr, "node should have object " + serializedInfo,
 						objectListMap.get(nodeStr).contains(serializedInfo));
