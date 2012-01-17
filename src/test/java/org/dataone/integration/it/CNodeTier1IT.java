@@ -30,7 +30,6 @@ import java.util.Vector;
 
 import org.apache.commons.io.IOUtils;
 import org.dataone.client.CNode;
-import org.dataone.client.D1Client;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.IdentifierNotUnique;
 import org.dataone.service.exceptions.InvalidRequest;
@@ -54,8 +53,8 @@ import org.dataone.service.types.v1.ObjectLocationList;
 import org.dataone.service.types.v1.Permission;
 import org.dataone.service.types.v1.SystemMetadata;
 import org.junit.Before;
-import org.junit.Test;
 import org.junit.Ignore;
+import org.junit.Test;
 
 /**
  * Test the DataONE Java client methods that focus on CN services.
@@ -628,6 +627,104 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
 			}	
 		}
 	}
+	
+	
+    /**
+     * test creation of data with challenging unicode identifier.
+     */
+	@Ignore("need to debug for CN implementation")
+	@Test
+    public void testCreateData_IdentifierEncoding() 
+    {
+		setupClientSubject_Writer();
+		Iterator<Node> it = getMemberNodeIterator();
+		printTestHeader("Testing IdentifierEncoding - setting up identifiers to check");
+
+		// get identifiers to check with
+		Vector<String> unicodeString = new Vector<String>();
+		Vector<String> escapedString = new Vector<String>();
+		InputStream is = this.getClass().getResourceAsStream("/d1_testdocs/encodingTestSet/testUnicodeStrings.utf8.txt");
+		//InputStream is = this.getClass().getResourceAsStream("/d1_testdocs/encodingTestSet/testAsciiStrings.utf8.txt");
+		Scanner s = new Scanner(is,"UTF-8");
+		String[] temp;
+		int c = 0;
+		try{
+			while (s.hasNextLine()) {
+				String line = s.nextLine();
+				if (line.startsWith("common-") || line.startsWith("path-"))
+				{
+					System.out.println(c++ + "   " + line);
+					temp = line.split("\t");
+					unicodeString.add(temp[0]);
+					escapedString.add(temp[1]);		
+				}
+			}
+		} finally {
+			s.close();
+		}
+		
+		
+		while (it.hasNext()) {
+			currentUrl = it.next().getBaseURL();
+			CNode cn = new CNode(currentUrl);
+			currentUrl = cn.getNodeBaseServiceUrl();
+			printTestHeader("testCreateData_IdentifierEncoding() vs. node: " + currentUrl);		
+
+			Vector<String> nodeSummary = new Vector<String>();
+			nodeSummary.add("Node Test Summary for node: " + currentUrl );
+
+			printTestHeader("  Node:: " + currentUrl);
+
+			String idPrefix = "testCNodeTier1:";
+			
+			for (int j=0; j<unicodeString.size(); j++) 
+			{
+				String status = "OK   ";
+				try {
+					//    			String unicode = unicodeString.get(j);
+					System.out.println();
+					System.out.println(j + "    unicode String:: " + unicodeString.get(j));
+					String idString = idPrefix + ExampleUtilities.generateIdentifier() + "_" + unicodeString.get(j) ;
+					String idStringEscaped = idPrefix  + ExampleUtilities.generateIdentifier() + "_" + escapedString.get(j);
+
+
+					Object[] dataPackage = generateTestDataPackage(idStringEscaped,false);
+
+					// rGuid is either going to be the escaped ID or the non-escaped ID
+					Identifier rGuid = null;
+
+					rGuid = cn.create(null, (Identifier) dataPackage[0], 
+							(InputStream)dataPackage[1], (SystemMetadata)dataPackage[2]);
+					System.out.println("    == returned Guid (rGuid): " + rGuid.getValue());
+					checkEquals(currentUrl,"guid returned from create should equal that given",
+							((Identifier)dataPackage[0]).getValue(), rGuid.getValue());
+					InputStream data = cn.get(null, rGuid);
+					checkTrue(currentUrl, "get against the object should not equal null", null != data);
+					String str = IOUtils.toString(data);
+					checkTrue(currentUrl,"should be able to read the content as created ('" + str + "')",
+							str.indexOf("Plain text source") != -1);
+					data.close();
+				}
+				catch (BaseException e) {
+					status = "Error";
+					handleFail(currentUrl,e.getClass().getSimpleName() +
+							": " + e.getDetail_code() + ": " + e.getDescription());
+				}
+				catch(Exception e) {
+					status = "Error";
+					e.printStackTrace();
+					handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+				}	
+				nodeSummary.add("Test " + j + ": " + status + ":  " + unicodeString.get(j));
+			}
+			System.out.println();
+			for (int k=0; k<nodeSummary.size(); k++) 
+			{
+				log.info(nodeSummary.get(k));
+			}
+			System.out.println();
+		}
+    }
     
 
 	@Test

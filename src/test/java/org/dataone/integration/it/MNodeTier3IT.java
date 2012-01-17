@@ -20,13 +20,7 @@
 
 package org.dataone.integration.it;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
-import java.math.BigInteger;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.X509Certificate;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.Scanner;
@@ -34,11 +28,8 @@ import java.util.Vector;
 
 import org.apache.commons.io.IOUtils;
 import org.dataone.client.D1Client;
-import org.dataone.client.D1Object;
 import org.dataone.client.MNode;
-import org.dataone.client.auth.CertificateManager;
 import org.dataone.service.exceptions.BaseException;
-import org.dataone.service.exceptions.InvalidRequest;
 import org.dataone.service.exceptions.InvalidSystemMetadata;
 import org.dataone.service.exceptions.InvalidToken;
 import org.dataone.service.exceptions.NotAuthorized;
@@ -47,10 +38,7 @@ import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Node;
 import org.dataone.service.types.v1.ObjectInfo;
 import org.dataone.service.types.v1.ObjectList;
-import org.dataone.service.types.v1.Permission;
 import org.dataone.service.types.v1.SystemMetadata;
-import org.dataone.service.types.v1.util.AccessUtil;
-import org.dataone.service.util.Constants;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -153,8 +141,8 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 		Vector<String> unicodeString = new Vector<String>();
 		Vector<String> escapedString = new Vector<String>();
 		//   TODO: test against Unicode characters when metacat supports unicode    	
-		//    	InputStream is = this.getClass().getResourceAsStream("/d1_testdocs/encodingTestSet/testUnicodeStrings.utf8.txt");
-		InputStream is = this.getClass().getResourceAsStream("/d1_testdocs/encodingTestSet/testAsciiStrings.utf8.txt");
+		InputStream is = this.getClass().getResourceAsStream("/d1_testdocs/encodingTestSet/testUnicodeStrings.utf8.txt");
+		//InputStream is = this.getClass().getResourceAsStream("/d1_testdocs/encodingTestSet/testAsciiStrings.utf8.txt");
 		Scanner s = new Scanner(is,"UTF-8");
 		String[] temp;
 		int c = 0;
