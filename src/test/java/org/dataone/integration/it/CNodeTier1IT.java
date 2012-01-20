@@ -30,6 +30,7 @@ import java.util.Vector;
 
 import org.apache.commons.io.IOUtils;
 import org.dataone.client.CNode;
+import org.dataone.client.auth.ClientIdentityManager;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.IdentifierNotUnique;
 import org.dataone.service.exceptions.InvalidRequest;
@@ -51,6 +52,8 @@ import org.dataone.service.types.v1.ObjectInfo;
 import org.dataone.service.types.v1.ObjectList;
 import org.dataone.service.types.v1.ObjectLocationList;
 import org.dataone.service.types.v1.Permission;
+import org.dataone.service.types.v1.Subject;
+import org.dataone.service.types.v1.SubjectInfo;
 import org.dataone.service.types.v1.SystemMetadata;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -528,21 +531,23 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
     
     @Test
     public void testHasReservation() {
+    	
+    	Subject clientSubject = ClientIdentityManager.getCurrentIdentity();
     	Iterator<Node> it = getCoordinatingNodeIterator();
     	while (it.hasNext()) {
     		currentUrl = it.next().getBaseURL();
     		CNode cn = new CNode(currentUrl);
     		printTestHeader("testHasReservation(...) vs. node: " + currentUrl);
-
+    		
     		try {
     			boolean response = false;
     			if (reservedIdentifier != null) {
-    				response = cn.hasReservation(null,reservedIdentifier);
+    				response = cn.hasReservation(null,clientSubject,reservedIdentifier);
     			} else {
     				Identifier pid = new Identifier();
     				pid.setValue(ExampleUtilities.generateIdentifier());
     				cn.reserveIdentifier(null, pid );
-    				response = cn.hasReservation(null,pid);
+    				response = cn.hasReservation(null,clientSubject,pid);
     			}
     			checkTrue(currentUrl,"response cannot be false. [Only true or exception].", response);
     		} 
@@ -562,6 +567,9 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
     
     @Test
     public void testHasReservation_noReservation() {
+    	
+    	Subject clientSubject = ClientIdentityManager.getCurrentIdentity();
+    	
     	Iterator<Node> it = getCoordinatingNodeIterator();
     	while (it.hasNext()) {
     		currentUrl = it.next().getBaseURL();
@@ -572,7 +580,7 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
     			boolean response = false;
     			Identifier pid = new Identifier();
     			pid.setValue(ExampleUtilities.generateIdentifier());
-    			response = cn.hasReservation(null,pid);
+    			response = cn.hasReservation(null,clientSubject, pid);
 
     			checkTrue(currentUrl,"response cannot be false. [Only true or exception].", 
     					response);
