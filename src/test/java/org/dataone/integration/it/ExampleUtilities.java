@@ -58,13 +58,17 @@ import org.dataone.service.exceptions.UnsupportedType;
 import org.dataone.service.types.v1.Checksum;
 import org.dataone.service.types.v1.Group;
 import org.dataone.service.types.v1.Identifier;
+import org.dataone.service.types.v1.Node;
+import org.dataone.service.types.v1.NodeList;
 import org.dataone.service.types.v1.NodeReference;
+import org.dataone.service.types.v1.NodeType;
 import org.dataone.service.types.v1.ObjectFormatIdentifier;
 import org.dataone.service.types.v1.ObjectLocation;
 import org.dataone.service.types.v1.ObjectLocationList;
 import org.dataone.service.types.v1.Person;
 import org.dataone.service.types.v1.Replica;
 import org.dataone.service.types.v1.ReplicationStatus;
+import org.dataone.service.types.v1.Service;
 import org.dataone.service.types.v1.Session;
 import org.dataone.service.types.v1.Subject;
 import org.dataone.service.types.v1.SubjectInfo;
@@ -115,7 +119,64 @@ public class ExampleUtilities {
         return pid.toString();
     }
 
-    
+    /**
+     * Generate a list of potential replica target nodes using the capabilities
+     * of the authoritative node and those of the MNs in the NodeList from the CN
+     * @param cn the CN providing the NodeList
+     * @param authNode the authoritative Node for the object
+     * @return the potential replica list of MNs
+     */
+    protected static List<NodeReference> generatePotentialReplicaNodeList(CNode cn, Node authNode) {
+        
+        // get the full node list from the cn
+        NodeList nodeList = null;
+        List<Node> nodes = null;
+        
+        // get the node list from the CN
+        try {
+            nodeList = cn.listNodes();
+            nodes = nodeList.getNodeList();
+            
+        } catch (NotImplemented e) {
+            e.printStackTrace();
+            
+        } catch (ServiceFailure e) {
+            e.printStackTrace();
+            
+        }
+        
+        //create the list of potential target nodes 
+        List<NodeReference> potentialNodeList = new ArrayList<NodeReference>();
+        
+        // verify the versions of replication the authNode supports
+        List<String> implementedVersions = new ArrayList<String>();
+        List<Service> origServices = authNode.getServices().getServiceList();
+        for (Service service : origServices) {
+            if(service.getName().equals("MNReplication") &&
+               service.getAvailable()) {
+                implementedVersions.add(service.getVersion());
+                
+            }
+        }
+
+        // build the potential list of target nodes
+        for(Node node : nodes) {
+          
+            // only add MNs as targets, excluding the authoritative MN and MNs that are not tagged to replicate
+            if ( (node.getType() == NodeType.MN) && node.isReplicate() &&
+                !node.getIdentifier().getValue().equals(authNode.getIdentifier().getValue())) {
+                
+                for (Service service : node.getServices().getServiceList()) {
+                    if(service.getName().equals("MNReplication") &&
+                       implementedVersions.contains(service.getVersion()) &&
+                       service.getAvailable()) {
+                        potentialNodeList.add(node.getIdentifier());
+                    }
+                }             
+            }
+        }
+        return potentialNodeList;
+    }
     
     /** Generate a SystemMetadata object with bogus data. */
     protected static SystemMetadata generateSystemMetadata(
