@@ -22,6 +22,7 @@ import org.junit.Ignore;
  * @author rnahf
  *
  */
+@Deprecated
 public class ClientAuthIT extends ContextAwareTestCaseDataone {
 //	private String aUrl = "https://knb-test-1.dataone.org/knb/d1/mn";	
 	private static String currentUrl;

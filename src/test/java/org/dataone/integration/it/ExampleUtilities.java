@@ -33,6 +33,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
+import java.util.Set;
 import java.util.SimpleTimeZone;
 import java.util.TimeZone;
 import java.util.Vector;
@@ -75,6 +76,7 @@ import org.dataone.service.types.v1.SubjectInfo;
 import org.dataone.service.types.v1.SubjectList;
 import org.dataone.service.types.v1.SystemMetadata;
 import org.dataone.service.types.v1.util.ChecksumUtil;
+import org.dataone.service.types.v1.util.NodelistUtil;
 
 
 /**
@@ -372,5 +374,4 @@ public class ExampleUtilities {
 		List<ObjectLocation> locs = oll.getObjectLocationList();
 		return locs.toArray().length;
 	}
-    
 }

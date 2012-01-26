@@ -152,7 +152,7 @@ public class CNodeTier2AuthorizationIT extends ContextAwareTestCaseDataone {
 	
 	@Test
 	public void testSetRightsHolder() {
-		setupClientSubject_Writer();
+		setupClientSubject("testOwner");
 		Iterator<Node> it = getCoordinatingNodeIterator();
 		while (it.hasNext()) {
 			currentUrl = it.next().getBaseURL();
@@ -226,7 +226,7 @@ public class CNodeTier2AuthorizationIT extends ContextAwareTestCaseDataone {
 	@Test
 	public void testIsAuthorized() 
 	{
-		setupClientSubject_Writer();
+		setupClientSubject("testOwner");
 		
 		Iterator<Node> it = getMemberNodeIterator();
 		while (it.hasNext()) {
@@ -236,7 +236,7 @@ public class CNodeTier2AuthorizationIT extends ContextAwareTestCaseDataone {
 			printTestHeader("testIsAuthorized() vs. node: " + currentUrl);
 				
 			try {	
-				Identifier pid = procureTestObject(mn, null, new Permission[]{Permission.READ});
+				Identifier pid = procureTestObject(mn, null, Permission.READ, true);
 				boolean success = mn.isAuthorized(null, pid, Permission.READ);
 				checkTrue(currentUrl,"isAuthorized response should never be false. [Only true or exception].", success);
 			} 
@@ -275,7 +275,7 @@ public class CNodeTier2AuthorizationIT extends ContextAwareTestCaseDataone {
 			printTestHeader("testIsAuthorized_noCert() vs. node: " + currentUrl);
 			
 			try {
-				Identifier pid = procureTestObject(mn, null, new Permission[] {Permission.READ});
+				Identifier pid = procureTestObject(mn, null, Permission.READ, true);
 				boolean success = mn.isAuthorized(null, pid, Permission.WRITE);
 				handleFail(currentUrl,"isAuthorized response should throw exception if no session/token");
 			}
@@ -341,7 +341,7 @@ public class CNodeTier2AuthorizationIT extends ContextAwareTestCaseDataone {
 				// become the desired user/client-subject
 				clientSetupMethod.invoke(null, null);
 				// get an appropriate test object
-				Identifier pid = procureTestObject(mn, policySubject, new Permission[] {permission});
+				Identifier pid = procureTestObject(mn, policySubject, permission, true);
 
 				// test for success
 				log.info("1. trying isAuthorized({READ}) as '" + clientSetupMethod.getName() + "' vs. policy subject '" + policySubject.getValue() + "'");		
@@ -388,7 +388,7 @@ public class CNodeTier2AuthorizationIT extends ContextAwareTestCaseDataone {
     @Test
 	public void testSetAccessPolicy() 
     {	
-    	setupClientSubject_Reader();
+    	setupClientSubject("testReader");
     	String readerSubject = CertificateManager.getInstance()
     		.getSubjectDN(CertificateManager.getInstance().loadCertificate());
 	
@@ -401,9 +401,8 @@ public class CNodeTier2AuthorizationIT extends ContextAwareTestCaseDataone {
 			printTestHeader("testSetAccessPolicy() vs. node: " + currentUrl);
 
 			try {
-				setupClientSubject_Writer();
-				Identifier changeableObject = procureTestObject(cn, null,
-					new Permission[] {Permission.READ, Permission.WRITE, Permission.CHANGE_PERMISSION});
+				setupClientSubject("testOwner");
+				Identifier changeableObject = procureTestObject(cn, null, Permission.CHANGE_PERMISSION, true);
 				if (changeableObject != null)
 				{					
 					log.info("clear the AccessPolicy");
@@ -413,7 +412,7 @@ public class CNodeTier2AuthorizationIT extends ContextAwareTestCaseDataone {
 							new AccessPolicy(), serialVersion);
 
 					// ensure blank policy with get, isAuthorized
-					setupClientSubject_Reader();				
+					setupClientSubject("testReader");				
 					try {
 						cn.isAuthorized(null, changeableObject, Permission.READ);
 						handleFail(currentUrl,"1. isAuthorized by the reader should fail");
@@ -429,7 +428,7 @@ public class CNodeTier2AuthorizationIT extends ContextAwareTestCaseDataone {
 
 
 					log.info("allow read permission for testReader");
-					setupClientSubject_Writer();
+					setupClientSubject("testOwner");
 					smd = cn.getSystemMetadata(null, changeableObject);
 					serialVersion = smd.getSerialVersion().longValue();
 					success = cn.setAccessPolicy(null, changeableObject, 
@@ -440,7 +439,7 @@ public class CNodeTier2AuthorizationIT extends ContextAwareTestCaseDataone {
 
 					// test for success
 					log.info("trying isAuthorized as the testReader");
-					setupClientSubject_Reader();			
+					setupClientSubject("testReader");			
 					try {
 						cn.isAuthorized(null, changeableObject, Permission.READ);
 					} catch (NotAuthorized na) {
@@ -456,7 +455,7 @@ public class CNodeTier2AuthorizationIT extends ContextAwareTestCaseDataone {
 					}
 
 					log.info("now try to get as a known user with no rights to the object (should not be able)");
-					setupClientSubject_NoRights();
+					setupClientSubject("testNoRights");
 					try {
 						cn.get(null, changeableObject);
 						handleFail(currentUrl,"6. testNoRights should not be able to get the object");
@@ -520,9 +519,8 @@ public class CNodeTier2AuthorizationIT extends ContextAwareTestCaseDataone {
 			printTestHeader("testSetAccessPolicy_NoCert() vs. node: " + currentUrl);
 
 			try {
-				setupClientSubject_Writer();
-				Identifier changeableObject = procureTestObject(cn, null, 
-						new Permission[] {Permission.READ, Permission.WRITE, Permission.CHANGE_PERMISSION}); //getOrCreateChangeableObject(mn);
+				setupClientSubject("testOwner");
+				Identifier changeableObject = procureTestObject(cn, null, Permission.CHANGE_PERMISSION, true);
 				if (changeableObject != null) 
 				{	
 					setupClientSubject_NoCert();

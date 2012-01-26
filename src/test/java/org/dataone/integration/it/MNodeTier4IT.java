@@ -67,7 +67,7 @@ public class MNodeTier4IT extends ContextAwareTestCaseDataone {
 	@Test
 	public void testGetReplica() {
 
-		setupClientSubject_Writer();
+		setupClientSubject("testWriter");
 
 		Iterator<Node> it = getMemberNodeIterator();  	
 
@@ -78,7 +78,7 @@ public class MNodeTier4IT extends ContextAwareTestCaseDataone {
 			printTestHeader("testGetReplica() vs. node: " + currentUrl);
 
 			try {
-				Identifier pid = procureTestObject(mn, null, new Permission[] {Permission.READ});			
+				Identifier pid = procureTestObject(mn, null, Permission.READ, true);			
 				InputStream is = mn.getReplica(null, pid);
 				checkTrue(currentUrl,"get() returns an objectStream", is != null);
 			}
@@ -104,7 +104,7 @@ public class MNodeTier4IT extends ContextAwareTestCaseDataone {
 	@Test
 	public void testGetReplica_AuthenticatedITKUser() {
 
-		setupClientSubject_Writer();
+		setupClientSubject("testWriter");
 
 		Iterator<Node> it = getMemberNodeIterator();  	
 
@@ -115,7 +115,7 @@ public class MNodeTier4IT extends ContextAwareTestCaseDataone {
 			printTestHeader("testGetReplica_AuthenticateITKUser() vs. node: " + currentUrl);
 
 			try {
-				Identifier pid = procureTestObject(mn, null, new Permission[] {Permission.READ});			
+				Identifier pid = procureTestObject(mn, null, Permission.READ, true);			
 				InputStream is = mn.getReplica(null, pid);
 				checkTrue(currentUrl,"get() returns an objectStream", is != null);
 			}
@@ -155,7 +155,7 @@ public class MNodeTier4IT extends ContextAwareTestCaseDataone {
 			printTestHeader("testGetReplica_NoCert() vs. node: " + currentUrl);
 
 			try {
-				Identifier pid = procureTestObject(mn, null, new Permission[] {Permission.READ});			
+				Identifier pid = procureTestObject(mn, null, Permission.READ, true);			
 				InputStream is = mn.getReplica(null, pid);
 				handleFail(currentUrl,"with no client certificate, getReplica() should throw exception");
 			}
@@ -229,7 +229,7 @@ public class MNodeTier4IT extends ContextAwareTestCaseDataone {
 	@Test
 	public void testReplicate_FaultyNodeReference() {
 
-//		setupClientSubject_CN();
+		setupClientSubject("testCN");
 
 		Iterator<Node> it = getMemberNodeIterator();  	
 

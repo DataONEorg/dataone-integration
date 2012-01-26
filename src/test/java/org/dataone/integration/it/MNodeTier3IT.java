@@ -53,7 +53,7 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 	@Test
 	public void testCreate() {
 
-		setupClientSubject_Writer();
+		setupClientSubject("testWriter");
 
 		Iterator<Node> it = getMemberNodeIterator();  	
 
@@ -133,7 +133,7 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 	@Test
     public void testCreateData_IdentifierEncoding() 
     {
-		setupClientSubject_Writer();
+		setupClientSubject("testWriter");
 		Iterator<Node> it = getMemberNodeIterator();
 		printTestHeader("Testing IdentifierEncoding - setting up identifiers to check");
 
@@ -231,7 +231,7 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 	@Test
 	public void testUpdate() {
 
-		setupClientSubject_Writer();
+		setupClientSubject("testWriter");
 
 		Iterator<Node> it = getMemberNodeIterator();
 
@@ -308,7 +308,7 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 	@Test
 	public void testUpdate_badObsoletedByInfo() {
 
-		setupClientSubject_Writer();
+		setupClientSubject("testWriter");
 
 		Iterator<Node> it = getMemberNodeIterator();
 
@@ -362,7 +362,7 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 	@Test
 	public void testUpdate_badObsoletesInfo() {
 
-		setupClientSubject_Writer();
+		setupClientSubject("testWriter");
 
 		Iterator<Node> it = getMemberNodeIterator();
 
@@ -418,7 +418,7 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 		Iterator<Node> it = getMemberNodeIterator();
 
 		while ( it.hasNext() ) {
-			setupClientSubject_Writer();
+			setupClientSubject("testWriter");
 			
 			currentUrl = it.next().getBaseURL();
 			MNode mn = D1Client.getMN(currentUrl);
@@ -489,7 +489,7 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 		Iterator<Node> it = getMemberNodeIterator();
 
 		while ( it.hasNext() ) {
-			setupClientSubject_Writer();
+			setupClientSubject("testWriter");
 
 			currentUrl = it.next().getBaseURL();
 			MNode mn = D1Client.getMN(currentUrl);
@@ -531,7 +531,7 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 		Iterator<Node> it = getMemberNodeIterator();
 
 		while ( it.hasNext() ) {
-			setupClientSubject_Writer();
+			setupClientSubject("testWriter");
 
 			currentUrl = it.next().getBaseURL();
 			MNode mn = D1Client.getMN(currentUrl);
@@ -567,7 +567,7 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 		Iterator<Node> it = getMemberNodeIterator();
 
 		while ( it.hasNext() ) {
-			setupClientSubject_Writer();
+			setupClientSubject("testWriter");
 
 			currentUrl = it.next().getBaseURL();
 			MNode mn = D1Client.getMN(currentUrl);
@@ -587,7 +587,7 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 			}
 			catch (InvalidToken na) {
 				try {
-					setupClientSubject_Writer();
+					setupClientSubject("testWriter");
 					InputStream is = mn.get(null, pid);	
 				}
 				catch (BaseException e) {
@@ -615,7 +615,7 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 		Iterator<Node> it = getMemberNodeIterator();
 
 		while ( it.hasNext() ) {
-			setupClientSubject_Writer();
+			setupClientSubject("testWriter");
 
 			currentUrl = it.next().getBaseURL();
 			MNode mn = D1Client.getMN(currentUrl);
@@ -649,7 +649,7 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 		Iterator<Node> it = getMemberNodeIterator();
 
 		while ( it.hasNext() ) {
-			setupClientSubject_Writer();
+			setupClientSubject("testWriter");
 
 			currentUrl = it.next().getBaseURL();
 			MNode mn = D1Client.getMN(currentUrl);

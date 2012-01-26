@@ -128,7 +128,7 @@ public class CNodeTier4IT extends ContextAwareTestCaseDataone {
 	 */
 	@Test
 	public void testSetReplicationStatus_NotAuthorized() {
-		setupClientSubject_NoRights();
+		setupClientSubject("NoRights");
 		Iterator<Node> it = getCoordinatingNodeIterator();
 		while (it.hasNext()) {
 			currentUrl = it.next().getBaseURL();
@@ -170,7 +170,7 @@ public class CNodeTier4IT extends ContextAwareTestCaseDataone {
 	@Test
 	public void testSetReplicationStatus_InvalidRequest() {
 		//TODO: implement a memberNode test subject
-//		setupClientSubject_MemberNode();
+//		setupClientSubject("testMemberNode");
 		Iterator<Node> it = getCoordinatingNodeIterator();
 		while (it.hasNext()) {
 			currentUrl = it.next().getBaseURL();
@@ -209,7 +209,7 @@ public class CNodeTier4IT extends ContextAwareTestCaseDataone {
 	@Test
 	public void testSetReplicationStatus_NotFound() {
 		//TODO: implement a memberNode test subject
-//		setupClientSubject_MemberNode();
+//		setupClientSubject("testMemberNode");
 		Iterator<Node> it = getCoordinatingNodeIterator();
 		while (it.hasNext()) {
 			currentUrl = it.next().getBaseURL();
@@ -246,7 +246,7 @@ public class CNodeTier4IT extends ContextAwareTestCaseDataone {
 
 	@Test
 	public void testSetReplicationPolicy() {
-		setupClientSubject_Writer();
+		setupClientSubject("testWriter");
 		Iterator<Node> it = getCoordinatingNodeIterator();
 		while (it.hasNext()) {
 			currentUrl = it.next().getBaseURL();
@@ -282,7 +282,7 @@ public class CNodeTier4IT extends ContextAwareTestCaseDataone {
 	
 	@Test
 	public void testSetReplicationPolicy_NotAuthorized() {
-		setupClientSubject_NoRights();
+		setupClientSubject("testNoRights");
 		Iterator<Node> it = getCoordinatingNodeIterator();
 		while (it.hasNext()) {
 			currentUrl = it.next().getBaseURL();
@@ -322,7 +322,7 @@ public class CNodeTier4IT extends ContextAwareTestCaseDataone {
 	
 	@Test
 	public void testSetReplicationPolicy_NotFound() {
-		setupClientSubject_NoRights();
+		setupClientSubject("testNoRights");
 		Iterator<Node> it = getCoordinatingNodeIterator();
 		while (it.hasNext()) {
 			currentUrl = it.next().getBaseURL();
@@ -358,7 +358,7 @@ public class CNodeTier4IT extends ContextAwareTestCaseDataone {
 	
 	@Test
 	public void testSetReplicationPolicy_VersionMismatch() {
-		setupClientSubject_Writer();
+		setupClientSubject("testOwner");
 		Iterator<Node> it = getCoordinatingNodeIterator();
 		while (it.hasNext()) {
 			currentUrl = it.next().getBaseURL();
@@ -398,7 +398,7 @@ public class CNodeTier4IT extends ContextAwareTestCaseDataone {
 	
 	@Test
 	public void testSetReplicationPolicy_InvalidRequest() {
-		setupClientSubject_Writer();
+		setupClientSubject("testOwner");
 		Iterator<Node> it = getCoordinatingNodeIterator();
 		while (it.hasNext()) {
 			currentUrl = it.next().getBaseURL();
@@ -439,7 +439,7 @@ public class CNodeTier4IT extends ContextAwareTestCaseDataone {
 
 	@Test
 	public void testIsNodeAuthorized_InvalidToken() {
-		setupClientSubject_NoRights();
+		setupClientSubject("testNoRights");
 
 		
 		Iterator<Node> it = getCoordinatingNodeIterator();
@@ -479,10 +479,10 @@ public class CNodeTier4IT extends ContextAwareTestCaseDataone {
 	
 	@Test
 	public void testIsNodeAuthorized_NotAuthorized() {
-		setupClientSubject_NoRights();
+		setupClientSubject("testNoRights");
 		Subject noRightsSubject = ClientIdentityManager.getCurrentIdentity();
 		// TODO: 
-//		setupClientSubject_MemberNode();
+//		setupClientSubject("testMemberNode");
 		
 		Iterator<Node> it = getCoordinatingNodeIterator();
 		while (it.hasNext()) {
@@ -520,7 +520,7 @@ public class CNodeTier4IT extends ContextAwareTestCaseDataone {
 	@Test
 	public void testIsNodeAuthorized_InvalidRequest() {
 		// TODO: 
-//		setupClientSubject_MemberNode();
+//		setupClientSubject("testMemberNode");
 		
 		Iterator<Node> it = getCoordinatingNodeIterator();
 		while (it.hasNext()) {
@@ -558,7 +558,7 @@ public class CNodeTier4IT extends ContextAwareTestCaseDataone {
 	@Test
 	public void testIsNodeAuthorized_NotFound() {
 		// TODO: 
-//		setupClientSubject_MemberNode();
+//		setupClientSubject("testMemberNode");
 		
 		Iterator<Node> it = getCoordinatingNodeIterator();
 		while (it.hasNext()) {
@@ -595,7 +595,7 @@ public class CNodeTier4IT extends ContextAwareTestCaseDataone {
 	@Test
 	public void testUpdateReplicationMetadata() {
 		//TODO:
-//		setupClientSubject_MemberNode();
+//		setupClientSubject("testMemberNode");
 		Iterator<Node> it = getCoordinatingNodeIterator();
 		while (it.hasNext()) {
 			currentUrl = it.next().getBaseURL();
@@ -639,7 +639,7 @@ public class CNodeTier4IT extends ContextAwareTestCaseDataone {
 	
 	@Test
 	public void testUpdateReplicationMetadata_NotAuthorized() {
-		setupClientSubject_NoRights();
+		setupClientSubject("testNoRights");
 		Iterator<Node> it = getCoordinatingNodeIterator();
 		while (it.hasNext()) {
 			currentUrl = it.next().getBaseURL();
@@ -687,7 +687,7 @@ public class CNodeTier4IT extends ContextAwareTestCaseDataone {
 	@Test
 	public void testUpdateReplicationMetadata_NotFound() {
 		//TODO:
-//		setupClientSubject_MemberNode();
+//		setupClientSubject("testMemberNode");
 		Iterator<Node> it = getCoordinatingNodeIterator();
 		while (it.hasNext()) {
 			currentUrl = it.next().getBaseURL();
@@ -738,7 +738,7 @@ public class CNodeTier4IT extends ContextAwareTestCaseDataone {
 	@Test
 	public void testUpdateReplicationMetadata_InvalidRequest() {
 		//TODO:
-//		setupClientSubject_MemberNode();
+//		setupClientSubject("testMemberNode");
 		Iterator<Node> it = getCoordinatingNodeIterator();
 		while (it.hasNext()) {
 			currentUrl = it.next().getBaseURL();
@@ -786,7 +786,7 @@ public class CNodeTier4IT extends ContextAwareTestCaseDataone {
 	@Test
 	public void testUpdateReplicationMetadata_VersionMismatch() {
 		//TODO:
-//		setupClientSubject_MemberNode();
+//		setupClientSubject("testMemberNode");
 		Iterator<Node> it = getCoordinatingNodeIterator();
 		while (it.hasNext()) {
 			currentUrl = it.next().getBaseURL();

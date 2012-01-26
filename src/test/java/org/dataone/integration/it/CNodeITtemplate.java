@@ -1,7 +1,5 @@
 package org.dataone.integration.it;
 
-import java.io.InputStream;
-import java.util.Date;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Map;
@@ -10,32 +8,14 @@ import org.dataone.client.CNode;
 import org.dataone.client.D1Client;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.ServiceFailure;
-import org.dataone.service.types.v1.Checksum;
-import org.dataone.service.types.v1.Group;
-import org.dataone.service.types.v1.Identifier;
-import org.dataone.service.types.v1.Log;
 import org.dataone.service.types.v1.Node;
-import org.dataone.service.types.v1.NodeList;
-import org.dataone.service.types.v1.NodeReference;
-import org.dataone.service.types.v1.ObjectFormat;
-import org.dataone.service.types.v1.ObjectFormatList;
 import org.dataone.service.types.v1.ObjectInfo;
 import org.dataone.service.types.v1.ObjectList;
-import org.dataone.service.types.v1.ObjectLocationList;
-import org.dataone.service.types.v1.Permission;
-import org.dataone.service.types.v1.Person;
-import org.dataone.service.types.v1.ReplicationPolicy;
-import org.dataone.service.types.v1.ReplicationStatus;
-import org.dataone.service.types.v1.Subject;
-import org.dataone.service.types.v1.SubjectInfo;
-import org.dataone.service.types.v1.SubjectList;
-import org.dataone.service.types.v1.SystemMetadata;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.Ignore;
 
 
-
+@Deprecated
 public class CNodeITtemplate extends ContextAwareTestCaseDataone {
 
 

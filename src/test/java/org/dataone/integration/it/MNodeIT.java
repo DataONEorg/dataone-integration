@@ -74,6 +74,7 @@ import org.junit.Test;
  * Test the DataONE Java client methods.
  * @author Matthew Jones
  */
+@Deprecated
 public class MNodeIT extends ContextAwareTestCaseDataone  {
 
     private static final String TEST_MN_ID = "c3p0";

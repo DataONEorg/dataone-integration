@@ -41,6 +41,7 @@ import org.dataone.service.types.v1.ObjectInfo;
 import org.dataone.service.types.v1.ObjectList;
 import org.dataone.service.types.v1.Permission;
 import org.dataone.service.types.v1.SystemMetadata;
+import org.junit.Assume;
 import org.junit.Test;
 
 /**
@@ -62,18 +63,21 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
 	protected String getTestDescription() {
 		return "Test Case that runs through the Member Node Tier 1 API methods";
 	}
-		
+	
 	@Test
 	public void testPing() {
 		setupClientSubject_NoCert();
 		Iterator<Node> it = getMemberNodeIterator();
 		while (it.hasNext()) {
+			
+			
 			currentUrl = it.next().getBaseURL();
 			MNode mn = D1Client.getMN(currentUrl);
 			currentUrl = mn.getNodeBaseServiceUrl();
 			printTestHeader("testPing() vs. node: " + currentUrl);
-		
+			
 			try {
+//				Assume.assumeTrue(APITestUtils.isTierImplemented(mn, "Tier5"));
 				Date pingDate = mn.ping();
 				
 				checkTrue(currentUrl,"ping should return a valid date", pingDate != null);
@@ -325,7 +329,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     
     @Test
     public void testGet() {
- //   	setupClientSubject_NoCert();
+    	setupClientSubject_NoCert();
        	Iterator<Node> it = getMemberNodeIterator();
     	while (it.hasNext()) {
     		currentUrl = it.next().getBaseURL();
@@ -334,7 +338,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     		printTestHeader("testGet() vs. node: " + currentUrl);
 
     		try {
-    			Identifier id = procureTestObject(mn, new Permission[] {Permission.READ});
+    			Identifier id = procureTestObject(mn, Permission.READ, false);
     			InputStream is = mn.get(null,id);
     			checkTrue(currentUrl,"get() returns an objectStream", is != null);
     		}
@@ -364,7 +368,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     		printTestHeader("testGetSystemMetadata() vs. node: " + currentUrl);
     		
     		try {
-    			Identifier id = procureTestObject(mn, new Permission[] {Permission.READ});
+    			Identifier id = procureTestObject(mn, Permission.READ,false);
     			SystemMetadata smd = mn.getSystemMetadata(null,id);
     			checkTrue(currentUrl,"getSystemMetadata() returns a SystemMetadata object", smd != null);
     		} 
@@ -394,7 +398,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     		printTestHeader("testDescribe() vs. node: " + currentUrl);
 		
     		try {
-    			Identifier id = procureTestObject(mn, new Permission[] {Permission.READ});
+    			Identifier id = procureTestObject(mn, Permission.READ,false);
     			DescribeResponse dr = mn.describe(null,id);
     			checkTrue(currentUrl,"describe() returns a DescribeResponse object", dr != null);	
     		} 
@@ -423,7 +427,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     		printTestHeader("testGetChecksum() vs. node: " + currentUrl);
 
     		try {   
-    			Identifier id = procureTestObject(mn, new Permission[] {Permission.READ});
+    			Identifier id = procureTestObject(mn, Permission.READ, false);
     			Checksum cs = mn.getChecksum(null,id,CHECKSUM_ALGORITHM);
     			checkTrue(currentUrl,"getChecksum() returns a Checksum object", cs != null);
     		} 
@@ -453,7 +457,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     		printTestHeader("testSynchronizationFailed() vs. node: " + currentUrl);
  		
     		try {
-    			Identifier id = procureTestObject(mn, new Permission[] {Permission.READ});
+    			Identifier id = procureTestObject(mn, Permission.READ, false);
     			SynchronizationFailed sf = new SynchronizationFailed("0","a message",id.getValue(),null);
     			System.out.println(sf.serialize(SynchronizationFailed.FMT_XML));
     			mn.synchronizationFailed(null, 

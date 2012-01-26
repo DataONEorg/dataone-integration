@@ -232,32 +232,41 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 		return monitorNodeList.iterator();
 	}
 	
-	/**
-	 * uses the property "test.subject.writer.certLocation" to setup
-	 * the CertificateManager to use the certificate found at that path
-	 * @return
-	 */
-	public static Subject setupClientSubject_Writer(){
-		return setupClientSubject("test.subject.writer.certLocation");
-	}
-	
-	/**
-	 * uses the property "test.subject.reader.certLocation" to setup
-	 * the CertificateManager to use the certificate found at that path
-	 * @return
-	 */
-	public static Subject setupClientSubject_Reader(){
-		return setupClientSubject("test.subject.reader.certLocation");
-	}
-	
-	/**
-	 * uses the property "test.subject.norights.certLocation" to setup
-	 * the CertificateManager to use the certificate found at that path
-	 * @return
-	 */
-	public static Subject setupClientSubject_NoRights(){
-		return setupClientSubject("test.subject.norights.certLocation");
-	}
+//	/**
+//	 * uses the property "test.subject.writer.certLocation" to setup
+//	 * the CertificateManager to use the certificate found at that path
+//	 * @return
+//	 */
+//	public static Subject setupClientSubject_Writer(){
+//		return setupClientSubject("test.subject.writer.certLocation");
+//	}
+//	
+//	/**
+//	 * uses the property "test.subject.reader.certLocation" to setup
+//	 * the CertificateManager to use the certificate found at that path
+//	 * @return
+//	 */
+//	public static Subject setupClientSubject_Reader(){
+//		return setupClientSubject("test.subject.reader.certLocation");
+//	}
+//	
+//	/**
+//	 * uses the property "test.subject.norights.certLocation" to setup
+//	 * the CertificateManager to use the certificate found at that path
+//	 * @return
+//	 */
+//	public static Subject setupClientSubject_Writer_Expired(){
+//		return setupClientSubject("test.subject.writerexpired.certLocation");
+//	}
+//	
+//	/**
+//	 * uses the property "test.subject.norights.certLocation" to setup
+//	 * the CertificateManager to use the certificate found at that path
+//	 * @return
+//	 */
+//	public static Subject setupClientSubject_NoRights(){
+//		return setupClientSubject("test.subject.norights.certLocation");
+//	}
 	
 	/**
 	 * uses a bad certificate location "/bogus/certificate/location" to setup the client
@@ -273,12 +282,14 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 	 * CertificateManager to use the certificate found at that path
 	 * @return
 	 */
-	protected static Subject setupClientSubject(String certificatePathKeyName) 
+	protected static Subject setupClientSubject(String subjectName) 
 	{
-		String certPath = (String) Settings.getConfiguration().getProperty(certificatePathKeyName);	
-		URL url = ContextAwareTestCaseDataone.class.getClassLoader().getResource(certPath);
+		String testCertDirectory = (String) Settings.getConfiguration().getProperty("d1.test.cert.location");	
+		
+		URL url = ContextAwareTestCaseDataone.class.getClassLoader().getResource(testCertDirectory + subjectName +".crt");
 		CertificateManager.getInstance().setCertificateLocation(url.getPath());
-		String subjectDN = CertificateManager.getInstance().loadCertificate().getSubjectDN().toString();//getSession(null);
+		
+		String subjectDN = CertificateManager.getInstance().loadCertificate().getSubjectDN().toString();
 		Subject subject = new Subject();
 		subject.setValue(subjectDN);
 		log.info("client setup as Subject: " + subjectDN);
@@ -367,76 +378,93 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 	
 	/**
 	 * get an existing object from the node, if none available, try to 
-	 * create one (not all Nodes will allow this).
+	 * create one (not all nodes will allow this).
 	 * @param  d1Node - the MNode or CNode object from where to procure the object Identifier
-	 * @param  permission - the permission-level of the object retrieved needed
-
+	 * @param  permissionLevel - the permission-level of the object retrieved needed
+	 * @param  checkUsingIsAuthorized - if true will use IsAuthorized(permissionLevel)
+	 *                         instead of checking the systemMetadata
 	 * @return - Identifier for the readable object.
 	 * @throws - IndexOutOfBoundsException  - when can't procure an object Identifier
 	 */
-	protected Identifier procureTestObject(D1Node d1Node, Permission[] permissions) 
+	protected Identifier procureTestObject(D1Node d1Node, Permission permissionLevel, boolean checkUsingIsAuthorized) 
 	{
-		return procureTestObject(d1Node,null,permissions);
+		return procureTestObject(d1Node,null,permissionLevel, checkUsingIsAuthorized);
 	}
+
 	
 	/**
 	 * get an existing object from the member node, if none available, try to 
-	 * create one (not all MN's will allow this).
-	 * @param  d1Node - the MNode object from where to procure the object Identifier
+	 * create one (not all nodes will allow this).
+	 * @param  d1Node - the MNode or CNode object from where to procure the object Identifier
 	 * @param  permission - the permission-level of the object retrieved needed
 	 * @param  subjectFilter - if not null, means the permissions specified have to be 
 	 * 						   explicitly assigned in the systemmetadata accessPolicy
 	 * 						   to the provided subject
+	 * @param  checkUsingIsAuthorized - if true will use IsAuthorized(permissionLevel)
+	 *                         instead of checking the systemMetadata
 	 * @return - Identifier for the readable object.
 	 * @throws - IndexOutOfBoundsException  - when can't procure an object Identifier
 	 */
-	protected Identifier procureTestObject(D1Node d1Node, Subject subjectFilter, Permission[] permissions) 
+	protected Identifier procureTestObject(D1Node d1Node, Subject subjectFilter, 
+			Permission permissionLevel, boolean checkUsingIsAuthorized) 
 	{
-		Identifier id = null;
-		List permissionsList = Arrays.asList(permissions);
+		Identifier id = getTestObject(d1Node, subjectFilter, permissionLevel, checkUsingIsAuthorized);
+		log.debug("procureTestObject: id value after listObjects search = " + id);
+		if (id == null) {
+			log.debug("procureTestObject: calling createTestObject...");
+			try {
+				id = createTestObject(d1Node, null, permissionLevel, subjectFilter);
+			} catch (BaseException e) {
+				handleFail(d1Node.getNodeBaseServiceUrl(),e.getClass().getSimpleName() + ":: " + e.getDescription());
+			} catch (UnsupportedEncodingException e) {
+				log.error(e.getClass().getName() + ": " + e.getMessage());
+				e.printStackTrace();
+			}
+		}
+		if (id == null) {
+			throw new IndexOutOfBoundsException("could not procure (get or create) suitable test object");
+		}
+		log.info(" ====>>>>> pid of procured test Object: " + id.getValue());
+		return id;
+	}
+	
+
+	
+	/**
+	 * gets a test object from the specified node.
+	 * @param  d1Node - the MNode or CNode object from where to procure the object Identifier
+	 * @param  permissionLevel - the permission-level of the object retrieved needed
+	 * @param  subjectFilter - if not null, means the permissions specified have to be 
+	 * 						   explicitly assigned in the systemmetadata accessPolicy
+	 * 						   to the provided subject
+	 * @param  checkUsingIsAuthorized - if true will use IsAuthorized(permissionLevel)
+	 *                         instead of checking the systemMetadata
+	 * @return - Identifier for the readable object, if found, otherwise null
+	 */	
+	protected Identifier getTestObject(D1Node d1Node, Subject subjectFilter, 
+			Permission permissionLevel, boolean checkUsingIsAuthorized) 	
+	{
+		Identifier id = null;		
 		try {
 			ObjectList ol = d1Node.listObjects(null);
 			if (ol.getTotal() > 0) {
-				// found one
-				if (subjectFilter == null) {
-					log.debug("procureTestObject: subjectFilter is null...");
-					if (permissions.length == 1 && permissions[0] == Permission.READ) 
-					{
-						// listObjects implied READ permission for current user
-						id = ol.getObjectInfo(0).getIdentifier();
-						
+				if (subjectFilter != null || (permissionLevel != Permission.READ && checkUsingIsAuthorized == false)) {  
+					// will need to pull sysmeta and examine the accessPolicy for both situations
+					if (checkUsingIsAuthorized) {
+						log.debug("getTestObject: subject not null, so need to check accessPolicy of each objectInfo until success...");
 					} else {
-						// check permissions one by one on returned list
-						log.debug("procureTestObject: requested permissions not only READ, so checking via isAuthorized()...");
-						for(int i=0; i< ol.sizeObjectInfoList(); i++) {
-							id = ol.getObjectInfo(i).getIdentifier();
-							try {
-								// check all permissions 
-								for (Permission p : permissions) {
-									// exception moves us on to next identifier
-									d1Node.isAuthorized(null,id, p);
-								}
-								// only reach here if break not called, and only break on success
-								break;  // the outer for loop
-							} catch (NotAuthorized na) {
-							// effectively break out of the inner for loop (give up on current pid)
-							}
-							id = null;
-						}
+						log.debug("getTestObject: checking accessPolicy of each objectInfo until success...");
 					}
-				} else {
-					// pull the sysmeta and examine the accessPolicy
-					log.debug("procureTestObject: subjectFilter is not null, so checking accessPolicy of each objectinfo...");
 					for(int i=0; i< ol.sizeObjectInfoList(); i++) {
 						id = ol.getObjectInfo(i).getIdentifier();
 						try {
 							SystemMetadata smd = d1Node.getSystemMetadata(null, id);
-						
+
 							HashMap<Subject,Set<Permission>> permMap = AccessUtil.getPermissionMap(smd.getAccessPolicy());
 							if (permMap.containsKey(subjectFilter)) {
 								// this readable object contains the subject of interest	
-								if (permMap.get(subjectFilter).containsAll(permissionsList)) {
-									log.debug("procureTestObject: found one!!! breaking...");
+								if (permMap.get(subjectFilter).contains(permissionLevel)) {
+									log.debug("getTestObject: found one!!! breaking...");
 									break; 							
 								}
 							} 
@@ -447,12 +475,30 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 						// only reach here if break not called, and only break on success
 						id = null;
 					}
+				} 
+				else if (permissionLevel == Permission.READ) 
+				{
+					// listObjects implied READ permission for current user as with isAuthorized()
+					log.debug("getTestObject: using the objectList to get object");	
+					id = ol.getObjectInfo(0).getIdentifier();
+				} 
+				else if (checkUsingIsAuthorized) 
+				{	
+					log.debug("getTestObject: using isAuthorized() to check permissions");
+					for(int i=0; i< ol.sizeObjectInfoList(); i++) {
+						id = ol.getObjectInfo(i).getIdentifier();
+						try {
+							d1Node.isAuthorized(null,id, permissionLevel);
+							break;  // found one!!
+						} catch (NotAuthorized na) {
+							// it's ok to fail here
+						}
+						id = null;
+					}
+				} 
+				else {
+					//
 				}
-			}
-			log.debug("procureTestObject: id value after listObjects search = " + id);
-			if (id == null) {
-				log.debug("procureTestObject: calling createTestObject...");
-				id = createTestObject(d1Node, null, permissions, subjectFilter);
 			}
 		} 
 		catch (BaseException e) {
@@ -460,14 +506,11 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 		}
 		catch(Exception e) {
 			log.warn(e.getClass().getName() + ": " + e.getMessage());
-		}
-		if (id == null) {
-			throw new IndexOutOfBoundsException("could not procure (get or create) suitable test object");
-		} 
-		log.info(" ====>>>>> pid of procured test Object: " + id.getValue());
+		}		
 		return id;
 	}
 
+	
 	/**
 	 * Creates a test object on the specified member node that is public readable.
 	 * 
@@ -494,17 +537,17 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 	{ 
 		Subject subject = new Subject();
 		subject.setValue(Constants.SUBJECT_PUBLIC);
-		return createTestObject(d1Node, idSuffix, new Permission[] {Permission.READ}, subject);
+		return createTestObject(d1Node, idSuffix, Permission.READ, subject);
 	}
 	
 	/**
 	 * create a test object, giving the specified subject the permissions specified.
 	 * If permissions are null, then no access policy is setup.  If subject is null,
 	 * the current user/subject will be used. 
-	 * The object will be created by the testUserWriter, and client user will be reset
+	 * The object will be created by the testOwner, and client user will be reset
 	 * to the one it was coming in.   
 	 * @param d1Node - the node on which to create the object
-	 * @param permissions - the permissions to be granted to the starting/current user/subject
+	 * @param permission - the permission level to be granted to the starting/current user/subject
 	 * @param subject - subject to assign the permissions to. If null defaults to current subject of client
 	 * @param idSuffix - if not null, appends the specified string as suffix to auto-generated identifier
 	 *                   (the autogenerated uses timestamps to give reasonable assurances of uniqueness)
@@ -521,7 +564,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 	 * @throws UnsupportedEncodingException 
 	 * @throws NotFound 
 	 */
-	protected Identifier createTestObject(D1Node d1Node, String idSuffix, Permission[] permissions, Subject subject) 
+	protected Identifier createTestObject(D1Node d1Node, String idSuffix, Permission permissionLevel, Subject subject) 
 	throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique, 
 	UnsupportedType, InsufficientResources, InvalidSystemMetadata, NotImplemented, 
 	InvalidRequest, UnsupportedEncodingException, NotFound 
@@ -535,8 +578,8 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 		} else {
 			startingClientSubject = Constants.SUBJECT_PUBLIC;
 		}
-		// do the create as the test Writer subject
-		setupClientSubject_Writer();
+		// following the testing rule of doing all creates as the testOwner subject
+		setupClientSubject("testOwner");
 
 		// create the identifier for the test object
 		Identifier pid = new Identifier();
@@ -576,9 +619,10 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 		
 		
 		// build the appropriate access policy based on given method parameters
-		if (permissions != null) {
+		if (permissionLevel != null) {
 			// will set up an accessPolicy
 			AccessPolicy ap = null;
+			Permission[] permissions = new Permission[] {permissionLevel};
 			if (subject != null) {
 				// map permissions to subject
 				ap = AccessUtil.createSingleRuleAccessPolicy(

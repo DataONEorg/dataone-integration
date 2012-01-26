@@ -67,6 +67,7 @@ import org.junit.Test;
  * Test the DataONE Java client methods that focus on CN services.
  * @author Matthew Jones
  */
+@Deprecated
 public class CNodeIT extends ContextAwareTestCaseDataone {
 
 	
