@@ -6,16 +6,12 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
 import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
-import java.math.BigInteger;
 import java.net.URL;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -32,6 +28,7 @@ import org.dataone.client.D1Node;
 import org.dataone.client.D1Object;
 import org.dataone.client.MNode;
 import org.dataone.client.auth.CertificateManager;
+import org.dataone.client.auth.ClientIdentityManager;
 import org.dataone.configuration.Settings;
 import org.dataone.configuration.TestSettings;
 import org.dataone.service.exceptions.BaseException;
@@ -409,7 +406,6 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 			Permission permissionLevel, boolean checkUsingIsAuthorized) 
 	{
 		Identifier id = getTestObject(d1Node, subjectFilter, permissionLevel, checkUsingIsAuthorized);
-		log.debug("procureTestObject: id value after listObjects search = " + id);
 		if (id == null) {
 			log.debug("procureTestObject: calling createTestObject...");
 			try {
@@ -570,13 +566,14 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 	InvalidRequest, UnsupportedEncodingException, NotFound 
 	{
 		// remember who the client currently is
+		Subject startingClientSubjectsss = ClientIdentityManager.getCurrentIdentity();
 		X509Certificate certificate = CertificateManager.getInstance().loadCertificate();
 		String startingCertLoc = CertificateManager.getInstance().getCertificateLocation();
-		String startingClientSubject = null;
+		String startingClientSubjectName = null;
 		if (certificate != null) {
-			startingClientSubject = CertificateManager.getInstance().getSubjectDN(certificate);
+			startingClientSubjectName = CertificateManager.getInstance().getSubjectDN(certificate);
 		} else {
-			startingClientSubject = Constants.SUBJECT_PUBLIC;
+			startingClientSubjectName = Constants.SUBJECT_PUBLIC;
 		}
 		// following the testing rule of doing all creates as the testOwner subject
 		setupClientSubject("testOwner");
@@ -629,14 +626,14 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 						new String[] {subject.getValue()},permissions);
 			} else {
 				// map permissions to startingClientSubject
-				if (startingClientSubject.equals(Constants.SUBJECT_PUBLIC)) {
+				if (startingClientSubjectName.equals(Constants.SUBJECT_PUBLIC)) {
 					// can only assign read permission to public
 					ap = AccessUtil.createSingleRuleAccessPolicy(
 							new String[] {Constants.SUBJECT_PUBLIC},
 							new Permission[] {Permission.READ});
 				} else {
 					 ap = AccessUtil.createSingleRuleAccessPolicy(
-							new String[] {startingClientSubject},permissions);
+							new String[] {startingClientSubjectName},permissions);
 				} 
 			}
 			sysMeta.setAccessPolicy(ap);

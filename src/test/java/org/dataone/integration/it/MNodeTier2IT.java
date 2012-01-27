@@ -20,22 +20,17 @@
 
 package org.dataone.integration.it;
 
-import java.lang.reflect.Method;
 import java.util.Iterator;
 
 import org.dataone.client.D1Client;
 import org.dataone.client.MNode;
-import org.dataone.client.auth.CertificateManager;
-import org.dataone.client.auth.ClientIdentityManager;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.NotAuthorized;
 import org.dataone.service.exceptions.NotFound;
-import org.dataone.service.types.v1.AccessPolicy;
 import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Node;
 import org.dataone.service.types.v1.Permission;
 import org.dataone.service.types.v1.Subject;
-import org.dataone.service.types.v1.util.AccessUtil;
 import org.dataone.service.util.Constants;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -148,41 +143,76 @@ public class MNodeTier2IT extends ContextAwareTestCaseDataone  {
 		}
 	}
 	
-   
+	/**
+	 * Finds or creates an object with PUBLIC READ access, then ensures
+	 * that an anonymous client can READ it.
+	 */
     @Test
-	public void testIsAuthorized_PublicSymbolicPrincipal() throws SecurityException, NoSuchMethodException 
+	public void testIsAuthorized_PublicSymbolicPrincipal() 
     {	
     	runIsAuthorizedVsSubject(Constants.SUBJECT_PUBLIC,
-    			Permission.READ, "NoCert");
+    			Permission.READ, "NoCert", "NoCert");
     }
     
+    /**
+     * Finds or creates an object where AUTHENTICATED_USER has READ access, then
+     * ensures that the "testNoRights" client can READ it.  (By design, the testNoRights
+     * subject is not on accessPolicies, and is not part of any group, or mapped
+     * to any other identity.)
+     */
     @Test
-	public void testIsAuthorized_AuthenticatedUserSymbolicPrincipal() throws SecurityException, NoSuchMethodException 
+	public void testIsAuthorized_AuthenticatedUserSymbolicPrincipal()
     {	
     	runIsAuthorizedVsSubject(Constants.SUBJECT_AUTHENTICATED_USER,
-    			Permission.READ, "testReader");
+    			Permission.READ, "testOwner", "testNoRights");
     }
+    
     
     @Ignore("user verification not implemented yet")
     @Test
-	public void testIsAuthorized_VerifiedUserSymbolicPrincipal() throws SecurityException, NoSuchMethodException 
+	public void testIsAuthorized_VerifiedUserSymbolicPrincipal()
     {	
 		runIsAuthorizedVsSubject(Constants.SUBJECT_VERIFIED_USER,
-    			Permission.READ, "testReader");
+    			Permission.READ, "testOwner", "testReader");
+    }
+    
+    /**
+     * assuming that testMappedReader and testReaderGroup are not in the
+     * accessPolicy of the object procured.
+     */
+    @Test
+	public void testIsAuthorized_MappedIdentity()
+    {	
+    	runIsAuthorizedVsSubject("testReader", Permission.READ,
+    			"testOwner", "testMappedReader");
+    }
+    
+    /**
+     * assumes that testReader and testMappedReader are not in the accessPolicy
+     * of the object procured
+     */
+    @Test
+	public void testIsAuthorized_ViaGroupMembership()
+    {	
+    	runIsAuthorizedVsSubject("testReaderGroup", Permission.READ,
+    			"testOwner", "testReader");
+    	//TODO: limit procureTestObject to those with singleAccessRule APs
     }
     
     /** 
      * Implementation for isAuthorized Tests for various types of users
-     * @param subject - the subject
-     * @param clientSetupMethod
+     * @param policySubjectName - the subject in the systemmMetadata.accessPolicy that 
+     *           needs to have the permission specified in the permission parameter
+     * @param permission - the permission needed for the specified policySubjectString
+     * @param testingSubjectName - the client subject to run the test under
      */
-	protected void runIsAuthorizedVsSubject(String policySubjectString, Permission
-			permission, String subjectName)
+	protected void runIsAuthorizedVsSubject(String policySubjectName, Permission
+			permission, String procuringSubjectName, String testingSubjectName)
 	{
 		Subject policySubject = null;
-		if (policySubjectString != null) {
+		if (policySubjectName != null) {
 			policySubject = new Subject();
-			policySubject.setValue(policySubjectString);
+			policySubject.setValue(policySubjectName);
 		}
 		
 		Iterator<Node> it = getMemberNodeIterator();
@@ -193,17 +223,25 @@ public class MNodeTier2IT extends ContextAwareTestCaseDataone  {
 			printTestHeader("testIsAuthorized_" + policySubject.getValue() + "() vs. node: " + currentUrl);
 
 			try {				
-				// become the desired user/client-subject
-				if (subjectName.equals("NoCert") || subjectName == null)
+				// change to the subject used for procuring an object
+				if (procuringSubjectName.equals("NoCert") || procuringSubjectName == null)
 					setupClientSubject_NoCert();
 				else 
-					setupClientSubject(subjectName);
+					setupClientSubject(procuringSubjectName);
 
 				// get an appropriate test object
 				Identifier pid = procureTestObject(mn, policySubject, permission, false);
-									
+					
+				// change to the subject used for testing, if necessary
+				if (!testingSubjectName.equals(procuringSubjectName)) {
+					if (testingSubjectName.equals("NoCert") || testingSubjectName == null)
+						setupClientSubject_NoCert();
+					else 
+						setupClientSubject(testingSubjectName);
+				}
+				
 				// test for success
-				log.info("1. trying isAuthorized({READ}) as '" + subjectName + "' vs. policy subject '" + policySubject.getValue() + "'");		
+				log.info("1. trying isAuthorized({READ}) as '" + testingSubjectName + "' vs. policy subject '" + policySubject.getValue() + "'");		
 				try {
 					mn.isAuthorized(null, pid, Permission.READ);
 				} catch (NotAuthorized na) {
@@ -212,7 +250,7 @@ public class MNodeTier2IT extends ContextAwareTestCaseDataone  {
 							+ na.getDetail_code() + ": " + na.getDescription());
 				}
 
-				log.info("2. trying get() as '" + subjectName + "' vs. policy subject '" + policySubject.getValue() + "'");
+				log.info("2. trying get() as '" + testingSubjectName + "' vs. policy subject '" + policySubject.getValue() + "'");
 				try {
 					mn.get(null, pid);
 				} 

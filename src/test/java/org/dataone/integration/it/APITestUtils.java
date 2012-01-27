@@ -224,7 +224,14 @@ public class APITestUtils {
 	}
 	
 	
-	private static boolean isServiceAvailable(Node node, String serviceName)
+	/**
+	 * Given a node object will determine if the provided serviceName
+	 * is available
+	 * @param node
+	 * @param serviceName
+	 * @return
+	 */
+	public static boolean isServiceAvailable(Node node, String serviceName)
 	{
 		// create a single-node nodelist
 		NodeList nl = new NodeList();
