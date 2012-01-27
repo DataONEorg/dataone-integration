@@ -153,14 +153,14 @@ public class MNodeTier2IT extends ContextAwareTestCaseDataone  {
 	public void testIsAuthorized_PublicSymbolicPrincipal() throws SecurityException, NoSuchMethodException 
     {	
     	runIsAuthorizedVsSubject(Constants.SUBJECT_PUBLIC,
-    			Permission.READ, this.getClass().getMethod("setupClientSubject_NoCert"));
+    			Permission.READ, "NoCert");
     }
     
     @Test
 	public void testIsAuthorized_AuthenticatedUserSymbolicPrincipal() throws SecurityException, NoSuchMethodException 
     {	
     	runIsAuthorizedVsSubject(Constants.SUBJECT_AUTHENTICATED_USER,
-    			Permission.READ, this.getClass().getMethod("setupClientSubject_Reader"));
+    			Permission.READ, "testReader");
     }
     
     @Ignore("user verification not implemented yet")
@@ -168,7 +168,7 @@ public class MNodeTier2IT extends ContextAwareTestCaseDataone  {
 	public void testIsAuthorized_VerifiedUserSymbolicPrincipal() throws SecurityException, NoSuchMethodException 
     {	
 		runIsAuthorizedVsSubject(Constants.SUBJECT_VERIFIED_USER,
-    			Permission.READ, this.getClass().getMethod("setupClientSubject_Reader"));
+    			Permission.READ, "testReader");
     }
     
     /** 
@@ -177,7 +177,7 @@ public class MNodeTier2IT extends ContextAwareTestCaseDataone  {
      * @param clientSetupMethod
      */
 	protected void runIsAuthorizedVsSubject(String policySubjectString, Permission
-			permission, Method clientSetupMethod)
+			permission, String subjectName)
 	{
 		Subject policySubject = null;
 		if (policySubjectString != null) {
@@ -194,12 +194,16 @@ public class MNodeTier2IT extends ContextAwareTestCaseDataone  {
 
 			try {				
 				// become the desired user/client-subject
-				clientSetupMethod.invoke(null, null);
+				if (subjectName.equals("NoCert") || subjectName == null)
+					setupClientSubject_NoCert();
+				else 
+					setupClientSubject(subjectName);
+
 				// get an appropriate test object
 				Identifier pid = procureTestObject(mn, policySubject, permission, false);
 									
 				// test for success
-				log.info("1. trying isAuthorized({READ}) as '" + clientSetupMethod.getName() + "' vs. policy subject '" + policySubject.getValue() + "'");		
+				log.info("1. trying isAuthorized({READ}) as '" + subjectName + "' vs. policy subject '" + policySubject.getValue() + "'");		
 				try {
 					mn.isAuthorized(null, pid, Permission.READ);
 				} catch (NotAuthorized na) {
@@ -208,7 +212,7 @@ public class MNodeTier2IT extends ContextAwareTestCaseDataone  {
 							+ na.getDetail_code() + ": " + na.getDescription());
 				}
 
-				log.info("2. trying get() as '" + clientSetupMethod.getName() + "' vs. policy subject '" + policySubject.getValue() + "'");
+				log.info("2. trying get() as '" + subjectName + "' vs. policy subject '" + policySubject.getValue() + "'");
 				try {
 					mn.get(null, pid);
 				} 
