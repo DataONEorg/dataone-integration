@@ -150,12 +150,12 @@ public class ClientArchitectureConformityIT {
 
 
 	/**
-	 * method to generate unique meaningful key for each method (includes entire signature)
+	 * method to generate unique meaningful key for each method.  The key includes parameters
 	 * in order to weed out non-interface methods from list of implemented methods
 	 */
 	private static String buildMethodListKey(Method method) {
 		String methodString = method.toString();
-		// remove the class and package from beginning
+		// remove the class, package and return type from the beginning
 		String qualifiedName = methodString.substring(methodString.indexOf(method.getName()+"("));
 		// remove the "throws" clause
 		return qualifiedName.replaceAll("\\sthrows\\s.*", "");
@@ -326,6 +326,30 @@ public class ClientArchitectureConformityIT {
 			}
 		}
 	}
+	
+	
+	@Test
+	public void testMethodReturnTypeAgreement()
+	{
+		List<String> docReturnType = methodMap.get(currentMethodKey).get("returnType");
+		Class<?> implReturnType = null;
+		if (nodeType == NodeType.CN) {
+			implReturnType = getCNInterfaceMethods().get(currentMethodKey).getReturnType();
+		} else  if (nodeType == NodeType.MN) {
+			implReturnType = getMNInterfaceMethods().get(currentMethodKey).getReturnType();
+		} else {
+			handleFail(currentMethodKey,"bad nodeType value: " + nodeType.xmlValue());
+		}
+		
+		// check that types agree
+		String returnTypeSimpleName = implReturnType.getSimpleName(); // don't have to worry about arrays
+		checkTrue(currentMethodKey,"Implemented return type ("+ returnTypeSimpleName +
+						") should match documented type ("+ docReturnType.get(0) +")", 
+					ArchitectureUtils.checkDocTypeEqualsJavaType(docReturnType.get(0), 
+							returnTypeSimpleName));
+	}
+	
+	
 	
 	@Test
 	public void testHttpVerb()

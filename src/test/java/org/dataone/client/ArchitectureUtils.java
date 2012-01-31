@@ -33,6 +33,9 @@ public class ArchitectureUtils {
 		if (docParamType.equals("bytes") && implParamType.equals("inputstream"))
 			return true;
 		
+		if (docParamType.equals("octetstream") && implParamType.equals("inputstream"))
+			return true;
+		
 		if (docParamType.equals("relationshipenum") && implParamType.equals("string"))
 			return true;
 		
@@ -153,7 +156,7 @@ public class ArchitectureUtils {
 					
 					String value = getCellValue(row.getCell(returnsCol));
 					if (value != null) {
-						methodDetailsMap.put("returnValue", Arrays.asList(new String[] {value}));
+						methodDetailsMap.put("returnType", Arrays.asList(new String[] {value}));
 					}
 					
 					value = getCellValue(row.getCell(restCol));
