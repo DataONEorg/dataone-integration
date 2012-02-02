@@ -18,7 +18,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Enumeration;
-import java.util.Formatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.TreeSet;
@@ -50,6 +49,38 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
+
+/**
+ * This test case parses the MethodCrossReference.xls found on the dataONE architecture
+ * site to get information about methods expected to be implemented, and then uses
+ * introspection on the client package to get method information on the actual
+ * implementations.  It also calls out to an echo service which returns information
+ * on the message body sent by the implementation, to compare the behavior of 
+ * the implementations versus what's expected. For example, testing whether method
+ * parameters get properly placed in file-parts, param-parts, the URL path, or the URL
+ * query string.
+ * <p>
+ * Current weaknesses: <ul>
+ * <li>the django echo server doesn't return message body information
+ * from http PUTs, so those "update" methods will return more errors than they should, 
+ * and you'll need to manually inspect those methods.  
+ * <li>Similarly, HEAD requests don't return message bodies, so "describe" will fail miserably, too.
+ * <li>the parameter key for the implementation is deduced from the parameter type, 
+ * which for the most part works, but not always.  After a couple times, it's easy 
+ * to spot the real failures from the fake, but eventually, the tests should account
+ * for these parameter naming exceptions.
+ * 
+ * These tests run using a Parameterized JUnit runner, and I haven't figured out
+ * how to have eclipse run just one method, so you'll probably have to run it
+ * at the class level.  Each parameterized test tests one aspect of "conformity"
+ * for a given method, and the set of tests is run multiple times, basically once
+ * for each method of the api.  Note however that if the signatures don't match between
+ * documented and implementation, separate iterations will exist for both.
+ * 
+ * 
+ * @author rnahf
+ *
+ */
 @RunWith(value = Parameterized.class)
 public class ClientArchitectureConformityIT {
 
@@ -817,8 +848,15 @@ public class ClientArchitectureConformityIT {
 						}
 					} else {
 						try {
-							if (keyType.equals("Subject") || keyType.endsWith("Identifier") ||
+							if (keyType.equals("Subject") || keyType.equals("Identifier") ||
+								keyType.equals("ObjectFormatIdentifier") ||
 								keyType.equals("Permission") || keyType.equals("NodeReference") ||
+								// dataone simple types not necessarily found in request message bodies yet
+								keyType.equals("ChecksumAlgorithm") ||
+								keyType.equals("Event") || keyType.equals("NodeState") ||
+								keyType.equals("NodeType") || keyType.equals("ReplicationStatus") ||
+								keyType.equals("ServiceVersion") ||
+								// non-dataone types found in parameters
 								keyType.equals("boolean") || keyType.equals("DateTime") ||
 								key.equals("scheme") || key.equals("fragment") ||
 								keyType.equals("long") || keyType.equals("unsigned long")
