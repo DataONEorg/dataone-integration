@@ -63,7 +63,8 @@ import org.junit.runners.Parameterized.Parameters;
  * Current weaknesses: <ul>
  * <li>the django echo server doesn't return message body information
  * from http PUTs, so those "update" methods will return more errors than they should, 
- * and you'll need to manually inspect those methods.  
+ * and you'll need to manually inspect those methods. (There's a static property 
+ * "ignorePUTexceptions" you can set to true or false to hide failures due to that) 
  * <li>Similarly, HEAD requests don't return message bodies, so "describe" will fail miserably, too.
  * <li>the parameter key for the implementation is deduced from the parameter type, 
  * which for the most part works, but not always.  After a couple times, it's easy 
@@ -93,7 +94,7 @@ public class ClientArchitectureConformityIT {
 	protected static Log log = LogFactory.getLog(ClientArchitectureConformityIT.class);
 
 	private static String methodMatchPattern = System.getenv("test.method.match");
-	private static boolean ignorePUTexceptions = true;
+	private static boolean ignorePUTexceptions = false;
 	
 	private static HashMap<String,HashMap<String,List<String>>> methodMap;
 	
