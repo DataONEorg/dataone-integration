@@ -20,14 +20,10 @@
 
 package org.dataone.integration.it;
 
-import java.io.InputStream;
-import java.lang.reflect.Method;
 import java.math.BigInteger;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Scanner;
-import java.util.Vector;
 
 import org.dataone.client.CNode;
 import org.dataone.client.D1Client;
@@ -37,119 +33,85 @@ import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.InvalidRequest;
 import org.dataone.service.exceptions.InvalidToken;
 import org.dataone.service.exceptions.NotAuthorized;
-import org.dataone.service.exceptions.NotFound;
 import org.dataone.service.exceptions.NotImplemented;
 import org.dataone.service.exceptions.ServiceFailure;
 import org.dataone.service.types.v1.AccessPolicy;
 import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Node;
+import org.dataone.service.types.v1.NodeType;
 import org.dataone.service.types.v1.ObjectInfo;
 import org.dataone.service.types.v1.ObjectList;
 import org.dataone.service.types.v1.Permission;
 import org.dataone.service.types.v1.Subject;
 import org.dataone.service.types.v1.SystemMetadata;
 import org.dataone.service.types.v1.util.AccessUtil;
-import org.dataone.service.util.Constants;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 /**
  * Test the DataONE Java client methods that focus on CN services.
  * @author Matthew Jones
  */
-public class CNodeTier2AuthorizationIT extends ContextAwareTestCaseDataone {
-
+public class CNodeTier2AuthorizationIT extends AbstractAuthorizationITDataone {
 	
-
-	private static final String badIdentifier = "ThisIdentifierShouldNotExist";
-//  TODO: test against testUnicodeStrings file instead when metacat supports unicode.
-//	private static String identifierEncodingTestFile = "/d1_testdocs/encodingTestSet/testUnicodeStrings.utf8.txt";
-	private static String identifierEncodingTestFile = "/d1_testdocs/encodingTestSet/testAsciiStrings.utf8.txt";
-//	private static HashMap<String,String> StandardTests = new HashMap<String,String>();
-	private static Vector<String> testPIDEncodingStrings = new Vector<String>();
-	private static Vector<String> encodedPIDStrings = new Vector<String>();
-	
-	 private static String currentUrl;
+	private static String currentUrl;
 	private static Map<String,ObjectList> listedObjects;
-  
+ 
+	
+	@Override
+	protected NodeType getNodeType() {
+		return NodeType.CN;
+	}
+
+	
+//	/**
+//	 * pre-fetch an ObjectList from each member node on the list, to allow testing gets
+//	 * without creating new objects.
+//	 * @throws ServiceFailure 
+//	 */
+//	@Before
+//	public void setup() throws ServiceFailure {
+////		prefetchObjects();
+//	}
+//
+
+//	public void prefetchObjects() throws ServiceFailure {
+//		if (listedObjects == null) {
+//			listedObjects = new Hashtable<String,ObjectList>();
+//			Iterator<Node> it = getCoordinatingNodeIterator();
+//			while (it.hasNext()) {
+//				currentUrl = it.next().getBaseURL();
+//				CNode cn = new CNode(currentUrl);
+//				try {
+//					ObjectList ol = cn.listObjects(null);
+//					listedObjects.put(currentUrl, ol);
+//				} 
+//				catch (BaseException e) {
+//					handleFail(currentUrl,e.getDescription());
+//				}
+//				catch(Exception e) {
+//					log.warn(e.getClass().getName() + ": " + e.getMessage());
+//				}	
+//			}
+//		}
+//	}
+//	
+//	
+//	private ObjectInfo getPrefetchedObject(String currentUrl, Integer index)
+//	{
+//		if (index == null) 
+//			index = new Integer(0);
+//		if (index < 0) {
+//			// return off the right end of the list
+//			index = listedObjects.get(currentUrl).getCount() + index;
+//		}
+//		return listedObjects.get(currentUrl).getObjectInfo(index);
+//	}
+	
 	/**
-	 * pre-fetch an ObjectList from each member node on the list, to allow testing gets
-	 * without creating new objects.
-	 * @throws ServiceFailure 
+	 * Requirements: an object whose rightsHolder can be changed without
+	 * upsetting other authorization tests.	
 	 */
-	@Before
-	public void setup() throws ServiceFailure {
-//		prefetchObjects();
-//		generateStandardTests();
-	}
-
-
-	public void prefetchObjects() throws ServiceFailure {
-		if (listedObjects == null) {
-			listedObjects = new Hashtable<String,ObjectList>();
-			Iterator<Node> it = getCoordinatingNodeIterator();
-			while (it.hasNext()) {
-				currentUrl = it.next().getBaseURL();
-				CNode cn = new CNode(currentUrl);
-				try {
-					ObjectList ol = cn.listObjects(null);
-					listedObjects.put(currentUrl, ol);
-				} 
-				catch (BaseException e) {
-					handleFail(currentUrl,e.getDescription());
-				}
-				catch(Exception e) {
-					log.warn(e.getClass().getName() + ": " + e.getMessage());
-				}	
-			}
-		}
-	}
-	
-	
-	private ObjectInfo getPrefetchedObject(String currentUrl, Integer index)
-	{
-		if (index == null) 
-			index = new Integer(0);
-		if (index < 0) {
-			// return off the right end of the list
-			index = listedObjects.get(currentUrl).getCount() + index;
-		}
-		return listedObjects.get(currentUrl).getObjectInfo(index);
-	}
-	
-	
-	public void generateStandardTests() {
-
-		if (testPIDEncodingStrings.size() == 0) {
-			System.out.println(" * * * * * * * Unicode Test Strings * * * * * * ");
-			
-			InputStream is = this.getClass().getResourceAsStream(identifierEncodingTestFile);
-			Scanner s = new Scanner(is,"UTF-8");
-			String[] temp;
-			int c = 0;
-			try
-			{
-				while (s.hasNextLine()) 
-				{
-					String line = s.nextLine();
-					if (line.startsWith("common-") || line.startsWith("path-"))
-					{
-						System.out.println(c++ + "   " + line);
-						temp = line.split("\t");
-						if (temp.length > 1)
-							testPIDEncodingStrings.add(temp[0]);
-							encodedPIDStrings.add(temp[1]);
-					}
-				}	
-				System.out.println("");
-			} finally {
-				s.close();
-			}
-			System.out.println("");
-		}
-	}
-	
 	@Test
 	public void testSetRightsHolder() {
 		setupClientSubject("testOwner");
@@ -236,7 +198,7 @@ public class CNodeTier2AuthorizationIT extends ContextAwareTestCaseDataone {
 			printTestHeader("testIsAuthorized() vs. node: " + currentUrl);
 				
 			try {	
-				Identifier pid = procureTestObject(mn, null, Permission.READ, true);
+				Identifier pid = procurePublicReadableTestObject(mn); //, null, Permission.READ, true);
 				boolean success = mn.isAuthorized(null, pid, Permission.READ);
 				checkTrue(currentUrl,"isAuthorized response should never be false. [Only true or exception].", success);
 			} 
@@ -255,127 +217,36 @@ public class CNodeTier2AuthorizationIT extends ContextAwareTestCaseDataone {
 	}
 	
 	
-	/**
-	 * Tests the dataONE service API isAuthorized method, but trying the call 
-	 * without a client certificate.  Checking for Write permission on the first
-	 * object returned from the Tier1 listObjects() method.  
-	 * Expect the NotAuthorized exception to be returned, since anonymous clients
-	 * "most certainly" can't submit content to a member node.
-	 */
-	@Test
-	public void testIsAuthorizedforWrite_noCert() 
-	{
-		setupClientSubject_NoCert();
-		
-		Iterator<Node> it = getMemberNodeIterator();
-		while (it.hasNext()) {
-			currentUrl = it.next().getBaseURL();
-			MNode mn = D1Client.getMN(currentUrl);
-			currentUrl = mn.getNodeBaseServiceUrl();
-			printTestHeader("testIsAuthorized_noCert() vs. node: " + currentUrl);
-			
-			try {
-				Identifier pid = procureTestObject(mn, null, Permission.READ, true);
-				boolean success = mn.isAuthorized(null, pid, Permission.WRITE);
-				handleFail(currentUrl,"isAuthorized response should throw exception if no session/token");
-			}
-			catch (IndexOutOfBoundsException e) {
-    			handleFail(currentUrl,"No Objects available to test against");
-    		}
-			catch (BaseException e) {
-				checkTrue(currentUrl,e.getClass().getSimpleName() + ": " + 
-						e.getDetail_code() + ": " + e.getDescription(),e instanceof NotAuthorized);
-			}
-			catch(Exception e) {
-				e.printStackTrace();
-				handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
-			}	
-		}
-	}
+//	@Test
+//	public void testIsAuthorized() {
+//		Iterator<Node> it = getCoordinatingNodeIterator();
+//		while (it.hasNext()) {
+//			currentUrl = it.next().getBaseURL();
+//			CNode cn = new CNode(currentUrl);
+//			printTestHeader("testIsAuthorized(...) vs. node: " + currentUrl);
+//
+//			try {
+//				ObjectInfo oi = getPrefetchedObject(currentUrl,0);    
+//				log.debug("   pid = " + oi.getIdentifier());
+//
+//				boolean response = cn.isAuthorized();
+//				checkTrue(currentUrl,"isAuthorized(...) returns a boolean object", response != null);
+//				// checkTrue(currentUrl,"response cannot be false. [Only true or exception].", response);
+//			} 
+//			catch (IndexOutOfBoundsException e) {
+//				handleFail(currentUrl,"No Objects available to test against");
+//			}
+//			catch (BaseException e) {
+//				handleFail(currentUrl,e.getDescription());
+//			}
+//			catch(Exception e) {
+//				e.printStackTrace();
+//				handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+//			}
+//		}
+//	}
 	
-	
-	@Test
-	public void testIsAuthorized_PublicSymbolicPrincipal() throws SecurityException, NoSuchMethodException 
-	{	
-		runIsAuthorizedVsSubject(Constants.SUBJECT_PUBLIC,
-				Permission.READ, this.getClass().getMethod("setupClientSubject_NoCert"));
-	}
-
-	@Test
-	public void testIsAuthorized_AuthenticatedUserSymbolicPrincipal() throws SecurityException, NoSuchMethodException 
-	{	
-		runIsAuthorizedVsSubject(Constants.SUBJECT_AUTHENTICATED_USER,
-				Permission.READ, this.getClass().getMethod("setupClientSubject_Reader"));
-	}
-
-	@Ignore("user verification not implemented yet")
-	@Test
-	public void testIsAuthorized_VerifiedUserSymbolicPrincipal() throws SecurityException, NoSuchMethodException 
-	{	
-		runIsAuthorizedVsSubject(Constants.SUBJECT_VERIFIED_USER,
-				Permission.READ, this.getClass().getMethod("setupClientSubject_Reader"));
-	}
-
-	/** 
-	 * Implementation for isAuthorized Tests for various types of users
-	 * @param subject - the subject
-	 * @param clientSetupMethod
-	 */
-	protected void runIsAuthorizedVsSubject(String policySubjectString, Permission
-			permission, Method clientSetupMethod)
-	{
-		Subject policySubject = null;
-		if (policySubjectString != null) {
-			policySubject = new Subject();
-			policySubject.setValue(policySubjectString);
-		}
-
-		Iterator<Node> it = getMemberNodeIterator();
-		while (it.hasNext()) {
-			currentUrl = it.next().getBaseURL();
-			MNode mn = D1Client.getMN(currentUrl);
-			currentUrl = mn.getNodeBaseServiceUrl();
-			printTestHeader("testIsAuthorized_" + policySubject.getValue() + "() vs. node: " + currentUrl);
-
-			try {				
-				// become the desired user/client-subject
-				clientSetupMethod.invoke(null, null);
-				// get an appropriate test object
-				Identifier pid = procureTestObject(mn, policySubject, permission, true);
-
-				// test for success
-				log.info("1. trying isAuthorized({READ}) as '" + clientSetupMethod.getName() + "' vs. policy subject '" + policySubject.getValue() + "'");		
-				try {
-					mn.isAuthorized(null, pid, Permission.READ);
-				} catch (NotAuthorized na) {
-					handleFail(currentUrl,"1. " + policySubject.getValue() + " should be authorized to read this pid '" 
-							+ pid.getValue() + "'\n" + na.getClass().getSimpleName() + ": "
-							+ na.getDetail_code() + ": " + na.getDescription());
-				}
-
-				log.info("2. trying get() as '" + clientSetupMethod.getName() + "' vs. policy subject '" + policySubject.getValue() + "'");
-				try {
-					mn.get(null, pid);
-				} 
-				catch (NotAuthorized na) {
-					handleFail(currentUrl,"2. " + policySubject.getValue() + " should now be able to get the object - got NotAuthorized instead");
-				}
-				catch (NotFound na) {
-					handleFail(currentUrl,"2. " + policySubject.getValue() + " should now be able to get the object - got NotFound instead");
-				}
-
-			} catch (IndexOutOfBoundsException e) {
-				handleFail(currentUrl,"No Objects available to test against");
-			} catch (BaseException e) {
-				handleFail(currentUrl, e.getClass().getSimpleName() + ": " + 
-						e.getDetail_code() + ": " + e.getDescription());
-			} catch (Exception e) {
-				e.printStackTrace();
-				handleFail(currentUrl, e.getClass().getName() + ": " + e.getMessage());
-			}
-
-		}
-	}   
+ 
 
 	
     /**
@@ -401,8 +272,14 @@ public class CNodeTier2AuthorizationIT extends ContextAwareTestCaseDataone {
 			printTestHeader("testSetAccessPolicy() vs. node: " + currentUrl);
 
 			try {
-				setupClientSubject("testOwner");
-				Identifier changeableObject = procureTestObject(cn, null, Permission.CHANGE_PERMISSION, true);
+				String testingSubject = "testOwner";
+				setupClientSubject(testingSubject);
+				
+				Identifier id = new Identifier(); id.setValue("setAccessPolicyTestObject");
+				
+				Identifier changeableObject = procureTestObject(cn, 
+						AccessUtil.createAccessRule(new String[]{testingSubject},
+								new Permission[]{Permission.CHANGE_PERMISSION}), id);
 				if (changeableObject != null)
 				{					
 					log.info("clear the AccessPolicy");
@@ -519,8 +396,15 @@ public class CNodeTier2AuthorizationIT extends ContextAwareTestCaseDataone {
 			printTestHeader("testSetAccessPolicy_NoCert() vs. node: " + currentUrl);
 
 			try {
-				setupClientSubject("testOwner");
-				Identifier changeableObject = procureTestObject(cn, null, Permission.CHANGE_PERMISSION, true);
+				String testingSubject = "testOwner";
+				setupClientSubject(testingSubject);
+				
+				Identifier id = new Identifier(); id.setValue("setAccessPolicyTestObject");
+				
+				Identifier changeableObject = procureTestObject(cn, 
+						AccessUtil.createAccessRule(new String[]{testingSubject},
+								new Permission[]{Permission.CHANGE_PERMISSION}), id);
+				
 				if (changeableObject != null) 
 				{	
 					setupClientSubject_NoCert();
@@ -546,87 +430,92 @@ public class CNodeTier2AuthorizationIT extends ContextAwareTestCaseDataone {
     }
 
 	
-//  /** 
-//  * Implementation for setAccess Tests for various types of users
-//  * @param subject - the subject that 
-//  * @param clientSetupMethod
-//  */
-//	private void runSetAccessForSymbolicPrincipal(String subject, Method clientSetupMethod)
-//	{
-// Iterator<Node> it = getMemberNodeIterator();
-//		while (it.hasNext()) {
-//			currentUrl = it.next().getBaseURL();
-//			MNode mn = D1Client.getMN(currentUrl);
-//			printTestHeader("testSetAccess_" + subject + "() vs. node: " + currentUrl);
-//
-//			try {
-//				setupClientSubject_Writer();
-//				Identifier changeableObject = procureTestObject(mn, 
-//						new Permission[] {Permission.READ, Permission.WRITE, Permission.CHANGE_PERMISSION}); //getOrCreateChangeableObject(mn);
-//				if (changeableObject != null)
-//				{
-//					log.info("clear the AccessPolicy");
-//					mn.setAccessPolicy(null, changeableObject, new AccessPolicy());
-//
-//					// ensure subject under test isn't authorized with get, isAuthorized
-//					// prior to setting up the symbolic principal in accessPolicy
-//					clientSetupMethod.invoke(null, null);// setupClientSubject_Reader();				
-//					try {
-//						mn.isAuthorized(null, changeableObject, Permission.READ);
-//						handleFail(currentUrl,"1. isAuthorized by " + subject + " should fail");
-//					} catch (NotAuthorized na) {
-//						// should fail
-//					}
-//					try {
-//						mn.get(null, changeableObject);
-//						handleFail(currentUrl,"2. getting the object as " + subject + " should fail");
-//					} catch (NotAuthorized na) {
-//						// this is what we want
-//					}
-//
-//					try {
-//						setupClientSubject_Writer();
-//						mn.setAccessPolicy(null, changeableObject, 
-//								AccessUtil.createSingleRuleAccessPolicy(
-//										new String[]{subject},
-//										new Permission[]{Permission.READ}));
-//					}
-//					catch (BaseException e) {
-//						handleFail(currentUrl, "3. testWriter should be able to set the access policy, " +
-//								"but got: " + e.getClass().getSimpleName() + ": " + e.getDescription());
-//					}
-//
-//					// test for success
-//					log.info("trying isAuthorized as " + clientSetupMethod.getName() + " (as " + subject + ")");
-//					clientSetupMethod.invoke(null,null);  //ClientSubject_NoCert();			
-//					try {
-//						mn.isAuthorized(null, changeableObject, Permission.READ);
-//					} catch (NotAuthorized na) {
-//						handleFail(currentUrl,"4. " + subject + " should be authorized to read this pid '" 
-//								+ changeableObject.getValue() + "'\n" + na.getClass().getSimpleName() + ": "
-//								+ na.getDetail_code() + ": " + na.getDescription());
-//					}
-//
-//					log.info("trying get as " + clientSetupMethod.getName() + " (as " + subject + ")");
-//					try {
-//						mn.get(null, changeableObject);
-//					} catch (NotAuthorized na) {
-//						handleFail(currentUrl,"5. " + subject + " should now be able to get the object");
-//					}
-//				} else {
-//					handleFail(currentUrl,"No object available to setAccessPolicy with");
-//				}
-//			} catch (IndexOutOfBoundsException e) {
-//				handleFail(currentUrl,"No Objects available to test against");
-//			} catch (BaseException e) {
-//				handleFail(currentUrl, e.getClass().getSimpleName() + ": " + e.getDescription());
-//			} catch (Exception e) {
-//				e.printStackTrace();
-//				handleFail(currentUrl, e.getClass().getName() + ": " + e.getMessage());
-//			}
-//			
-//		}
-//	}	
+  /** 
+  * Implementation for setAccess Tests for various types of users
+  * @param subject - the subject that 
+  * @param clientSetupMethod
+  */
+	private void runSetAccessForSymbolicPrincipal(String subject, String clientSubjectName)
+	{
+		Iterator<Node> it = getCoordinatingNodeIterator();
+		while (it.hasNext()) {
+			currentUrl = it.next().getBaseURL();
+			CNode cn = new CNode(currentUrl);
+			printTestHeader("testSetAccess_" + subject + "() vs. node: " + currentUrl);
+
+			try {
+				setupClientSubject(clientSubjectName);
+				
+				Identifier id = new Identifier(); id.setValue("setAccessPolicyTestObject");
+				
+				Identifier changeableObject = procureTestObject(cn, 
+						AccessUtil.createAccessRule(new String[]{clientSubjectName},
+								new Permission[]{Permission.CHANGE_PERMISSION}), id);
+				
+				if (changeableObject != null)
+				{
+					log.info("clear the AccessPolicy");
+					cn.setAccessPolicy(null, changeableObject, new AccessPolicy(), 1);
+
+					// ensure subject under test isn't authorized with get, isAuthorized
+					// prior to setting up the symbolic principal in accessPolicy
+					setupClientSubject("NoCert");
+					try {
+						cn.isAuthorized(null, changeableObject, Permission.READ);
+						handleFail(currentUrl,"1. isAuthorized by " + subject + " should fail");
+					} catch (NotAuthorized na) {
+						// should fail
+					}
+					try {
+						cn.get(null, changeableObject);
+						handleFail(currentUrl,"2. getting the object as " + subject + " should fail");
+					} catch (NotAuthorized na) {
+						// this is what we want
+					}
+
+					try {
+						setupClientSubject("testWriter");
+						cn.setAccessPolicy(null, changeableObject, 
+								AccessUtil.createSingleRuleAccessPolicy(
+										new String[]{subject},
+										new Permission[]{Permission.READ}), 1);
+					}
+					catch (BaseException e) {
+						handleFail(currentUrl, "3. testWriter should be able to set the access policy, " +
+								"but got: " + e.getClass().getSimpleName() + ": " + e.getDescription());
+					}
+
+					// test for success
+					log.info("trying isAuthorized as " + clientSubjectName + " (as " + subject + ")");
+					setupClientSubject("NoCert");
+					try {
+						cn.isAuthorized(null, changeableObject, Permission.READ);
+					} catch (NotAuthorized na) {
+						handleFail(currentUrl,"4. " + subject + " should be authorized to read this pid '" 
+								+ changeableObject.getValue() + "'\n" + na.getClass().getSimpleName() + ": "
+								+ na.getDetail_code() + ": " + na.getDescription());
+					}
+
+					log.info("trying get as " + clientSubjectName + " (as " + subject + ")");
+					try {
+						cn.get(null, changeableObject);
+					} catch (NotAuthorized na) {
+						handleFail(currentUrl,"5. " + subject + " should now be able to get the object");
+					}
+				} else {
+					handleFail(currentUrl,"No object available to setAccessPolicy with");
+				}
+			} catch (IndexOutOfBoundsException e) {
+				handleFail(currentUrl,"No Objects available to test against");
+			} catch (BaseException e) {
+				handleFail(currentUrl, e.getClass().getSimpleName() + ": " + e.getDescription());
+			} catch (Exception e) {
+				e.printStackTrace();
+				handleFail(currentUrl, e.getClass().getName() + ": " + e.getMessage());
+			}
+			
+		}
+	}	
 	
 	
 	

@@ -338,7 +338,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     		printTestHeader("testGet() vs. node: " + currentUrl);
 
     		try {
-    			Identifier id = procureTestObject(mn, Permission.READ, false);
+    			Identifier id = procurePublicReadableTestObject(mn);
     			InputStream is = mn.get(null,id);
     			checkTrue(currentUrl,"get() returns an objectStream", is != null);
     		}
@@ -368,7 +368,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     		printTestHeader("testGetSystemMetadata() vs. node: " + currentUrl);
     		
     		try {
-    			Identifier id = procureTestObject(mn, Permission.READ,false);
+    			Identifier id = procurePublicReadableTestObject(mn);
     			SystemMetadata smd = mn.getSystemMetadata(null,id);
     			checkTrue(currentUrl,"getSystemMetadata() returns a SystemMetadata object", smd != null);
     		} 
@@ -398,7 +398,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     		printTestHeader("testDescribe() vs. node: " + currentUrl);
 		
     		try {
-    			Identifier id = procureTestObject(mn, Permission.READ,false);
+    			Identifier id = procurePublicReadableTestObject(mn);
     			DescribeResponse dr = mn.describe(null,id);
     			checkTrue(currentUrl,"describe() returns a DescribeResponse object", dr != null);	
     		} 
@@ -427,7 +427,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     		printTestHeader("testGetChecksum() vs. node: " + currentUrl);
 
     		try {   
-    			Identifier id = procureTestObject(mn, Permission.READ, false);
+    			Identifier id = procurePublicReadableTestObject(mn);
     			Checksum cs = mn.getChecksum(null,id,CHECKSUM_ALGORITHM);
     			checkTrue(currentUrl,"getChecksum() returns a Checksum object", cs != null);
     		} 
@@ -457,7 +457,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     		printTestHeader("testSynchronizationFailed() vs. node: " + currentUrl);
  		
     		try {
-    			Identifier id = procureTestObject(mn, Permission.READ, false);
+    			Identifier id = procurePublicReadableTestObject(mn);
     			SynchronizationFailed sf = new SynchronizationFailed("0","a message",id.getValue(),null);
     			System.out.println(sf.serialize(SynchronizationFailed.FMT_XML));
     			mn.synchronizationFailed(null, 

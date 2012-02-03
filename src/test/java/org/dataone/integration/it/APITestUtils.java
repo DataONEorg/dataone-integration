@@ -20,64 +20,29 @@
 
 package org.dataone.integration.it;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.math.BigInteger;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Set;
-import java.util.SimpleTimeZone;
-import java.util.TimeZone;
 import java.util.TreeSet;
-import java.util.Vector;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import javax.mail.internet.AddressException;
-import javax.mail.internet.InternetAddress;
 
 import org.dataone.client.CNode;
-import org.dataone.client.D1Node;
 import org.dataone.client.MNode;
-import org.dataone.service.exceptions.IdentifierNotUnique;
-import org.dataone.service.exceptions.InsufficientResources;
 import org.dataone.service.exceptions.InvalidRequest;
-import org.dataone.service.exceptions.InvalidSystemMetadata;
 import org.dataone.service.exceptions.InvalidToken;
 import org.dataone.service.exceptions.NotAuthorized;
 import org.dataone.service.exceptions.NotFound;
 import org.dataone.service.exceptions.NotImplemented;
 import org.dataone.service.exceptions.ServiceFailure;
-import org.dataone.service.exceptions.UnsupportedType;
-import org.dataone.service.types.v1.Checksum;
-import org.dataone.service.types.v1.Group;
 import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Node;
 import org.dataone.service.types.v1.NodeList;
 import org.dataone.service.types.v1.NodeReference;
 import org.dataone.service.types.v1.NodeType;
-import org.dataone.service.types.v1.ObjectFormatIdentifier;
 import org.dataone.service.types.v1.ObjectLocation;
 import org.dataone.service.types.v1.ObjectLocationList;
 import org.dataone.service.types.v1.Person;
-import org.dataone.service.types.v1.Replica;
-import org.dataone.service.types.v1.ReplicationStatus;
 import org.dataone.service.types.v1.Service;
-import org.dataone.service.types.v1.Session;
 import org.dataone.service.types.v1.Subject;
-import org.dataone.service.types.v1.SubjectInfo;
-import org.dataone.service.types.v1.SubjectList;
-import org.dataone.service.types.v1.SystemMetadata;
-import org.dataone.service.types.v1.util.ChecksumUtil;
-import org.dataone.service.types.v1.util.NodelistUtil;
 
 
 /**

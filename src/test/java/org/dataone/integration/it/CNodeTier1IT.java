@@ -883,7 +883,7 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
     		printTestHeader("testGet() vs. node: " + currentUrl);
 
     		try {
-    			Identifier id = procureTestObject(cn, Permission.READ,true);
+    			Identifier id = procurePublicReadableTestObject(cn);
     			InputStream is = cn.get(null,id);
     			checkTrue(currentUrl,"get() returns an objectStream", is != null);
     		}
@@ -912,7 +912,7 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
     		printTestHeader("testGetSystemMetadata() vs. node: " + currentUrl);
     		
     		try {
-    			Identifier id = procureTestObject(cn, Permission.READ, true);
+    			Identifier id = procurePublicReadableTestObject(cn);
     			SystemMetadata smd = cn.getSystemMetadata(null,id);
     			checkTrue(currentUrl,"getSystemMetadata() returns a SystemMetadata object", smd != null);
     		} 
@@ -942,7 +942,7 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
     		printTestHeader("testDescribe() vs. node: " + currentUrl);
 		
     		try {
-    			Identifier id = procureTestObject(cn, Permission.READ, true);
+    			Identifier id = procurePublicReadableTestObject(cn);
     			DescribeResponse dr = cn.describe(null,id);
     			checkTrue(currentUrl,"describe() returns a DescribeResponse object", dr != null);	
     		} 
@@ -1003,7 +1003,7 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
 			printTestHeader("testGetChecksum(...) vs. node: " + currentUrl);
 
 			try {   
-    			Identifier id = procureTestObject(cn, Permission.READ, true);
+    			Identifier id = procurePublicReadableTestObject(cn);
     			Checksum cs = cn.getChecksum(null,id);
     			checkTrue(currentUrl,"getChecksum() returns a Checksum object", cs != null);
     		} 
