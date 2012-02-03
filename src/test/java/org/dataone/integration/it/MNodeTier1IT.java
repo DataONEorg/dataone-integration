@@ -241,7 +241,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     		printTestHeader("testListObjects() vs. node: " + currentUrl);
 
     		try {
-    			ObjectList ol = mn.listObjects(null);
+    			ObjectList ol = procureObjectList(mn);//.listObjects(null);
     			checkTrue(currentUrl,"listObjects() should return an ObjectList", ol != null);
     			
     			Date startTime = new Date(System.currentTimeMillis() - 10 * 60 * 1000);
@@ -281,9 +281,10 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     		printTestHeader("testListObjects() vs. node: " + currentUrl);
 
     		try {
-    			ObjectList ol = mn.listObjects(null);
+    			ObjectList ol = procureObjectList(mn);//mn.listObjects(null);
     			checkTrue(currentUrl,"listObjects() should return an ObjectList", ol != null);
-    			
+    			if (ol.getTotal() == 0)
+    				throw new TestIterationEndingException("no objects found in listObjects");
     			ObjectInfo oi0 = ol.getObjectInfo(0);
     			Date startTime = null;
    				ObjectInfo excludedObjectInfo = null;

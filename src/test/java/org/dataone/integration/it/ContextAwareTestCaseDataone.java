@@ -380,7 +380,40 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
         return new Object[] { guid, bis, sysMeta };
     }  
 
-	    
+    /**
+     * get an ObjectList from listObjects, and if empty, try to create a public 
+     * readable object
+     * @param d1Node
+     * @return
+     * @throws TestIterationEndingException
+     */
+    protected ObjectList procureObjectList(D1Node d1Node) 
+    throws TestIterationEndingException 
+    {
+    	ObjectList objectList = null;
+    	try {
+			objectList = d1Node.listObjects(null);
+    	} catch (BaseException e) {
+			throw new TestIterationEndingException("unexpected error thrown by listObjects()", e);
+		}
+    	if (objectList.getTotal() == 0) {
+    		try {
+				createPublicTestObject(d1Node,"");
+				objectList = d1Node.listObjects(null);
+				if (objectList.getTotal() == 0) {
+					throw new TestIterationEndingException("could not find or create an object for use by listObjects().");
+				}
+			} catch (BaseException e) {
+				throw new TestIterationEndingException("could not find or create an object for use by listObjects().", e);
+			} catch (UnsupportedEncodingException e) {
+				throw new TestIterationEndingException("could not find or create an object for use by listObjects().", e);
+			}
+    	}
+    	return objectList;
+    }
+    
+    
+    
 //	/**
 //	 * get an existing object from the node, if none available, try to 
 //	 * create one (not all nodes will allow this).
