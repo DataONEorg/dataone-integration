@@ -441,6 +441,7 @@ public class ClientArchitectureConformityIT {
 			if (methodMap.containsKey(currentMethodKey)) {
 				ArrayList<String> parameters = (ArrayList<String>) methodMap.get(currentMethodKey).get("params");
 				ArrayList<String> paramTypes = (ArrayList<String>) methodMap.get(currentMethodKey).get("paramTypes");
+				ArrayList<String> paramLocation = (ArrayList<String>) methodMap.get(currentMethodKey).get("paramLocation");
 			
 				
 				if (parameters != null && paramTypes != null) {
@@ -458,28 +459,34 @@ public class ClientArchitectureConformityIT {
 							// get the corresponding type from paramType
 							// pick out the param name from the text
 							String paramType = null;
+							String expectedLocation = null;
 							if (paramTypes != null) {
-								paramType = paramTypes.get(i++);
+								paramType = paramTypes.get(i);
+								expectedLocation = paramLocation.get(i++);
+								// session is not sent in the echo test so need to foce a match
+								if (paramType.equalsIgnoreCase("Session")) {
+									expectedLocation = null;
+								}
 							}
 							Matcher matcher = pat.matcher(param);
 							String paramKey = null;
 							if (matcher.find()) {
 								paramKey = matcher.group(1);
 							}
-	
+							
 							String actualLocation = findParameterLocation(echoResponse,paramKey,"test" + paramType);					
-							String expectedLocation = calcExpectedParamLocation(paramKey,paramType,currentMethodKey);
+//							String expectedLocation = calcExpectedParamLocation(paramKey,paramType,currentMethodKey);
 							
 							String echoedVerb = getVerb(echoResponse);
 							if (expectedLocation != null 
-								&& (expectedLocation.equals("filePart")  || 
-										expectedLocation.equals("paramPart")) 
+								&& (expectedLocation.equals("File")  || 
+										expectedLocation.equals("Param")) 
 								&& (echoedVerb.equals("PUT") || echoedVerb.equals("DELETE")) 
 								&& actualLocation == null) 
 							{
 								if (!ignorePUTexceptions) {
 									
-								   handleFail(currentMethodKey, String.format("%s operation: parameter '%s'" +
+								   handleFail(currentMethodKey, String.format("%s operation: parameter '%s' " +
 								   		"is expected to be in a file or param part, but cannot be properly tested " +
 								   		"in a %s operation against the echo service. (actual location WAS null)",
 								   		echoedVerb,
@@ -741,19 +748,19 @@ public class ClientArchitectureConformityIT {
 		for (String line : textLines) {			
 			if (line.contains(parameterName)) {
 				if (line.startsWith("request.META[ QUERY_STRING ]")) {
-					location = "queryString";
+					location = "Query";
 					break;
 				} else if (line.startsWith("request.POST=<QueryDict:")) {
-					location = "paramPart";
+					location = "Param";
 					break;
 				} else if (line.startsWith("request.FILES=<MultiValueDict:")) {
-					location = "filePart";
+					location = "File";
 					break;
 				} else if (line.startsWith("request.PUT=<QueryDict:")) {
-					location = "paramPart";
+					location = "Param";
 					break;
 				} else if (line.startsWith("request.DELETE=<QueryDict:")) {
-					location = "paramPart";
+					location = "Param";
 					break;
 				}
 			}
@@ -763,7 +770,7 @@ public class ClientArchitectureConformityIT {
 			// the string value of that parameter (in the form 'test{Type}')
 			// will use this value if param name not elsewhere
 			if (line.startsWith("request.META[ PATH_INFO ]") && line.endsWith("/" + paramTestObject)) {	
-				pathLocation = "path";
+				pathLocation = "Path";
 			}
 		}
 		if (location == null) {
@@ -819,63 +826,63 @@ public class ClientArchitectureConformityIT {
 
 
 	
-	public String calcExpectedParamLocation(String key, String keyType, String methodMapKey) 
-	{
-		String location = "bad methodMapKey";
-		if (key.toLowerCase().equals("session")) {
-			location = null;
-		}
-		else if (methodMap.containsKey(methodMapKey) ) {
-			if (methodMapKey.endsWith("listObjects")) {
-				log.debug(methodMapKey);
-			}
-			if (methodMap.get(methodMapKey).get("path").get(0).contains("{" + key + "}")) {
-				location =  "path";
-			} else {
-				// 
-				if (methodMap.get(methodMapKey).get("verb").get(0).equals("GET") ||
-					methodMap.get(methodMapKey).get("verb").get(0).equals("HEAD")) 
-				{
-					// has to be on queryString by default, since these are no-body requests
-					location = "queryString";
-				} 
-				else {
-					// will check all remaining options
-					// starting with queryString
-					if (methodMap.get(methodMapKey).containsKey("query")) {
-						String queryString = methodMap.get(methodMapKey).get("query").get(0);
-						if (methodMap.get(methodMapKey).get("query").get(0).toLowerCase().contains(key.toLowerCase()+"=")) {
-							location = "queryString";
-						}
-					} else {
-						try {
-							if (keyType.equals("Subject") || keyType.equals("Identifier") ||
-								keyType.equals("ObjectFormatIdentifier") ||
-								keyType.equals("Permission") || keyType.equals("NodeReference") ||
-								// dataone simple types not necessarily found in request message bodies yet
-								keyType.equals("ChecksumAlgorithm") ||
-								keyType.equals("Event") || keyType.equals("NodeState") ||
-								keyType.equals("NodeType") || keyType.equals("ReplicationStatus") ||
-								keyType.equals("ServiceVersion") ||
-								// non-dataone types found in parameters
-								keyType.equals("boolean") || keyType.equals("DateTime") ||
-								key.equals("scheme") || key.equals("fragment") ||
-								keyType.equals("long") || keyType.equals("unsigned long")
-								) 
-							{
-								location = "paramPart";
-							} else {
-								location = "filePart";
-							}
-						} catch (NullPointerException npe) {
-							location = "null key or keyType";
-						}
-					}
-				}
-			}
-		}
-		return location;
-	}
+//	public String calcExpectedParamLocation(String key, String keyType, String methodMapKey) 
+//	{
+//		String location = "bad methodMapKey";
+//		if (key.toLowerCase().equals("session")) {
+//			location = null;
+//		}
+//		else if (methodMap.containsKey(methodMapKey) ) {
+//			if (methodMapKey.endsWith("listObjects")) {
+//				log.debug(methodMapKey);
+//			}
+//			if (methodMap.get(methodMapKey).get("path").get(0).contains("{" + key + "}")) {
+//				location =  "path";
+//			} else {
+//				// 
+//				if (methodMap.get(methodMapKey).get("verb").get(0).equals("GET") ||
+//					methodMap.get(methodMapKey).get("verb").get(0).equals("HEAD")) 
+//				{
+//					// has to be on queryString by default, since these are no-body requests
+//					location = "queryString";
+//				} 
+//				else {
+//					// will check all remaining options
+//					// starting with queryString
+//					if (methodMap.get(methodMapKey).containsKey("query")) {
+//						String queryString = methodMap.get(methodMapKey).get("query").get(0);
+//						if (methodMap.get(methodMapKey).get("query").get(0).toLowerCase().contains(key.toLowerCase()+"=")) {
+//							location = "queryString";
+//						}
+//					} else {
+//						try {
+//							if (keyType.equals("Subject") || keyType.equals("Identifier") ||
+//								keyType.equals("ObjectFormatIdentifier") ||
+//								keyType.equals("Permission") || keyType.equals("NodeReference") ||
+//								// dataone simple types not necessarily found in request message bodies yet
+//								keyType.equals("ChecksumAlgorithm") ||
+//								keyType.equals("Event") || keyType.equals("NodeState") ||
+//								keyType.equals("NodeType") || keyType.equals("ReplicationStatus") ||
+//								keyType.equals("ServiceVersion") ||
+//								// non-dataone types found in parameters
+//								keyType.equals("boolean") || keyType.equals("DateTime") ||
+//								key.equals("scheme") || key.equals("fragment") ||
+//								keyType.equals("long") || keyType.equals("unsigned long")
+//								) 
+//							{
+//								location = "paramPart";
+//							} else {
+//								location = "filePart";
+//							}
+//						} catch (NullPointerException npe) {
+//							location = "null key or keyType";
+//						}
+//					}
+//				}
+//			}
+//		}
+//		return location;
+//	}
 	
 	
 	public void checkEquals(final String host, final String message, final String s1, final String s2)

@@ -84,6 +84,7 @@ public class ArchitectureUtils {
 			int paramTypeCol = -1;
 			int exceptionsCol = -1;
 			int returnsCol = -1;
+			int xmitCol = -1;
 			HSSFRow headerRow = sheet.getRow(0);
 			for (int c = 0; c < headerRow.getPhysicalNumberOfCells(); c++) {
 				String columnName = headerRow.getCell(c).getStringCellValue();
@@ -107,6 +108,9 @@ public class ArchitectureUtils {
 				}
 				if (columnName.equals("Exceptions")) {
 					exceptionsCol = c;
+				}
+				if (columnName.equals("Xmit")) {
+					xmitCol = c;
 				}
 			}
 			
@@ -206,6 +210,15 @@ public class ArchitectureUtils {
 							methodDetailsMap.put("paramTypes", al);
 						} 
 						((ArrayList<String>) methodDetailsMap.get("paramTypes")).add(value);
+					}
+					
+					value = getCellValue(row.getCell(xmitCol));
+					if (value != null) {
+						if (methodDetailsMap.get("paramLocation") == null) {
+							ArrayList<String> al = new ArrayList<String>();
+							methodDetailsMap.put("paramLocation", al);
+						} 
+						((ArrayList<String>) methodDetailsMap.get("paramLocation")).add(value);
 					}
 				}
 			}
