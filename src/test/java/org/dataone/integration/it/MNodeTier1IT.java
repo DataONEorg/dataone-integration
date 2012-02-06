@@ -255,6 +255,10 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
 						Integer.valueOf(10));
     			checkTrue(currentUrl,"listObjects(<parameters>) returns an ObjectList", ol != null);
     		} 
+    		catch (TestIterationEndingException e) {
+    			handleFail(currentUrl, e.getMessage() + ":: cause: "
+    					+ e.getCause().getClass().getSimpleName() + ": " + e.getCause().getMessage());
+    		}
     		catch (BaseException e) {
     			handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
     					e.getDetail_code() + ":: " + e.getDescription());

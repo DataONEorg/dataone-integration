@@ -288,7 +288,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 	 * @return
 	 */
 	protected static Subject setupClientSubject(String subjectName) 
-	{
+	{		
 		String testCertDirectory = (String) Settings.getConfiguration().getProperty("d1.test.cert.location");	
 		
 		URL url = ContextAwareTestCaseDataone.class.getClassLoader().getResource(testCertDirectory + subjectName +".crt");
@@ -452,7 +452,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 //			startingClientSubjectName = Constants.SUBJECT_PUBLIC;
 //		}
 
-		setupClientSubject("NoCert");
+		setupClientSubject_NoCert();
 		Identifier pid = null;
 		try {
 			ObjectList ol = null;
@@ -755,7 +755,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 	UnsupportedEncodingException, NotFound
 	{
 		// remember who the client currently is
-		Subject startingClientSubject = ClientIdentityManager.getCurrentIdentity();
+//		Subject startingClientSubject = ClientIdentityManager.getCurrentIdentity();
 		X509Certificate certificate = CertificateManager.getInstance().loadCertificate();
 		String startingCertLoc = CertificateManager.getInstance().getCertificateLocation();
 		String startingClientSubjectName = null;
@@ -765,7 +765,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 			startingClientSubjectName = Constants.SUBJECT_PUBLIC;
 		}
 		// following the testing rule of doing all creates under the testSubmitter subject
-		setupClientSubject("testSubmitter");
+		setupClientSubject("testOwner");
 
 		
 
@@ -811,6 +811,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 		} else {
 			retPid = ((CNode)d1Node).create(null, pid, textPlainSource, sysMeta);
 		}
+		log.info("object created.  pid = " + retPid.getValue());
 		checkEquals(d1Node.getNodeBaseServiceUrl(),
 				"createTestObject(): returned pid from the create() should match what was given",
 				pid.getValue(), retPid.getValue());
