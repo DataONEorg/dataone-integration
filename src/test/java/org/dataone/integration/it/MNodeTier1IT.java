@@ -113,46 +113,51 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
            try {
         	   Log eventLog = mn.getLogRecords(null, fromDate, null, null, null, null);
         	   checkTrue(currentUrl,"getOperationStatistics returns a log datatype", eventLog != null);
-        	   
+
         	   // check that log events are created
-        	   Identifier pid = new Identifier();
-        	   pid.setValue(bogusId);
-        	   boolean canCreate = false;
-        	   try {
-        		   canCreate = mn.isAuthorized(null, pid, Permission.WRITE);
-        	   } catch (Exception e) {
+        	   Node node = mn.getCapabilities();
+        	   if (APITestUtils.isServiceAvailable(node, "MNStorage")) {
+//        		   Identifier pid = ExampleUtilities.doCreateNewObject(mn, idPrefix);
+        		   Identifier pid = null;
+        		   try {
+        			   pid = createPublicTestObject(mn, null);
+        		   } catch (BaseException be) {
+        			   throw new TestIterationEndingException("Could not create a test object for the getLogRecords() test.", be);
+        		   }
+        		   Date toDate = new Date(System.currentTimeMillis());
+        		   log.info("toDate is: " + toDate);
+
+        		   eventLog = mn.getLogRecords(null, fromDate, toDate, Event.CREATE, null, null);
+        		   log.info("log size: " + eventLog.sizeLogEntryList());
+        		   boolean isfound = false;
+        		   for (int i=0; i<eventLog.sizeLogEntryList(); i++)
+        		   { //check to see if our create event is in the log
+        			   LogEntry le = eventLog.getLogEntry(i);
+        			   log.debug("le: " + le.getIdentifier().getValue());
+        			   log.debug("rGuid: " + pid.getValue());
+        			   if(le.getIdentifier().getValue().trim().equals(pid.getValue().trim()))
+        			   {
+        				   isfound = true;
+        				   log.info("log record found");
+        				   break;
+        			   }
+        		   }
+        		   log.info("isfound: " + isfound);
+        		   checkTrue(currentUrl, "newly created object is in the log", isfound); 
+        	   } else {
         		   // do nothing - can't expect to create in Tier1 tests
         		   log.info("Cannot create objects so skipping more precise logging test "
         				   + "on node: " + currentUrl);
         	   }
-        	   if (canCreate) { 
-        		  pid = ExampleUtilities.doCreateNewObject(mn, idPrefix);
-        		  Date toDate = new Date(System.currentTimeMillis());
-        		  log.info("toDate is: " + toDate);
-        		  
-        		  eventLog = mn.getLogRecords(null, fromDate, toDate, Event.CREATE, null, null);
-        		  log.info("log size: " + eventLog.sizeLogEntryList());
-        		  boolean isfound = false;
-        		  for(int i=0; i<eventLog.sizeLogEntryList(); i++)
-        		  { //check to see if our create event is in the log
-        			  LogEntry le = eventLog.getLogEntry(i);
-        			  log.debug("le: " + le.getIdentifier().getValue());
-        			  log.debug("rGuid: " + pid.getValue());
-        			  if(le.getIdentifier().getValue().trim().equals(pid.getValue().trim()))
-        			  {
-        				  isfound = true;
-        				  log.info("log record found");
-        				  break;
-        			  }
-        		  }
-        		  log.info("isfound: " + isfound);
-        		  checkTrue(currentUrl, "newly created object is in the log", isfound); 
-        	   }
-			} 
-			catch (BaseException e) {
-				handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
-						e.getDetail_code() + ": " + e.getDescription());
-			}
+           }
+           catch (TestIterationEndingException e) {
+        	   handleFail(currentUrl, e.getMessage() + ":: cause: "
+        			   + e.getCause().getClass().getSimpleName() + ": " + e.getCause().getMessage());
+           }
+           catch (BaseException e) {
+        	   handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
+        			   e.getDetail_code() + ": " + e.getDescription());
+           }
 			catch(Exception e) {
 				e.printStackTrace();
 				handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());

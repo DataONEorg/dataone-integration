@@ -116,7 +116,7 @@ public class ContextAwareTestCaseDataoneTest {
     	assertTrue("certificate SHOULD be expired", now.after(notAfter));
 	}
 	
-//	@Test
+	@Test
 	public void testSetupClientSubject_NoCert() throws Exception
 	{
 		ContextAwareTestCaseDataone.setupClientSubject_NoCert();
