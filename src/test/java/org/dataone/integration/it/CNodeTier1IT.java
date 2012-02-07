@@ -186,6 +186,7 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
 		}
 	}
     
+
 	
 	/**
 	 * tests that a valid ObjectFormatList is returned from listFormats()
@@ -1032,7 +1033,7 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
 			printTestHeader("testSearch(...) vs. node: " + currentUrl);
 
 			try {
-				ObjectList response = cn.search(null,"solr","*:*");
+				ObjectList response = cn.search(null,"SOLR","*:*");
 				checkTrue(currentUrl,"search(...) returns a ObjectList object", response != null);
 			} 
 			catch (IndexOutOfBoundsException e) {

@@ -85,6 +85,9 @@ import org.junit.runners.Parameterized.Parameters;
 @RunWith(value = Parameterized.class)
 public class ClientArchitectureConformityIT {
 
+	private static boolean ignorePUTexceptions = true;
+
+
 	/* configuration information for the echo service */
 	protected static final String TEST_SERVICE_BASE = "http://dev-testing.dataone.org/testsvc";
 	protected static final String ECHO_MMP = "/echomm";
@@ -94,7 +97,6 @@ public class ClientArchitectureConformityIT {
 	protected static Log log = LogFactory.getLog(ClientArchitectureConformityIT.class);
 
 	private static String methodMatchPattern = System.getenv("test.method.match");
-	private static boolean ignorePUTexceptions = false;
 	
 	private static HashMap<String,HashMap<String,List<String>>> methodMap;
 	
@@ -393,8 +395,8 @@ public class ClientArchitectureConformityIT {
 			exceptionLocation = "get verb from documentMap";
 			String docVerb = methodMap.get(currentMethodKey).get("verb").get(0);
 			checkEquals(currentMethodKey, "method verb should agree",
-					docVerb,
-					getVerb(echoResponse));
+					getVerb(echoResponse),
+					docVerb);
 		} catch (Exception e) {
 			e.printStackTrace();
 			handleFail(currentMethodKey,"unexpected error at '" + exceptionLocation +
@@ -408,24 +410,28 @@ public class ClientArchitectureConformityIT {
 	{
 		String exceptionLocation = null;
 		
-		try {
-			// create pattern from docMap path entry to match against echo response
-			exceptionLocation = "creating pathMatch";
-			String pathMatch = pathInfoBase + 
-			methodMap.get(currentMethodKey).get("path").get(0).replaceAll("\\{\\w+\\}", "\\\\w+\\$");
-			log.debug("testPath() pathMatch: " + pathMatch);
+		// head requests don't return from the echo service, so can't test exceptions
+		if (!methodMap.get(currentMethodKey).get("verb").get(0).equalsIgnoreCase("HEAD")) 
+		{
+			try {
+				// create pattern from docMap path entry to match against echo response
+				exceptionLocation = "creating pathMatch";
+				String pathMatch = pathInfoBase + 
+				methodMap.get(currentMethodKey).get("path").get(0).replaceAll("\\{\\w+\\}", "\\\\w+\\$");
+				log.debug("testPath() pathMatch: " + pathMatch);
 
-			exceptionLocation = "getEchoResponse";
-			String echoResponse = getEchoResponse(ECHO_MMP);
+				exceptionLocation = "getEchoResponse";
+				String echoResponse = getEchoResponse(ECHO_MMP);
 
-			checkTrue(currentMethodKey, "path_info should be matched by " + pathMatch 
-					+ ". got: " + getUrlPath(echoResponse),
-					verifyUrlPath(pathMatch, echoResponse));
+				checkTrue(currentMethodKey, "path_info should be matched by " + pathMatch 
+						+ ". got: " + getUrlPath(echoResponse),
+						verifyUrlPath(pathMatch, echoResponse));
 
-		} catch (Exception e) {
-			e.printStackTrace();
-			handleFail(currentMethodKey,"unexpected error at " + exceptionLocation +
-					" " + e.getClass().getName() + ": " + e.getMessage());
+			} catch (Exception e) {
+				e.printStackTrace();
+				handleFail(currentMethodKey,"unexpected error at " + exceptionLocation +
+						" " + e.getClass().getName() + ": " + e.getMessage());
+			}
 		}
 	}
 
@@ -434,79 +440,85 @@ public class ClientArchitectureConformityIT {
 	public void testMethodParameters()
 	{
 		String exceptionLocation = null;
-		// catch all exceptions into errorHandler
-		try {	
-			exceptionLocation = "getEchoResponse";
-			String echoResponse = getEchoResponse(ECHO_MMP);
-			if (methodMap.containsKey(currentMethodKey)) {
-				ArrayList<String> parameters = (ArrayList<String>) methodMap.get(currentMethodKey).get("params");
-				ArrayList<String> paramTypes = (ArrayList<String>) methodMap.get(currentMethodKey).get("paramTypes");
-				ArrayList<String> paramLocation = (ArrayList<String>) methodMap.get(currentMethodKey).get("paramLocation");
-			
-				
-				if (parameters != null && paramTypes != null) {
-					
-					Pattern pat = Pattern.compile("(\\w+).*");
-					if (parameters.size() != paramTypes.size()) {
-						handleFail(currentMethodKey,"documentation error: the number of params" +
-								" and paramTypes in the documentation are not equal.");
-					} else {
-						int i = 0;			
-						for (String param : parameters) {
-							if (param == null || param.trim().isEmpty())
-								continue;
-							
-							// get the corresponding type from paramType
-							// pick out the param name from the text
-							String paramType = null;
-							String expectedLocation = null;
-							if (paramTypes != null) {
-								paramType = paramTypes.get(i);
-								expectedLocation = paramLocation.get(i++);
-								// session is not sent in the echo test so need to foce a match
-								if (paramType.equalsIgnoreCase("Session")) {
-									expectedLocation = null;
+		
+		// head requests don't return from the echo service, so can't test exceptions
+		if (!methodMap.get(currentMethodKey).get("verb").get(0).equalsIgnoreCase("HEAD")) 
+		{
+		
+			// catch all exceptions into errorHandler
+			try {	
+				exceptionLocation = "getEchoResponse";
+				String echoResponse = getEchoResponse(ECHO_MMP);
+				if (methodMap.containsKey(currentMethodKey)) {
+					ArrayList<String> parameters = (ArrayList<String>) methodMap.get(currentMethodKey).get("params");
+					ArrayList<String> paramTypes = (ArrayList<String>) methodMap.get(currentMethodKey).get("paramTypes");
+					ArrayList<String> paramLocation = (ArrayList<String>) methodMap.get(currentMethodKey).get("paramLocation");
+
+
+					if (parameters != null && paramTypes != null) {
+
+						Pattern pat = Pattern.compile("(\\w+).*");
+						if (parameters.size() != paramTypes.size()) {
+							handleFail(currentMethodKey,"documentation error: the number of params" +
+							" and paramTypes in the documentation are not equal.");
+						} else {
+							int i = 0;			
+							for (String param : parameters) {
+								if (param == null || param.trim().isEmpty())
+									continue;
+
+								// get the corresponding type from paramType
+								// pick out the param name from the text
+								String paramType = null;
+								String expectedLocation = null;
+								if (paramTypes != null) {
+									paramType = paramTypes.get(i);
+									expectedLocation = paramLocation.get(i++);
+									// session is not sent in the echo test so need to foce a match
+									if (paramType.equalsIgnoreCase("Session")) {
+										expectedLocation = null;
+									}
 								}
-							}
-							Matcher matcher = pat.matcher(param);
-							String paramKey = null;
-							if (matcher.find()) {
-								paramKey = matcher.group(1);
-							}
-							
-							String actualLocation = findParameterLocation(echoResponse,paramKey,"test" + paramType);					
-//							String expectedLocation = calcExpectedParamLocation(paramKey,paramType,currentMethodKey);
-							
-							String echoedVerb = getVerb(echoResponse);
-							if (expectedLocation != null 
-								&& (expectedLocation.equals("File")  || 
-										expectedLocation.equals("Param")) 
-								&& (echoedVerb.equals("PUT") || echoedVerb.equals("DELETE")) 
-								&& actualLocation == null) 
-							{
-								if (!ignorePUTexceptions) {
-									
-								   handleFail(currentMethodKey, String.format("%s operation: parameter '%s' " +
-								   		"is expected to be in a file or param part, but cannot be properly tested " +
-								   		"in a %s operation against the echo service. (actual location WAS null)",
-								   		echoedVerb,
-								   		paramKey,
-								   		echoedVerb));
+								Matcher matcher = pat.matcher(param);
+								String paramKey = null;
+								if (matcher.find()) {
+									paramKey = matcher.group(1);
 								}
-							} else {
-								checkEquals(currentMethodKey, "parameter '" + paramKey + "' is not in expected location",
-									actualLocation, expectedLocation);				
+
+								String actualLocation = findParameterLocation(echoResponse,paramKey,"test" + paramType);					
+								//							String expectedLocation = calcExpectedParamLocation(paramKey,paramType,currentMethodKey);
+
+								String echoedVerb = getVerb(echoResponse);
+								if (expectedLocation != null 
+										&& (expectedLocation.equals("File")  || 
+												expectedLocation.equals("Param")) 
+												&& (echoedVerb.equals("PUT") || echoedVerb.equals("DELETE")) 
+												&& actualLocation == null) 
+								{
+									if (!ignorePUTexceptions) {
+
+										handleFail(currentMethodKey, String.format("%s operation: parameter '%s' " +
+												"is expected to be in a file or param part, but cannot be properly tested " +
+												"in a %s operation against the echo service. (actual location WAS null)",
+												echoedVerb,
+												paramKey,
+												echoedVerb));
+									}
+								} else {
+									checkEquals(currentMethodKey, "parameter '" + paramKey + "' is not in expected location",
+											actualLocation, expectedLocation);				
+								}
 							}
 						}
 					}
+				} else {
+					handleFail(currentMethodKey, "did not find method in documentation map");
 				}
-			} else {
-				handleFail(currentMethodKey, "did not find method in documentation map");
+			} catch (Exception e) {
+				e.printStackTrace();
+				handleFail(currentMethodKey,"unexpected error at " + exceptionLocation +
+						" " + e.getClass().getName() + ": " + e.getMessage());
 			}
-		} catch (Exception e) {
-			e.printStackTrace();
-			handleFail(currentMethodKey,"unexpected error at " + exceptionLocation +
-					" " + e.getClass().getName() + ": " + e.getMessage());
 		}
 			
 	}
@@ -516,40 +528,45 @@ public class ClientArchitectureConformityIT {
 	public void testMethodExceptionHandling()
 	{
 		log.info("::::::: checkExceptionHandling vs. " + currentMethodKey);
-		String exceptionName = null;
-		try {	
-			ArrayList<String> docExceptions = (ArrayList<String>) methodMap.get(currentMethodKey).get("exceptions");
-			Class<?>[] implExceptions = null;
-			if (nodeType.equals(NodeType.CN)) {
-				implExceptions = getCNInterfaceMethods().get(currentMethodKey).getExceptionTypes();
-			} else if (nodeType.equals(NodeType.MN)) {
-				implExceptions = getMNInterfaceMethods().get(currentMethodKey).getExceptionTypes();
-			} else {
-				handleFail(currentMethodKey,"test misconfiguration - NodeType is " + nodeType);
-			}
-			
-			ArrayList<String> implExList = new ArrayList<String>();
-			for (Class<?> exceptionClass : implExceptions) {
-				implExList.add(exceptionClass.getClass().getSimpleName());
-			}
-			List<String> d1ExceptionList = getD1Exceptions();
-			for (String d1Exception : d1ExceptionList) {
-				log.info(" : : : : : checking: " + d1Exception);
-				String actualException =  getExceptionResponse(d1Exception);
-				if (docExceptions.contains(d1Exception)) {
-					checkEquals(currentMethodKey, "method should throw exception '" +
-						d1Exception + "'",
-						actualException, d1Exception);
+		
+		// head requests don't return from the echo service, so can't test exceptions
+		if (!methodMap.get(currentMethodKey).get("verb").get(0).equalsIgnoreCase("HEAD")) 
+		{
+			String exceptionName = null;
+			try {	
+				ArrayList<String> docExceptions = (ArrayList<String>) methodMap.get(currentMethodKey).get("exceptions");
+				Class<?>[] implExceptions = null;
+				if (nodeType.equals(NodeType.CN)) {
+					implExceptions = getCNInterfaceMethods().get(currentMethodKey).getExceptionTypes();
+				} else if (nodeType.equals(NodeType.MN)) {
+					implExceptions = getMNInterfaceMethods().get(currentMethodKey).getExceptionTypes();
 				} else {
-					checkEquals(currentMethodKey, "method should recast '" + 
-						d1Exception + "' to 'ServiceFailure'",
-						actualException, "ServiceFailure");
+					handleFail(currentMethodKey,"test misconfiguration - NodeType is " + nodeType);
 				}
+
+				ArrayList<String> implExList = new ArrayList<String>();
+				for (Class<?> exceptionClass : implExceptions) {
+					implExList.add(exceptionClass.getClass().getSimpleName());
+				}
+				List<String> d1ExceptionList = getD1Exceptions();
+				for (String d1Exception : d1ExceptionList) {
+					log.info(" : : : : : checking: " + d1Exception);
+					String actualException =  getExceptionResponse(d1Exception);
+					if (docExceptions.contains(d1Exception)) {
+						checkEquals(currentMethodKey, "method should throw exception '" +
+								d1Exception + "'",
+								actualException, d1Exception);
+					} else {
+						checkEquals(currentMethodKey, "method should recast '" + 
+								d1Exception + "' to 'ServiceFailure'",
+								actualException, "ServiceFailure");
+					}
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+				handleFail(currentMethodKey,"unexpected error at " + exceptionName +
+						" " + e.getClass().getName() + ": " + e.getMessage());
 			}
-		} catch (Exception e) {
-			e.printStackTrace();
-			handleFail(currentMethodKey,"unexpected error at " + exceptionName +
-					" " + e.getClass().getName() + ": " + e.getMessage());
 		}
 	}
 
@@ -783,6 +800,7 @@ public class ClientArchitectureConformityIT {
 	private boolean verifyUrlPath(String key, String echoText)
 	{
 		String pathInfoLine = getUrlPath(echoText);
+		
 		if ( pathInfoLine.matches(key) ) {
 			return true;
 		}
@@ -792,12 +810,14 @@ public class ClientArchitectureConformityIT {
 	
 	private String getUrlPath(String echoText)
 	{
-		String[] textLines = echoText.split("\n");
-		String pathInfoLine = null;
-		for (String s : textLines) {
-			if (s.startsWith("request.META[ PATH_INFO ]")) {
-				pathInfoLine = s.replace("request.META[ PATH_INFO ] = ", "");
-				break;
+		String pathInfoLine = "";  // to avoid NPEs
+		if (echoText != null) { 
+			String[] textLines = echoText.split("\n");
+			for (String s : textLines) {
+				if (s.startsWith("request.META[ PATH_INFO ]")) {
+					pathInfoLine = s.replace("request.META[ PATH_INFO ] = ", "");
+					break;
+				}
 			}
 		}
 		return pathInfoLine;
