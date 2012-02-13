@@ -21,7 +21,6 @@
 package org.dataone.integration.it;
 
 import java.math.BigInteger;
-import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Map;
 
@@ -38,14 +37,11 @@ import org.dataone.service.exceptions.ServiceFailure;
 import org.dataone.service.types.v1.AccessPolicy;
 import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Node;
-import org.dataone.service.types.v1.NodeType;
-import org.dataone.service.types.v1.ObjectInfo;
 import org.dataone.service.types.v1.ObjectList;
 import org.dataone.service.types.v1.Permission;
 import org.dataone.service.types.v1.Subject;
 import org.dataone.service.types.v1.SystemMetadata;
 import org.dataone.service.types.v1.util.AccessUtil;
-import org.junit.Before;
 import org.junit.Test;
 
 /**
@@ -57,10 +53,16 @@ public class CNodeTier2AuthorizationIT extends AbstractAuthorizationITDataone {
 	private static String currentUrl;
 	private static Map<String,ObjectList> listedObjects;
  
+	@Override
+	protected Iterator<Node> getNodeIterator() 
+	{
+		return getCoordinatingNodeIterator();
+	}
 	
 	@Override
-	protected NodeType getNodeType() {
-		return NodeType.CN;
+	protected CNode instantiateD1Node(String baseUrl) 
+	{ 
+		return new CNode(baseUrl);
 	}
 
 	

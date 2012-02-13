@@ -25,17 +25,9 @@ import java.util.Iterator;
 import org.dataone.client.D1Client;
 import org.dataone.client.MNode;
 import org.dataone.service.exceptions.BaseException;
-import org.dataone.service.exceptions.NotAuthorized;
-import org.dataone.service.exceptions.NotFound;
-import org.dataone.service.types.v1.AccessRule;
 import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Node;
-import org.dataone.service.types.v1.NodeType;
 import org.dataone.service.types.v1.Permission;
-import org.dataone.service.types.v1.Subject;
-import org.dataone.service.types.v1.util.AccessUtil;
-import org.dataone.service.util.Constants;
-import org.junit.Ignore;
 import org.junit.Test;
 
 
@@ -69,11 +61,21 @@ public class MNodeTier2IT extends AbstractAuthorizationITDataone  {
 		return "Test Case that runs through the Member Node Tier 2 API (Authorization) methods";
 	}
 
+	
 	@Override
-	protected NodeType getNodeType() {
-		return NodeType.MN;
+	protected Iterator<Node> getNodeIterator() 
+	{
+		return getMemberNodeIterator();
 	}
-
+	
+	@Override
+	protected MNode instantiateD1Node(String baseUrl) 
+	{ 
+		return new MNode(baseUrl);
+	}
+	
+	
+	
 	/**
 	 * A basic test Tests the dataONE service API isAuthorized() method, checking for Read 
 	 * permission on the first object returned from the Tier1 listObjects() method.  
@@ -97,9 +99,6 @@ public class MNodeTier2IT extends AbstractAuthorizationITDataone  {
 				boolean success = mn.isAuthorized(null, pid, Permission.READ);
 				checkTrue(currentUrl,"isAuthorized response should never be false. [Only true or exception].", success);
 			} 
-    		catch (IndexOutOfBoundsException e) {
-    			handleFail(currentUrl,"No Objects available to test against");
-    		}
     		catch (BaseException e) {
 				handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
 						e.getDetail_code() + ": " + e.getDescription());
