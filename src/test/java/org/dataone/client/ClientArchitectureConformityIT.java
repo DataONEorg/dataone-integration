@@ -61,15 +61,18 @@ import org.junit.runners.Parameterized.Parameters;
  * query string.
  * <p>
  * Current weaknesses: <ul>
- * <li>the django echo server doesn't return message body information
- * from http PUTs, so those "update" methods will return more errors than they should, 
- * and you'll need to manually inspect those methods. (There's a static property 
- * "ignorePUTexceptions" you can set to true or false to hide failures due to that) 
  * <li>Similarly, HEAD requests don't return message bodies, so "describe" will fail miserably, too.
  * <li>the parameter key for the implementation is deduced from the parameter type, 
  * which for the most part works, but not always.  After a couple times, it's easy 
  * to spot the real failures from the fake, but eventually, the tests should account
  * for these parameter naming exceptions.
+ * <li> Our current implementation of the echo service has been specially configured
+ * to handle http PUT methods, so the following is just for awareness.  Howere, by default
+ * a django echo server doesn't return message body information from http PUTs. 
+ * In this case, methods using PUT would return more errors than
+ * they should.  In that case, manual inspection of the code is needed for validating
+ * the method. To help the tester, there's a static property "ignorePUTexceptions" 
+ * that can be set to true after doing those manual checks.
  * 
  * These tests run using a Parameterized JUnit runner, and I haven't figured out
  * how to have eclipse run just one method, so you'll probably have to run it
@@ -85,7 +88,7 @@ import org.junit.runners.Parameterized.Parameters;
 @RunWith(value = Parameterized.class)
 public class ClientArchitectureConformityIT {
 
-	private static boolean ignorePUTexceptions = true;
+	private static boolean ignorePUTexceptions = false;
 
 
 	/* configuration information for the echo service */
