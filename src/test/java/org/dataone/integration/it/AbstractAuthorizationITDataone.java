@@ -109,7 +109,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 		 
 
 // testPerson is owner in this case, so don't need this block				 
-//				 setupClientSubject("testOwner");  // should always have access
+//				 setupClientSubject("testRightsHolder");  // should always have access
 //				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "true");
 //				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "true");
 //				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "true");
@@ -124,12 +124,8 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "true");
 				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "true");
 
-				 setupClientSubject("testPerson_Validated");			 
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "true");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "true");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "true");
 				 
-				 setupClientSubject("testPersonGroupie"); 
+				 setupClientSubject("testGroupie"); 
 				 // to test access as a group member (of testPerson)
 				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "NotAuthorized");
 				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "NotAuthorized");
@@ -193,8 +189,8 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 
 
 				// run tests
-// testPerson is owner in this case, so don't need testOwner tests				 
-//				 setupClientSubject("testOwner");  // should always have access
+// testPerson is owner in this case, so don't need testRightsHolder tests				 
+//				 setupClientSubject("testRightsHolder");  // should always have access
 //				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "true");
 //				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "true");
 //				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "true");
@@ -208,13 +204,8 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "true");
 				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "true");
 				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "true");
-
-				 setupClientSubject("testPerson_Validated");			 
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "true");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "true");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "true");
 				 
-				 setupClientSubject("testPersonGroupie"); 
+				 setupClientSubject("testGroupie"); 
 				 // to test access as a group member (of testPerson)
 				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "true");
 				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "true");
@@ -255,7 +246,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 	 @Test
 	 public void testIsAuthorized_vs_PublicRead() {
 		 
-		 String procuringSubjectString = "testOwner";
+		 String procuringSubjectString = "testRightsHolder";
 		 String objectSubjectString = Constants.SUBJECT_PUBLIC;
 		 Permission objectPermission = Permission.READ;
 		 String objectIdentifier = "TierTesting:Public_READ";
@@ -274,7 +265,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 
 	
 				 // run tests
-				 setupClientSubject("testOwner");  // should always have access
+				 setupClientSubject("testRightsHolder");  // should always have access
 				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "true");
 				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "true");
 				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "true");
@@ -289,12 +280,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "NotAuthorized");
 				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "true");
 
-				 setupClientSubject("testPerson_Validated");			 
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "NotAuthorized");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "NotAuthorized");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "true");
-
-				 setupClientSubject("testPersonGroupie"); 
+				 setupClientSubject("testGroupie"); 
 				 // to test access as a group member (of testPerson)
 				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "NotAuthorized");
 				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "NotAuthorized");
@@ -335,7 +321,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 	 @Test
 	 public void testIsAuthorized_vs_AuthenticatedRead() {
 		 
-		 String procuringSubjectString = "testOwner";
+		 String procuringSubjectString = "testRightsHolder";
 		 String objectSubjectString = Constants.SUBJECT_AUTHENTICATED_USER;
 		 Permission objectPermission = Permission.READ;
 		 String objectIdentifier = "TierTesting:Authenticated_READ";
@@ -354,7 +340,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 				 
 	
 				 // run tests
-				 setupClientSubject("testOwner");  // should always have access
+				 setupClientSubject("testRightsHolder");  // should always have access
 				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "true");
 				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "true");
 				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "true");
@@ -369,12 +355,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "NotAuthorized");
 				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "true");
 
-				 setupClientSubject("testPerson_Validated");			 
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "NotAuthorized");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "NotAuthorized");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "true");
-
-				 setupClientSubject("testPersonGroupie"); 
+				 setupClientSubject("testGroupie"); 
 				 // to test access as a group member (of testPerson)
 				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "NotAuthorized");
 				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "NotAuthorized");
@@ -416,7 +397,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 	 @Test
 	 public void testIsAuthorized_vs_VerifiedRead() {
 		 
-		 String procuringSubjectString = "testOwner";
+		 String procuringSubjectString = "testRightsHolder";
 		 String objectSubjectString = Constants.SUBJECT_VERIFIED_USER;
 		 Permission objectPermission = Permission.READ;
 		 String objectIdentifier = "TierTesting:Verified_READ";
@@ -434,7 +415,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 						 buildIdentifier(objectIdentifier));
 
 				 // run tests
-				 setupClientSubject("testOwner");  // should always have access
+				 setupClientSubject("testRightsHolder");  // should always have access
 				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "true");
 				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "true");
 				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "true");
@@ -449,12 +430,8 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "NotAuthorized");
 				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "NotAuthorized");
 
-				 setupClientSubject("testPerson_Validated");			 
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "NotAuthorized");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "NotAuthorized");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "true");
 				 
-				 setupClientSubject("testPersonGroupie"); 
+				 setupClientSubject("testGroupie"); 
 				 // to test access as a group member (of testPerson)
 				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "NotAuthorized");
 				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "NotAuthorized");
@@ -495,7 +472,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 	 @Test
 	 public void testIsAuthorized_vs_TestPersonREAD() {
 		 
-		 String procuringSubjectString = "testOwner";
+		 String procuringSubjectString = "testRightsHolder";
 		 String objectSubjectString = "testPerson";
 		 Permission objectPermission = Permission.READ;
 		 String objectIdentifier = "TierTesting:testPerson_READ";
@@ -513,7 +490,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 						 buildIdentifier(objectIdentifier));
 
 				 // run tests
-				 setupClientSubject("testOwner");  // should always have access
+				 setupClientSubject("testRightsHolder");  // should always have access
 				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "true");
 				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "true");
 				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "true");
@@ -528,12 +505,8 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "NotAuthorized");
 				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "true");
 
-				 setupClientSubject("testPerson_Validated");			 
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "NotAuthorized");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "NotAuthorized");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "true");
 				 
-				 setupClientSubject("testPersonGroupie"); 
+				 setupClientSubject("testGroupie"); 
 				 // to test access as a group member (of testPerson)
 				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "NotAuthorized");
 				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "NotAuthorized");
@@ -575,7 +548,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 	 
 	 @Test
 	 public void testIsAuthorized_vs_TestPersonWRITE() {
-		 String procuringSubjectString = "testOwner";
+		 String procuringSubjectString = "testRightsHolder";
 		 String objectSubjectString = "testPerson";
 		 Permission objectPermission = Permission.WRITE;
 		 String objectIdentifier = "TierTesting:testPerson_READ";
@@ -593,7 +566,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 						 buildIdentifier(objectIdentifier));
 
 				 // run tests
-				 setupClientSubject("testOwner");  // should always have access
+				 setupClientSubject("testRightsHolder");  // should always have access
 				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "true");
 				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "true");
 				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "true");
@@ -608,12 +581,8 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "true");
 				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "true");
 
-				 setupClientSubject("testPerson_Validated");			 
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "NotAuthorized");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "true");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "true");
 				 
-				 setupClientSubject("testPersonGroupie"); 
+				 setupClientSubject("testGroupie"); 
 				 // to test access as a group member (of testPerson)
 				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "NotAuthorized");
 				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "NotAuthorized");
@@ -654,7 +623,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 	 
 	 @Test
 	 public void testIsAuthorized_vs_TestPersonCHANGE() {
-		 String procuringSubjectString = "testOwner";
+		 String procuringSubjectString = "testRightsHolder";
 		 String objectSubjectString = "testPerson";
 		 Permission objectPermission = Permission.CHANGE_PERMISSION;
 		 String objectIdentifier = "TierTesting:testPerson_CHANGE";
@@ -672,7 +641,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 						 buildIdentifier(objectIdentifier));
 
 				 // run tests
-				 setupClientSubject("testOwner");  // should always have access
+				 setupClientSubject("testRightsHolder");  // should always have access
 				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "true");
 				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "true");
 				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "true");
@@ -687,12 +656,8 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "true");
 				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "true");
 
-				 setupClientSubject("testPerson_Validated");			 
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "true");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "true");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "true");
 				 
-				 setupClientSubject("testPersonGroupie"); 
+				 setupClientSubject("testGroupie"); 
 				 // to test access as a group member (of testPerson)
 				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "NotAuthorized");
 				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "NotAuthorized");
@@ -733,7 +698,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 	 
 	 @Test
 	 public void testIsAuthorized_vs_TestGroupREAD() {
-		 String procuringSubjectString = "testOwner";
+		 String procuringSubjectString = "testRightsHolder";
 		 String objectSubjectString = "testGroup";
 		 Permission objectPermission = Permission.READ;
 		 String objectIdentifier = "TierTesting:testPerson_READ";
@@ -751,7 +716,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 						 buildIdentifier(objectIdentifier));
 
 				 // run tests
-				 setupClientSubject("testOwner");  // should always have access
+				 setupClientSubject("testRightsHolder");  // should always have access
 				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "true");
 				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "true");
 				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "true");
@@ -766,12 +731,8 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "NotAuthorized");
 				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "true");
 
-				 setupClientSubject("testPerson_Validated");			 
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "NotAuthorized");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "NotAuthorized");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "true");
 				 
-				 setupClientSubject("testPersonGroupie"); 
+				 setupClientSubject("testGroupie"); 
 				 // to test access as a group member (of testPerson)
 				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "NotAuthorized");
 				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "NotAuthorized");
@@ -846,7 +807,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 //	 {	
 //		 AccessRule accessRule = AccessUtil.createAccessRule(
 //				 new String[]{Constants.SUBJECT_AUTHENTICATED_USER}, new Permission[]{Permission.READ});
-//		 runIsAuthorizedVsSubject( accessRule, "testOwner", "testNoRights",null);
+//		 runIsAuthorizedVsSubject( accessRule, "testRightsHolder", "testNoRights",null);
 //	 }
 //
 //
@@ -856,7 +817,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 //	 {	
 //		 AccessRule accessRule = AccessUtil.createAccessRule(
 //				 new String[]{Constants.SUBJECT_VERIFIED_USER}, new Permission[]{Permission.READ});
-//		 runIsAuthorizedVsSubject(accessRule, "testOwner", "testReader", null);
+//		 runIsAuthorizedVsSubject(accessRule, "testRightsHolder", "testReader", null);
 //	 }
 //
 //	 /**
@@ -868,7 +829,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 //	 {	
 //		 AccessRule accessRule = AccessUtil.createAccessRule(
 //				 new String[]{"testReader"}, new Permission[]{Permission.READ});
-//		 runIsAuthorizedVsSubject( accessRule, "testOwner", "testMappedReader", null);
+//		 runIsAuthorizedVsSubject( accessRule, "testRightsHolder", "testMappedReader", null);
 //	 }
 //
 //	 /**
@@ -882,7 +843,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 //				 new String[]{"testReaderGroup"}, new Permission[]{Permission.READ});
 //		 Identifier pid = new Identifier();
 //		 pid.setValue("testAuthByGroup");
-//		 runIsAuthorizedVsSubject( accessRule, "testOwner", "testReader",pid);
+//		 runIsAuthorizedVsSubject( accessRule, "testRightsHolder", "testReader",pid);
 //	 }
 //
 //
@@ -892,42 +853,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 //
 //	 }
 //
-//
-//		public void testIsAuthorized_Vs_NullAP_GroupOwner() { }
-////	   		bad certs (null,expired,nonTrusted)
-////	   		testOwnerGroup R,W,CP
-////	   		testOwnerGroupie R,W,CP
-////	   		testOutsider R,W,CP
-////	   		testSubmitter R,W,CP
-//	    public void testIsAuthorized_Vs_NullAP_PersonOwner() { }
-////	   		bad certs (null,expired,nonTrusted)
-////	   		testOwner R,W,CP
-////	        testMappedOwner R,W,CP	    
-////	   		testOwnerGroupie R,W,CP
-////	   		testOutsider R,W,CP
-////	   		testSubmitter R,W,CP
-//	    public void testIsAuthorized_Vs_PublicRead() { }
-////   		bad certs (null,expired,nonTrusted)
-////   		testOwner R,W,CP
-////      x    testMappedOwner R,W,CP ?	    
-////   	x	testOwnerGroupie R,W,CP ?
-////   		testOutsider R,W,CP
-////   	x	testSubmitter R,W,CP	    
-//	    public void testIsAuthorized_Vs_AuthenticatedRead() { }
-////		bad certs (null,expired,nonTrusted)
-////		testOwner R,W,CP
-////  x    testMappedOwner R,W,CP ?	    
-////	x	testOwnerGroupie R,W,CP ?
-////		testOutsider R,W,CP
-////	x	testSubmitter R,W,CP	
-//	    
-//	    public void testIsAuthorized_Vs_VerifiedRead() { }
-//	    public void testIsAuthorized_Vs_Read() { }
-//	    public void testIsAuthorized_Vs_Write() { }
-//	    public void testIsAuthorized_Vs_Change() { }
-//	    public void testIsAuthorized_Vs_GroupRead() { }
-//	    public void testIsAuthorized_Vs_GroupWrite() { }
-//	    public void testIsAuthorized_Vs_GroupChange() { }
+
 	   
 
 	    

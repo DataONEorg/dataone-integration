@@ -41,80 +41,42 @@ public class ContextAwareTestCaseDataoneTest {
 	
 
 	@Test
-	public void testSetupClientSubject_Reader() throws Exception
+	public void testSetupClientSubject_Person() throws Exception
 	{
-		runTestSetupClient_Typical("testReader");
+		runTestSetupClient_Typical("testPerson");
 	}
 	
 	@Test
-	public void testSetupClientSubject_Writer() throws Exception
+	public void testSetupClientSubject_MappedPerson() throws Exception
 	{
-		runTestSetupClient_Typical("testWriter");
+		runTestSetupClient_Typical("testMappedPerson");
 	}	
 	
 	@Test
-	public void testSetupClientSubject_Owner() throws Exception
+	public void testSetupClientSubject_RightsHolder() throws Exception
 	{
-		runTestSetupClient_Typical("testOwner");
+		runTestSetupClient_Typical("testRightsHolder");
 	}	
 
 	
 	@Test
-	public void testSetupClientSubject_MappedReader() throws Exception
+	public void testSetupClientSubject_Submitter() throws Exception
 	{
-		runTestSetupClient_Typical("testMappedReader");
+		runTestSetupClient_Typical("testSubmitter");
 	}
 	
 	@Test
-	public void testSetupClientSubject_MappedWriter() throws Exception
+	public void testSetupClientSubject_Person_Expired() throws Exception
 	{
-		runTestSetupClient_Typical("testMappedWriter");
+		runTestSetupClient_Typical("testPerson_Expired");
 	}
 	
 	@Test
-	public void testSetupClientSubject_MappedOwner() throws Exception
+	public void testSetupClientSubject_Person_SelfSigned() throws Exception
 	{
-		runTestSetupClient_Typical("testMappedOwner");
-	}
-	
-	@Test
-	public void testSetupClientSubject_NoRights() throws Exception
-	{
-		Subject s = ContextAwareTestCaseDataone.setupClientSubject("testNoRights");
-		System.out.println("subject is: " + s.getValue());
-		assertEquals("DC=org,DC=dataone,CN=testNoRights",s.getValue());
-		
-		java.security.cert.X509Certificate cert = CertificateManager.getInstance().loadCertificate();
-		System.out.println(" Issuer: " + cert.getIssuerX500Principal().getName(X500Principal.RFC2253));
-    	Date notBefore = cert.getNotBefore(); 
-    	DateFormat fmt = SimpleDateFormat.getDateTimeInstance();
-    	System.out.println("   From: " + fmt.format(notBefore));
-    	Date notAfter = cert.getNotAfter();
-    	System.out.println("     To: " + fmt.format(notAfter));
-    	
-    	Date now = new Date();
-    	assertTrue("certificate should not be expired", !now.after(notAfter));    	
+		runTestSetupClient_Typical("testPerson_SelfSigned");
 	}
 
-	
-	@Test
-	public void testSetupClientSubject_ReaderExpired() throws Exception
-	{
-		Subject s = ContextAwareTestCaseDataone.setupClientSubject("testReader_Expired");
-		System.out.println("subject is: " + s.getValue());
-		assertEquals("DC=org,DC=dataone,CN=testReader",s.getValue());
-		
-		java.security.cert.X509Certificate cert = CertificateManager.getInstance().loadCertificate();
-		System.out.println(" Issuer: " + cert.getIssuerX500Principal().getName(X500Principal.RFC2253));
-    	Date notBefore = cert.getNotBefore(); 
-    	DateFormat fmt = SimpleDateFormat.getDateTimeInstance();
-    	System.out.println("   From: " + fmt.format(notBefore));
-    	Date notAfter = cert.getNotAfter();
-    	System.out.println("     To: " + fmt.format(notAfter));
-    	
-    	Date now = new Date();
-    	assertTrue("certificate SHOULD be expired", now.after(notAfter));
-	}
 	
 	@Test
 	public void testSetupClientSubject_NoCert() throws Exception
@@ -129,9 +91,11 @@ public class ContextAwareTestCaseDataoneTest {
 	
 	private void runTestSetupClient_Typical(String testSubject) throws Exception
 	{
+		System.out.println("certificate label is: " + testSubject);
 		Subject s = ContextAwareTestCaseDataone.setupClientSubject(testSubject);
+		String modifiedTestSubjectValue = testSubject.replaceAll("_\\w+", "");  // removes the _Expired or _SelfSigned
 		System.out.println("subject is: " + s.getValue());
-		assertEquals("DC=org,DC=dataone,CN=" + testSubject, s.getValue());
+		assertEquals("DC=org,DC=dataone,CN=" + modifiedTestSubjectValue, s.getValue());
 
 		java.security.cert.X509Certificate cert = CertificateManager.getInstance().loadCertificate();
 		System.out.println(" Issuer: " + cert.getIssuerX500Principal().getName(X500Principal.RFC2253));

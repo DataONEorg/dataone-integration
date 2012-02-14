@@ -748,8 +748,63 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 		return createTestObject(d1Node, pid, accessRule);
 	}
 	
-
+	/**
+	 * Convenience method for creating test Object that submits as the 
+	 * @param d1Node
+	 * @param pid
+	 * @param accessRule
+	 * @return
+	 * @throws InvalidToken
+	 * @throws ServiceFailure
+	 * @throws NotAuthorized
+	 * @throws IdentifierNotUnique
+	 * @throws UnsupportedType
+	 * @throws InsufficientResources
+	 * @throws InvalidSystemMetadata
+	 * @throws NotImplemented
+	 * @throws InvalidRequest
+	 * @throws UnsupportedEncodingException
+	 * @throws NotFound
+	 */
 	protected Identifier createTestObject(D1Node d1Node, Identifier pid, AccessRule accessRule) 
+	throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique, UnsupportedType, 
+	InsufficientResources, InvalidSystemMetadata, NotImplemented, InvalidRequest, 
+	UnsupportedEncodingException, NotFound
+	{
+		// the default is to do all of the creates under the testOwner subject
+		return createTestObject(d1Node, pid, accessRule,"testSubmitter","testOwner");
+	}
+	
+	
+	
+	/**
+	 * Creates a test object according to the parameters provided.  The method becomes
+	 * the submitter client for the create, and restores the client subject/certificate
+	 * to what it was at the start of the method call.
+	 * remembers the starting client subject 
+	 * @param d1Node - the node to create the object on
+	 * @param pid - the identifier for the create object
+	 * @param accessRule - the single access rule that will become the AccessPolicy
+	 *                     for the created object.  null results in null AccessPolicy
+	 * @param submitterSubjectLabel - label for the submitter subject, to be used as 
+	 *                                the client subject, via setupClientSubject() method
+	 * @param rightsHolderSubjectName - string value for the rightsHolder subject in the 
+	 *                                   systemMetadata 
+	 * @return the Identifier for the created object
+	 * @throws InvalidToken
+	 * @throws ServiceFailure
+	 * @throws NotAuthorized
+	 * @throws IdentifierNotUnique
+	 * @throws UnsupportedType
+	 * @throws InsufficientResources
+	 * @throws InvalidSystemMetadata
+	 * @throws NotImplemented
+	 * @throws InvalidRequest
+	 * @throws UnsupportedEncodingException
+	 * @throws NotFound
+	 */
+	protected Identifier createTestObject(D1Node d1Node, Identifier pid, 
+			AccessRule accessRule, String submitterSubjectLabel, String rightsHolderSubjectName) 
 	throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique, UnsupportedType, 
 	InsufficientResources, InvalidSystemMetadata, NotImplemented, InvalidRequest, 
 	UnsupportedEncodingException, NotFound
@@ -764,8 +819,9 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 		} else {
 			startingClientSubjectName = Constants.SUBJECT_PUBLIC;
 		}
+		
 		// following the testing rule of doing all creates under the testSubmitter subject
-		setupClientSubject("testOwner");
+		setupClientSubject(submitterSubjectLabel);
 
 		
 
@@ -779,9 +835,9 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 		try {
 			// make the submitter the same as the cert DN 
 			certificate = CertificateManager.getInstance().loadCertificate();
-			String ownerX500 = CertificateManager.getInstance().getSubjectDN(certificate);
+			String submitterX500 = CertificateManager.getInstance().getSubjectDN(certificate);
 		
-			d1o = new D1Object(pid, contentBytes, format_text_plain, ownerX500, "authNode");
+			d1o = new D1Object(pid, contentBytes, format_text_plain, submitterX500, "bogusAuthoritativeNode");
 			sysMeta = d1o.getSystemMetadata();
 		} catch (NoSuchAlgorithmException e) {
 			e.printStackTrace();
@@ -794,6 +850,11 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 			e.printStackTrace();
 			throw new ServiceFailure("0000","client misconfiguration related to reading of content byte[]");
 		}
+		
+		// set the rightsHolder property
+		Subject rightsHolder = new Subject();
+		rightsHolder.setValue(rightsHolderSubjectName);
+		sysMeta.setRightsHolder(rightsHolder);
 		
 		// build an AccessPolicy if given an AccessRule
 		if (accessRule != null) {
