@@ -22,6 +22,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.ibm.icu.util.Calendar;
+
 public class ContextAwareTestCaseDataoneTest { 
 
 
@@ -86,8 +88,9 @@ public class ContextAwareTestCaseDataoneTest {
 		Date notAfter = cert.getNotAfter();
 		System.out.println("     To: " + fmt.format(notAfter));
 
-		Date now = new Date();
-		assertTrue("certificate should not be expired", now.after(notAfter));
+		Calendar expirationHorizon = Calendar.getInstance();
+		expirationHorizon.add(Calendar.MONTH,1);
+		assertTrue("this certificate SHOULD be expired", expirationHorizon.after(notAfter));
 
 		CertificateManager cm = CertificateManager.getInstance();
 		SubjectInfo si = cm.getSubjectInfo(cm.loadCertificate());
@@ -130,8 +133,10 @@ public class ContextAwareTestCaseDataoneTest {
 		Date notAfter = cert.getNotAfter();
 		System.out.println("     To: " + fmt.format(notAfter));
 
-		Date now = new Date();
-		assertTrue("certificate should not be expired", !now.after(notAfter));
+		// the expiration date should be well out into the future.  
+		Calendar expirationHorizon = Calendar.getInstance();
+		expirationHorizon.add(Calendar.MONTH,1);
+		assertTrue("certificate should not be expired", !expirationHorizon.after(notAfter));
 
 		CertificateManager cm = CertificateManager.getInstance();
 		SubjectInfo si = cm.getSubjectInfo(cm.loadCertificate());
