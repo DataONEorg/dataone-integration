@@ -68,7 +68,31 @@ public class ContextAwareTestCaseDataoneTest {
 	@Test
 	public void testSetupClientSubject_Person_Expired() throws Exception
 	{
-		runTestSetupClient_Typical("testPerson_Expired");
+		String testSubject = "testPerson_Expired";
+		
+		
+		System.out.println("certificate label is: " + testSubject);
+		Subject s = ContextAwareTestCaseDataone.setupClientSubject(testSubject);
+		String modifiedTestSubjectValue = testSubject.replaceAll("_\\w+", "");  // removes the _Expired or _SelfSigned
+		System.out.println("subject is: " + s.getValue());
+		assertEquals("DC=org,DC=dataone,CN=" + modifiedTestSubjectValue, s.getValue());
+
+		java.security.cert.X509Certificate cert = CertificateManager.getInstance().loadCertificate();
+		System.out.println(" Issuer: " + cert.getIssuerX500Principal().getName(X500Principal.RFC2253));
+
+		Date notBefore = cert.getNotBefore(); 
+		DateFormat fmt = SimpleDateFormat.getDateTimeInstance();
+		System.out.println("   From: " + fmt.format(notBefore));
+		Date notAfter = cert.getNotAfter();
+		System.out.println("     To: " + fmt.format(notAfter));
+
+		Date now = new Date();
+		assertTrue("certificate should not be expired", now.after(notAfter));
+
+		CertificateManager cm = CertificateManager.getInstance();
+		SubjectInfo si = cm.getSubjectInfo(cm.loadCertificate());
+		assertNotNull("subjectInfo should not be null",si);
+		
 	}
 	
 	@Test

@@ -92,7 +92,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 		 String procuringSubjectString = "testPerson";
 		 String objectSubjectString = null;
 		 Permission objectPermission = null;
-		 String objectIdentifier = "TierTesting:RightsHolder_Person";
+		 String objectIdentifier = "TierTesting:testObject:RightsHolder_Person";
 		 
 		 Iterator<Node> it = getNodeIterator();
 		 while (it.hasNext()) {
@@ -172,7 +172,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 		 String procuringSubjectString = "testPerson";
 		 String objectSubjectString = null;
 		 Permission objectPermission = null;
-		 String objectIdentifier = "TierTesting:RightsHolder_Group";
+		 String objectIdentifier = "TierTesting:testObject:RightsHolder_Group";
 		 
 		 Iterator<Node> it = getNodeIterator();
 		 while (it.hasNext()) {
@@ -248,7 +248,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 		 String procuringSubjectString = "testRightsHolder";
 		 String objectSubjectString = Constants.SUBJECT_PUBLIC;
 		 Permission objectPermission = Permission.READ;
-		 String objectIdentifier = "TierTesting:Public_READ";
+		 String objectIdentifier = "TierTesting:testObject:Public_READ";
 		 
 		 Iterator<Node> it = getNodeIterator();
 		 while (it.hasNext()) {
@@ -323,7 +323,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 		 String procuringSubjectString = "testRightsHolder";
 		 String objectSubjectString = Constants.SUBJECT_AUTHENTICATED_USER;
 		 Permission objectPermission = Permission.READ;
-		 String objectIdentifier = "TierTesting:Authenticated_READ";
+		 String objectIdentifier = "TierTesting:testObject:Authenticated_READ";
 		 
 		 Iterator<Node> it = getNodeIterator();
 		 while (it.hasNext()) {
@@ -399,7 +399,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 		 String procuringSubjectString = "testRightsHolder";
 		 String objectSubjectString = Constants.SUBJECT_VERIFIED_USER;
 		 Permission objectPermission = Permission.READ;
-		 String objectIdentifier = "TierTesting:Verified_READ";
+		 String objectIdentifier = "TierTesting:testObject:Verified_READ";
 		 
 		 Iterator<Node> it = getNodeIterator();
 		 while (it.hasNext()) {
@@ -474,7 +474,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 		 String procuringSubjectString = "testRightsHolder";
 		 String objectSubjectString = "testPerson";
 		 Permission objectPermission = Permission.READ;
-		 String objectIdentifier = "TierTesting:testPerson_READ";
+		 String objectIdentifier = "TierTesting:testObject:testPerson_READ";
 		 
 		 Iterator<Node> it = getNodeIterator();
 		 while (it.hasNext()) {
@@ -550,7 +550,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 		 String procuringSubjectString = "testRightsHolder";
 		 String objectSubjectString = "testPerson";
 		 Permission objectPermission = Permission.WRITE;
-		 String objectIdentifier = "TierTesting:testPerson_READ";
+		 String objectIdentifier = "TierTesting:testObject:testPerson_READ";
 		 
 		 Iterator<Node> it = getNodeIterator();
 		 while (it.hasNext()) {
@@ -625,7 +625,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 		 String procuringSubjectString = "testRightsHolder";
 		 String objectSubjectString = "testPerson";
 		 Permission objectPermission = Permission.CHANGE_PERMISSION;
-		 String objectIdentifier = "TierTesting:testPerson_CHANGE";
+		 String objectIdentifier = "TierTesting:testObject:testPerson_CHANGE";
 		 
 		 Iterator<Node> it = getNodeIterator();
 		 while (it.hasNext()) {
@@ -700,7 +700,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 		 String procuringSubjectString = "testRightsHolder";
 		 String objectSubjectString = "testGroup";
 		 Permission objectPermission = Permission.READ;
-		 String objectIdentifier = "TierTesting:testPerson_READ";
+		 String objectIdentifier = "TierTesting:testObject:testGroup_READ";
 		 
 		 Iterator<Node> it = getNodeIterator();
 		 while (it.hasNext()) {
@@ -770,16 +770,154 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 	 }
 	 
 	 
-	 @Ignore("test not written")
+
 	 @Test
 	 public void testIsAuthorized_vs_TestGroupWRITE() {
+		 String procuringSubjectString = "testRightsHolder";
+		 String objectSubjectString = "testGroup";
+		 Permission objectPermission = Permission.WRITE;
+		 String objectIdentifier = "TierTesting:testObject:testGroup_WRITE";
+		 
+		 Iterator<Node> it = getNodeIterator();
+		 while (it.hasNext()) {
+			 try {
+				 currentUrl = it.next().getBaseURL();
+				 D1Node d1Node = instantiateD1Node(currentUrl);
 
+				 // get or create the test object
+				 setupClientSubject(procuringSubjectString);
+				 Identifier testObject = procureTestObject(d1Node,
+						 buildAccessRule(objectSubjectString,objectPermission),
+						 buildIdentifier(objectIdentifier));
+
+				 // run tests
+				 setupClientSubject("testRightsHolder");  // should always have access
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "true");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "true");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "true");
+
+				 setupClientSubject("testPerson");			 
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "true");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "true");
+				 
+				 setupClientSubject("testMappedPerson");				 
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "true");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "true");
+
+				 
+				 setupClientSubject("testGroupie"); 
+				 // to test access as a group member (of testPerson)
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "true");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "true");
+
+				 setupClientSubject("testSubmitter");
+				 // the designated no-rights subject
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "NotAuthorized");
+				 
+				 setupClientSubject_NoCert();	 
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "NotAuthorized");
+				 
+				 
+				 setupClientSubject("testPerson_Expired");
+				 // bad credentials should always fail		 
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "InvalidToken");
+
+				 setupClientSubject("testPerson_SelfSigned");	
+				 // bad credentials should always fail			 
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "InvalidToken");
+
+
+			 } catch (Exception e) {
+				 e.printStackTrace();
+				 handleFail(currentUrl, e.getClass().getName() + ": " + e.getMessage());
+			 }
+		 }
 	 }
 	 
-	 @Ignore("test not written")	 
+	 
 	 @Test
 	 public void testIsAuthorized_vs_TestGroupCHANGE() {
+		 String procuringSubjectString = "testRightsHolder";
+		 String objectSubjectString = "testGroup";
+		 Permission objectPermission = Permission.CHANGE_PERMISSION;
+		 String objectIdentifier = "TierTesting:testObject:testPerson_CHANGE";
+		 
+		 Iterator<Node> it = getNodeIterator();
+		 while (it.hasNext()) {
+			 try {
+				 currentUrl = it.next().getBaseURL();
+				 D1Node d1Node = instantiateD1Node(currentUrl);
 
+				 // get or create the test object
+				 setupClientSubject(procuringSubjectString);
+				 Identifier testObject = procureTestObject(d1Node,
+						 buildAccessRule(objectSubjectString,objectPermission),
+						 buildIdentifier(objectIdentifier));
+
+				 // run tests
+				 setupClientSubject("testRightsHolder");  // should always have access
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "true");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "true");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "true");
+
+				 setupClientSubject("testPerson");			 
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "true");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "true");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "true");
+				 
+				 setupClientSubject("testMappedPerson");				 
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "true");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "true");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "true");
+
+				 
+				 setupClientSubject("testGroupie"); 
+				 // to test access as a group member (of testPerson)
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "true");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "true");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "true");
+
+				 setupClientSubject("testSubmitter");
+				 // the designated no-rights subject
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "NotAuthorized");
+				 
+				 setupClientSubject_NoCert();	 
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "NotAuthorized");
+				 
+				 
+				 setupClientSubject("testPerson_Expired");
+				 // bad credentials should always fail		 
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "InvalidToken");
+
+				 setupClientSubject("testPerson_SelfSigned");	
+				 // bad credentials should always fail			 
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "InvalidToken");
+
+
+			 } catch (Exception e) {
+				 e.printStackTrace();
+				 handleFail(currentUrl, e.getClass().getName() + ": " + e.getMessage());
+			 }
+		 }
 	 }
 
 	 
