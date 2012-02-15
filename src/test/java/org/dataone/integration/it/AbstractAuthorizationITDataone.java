@@ -83,7 +83,6 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 	  * The authorization tests...................................
 	  */
 
-	 @Ignore("test not ready - need to refactor how object is created")
 	 @Test
 	 public void testIsAuthorized_vs_NullPolicy_personOwner() {
 

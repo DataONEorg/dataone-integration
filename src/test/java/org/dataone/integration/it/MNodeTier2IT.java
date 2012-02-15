@@ -84,7 +84,7 @@ public class MNodeTier2IT extends AbstractAuthorizationITDataone  {
 	@Test
 	public void testIsAuthorized() 
 	{
-		setupClientSubject("testReader");
+		setupClientSubject("testPerson");
 		
 		Iterator<Node> it = getMemberNodeIterator();
 		while (it.hasNext()) {

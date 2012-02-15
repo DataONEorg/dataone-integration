@@ -771,8 +771,9 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 	InsufficientResources, InvalidSystemMetadata, NotImplemented, InvalidRequest, 
 	UnsupportedEncodingException, NotFound
 	{
-		// the default is to do all of the creates under the testOwner subject
-		return createTestObject(d1Node, pid, accessRule,"testSubmitter","testOwner");
+		// the default is to do all of the creates under the testSubmitter subject
+		// and assign rights to testRightsHolder
+		return createTestObject(d1Node, pid, accessRule,"testSubmitter","CN=testRightsHolder,DC=org,DC=dataone");
 	}
 	
 	
@@ -837,6 +838,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 			certificate = CertificateManager.getInstance().loadCertificate();
 			String submitterX500 = CertificateManager.getInstance().getSubjectDN(certificate);
 		
+//			Settings.getConfiguration().setProperty("D1Client.CN_URL", "somethingElse");
 			d1o = new D1Object(pid, contentBytes, format_text_plain, submitterX500, "bogusAuthoritativeNode");
 			sysMeta = d1o.getSystemMetadata();
 		} catch (NoSuchAlgorithmException e) {
