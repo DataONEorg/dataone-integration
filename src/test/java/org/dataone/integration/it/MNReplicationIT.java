@@ -196,7 +196,7 @@ public class MNReplicationIT extends ContextAwareTestCaseDataone {
 	protected void setup() {
 
 		// the subject nad certificate
-		subject = setupClientSubject("testOwner");
+		subject = setupClientSubject("testRightsHolder");
 		log.debug("Subject is: " + subject.getValue());
 
 		Iterator<Node> it = getMemberNodeIterator();

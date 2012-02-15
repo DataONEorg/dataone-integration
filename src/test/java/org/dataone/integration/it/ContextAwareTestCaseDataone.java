@@ -699,7 +699,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 //	 * create a test object, giving the specified subject the permissions specified.
 //	 * If permissions are null, then no access policy is setup.  If subject is null,
 //	 * the current user/subject will be used. 
-//	 * The object will be created by the testOwner, and client user will be reset
+//	 * The object will be created by the testRightsHolder, and client user will be reset
 //	 * to the one it was coming in.   
 //	 * @param d1Node - the node on which to create the object
 //	 * @param permission - the permission level to be granted to the starting/current user/subject

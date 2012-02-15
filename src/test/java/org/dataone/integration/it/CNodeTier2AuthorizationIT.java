@@ -116,7 +116,7 @@ public class CNodeTier2AuthorizationIT extends AbstractAuthorizationITDataone {
 	 */
 	@Test
 	public void testSetRightsHolder() {
-		setupClientSubject("testOwner");
+		setupClientSubject("testRightsHolder");
 		Iterator<Node> it = getCoordinatingNodeIterator();
 		while (it.hasNext()) {
 			currentUrl = it.next().getBaseURL();
@@ -138,7 +138,7 @@ public class CNodeTier2AuthorizationIT extends AbstractAuthorizationITDataone {
 					BigInteger serialVersion = smd.getSerialVersion();
 				 
 					Subject inheritor = new Subject();
-					inheritor.setValue("testReaderSubject");
+					inheritor.setValue("CN=testSubmitter,DC=dataone,DC=org");
 					Identifier response = cn.setRightsHolder(null, 
 							ol.getObjectInfo(0).getIdentifier(),
 							inheritor, serialVersion.longValue());
@@ -166,7 +166,7 @@ public class CNodeTier2AuthorizationIT extends AbstractAuthorizationITDataone {
 //		Subject me2 = getCurrentClientSubject();
 		ObjectList ol = null;
 		try {
-			ol = cn.search(null, null, "rightsHolder=");// + me.getValue());
+			ol = cn.listObjects(null);// + me.getValue());
 		} catch (InvalidToken e) {
 			//allow object list to be null
 		} catch (ServiceFailure e) {
@@ -190,7 +190,7 @@ public class CNodeTier2AuthorizationIT extends AbstractAuthorizationITDataone {
 	@Test
 	public void testIsAuthorized() 
 	{
-		setupClientSubject("testOwner");
+		setupClientSubject("testRightsHolder");
 		
 		Iterator<Node> it = getMemberNodeIterator();
 		while (it.hasNext()) {
@@ -274,7 +274,7 @@ public class CNodeTier2AuthorizationIT extends AbstractAuthorizationITDataone {
 			printTestHeader("testSetAccessPolicy() vs. node: " + currentUrl);
 
 			try {
-				String testingSubject = "testOwner";
+				String testingSubject = "testRightsHolder";
 				setupClientSubject(testingSubject);
 				
 				Identifier id = new Identifier(); id.setValue("setAccessPolicyTestObject");
@@ -307,7 +307,7 @@ public class CNodeTier2AuthorizationIT extends AbstractAuthorizationITDataone {
 
 
 					log.info("allow read permission for testReader");
-					setupClientSubject("testOwner");
+					setupClientSubject("testRightsHolder");
 					smd = cn.getSystemMetadata(null, changeableObject);
 					serialVersion = smd.getSerialVersion().longValue();
 					success = cn.setAccessPolicy(null, changeableObject, 
@@ -398,7 +398,7 @@ public class CNodeTier2AuthorizationIT extends AbstractAuthorizationITDataone {
 			printTestHeader("testSetAccessPolicy_NoCert() vs. node: " + currentUrl);
 
 			try {
-				String testingSubject = "testOwner";
+				String testingSubject = "testRightsHolder";
 				setupClientSubject(testingSubject);
 				
 				Identifier id = new Identifier(); id.setValue("setAccessPolicyTestObject");

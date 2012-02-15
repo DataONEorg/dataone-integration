@@ -603,7 +603,7 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
 	@Test
 	public void testCreate() {
 
-		setupClientSubject("testOwner");
+		setupClientSubject("testRightsHolder");
 
 		Iterator<Node> it = getMemberNodeIterator();  	
 
@@ -645,7 +645,7 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
 	@Test
     public void testCreateData_IdentifierEncoding() 
     {
-		setupClientSubject("testOwner");
+		setupClientSubject("testRightsHolder");
 		Iterator<Node> it = getMemberNodeIterator();
 		printTestHeader("Testing IdentifierEncoding - setting up identifiers to check");
 
@@ -739,7 +739,7 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
 	@Test
 	public void testRegisterSystemMetadata() {
 
-		setupClientSubject("testOwner");
+		setupClientSubject("testRightsHolder");
 
 		Iterator<Node> it = getMemberNodeIterator();  	
 

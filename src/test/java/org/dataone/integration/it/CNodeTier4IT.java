@@ -358,7 +358,7 @@ public class CNodeTier4IT extends ContextAwareTestCaseDataone {
 	
 	@Test
 	public void testSetReplicationPolicy_VersionMismatch() {
-		setupClientSubject("testOwner");
+		setupClientSubject("testRightsHolder");
 		Iterator<Node> it = getCoordinatingNodeIterator();
 		while (it.hasNext()) {
 			currentUrl = it.next().getBaseURL();
@@ -398,7 +398,7 @@ public class CNodeTier4IT extends ContextAwareTestCaseDataone {
 	
 	@Test
 	public void testSetReplicationPolicy_InvalidRequest() {
-		setupClientSubject("testOwner");
+		setupClientSubject("testRightsHolder");
 		Iterator<Node> it = getCoordinatingNodeIterator();
 		while (it.hasNext()) {
 			currentUrl = it.next().getBaseURL();
