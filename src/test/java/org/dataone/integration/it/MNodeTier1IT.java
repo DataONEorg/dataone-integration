@@ -166,47 +166,6 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     }
 	
     
-//    @Test
-//    public void testMNCore_GetOperationStatistics() {
-//		Iterator<Node> it = getMemberNodeIterator();
-//		while (it.hasNext()) {
-//			currentUrl = it.next().getBaseURL();
-//			MNode mn = D1Client.getMN(currentUrl);
-//          currentUrl = mn.getNodeBaseServiceUrl();
-//			printTestHeader("testGetOperationStatistics() vs. node: " + currentUrl);
-//		
-//				
-//			try {
-//				MonitorList ml = mn.getOperationStatistics(null, null, null, null, null, null);
-//				checkTrue(currentUrl,"getOperationStatistics returns a monitorList", ml != null);
-//
-//				// test using all optional parameters
-//				Date startTime = new Date(System.currentTimeMillis() - 10 * 60 * 1000);
-//				Date endTime = new Date(System.currentTimeMillis() - 1 * 60 * 1000);
-//				Subject requestor = new Subject();
-//				requestor.setValue("validSubject");
-//				ObjectFormatIdentifier formatId = new ObjectFormatIdentifier();
-//				formatId.setValue(format_text_csv);
-//				ml = mn.getOperationStatistics(null, startTime, endTime, requestor, Event.READ, formatId);
-//
-//			}
-//			catch (BaseException e) {
-//				handleFail(currentUrl,e.getClass().getSimpleName() + ":: " + e.getDescription());
-//			}
-//			catch(Exception e) {
-//				e.printStackTrace();
-//				handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
-//			}
-//		}	
-//    }
-
-    
-//    @Ignore("client implementation deferred")
-//    @Test
-//    public void testGetStatus() {
-//    	
-//    }
-    
     
     @Test
     public void testGetCapabilities() {

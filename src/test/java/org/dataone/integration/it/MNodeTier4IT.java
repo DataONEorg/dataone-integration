@@ -67,7 +67,7 @@ public class MNodeTier4IT extends ContextAwareTestCaseDataone {
 	@Test
 	public void testGetReplica() {
 
-		setupClientSubject("testWriter");
+		setupClientSubject("testMN");
 
 		Iterator<Node> it = getMemberNodeIterator();  	
 
@@ -104,7 +104,7 @@ public class MNodeTier4IT extends ContextAwareTestCaseDataone {
 	@Test
 	public void testGetReplica_AuthenticatedITKUser() {
 
-		setupClientSubject("testWriter");
+		setupClientSubject("testRightsHolder");
 
 		Iterator<Node> it = getMemberNodeIterator();  	
 

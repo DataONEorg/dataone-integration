@@ -20,6 +20,7 @@
 
 package org.dataone.integration.it;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.Date;
 import java.util.Iterator;
@@ -53,7 +54,7 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 	@Test
 	public void testCreate() {
 
-		setupClientSubject("testWriter");
+		setupClientSubject("testRightsHolder");
 
 		Iterator<Node> it = getMemberNodeIterator();  	
 
@@ -106,7 +107,7 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 			try {
 				Object[] dataPackage = generateTestDataPackage("mNodeTier3TestCreate",true);
 				
-				Identifier pid = mn.create(null,(Identifier) dataPackage[0],
+				mn.create(null,(Identifier) dataPackage[0],
 						(InputStream) dataPackage[1], (SystemMetadata) dataPackage[2]);			
 				handleFail(currentUrl,"should not be able to create an object if no certificate");
 			}
@@ -133,7 +134,7 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 	@Test
     public void testCreateData_IdentifierEncoding() 
     {
-		setupClientSubject("testWriter");
+		setupClientSubject("testRightsHolder");
 		Iterator<Node> it = getMemberNodeIterator();
 		printTestHeader("Testing IdentifierEncoding - setting up identifiers to check");
 
@@ -231,7 +232,7 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 	@Test
 	public void testUpdate() {
 
-		setupClientSubject("testWriter");
+		setupClientSubject("testRightsHolder");
 
 		Iterator<Node> it = getMemberNodeIterator();
 
@@ -308,7 +309,7 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 	@Test
 	public void testUpdate_badObsoletedByInfo() {
 
-		setupClientSubject("testWriter");
+		setupClientSubject("testRightsHolder");
 
 		Iterator<Node> it = getMemberNodeIterator();
 
@@ -362,7 +363,7 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 	@Test
 	public void testUpdate_badObsoletesInfo() {
 
-		setupClientSubject("testWriter");
+		setupClientSubject("testRightsHolder");
 
 		Iterator<Node> it = getMemberNodeIterator();
 
@@ -418,7 +419,7 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 		Iterator<Node> it = getMemberNodeIterator();
 
 		while ( it.hasNext() ) {
-			setupClientSubject("testWriter");
+			setupClientSubject("testRightsHolder");
 			
 			currentUrl = it.next().getBaseURL();
 			MNode mn = D1Client.getMN(currentUrl);
@@ -457,7 +458,8 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 						sysmeta                       // modified sysmeta
 						);
 		
-					handleFail(currentUrl,"should not be able to create an object if no certificate");
+					handleFail(currentUrl,"should not be able to update an object if no certificate " +
+							"(updated  " + pid + " with " + updatedPid);
 				} 
 				catch (InvalidToken na) {
 						// expected behavior
@@ -489,7 +491,7 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 		Iterator<Node> it = getMemberNodeIterator();
 
 		while ( it.hasNext() ) {
-			setupClientSubject("testWriter");
+			setupClientSubject("testRightsHolder");
 
 			currentUrl = it.next().getBaseURL();
 			MNode mn = D1Client.getMN(currentUrl);
@@ -531,7 +533,7 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 		Iterator<Node> it = getMemberNodeIterator();
 
 		while ( it.hasNext() ) {
-			setupClientSubject("testWriter");
+			setupClientSubject("testRightsHolder");
 
 			currentUrl = it.next().getBaseURL();
 			MNode mn = D1Client.getMN(currentUrl);
@@ -545,7 +547,7 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 				Identifier deletedPid = mn.delete(null, fakePid);
 
 				handleFail(currentUrl,"member node should return NotFound if pid" +
-						"to be deleted does not exist there.");
+						"to be deleted does not exist there.  Pid: " + deletedPid);
 			}
 			catch (NotFound e) {
 				// expected outcome
@@ -567,7 +569,8 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 		Iterator<Node> it = getMemberNodeIterator();
 
 		while ( it.hasNext() ) {
-			setupClientSubject("testWriter");
+			// subject under which to create the object to be deleted
+			setupClientSubject("testRightsHolder");
 
 			currentUrl = it.next().getBaseURL();
 			MNode mn = D1Client.getMN(currentUrl);
@@ -582,19 +585,24 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 				
 				setupClientSubject_NoCert();
 				// try the delete
-				Identifier deletedPid = mn.delete(null, pid);
+				mn.delete(null, pid);
 				handleFail(currentUrl,"should not be able to delete an object if no certificate");
 			}
 			catch (InvalidToken na) {
 				try {
 					setupClientSubject("testWriter");
 					InputStream is = mn.get(null, pid);	
+					try {
+						is.close();
+					} catch (IOException e) {
+					}
 				}
 				catch (BaseException e) {
 					handleFail(currentUrl,"Got InvalidToken, but couldn't perform subsequent get(). Instead: " +
 							e.getClass().getSimpleName() + ": " + e.getDetail_code() + 
 							": " + e.getDescription());
-				}
+				} 
+				
 			}
 			catch (BaseException e) {
 				handleFail(currentUrl,"Expected InvalidToken, got: " +
@@ -615,7 +623,7 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 		Iterator<Node> it = getMemberNodeIterator();
 
 		while ( it.hasNext() ) {
-			setupClientSubject("testWriter");
+			setupClientSubject("testCN");
 
 			currentUrl = it.next().getBaseURL();
 			MNode mn = D1Client.getMN(currentUrl);
@@ -649,7 +657,7 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 		Iterator<Node> it = getMemberNodeIterator();
 
 		while ( it.hasNext() ) {
-			setupClientSubject("testWriter");
+			setupClientSubject("testCN");
 
 			currentUrl = it.next().getBaseURL();
 			MNode mn = D1Client.getMN(currentUrl);

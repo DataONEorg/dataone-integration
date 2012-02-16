@@ -95,7 +95,7 @@ public class MNodeTier2IT extends AbstractAuthorizationITDataone  {
 				
 			try {
 				
-				Identifier pid = procurePublicReadableTestObject(mn); //, Permission.READ, true);
+				Identifier pid = procurePublicReadableTestObject(mn);
 				boolean success = mn.isAuthorized(null, pid, Permission.READ);
 				checkTrue(currentUrl,"isAuthorized response should never be false. [Only true or exception].", success);
 			} 

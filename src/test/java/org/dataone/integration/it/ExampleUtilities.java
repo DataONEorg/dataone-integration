@@ -181,6 +181,7 @@ public class ExampleUtilities {
     }
     
     /** Generate a SystemMetadata object with bogus data. */
+    @Deprecated
     protected static SystemMetadata generateSystemMetadata(
             Identifier pid, String objectFormatIdString, InputStream source, String mnIdentifier) {
 
@@ -193,6 +194,7 @@ public class ExampleUtilities {
     }
     
     /** Generate a SystemMetadata object with bogus data. */
+    @Deprecated
     protected static SystemMetadata generateSystemMetadata(
             Identifier pid, ObjectFormatIdentifier fmtid, InputStream source) {
 
@@ -200,6 +202,7 @@ public class ExampleUtilities {
     }
     
     /** Generate a SystemMetadata object with bogus data. */
+    @Deprecated
     protected static SystemMetadata generateSystemMetadata(
             Identifier pid, ObjectFormatIdentifier fmtid, InputStream source, String mnIdentifier) 
     {
