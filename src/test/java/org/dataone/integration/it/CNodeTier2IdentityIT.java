@@ -61,12 +61,6 @@ public class CNodeTier2IdentityIT extends ContextAwareTestCaseDataone {
 	
 
 	private static final String badIdentifier = "ThisIdentifierShouldNotExist";
-//  TODO: test against testUnicodeStrings file instead when metacat supports unicode.
-//	private static String identifierEncodingTestFile = "/d1_testdocs/encodingTestSet/testUnicodeStrings.utf8.txt";
-	private static String identifierEncodingTestFile = "/d1_testdocs/encodingTestSet/testAsciiStrings.utf8.txt";
-//	private static HashMap<String,String> StandardTests = new HashMap<String,String>();
-	private static Vector<String> testPIDEncodingStrings = new Vector<String>();
-	private static Vector<String> encodedPIDStrings = new Vector<String>();
 	
 	 private static String currentUrl;
 	private static Map<String,ObjectList> listedObjects;
@@ -78,8 +72,8 @@ public class CNodeTier2IdentityIT extends ContextAwareTestCaseDataone {
 	 */
 	@Before
 	public void setup() throws ServiceFailure {
-//		prefetchObjects();
-//		generateStandardTests();
+		prefetchObjects();
+
 	}
 
 
@@ -116,38 +110,7 @@ public class CNodeTier2IdentityIT extends ContextAwareTestCaseDataone {
 		}
 		return listedObjects.get(currentUrl).getObjectInfo(index);
 	}
-	
-	
-	public void generateStandardTests() {
 
-		if (testPIDEncodingStrings.size() == 0) {
-			System.out.println(" * * * * * * * Unicode Test Strings * * * * * * ");
-			
-			InputStream is = this.getClass().getResourceAsStream(identifierEncodingTestFile);
-			Scanner s = new Scanner(is,"UTF-8");
-			String[] temp;
-			int c = 0;
-			try
-			{
-				while (s.hasNextLine()) 
-				{
-					String line = s.nextLine();
-					if (line.startsWith("common-") || line.startsWith("path-"))
-					{
-						System.out.println(c++ + "   " + line);
-						temp = line.split("\t");
-						if (temp.length > 1)
-							testPIDEncodingStrings.add(temp[0]);
-							encodedPIDStrings.add(temp[1]);
-					}
-				}	
-				System.out.println("");
-			} finally {
-				s.close();
-			}
-			System.out.println("");
-		}
-	}
 	
 
 	@Test
@@ -159,10 +122,7 @@ public class CNodeTier2IdentityIT extends ContextAwareTestCaseDataone {
 			printTestHeader("testRegisterAccount(...) vs. node: " + currentUrl);
 
 			try {
-				ObjectInfo oi = getPrefetchedObject(currentUrl,0);    
-				log.debug("   pid = " + oi.getIdentifier());
-
-					// TODO:  fill out person object
+				// TODO:  fill out person object
 				Subject response = cn.registerAccount(null, new Person());
 				checkTrue(currentUrl,"registerAccount(...) returns a Subject object", response != null);
 				// checkTrue(currentUrl,"response cannot be false. [Only true or exception].", response);
@@ -190,9 +150,6 @@ public class CNodeTier2IdentityIT extends ContextAwareTestCaseDataone {
 			printTestHeader("testUpdateAccount(...) vs. node: " + currentUrl);
 
 			try {
-				ObjectInfo oi = getPrefetchedObject(currentUrl,0);    
-				log.debug("   pid = " + oi.getIdentifier());
-
 				Subject response = cn.updateAccount(null,new Person());
 				checkTrue(currentUrl,"updateAccount(...) returns a Subject object", response != null);
 				// checkTrue(currentUrl,"response cannot be false. [Only true or exception].", response);
@@ -220,9 +177,6 @@ public class CNodeTier2IdentityIT extends ContextAwareTestCaseDataone {
 			printTestHeader("testVerifyAccount(...) vs. node: " + currentUrl);
 
 			try {
-				ObjectInfo oi = getPrefetchedObject(currentUrl,0);    
-				log.debug("   pid = " + oi.getIdentifier());
-
 				boolean response = cn.verifyAccount(null,new Subject());
 				checkTrue(currentUrl,"response cannot be false. [Only true or exception].", response);
 			} 

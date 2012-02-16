@@ -22,9 +22,7 @@ package org.dataone.integration.it;
 
 import java.io.InputStream;
 import java.util.Date;
-import java.util.Hashtable;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.Scanner;
 import java.util.Vector;
 
@@ -35,7 +33,6 @@ import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.IdentifierNotUnique;
 import org.dataone.service.exceptions.InvalidRequest;
 import org.dataone.service.exceptions.NotFound;
-import org.dataone.service.exceptions.ServiceFailure;
 import org.dataone.service.types.v1.Checksum;
 import org.dataone.service.types.v1.ChecksumAlgorithmList;
 import org.dataone.service.types.v1.DescribeResponse;
@@ -53,9 +50,7 @@ import org.dataone.service.types.v1.ObjectList;
 import org.dataone.service.types.v1.ObjectLocationList;
 import org.dataone.service.types.v1.Permission;
 import org.dataone.service.types.v1.Subject;
-import org.dataone.service.types.v1.SubjectInfo;
 import org.dataone.service.types.v1.SystemMetadata;
-import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -70,91 +65,15 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
     private static Identifier reservedIdentifier = null;
 
 //  TODO: test against testUnicodeStrings file instead when metacat supports unicode.
-//	private static String identifierEncodingTestFile = "/d1_testdocs/encodingTestSet/testUnicodeStrings.utf8.txt";
-	private static String identifierEncodingTestFile = "/d1_testdocs/encodingTestSet/testAsciiStrings.utf8.txt";
-//	private static HashMap<String,String> StandardTests = new HashMap<String,String>();
-	private static Vector<String> testPIDEncodingStrings = new Vector<String>();
-	private static Vector<String> encodedPIDStrings = new Vector<String>();
+	private static String identifierEncodingTestFile = "/d1_testdocs/encodingTestSet/testUnicodeStrings.utf8.txt";
+//	private static String identifierEncodingTestFile = "/d1_testdocs/encodingTestSet/testAsciiStrings.utf8.txt";
+
 	
 	 private static String currentUrl;
-	private static Map<String,ObjectList> listedObjects;
   
-	/**
-	 * pre-fetch an ObjectList from each member node on the list, to allow testing gets
-	 * without creating new objects.
-	 * @throws ServiceFailure 
-	 */
-	@Before
-	public void setup() throws ServiceFailure {
-		prefetchObjects();
-		generateStandardTests();
-	}
 
 
-	public void prefetchObjects() throws ServiceFailure {
-		if (listedObjects == null) {
-			listedObjects = new Hashtable<String,ObjectList>();
-			Iterator<Node> it = getCoordinatingNodeIterator();
-			while (it.hasNext()) {
-				currentUrl = it.next().getBaseURL();
-				CNode cn = new CNode(currentUrl);
-				try {
-					ObjectList ol = cn.listObjects(null); 
-					listedObjects.put(currentUrl, ol);
-				} 
-				catch (BaseException e) {
-					handleFail(currentUrl,e.getDescription());
-				}
-				catch(Exception e) {
-					log.warn(e.getClass().getName() + ": " + e.getMessage());
-				}	
-			}
-		}
-	}
-	
-	
-	private ObjectInfo getPrefetchedObject(String currentUrl, Integer index)
-	{
-		if (index == null) 
-			index = new Integer(0);
-		if (index < 0) {
-			// return off the right end of the list
-			index = listedObjects.get(currentUrl).getCount() + index;
-		}
-		return listedObjects.get(currentUrl).getObjectInfo(index);
-	}
-	
-	
-	public void generateStandardTests() {
 
-		if (testPIDEncodingStrings.size() == 0) {
-			System.out.println(" * * * * * * * Unicode Test Strings * * * * * * ");
-			
-			InputStream is = this.getClass().getResourceAsStream(identifierEncodingTestFile);
-			Scanner s = new Scanner(is,"UTF-8");
-			String[] temp;
-			int c = 0;
-			try
-			{
-				while (s.hasNextLine()) 
-				{
-					String line = s.nextLine();
-					if (line.startsWith("common-") || line.startsWith("path-"))
-					{
-						System.out.println(c++ + "   " + line);
-						temp = line.split("\t");
-						if (temp.length > 1)
-							testPIDEncodingStrings.add(temp[0]);
-							encodedPIDStrings.add(temp[1]);
-					}
-				}	
-				System.out.println("");
-			} finally {
-				s.close();
-			}
-			System.out.println("");
-		}
-	}
 	
 	/**
 	 * tests that a valid date is returned from ping
@@ -334,7 +253,7 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
 
            try {
         	   Log eventLog = cn.getLogRecords(null, fromDate, null, null, null, null);
-        	   checkTrue(currentUrl,"getOperationStatistics returns a log datatype", eventLog != null);
+        	   checkTrue(currentUrl,"getLogRecords should return a log datatype", eventLog != null);
         	   
         	   // check that log events are created
         	   Identifier pid = new Identifier();
@@ -348,7 +267,7 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
         				   + "on node: " + currentUrl);
         	   }
         	   if (canCreate) { 
- //       		     pid = ExampleUtilities.doCreateNewObject(cn, idPrefix);
+        		     pid = ExampleUtilities.doCreateNewObject(cn, "TierTesting:");
         		   Date toDate = new Date(System.currentTimeMillis());
         		   log.info("toDate is: " + toDate);
 
@@ -472,11 +391,9 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
     		printTestHeader("testGenerateIdentifier(...) vs. node: " + currentUrl);
 
     		try {
-    			ObjectInfo oi = getPrefetchedObject(currentUrl,0);    
-    			log.debug("   pid = " + oi.getIdentifier());
     			String fragment = "CNodeTier1Test";
     			Identifier response = cn.generateIdentifier(null,"DOI",fragment);
-    			checkTrue(currentUrl,"generateIdentifier(...) should return a Identifier object" +
+    			checkTrue(currentUrl,"generateIdentifier(...) should return an Identifier object" +
     					"containing the given fragment", response.getValue().contains(fragment));
     		} 
     		catch (IndexOutOfBoundsException e) {
@@ -506,8 +423,6 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
     		printTestHeader("testGenerateIdentifier(...) vs. node: " + currentUrl);
 
     		try {
-    			ObjectInfo oi = getPrefetchedObject(currentUrl,0);    
-    			log.debug("   pid = " + oi.getIdentifier());
     			String fragment = "CNodeTier1Test";
     			Identifier response = cn.generateIdentifier(null,"bloip",fragment);
     			handleFail(currentUrl,"generateIdentifier(...) with a bogus scheme should" +
@@ -652,8 +567,7 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
 		// get identifiers to check with
 		Vector<String> unicodeString = new Vector<String>();
 		Vector<String> escapedString = new Vector<String>();
-		InputStream is = this.getClass().getResourceAsStream("/d1_testdocs/encodingTestSet/testUnicodeStrings.utf8.txt");
-		//InputStream is = this.getClass().getResourceAsStream("/d1_testdocs/encodingTestSet/testAsciiStrings.utf8.txt");
+		InputStream is = this.getClass().getResourceAsStream(identifierEncodingTestFile);
 		Scanner s = new Scanner(is,"UTF-8");
 		String[] temp;
 		int c = 0;
@@ -972,10 +886,11 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
     		printTestHeader("testResolve(...) vs. node: " + currentUrl);
 
     		try {
-    			ObjectInfo oi = getPrefetchedObject(currentUrl,1);    
-    			log.debug("   pid = " + oi.getIdentifier());
+    			ObjectList ol = procureObjectList(cn);
+    			Identifier pid = ol.getObjectInfo(0).getIdentifier();
+    			log.debug("   pid = " + pid.getValue());
 
-    			ObjectLocationList response = cn.resolve(null,oi.getIdentifier());
+    			ObjectLocationList response = cn.resolve(null,pid);
     			checkTrue(currentUrl,"resolve(...) returns a ObjectLocationList object",
     					response != null && response instanceof ObjectLocationList);
     		} 

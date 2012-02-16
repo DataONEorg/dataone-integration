@@ -42,6 +42,7 @@ import org.dataone.service.types.v1.Permission;
 import org.dataone.service.types.v1.Subject;
 import org.dataone.service.types.v1.SystemMetadata;
 import org.dataone.service.types.v1.util.AccessUtil;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -66,54 +67,47 @@ public class CNodeTier2AuthorizationIT extends AbstractAuthorizationITDataone {
 	}
 
 	
-//	/**
-//	 * pre-fetch an ObjectList from each member node on the list, to allow testing gets
-//	 * without creating new objects.
-//	 * @throws ServiceFailure 
-//	 */
-//	@Before
-//	public void setup() throws ServiceFailure {
-////		prefetchObjects();
-//	}
-//
+	/**
+	 * A basic test Tests the dataONE service API isAuthorized() method, checking for Read 
+	 * permission on the first object returned from the Tier1 listObjects() method.  
+	 * Anything other than the boolean true is considered a test failure.
+	 */
+	@Test
+	public void testIsAuthorized() 
+	{
+		setupClientSubject("testPerson");
+		
+		Iterator<Node> it = getCoordinatingNodeIterator();
+		while (it.hasNext()) {
+			currentUrl = it.next().getBaseURL();
+			CNode cn = new CNode(currentUrl);
+			currentUrl = cn.getNodeBaseServiceUrl();
+			printTestHeader("testIsAuthorized() vs. node: " + currentUrl);
+				
+			try {
+				
+				Identifier pid = procurePublicReadableTestObject(cn);
+				boolean success = cn.isAuthorized(null, pid, Permission.READ);
+				checkTrue(currentUrl,"isAuthorized response should never be false. [Only true or exception].", success);
+			} 
+    		catch (BaseException e) {
+				handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
+						e.getDetail_code() + ": " + e.getDescription());
+			}
+			catch(Exception e) {
+				e.printStackTrace();
+				handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+			}	
+		}
+	}
+	
 
-//	public void prefetchObjects() throws ServiceFailure {
-//		if (listedObjects == null) {
-//			listedObjects = new Hashtable<String,ObjectList>();
-//			Iterator<Node> it = getCoordinatingNodeIterator();
-//			while (it.hasNext()) {
-//				currentUrl = it.next().getBaseURL();
-//				CNode cn = new CNode(currentUrl);
-//				try {
-//					ObjectList ol = cn.listObjects(null);
-//					listedObjects.put(currentUrl, ol);
-//				} 
-//				catch (BaseException e) {
-//					handleFail(currentUrl,e.getDescription());
-//				}
-//				catch(Exception e) {
-//					log.warn(e.getClass().getName() + ": " + e.getMessage());
-//				}	
-//			}
-//		}
-//	}
-//	
-//	
-//	private ObjectInfo getPrefetchedObject(String currentUrl, Integer index)
-//	{
-//		if (index == null) 
-//			index = new Integer(0);
-//		if (index < 0) {
-//			// return off the right end of the list
-//			index = listedObjects.get(currentUrl).getCount() + index;
-//		}
-//		return listedObjects.get(currentUrl).getObjectInfo(index);
-//	}
 	
 	/**
 	 * Requirements: an object whose rightsHolder can be changed without
 	 * upsetting other authorization tests.	
 	 */
+	@Ignore("test needs review")
 	@Test
 	public void testSetRightsHolder() {
 		setupClientSubject("testRightsHolder");
@@ -182,73 +176,8 @@ public class CNodeTier2AuthorizationIT extends AbstractAuthorizationITDataone {
 	}
 	
 	
-	/**
-	 * Tests the dataONE service API isAuthorized() method, checking for Read 
-	 * permission on the first object returned from the Tier1 listObjects() method.  
-	 * Anything other than the boolean true is considered a test failure.
-	 */
-	@Test
-	public void testIsAuthorized() 
-	{
-		setupClientSubject("testRightsHolder");
-		
-		Iterator<Node> it = getMemberNodeIterator();
-		while (it.hasNext()) {
-			currentUrl = it.next().getBaseURL();
-			MNode mn = D1Client.getMN(currentUrl);
-			currentUrl = mn.getNodeBaseServiceUrl();
-			printTestHeader("testIsAuthorized() vs. node: " + currentUrl);
-				
-			try {	
-				Identifier pid = procurePublicReadableTestObject(mn); //, null, Permission.READ, true);
-				boolean success = mn.isAuthorized(null, pid, Permission.READ);
-				checkTrue(currentUrl,"isAuthorized response should never be false. [Only true or exception].", success);
-			} 
-    		catch (IndexOutOfBoundsException e) {
-    			handleFail(currentUrl,"No Objects available to test against");
-    		}
-    		catch (BaseException e) {
-				handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
-						e.getDetail_code() + ": " + e.getDescription());
-			}
-			catch(Exception e) {
-				e.printStackTrace();
-				handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
-			}	
-		}
-	}
 	
-	
-//	@Test
-//	public void testIsAuthorized() {
-//		Iterator<Node> it = getCoordinatingNodeIterator();
-//		while (it.hasNext()) {
-//			currentUrl = it.next().getBaseURL();
-//			CNode cn = new CNode(currentUrl);
-//			printTestHeader("testIsAuthorized(...) vs. node: " + currentUrl);
-//
-//			try {
-//				ObjectInfo oi = getPrefetchedObject(currentUrl,0);    
-//				log.debug("   pid = " + oi.getIdentifier());
-//
-//				boolean response = cn.isAuthorized();
-//				checkTrue(currentUrl,"isAuthorized(...) returns a boolean object", response != null);
-//				// checkTrue(currentUrl,"response cannot be false. [Only true or exception].", response);
-//			} 
-//			catch (IndexOutOfBoundsException e) {
-//				handleFail(currentUrl,"No Objects available to test against");
-//			}
-//			catch (BaseException e) {
-//				handleFail(currentUrl,e.getDescription());
-//			}
-//			catch(Exception e) {
-//				e.printStackTrace();
-//				handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
-//			}
-//		}
-//	}
-	
- 
+
 
 	
     /**
@@ -258,6 +187,7 @@ public class CNodeTier2AuthorizationIT extends AbstractAuthorizationITDataone {
 	 * on the first object returned from the Tier1 listObjects() method.  
 	 * Anything other than the boolean true is considered a test failure.
 	 */
+	@Ignore("test needs review")
     @Test
 	public void testSetAccessPolicy() 
     {	
@@ -387,6 +317,7 @@ public class CNodeTier2AuthorizationIT extends AbstractAuthorizationITDataone {
 	 * <p>
 	 * Anything other than the boolean true is considered a test failure.
 	 */
+	@Ignore("test needs review")
     @Test
 	public void testSetAccessPolicy_NoCert() 
     {	
@@ -519,38 +450,7 @@ public class CNodeTier2AuthorizationIT extends AbstractAuthorizationITDataone {
 		}
 	}	
 	
-	
-	
-	// ---------------------------------------------------------------------------------------
-//	@Test
-//	public void testIsAuthorized() {
-//		Iterator<Node> it = getCoordinatingNodeIterator();
-//		while (it.hasNext()) {
-//			currentUrl = it.next().getBaseURL();
-//			CNode cn = new CNode(currentUrl);
-//			printTestHeader("testIsAuthorized(...) vs. node: " + currentUrl);
-//
-//			try {
-//				ObjectInfo oi = getPrefetchedObject(currentUrl,0);    
-//				log.debug("   pid = " + oi.getIdentifier());
-//
-//				boolean response = cn.isAuthorized();
-//				checkTrue(currentUrl,"isAuthorized(...) returns a boolean object", response != null);
-//				// checkTrue(currentUrl,"response cannot be false. [Only true or exception].", response);
-//			} 
-//			catch (IndexOutOfBoundsException e) {
-//				handleFail(currentUrl,"No Objects available to test against");
-//			}
-//			catch (BaseException e) {
-//				handleFail(currentUrl,e.getDescription());
-//			}
-//			catch(Exception e) {
-//				e.printStackTrace();
-//				handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
-//			}
-//		}
-//	}
-//
+
 //
 //	@Test
 //	public void testSetAccessPolicy() {
