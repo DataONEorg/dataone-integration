@@ -6,6 +6,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import java.io.IOException;
 import java.security.Principal;
 import java.security.cert.X509Certificate;
 import java.text.DateFormat;
@@ -16,8 +17,10 @@ import javax.security.auth.x500.X500Principal;
 
 import org.dataone.client.auth.CertificateManager;
 import org.dataone.configuration.Settings;
+import org.dataone.service.types.v1.Person;
 import org.dataone.service.types.v1.Subject;
 import org.dataone.service.types.v1.SubjectInfo;
+import org.jibx.runtime.JiBXException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -34,13 +37,6 @@ public class ContextAwareTestCaseDataoneTest {
 		// do nothing except override the setUp method in the base class
 		// which is not needed here (cannot be called)
 	}
-	
-	@Test
-	public void testTrue() throws Exception
-	{
-		assertTrue(true);
-	}
-	
 
 	@Test
 	public void testSetupClientSubject_Person() throws Exception
@@ -77,7 +73,7 @@ public class ContextAwareTestCaseDataoneTest {
 		Subject s = ContextAwareTestCaseDataone.setupClientSubject(testSubject);
 		String modifiedTestSubjectValue = testSubject.replaceAll("_\\w+", "");  // removes the _Expired or _SelfSigned
 		System.out.println("subject is: " + s.getValue());
-		assertEquals("DC=org,DC=dataone,CN=" + modifiedTestSubjectValue, s.getValue());
+		assertEquals(s.getValue(), "CN=" + modifiedTestSubjectValue + ",DC=dataone,DC=org");
 
 		java.security.cert.X509Certificate cert = CertificateManager.getInstance().loadCertificate();
 		System.out.println(" Issuer: " + cert.getIssuerX500Principal().getName(X500Principal.RFC2253));
@@ -122,11 +118,12 @@ public class ContextAwareTestCaseDataoneTest {
 		Subject s = ContextAwareTestCaseDataone.setupClientSubject(testSubject);
 		String modifiedTestSubjectValue = testSubject.replaceAll("_\\w+", "");  // removes the _Expired or _SelfSigned
 		System.out.println("subject is: " + s.getValue());
-		assertEquals("DC=org,DC=dataone,CN=" + modifiedTestSubjectValue, s.getValue());
+		assertEquals(s.getValue(), "CN=" + modifiedTestSubjectValue + ",DC=dataone,DC=org");
 
 		java.security.cert.X509Certificate cert = CertificateManager.getInstance().loadCertificate();
 		System.out.println(" Issuer: " + cert.getIssuerX500Principal().getName(X500Principal.RFC2253));
 
+		// check the exiration dates
 		Date notBefore = cert.getNotBefore(); 
 		DateFormat fmt = SimpleDateFormat.getDateTimeInstance();
 		System.out.println("   From: " + fmt.format(notBefore));
@@ -138,8 +135,20 @@ public class ContextAwareTestCaseDataoneTest {
 		expirationHorizon.add(Calendar.MONTH,1);
 		assertTrue("certificate should not be expired", !expirationHorizon.after(notAfter));
 
+		/////////////////////////
+		// check the subjectInfo
+		////////////////////////
 		CertificateManager cm = CertificateManager.getInstance();
 		SubjectInfo si = cm.getSubjectInfo(cm.loadCertificate());
 		assertNotNull("subjectInfo should not be null",si);
+		boolean foundSelf = false;
+		for (Person p: si.getPersonList()) {
+			System.out.println("si person: " + p.getSubject().getValue());
+			if (p.getSubject().equals(s)) {
+				foundSelf = true;
+			}
+		}
+		assertTrue("certificate's subject info contains person matching self", foundSelf);
+		
 	}
 }

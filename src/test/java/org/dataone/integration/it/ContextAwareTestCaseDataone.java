@@ -275,16 +275,28 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 	 */
 	protected static Subject setupClientSubject(String subjectName) 
 	{		
+		
+		// 1. set up the client certificate
 		String testCertDirectory = (String) Settings.getConfiguration().getProperty("d1.test.cert.location");	
 		
 		URL url = ContextAwareTestCaseDataone.class.getClassLoader().getResource(testCertDirectory + subjectName +".crt");
-		CertificateManager.getInstance().setCertificateLocation(url.getPath());
 		
-		String subjectDN = CertificateManager.getInstance().loadCertificate().getSubjectDN().toString();
-		Subject subject = new Subject();
-		subject.setValue(subjectDN);
-		log.info("client setup as Subject: " + subjectDN);
-		return subject;
+		CertificateManager cm = CertificateManager.getInstance();
+		cm.setCertificateLocation(url.getPath());
+		cm.loadCertificate();
+
+		// 2. return the subject corresponding to the loaded certificate		
+		Subject clientSubject = ClientIdentityManager.getCurrentIdentity();
+
+// this section seems to be wrong, calling the wrong getSubjectDN()		
+//		 = CertificateManager.getInstance().loadCertificate().getSubjectDN().toString();
+//		 String subjectDN = 
+//		Subject subject = new Subject();
+//		subject.setValue(subjectDN);
+		
+		
+		log.info("client setup as Subject: " + clientSubject.getValue());
+		return clientSubject;
 	}
 	
 
