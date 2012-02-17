@@ -202,7 +202,7 @@ public class MNodeTier4IT extends ContextAwareTestCaseDataone {
 			NodeReference sourceNode = new NodeReference();
 			sourceNode.setValue("bad");
 			try {
-				Object[] dataPackage = generateTestDataPackage("mNodeTier4", true);				
+				Object[] dataPackage = ExampleUtilities.generateTestSciDataPackage("mNodeTier4", true);				
 				mn.replicate(null, (SystemMetadata) dataPackage[2], sourceNode);	
 				handleFail(currentUrl,"should not be able to initiate replication without a certificate");
 			}
@@ -242,7 +242,7 @@ public class MNodeTier4IT extends ContextAwareTestCaseDataone {
 			NodeReference sourceNode = new NodeReference();
 			sourceNode.setValue("bad");
 			try {
-				Object[] dataPackage = generateTestDataPackage("mNodeTier4", true);
+				Object[] dataPackage = ExampleUtilities.generateTestSciDataPackage("mNodeTier4", true);
 				mn.replicate(null, (SystemMetadata) dataPackage[2], sourceNode);	
 				handleFail(currentUrl,"replicate call should not succeed with faulty node reference");
 			}

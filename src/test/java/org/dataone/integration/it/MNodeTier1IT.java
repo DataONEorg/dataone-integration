@@ -278,7 +278,8 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
 
     				for (ObjectInfo oi: ol.getObjectInfoList()) {
     					if (oi.getIdentifier().equals(excludedObjectInfo.getIdentifier())) {
-    						handleFail(currentUrl,"identifier " + excludedObjectInfo.getIdentifier() +
+    						handleFail(currentUrl,"identifier " + excludedObjectInfo.getIdentifier().getValue() +
+    								" with sysMetaModified date of " + excludedObjectInfo.getDateSysMetadataModified() +
     								" should not be in the objectList where startTime set to " + startTime);
     					}
     				}

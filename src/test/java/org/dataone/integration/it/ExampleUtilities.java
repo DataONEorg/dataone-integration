@@ -23,11 +23,13 @@ package org.dataone.integration.it;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -43,9 +45,12 @@ import java.util.regex.Pattern;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 
+import org.apache.commons.io.IOUtils;
 import org.dataone.client.CNode;
 import org.dataone.client.D1Node;
+import org.dataone.client.D1Object;
 import org.dataone.client.MNode;
+import org.dataone.client.auth.CertificateManager;
 import org.dataone.service.exceptions.IdentifierNotUnique;
 import org.dataone.service.exceptions.InsufficientResources;
 import org.dataone.service.exceptions.InvalidRequest;
@@ -66,6 +71,7 @@ import org.dataone.service.types.v1.NodeType;
 import org.dataone.service.types.v1.ObjectFormatIdentifier;
 import org.dataone.service.types.v1.ObjectLocation;
 import org.dataone.service.types.v1.ObjectLocationList;
+import org.dataone.service.types.v1.Permission;
 import org.dataone.service.types.v1.Person;
 import org.dataone.service.types.v1.Replica;
 import org.dataone.service.types.v1.ReplicationStatus;
@@ -75,8 +81,10 @@ import org.dataone.service.types.v1.Subject;
 import org.dataone.service.types.v1.SubjectInfo;
 import org.dataone.service.types.v1.SubjectList;
 import org.dataone.service.types.v1.SystemMetadata;
+import org.dataone.service.types.v1.util.AccessUtil;
 import org.dataone.service.types.v1.util.ChecksumUtil;
 import org.dataone.service.types.v1.util.NodelistUtil;
+import org.dataone.service.util.Constants;
 
 
 /**
@@ -86,7 +94,136 @@ public class ExampleUtilities {
 	
 	public static final String CHECKSUM_ALGORITHM = "MD5";
 	
+	// common object formats to test
+	protected static final String FORMAT_TEXT_PLAIN  = "text/plain";
+	protected static final String FORMAT_TEXT_CSV    = "text/csv";
+	protected static final String FORMAT_EML_2_0_0   = "eml://ecoinformatics.org/eml-2.0.0";
+	protected static final String FORMAT_EML_2_0_1   = "eml://ecoinformatics.org/eml-2.0.1";
+	protected static final String FORMAT_EML_2_1_0   = "eml://ecoinformatics.org/eml-2.1.0";
+	protected static final String FORMAT_EML_2_1_1   = "eml://ecoinformatics.org/eml-2.1.1";
+
+	// paths to common science data and metadata examples for the above formats
+	protected static final String SCIDATA_TEXT_PLAIN = "/d1_testdocs/eml200/IPCC.200802107062739.1"; 
+	protected static final String SCIDATA_TEXT_CSV   = "/d1_testdocs/eml201/TPT001_018MHP2000R00_20110121.40.1.csv"; 
+	protected static final String SCIMETA_EML_2_0_0  = "/d1_testdocs/eml201/dpennington.195.2"; 
+	protected static final String SCIMETA_EML_2_0_1  = "/d1_testdocs/eml201/TPT001_018MHP2000R00_20110121.50.1.xml"; 
+	protected static final String SCIMETA_EML_2_1_0  = "/d1_testdocs/eml201/peggym.130.4"; 
+	// TODO: protected static final String SCIMETA_EML_2_1_1  = "need to get a 2.1.1 test doc"; 
+	
+	
 	protected final static String preferredMNId = "c3p0";
+
+	
+
+	/**
+	 * creates the identifier, data inputstream, and sysmetadata for testing purposes
+	 * the rightsHolder is set to the subject of the current certificate (user)
+	 * 
+	 * uses a default text/plain data source
+	 */
+    public static Object[] generateTestSciDataPackage(String idString, boolean isPrefix)
+        throws NoSuchAlgorithmException, NotFound, InvalidRequest, IOException {
+        
+        return generateTestDataPackage(idString, isPrefix, FORMAT_TEXT_PLAIN);
+    }
+    
+	/**
+	 * creates the identifier, data inputstream, and sysmetadata for testing purposes
+	 * the rightsHolder is set to the subject of the current certificate (user)
+	 * 
+	 * uses a default text/plain data source
+	 */
+    public static Object[] generateTestSciMetaDataPackage(String idString, boolean isPrefix)
+        throws NoSuchAlgorithmException, NotFound, InvalidRequest, IOException {
+        
+        return generateTestDataPackage(idString, isPrefix, SCIMETA_EML_2_1_0);
+    }
+  
+    
+    /**
+     * Provides a byte array representation of the object for the specified format
+     * Accepts any of the types defined as constants in ExampleUtilities.  eg:
+     * ExampleUtilities.FORMAT_EML_2_0_0
+     * @param formatIDString
+     * @return
+     * @throws IOException
+     */
+    public static byte[] getExampleObjectOfType(String formatIDString) throws IOException 
+    {
+        byte[] contentBytes = null;
+        InputStream fileStream = null;
+        
+        // choose a test object file based on the object format passed in
+        if ( formatIDString == FORMAT_TEXT_PLAIN ) {
+            fileStream = ExampleUtilities.class.getResourceAsStream(SCIDATA_TEXT_PLAIN);
+            
+        } else if ( formatIDString == FORMAT_EML_2_0_0 ) {
+            fileStream = ExampleUtilities.class.getResourceAsStream(SCIMETA_EML_2_0_0);
+
+        } else if ( formatIDString == FORMAT_EML_2_0_1 ) {
+            fileStream = ExampleUtilities.class.getResourceAsStream(SCIMETA_EML_2_0_1);
+
+        } else if ( formatIDString == FORMAT_EML_2_1_0 ) {
+            fileStream = ExampleUtilities.class.getResourceAsStream(SCIMETA_EML_2_1_0);
+        
+        //TODO: get an EML 2.1.1 test doc in place
+        //} else if ( formatIDString == FORMAT_EML_2_1_1 ) {
+        //    fileStream = ExampleUtilities.class.getResourceAsStream(SCIMETA_EML_2_1_1);
+        }   
+        
+        contentBytes = IOUtils.toByteArray(fileStream); 
+        return contentBytes;
+    }
+    
+	
+  /**
+   * creates the identifier, data inputstream, and sysmetadata for testing purposes
+   * the rightsHolder is set to the subject of the current certificate (user)
+   */
+    public static Object[] generateTestDataPackage(String idString,
+        boolean isPrefix, String formatString)
+        throws NoSuchAlgorithmException, NotFound, InvalidRequest, IOException {
+        
+        if (isPrefix) {
+            idString += generateIdentifier();
+        }
+        Identifier guid = new Identifier();
+        guid.setValue(idString);
+
+      
+        byte[] contentBytes = getExampleObjectOfType(formatString);        
+        
+        // figure out who we are
+        String ownerX500 = idString + "_unknownCert";
+        try {
+            X509Certificate certificate = CertificateManager.getInstance()
+                    .loadCertificate();
+            if (certificate != null) {
+                ownerX500 = CertificateManager.getInstance().getSubjectDN(
+                        certificate);
+                // sysMeta.getRightsHolder().setValue(ownerX500);
+                // sysMeta.getSubmitter().setValue(ownerX500);
+            }
+        } catch (Exception e) {
+            // ignore
+        }
+
+        D1Object d1o = new D1Object(guid, contentBytes, formatString,
+                ownerX500, "authNode");
+        SystemMetadata sysMeta = d1o.getSystemMetadata();
+
+        // match the submitter as the cert DN
+
+        sysMeta.setAccessPolicy(AccessUtil.createSingleRuleAccessPolicy(
+                new String[] { Constants.SUBJECT_PUBLIC },
+                new Permission[] { Permission.READ }));
+
+        ByteArrayInputStream bis = new ByteArrayInputStream(d1o.getData());
+        return new Object[] { guid, bis, sysMeta };
+    }  
+	
+	
+	
 	
 
 	/**

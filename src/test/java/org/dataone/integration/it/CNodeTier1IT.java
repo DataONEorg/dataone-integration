@@ -529,7 +529,7 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
 			printTestHeader("testCreate() vs. node: " + currentUrl);
 
 			try {
-				Object[] dataPackage = generateTestDataPackage("cNodeTier1TestCreate",true);				
+				Object[] dataPackage = ExampleUtilities.generateTestSciMetaDataPackage("cNodeTier1TestCreate",true);				
 				Identifier pid = cn.create(null,(Identifier) dataPackage[0],
 						(InputStream) dataPackage[1], (SystemMetadata) dataPackage[2]);	
 				
@@ -611,7 +611,7 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
 					String idStringEscaped = idPrefix  + ExampleUtilities.generateIdentifier() + "_" + escapedString.get(j);
 
 
-					Object[] dataPackage = generateTestDataPackage(idStringEscaped,false);
+					Object[] dataPackage = ExampleUtilities.generateTestSciMetaDataPackage(idStringEscaped,false);
 
 					// rGuid is either going to be the escaped ID or the non-escaped ID
 					Identifier rGuid = null;
@@ -664,7 +664,7 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
 			printTestHeader("testCreate() vs. node: " + currentUrl);
 
 			try {
-				Object[] dataPackage = generateTestDataPackage("cNodeTier1TestCreate",true);
+				Object[] dataPackage = ExampleUtilities.generateTestSciMetaDataPackage("cNodeTier1TestCreate",true);
 				SystemMetadata smd = (SystemMetadata) dataPackage[2];
 				Identifier pid = cn.registerSystemMetadata(null,(Identifier) dataPackage[0], smd);	
 				

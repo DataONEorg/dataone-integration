@@ -65,7 +65,7 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 			printTestHeader("testCreate() vs. node: " + currentUrl);
 
 			try {
-				Object[] dataPackage = generateTestDataPackage("mNodeTier3TestCreate",true);				
+				Object[] dataPackage = ExampleUtilities.generateTestSciDataPackage("mNodeTier3TestCreate", true);
 				Identifier pid = mn.create(null,(Identifier) dataPackage[0],
 						(InputStream) dataPackage[1], (SystemMetadata) dataPackage[2]);	
 				
@@ -105,7 +105,7 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 			printTestHeader("testCreate_NoCert() vs. node: " + currentUrl);
 
 			try {
-				Object[] dataPackage = generateTestDataPackage("mNodeTier3TestCreate",true);
+				Object[] dataPackage = ExampleUtilities.generateTestSciDataPackage("mNodeTier3TestCreate",true);
 				
 				mn.create(null,(Identifier) dataPackage[0],
 						(InputStream) dataPackage[1], (SystemMetadata) dataPackage[2]);			
@@ -186,7 +186,7 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 					String idStringEscaped = idPrefix  + ExampleUtilities.generateIdentifier() + "_" + escapedString.get(j);
 
 
-					Object[] dataPackage = generateTestDataPackage(idStringEscaped,false);
+					Object[] dataPackage = ExampleUtilities.generateTestSciDataPackage(idStringEscaped,false);
 
 					// rGuid is either going to be the escaped ID or the non-escaped ID
 					Identifier rGuid = null;
@@ -245,7 +245,7 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 
 			
 			try {
-				Object[] dataPackage = generateTestDataPackage("mNodeTier3TestUpdate",true);
+				Object[] dataPackage = ExampleUtilities.generateTestSciDataPackage("mNodeTier3TestUpdate",true);
 				
 				Identifier originalPid = mn.create(null,(Identifier) dataPackage[0],
 						(InputStream) dataPackage[1], (SystemMetadata) dataPackage[2]);
@@ -256,7 +256,7 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 				Thread.sleep(100);
 				
 				// create the new data package to update with. 
-				dataPackage = generateTestDataPackage("mNodeTier3TestUpdate",true);
+				dataPackage = ExampleUtilities.generateTestSciDataPackage("mNodeTier3TestUpdate",true);
 				Identifier newPid = (Identifier) dataPackage[0];
 				
 				// do the update
@@ -322,13 +322,13 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 
 			
 			try {
-				Object[] dataPackage = generateTestDataPackage("mNodeTier3TestUpdate",true);
+				Object[] dataPackage = ExampleUtilities.generateTestSciDataPackage("mNodeTier3TestUpdate",true);
 				
 				Identifier originalPid = mn.create(null,(Identifier) dataPackage[0],
 						(InputStream) dataPackage[1], (SystemMetadata) dataPackage[2]);
 				
 				// create the new data package to update with. 
-				dataPackage = generateTestDataPackage("mNodeTier3TestUpdate",true);
+				dataPackage = ExampleUtilities.generateTestSciDataPackage("mNodeTier3TestUpdate",true);
 				Identifier newPid = (Identifier) dataPackage[0];
 				
 				//  incorrectly set the obsoletedBy property instead of obsoletes
@@ -376,13 +376,13 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 
 			
 			try {
-				Object[] dataPackage = generateTestDataPackage("mNodeTier3TestUpdate",true);
+				Object[] dataPackage = ExampleUtilities.generateTestSciDataPackage("mNodeTier3TestUpdate",true);
 				
 				Identifier originalPid = mn.create(null,(Identifier) dataPackage[0],
 						(InputStream) dataPackage[1], (SystemMetadata) dataPackage[2]);
 				
 				// create the new data package to update with. 
-				dataPackage = generateTestDataPackage("mNodeTier3TestUpdate",true);
+				dataPackage = ExampleUtilities.generateTestSciDataPackage("mNodeTier3TestUpdate",true);
 				Identifier newPid = (Identifier) dataPackage[0];
 				
 				//  incorrectly set the obsoletedBy property instead of obsoletes
@@ -428,13 +428,13 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 
 			
 			try {
-				Object[] dataPackage = generateTestDataPackage("mNodeTier3TestUpdate",true);
+				Object[] dataPackage = ExampleUtilities.generateTestSciDataPackage("mNodeTier3TestUpdate",true);
 				SystemMetadata sysmeta = (SystemMetadata) dataPackage[2];
 				Identifier pid = mn.create(null,(Identifier) dataPackage[0],
 						(InputStream) dataPackage[1], sysmeta);
 				
 				// create the new data package to update with
-				dataPackage = generateTestDataPackage("mNodeTier3TestUpdate",true);
+				dataPackage = ExampleUtilities.generateTestSciDataPackage("mNodeTier3TestUpdate",true);
 				
 				// TODO: reinstated the checks when obsolete behavior refactored.
 				// update the obsoletesList
@@ -500,7 +500,7 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 
 			Identifier pid = null;
 			try {
-				Object[] dataPackage = generateTestDataPackage("mNodeTier3TestDelete",true);
+				Object[] dataPackage = ExampleUtilities.generateTestSciDataPackage("mNodeTier3TestDelete",true);
 				pid = mn.create(null,(Identifier) dataPackage[0],
 						(InputStream) dataPackage[1], (SystemMetadata) dataPackage[2]);
 				
@@ -579,7 +579,7 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 
 			Identifier pid = null;
 			try {
-				Object[] dataPackage = generateTestDataPackage("mNodeTier3TestDelete",true);
+				Object[] dataPackage = ExampleUtilities.generateTestSciDataPackage("mNodeTier3TestDelete",true);
 				pid = mn.create(null,(Identifier) dataPackage[0],
 						(InputStream) dataPackage[1], (SystemMetadata) dataPackage[2]);
 				
@@ -631,7 +631,7 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 			printTestHeader("testSystemMetadataChanged() vs. node: " + currentUrl);
 		
 			try {
-				Object[] dataPackage = generateTestDataPackage("mNodeTier3TestDelete",true);
+				Object[] dataPackage = ExampleUtilities.generateTestSciDataPackage("mNodeTier3TestDelete",true);
 		
 				Identifier pid = mn.create(null,(Identifier) dataPackage[0],
 						(InputStream) dataPackage[1], (SystemMetadata) dataPackage[2]);
@@ -665,7 +665,7 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 			printTestHeader("testSystemMetadataChanged_authITKuser() vs. node: " + currentUrl);
 		
 			try {
-				Object[] dataPackage = generateTestDataPackage("mNodeTier3",true);
+				Object[] dataPackage = ExampleUtilities.generateTestSciDataPackage("mNodeTier3",true);
 		
 				Identifier pid = mn.create(null,(Identifier) dataPackage[0],
 						(InputStream) dataPackage[1], (SystemMetadata) dataPackage[2]);

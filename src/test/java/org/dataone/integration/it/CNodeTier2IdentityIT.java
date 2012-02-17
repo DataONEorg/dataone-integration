@@ -100,16 +100,18 @@ public class CNodeTier2IdentityIT extends ContextAwareTestCaseDataone {
 	}
 	
 	
-	private ObjectInfo getPrefetchedObject(String currentUrl, Integer index)
-	{
-		if (index == null) 
-			index = new Integer(0);
-		if (index < 0) {
-			// return off the right end of the list
-			index = listedObjects.get(currentUrl).getCount() + index;
-		}
-		return listedObjects.get(currentUrl).getObjectInfo(index);
-	}
+	//TODO:  not sure if prefetched objects are needed
+	
+//	private ObjectInfo getPrefetchedObject(String currentUrl, Integer index)
+//	{
+//		if (index == null) 
+//			index = new Integer(0);
+//		if (index < 0) {
+//			// return off the right end of the list
+//			index = listedObjects.get(currentUrl).getCount() + index;
+//		}
+//		return listedObjects.get(currentUrl).getObjectInfo(index);
+//	}
 
 	
 
@@ -193,9 +195,9 @@ public class CNodeTier2IdentityIT extends ContextAwareTestCaseDataone {
 		}
 	}
 
-
-//	@Test
-//	public void testGetSubjectInfo() {
+	@Ignore("test not written yet")
+	@Test
+	public void testGetSubjectInfo() {
 //		Iterator<Node> it = getCoordinatingNodeIterator();
 //		while (it.hasNext()) {
 //			currentUrl = it.next().getBaseURL();
@@ -221,11 +223,12 @@ public class CNodeTier2IdentityIT extends ContextAwareTestCaseDataone {
 //				handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
 //			}
 //		}
-//	}
-//
-//
-//	@Test
-//	public void testListSubjects() {
+	}
+
+
+	@Ignore("test not written yet")
+	@Test
+	public void testListSubjects() {
 //		Iterator<Node> it = getCoordinatingNodeIterator();
 //		while (it.hasNext()) {
 //			currentUrl = it.next().getBaseURL();
@@ -251,11 +254,12 @@ public class CNodeTier2IdentityIT extends ContextAwareTestCaseDataone {
 //				handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
 //			}
 //		}
-//	}
-//
-//
-//	@Test
-//	public void testMapIdentity() {
+	}
+	
+	
+	@Ignore("test not written yet")
+	@Test
+	public void testMapIdentity() {
 //		Iterator<Node> it = getCoordinatingNodeIterator();
 //		while (it.hasNext()) {
 //			currentUrl = it.next().getBaseURL();
@@ -281,11 +285,12 @@ public class CNodeTier2IdentityIT extends ContextAwareTestCaseDataone {
 //				handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
 //			}
 //		}
-//	}
-//
-//
-//	@Test
-//	public void testRequestMapIdentity() {
+	}
+	
+	
+	@Ignore("test not written yet")
+	@Test
+	public void testRequestMapIdentity() {
 //		Iterator<Node> it = getCoordinatingNodeIterator();
 //		while (it.hasNext()) {
 //			currentUrl = it.next().getBaseURL();
@@ -311,11 +316,12 @@ public class CNodeTier2IdentityIT extends ContextAwareTestCaseDataone {
 //				handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
 //			}
 //		}
-//	}
-//
-//
-//	@Test
-//	public void testGetPendingMapIdentity() {
+	}
+
+	
+	@Ignore("test not written yet")
+	@Test
+	public void testGetPendingMapIdentity() {
 //		Iterator<Node> it = getCoordinatingNodeIterator();
 //		while (it.hasNext()) {
 //			currentUrl = it.next().getBaseURL();
@@ -341,11 +347,12 @@ public class CNodeTier2IdentityIT extends ContextAwareTestCaseDataone {
 //				handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
 //			}
 //		}
-//	}
-//
-//
-//	@Test
-//	public void testConfirmMapIdentity() {
+	}
+
+
+	@Ignore("test not written yet")
+	@Test
+	public void testConfirmMapIdentity() {
 //		Iterator<Node> it = getCoordinatingNodeIterator();
 //		while (it.hasNext()) {
 //			currentUrl = it.next().getBaseURL();
@@ -371,11 +378,12 @@ public class CNodeTier2IdentityIT extends ContextAwareTestCaseDataone {
 //				handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
 //			}
 //		}
-//	}
-//
-//
-//	@Test
-//	public void testDenyMapIdentity() {
+	}
+
+
+	@Ignore("test not written yet")
+	@Test
+	public void testDenyMapIdentity() {
 //		Iterator<Node> it = getCoordinatingNodeIterator();
 //		while (it.hasNext()) {
 //			currentUrl = it.next().getBaseURL();
@@ -401,11 +409,12 @@ public class CNodeTier2IdentityIT extends ContextAwareTestCaseDataone {
 //				handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
 //			}
 //		}
-//	}
-//
-//
-//	@Test
-//	public void testRemoveMapIdentity() {
+	}
+
+
+	@Ignore("test not written yet")
+	@Test
+	public void testRemoveMapIdentity() {
 //		Iterator<Node> it = getCoordinatingNodeIterator();
 //		while (it.hasNext()) {
 //			currentUrl = it.next().getBaseURL();
@@ -431,11 +440,12 @@ public class CNodeTier2IdentityIT extends ContextAwareTestCaseDataone {
 //				handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
 //			}
 //		}
-//	}
-//
-//
-//	@Test
-//	public void testCreateGroup() {
+	}
+
+
+	@Ignore("test not written yet")
+	@Test
+	public void testCreateGroup() {
 //		Iterator<Node> it = getCoordinatingNodeIterator();
 //		while (it.hasNext()) {
 //			currentUrl = it.next().getBaseURL();
@@ -461,11 +471,12 @@ public class CNodeTier2IdentityIT extends ContextAwareTestCaseDataone {
 //				handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
 //			}
 //		}
-//	}
-//
-//
-//	@Test
-//	public void testUpdateGroup() {
+	}
+
+
+	@Ignore("test not written yet")
+	@Test
+	public void testUpdateGroup() {
 //		Iterator<Node> it = getCoordinatingNodeIterator();
 //		while (it.hasNext()) {
 //			currentUrl = it.next().getBaseURL();
@@ -491,9 +502,7 @@ public class CNodeTier2IdentityIT extends ContextAwareTestCaseDataone {
 //				handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
 //			}
 //		}
-//	}
-//
-//	
+	}
 	
 
 	@Override

@@ -76,21 +76,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 	public static final String QUERYTYPE_SOLR = "SOLR";
 	public static final String CHECKSUM_ALGORITHM = "MD5";
 	
-	// common object formats to test
-  protected static final String format_text_plain  = "text/plain";
-	protected static final String format_text_csv    = "text/csv";
-  protected static final String format_eml_2_0_0   = "eml://ecoinformatics.org/eml-2.0.0";
-  protected static final String format_eml_2_0_1   = "eml://ecoinformatics.org/eml-2.0.1";
-  protected static final String format_eml_2_1_0   = "eml://ecoinformatics.org/eml-2.1.0";
-  protected static final String format_eml_2_1_1   = "eml://ecoinformatics.org/eml-2.1.1";
-  
-  // paths to common science data and metadata examples for the above formats
-  protected static final String scidata_text_plain = "/d1_testdocs/eml200/IPCC.200802107062739.1"; 
-  protected static final String scidata_text_csv   = "/d1_testdocs/eml201/TPT001_018MHP2000R00_20110121.40.1.csv"; 
-  protected static final String scimeta_eml_2_0_0  = "/d1_testdocs/eml201/dpennington.195.2"; 
-  protected static final String scimeta_eml_2_0_1  = "/d1_testdocs/eml201/TPT001_018MHP2000R00_20110121.50.1.xml"; 
-  protected static final String scimeta_eml_2_1_0  = "/d1_testdocs/eml201/peggym.130.4"; 
-  // TODO: protected static final String scimeta_eml_2_1_1  = "need to get a 2.1.1 test doc"; 
+
 	
 	private  boolean alreadySetup = false;
 	
@@ -301,84 +287,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 		return subject;
 	}
 	
-	/**
-	 * creates the identifier, data inputstream, and sysmetadata for testing purposes
-	 * the rightsHolder is set to the subject of the current certificate (user)
-	 * 
-	 * uses a default text/plain data source
-	 */
-    protected Object[] generateTestDataPackage(String idString, boolean isPrefix)
-        throws NoSuchAlgorithmException, NotFound, InvalidRequest, IOException {
-        
-        return generateTestDataPackage(idString, isPrefix, format_text_plain);
-    }
-	
-  /**
-   * creates the identifier, data inputstream, and sysmetadata for testing purposes
-   * the rightsHolder is set to the subject of the current certificate (user)
-   */
-    protected Object[] generateTestDataPackage(String idString,
-        boolean isPrefix, String formatString)
-        throws NoSuchAlgorithmException, NotFound, InvalidRequest, IOException {
-        
-        if (isPrefix) {
-            idString += ExampleUtilities.generateIdentifier();
-        }
-        Identifier guid = new Identifier();
-        guid.setValue(idString);
 
-        byte[] contentBytes = null;
-        InputStream fileStream = null;
-        
-        // choose a test object file based on the object format passed in
-        if ( formatString == format_text_plain ) {
-            fileStream = this.getClass().getResourceAsStream(scidata_text_plain);
-            
-        } else if ( formatString == format_eml_2_0_0 ) {
-            fileStream = this.getClass().getResourceAsStream(scimeta_eml_2_0_0);
-
-        } else if ( formatString == format_eml_2_0_1 ) {
-            fileStream = this.getClass().getResourceAsStream(scimeta_eml_2_0_1);
-
-        } else if ( formatString == format_eml_2_1_0 ) {
-            fileStream = this.getClass().getResourceAsStream(scimeta_eml_2_1_0);
-        
-        //TODO: get an EML 2.1.1 test doc in place
-        //} else if ( formatString == format_eml_2_1_1 ) {
-        //    fileStream = this.getClass().getResourceAsStream(scimeta_eml_2_1_1);
-            
-        }
-        
-        contentBytes = IOUtils.toByteArray(fileStream);        
-        
-        // figure out who we are
-        String ownerX500 = idString + "_unknownCert";
-        try {
-            X509Certificate certificate = CertificateManager.getInstance()
-                    .loadCertificate();
-            if (certificate != null) {
-                ownerX500 = CertificateManager.getInstance().getSubjectDN(
-                        certificate);
-                // sysMeta.getRightsHolder().setValue(ownerX500);
-                // sysMeta.getSubmitter().setValue(ownerX500);
-            }
-        } catch (Exception e) {
-            // ignore
-        }
-
-        D1Object d1o = new D1Object(guid, contentBytes, formatString,
-                ownerX500, "authNode");
-        SystemMetadata sysMeta = d1o.getSystemMetadata();
-
-        // match the submitter as the cert DN
-
-        sysMeta.setAccessPolicy(AccessUtil.createSingleRuleAccessPolicy(
-                new String[] { Constants.SUBJECT_PUBLIC },
-                new Permission[] { Permission.READ }));
-
-        ByteArrayInputStream bis = new ByteArrayInputStream(d1o.getData());
-        return new Object[] { guid, bis, sysMeta };
-    }  
 
     /**
      * get an ObjectList from listObjects, and if empty, try to create a public 
@@ -828,9 +737,8 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 
 		// prepare the data object for the create:
 		// generate some data bytes as an input stream		
-		byte[] contentBytes = "Plain text source for test object".getBytes("UTF-8");
-		ByteArrayInputStream textPlainSource = new ByteArrayInputStream(contentBytes);
 		
+		ByteArrayInputStream objectInputStream = null;
 		D1Object d1o = null;
 		SystemMetadata sysMeta = null;
 		try {
@@ -838,8 +746,17 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 			certificate = CertificateManager.getInstance().loadCertificate();
 			String submitterX500 = CertificateManager.getInstance().getSubjectDN(certificate);
 		
-//			Settings.getConfiguration().setProperty("D1Client.CN_URL", "somethingElse");
-			d1o = new D1Object(pid, contentBytes, format_text_plain, submitterX500, "bogusAuthoritativeNode");
+			if (d1Node instanceof MNode) {
+				byte[] contentBytes = "Plain text source for test object".getBytes("UTF-8");
+				objectInputStream = new ByteArrayInputStream(contentBytes);
+				d1o = new D1Object(pid, contentBytes, ExampleUtilities.FORMAT_TEXT_PLAIN, submitterX500, "bogusAuthoritativeNode");
+			} else {
+				byte[] contentBytes = ExampleUtilities.getExampleObjectOfType(ExampleUtilities.FORMAT_EML_2_0_1);
+				objectInputStream = new ByteArrayInputStream(contentBytes);
+				d1o = new D1Object(pid, 
+						ExampleUtilities.getExampleObjectOfType(ExampleUtilities.FORMAT_EML_2_0_1), 
+						ExampleUtilities.FORMAT_EML_2_0_1, submitterX500, "bogusAuthoritativeNode");
+			}
 			sysMeta = d1o.getSystemMetadata();
 		} catch (NoSuchAlgorithmException e) {
 			e.printStackTrace();
@@ -870,9 +787,9 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 		
 		Identifier retPid = null;
 		if (d1Node instanceof MNode) {
-			retPid = ((MNode)d1Node).create(null, pid, textPlainSource, sysMeta);
+			retPid = ((MNode)d1Node).create(null, pid, objectInputStream, sysMeta);
 		} else {
-			retPid = ((CNode)d1Node).create(null, pid, textPlainSource, sysMeta);
+			retPid = ((CNode)d1Node).create(null, pid, objectInputStream, sysMeta);
 		}
 		log.info("object created.  pid = " + retPid.getValue());
 		checkEquals(d1Node.getNodeBaseServiceUrl(),
