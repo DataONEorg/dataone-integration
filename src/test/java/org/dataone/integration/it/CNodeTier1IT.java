@@ -112,6 +112,7 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
 	 */
     @Test
     public void testListFormats() {
+    	setupClientSubject_NoCert();
     	Iterator<Node> it = getCoordinatingNodeIterator();
     	while (it.hasNext()) {
     		currentUrl = it.next().getBaseURL();
@@ -142,6 +143,7 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
      */
     @Test
     public void testGetFormat() {
+    	setupClientSubject_NoCert();
     	Iterator<Node> it = getCoordinatingNodeIterator();
     	while (it.hasNext()) {
     		currentUrl = it.next().getBaseURL();
@@ -177,6 +179,7 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
      */
     @Test
     public void testGetFormat_bogusFormat() {
+    	setupClientSubject_NoCert();
     	Iterator<Node> it = getCoordinatingNodeIterator();
     	while (it.hasNext()) {
     		currentUrl = it.next().getBaseURL();
@@ -210,6 +213,7 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
 
     @Test
     public void testListChecksumAlgorithms() {
+    	setupClientSubject_NoCert();
     	Iterator<Node> it = getCoordinatingNodeIterator();
     	while (it.hasNext()) {
     		currentUrl = it.next().getBaseURL();
@@ -238,7 +242,8 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
     @Test
     public void testGetLogRecords()
     {
-    	setupClientSubject_NoCert();
+    	// can be anyone
+    	setupClientSubject("testPerson");
     	Iterator<Node> it = getMemberNodeIterator();
        while (it.hasNext()) {
     	   currentUrl = it.next().getBaseURL();
