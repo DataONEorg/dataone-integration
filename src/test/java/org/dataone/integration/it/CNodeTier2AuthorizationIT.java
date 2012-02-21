@@ -32,11 +32,14 @@ import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.InvalidRequest;
 import org.dataone.service.exceptions.InvalidToken;
 import org.dataone.service.exceptions.NotAuthorized;
+import org.dataone.service.exceptions.NotFound;
 import org.dataone.service.exceptions.NotImplemented;
 import org.dataone.service.exceptions.ServiceFailure;
 import org.dataone.service.types.v1.AccessPolicy;
+import org.dataone.service.types.v1.AccessRule;
 import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Node;
+import org.dataone.service.types.v1.ObjectInfo;
 import org.dataone.service.types.v1.ObjectList;
 import org.dataone.service.types.v1.Permission;
 import org.dataone.service.types.v1.Subject;
@@ -106,11 +109,13 @@ public class CNodeTier2AuthorizationIT extends AbstractAuthorizationITDataone {
 	/**
 	 * Requirements: an object whose rightsHolder can be changed without
 	 * upsetting other authorization tests.	
+	 * The cardinality of the rightsHolder field is [1..1].  Approach is to change
+	 * to 
 	 */
-	@Ignore("test needs review")
+	@Ignore("not ready yet")
 	@Test
 	public void testSetRightsHolder() {
-		setupClientSubject("testRightsHolder");
+		setupClientSubject("testSubmitter");
 		Iterator<Node> it = getCoordinatingNodeIterator();
 		while (it.hasNext()) {
 			currentUrl = it.next().getBaseURL();
@@ -120,21 +125,21 @@ public class CNodeTier2AuthorizationIT extends AbstractAuthorizationITDataone {
 			try {
 //				Identifier myObject = procureTestObject(cn,new Permission[] {Permission.CHANGE_PERMISSION});
 				
-				ObjectList ol = getFirstOwnedObject(cn);
+				Identifier pid = getOwnedObject(cn);
 				// TODO:  if nothing from existing, will need to create one
 				
-				if (ol == null || ol.getTotal() == 0) {
+				if (pid == null) {
 					handleFail(currentUrl,"do not have an object that am rightsHolder to use to test setRightsHolder");
 				} else {
 					// TODO: create a real request
-					Identifier pidToGiveAway = ol.getObjectInfo(0).getIdentifier();
+					Identifier pidToGiveAway = pid;
 					SystemMetadata smd = cn.getSystemMetadata(null, pidToGiveAway);
 					BigInteger serialVersion = smd.getSerialVersion();
 				 
 					Subject inheritor = new Subject();
 					inheritor.setValue("CN=testSubmitter,DC=dataone,DC=org");
 					Identifier response = cn.setRightsHolder(null, 
-							ol.getObjectInfo(0).getIdentifier(),
+							pid,
 							inheritor, serialVersion.longValue());
 				
 					checkTrue(currentUrl,"setRightsHolder(...) returns a Identifier object", response != null);
@@ -154,13 +159,35 @@ public class CNodeTier2AuthorizationIT extends AbstractAuthorizationITDataone {
 	}
 
 	
-	private ObjectList getFirstOwnedObject(CNode cn) {
+	private Identifier getOwnedObject(CNode cn) {
 
 //		Subject me = ClientAuthUtils.whoami();
 //		Subject me2 = getCurrentClientSubject();
-		ObjectList ol = null;
+		Identifier pid = null;
 		try {
-			ol = cn.listObjects(null);// + me.getValue());
+			
+			ObjectList ol = cn.listObjects(null);
+			for (ObjectInfo oi: ol.getObjectInfoList())
+			{
+				if (cn.isAuthorized(null, oi.getIdentifier(), Permission.CHANGE_PERMISSION))
+				{
+					SystemMetadata smd = cn.getSystemMetadata(null, oi.getIdentifier());
+					boolean noCPinAP = true;
+					for (AccessRule ar: smd.getAccessPolicy().getAllowList())
+					{
+						for (Permission p: ar.getPermissionList()) {
+							if (p == Permission.CHANGE_PERMISSION) {
+								noCPinAP = false;
+								break;
+							}
+						}
+					}
+					if (noCPinAP) {
+						pid = oi.getIdentifier();
+						break;
+					}
+				}			
+			}
 		} catch (InvalidToken e) {
 			//allow object list to be null
 		} catch (ServiceFailure e) {
@@ -171,8 +198,10 @@ public class CNodeTier2AuthorizationIT extends AbstractAuthorizationITDataone {
 			//allow object list to be null
 		} catch (NotImplemented e) {
 			//allow object list to be null
+		} catch (NotFound e) {
+			//allow object list to be null
 		}
-		return ol;
+		return pid;
 	}
 	
 	
