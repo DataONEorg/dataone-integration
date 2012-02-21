@@ -66,8 +66,9 @@ public class CNodeTier4IT extends ContextAwareTestCaseDataone {
 	
 	@Override
 	protected String getTestDescription() {
-		// TODO Auto-generated method stub
-		return null;
+		return "Tests the basic functioning of the Tier4 CN Replication service api " +
+				"in a stand-alone context.  (Mostly negative tests - positive ones " +
+				"require a synchronizing environment";
 	}
 	
 	
@@ -116,19 +117,13 @@ public class CNodeTier4IT extends ContextAwareTestCaseDataone {
 	}
 	
 	
-	@Ignore("tests for Tier4 not implemented")
-	@Test public void testTier4() {
-	}
-	
-	
-
-
 	/**
 	 * Test the that the membernode can set the replication status for on an object
 	 */
+	@Ignore("test not implemented")
 	@Test
 	public void testSetReplicationStatus_NotAuthorized() {
-		setupClientSubject("NoRights");
+		setupClientSubject("testSubmitter");
 		Iterator<Node> it = getCoordinatingNodeIterator();
 		while (it.hasNext()) {
 			currentUrl = it.next().getBaseURL();
@@ -167,6 +162,7 @@ public class CNodeTier4IT extends ContextAwareTestCaseDataone {
 	/**
 	 * Test the that the membernode can set the replication status for on an object
 	 */
+	@Ignore("test not implemented")
 	@Test
 	public void testSetReplicationStatus_InvalidRequest() {
 		//TODO: implement a memberNode test subject
@@ -206,6 +202,7 @@ public class CNodeTier4IT extends ContextAwareTestCaseDataone {
 	/**
 	 * Test the that the membernode can set the replication status for on an object
 	 */
+	@Ignore("test not implemented")
 	@Test
 	public void testSetReplicationStatus_NotFound() {
 		//TODO: implement a memberNode test subject
@@ -239,14 +236,10 @@ public class CNodeTier4IT extends ContextAwareTestCaseDataone {
 		}
 	}
 	
-	
-
-
-
-
+	@Ignore("test not implemented")	
 	@Test
 	public void testSetReplicationPolicy() {
-		setupClientSubject("testWriter");
+		setupClientSubject("testAdmin");
 		Iterator<Node> it = getCoordinatingNodeIterator();
 		while (it.hasNext()) {
 			currentUrl = it.next().getBaseURL();
@@ -279,10 +272,10 @@ public class CNodeTier4IT extends ContextAwareTestCaseDataone {
 		}
 	}
 	
-	
+	@Ignore("test not implemented")	
 	@Test
 	public void testSetReplicationPolicy_NotAuthorized() {
-		setupClientSubject("testNoRights");
+		setupClientSubject("testSubmitter");
 		Iterator<Node> it = getCoordinatingNodeIterator();
 		while (it.hasNext()) {
 			currentUrl = it.next().getBaseURL();
@@ -319,10 +312,10 @@ public class CNodeTier4IT extends ContextAwareTestCaseDataone {
 		}
 	}
 	
-	
+	@Ignore("test not implemented")	
 	@Test
 	public void testSetReplicationPolicy_NotFound() {
-		setupClientSubject("testNoRights");
+		setupClientSubject("testAdmin");
 		Iterator<Node> it = getCoordinatingNodeIterator();
 		while (it.hasNext()) {
 			currentUrl = it.next().getBaseURL();
@@ -355,10 +348,10 @@ public class CNodeTier4IT extends ContextAwareTestCaseDataone {
 		}
 	}
 	
-	
+	@Ignore("test not implemented")	
 	@Test
 	public void testSetReplicationPolicy_VersionMismatch() {
-		setupClientSubject("testRightsHolder");
+		setupClientSubject("testAdmin");
 		Iterator<Node> it = getCoordinatingNodeIterator();
 		while (it.hasNext()) {
 			currentUrl = it.next().getBaseURL();
@@ -395,10 +388,10 @@ public class CNodeTier4IT extends ContextAwareTestCaseDataone {
 		}
 	}
 	
-	
+	@Ignore("test not implemented")	
 	@Test
 	public void testSetReplicationPolicy_InvalidRequest() {
-		setupClientSubject("testRightsHolder");
+		setupClientSubject("testAdmin");
 		Iterator<Node> it = getCoordinatingNodeIterator();
 		while (it.hasNext()) {
 			currentUrl = it.next().getBaseURL();
@@ -436,10 +429,10 @@ public class CNodeTier4IT extends ContextAwareTestCaseDataone {
 	}
 	
 
-
+	@Ignore("test not implemented")
 	@Test
 	public void testIsNodeAuthorized_InvalidToken() {
-		setupClientSubject("testNoRights");
+		setupClientSubject("testAdmin");
 
 		
 		Iterator<Node> it = getCoordinatingNodeIterator();
@@ -476,10 +469,11 @@ public class CNodeTier4IT extends ContextAwareTestCaseDataone {
 			}
 		}
 	}
-	
+
+	@Ignore("test not implemented")
 	@Test
 	public void testIsNodeAuthorized_NotAuthorized() {
-		setupClientSubject("testNoRights");
+		setupClientSubject("testSubmitter");
 		Subject noRightsSubject = ClientIdentityManager.getCurrentIdentity();
 		// TODO: 
 //		setupClientSubject("testMemberNode");
@@ -516,11 +510,11 @@ public class CNodeTier4IT extends ContextAwareTestCaseDataone {
 		}
 	}
 	
-	
+	@Ignore("test not implemented")
 	@Test
 	public void testIsNodeAuthorized_InvalidRequest() {
 		// TODO: 
-//		setupClientSubject("testMemberNode");
+		setupClientSubject("testMemberNode");
 		
 		Iterator<Node> it = getCoordinatingNodeIterator();
 		while (it.hasNext()) {
@@ -554,7 +548,7 @@ public class CNodeTier4IT extends ContextAwareTestCaseDataone {
 		}
 	}
 	
-	
+	@Ignore("test not implemented")	
 	@Test
 	public void testIsNodeAuthorized_NotFound() {
 		// TODO: 
@@ -591,7 +585,7 @@ public class CNodeTier4IT extends ContextAwareTestCaseDataone {
 		}
 	}
 
-
+	@Ignore("test not implemented")
 	@Test
 	public void testUpdateReplicationMetadata() {
 		//TODO:
@@ -636,7 +630,7 @@ public class CNodeTier4IT extends ContextAwareTestCaseDataone {
 		}
 	}
 	
-	
+	@Ignore("test not implemented")	
 	@Test
 	public void testUpdateReplicationMetadata_NotAuthorized() {
 		setupClientSubject("testNoRights");
@@ -683,7 +677,7 @@ public class CNodeTier4IT extends ContextAwareTestCaseDataone {
 		}
 	}
 	
-	
+	@Ignore("test not implemented")	
 	@Test
 	public void testUpdateReplicationMetadata_NotFound() {
 		//TODO:
@@ -734,7 +728,7 @@ public class CNodeTier4IT extends ContextAwareTestCaseDataone {
 		}
 	}
 	
-	
+	@Ignore("test not implemented")	
 	@Test
 	public void testUpdateReplicationMetadata_InvalidRequest() {
 		//TODO:
@@ -782,7 +776,7 @@ public class CNodeTier4IT extends ContextAwareTestCaseDataone {
 		}
 	}
 	
-
+	@Ignore("test not implemented")
 	@Test
 	public void testUpdateReplicationMetadata_VersionMismatch() {
 		//TODO:

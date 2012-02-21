@@ -20,35 +20,13 @@
 
 package org.dataone.integration.it;
 
-import java.io.InputStream;
-import java.lang.reflect.Method;
-import java.math.BigInteger;
-import java.util.Hashtable;
 import java.util.Iterator;
-import java.util.Map;
-import java.util.Scanner;
-import java.util.Vector;
 
 import org.dataone.client.CNode;
-import org.dataone.client.D1Client;
-import org.dataone.client.MNode;
-import org.dataone.client.auth.CertificateManager;
 import org.dataone.service.exceptions.BaseException;
-import org.dataone.service.exceptions.NotAuthorized;
-import org.dataone.service.exceptions.NotFound;
-import org.dataone.service.exceptions.ServiceFailure;
-import org.dataone.service.types.v1.AccessPolicy;
-import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Node;
-import org.dataone.service.types.v1.ObjectInfo;
-import org.dataone.service.types.v1.ObjectList;
-import org.dataone.service.types.v1.Permission;
 import org.dataone.service.types.v1.Person;
 import org.dataone.service.types.v1.Subject;
-import org.dataone.service.types.v1.SystemMetadata;
-import org.dataone.service.types.v1.util.AccessUtil;
-import org.dataone.service.util.Constants;
-import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -59,61 +37,7 @@ import org.junit.Test;
 public class CNodeTier2IdentityIT extends ContextAwareTestCaseDataone {
 
 	
-
-	private static final String badIdentifier = "ThisIdentifierShouldNotExist";
-	
 	 private static String currentUrl;
-	private static Map<String,ObjectList> listedObjects;
-  
-	/**
-	 * pre-fetch an ObjectList from each member node on the list, to allow testing gets
-	 * without creating new objects.
-	 * @throws ServiceFailure 
-	 */
-	@Before
-	public void setup() throws ServiceFailure {
-		prefetchObjects();
-
-	}
-
-
-	public void prefetchObjects() throws ServiceFailure {
-		if (listedObjects == null) {
-			listedObjects = new Hashtable<String,ObjectList>();
-			Iterator<Node> it = getCoordinatingNodeIterator();
-			while (it.hasNext()) {
-				currentUrl = it.next().getBaseURL();
-				CNode cn = new CNode(currentUrl);
-				currentUrl = cn.getNodeBaseServiceUrl();
-				try {
-					ObjectList ol = cn.listObjects(null);
-					listedObjects.put(currentUrl, ol);
-				} 
-				catch (BaseException e) {
-					handleFail(currentUrl,e.getDescription());
-				}
-				catch(Exception e) {
-					log.warn(e.getClass().getName() + ": " + e.getMessage());
-				}	
-			}
-		}
-	}
-	
-	
-	//TODO:  not sure if prefetched objects are needed
-	
-//	private ObjectInfo getPrefetchedObject(String currentUrl, Integer index)
-//	{
-//		if (index == null) 
-//			index = new Integer(0);
-//		if (index < 0) {
-//			// return off the right end of the list
-//			index = listedObjects.get(currentUrl).getCount() + index;
-//		}
-//		return listedObjects.get(currentUrl).getObjectInfo(index);
-//	}
-
-	
 
 	@Test
 	public void testRegisterAccount() {
@@ -205,8 +129,6 @@ public class CNodeTier2IdentityIT extends ContextAwareTestCaseDataone {
 //			printTestHeader("testGetSubjectInfo(...) vs. node: " + currentUrl);
 //
 //			try {
-//				ObjectInfo oi = getPrefetchedObject(currentUrl,0);    
-//				log.debug("   pid = " + oi.getIdentifier());
 //
 //				SubjectInfo response = cn.getSubjectInfo();
 //				checkTrue(currentUrl,"getSubjectInfo(...) returns a SubjectInfo object", response != null);
@@ -236,9 +158,6 @@ public class CNodeTier2IdentityIT extends ContextAwareTestCaseDataone {
 //			printTestHeader("testListSubjects(...) vs. node: " + currentUrl);
 //
 //			try {
-//				ObjectInfo oi = getPrefetchedObject(currentUrl,0);    
-//				log.debug("   pid = " + oi.getIdentifier());
-//
 //				SubjectInfo response = cn.listSubjects();
 //				checkTrue(currentUrl,"listSubjects(...) returns a SubjectInfo object", response != null);
 //				// checkTrue(currentUrl,"response cannot be false. [Only true or exception].", response);
@@ -267,9 +186,7 @@ public class CNodeTier2IdentityIT extends ContextAwareTestCaseDataone {
 //			printTestHeader("testMapIdentity(...) vs. node: " + currentUrl);
 //
 //			try {
-//				ObjectInfo oi = getPrefetchedObject(currentUrl,0);    
-//				log.debug("   pid = " + oi.getIdentifier());
-//
+
 //				boolean response = cn.mapIdentity();
 //				checkTrue(currentUrl,"mapIdentity(...) returns a boolean object", response != null);
 //				// checkTrue(currentUrl,"response cannot be false. [Only true or exception].", response);
@@ -298,9 +215,6 @@ public class CNodeTier2IdentityIT extends ContextAwareTestCaseDataone {
 //			printTestHeader("testRequestMapIdentity(...) vs. node: " + currentUrl);
 //
 //			try {
-//				ObjectInfo oi = getPrefetchedObject(currentUrl,0);    
-//				log.debug("   pid = " + oi.getIdentifier());
-//
 //				boolean response = cn.requestMapIdentity();
 //				checkTrue(currentUrl,"requestMapIdentity(...) returns a boolean object", response != null);
 //				// checkTrue(currentUrl,"response cannot be false. [Only true or exception].", response);
@@ -329,9 +243,6 @@ public class CNodeTier2IdentityIT extends ContextAwareTestCaseDataone {
 //			printTestHeader("testGetPendingMapIdentity(...) vs. node: " + currentUrl);
 //
 //			try {
-//				ObjectInfo oi = getPrefetchedObject(currentUrl,0);    
-//				log.debug("   pid = " + oi.getIdentifier());
-//
 //				SubjectInfo response = cn.getPendingMapIdentity();
 //				checkTrue(currentUrl,"getPendingMapIdentity(...) returns a SubjectInfo object", response != null);
 //				// checkTrue(currentUrl,"response cannot be false. [Only true or exception].", response);
@@ -360,9 +271,6 @@ public class CNodeTier2IdentityIT extends ContextAwareTestCaseDataone {
 //			printTestHeader("testConfirmMapIdentity(...) vs. node: " + currentUrl);
 //
 //			try {
-//				ObjectInfo oi = getPrefetchedObject(currentUrl,0);    
-//				log.debug("   pid = " + oi.getIdentifier());
-//
 //				boolean response = cn.confirmMapIdentity();
 //				checkTrue(currentUrl,"confirmMapIdentity(...) returns a boolean object", response != null);
 //				// checkTrue(currentUrl,"response cannot be false. [Only true or exception].", response);
@@ -391,9 +299,6 @@ public class CNodeTier2IdentityIT extends ContextAwareTestCaseDataone {
 //			printTestHeader("testDenyMapIdentity(...) vs. node: " + currentUrl);
 //
 //			try {
-//				ObjectInfo oi = getPrefetchedObject(currentUrl,0);    
-//				log.debug("   pid = " + oi.getIdentifier());
-//
 //				boolean response = cn.denyMapIdentity();
 //				checkTrue(currentUrl,"denyMapIdentity(...) returns a boolean object", response != null);
 //				// checkTrue(currentUrl,"response cannot be false. [Only true or exception].", response);
@@ -422,9 +327,6 @@ public class CNodeTier2IdentityIT extends ContextAwareTestCaseDataone {
 //			printTestHeader("testRemoveMapIdentity(...) vs. node: " + currentUrl);
 //
 //			try {
-//				ObjectInfo oi = getPrefetchedObject(currentUrl,0);    
-//				log.debug("   pid = " + oi.getIdentifier());
-//
 //				boolean response = cn.removeMapIdentity();
 //				checkTrue(currentUrl,"removeMapIdentity(...) returns a boolean object", response != null);
 //				// checkTrue(currentUrl,"response cannot be false. [Only true or exception].", response);
@@ -452,10 +354,7 @@ public class CNodeTier2IdentityIT extends ContextAwareTestCaseDataone {
 //			CNode cn = new CNode(currentUrl);
 //			printTestHeader("testCreateGroup(...) vs. node: " + currentUrl);
 //
-//			try {
-//				ObjectInfo oi = getPrefetchedObject(currentUrl,0);    
-//				log.debug("   pid = " + oi.getIdentifier());
-//
+//			try {//
 //				Subject response = cn.createGroup();
 //				checkTrue(currentUrl,"createGroup(...) returns a Subject object", response != null);
 //				// checkTrue(currentUrl,"response cannot be false. [Only true or exception].", response);
@@ -484,9 +383,6 @@ public class CNodeTier2IdentityIT extends ContextAwareTestCaseDataone {
 //			printTestHeader("testUpdateGroup(...) vs. node: " + currentUrl);
 //
 //			try {
-//				ObjectInfo oi = getPrefetchedObject(currentUrl,0);    
-//				log.debug("   pid = " + oi.getIdentifier());
-//
 //				boolean response = cn.updateGroup();
 //				checkTrue(currentUrl,"updateGroup(...) returns a boolean object", response != null);
 //				// checkTrue(currentUrl,"response cannot be false. [Only true or exception].", response);
@@ -507,10 +403,7 @@ public class CNodeTier2IdentityIT extends ContextAwareTestCaseDataone {
 
 	@Override
 	protected String getTestDescription() {
-		// TODO Auto-generated method stub
-		return null;
+		return "Tests CN Identity methods";
 	}
-	
-	
 
 }

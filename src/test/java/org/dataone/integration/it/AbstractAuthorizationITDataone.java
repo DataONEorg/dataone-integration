@@ -5,6 +5,9 @@ import java.util.Iterator;
 import org.dataone.client.CNode;
 import org.dataone.client.D1Node;
 import org.dataone.service.exceptions.BaseException;
+import org.dataone.service.exceptions.InsufficientResources;
+import org.dataone.service.exceptions.NotImplemented;
+import org.dataone.service.exceptions.ServiceFailure;
 import org.dataone.service.types.v1.AccessRule;
 import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Node;
@@ -19,13 +22,6 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 	 private static String currentUrl;
 	 
 	 /**
-	  * implementing class needs to set this to either NodeType.MN or .CN
-	  * for running the tests
-	  * @return
-	  */
-//	 protected abstract NodeType getNodeType();
-	 
-	 /**
 	  * @return an Iterator<Node> object for the nodes under test
 	  */
 	 protected abstract Iterator<Node> getNodeIterator();
@@ -34,20 +30,24 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 
 	 
 	 private void checkExpectedIsAuthorizedOutcome(D1Node d1Node, Identifier pid, 
-			 Permission permission, String expectedOutcome) 
-//	 throws BaseException
+			 String subjectLabel, Permission permission, String expectedOutcome) 
 	 {
+		 String testDescription = "isAuthorized test [" + subjectLabel + " - " +
+		 		permission.xmlValue() + " vs. " + pid.getValue() + "]";
 		 try {
-			 boolean outcome = d1Node.isAuthorized(null, pid, permission);
-			 if (outcome && !expectedOutcome.equals("true")) {
-				 handleFail(currentUrl,"isAuthorized should not have returned true." +
-				 		"  Expected: " + expectedOutcome);
+			 boolean trueOutcome = d1Node.isAuthorized(null, pid, permission);
+			 if (!trueOutcome || !expectedOutcome.equals("true")) {
+				 handleFail(currentUrl,testDescription + 
+				 		"  Expected: '" + expectedOutcome + "' got: '" + trueOutcome + "'");
 				 
 			 }
 		} catch (BaseException e) {
-			checkEquals(currentUrl,"isAuthorized test: ", 
+			checkEquals(currentUrl,"isAuthorized test [" + subjectLabel + " - " +
+					permission.xmlValue() + " vs. " + pid.getValue() + "]", 
 					e.getClass().getSimpleName(),  expectedOutcome);
-		}		 
+		}	
+		
+		
 	 }
 
 
@@ -77,8 +77,41 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 		 return id;
 	 }
 
+//	 @Test
+	 public void testConnectionLayer_clientCertificatesTrusted() 
+	 {
+		 
+	 }
+
 	 
+//	 @Test
+	 public void testConnectionLayer_InvalidTokenThrown() 
+	 {
+		 
+	 }
+
 	 
+	 @Test
+	 public void testConnectionLayer_dataoneCAtrusted() 
+	 {
+		 setupClientSubject("testSubmitter");
+		 Iterator<Node> it = getNodeIterator();
+		 while (it.hasNext()) {
+			 try {
+				 currentUrl = it.next().getBaseURL();
+				 D1Node d1Node = instantiateD1Node(currentUrl); 
+				 d1Node.ping();
+			 } catch (BaseException e) {
+				 handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
+						 e.getDetail_code() + ":: " + e.getDescription());
+			 }
+			 catch(Exception e) {
+				 e.printStackTrace();
+				 handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+			 }
+		 }
+	 }
+
 	 
 	 /*
 	  * The authorization tests...................................
@@ -93,7 +126,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 		 String procuringSubjectString = "testPerson";
 		 String objectSubjectString = null;
 		 Permission objectPermission = null;
-		 String objectIdentifier = "TierTesting:testObject:RightsHolder_Person";
+		 String objectIdentifier = "TierTesting:testObject_thisShouldBeNew:RightsHolder_Person";
 		 
 		 Iterator<Node> it = getNodeIterator();
 		 while (it.hasNext()) {
@@ -109,80 +142,97 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 		 
 
 // testPerson is owner in this case, so don't need this block				 
-//				 setupClientSubject("testRightsHolder");  // should always have access
-//				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "true");
-//				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "true");
-//				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "true");
-
-				 setupClientSubject("testPerson");			 
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "true");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "true");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "true");
-				 
-				 setupClientSubject("testPerson_NoSubjectInfo");				 
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "true");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "true");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "true");
-				 
-				 setupClientSubject("testMappedPerson");				 
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "true");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "true");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "true");
+//				 String clientSubject = "testRightsHolder");  // should always have access
+//				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "true");
+//				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "true");
+//				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "true");
 
 				 
-				 setupClientSubject("testGroupie"); 
+				 String clientSubject = "testPerson";
+				 setupClientSubject(clientSubject);
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "true");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "true");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "true");
+				 
+				 clientSubject = "testPerson_NoSubjectInfo";
+				 setupClientSubject(clientSubject);				 
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "true");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "true");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "true");
+				 
+				 clientSubject = "testMappedPerson";
+				 setupClientSubject(clientSubject);				 
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "true");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "true");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "true");
+
+				 
+				 clientSubject = "testGroupie";
+				 setupClientSubject(clientSubject); 
 				 // to test access as a group member (of testPerson)
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "NotAuthorized");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "NotAuthorized");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "NotAuthorized");
 
-				 setupClientSubject("testSubmitter");
+				 clientSubject = "testSubmitter";
+				 setupClientSubject(clientSubject);
 				 // the designated no-rights subject
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "NotAuthorized");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "NotAuthorized");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "NotAuthorized");
 				 
+				 clientSubject = "NoCert";
 				 setupClientSubject_NoCert();	 
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "NotAuthorized");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "NotAuthorized");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "NotAuthorized");
 				 
 				 
-				 setupClientSubject("testPerson_Expired");
+				 clientSubject = "testPerson_Expired";
+				 setupClientSubject(clientSubject);
 				 // bad credentials should always fail		 
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "InvalidToken");
 
-				 setupClientSubject("testPerson_SelfSigned");	
+				 clientSubject = "testPerson_SelfSigned";
+				 setupClientSubject(clientSubject);	
 				 // bad credentials should always fail			 
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "InvalidToken");
 				 
-				 setupClientSubject("testPerson_InvalidVsSchema");	
+				 clientSubject = "testPerson_InvalidVsSchema";
+				 setupClientSubject(clientSubject);	
 				 // bad credentials should always fail			 
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "InvalidToken");
 				 
-				 setupClientSubject("testPerson_MissingMappedID");	
+				 clientSubject = "testPerson_MissingMappedID";
+				 setupClientSubject(clientSubject);	
 				 // bad credentials should always fail			 
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "InvalidToken");
 				 
-				 setupClientSubject("testPerson_MissingSelf");	
+				 clientSubject = "testPerson_MissingSelf";
+				 setupClientSubject(clientSubject);	
 				 // bad credentials should always fail			 
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "InvalidToken");
 				 
 				 
+			 } catch (BaseException e) {
+						handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
+								e.getDetail_code() + ": " + e.getDescription());
+						 
 			 } catch (Exception e) {
 				 e.printStackTrace();
 				 handleFail(currentUrl, e.getClass().getName() + ": " + e.getMessage());
 			 }
+			 
 		 }
 	 }
 	 
@@ -213,83 +263,97 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 
 				// run tests
 // testPerson is owner in this case, so don't need testRightsHolder tests				 
-//				 setupClientSubject("testRightsHolder");  // should always have access
-//				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "true");
-//				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "true");
-//				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "true");
+//				 String clientSubject = "testRightsHolder");  // should always have access
+//				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "true");
+//				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "true");
+//				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "true");
 
-				 setupClientSubject("testPerson");			 
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "true");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "true");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "true");
+				 String clientSubject = "testPerson";
+				 setupClientSubject(clientSubject);			 
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "true");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "true");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "true");
 				 
-				 setupClientSubject("testPerson_NoSubjectInfo");	
+				 clientSubject = "testPerson_NoSubjectInfo";
+				 setupClientSubject(clientSubject);	
 				 // CNodes can lookup subject info so results same as above
 				 if (d1Node instanceof CNode) {
-					 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "true");
-					 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "true");
-					 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "true");
+					 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "true");
+					 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "true");
+					 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "true");
 				 } else {
-					 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "NotAuthorized");
-					 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "NotAuthorized");
-					 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "NotAuthorized"); 
+					 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "NotAuthorized");
+					 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "NotAuthorized");
+					 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "NotAuthorized"); 
 				 }
 				 
-				 setupClientSubject("testMappedPerson");				 
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "true");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "true");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "true");
+				 clientSubject = "testMappedPerson";
+				 setupClientSubject(clientSubject);				 
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "true");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "true");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "true");
 				 
-				 setupClientSubject("testGroupie"); 
+				 clientSubject = "testGroupie";
+				 setupClientSubject(clientSubject); 
 				 // to test access as a group member (of testPerson)
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "true");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "true");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "true");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "true");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "true");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "true");
 
-				 setupClientSubject("testSubmitter");
+				 clientSubject = "testSubmitter";
+				 setupClientSubject(clientSubject);
 				 // the designated no-rights subject
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "NotAuthorized");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "NotAuthorized");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "NotAuthorized");
 				 
+				 clientSubject = "NoCert";
 				 setupClientSubject_NoCert();	 
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "NotAuthorized");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "NotAuthorized");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "NotAuthorized");
 				 
 				 
-				 setupClientSubject("testPerson_Expired");
+				 clientSubject = "testPerson_Expired";
+				 setupClientSubject(clientSubject);
 				 // bad credentials should always fail		 
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "InvalidToken");
 
-				 setupClientSubject("testPerson_SelfSigned");	
+				 clientSubject = "testPerson_SelfSigned";
+				 setupClientSubject(clientSubject);	
 				 // bad credentials should always fail			 
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "InvalidToken");
 				 
-				 setupClientSubject("testPerson_InvalidVsSchema");	
+				 clientSubject = "testPerson_InvalidVsSchema";
+				 setupClientSubject(clientSubject);
 				 // bad credentials should always fail			 
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "InvalidToken");
 				 
-				 setupClientSubject("testPerson_MissingMappedID");	
+				 clientSubject = "testPerson_MissingMappedID";
+				 setupClientSubject(clientSubject);
 				 // bad credentials should always fail			 
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "InvalidToken");
 				 
-				 setupClientSubject("testPerson_MissingSelf");	
+				 clientSubject = "testPerson_MissingSelf";
+				 setupClientSubject(clientSubject);
 				 // bad credentials should always fail			 
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "InvalidToken");
 				 
 				 
-
+			 } catch (BaseException e) {
+					handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
+							e.getDetail_code() + ": " + e.getDescription());
+					 
 				 
 			 } catch (Exception e) {
 				 e.printStackTrace();
@@ -305,7 +369,8 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 		 String procuringSubjectString = "testRightsHolder";
 		 String objectSubjectString = Constants.SUBJECT_PUBLIC;
 		 Permission objectPermission = Permission.READ;
-		 String objectIdentifier = "TierTesting:testObject:Public_READ";
+//		 String objectIdentifier = "TierTesting:testObject:Public_READ";
+		 String objectIdentifier = "dave.3";
 		 
 		 Iterator<Node> it = getNodeIterator();
 		 while (it.hasNext()) {
@@ -321,78 +386,92 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 
 	
 				 // run tests
-				 setupClientSubject("testRightsHolder");  // should always have access
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "true");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "true");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "true");
+				 String clientSubject = "testRightsHolder";
+				 setupClientSubject(clientSubject);
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "true");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "true");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "true");
 
-				 setupClientSubject("testPerson");			 
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "NotAuthorized");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "NotAuthorized");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "true");
+				 clientSubject = "testPerson";
+				 setupClientSubject(clientSubject);			 
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "true");
 
-				 setupClientSubject("testPerson_NoSubjectInfo");	
+				 clientSubject = "testPerson_NoSubjectInfo";
+				 setupClientSubject(clientSubject);				 
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "true");
 				 
-					 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "true");
-					 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "true");
-					 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "true");
 				 
-				 
-				 setupClientSubject("testMappedPerson");				 
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "NotAuthorized");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "NotAuthorized");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "true");
+				 clientSubject = "testMappedPerson";
+				 setupClientSubject(clientSubject);			 
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "true");
 
-				 setupClientSubject("testGroupie"); 
+				 clientSubject = "testGroupie";
+				 setupClientSubject(clientSubject); 
 				 // to test access as a group member (of testPerson)
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "NotAuthorized");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "NotAuthorized");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "true");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "true");
 
-				 setupClientSubject("testSubmitter");
+				 clientSubject = "testSubmitter";
+				 setupClientSubject(clientSubject);
 				 // the designated no-rights subject
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "NotAuthorized");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "NotAuthorized");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "true");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "true");
 
+				 clientSubject = "NoCert";
 				 setupClientSubject_NoCert();	 
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "NotAuthorized");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "NotAuthorized");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "true");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "true");
 
 
-				 setupClientSubject("testPerson_Expired");
+				 clientSubject = "testPerson_Expired";
+				 setupClientSubject(clientSubject);
 				 // bad credentials should always fail		 
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "InvalidToken");
 
-				 setupClientSubject("testPerson_SelfSigned");	
+				 clientSubject = "testPerson_SelfSigned";
+				 setupClientSubject(clientSubject);	
 				 // bad credentials should always fail			 
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "InvalidToken");
 				 
-				 setupClientSubject("testPerson_InvalidVsSchema");	
+				 clientSubject = "testPerson_InvalidVsSchema";
+				 setupClientSubject(clientSubject);	
 				 // bad credentials should always fail			 
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "InvalidToken");
 				 
-				 setupClientSubject("testPerson_MissingMappedID");	
+				 clientSubject = "testPerson_MissingMappedID";
+				 setupClientSubject(clientSubject);
 				 // bad credentials should always fail			 
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "InvalidToken");
 				 
-				 setupClientSubject("testPerson_MissingSelf");	
+				 clientSubject = "testPerson_MissingSelf";
+				 setupClientSubject(clientSubject);	
 				 // bad credentials should always fail			 
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "InvalidToken");
 				 
 				 
-
+			 } catch (BaseException e) {
+					handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
+							e.getDetail_code() + ": " + e.getDescription());
+					 
 	
 				 
 			 } catch (Exception e) {
@@ -417,6 +496,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 				 D1Node d1Node = instantiateD1Node(currentUrl);
 
 				 // get or create the test object
+				 ;
 				 setupClientSubject(procuringSubjectString);
 				 Identifier testObject = procureTestObject(d1Node,
 						 buildAccessRule(objectSubjectString,objectPermission),
@@ -424,78 +504,92 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 				 
 	
 				 // run tests
-				 setupClientSubject("testRightsHolder");  // should always have access
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "true");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "true");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "true");
+				 String clientSubject = "testRightsHolder";
+				 setupClientSubject(clientSubject);  // should always have access
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "true");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "true");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "true");
 
-				 setupClientSubject("testPerson");			 
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "NotAuthorized");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "NotAuthorized");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "true");
+				 clientSubject = "testPerson";
+				 setupClientSubject(clientSubject);			 
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "true");
 
-				 setupClientSubject("testPerson_NoSubjectInfo");	
-				 
-					 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "true");
-					 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "true");
-					 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "true");
-				 
-				 
-				 setupClientSubject("testMappedPerson");				 
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "NotAuthorized");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "NotAuthorized");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "true");
+				 clientSubject = "testPerson_NoSubjectInfo";
+				 setupClientSubject(clientSubject);					 
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "true");
 
-				 setupClientSubject("testGroupie"); 
+				 
+				 clientSubject = "testMappedPerson";
+				 setupClientSubject(clientSubject);				 
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "true");
+
+				 clientSubject = "testGroupie";
+				 setupClientSubject(clientSubject); 
 				 // to test access as a group member (of testPerson)
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "NotAuthorized");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "NotAuthorized");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "true");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "true");
 
-				 setupClientSubject("testSubmitter");
+				 clientSubject = "testSubmitter";
+				 setupClientSubject(clientSubject);
 				 // the designated no-rights subject
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "NotAuthorized");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "NotAuthorized");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "true");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "true");
 
+				 clientSubject = "NoCert";
 				 setupClientSubject_NoCert();	 
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "NotAuthorized");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "NotAuthorized");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "NotAuthorized");
 
 
-				 setupClientSubject("testPerson_Expired");
+				 clientSubject = "testPerson_Expired";
+				 setupClientSubject(clientSubject);
 				 // bad credentials should always fail		 
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "InvalidToken");
 
-				 setupClientSubject("testPerson_SelfSigned");	
+				 clientSubject = "testPerson_SelfSigned";
+				 setupClientSubject(clientSubject);	
 				 // bad credentials should always fail			 
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "InvalidToken");
 				 
 				 
-				 setupClientSubject("testPerson_InvalidVsSchema");	
+				 clientSubject = "testPerson_InvalidVsSchema";
+				 setupClientSubject(clientSubject);	
 				 // bad credentials should always fail			 
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "InvalidToken");
 				 
-				 setupClientSubject("testPerson_MissingMappedID");	
+				 clientSubject = "testPerson_MissingMappedID";
+				 setupClientSubject(clientSubject);	
 				 // bad credentials should always fail			 
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "InvalidToken");
 				 
-				 setupClientSubject("testPerson_MissingSelf");	
+				 clientSubject = "testPerson_MissingSelf";
+				 setupClientSubject(clientSubject);	
 				 // bad credentials should always fail			 
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "InvalidToken");
+
 				 
-				 
+			 } catch (BaseException e) {
+					handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
+							e.getDetail_code() + ": " + e.getDescription());
 
 				 
 			 } catch (Exception e) {
@@ -527,85 +621,100 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 						 buildIdentifier(objectIdentifier));
 
 				 // run tests
-				 setupClientSubject("testRightsHolder");  // should always have access
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "true");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "true");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "true");
+				 String clientSubject = "testRightsHolder";
+				 setupClientSubject(clientSubject);
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "true");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "true");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "true");
 
-				 setupClientSubject("testPerson");			 
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "true");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "true");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "true");
+				 clientSubject = "testPerson";
+				 setupClientSubject(clientSubject);		 
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "true");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "true");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "true");
 				 
-				 setupClientSubject("testPerson_NoSubjectInfo");	
+				 clientSubject = "testPerson_NoSubjectInfo";
+				 setupClientSubject(clientSubject);	
 				 // CNodes can lookup subject info so results same as above
 				 if (d1Node instanceof CNode) {
-					 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "true");
-					 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "true");
-					 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "true");
+					 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "true");
+					 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "true");
+					 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "true");
 				 } else {
 					 // MNodes need subjectInfo to get verified status
-					 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "NotAuthorized");
-					 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "NotAuthorized");
-					 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "NotAuthorized"); 
+					 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "NotAuthorized");
+					 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "NotAuthorized");
+					 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "NotAuthorized"); 
 				 }
 				 
-				 setupClientSubject("testMappedPerson");				 
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "NotAuthorized");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "NotAuthorized");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "NotAuthorized");
+				 clientSubject = "testMappedPerson";
+				 setupClientSubject(clientSubject);				 
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "NotAuthorized");
 
 				 
-				 setupClientSubject("testGroupie"); 
+				 clientSubject = "testGroupie";
+				 setupClientSubject(clientSubject);
 				 // to test access as a group member (of testPerson)
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "NotAuthorized");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "NotAuthorized");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "NotAuthorized");
 
-				 setupClientSubject("testSubmitter");
+				 clientSubject = "testSubmitter";
+				 setupClientSubject(clientSubject);
 				 // the designated no-rights subject
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "NotAuthorized");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "NotAuthorized");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "NotAuthorized");
 				 
+				 clientSubject = "NoCert";
 				 setupClientSubject_NoCert();	 
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "NotAuthorized");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "NotAuthorized");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "NotAuthorized");
 				 
 				 
-				 setupClientSubject("testPerson_Expired");
+				 clientSubject = "testPerson_Expired";
+				 setupClientSubject(clientSubject);
 				 // bad credentials should always fail		 
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "InvalidToken");
 
-				 setupClientSubject("testPerson_SelfSigned");	
+				 clientSubject = "testPerson_SelfSigned";
+				 setupClientSubject(clientSubject);	
 				 // bad credentials should always fail			 
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "InvalidToken");
 
 				 
-				 setupClientSubject("testPerson_InvalidVsSchema");	
+				 clientSubject = "testPerson_InvalidVsSchema";
+				 setupClientSubject(clientSubject);
 				 // bad credentials should always fail			 
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "InvalidToken");
 				 
-				 setupClientSubject("testPerson_MissingMappedID");	
+				 clientSubject = "testPerson_MissingMappedID";
+				 setupClientSubject(clientSubject);	
 				 // bad credentials should always fail			 
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "InvalidToken");
 				 
-				 setupClientSubject("testPerson_MissingSelf");	
+				 clientSubject = "testPerson_MissingSelf";
+				 setupClientSubject(clientSubject);	
 				 // bad credentials should always fail			 
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "InvalidToken");
 				 
-
+			 } catch (BaseException e) {
+					handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
+							e.getDetail_code() + ": " + e.getDescription());
+					 
 			 } catch (Exception e) {
 				 e.printStackTrace();
 				 handleFail(currentUrl, e.getClass().getName() + ": " + e.getMessage());
@@ -628,88 +737,105 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 				 D1Node d1Node = instantiateD1Node(currentUrl);
 
 				 // get or create the test object
+
 				 setupClientSubject(procuringSubjectString);
 				 Identifier testObject = procureTestObject(d1Node,
 						 buildAccessRule(objectSubjectString,objectPermission),
 						 buildIdentifier(objectIdentifier));
 
 				 // run tests
-				 setupClientSubject("testRightsHolder");  // should always have access
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "true");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "true");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "true");
+				 String clientSubject = "testRightsHolder";
+				 setupClientSubject(clientSubject);  // should always have access
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "true");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "true");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "true");
 
-				 setupClientSubject("testPerson");			 
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "NotAuthorized");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "NotAuthorized");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "true");
+				 clientSubject = "testPerson";
+				 setupClientSubject(clientSubject);		 
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "true");
 				 
 				 
-				 setupClientSubject("testPerson_NoSubjectInfo");	
+				 clientSubject = "testPerson_NoSubjectInfo";
+				 setupClientSubject(clientSubject);	
 				 
-					 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "NotAuthorized");
-					 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "NotAuthorized");
-					 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "true");
+					 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "NotAuthorized");
+					 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "NotAuthorized");
+					 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "true");
 				 
 				 
-				 setupClientSubject("testMappedPerson");				 
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "NotAuthorized");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "NotAuthorized");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "true");
+				 clientSubject = "testMappedPerson";
+				 setupClientSubject(clientSubject);				 
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "true");
 
 				 
-				 setupClientSubject("testGroupie"); 
+				 clientSubject = "testGroupie";
+				 setupClientSubject(clientSubject); 
 				 // to test access as a group member (of testPerson)
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "NotAuthorized");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "NotAuthorized");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "NotAuthorized");
 
-				 setupClientSubject("testSubmitter");
+				 clientSubject = "testSubmitter";
+				 setupClientSubject(clientSubject);
 				 // the designated no-rights subject
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "NotAuthorized");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "NotAuthorized");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "NotAuthorized");
 				 
+				 
+				 clientSubject = "NoCert";
 				 setupClientSubject_NoCert();	 
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "NotAuthorized");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "NotAuthorized");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "NotAuthorized");
 				 
 				 
-				 setupClientSubject("testPerson_Expired");
+				 clientSubject = "testPerson_Expired";
+				 setupClientSubject(clientSubject);
 				 // bad credentials should always fail		 
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "InvalidToken");
 
-				 setupClientSubject("testPerson_SelfSigned");	
+				 clientSubject = "testPerson_SelfSigned";
+				 setupClientSubject(clientSubject);	
 				 // bad credentials should always fail			 
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "InvalidToken");
 
 				 
-				 setupClientSubject("testPerson_InvalidVsSchema");	
+				 clientSubject = "testPerson_InvalidVsSchema";
+				 setupClientSubject(clientSubject);	
 				 // bad credentials should always fail			 
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "InvalidToken");
 				 
-				 setupClientSubject("testPerson_MissingMappedID");	
+				 clientSubject = "testPerson_MissingMappedID";
+				 setupClientSubject(clientSubject);	
 				 // bad credentials should always fail			 
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "InvalidToken");
 				 
-				 setupClientSubject("testPerson_MissingSelf");	
+				 clientSubject = "testPerson_MissingSelf";
+				 setupClientSubject(clientSubject);	
 				 // bad credentials should always fail			 
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "InvalidToken");
 				 
 				 
 
-
+			 } catch (BaseException e) {
+					handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
+							e.getDetail_code() + ": " + e.getDescription());
+					 
 			 } catch (Exception e) {
 				 e.printStackTrace();
 				 handleFail(currentUrl, e.getClass().getName() + ": " + e.getMessage());
@@ -739,78 +865,95 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 						 buildIdentifier(objectIdentifier));
 
 				 // run tests
-				 setupClientSubject("testRightsHolder");  // should always have access
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "true");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "true");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "true");
+				 String clientSubject = "testRightsHolder";
+				 setupClientSubject(clientSubject); // should always have access
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "true");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "true");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "true");
 
-				 setupClientSubject("testPerson");			 
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "NotAuthorized");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "true");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "true");
+				 clientSubject = "testPerson";
+				 setupClientSubject(clientSubject);			 
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "true");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "true");
 				 
 				 
-				 setupClientSubject("testPerson_NoSubjectInfo");			 
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "NotAuthorized");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "true");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "true");
+				 clientSubject = "testPerson_NoSubjectInfo";
+				 setupClientSubject(clientSubject);			 
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "true");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "true");
 				 
 				 
-				 setupClientSubject("testMappedPerson");				 
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "NotAuthorized");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "true");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "true");
+				 clientSubject = "testMappedPerson";
+				 setupClientSubject(clientSubject);				 
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "true");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "true");
 
 				 
-				 setupClientSubject("testGroupie"); 
+				 clientSubject = "testGroupie";
+				 setupClientSubject(clientSubject);
 				 // to test access as a group member (of testPerson)
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "NotAuthorized");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "NotAuthorized");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "NotAuthorized");
 
-				 setupClientSubject("testSubmitter");
+				 clientSubject = "testSubmitter";
+				 setupClientSubject(clientSubject);
 				 // the designated no-rights subject
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "NotAuthorized");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "NotAuthorized");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "NotAuthorized");
 				 
+				 clientSubject = "NoCert";
 				 setupClientSubject_NoCert();	 
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "NotAuthorized");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "NotAuthorized");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "NotAuthorized");
 				 
 				 
-				 setupClientSubject("testPerson_Expired");
+				 clientSubject = "testPerson_Expired";
+				 setupClientSubject(clientSubject);
 				 // bad credentials should always fail		 
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "InvalidToken");
 
-				 setupClientSubject("testPerson_SelfSigned");	
+				 clientSubject = "testPerson_SelfSigned";
+				 setupClientSubject(clientSubject);	
 				 // bad credentials should always fail			 
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "InvalidToken");
 
 				 
-				 setupClientSubject("testPerson_InvalidVsSchema");	
+				 clientSubject = "testPerson_InvalidVsSchema";
+				 setupClientSubject(clientSubject);	
 				 // bad credentials should always fail			 
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "InvalidToken");
 				 
-				 setupClientSubject("testPerson_MissingMappedID");	
+				 clientSubject = "testPerson_MissingMappedID";
+				 setupClientSubject(clientSubject);
 				 // bad credentials should always fail			 
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "InvalidToken");
 				 
-				 setupClientSubject("testPerson_MissingSelf");	
+				 clientSubject = "testPerson_MissingSelf";
+				 setupClientSubject(clientSubject);	
 				 // bad credentials should always fail			 
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "InvalidToken");
-				 
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "InvalidToken");
+
+			 
+			 } catch (BaseException e) {
+					handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
+							e.getDetail_code() + ": " + e.getDescription());
+					 	 
 
 			 } catch (Exception e) {
 				 e.printStackTrace();
@@ -840,76 +983,92 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 						 buildIdentifier(objectIdentifier));
 
 				 // run tests
-				 setupClientSubject("testRightsHolder");  // should always have access
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "true");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "true");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "true");
+				 String clientSubject = "testRightsHolder";
+				 setupClientSubject(clientSubject);
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "true");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "true");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "true");
 
-				 setupClientSubject("testPerson");			 
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "true");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "true");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "true");
+				 clientSubject = "testPerson";
+				 setupClientSubject(clientSubject);		 
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "true");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "true");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "true");
 				 
-				 setupClientSubject("testPerson_NoSubjectInfo");			 
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "true");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "true");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "true");
+				 clientSubject = "testPerson_NoSubjectInfo";
+				 setupClientSubject(clientSubject);			 
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "true");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "true");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "true");
 				 
-				 setupClientSubject("testMappedPerson");				 
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "true");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "true");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "true");
+				 clientSubject = "testMappedPerson";
+				 setupClientSubject(clientSubject);				 
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "true");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "true");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "true");
 
 				 
-				 setupClientSubject("testGroupie"); 
+				 clientSubject = "testGroupie";
+				 setupClientSubject(clientSubject); 
 				 // to test access as a group member (of testPerson)
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "NotAuthorized");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "NotAuthorized");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "NotAuthorized");
 
-				 setupClientSubject("testSubmitter");
+				 clientSubject = "testSubmitter";
+				 setupClientSubject(clientSubject);
 				 // the designated no-rights subject
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "NotAuthorized");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "NotAuthorized");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "NotAuthorized");
 				 
+				 clientSubject = "NoCert";
 				 setupClientSubject_NoCert();	 
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "NotAuthorized");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "NotAuthorized");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "NotAuthorized");
 				 
 				 
-				 setupClientSubject("testPerson_Expired");
+				 clientSubject = "testPerson_Expired";
+				 setupClientSubject(clientSubject);
 				 // bad credentials should always fail		 
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "InvalidToken");
 
-				 setupClientSubject("testPerson_SelfSigned");	
+				 clientSubject = "testPerson_SelfSigned";
+				 setupClientSubject(clientSubject);	
 				 // bad credentials should always fail			 
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "InvalidToken");
 
 				 
-				 setupClientSubject("testPerson_InvalidVsSchema");	
+				 clientSubject = "testPerson_InvalidVsSchema";
+				 setupClientSubject(clientSubject);	
 				 // bad credentials should always fail			 
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "InvalidToken");
 				 
-				 setupClientSubject("testPerson_MissingMappedID");	
+				 clientSubject = "testPerson_MissingMappedID";
+				 setupClientSubject(clientSubject);	
 				 // bad credentials should always fail			 
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "InvalidToken");
 				 
-				 setupClientSubject("testPerson_MissingSelf");	
+				 clientSubject = "testPerson_MissingSelf";
+				 setupClientSubject(clientSubject);
 				 // bad credentials should always fail			 
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "InvalidToken");
-
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "InvalidToken");
+				 
+			 } catch (BaseException e) {
+					handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
+							e.getDetail_code() + ": " + e.getDescription());
+					 
 			 } catch (Exception e) {
 				 e.printStackTrace();
 				 handleFail(currentUrl, e.getClass().getName() + ": " + e.getMessage());
@@ -932,92 +1091,108 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 				 D1Node d1Node = instantiateD1Node(currentUrl);
 
 				 // get or create the test object
+				 ;
 				 setupClientSubject(procuringSubjectString);
 				 Identifier testObject = procureTestObject(d1Node,
 						 buildAccessRule(objectSubjectString,objectPermission),
 						 buildIdentifier(objectIdentifier));
 
 				 // run tests
-				 setupClientSubject("testRightsHolder");  // should always have access
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "true");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "true");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "true");
+				 String clientSubject = "testRightsHolder";
+				 setupClientSubject(clientSubject);
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "true");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "true");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "true");
 
-				 setupClientSubject("testPerson");			 
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "NotAuthorized");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "NotAuthorized");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "true");
+				 clientSubject = "testPerson";
+				 setupClientSubject(clientSubject);	 
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "true");
 				 
 				 
-				 setupClientSubject("testPerson_NoSubjectInfo");	
+				 clientSubject = "testPerson_NoSubjectInfo";
+				 setupClientSubject(clientSubject);
 				 // CNodes can lookup subject info so results same as above
 				 if (d1Node instanceof CNode) {
-					 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "NotAuthorized");
-					 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "NotAuthorized");
-					 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "true");
+					 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "NotAuthorized");
+					 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "NotAuthorized");
+					 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "true");
 				 } else {
 					 // MNodes need subjectInfo to get verified status
-					 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "NotAuthorized");
-					 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "NotAuthorized");
-					 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "NotAuthorized"); 
+					 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "NotAuthorized");
+					 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "NotAuthorized");
+					 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "NotAuthorized"); 
 				 }
 				 
 				 
-				 setupClientSubject("testMappedPerson");				 
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "NotAuthorized");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "NotAuthorized");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "true");
+				 clientSubject = "testMappedPerson";
+				 setupClientSubject(clientSubject);			 
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "true");
 
 				 
-				 setupClientSubject("testGroupie"); 
+				 clientSubject = "testGroupie";
+				 setupClientSubject(clientSubject);
 				 // to test access as a group member (of testPerson)
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "NotAuthorized");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "NotAuthorized");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "true");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "true");
 
-				 setupClientSubject("testSubmitter");
+				 clientSubject = "testSubmitter";
+				 setupClientSubject(clientSubject);
 				 // the designated no-rights subject
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "NotAuthorized");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "NotAuthorized");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "NotAuthorized");
 				 
+				 clientSubject = "NoCert";
 				 setupClientSubject_NoCert();	 
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "NotAuthorized");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "NotAuthorized");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "NotAuthorized");
 				 
 				 
-				 setupClientSubject("testPerson_Expired");
+				 clientSubject = "testPerson_Expired";
+				 setupClientSubject(clientSubject);
 				 // bad credentials should always fail		 
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "InvalidToken");
 
-				 setupClientSubject("testPerson_SelfSigned");	
+				 clientSubject = "testPerson_SelfSigned";
+				 setupClientSubject(clientSubject);
 				 // bad credentials should always fail			 
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "InvalidToken");
 
-				 setupClientSubject("testPerson_InvalidVsSchema");	
+				 clientSubject = "testPerson_InvalidVsSchema";
+				 setupClientSubject(clientSubject);
 				 // bad credentials should always fail			 
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "InvalidToken");
 				 
-				 setupClientSubject("testPerson_MissingMappedID");	
+				 clientSubject = "testPerson_MissingMappedID";
+				 setupClientSubject(clientSubject);
 				 // bad credentials should always fail			 
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "InvalidToken");
 				 
-				 setupClientSubject("testPerson_MissingSelf");	
+				 clientSubject = "testPerson_MissingSelf";
+				 setupClientSubject(clientSubject);
 				 // bad credentials should always fail			 
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "InvalidToken");
 				 
-
+			 } catch (BaseException e) {
+					handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
+							e.getDetail_code() + ": " + e.getDescription());
+					 
 			 } catch (Exception e) {
 				 e.printStackTrace();
 				 handleFail(currentUrl, e.getClass().getName() + ": " + e.getMessage());
@@ -1041,93 +1216,109 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 				 D1Node d1Node = instantiateD1Node(currentUrl);
 
 				 // get or create the test object
+				 ;
 				 setupClientSubject(procuringSubjectString);
 				 Identifier testObject = procureTestObject(d1Node,
 						 buildAccessRule(objectSubjectString,objectPermission),
 						 buildIdentifier(objectIdentifier));
 
 				 // run tests
-				 setupClientSubject("testRightsHolder");  // should always have access
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "true");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "true");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "true");
+				 String clientSubject = "testRightsHolder";
+				 setupClientSubject(clientSubject); 
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "true");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "true");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "true");
 
-				 setupClientSubject("testPerson");			 
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "NotAuthorized");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "true");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "true");
+				 clientSubject = "testPerson";
+				 setupClientSubject(clientSubject);		 
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "true");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "true");
 				 
-				 setupClientSubject("testPerson_NoSubjectInfo");	
+				 clientSubject = "testPerson_NoSubjectInfo";
+				 setupClientSubject(clientSubject);	
 				 // CNodes can lookup subject info so results same as above
 				 if (d1Node instanceof CNode) {
-					 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "NotAuthorized");
-					 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "true");
-					 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "true");
+					 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "NotAuthorized");
+					 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "true");
+					 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "true");
 				 } else {
 					 // MNodes need subjectInfo to get verified status
-					 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "NotAuthorized");
-					 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "NotAuthorized");
-					 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "NotAuthorized"); 
+					 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "NotAuthorized");
+					 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "NotAuthorized");
+					 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "NotAuthorized"); 
 				 }
 				 
 				 
-				 setupClientSubject("testMappedPerson");				 
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "NotAuthorized");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "true");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "true");
+				 clientSubject = "testMappedPerson";
+				 setupClientSubject(clientSubject);			 
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "true");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "true");
 
 				 
-				 setupClientSubject("testGroupie"); 
+				 clientSubject = "testGroupie";
+				 setupClientSubject(clientSubject);
 				 // to test access as a group member (of testPerson)
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "NotAuthorized");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "true");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "true");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "true");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "true");
 
-				 setupClientSubject("testSubmitter");
+				 clientSubject = "testSubmitter";
+				 setupClientSubject(clientSubject);
 				 // the designated no-rights subject
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "NotAuthorized");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "NotAuthorized");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "NotAuthorized");
 				 
+				 clientSubject = "NoCert";
 				 setupClientSubject_NoCert();	 
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "NotAuthorized");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "NotAuthorized");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "NotAuthorized");
 				 
 				 
-				 setupClientSubject("testPerson_Expired");
+				 clientSubject = "testPerson_Expired";
+				 setupClientSubject(clientSubject);
 				 // bad credentials should always fail		 
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "InvalidToken");
 
-				 setupClientSubject("testPerson_SelfSigned");	
+				 clientSubject = "testPerson_SelfSigned";
+				 setupClientSubject(clientSubject);	
 				 // bad credentials should always fail			 
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "InvalidToken");
 
 				 
-				 setupClientSubject("testPerson_InvalidVsSchema");	
+				 clientSubject = "testPerson_InvalidVsSchema";
+				 setupClientSubject(clientSubject);
 				 // bad credentials should always fail			 
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "InvalidToken");
 				 
-				 setupClientSubject("testPerson_MissingMappedID");	
+				 clientSubject = "testPerson_MissingMappedID";
+				 setupClientSubject(clientSubject);
 				 // bad credentials should always fail			 
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "InvalidToken");
 				 
-				 setupClientSubject("testPerson_MissingSelf");	
+				 clientSubject = "testPerson_MissingSelf";
+				 setupClientSubject(clientSubject);
 				 // bad credentials should always fail			 
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "InvalidToken");
 				 
 				 
-
+			 } catch (BaseException e) {
+					handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
+							e.getDetail_code() + ": " + e.getDescription());
+					 
 
 			 } catch (Exception e) {
 				 e.printStackTrace();
@@ -1151,91 +1342,107 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 				 D1Node d1Node = instantiateD1Node(currentUrl);
 
 				 // get or create the test object
+				 ;
 				 setupClientSubject(procuringSubjectString);
 				 Identifier testObject = procureTestObject(d1Node,
 						 buildAccessRule(objectSubjectString,objectPermission),
 						 buildIdentifier(objectIdentifier));
 
 				 // run tests
-				 setupClientSubject("testRightsHolder");  // should always have access
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "true");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "true");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "true");
+				 String clientSubject = "testRightsHolder";
+				 setupClientSubject(clientSubject);
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "true");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "true");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "true");
 
-				 setupClientSubject("testPerson");			 
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "true");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "true");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "true");
+				 clientSubject = "testPerson";
+				 setupClientSubject(clientSubject);		 
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "true");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "true");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "true");
 				 
-				 setupClientSubject("testPerson_NoSubjectInfo");	
+				 clientSubject = "testPerson_NoSubjectInfo";
+				 setupClientSubject(clientSubject);
 				 // CNodes can lookup subject info so results same as above
 				 if (d1Node instanceof CNode) {
-					 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "true");
-					 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "true");
-					 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "true");
+					 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "true");
+					 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "true");
+					 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "true");
 				 } else {
 					 // MNodes need subjectInfo to get verified status
-					 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "NotAuthorized");
-					 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "NotAuthorized");
-					 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "NotAuthorized"); 
+					 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "NotAuthorized");
+					 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "NotAuthorized");
+					 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "NotAuthorized"); 
 				 }
 				 
-				 setupClientSubject("testMappedPerson");				 
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "true");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "true");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "true");
+				 clientSubject = "testMappedPerson";
+				 setupClientSubject(clientSubject);				 
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "true");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "true");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "true");
 
 				 
-				 setupClientSubject("testGroupie"); 
+				 clientSubject = "testGroupie";
+				 setupClientSubject(clientSubject);
 				 // to test access as a group member (of testPerson)
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "true");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "true");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "true");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "true");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "true");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "true");
 
-				 setupClientSubject("testSubmitter");
+				 clientSubject = "testSubmitter";
+				 setupClientSubject(clientSubject);
 				 // the designated no-rights subject
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "NotAuthorized");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "NotAuthorized");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "NotAuthorized");
 				 
+				 clientSubject = "NoCert";
 				 setupClientSubject_NoCert();	 
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "NotAuthorized");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "NotAuthorized");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "NotAuthorized");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "NotAuthorized");
 				 
 				 
-				 setupClientSubject("testPerson_Expired");
+				 clientSubject = "testPerson_Expired";
+				 setupClientSubject(clientSubject);
 				 // bad credentials should always fail		 
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "InvalidToken");
 
-				 setupClientSubject("testPerson_SelfSigned");	
+				 clientSubject = "testPerson_SelfSigned";
+				 setupClientSubject(clientSubject);
 				 // bad credentials should always fail			 
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "InvalidToken");
 
 
-				 setupClientSubject("testPerson_InvalidVsSchema");	
+				 clientSubject = "testPerson_InvalidVsSchema";
+				 setupClientSubject(clientSubject);
 				 // bad credentials should always fail			 
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "InvalidToken");
 				 
-				 setupClientSubject("testPerson_MissingMappedID");	
+				 clientSubject = "testPerson_MissingMappedID";
+				 setupClientSubject(clientSubject);	
 				 // bad credentials should always fail			 
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "InvalidToken");
 				 
-				 setupClientSubject("testPerson_MissingSelf");	
+				 clientSubject = "testPerson_MissingSelf";
+				 setupClientSubject(clientSubject);	
 				 // bad credentials should always fail			 
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.CHANGE_PERMISSION, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.WRITE, "InvalidToken");
-				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, Permission.READ, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE, "InvalidToken");
+				 checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ, "InvalidToken");
 				 
-				 
+			 } catch (BaseException e) {
+					handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
+							e.getDetail_code() + ": " + e.getDescription());
+					 	 
 
 			 } catch (Exception e) {
 				 e.printStackTrace();
@@ -1245,158 +1452,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 	 }
 
 	 
-//	 /**
-//	  * Finds or creates an object with PUBLIC READ access, then ensures
-//	  * that an anonymous client can READ it.
-//	  */
-//	 @Test
-//	 public void testIsAuthorized_PublicSymbolicPrincipal() 
-//	 {	
-//		 AccessRule accessRule = AccessUtil.createAccessRule(
-//				 new String[]{Constants.SUBJECT_PUBLIC}, new Permission[]{Permission.READ});
-//		 runIsAuthorizedVsSubject( accessRule, "NoCert", "NoCert", null);
-//	 }
-//	 
-//	 /**
-//	  * Finds or creates an object where AUTHENTICATED_USER has READ access, then
-//	  * ensures that the "testNoRights" client can READ it.  (By design, the testNoRights
-//	  * subject is not on accessPolicies, and is not part of any group, or mapped
-//	  * to any other identity.)
-//	  */
-//	 @Test
-//	 public void testIsAuthorized_AuthenticatedUserSymbolicPrincipal()
-//	 {	
-//		 AccessRule accessRule = AccessUtil.createAccessRule(
-//				 new String[]{Constants.SUBJECT_AUTHENTICATED_USER}, new Permission[]{Permission.READ});
-//		 runIsAuthorizedVsSubject( accessRule, "testRightsHolder", "testNoRights",null);
-//	 }
-//
-//
-//	 @Ignore("user verification not implemented yet")
-//	 @Test
-//	 public void testIsAuthorized_VerifiedUserSymbolicPrincipal()
-//	 {	
-//		 AccessRule accessRule = AccessUtil.createAccessRule(
-//				 new String[]{Constants.SUBJECT_VERIFIED_USER}, new Permission[]{Permission.READ});
-//		 runIsAuthorizedVsSubject(accessRule, "testRightsHolder", "testReader", null);
-//	 }
-//
-//	 /**
-//	  * assuming that testMappedReader and testReaderGroup are not in the
-//	  * accessPolicy of the object procured.
-//	  */
-//	 @Test
-//	 public void testIsAuthorized_MappedIdentity()
-//	 {	
-//		 AccessRule accessRule = AccessUtil.createAccessRule(
-//				 new String[]{"testReader"}, new Permission[]{Permission.READ});
-//		 runIsAuthorizedVsSubject( accessRule, "testRightsHolder", "testMappedReader", null);
-//	 }
-//
-//	 /**
-//	  * assumes that testReader and testMappedReader are not in the accessPolicy
-//	  * of the object procured
-//	  */
-//	 @Test
-//	 public void testIsAuthorized_ViaGroupMembership()
-//	 {	
-//		 AccessRule accessRule = AccessUtil.createAccessRule(
-//				 new String[]{"testReaderGroup"}, new Permission[]{Permission.READ});
-//		 Identifier pid = new Identifier();
-//		 pid.setValue("testAuthByGroup");
-//		 runIsAuthorizedVsSubject( accessRule, "testRightsHolder", "testReader",pid);
-//	 }
-//
-//
-//	 private void runIsAuthorizedVsSubject(AccessRule accessRule,
-//			 String string, String string2, Identifier pid) {
-//		 // TODO Auto-generated method stub
-//
-//	 }
-//
-
-	   
-
-	    
-	    
-//	 
-//	 
-//	 /** 
-//     * Implementation for isAuthorized Tests for various types of users
-//     * @param objectAccessRule - the accessRule containing the subject and permission
-//     *           required in the systemmMetadata.accessPolicy 
-//     * @param procuringSubjectName - the client subject used to search for the
-//     *           objects with (listObjects, getSystemMetadata)
-//     * @param testingSubjectName - the client subject to run the test under
-//	 * @param testObject - pass in a valid pid to bypass the procurement of the identifier
-//	 *              and test isAuthorized against the provided pid.
-//     */
-//	protected void runIsAuthorizedVsSubject(String procuringSubjectName, String testingSubjectName, 
-//			Permission testPermission, Identifier testObject, AccessRule objectAccessRule,
-//			boolean expectPass)
-//	{
-//		String policySubjectName = objectAccessRule.sizeSubjectList() > 0 ?
-//				objectAccessRule.getSubject(0).getValue() : null;
-//		String policyPermission = objectAccessRule.sizePermissionList() > 0 ?
-//				objectAccessRule.getPermission(0).xmlValue() : null;
-//		
-//		
-//		Iterator<Node> it = getNodeIterator();
-//
-//		while (it.hasNext()) {
-//			currentUrl = it.next().getBaseURL();
-//
-//			D1Node d1Node = instantiateD1Node(currentUrl);
-//			
-//			currentUrl = d1Node.getNodeBaseServiceUrl();
-//			printTestHeader("testIsAuthorized_" + policySubjectName + "() vs. node: " + currentUrl);
-//			String testDescription = String.format("Authorization test: isAuthorized('%s','%s',%s) " +
-//					"vs. AccessPolicy('%s','%s') : expecting %s",
-//					testingSubjectName,testObject.getValue(),testPermission.xmlValue(),
-//					policySubjectName, policyPermission, 
-//					expectPass ? "Pass" : "NotAuthorized"
-//					);
-//			printTestHeader(testDescription);			
-//			log.info(testDescription);
-//			
-//			try {				
-//				// change to the subject used for procuring an object
-//				if (procuringSubjectName.equals("NoCert") || procuringSubjectName == null)
-//					setupClientSubject_NoCert();
-//				else 
-//					setupClientSubject(procuringSubjectName);
-//
-//				// get an appropriate test object
-//				 testObject = procureTestObject(d1Node, objectAccessRule, testObject);
-//					
-//				// change to the subject used for testing, if necessary
-//				if (!testingSubjectName.equals(procuringSubjectName)) {
-//					if (testingSubjectName.equals("NoCert") || testingSubjectName == null)
-//						setupClientSubject_NoCert();
-//					else 
-//						setupClientSubject(testingSubjectName);
-//				}
-//				boolean success = false;
-//				try {
-//					success = d1Node.isAuthorized(null, testObject, testPermission);
-//				} catch (NotAuthorized na) {
-//					success = false;
-//				}
-//				checkTrue(currentUrl,"failed assumption: " + testDescription,
-//						success == expectPass);
-//	
-//			} catch (IndexOutOfBoundsException e) {
-//				handleFail(currentUrl,"No Objects available to test against");
-//			} catch (BaseException e) {
-//				handleFail(currentUrl, e.getClass().getSimpleName() + ": " + 
-//						e.getDetail_code() + ": " + e.getDescription());
-//			} catch (Exception e) {
-//				e.printStackTrace();
-//				handleFail(currentUrl, e.getClass().getName() + ": " + e.getMessage());
-//			}
-//			
-//		} // while it.hasNext()
-//	}   
+ 
 
 	
 }
