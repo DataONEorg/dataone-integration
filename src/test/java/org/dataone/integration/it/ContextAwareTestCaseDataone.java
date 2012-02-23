@@ -6,8 +6,10 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.security.NoSuchAlgorithmException;
@@ -56,6 +58,7 @@ import org.dataone.service.types.v1.util.AccessUtil;
 import org.dataone.service.types.v1.util.NodelistUtil;
 import org.dataone.service.util.Constants;
 import org.dataone.service.util.TypeMarshaller;
+import org.jibx.runtime.JiBXException;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.rules.ErrorCollector;
@@ -437,9 +440,12 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 	 * @throws NotAuthorized 
 	 * @throws ServiceFailure 
 	 * @throws InvalidToken 
-	 * @throws - IndexOutOfBoundsException  - when can't procure an object Identifier
+	 * @throws TestIterationEndingException - - when can't procure an object Identifier  
 	 */
-	protected Identifier procureTestObject(D1Node d1Node, AccessRule accessRule, Identifier pid) throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique, UnsupportedType, InsufficientResources, InvalidSystemMetadata, NotImplemented, InvalidRequest, UnsupportedEncodingException, NotFound 
+	protected Identifier procureTestObject(D1Node d1Node, AccessRule accessRule, Identifier pid) 
+	throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique, UnsupportedType, 
+	InsufficientResources, InvalidSystemMetadata, NotImplemented, InvalidRequest, 
+	UnsupportedEncodingException, NotFound, TestIterationEndingException 
 	{
 		Identifier identifier = null;
 		try {
@@ -450,7 +456,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 				if (smd.getAccessPolicy() == null || smd.getAccessPolicy().sizeAllowList() == 0) {
 					identifier = pid;
 				} else {
-					throw new IndexOutOfBoundsException("returned object doesn't have the expected accessRules");
+					throw new TestIterationEndingException("returned object doesn't have the expected accessRules");
 				}
 			} else {
 				if (smd.getAccessPolicy() != null && smd.getAccessPolicy().sizeAllowList() == 1) {
@@ -458,10 +464,10 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 					if (ar.sizePermissionList() == 1 && ar.sizeSubjectList() == 1) {
 						identifier = pid;
 					} else {
-						throw new IndexOutOfBoundsException("the AccessRule of the returned object has either multiple subjects or multiple permissions");
+						throw new TestIterationEndingException("the AccessRule of the returned object has either multiple subjects or multiple permissions");
 					}
 				} else {
-					throw new IndexOutOfBoundsException("the AccessPolicy of the returned object is either null or has multiple AccessRules");
+					throw new TestIterationEndingException("the AccessPolicy of the returned object is either null or has multiple AccessRules");
 				}
 			}
 		} 
@@ -694,7 +700,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 	{
 		// the default is to do all of the creates under the testSubmitter subject
 		// and assign rights to testRightsHolder
-		return createTestObject(d1Node, pid, accessRule,"testSubmitter","CN=testRightsHolder,DC=org,DC=dataone");
+		return createTestObject(d1Node, pid, accessRule,"testSubmitter","CN=testRightsHolder,DC=dataone,DC=org");
 	}
 	
 	
@@ -795,8 +801,19 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 		}
 		
 		// create the test object on the given mNode		
-		log.info("creating a test object.  pid = " + pid.getValue());
-		
+		if (log.isInfoEnabled()) {
+			log.info("creating a test object.  pid = " + pid.getValue());
+			ByteArrayOutputStream os = new ByteArrayOutputStream();
+			try {
+				TypeMarshaller.marshalTypeToOutputStream(SystemMetadata.class, os);
+			} catch (JiBXException e) {
+				e.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			log.info("SystemMetadata for pid: " + pid.getValue() + "\n" 
+				+ os.toString());
+		}
 		Identifier retPid = null;
 		if (d1Node instanceof MNode) {
 			retPid = ((MNode)d1Node).create(null, pid, objectInputStream, sysMeta);
@@ -876,7 +893,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
             public Object call() throws Exception 
             {
                 if (host != null) {
-                	assertThat("for host: " + host + ":: " + message, s1, is(s2));
+                	assertThat(message + "  [for host " + host + "]", s1, is(s2));
                 } else {
                 	assertThat(message, s1, is(s2));
                 }
@@ -901,7 +918,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
             public Object call() throws Exception 
             {
             	if (host != null) {	
-            		assertThat("for host: " + host + ":: " + message, b, is(true));
+            		assertThat(message + "  [for host " + host + "]", b, is(true));
             	} else {
             		assertThat(message, b, is(true));
             	}
@@ -925,7 +942,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
             public Object call() throws Exception 
             {
             	if (host != null) {	
-            		assertThat("for host: " + host + ":: " + message, b, is(false));
+            		assertThat(message + "  [for host " + host + "]", b, is(false));
             	} else {
             		assertThat(message, b, is(false));
             	}
@@ -948,7 +965,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
             public Object call() throws Exception 
             {
             	if (host != null) {	
-            		fail("for host: " + host + ":: " + message);
+            		fail(message + "  [for host " + host + "]");
             	} else {
             		fail(message);
             	}

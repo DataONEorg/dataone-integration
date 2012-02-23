@@ -5,7 +5,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.security.Principal;
 import java.security.cert.X509Certificate;
@@ -20,6 +22,7 @@ import org.dataone.configuration.Settings;
 import org.dataone.service.types.v1.Person;
 import org.dataone.service.types.v1.Subject;
 import org.dataone.service.types.v1.SubjectInfo;
+import org.dataone.service.util.TypeMarshaller;
 import org.jibx.runtime.JiBXException;
 import org.junit.After;
 import org.junit.Before;
@@ -55,13 +58,58 @@ public class ContextAwareTestCaseDataoneTest {
 	{
 		runTestSetupClient_Typical("testRightsHolder");
 	}	
-
 	
 	@Test
 	public void testSetupClientSubject_Submitter() throws Exception
 	{
 		runTestSetupClient_Typical("testSubmitter");
 	}
+	
+	@Test
+	public void testSetupClientSubject_Groupie() throws Exception
+	{
+		runTestSetupClient_Typical("testGroupie");
+	}
+	
+	
+	@Test
+	public void testSetupClientSubject_Person_InvalidVsSchema() throws Exception
+	{
+		try {
+			runTestSetupClient_Typical("testPerson_InvalidVsSchema");
+			fail("Expected an invalid schema subjectInfo to throw JiBXException");
+		} catch (Exception e) {
+			if (!(e instanceof JiBXException)) {
+				fail("Expected an invalid schema subjectInfo to throw JiBXException");
+		}
+		}
+	}
+	
+//	@Test
+	public void testSetupClientSubject_Person_NoSubjectInfo() throws Exception
+	{
+		runTestSetupClient_Typical("testPerson_NoSubjectInfo");
+	}
+
+	
+	@Test
+	public void testSetupClientSubject_Person_SelfSigned() throws Exception
+	{
+		runTestSetupClient_Typical("testPerson_SelfSigned");
+	}
+
+	@Test
+	public void testSetupClientSubject_Person_MissingMappedID() throws Exception
+	{
+		runTestSetupClient_Typical("testPerson_MissingMappedID");
+	}
+	
+//	@Test
+	public void testSetupClientSubject_Person_MissingSelf() throws Exception
+	{
+		runTestSetupClient_Typical("testPerson_MissingSelf");
+	}
+	
 	
 	@Test
 	public void testSetupClientSubject_Person_Expired() throws Exception
@@ -94,12 +142,6 @@ public class ContextAwareTestCaseDataoneTest {
 		
 	}
 	
-	@Test
-	public void testSetupClientSubject_Person_SelfSigned() throws Exception
-	{
-		runTestSetupClient_Typical("testPerson_SelfSigned");
-	}
-
 	
 	@Test
 	public void testSetupClientSubject_NoCert() throws Exception
@@ -141,6 +183,11 @@ public class ContextAwareTestCaseDataoneTest {
 		CertificateManager cm = CertificateManager.getInstance();
 		SubjectInfo si = cm.getSubjectInfo(cm.loadCertificate());
 		assertNotNull("subjectInfo should not be null",si);
+		System.out.println("subjectInfo for: " + testSubject);
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		TypeMarshaller.marshalTypeToOutputStream(si, baos);
+		System.out.println(baos.toString() + "\n");
+		
 		boolean foundSelf = false;
 		for (Person p: si.getPersonList()) {
 			System.out.println("si person: " + p.getSubject().getValue());
