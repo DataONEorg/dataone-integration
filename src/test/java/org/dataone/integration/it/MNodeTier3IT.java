@@ -69,13 +69,14 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 				Identifier pid = mn.create(null,(Identifier) dataPackage[0],
 						(InputStream) dataPackage[1], (SystemMetadata) dataPackage[2]);	
 				
+				
 				checkEquals(currentUrl,"pid of created object should equal that given",
 						((Identifier)dataPackage[0]).getValue(), pid.getValue());
 				
 				InputStream theDataObject = mn.get(null,pid);
 				String objectData = IOUtils.toString(theDataObject);
-				checkTrue(currentUrl,"should get back an object containing submitted text:" + objectData,
-						objectData.contains("Plain text source"));
+				checkTrue(currentUrl,"should get back an object containing submitted text:" + objectData.substring(0, 1000),
+						objectData.contains("IPCC Data Distribution Centre Results "));
 			}
 			catch (BaseException e) {
 				handleFail(currentUrl,e.getClass().getSimpleName() + ": " 
@@ -200,8 +201,8 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 					InputStream data = mn.get(null, rGuid);
 					checkTrue(currentUrl, "get against the object should not equal null", null != data);
 					String str = IOUtils.toString(data);
-					checkTrue(currentUrl,"should be able to read the content as created ('" + str + "')",
-							str.indexOf("Plain text source") != -1);
+					checkTrue(currentUrl,"should be able to read the content as created ('" + str.substring(0,100) + "...')",
+							str.indexOf("IPCC Data Distribution Centre Results ") != -1);
 					data.close();
 				}
 				catch (BaseException e) {
