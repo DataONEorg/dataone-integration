@@ -33,6 +33,7 @@ import org.dataone.service.exceptions.NotAuthorized;
 import org.dataone.service.exceptions.NotFound;
 import org.dataone.service.exceptions.NotImplemented;
 import org.dataone.service.exceptions.ServiceFailure;
+import org.dataone.service.types.v1.AccessRule;
 import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Node;
 import org.dataone.service.types.v1.NodeList;
@@ -40,6 +41,7 @@ import org.dataone.service.types.v1.NodeReference;
 import org.dataone.service.types.v1.NodeType;
 import org.dataone.service.types.v1.ObjectLocation;
 import org.dataone.service.types.v1.ObjectLocationList;
+import org.dataone.service.types.v1.Permission;
 import org.dataone.service.types.v1.Person;
 import org.dataone.service.types.v1.Service;
 import org.dataone.service.types.v1.Subject;
@@ -111,6 +113,32 @@ public class APITestUtils {
         return potentialNodeList;
     }
  
+    public static Subject buildSubject(String value) {
+		 Subject s = new Subject();
+		 s.setValue(value);
+		 return s;
+		 
+	 }
+	 
+	 public static AccessRule buildAccessRule(String subjectString, Permission permission)
+	 {
+		 if (subjectString == null || permission == null) {
+			 return null;
+		 }
+		 
+		 AccessRule ar = new AccessRule();
+		 ar.addSubject(buildSubject(subjectString));
+		 ar.addPermission(permission);
+		 return ar;
+	 }
+	
+	 
+	 public static Identifier buildIdentifier(String value) {
+		 Identifier id = new Identifier();
+		 id.setValue(value);
+		 return id;
+	 }
+    
   
   
   public Person buildPerson(Subject subject, String familyName, 

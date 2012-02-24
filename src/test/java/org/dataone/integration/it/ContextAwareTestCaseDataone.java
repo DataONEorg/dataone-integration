@@ -805,7 +805,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 			log.info("creating a test object.  pid = " + pid.getValue());
 			ByteArrayOutputStream os = new ByteArrayOutputStream();
 			try {
-				TypeMarshaller.marshalTypeToOutputStream(SystemMetadata.class, os);
+				TypeMarshaller.marshalTypeToOutputStream(sysMeta, os);
 			} catch (JiBXException e) {
 				e.printStackTrace();
 			} catch (IOException e) {
