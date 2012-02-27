@@ -205,6 +205,8 @@ public class ArchitectureUtils {
 
 					value = getCellValue(row.getCell(paramTypeCol));
 					if (value != null) {
+						if (value.equals("string"))
+							value = "String";
 						if (methodDetailsMap.get("paramTypes") == null) {
 							ArrayList<String> al = new ArrayList<String>();
 							methodDetailsMap.put("paramTypes", al);

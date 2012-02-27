@@ -27,6 +27,7 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.dataone.configuration.Settings;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.NotImplemented;
 import org.dataone.service.exceptions.ServiceFailure;
@@ -42,6 +43,7 @@ import org.dataone.service.types.v1.Person;
 import org.dataone.service.types.v1.Replica;
 import org.dataone.service.types.v1.ReplicationStatus;
 import org.dataone.service.types.v1.Subject;
+import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ErrorCollector;
@@ -133,6 +135,11 @@ public class ClientArchitectureConformityIT {
 	@Rule 
     public ErrorCollector errorCollector = new ErrorCollector();
 	
+	@BeforeClass
+	public static void setUp() {
+		Settings.getConfiguration().setProperty("D1Client.useLocalCache","false");
+		Settings.getConfiguration().setProperty("CNode.useObjectFormatCache","false");
+	}
 	
 	@Parameters
 	public static Collection<Object[]> setUpTestParameters() throws IOException
@@ -420,7 +427,7 @@ public class ClientArchitectureConformityIT {
 				// create pattern from docMap path entry to match against echo response
 				exceptionLocation = "creating pathMatch";
 				String pathMatch = pathInfoBase + 
-				methodMap.get(currentMethodKey).get("path").get(0).replaceAll("\\{\\w+\\}", "\\\\w+\\$");
+				  methodMap.get(currentMethodKey).get("path").get(0).replaceAll("\\{\\w+\\}", "\\\\w+") + "$";
 				log.debug("testPath() pathMatch: " + pathMatch);
 
 				exceptionLocation = "getEchoResponse";
