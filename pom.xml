@@ -93,6 +93,12 @@
 			<version>3.7</version>
 			<scope>test</scope>
 		</dependency>
+		
+		<dependency>
+            <groupId>org.apache.solr</groupId>
+            <artifactId>solr-solrj</artifactId>
+            <version>3.4.0</version>
+        </dependency>
 	</dependencies>
 	<build>
 		<plugins>

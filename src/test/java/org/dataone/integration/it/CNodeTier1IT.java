@@ -27,6 +27,7 @@ import java.util.Scanner;
 import java.util.Vector;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.solr.client.solrj.util.ClientUtils;
 import org.dataone.client.CNode;
 import org.dataone.client.auth.ClientIdentityManager;
 import org.dataone.service.exceptions.BaseException;
@@ -51,6 +52,7 @@ import org.dataone.service.types.v1.ObjectLocationList;
 import org.dataone.service.types.v1.Permission;
 import org.dataone.service.types.v1.Subject;
 import org.dataone.service.types.v1.SystemMetadata;
+import org.dataone.service.util.D1Url;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -61,16 +63,15 @@ import org.junit.Test;
 public class CNodeTier1IT extends ContextAwareTestCaseDataone {
 
 	private  String format_text_csv = "text/csv";
-	
-    private static Identifier reservedIdentifier = null;
 
-//  TODO: test against testUnicodeStrings file instead when metacat supports unicode.
+	private static Identifier reservedIdentifier = null;
+
+	private static String unicodeIdPrefix = "testCNodeTier1:Unicode:";
+
 	private static String identifierEncodingTestFile = "/d1_testdocs/encodingTestSet/testUnicodeStrings.utf8.txt";
-//	private static String identifierEncodingTestFile = "/d1_testdocs/encodingTestSet/testAsciiStrings.utf8.txt";
+	//	private static String identifierEncodingTestFile = "/d1_testdocs/encodingTestSet/testAsciiStrings.utf8.txt";
 
-	
-	 private static String currentUrl;
-  
+	private static String currentUrl;
 
 
 
@@ -602,8 +603,6 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
 			nodeSummary.add("Node Test Summary for node: " + currentUrl );
 
 			printTestHeader("  Node:: " + currentUrl);
-
-			String idPrefix = "testCNodeTier1:";
 			
 			for (int j=0; j<unicodeString.size(); j++) 
 			{
@@ -612,8 +611,8 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
 					//    			String unicode = unicodeString.get(j);
 					System.out.println();
 					System.out.println(j + "    unicode String:: " + unicodeString.get(j));
-					String idString = idPrefix + ExampleUtilities.generateIdentifier() + "_" + unicodeString.get(j) ;
-					String idStringEscaped = idPrefix  + ExampleUtilities.generateIdentifier() + "_" + escapedString.get(j);
+					String idString = unicodeIdPrefix + ExampleUtilities.generateIdentifier() + "_" + unicodeString.get(j) ;
+					String idStringEscaped = unicodeIdPrefix  + ExampleUtilities.generateIdentifier() + "_" + escapedString.get(j);
 
 
 					Object[] dataPackage = ExampleUtilities.generateTestSciMetaDataPackage(idStringEscaped,false);
@@ -953,7 +952,7 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
 			printTestHeader("testSearch(...) vs. node: " + currentUrl);
 
 			try {
-				ObjectList response = cn.search(null,"SOLR","*:*");
+				ObjectList response = cn.search(null,"solr","?q=*:*");
 				checkTrue(currentUrl,"search(...) returns a ObjectList object", response != null);
 			} 
 			catch (IndexOutOfBoundsException e) {
@@ -968,6 +967,74 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
 			}
 		}
 	}
+	
+	
+	
+	@Test
+	public void testSearch_Solr_unicodeTests() {
+		
+		// get identifiers to check with
+		Vector<String> unicodeString = new Vector<String>();
+		Vector<String> escapedString = new Vector<String>();
+		InputStream is = this.getClass().getResourceAsStream(identifierEncodingTestFile);
+		Scanner s = new Scanner(is,"UTF-8");
+		String[] temp;
+		int c = 0;
+		try{
+			while (s.hasNextLine()) {
+				String line = s.nextLine();
+				if (line.startsWith("common-") || line.startsWith("query-"))
+				{
+					System.out.println(c++ + "   " + line);
+					temp = line.split("\t");
+					unicodeString.add(temp[0]);
+					escapedString.add(temp[1]);		
+				}
+			}
+		} finally {
+			s.close();
+		}
+		
+		
+		Iterator<Node> it = getCoordinatingNodeIterator();
+		while (it.hasNext()) {
+			currentUrl = it.next().getBaseURL();
+			CNode cn = new CNode(currentUrl);
+			currentUrl = cn.getNodeBaseServiceUrl();
+			printTestHeader("testSearch(...) vs. node: " + currentUrl);
+
+			
+			for (int i=0; i<unicodeString.size(); i++) 
+			{
+				String status = "OK   ";
+
+				//    			String unicode = unicodeString.get(j);
+				System.out.println();
+				System.out.println(i + "    unicode String:: " + unicodeString.get(i));
+				String idSubStringEscaped =  escapedString.get(i);
+
+				try {
+					D1Url query = new D1Url("a","b");
+					String wildcardPattern = unicodeIdPrefix + "*" + unicodeString.get(i) + "*";
+					String escapedWildcardPattern = ClientUtils.escapeQueryChars(wildcardPattern);
+					query.addNonEmptyParamPair("q", "id:" + escapedWildcardPattern);
+
+					ObjectList response = cn.search(null,"solr",query);
+					checkTrue(currentUrl,"search(...) returns a ObjectList object", response != null);
+				} 
+				catch (IndexOutOfBoundsException e) {
+					handleFail(currentUrl,"No Objects available to test against");
+				}
+				catch (BaseException e) {
+					handleFail(currentUrl,e.getDescription());
+				}
+				catch(Exception e) {
+					e.printStackTrace();
+					handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+				}
+			}
+		}
+	}
 
 
 
@@ -977,6 +1044,4 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
 		return null;
 	}
 	
-	
-
 }
