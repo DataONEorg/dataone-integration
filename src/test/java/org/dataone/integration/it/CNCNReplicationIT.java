@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.Vector;
 
 import org.dataone.client.CNode;
 import org.dataone.service.exceptions.BaseException;
@@ -79,11 +80,19 @@ public class CNCNReplicationIT extends ContextAwareTestCaseDataone {
 
 		for (String nodeStr: objectListMap.keySet()) {
 			log.info("Checking all objects against node: " + nodeStr );
+			Vector<String> missingFromNode = new Vector<String>();
+;
 			for (String serializedInfo: allObjects) {
-				log.debug(c++);
-				checkTrue(nodeStr, "node should have object " + serializedInfo,
-						objectListMap.get(nodeStr).contains(serializedInfo));
+//				log.debug(c++);
+				if (!objectListMap.get(nodeStr).contains(serializedInfo)) {
+					missingFromNode.add(serializedInfo);
+				}
 			}
+			String example = missingFromNode.size() > 0 ? missingFromNode.firstElement() : null;
+			checkEquals(nodeStr, "node should not be missing any objects " +
+					"(missing " + missingFromNode.size() + ", example: " +  example + ")",
+					String.valueOf(objectListMap.get(nodeStr).size()),
+					String.valueOf(allObjects.size()));
 		}
 	}
 	

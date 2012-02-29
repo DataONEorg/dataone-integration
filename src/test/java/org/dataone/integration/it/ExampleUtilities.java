@@ -105,9 +105,9 @@ public class ExampleUtilities {
 	// paths to common science data and metadata examples for the above formats
 	protected static final String SCIDATA_TEXT_PLAIN = "/d1_testdocs/eml200/IPCC.200802107062739.1"; 
 	protected static final String SCIDATA_TEXT_CSV   = "/d1_testdocs/eml201/TPT001_018MHP2000R00_20110121.40.1.csv"; 
-	protected static final String SCIMETA_EML_2_0_0  = "/d1_testdocs/eml201/dpennington.195.2"; 
+	protected static final String SCIMETA_EML_2_0_0  = "/d1_testdocs/eml200/dpennington.195.2"; 
 	protected static final String SCIMETA_EML_2_0_1  = "/d1_testdocs/eml201/TPT001_018MHP2000R00_20110121.50.1.xml"; 
-	protected static final String SCIMETA_EML_2_1_0  = "/d1_testdocs/eml201/peggym.130.4"; 
+	protected static final String SCIMETA_EML_2_1_0  = "/d1_testdocs/eml210/peggym.130.4"; 
 	// TODO: protected static final String SCIMETA_EML_2_1_1  = "need to get a 2.1.1 test doc"; 
 	
 	
@@ -136,7 +136,7 @@ public class ExampleUtilities {
     public static Object[] generateTestSciMetaDataPackage(String idString, boolean isPrefix)
         throws NoSuchAlgorithmException, NotFound, InvalidRequest, IOException {
         
-        return generateTestDataPackage(idString, isPrefix, SCIMETA_EML_2_1_0);
+        return generateTestDataPackage(idString, isPrefix, FORMAT_EML_2_1_0);
     }
   
     

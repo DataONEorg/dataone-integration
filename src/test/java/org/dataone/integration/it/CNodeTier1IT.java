@@ -33,6 +33,7 @@ import org.dataone.client.auth.ClientIdentityManager;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.IdentifierNotUnique;
 import org.dataone.service.exceptions.InvalidRequest;
+import org.dataone.service.exceptions.NotAuthorized;
 import org.dataone.service.exceptions.NotFound;
 import org.dataone.service.types.v1.Checksum;
 import org.dataone.service.types.v1.ChecksumAlgorithmList;
@@ -129,7 +130,8 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
     			handleFail(currentUrl,"No Objects available to test against");
     		}
     		catch (BaseException e) {
-    			handleFail(currentUrl,e.getDescription());
+    			handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
+    					e.getDetail_code() + ":: " + e.getDescription());
     		}
     		catch(Exception e) {
     			e.printStackTrace();
@@ -166,7 +168,8 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
     			handleFail(currentUrl,"No Objects available to test against");
     		}
     		catch (BaseException e) {
-    			handleFail(currentUrl,e.getDescription());
+    			handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
+    					e.getDetail_code() + ":: " + e.getDescription());
     		}
     		catch(Exception e) {
     			e.printStackTrace();
@@ -202,7 +205,8 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
     			// the desired outcome
     		}
     		catch (BaseException e) {
-    			handleFail(currentUrl,e.getDescription());
+    			handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
+    					e.getDetail_code() + ":: " + e.getDescription());
     		}
     		catch(Exception e) {
     			e.printStackTrace();
@@ -230,7 +234,8 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
     			handleFail(currentUrl,"No Objects available to test against");
     		}
     		catch (BaseException e) {
-    			handleFail(currentUrl,e.getDescription());
+    			handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
+    					e.getDetail_code() + ":: " + e.getDescription());
     		}
     		catch(Exception e) {
     			e.printStackTrace();
@@ -245,7 +250,7 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
     {
     	// can be anyone
     	setupClientSubject("testPerson");
-    	Iterator<Node> it = getMemberNodeIterator();
+    	Iterator<Node> it = getCoordinatingNodeIterator();
        while (it.hasNext()) {
     	   currentUrl = it.next().getBaseURL();
     	   CNode cn = new CNode(currentUrl);
@@ -330,7 +335,8 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
     			handleFail(currentUrl,"No Objects available to test against");
     		}
     		catch (BaseException e) {
-    			handleFail(currentUrl,e.getDescription());
+    			handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
+    					e.getDetail_code() + ":: " + e.getDescription());
     		}
     		catch(Exception e) {
     			e.printStackTrace();
@@ -375,7 +381,8 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
     			}
     		}
     		catch (BaseException e) {
-    			handleFail(currentUrl,e.getDescription());
+    			handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
+    					e.getDetail_code() + ":: " + e.getDescription());
     		}
     		catch(Exception e) {
     			e.printStackTrace();
@@ -406,7 +413,8 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
     			handleFail(currentUrl,"No Objects available to test against");
     		}
     		catch (BaseException e) {
-    			handleFail(currentUrl,e.getDescription());
+    			handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
+    					e.getDetail_code() + ":: " + e.getDescription());
     		}
     		catch(Exception e) {
     			e.printStackTrace();
@@ -506,12 +514,19 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
 
     			checkTrue(currentUrl,"response cannot be false. [Only true or exception].", 
     					response);
-    		} 
+    		}
+    		catch (NotFound e) {
+    			; // this is desired behavior
+    		}
+//    		catch (NotAuthorized e) {
+//    			; // this is also acceptable
+//    		}
     		catch (IndexOutOfBoundsException e) {
     			handleFail(currentUrl,"No Objects available to test against");
     		}
     		catch (BaseException e) {
-    			handleFail(currentUrl,e.getDescription());
+    			handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
+    					e.getDetail_code() + ":: " + e.getDescription());
     		}
     		catch(Exception e) {
     			e.printStackTrace();
@@ -520,13 +535,14 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
     	}
     }
 
-    
+  
+	@Ignore("need a subject able to call cn.create()")
 	@Test
 	public void testCreate() {
 
 		setupClientSubject("testRightsHolder");
 
-		Iterator<Node> it = getMemberNodeIterator();  	
+		Iterator<Node> it = getCoordinatingNodeIterator();  	
 
 		while (it.hasNext()) {
 			currentUrl = it.next().getBaseURL();
@@ -562,12 +578,12 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
     /**
      * test creation of data with challenging unicode identifier.
      */
-	@Ignore("need to debug for CN implementation")
+	@Ignore("need a subject able to call cn.create()")
 	@Test
     public void testCreateData_IdentifierEncoding() 
     {
 		setupClientSubject("testRightsHolder");
-		Iterator<Node> it = getMemberNodeIterator();
+		Iterator<Node> it = getCoordinatingNodeIterator();
 		printTestHeader("Testing IdentifierEncoding - setting up identifiers to check");
 
 		// get identifiers to check with
@@ -659,7 +675,7 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
 
 		setupClientSubject("testRightsHolder");
 
-		Iterator<Node> it = getMemberNodeIterator();  	
+		Iterator<Node> it = getCoordinatingNodeIterator();  	
 
 		while (it.hasNext()) {
 			currentUrl = it.next().getBaseURL();
@@ -697,7 +713,7 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
      */
     @Test
     public void testListObjects() {
-       	Iterator<Node> it = getMemberNodeIterator();
+       	Iterator<Node> it = getCoordinatingNodeIterator();
     	while (it.hasNext()) {
     		currentUrl = it.next().getBaseURL();
     		CNode cn = new CNode(currentUrl);
@@ -737,7 +753,7 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
      */
     @Test
     public void testListObjects_StartTimeTest() {
-       	Iterator<Node> it = getMemberNodeIterator();
+       	Iterator<Node> it = getCoordinatingNodeIterator();
     	while (it.hasNext()) {
     		currentUrl = it.next().getBaseURL();
     		CNode cn = new CNode(currentUrl);
@@ -773,7 +789,7 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
 
     				for (ObjectInfo oi: ol.getObjectInfoList()) {
     					if (oi.getIdentifier().equals(excludedObjectInfo.getIdentifier())) {
-    						handleFail(currentUrl,"identifier " + excludedObjectInfo.getIdentifier() +
+    						handleFail(currentUrl,"identifier " + excludedObjectInfo.getIdentifier().getValue() +
     								" should not be in the objectList where startTime set to " + startTime);
     					}
     				}
@@ -794,7 +810,7 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
     @Test
     public void testGet() {
  //   	setupClientSubject_NoCert();
-       	Iterator<Node> it = getMemberNodeIterator();
+       	Iterator<Node> it = getCoordinatingNodeIterator();
     	while (it.hasNext()) {
     		currentUrl = it.next().getBaseURL();
     		CNode cn = new CNode(currentUrl);
@@ -823,7 +839,7 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
     @Test
     public void testGetSystemMetadata() {
     	setupClientSubject_NoCert();
-       	Iterator<Node> it = getMemberNodeIterator();
+       	Iterator<Node> it = getCoordinatingNodeIterator();
     	while (it.hasNext()) {
     		currentUrl = it.next().getBaseURL();
     		CNode cn = new CNode(currentUrl);
@@ -853,7 +869,7 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
     @Test
     public void testDescribe() {
     	setupClientSubject_NoCert();
-       	Iterator<Node> it = getMemberNodeIterator();
+       	Iterator<Node> it = getCoordinatingNodeIterator();
     	while (it.hasNext()) {
     		currentUrl = it.next().getBaseURL();
     		CNode cn = new CNode(currentUrl); 
@@ -902,7 +918,8 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
     			handleFail(currentUrl,"No Objects available to test against");
     		}
     		catch (BaseException e) {
-    			handleFail(currentUrl,e.getDescription());
+    			handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
+    					e.getDetail_code() + ":: " + e.getDescription());
     		}
     		catch(Exception e) {
     			e.printStackTrace();
@@ -958,9 +975,10 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
 			catch (IndexOutOfBoundsException e) {
 				handleFail(currentUrl,"No Objects available to test against");
 			}
-			catch (BaseException e) {
-				handleFail(currentUrl,e.getDescription());
-			}
+    		catch (BaseException e) {
+    			handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
+    					e.getDetail_code() + ":: " + e.getDescription());
+    		}
 			catch(Exception e) {
 				e.printStackTrace();
 				handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
@@ -1001,8 +1019,7 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
 			currentUrl = it.next().getBaseURL();
 			CNode cn = new CNode(currentUrl);
 			currentUrl = cn.getNodeBaseServiceUrl();
-			printTestHeader("testSearch(...) vs. node: " + currentUrl);
-
+			printTestHeader("testSearch_Solr_unicodeTests(...) vs. node: " + currentUrl);
 			
 			for (int i=0; i<unicodeString.size(); i++) 
 			{
@@ -1025,9 +1042,10 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
 				catch (IndexOutOfBoundsException e) {
 					handleFail(currentUrl,"No Objects available to test against");
 				}
-				catch (BaseException e) {
-					handleFail(currentUrl,e.getDescription());
-				}
+	    		catch (BaseException e) {
+	    			handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
+	    					e.getDetail_code() + ":: " + e.getDescription());
+	    		}
 				catch(Exception e) {
 					e.printStackTrace();
 					handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
