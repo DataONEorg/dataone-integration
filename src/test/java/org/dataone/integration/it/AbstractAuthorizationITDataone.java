@@ -2,6 +2,8 @@ package org.dataone.integration.it;
 
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
@@ -48,6 +50,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 	private String checkExpectedIsAuthorizedOutcome(D1Node d1Node, Identifier pid, 
 			String subjectLabel, Permission permission, String expectedOutcome) 
 	{
+		log.debug("in: " + new Date().getTime());
 		String testResult = "ClientSubjectCN: '" + subjectLabel + "'  Requesting: '" +
 			permission.toString().replace("_PERMISSION","") + "' =>  ";
 		String outcome = null;
@@ -64,7 +67,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 		} else {
 			testResult += "  Failed!!  Expected: '" + expectedOutcome + "'   got: '" + outcome + "'";			
 		}
-
+		log.debug("out: " + new Date().getTime());
 		return testResult;
 	}
 
@@ -286,6 +289,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 				 for (String result : results) {
 					 if (result.contains("Failed!!")) {
 						 handleFail(currentUrl,tablifyResults(testObject, results) );
+						 break;
 					 }
 				 }
 				 
@@ -420,7 +424,8 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 				 
 				 for (String result : results) {
 					 if (result.contains("Failed!!")) {
-						 handleFail(currentUrl,tablifyResults(testObject, results) );
+						 handleFail(null, currentUrl + " " + tablifyResults(testObject, results) );
+						 break;
 					 }
 				 }
 				 
@@ -542,7 +547,8 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 				 
 				 for (String result : results) {
 					 if (result.contains("Failed!!")) {
-						 handleFail(currentUrl,tablifyResults(testObject, results) );
+						 handleFail(null, currentUrl + " " + tablifyResults(testObject, results) );
+						 break;
 					 }
 				 }
 				 
@@ -665,7 +671,8 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 
 				 for (String result : results) {
 					 if (result.contains("Failed!!")) {
-						 handleFail(currentUrl,tablifyResults(testObject, results) );
+						 handleFail(null, currentUrl + " " + tablifyResults(testObject, results) );
+						 break;
 					 }
 				 }
 				 
@@ -797,7 +804,8 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 				 
 				 for (String result : results) {
 					 if (result.contains("Failed!!")) {
-						 handleFail(currentUrl,tablifyResults(testObject, results) );
+						 handleFail(null, currentUrl + " " + tablifyResults(testObject, results) );
+						 break;
 					 }
 				 }
 				 
@@ -926,7 +934,8 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 				 
 				 for (String result : results) {
 					 if (result.contains("Failed!!")) {
-						 handleFail(currentUrl,tablifyResults(testObject, results) );
+						 handleFail(null, currentUrl + " " + tablifyResults(testObject, results) );
+						 break;
 					 }
 				 }
 
@@ -1051,7 +1060,8 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 
 				 for (String result : results) {
 					 if (result.contains("Failed!!")) {
-						 handleFail(currentUrl,tablifyResults(testObject, results) );
+						 handleFail(null, currentUrl + " " + tablifyResults(testObject, results) );
+						 break;
 					 }
 				 }
 			 
@@ -1175,7 +1185,8 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 				 
 				 for (String result : results) {
 					 if (result.contains("Failed!!")) {
-						 handleFail(currentUrl,tablifyResults(testObject, results) );
+						 handleFail(null, currentUrl + " " + tablifyResults(testObject, results) );
+						 break;
 					 }
 				 }
 				 
@@ -1307,7 +1318,8 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 				 
 				 for (String result : results) {
 					 if (result.contains("Failed!!")) {
-						 handleFail(currentUrl,tablifyResults(testObject, results) );
+						 handleFail(null, currentUrl + " " + tablifyResults(testObject, results) );
+						 break;
 					 }
 				 }
 				 
@@ -1440,7 +1452,8 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 				 
 				 for (String result : results) {
 					 if (result.contains("Failed!!")) {
-						 handleFail(currentUrl,tablifyResults(testObject, results) );
+						 handleFail(null, currentUrl + " " + tablifyResults(testObject, results) );
+						 break;
 					 }
 				 }
 				 
@@ -1572,7 +1585,8 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 				 
 				 for (String result : results) {
 					 if (result.contains("Failed!!")) {
-						 handleFail(currentUrl,tablifyResults(testObject, results) );
+						 handleFail(null, currentUrl + " " + tablifyResults(testObject, results) );
+						 break;
 					 }
 				 }
 				 
