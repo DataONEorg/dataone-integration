@@ -160,6 +160,13 @@ public class CNodeIT extends ContextAwareTestCaseDataone {
 		}
 	}
 	
+	 @Test
+	    public void testPlaceholder() {
+	    	assertTrue(true);
+	    } 
+	
+	
+	@Ignore()
 	@Test
 	public void testSearch_Solr() throws Exception
 	{

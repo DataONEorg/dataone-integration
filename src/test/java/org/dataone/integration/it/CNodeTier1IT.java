@@ -351,6 +351,7 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
      */
     @Test
     public void testReserveIdentifier() {
+    	setupClientSubject("testSubmitter");
     	Iterator<Node> it = getCoordinatingNodeIterator();
     	while (it.hasNext()) {
     		currentUrl = it.next().getBaseURL();
@@ -393,7 +394,7 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
 
     /**
      * test generating an Identifier containing the given fragment.
-     * Specifies the DOI syntax
+     * Specifies the UUID syntax
      */
     @Test
     public void testGenerateIdentifier() {
@@ -405,7 +406,7 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
 
     		try {
     			String fragment = "CNodeTier1Test";
-    			Identifier response = cn.generateIdentifier(null,"DOI",fragment);
+    			Identifier response = cn.generateIdentifier(null,"UUID",fragment);
     			checkTrue(currentUrl,"generateIdentifier(...) should return an Identifier object" +
     					"containing the given fragment", response.getValue().contains(fragment));
     		} 
