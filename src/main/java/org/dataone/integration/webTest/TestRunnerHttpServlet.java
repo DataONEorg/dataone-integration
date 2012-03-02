@@ -280,11 +280,13 @@ public class TestRunnerHttpServlet extends HttpServlet
 		if (rawTestName.contains(":")) {
 			// keep just the method and subtest
 			improvedTestName = rawTestName.replaceAll(".*\\: ", "");
-			improvedTestName = improvedTestName.replaceAll("_", " : ");
+			improvedTestName = improvedTestName.replace("_", " : ");
 		} else {
 			// keep the TestCase segment
-			improvedTestName = rawTestName.replaceAll(".*\\.", "");
+			improvedTestName = rawTestName.replace(".*\\.", "");
 		}
+		// underscores in subtest section of method name get converted to spaces
+		improvedTestName = improvedTestName.replaceAll("_", " ");
 //		improvedTestName = humaniseCamelCase(improvedTestName);
 		return improvedTestName;
 	}

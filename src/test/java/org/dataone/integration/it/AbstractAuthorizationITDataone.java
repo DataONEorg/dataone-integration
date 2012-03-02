@@ -35,7 +35,7 @@ import org.junit.Test;
 
 public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCaseDataone {
 
-	protected static String testObjectSeriesSuffix = ".4";
+	protected static String testObjectSeriesSuffix = "6";
 	private static String currentUrl;
 
 	/**
@@ -100,7 +100,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 
 
 	 @Test
-	 public void testConnectionLayer_Untrusted_SelfSignedCertificate() 
+	 public void testConnectionLayer_SelfSignedCert() 
 	 {
 		 setupClientSubject("testPerson_SelfSigned");
 		 Iterator<Node> it = getNodeIterator();
@@ -179,7 +179,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 	  */
 
 	 @Test
-	 public void testIsAuthorized_vs_NullPolicy_personOwner() {
+	 public void testIsAuthorized_vs_NullPolicy_aPerson_is_RightsHolder() {
 
 		 // TODO: check whether an object is created under the correct 
 		 // rightsHolder
@@ -307,7 +307,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 	 
 
 	 @Test
-	 public void testIsAuthorized_vs_NullPolicy_groupOwner() {
+	 public void testIsAuthorized_vs_NullPolicy_aGroup_is_RightsHolder() {
 
 		 // TODO: check whether an object is created under the correct 
 		 // rightsHolder
@@ -442,7 +442,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 
 
 	 @Test
-	 public void testIsAuthorized_vs_PublicRead() {
+	 public void testIsAuthorized_vs_policy_allows_Public_to_Read() {
 		 
 		 String procuringSubjectString = "testRightsHolder";
 		 String objectSubjectString = Constants.SUBJECT_PUBLIC;
@@ -564,7 +564,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 	 }
 	 
 	 @Test
-	 public void testIsAuthorized_vs_AuthenticatedRead() {
+	 public void testIsAuthorized_vs_policy_allows_Authenticated_to_Read() {
 		 
 		 String procuringSubjectString = "testRightsHolder";
 		 String objectSubjectString = Constants.SUBJECT_AUTHENTICATED_USER;
@@ -690,7 +690,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 	 
 	 
 	 @Test
-	 public void testIsAuthorized_vs_VerifiedRead() {
+	 public void testIsAuthorized_vs_policy_allows_Verified_to_Read() {
 		 
 		 String procuringSubjectString = "testRightsHolder";
 		 String objectSubjectString = Constants.SUBJECT_VERIFIED_USER;
@@ -823,10 +823,10 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 
 	 
 	 @Test
-	 public void testIsAuthorized_vs_TestPersonREAD() {
+	 public void testIsAuthorized_vs_policy_allows_aNamedPerson_to_Read() {
 		 
 		 String procuringSubjectString = "testRightsHolder";
-		 String objectSubjectString = "testPerson";
+		 String objectSubjectString = "CN=testPerson,DC=dataone,DC=org";
 		 Permission objectPermission = Permission.READ;
 		 String objectIdentifier = "TierTesting:testObject:testPerson_READ" + testObjectSeriesSuffix;
 		 
@@ -954,11 +954,11 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 	 
 	 
 	 @Test
-	 public void testIsAuthorized_vs_TestPersonWRITE() {
+	 public void testIsAuthorized_vs_policy_allows_aNamedPerson_to_Write() {
 		 String procuringSubjectString = "testRightsHolder";
-		 String objectSubjectString = "testPerson";
+		 String objectSubjectString = "CN=testPerson,DC=dataone,DC=org";
 		 Permission objectPermission = Permission.WRITE;
-		 String objectIdentifier = "TierTesting:testObject:testPerson_READ" + testObjectSeriesSuffix;
+		 String objectIdentifier = "TierTesting:testObject:testPerson_WRITE" + testObjectSeriesSuffix;
 		 
 		 Iterator<Node> it = getNodeIterator();
 		 while (it.hasNext()) {
@@ -1080,9 +1080,9 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 	 
 	 
 	 @Test
-	 public void testIsAuthorized_vs_TestPersonCHANGE() {
+	 public void testIsAuthorized_vs_policy_allows_aNamedPerson_to_ChangePerm() {
 		 String procuringSubjectString = "testRightsHolder";
-		 String objectSubjectString = "testPerson";
+		 String objectSubjectString = "CN=testPerson,DC=dataone,DC=org";
 		 Permission objectPermission = Permission.CHANGE_PERMISSION;
 		 String objectIdentifier = "TierTesting:testObject:testPerson_CHANGE" + testObjectSeriesSuffix;
 		 
@@ -1204,7 +1204,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 
 	 
 	 @Test
-	 public void testIsAuthorized_vs_TestGroupREAD() {
+	 public void testIsAuthorized_vs_policy_allows_aNamedGroup_to_Read() {
 		 String procuringSubjectString = "testRightsHolder";
 		 String objectSubjectString = "testGroup";
 		 Permission objectPermission = Permission.READ;
@@ -1338,7 +1338,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 	 
 
 	 @Test
-	 public void testIsAuthorized_vs_TestGroupWRITE() {
+	 public void testIsAuthorized_vs_policy_allows_aNamedGroup_to_Write() {
 		 String procuringSubjectString = "testRightsHolder";
 		 String objectSubjectString = "testGroup";
 		 Permission objectPermission = Permission.WRITE;
@@ -1472,7 +1472,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 	 
 	 
 	 @Test
-	 public void testIsAuthorized_vs_TestGroupCHANGE() {
+	 public void testIsAuthorized_vs_policy_allows_aNamedGroup_to_ChangePerm() {
 		 String procuringSubjectString = "testRightsHolder";
 		 String objectSubjectString = "testGroup";
 		 Permission objectPermission = Permission.CHANGE_PERMISSION;
