@@ -131,7 +131,7 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
     /**
      * test creation of data with challenging unicode identifier.
      */
-//	@Ignore("ignoring to save time for local testing");
+//	@Ignore("ignoring to save time for local testing")
 	@Test
     public void testCreateData_IdentifierEncoding() 
     {
@@ -591,7 +591,7 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 			}
 			catch (InvalidToken na) {
 				try {
-					setupClientSubject("testWriter");
+					setupClientSubject("testRightsHolder");
 					InputStream is = mn.get(null, pid);	
 					try {
 						is.close();
@@ -652,13 +652,15 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 		}
 	}
 	
-
+	/**
+	 * This test tries to have a non-CN subject call the method.  should fail.
+	 */
 	@Test
 	public void testSystemMetadataChanged_authenticatedITKuser() {
 		Iterator<Node> it = getMemberNodeIterator();
 
 		while ( it.hasNext() ) {
-			setupClientSubject("testCN");
+			setupClientSubject("testPerson");
 
 			currentUrl = it.next().getBaseURL();
 			MNode mn = D1Client.getMN(currentUrl);
