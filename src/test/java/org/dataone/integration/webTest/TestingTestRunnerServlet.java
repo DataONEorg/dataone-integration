@@ -25,6 +25,11 @@ public class TestingTestRunnerServlet {
 //	}
 	
 	
+//	@Test
+	public void testMaxTierLogic() {
+		
+	}
+	
 	@Test
 	public void callServletTest() throws IOException
 	{
@@ -37,6 +42,7 @@ public class TestingTestRunnerServlet {
 		MockHttpServletResponse response = new MockHttpServletResponse();
 
 		request.setParameter("mNodeUrl",mNodeUrl);
+		request.setParameter("maxTier","Tier 4");
 		request.addHeader("accept", (Object) "text/xml");
 		request.setMethod("GET");
 		

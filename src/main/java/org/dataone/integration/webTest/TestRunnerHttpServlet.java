@@ -95,7 +95,8 @@ public class TestRunnerHttpServlet extends HttpServlet
 		if (req.getParameter("mNodeUrl") != null) {
 			try {
 				rsp.setContentType("text/html; charset=UTF-8");
-				executeJUnitRun(req.getParameter("mNodeUrl"), rsp.getOutputStream());
+				
+				executeJUnitRun(req.getParameter("mNodeUrl"), req.getParameter("maxTier"),rsp.getOutputStream());
 			} catch (ClassNotFoundException e) {
 				throw new ServletException("Internal Configuration problem: Test classes Not Found",e);
 			}
@@ -107,7 +108,7 @@ public class TestRunnerHttpServlet extends HttpServlet
 	}
 	
 	
-	private void executeJUnitRun(String mNodeBaseUrl, ServletOutputStream out) 
+	private void executeJUnitRun(String mNodeBaseUrl, String maxTier, ServletOutputStream out) 
 	throws IOException, ClassNotFoundException 
 	{	
 		Serializer serializer = new Serializer(out);
@@ -142,8 +143,10 @@ public class TestRunnerHttpServlet extends HttpServlet
 					log.warn("sleep interrupted: " + e.getMessage());
 				}
 			}
-			log.debug("running tests on: " + testCase.getSimpleName());
-			result = junit.run(testCase);
+			if (isWithinTierLevelCutoff(maxTier, testCase)) {
+				log.debug("running tests on: " + testCase.getSimpleName());
+				result = junit.run(testCase);
+			}
 		}
 		
 		ArrayList<AtomicTest> testList = listener.getTestList();
@@ -185,6 +188,35 @@ public class TestRunnerHttpServlet extends HttpServlet
 		out.close();
 	}
 
+	
+	
+	/* 
+	 * if not working within the context of MNodeTier tests, will return true
+	 * otherwise, compare number in the test to the maxTier number.
+	 */
+	public boolean isWithinTierLevelCutoff(String maxTier, Class testCase) 
+	{
+		if (maxTier == null) 
+			return true;
+		
+		String testName = testCase.getSimpleName();
+		if (testName.contains("MNodeTier")) {
+			int index = testName.indexOf("Tier") + 4;
+			Integer tcTier = Integer.valueOf(testName.substring(index,index+1));
+			
+			Integer tierMaxNum = Integer.valueOf(maxTier.replaceAll("\\D+",""));
+
+			if (tcTier <= tierMaxNum) {
+				return true;
+			} else {
+				return false;
+			}
+		} else {
+			return true;
+		}
+	}
+	
+	
 	private void generateURLRow(Element div, String url) {
 		
 		div.addAttribute(new Attribute("class", "greyDescr"));
