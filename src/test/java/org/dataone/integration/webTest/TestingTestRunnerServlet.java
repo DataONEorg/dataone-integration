@@ -28,7 +28,7 @@ public class TestingTestRunnerServlet {
 	@Test
 	public void callServletTest() throws IOException
 	{
-		String mNodeUrl = "http://cn-dev.dataone.org/knb/d1/mn";
+		String mNodeUrl = "http://demo.test.dataone.org/knb/d1/mn";
 		
 		// set up mock objects
 		ServletContext sc = new MockServletContext("src/main/webapp", null);
