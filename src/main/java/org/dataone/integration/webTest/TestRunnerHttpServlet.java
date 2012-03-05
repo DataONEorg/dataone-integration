@@ -253,7 +253,7 @@ public class TestRunnerHttpServlet extends HttpServlet
 		tr.appendChild(name);
 
 		
-		description.appendChild(testResult.getMessage());
+		description.appendChild(testResult.getMessage().replaceAll("\n", "  <br>\n"));
 		tr.appendChild(description);
 		table.appendChild(tr);
 		div.appendChild(table);
