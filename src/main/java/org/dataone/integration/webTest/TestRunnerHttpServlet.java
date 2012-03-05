@@ -283,9 +283,11 @@ public class TestRunnerHttpServlet extends HttpServlet
 		// add contents to the table row...	
 		name.appendChild(formatTestName(testResult.getTestName()));
 		tr.appendChild(name);
-
-		if (testResult.getMessage() != null) {
-			description.appendChild(testResult.getMessage().replaceAll("\n", "  <br>\n"));
+		
+		if (testResult.getMessage() != null && testResult.getMessage().contains("\n")) {
+			Element formattedText = new Element("pre");
+			formattedText.appendChild(testResult.getMessage());
+			description.appendChild(formattedText);
 		} else {
 			description.appendChild(testResult.getMessage());
 		}
@@ -314,12 +316,13 @@ public class TestRunnerHttpServlet extends HttpServlet
 		String improvedTestName = null;
 		if (rawTestName.contains(":")) {
 			// keep just the method and subtest
-			improvedTestName = rawTestName.replaceAll(".*\\: ", "");
-			improvedTestName = improvedTestName.replace("_", " : ");
+			improvedTestName = rawTestName.replaceAll(".*\\: ", "");			
 		} else {
 			// keep the TestCase segment
 			improvedTestName = rawTestName.replace(".*\\.", "");
 		}
+		improvedTestName = improvedTestName.replaceFirst("_", " : ");
+		
 		// underscores in subtest section of method name get converted to spaces
 		improvedTestName = improvedTestName.replaceAll("_", " ");
 //		improvedTestName = humaniseCamelCase(improvedTestName);
