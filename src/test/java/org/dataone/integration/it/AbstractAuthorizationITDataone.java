@@ -182,7 +182,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 	  */
 
 	 @Test
-	 public void testIsAuthorized_vs_NullPolicy_aPerson_is_RightsHolder() {
+	 public void testIsAuthorized_NullPolicy_testPerson_is_RightsHolder() {
 
 		 // TODO: check whether an object is created under the correct 
 		 // rightsHolder
@@ -268,26 +268,27 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 //				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "InvalidToken"));
 //				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "InvalidToken"));
 				 
-				 clientSubject = "testPerson_InvalidVsSchema";
-				 setupClientSubject(clientSubject);	
-				 // bad credentials should always fail			 
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken"));
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "InvalidToken"));
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "InvalidToken"));
-				 
-				 clientSubject = "testPerson_MissingMappedID";
-				 setupClientSubject(clientSubject);	
-				 // bad credentials should always fail			 
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken"));
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "InvalidToken"));
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "InvalidToken"));
-				 
-				 clientSubject = "testPerson_MissingSelf";
-				 setupClientSubject(clientSubject);	
-				 // bad credentials should always fail			 
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken"));
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "InvalidToken"));
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "InvalidToken"));
+				//  TODO:  enable when ready to test				 
+//				 clientSubject = "testPerson_InvalidVsSchema";
+//				 setupClientSubject(clientSubject);	
+//				 // bad credentials should always fail			 
+//				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken"));
+//				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "InvalidToken"));
+//				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "InvalidToken"));
+//				 
+//				 clientSubject = "testPerson_MissingMappedID";
+//				 setupClientSubject(clientSubject);	
+//				 // bad credentials should always fail			 
+//				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken"));
+//				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "InvalidToken"));
+//				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "InvalidToken"));
+//				 
+//				 clientSubject = "testPerson_MissingSelf";
+//				 setupClientSubject(clientSubject);	
+//				 // bad credentials should always fail			 
+//				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken"));
+//				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "InvalidToken"));
+//				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "InvalidToken"));
 				 
 				 for (String result : results) {
 					 if (result.contains("FAILED!!")) {
@@ -310,7 +311,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 	 
 
 	 @Test
-	 public void testIsAuthorized_vs_NullPolicy_aGroup_is_RightsHolder() {
+	 public void testIsAuthorized_NullPolicy_testGroup_is_RightsHolder() {
 		 
 		 String procuringSubjectString = "testPerson";
 		 String objectSubjectString = null;
@@ -401,26 +402,27 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 //				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "InvalidToken"));
 //				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "InvalidToken"));
 				 
-				 clientSubject = "testPerson_InvalidVsSchema";
-				 setupClientSubject(clientSubject);
-				 // bad credentials should always fail			 
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken"));
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "InvalidToken"));
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "InvalidToken"));
-				 
-				 clientSubject = "testPerson_MissingMappedID";
-				 setupClientSubject(clientSubject);
-				 // bad credentials should always fail			 
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken"));
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "InvalidToken"));
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "InvalidToken"));
-				 
-				 clientSubject = "testPerson_MissingSelf";
-				 setupClientSubject(clientSubject);
-				 // bad credentials should always fail			 
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken"));
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "InvalidToken"));
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "InvalidToken"));
+				//  TODO:  enable when ready to test				 
+//				 clientSubject = "testPerson_InvalidVsSchema";
+//				 setupClientSubject(clientSubject);
+//				 // bad credentials should always fail			 
+//				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken"));
+//				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "InvalidToken"));
+//				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "InvalidToken"));
+//				 
+//				 clientSubject = "testPerson_MissingMappedID";
+//				 setupClientSubject(clientSubject);
+//				 // bad credentials should always fail			 
+//				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken"));
+//				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "InvalidToken"));
+//				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "InvalidToken"));
+//				 
+//				 clientSubject = "testPerson_MissingSelf";
+//				 setupClientSubject(clientSubject);
+//				 // bad credentials should always fail			 
+//				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken"));
+//				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "InvalidToken"));
+//				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "InvalidToken"));
 				 
 				 for (String result : results) {
 					 if (result.contains("FAILED!!")) {
@@ -442,7 +444,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 
 
 	 @Test
-	 public void testIsAuthorized_vs_policy_allows_Public_to_Read() {
+	 public void testIsAuthorized_AccessPolicy_is_Public_can_Read() {
 		 
 		 String procuringSubjectString = "testRightsHolder";
 		 String objectSubjectString = Constants.SUBJECT_PUBLIC;
@@ -523,27 +525,28 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 //				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken"));
 //				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "InvalidToken"));
 //				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "InvalidToken"));
-				 
-				 clientSubject = "testPerson_InvalidVsSchema";
-				 setupClientSubject(clientSubject);	
-				 // bad credentials should always fail			 
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken"));
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "InvalidToken"));
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "InvalidToken"));
-				 
-				 clientSubject = "testPerson_MissingMappedID";
-				 setupClientSubject(clientSubject);
-				 // bad credentials should always fail			 
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken"));
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "InvalidToken"));
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "InvalidToken"));
-				 
-				 clientSubject = "testPerson_MissingSelf";
-				 setupClientSubject(clientSubject);	
-				 // bad credentials should always fail			 
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken"));
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "InvalidToken"));
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "InvalidToken"));
+
+				//  TODO:  enable when ready to test				 
+//				 clientSubject = "testPerson_InvalidVsSchema";
+//				 setupClientSubject(clientSubject);	
+//				 // bad credentials should always fail			 
+//				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken"));
+//				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "InvalidToken"));
+//				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "InvalidToken"));
+//				 
+//				 clientSubject = "testPerson_MissingMappedID";
+//				 setupClientSubject(clientSubject);
+//				 // bad credentials should always fail			 
+//				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken"));
+//				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "InvalidToken"));
+//				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "InvalidToken"));
+//				 
+//				 clientSubject = "testPerson_MissingSelf";
+//				 setupClientSubject(clientSubject);	
+//				 // bad credentials should always fail			 
+//				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken"));
+//				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "InvalidToken"));
+//				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "InvalidToken"));
 				 
 				 for (String result : results) {
 					 if (result.contains("FAILED!!")) {
@@ -564,7 +567,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 	 }
 	 
 	 @Test
-	 public void testIsAuthorized_vs_policy_allows_Authenticated_to_Read() {
+	 public void testIsAuthorized_AccessPolicy_is_AuthenticatedUser_can_Read() {
 		 
 		 String procuringSubjectString = "testRightsHolder";
 		 String objectSubjectString = Constants.SUBJECT_AUTHENTICATED_USER;
@@ -647,27 +650,27 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 //				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "InvalidToken"));
 //				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "InvalidToken"));
 				 
-				 
-				 clientSubject = "testPerson_InvalidVsSchema";
-				 setupClientSubject(clientSubject);	
-				 // bad credentials should always fail			 
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken"));
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "InvalidToken"));
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "InvalidToken"));
-				 
-				 clientSubject = "testPerson_MissingMappedID";
-				 setupClientSubject(clientSubject);	
-				 // bad credentials should always fail			 
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken"));
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "InvalidToken"));
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "InvalidToken"));
-				 
-				 clientSubject = "testPerson_MissingSelf";
-				 setupClientSubject(clientSubject);	
-				 // bad credentials should always fail			 
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken"));
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "InvalidToken"));
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "InvalidToken"));
+				//  TODO:  enable when ready to test				 				 
+//				 clientSubject = "testPerson_InvalidVsSchema";
+//				 setupClientSubject(clientSubject);	
+//				 // bad credentials should always fail			 
+//				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken"));
+//				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "InvalidToken"));
+//				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "InvalidToken"));
+//				 
+//				 clientSubject = "testPerson_MissingMappedID";
+//				 setupClientSubject(clientSubject);	
+//				 // bad credentials should always fail			 
+//				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken"));
+//				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "InvalidToken"));
+//				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "InvalidToken"));
+//				 
+//				 clientSubject = "testPerson_MissingSelf";
+//				 setupClientSubject(clientSubject);	
+//				 // bad credentials should always fail			 
+//				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken"));
+//				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "InvalidToken"));
+//				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "InvalidToken"));
 
 				 for (String result : results) {
 					 if (result.contains("FAILED!!")) {
@@ -690,7 +693,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 	 
 	 
 	 @Test
-	 public void testIsAuthorized_vs_policy_allows_Verified_to_Read() {
+	 public void testIsAuthorized_AccessPolicy_is_VerifiedUser_can_Read() {
 		 
 		 String procuringSubjectString = "testRightsHolder";
 		 String objectSubjectString = Constants.SUBJECT_VERIFIED_USER;
@@ -781,27 +784,27 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 //				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "InvalidToken"));
 //				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "InvalidToken"));
 
-				 
-				 clientSubject = "testPerson_InvalidVsSchema";
-				 setupClientSubject(clientSubject);
-				 // bad credentials should always fail			 
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken"));
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "InvalidToken"));
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "InvalidToken"));
-				 
-				 clientSubject = "testPerson_MissingMappedID";
-				 setupClientSubject(clientSubject);	
-				 // bad credentials should always fail			 
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken"));
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "InvalidToken"));
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "InvalidToken"));
-				 
-				 clientSubject = "testPerson_MissingSelf";
-				 setupClientSubject(clientSubject);	
-				 // bad credentials should always fail			 
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken"));
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "InvalidToken"));
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "InvalidToken"));
+				//  TODO:  enable when ready to test				 				 
+//				 clientSubject = "testPerson_InvalidVsSchema";
+//				 setupClientSubject(clientSubject);
+//				 // bad credentials should always fail			 
+//				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken"));
+//				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "InvalidToken"));
+//				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "InvalidToken"));
+//				 
+//				 clientSubject = "testPerson_MissingMappedID";
+//				 setupClientSubject(clientSubject);	
+//				 // bad credentials should always fail			 
+//				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken"));
+//				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "InvalidToken"));
+//				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "InvalidToken"));
+//				 
+//				 clientSubject = "testPerson_MissingSelf";
+//				 setupClientSubject(clientSubject);	
+//				 // bad credentials should always fail			 
+//				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken"));
+//				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "InvalidToken"));
+//				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "InvalidToken"));
 				 
 				 for (String result : results) {
 					 if (result.contains("FAILED!!")) {
@@ -823,7 +826,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 
 	 
 	 @Test
-	 public void testIsAuthorized_vs_policy_allows_aNamedPerson_to_Read() {
+	 public void testIsAuthorized_AccessPolicy_is_testPerson_can_Read() {
 		 
 		 String procuringSubjectString = "testRightsHolder";
 		 String objectSubjectString = "CN=testPerson,DC=dataone,DC=org";
@@ -911,27 +914,27 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 //				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "InvalidToken"));
 //				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "InvalidToken"));
 
-				 
-				 clientSubject = "testPerson_InvalidVsSchema";
-				 setupClientSubject(clientSubject);	
-				 // bad credentials should always fail			 
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken"));
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "InvalidToken"));
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "InvalidToken"));
-				 
-				 clientSubject = "testPerson_MissingMappedID";
-				 setupClientSubject(clientSubject);	
-				 // bad credentials should always fail			 
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken"));
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "InvalidToken"));
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "InvalidToken"));
-				 
-				 clientSubject = "testPerson_MissingSelf";
-				 setupClientSubject(clientSubject);	
-				 // bad credentials should always fail			 
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken"));
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "InvalidToken"));
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "InvalidToken"));
+//  TODO:  enable when ready to test				 
+//				 clientSubject = "testPerson_InvalidVsSchema";
+//				 setupClientSubject(clientSubject);	
+//				 // bad credentials should always fail			 
+//				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken"));
+//				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "InvalidToken"));
+//				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "InvalidToken"));
+//				 
+//				 clientSubject = "testPerson_MissingMappedID";
+//				 setupClientSubject(clientSubject);	
+//				 // bad credentials should always fail			 
+//				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken"));
+//				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "InvalidToken"));
+//				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "InvalidToken"));
+//				 
+//				 clientSubject = "testPerson_MissingSelf";
+//				 setupClientSubject(clientSubject);	
+//				 // bad credentials should always fail			 
+//				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken"));
+//				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "InvalidToken"));
+//				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "InvalidToken"));
 				 
 				 for (String result : results) {
 					 if (result.contains("FAILED!!")) {
@@ -954,7 +957,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 	 
 	 
 	 @Test
-	 public void testIsAuthorized_vs_policy_allows_aNamedPerson_to_Write() {
+	 public void testIsAuthorized_AccessPolicy_is_testPerson_can_Write() {
 		 String procuringSubjectString = "testRightsHolder";
 		 String objectSubjectString = "CN=testPerson,DC=dataone,DC=org";
 		 Permission objectPermission = Permission.WRITE;
@@ -1037,27 +1040,27 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 //				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "InvalidToken"));
 //				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "InvalidToken"));
 
-				 
-				 clientSubject = "testPerson_InvalidVsSchema";
-				 setupClientSubject(clientSubject);	
-				 // bad credentials should always fail			 
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken"));
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "InvalidToken"));
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "InvalidToken"));
-				 
-				 clientSubject = "testPerson_MissingMappedID";
-				 setupClientSubject(clientSubject);
-				 // bad credentials should always fail			 
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken"));
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "InvalidToken"));
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "InvalidToken"));
-				 
-				 clientSubject = "testPerson_MissingSelf";
-				 setupClientSubject(clientSubject);	
-				 // bad credentials should always fail			 
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken"));
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "InvalidToken"));
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "InvalidToken"));
+				//  TODO:  enable when ready to test				 				 
+//				 clientSubject = "testPerson_InvalidVsSchema";
+//				 setupClientSubject(clientSubject);	
+//				 // bad credentials should always fail			 
+//				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken"));
+//				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "InvalidToken"));
+//				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "InvalidToken"));
+//				 
+//				 clientSubject = "testPerson_MissingMappedID";
+//				 setupClientSubject(clientSubject);
+//				 // bad credentials should always fail			 
+//				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken"));
+//				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "InvalidToken"));
+//				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "InvalidToken"));
+//				 
+//				 clientSubject = "testPerson_MissingSelf";
+//				 setupClientSubject(clientSubject);	
+//				 // bad credentials should always fail			 
+//				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken"));
+//				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "InvalidToken"));
+//				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "InvalidToken"));
 
 				 for (String result : results) {
 					 if (result.contains("FAILED!!")) {
@@ -1080,7 +1083,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 	 
 	 
 	 @Test
-	 public void testIsAuthorized_vs_policy_allows_aNamedPerson_to_ChangePerm() {
+	 public void testIsAuthorized_AccessPolicy_is_testPerson_can_ChangePerm() {
 		 String procuringSubjectString = "testRightsHolder";
 		 String objectSubjectString = "CN=testPerson,DC=dataone,DC=org";
 		 Permission objectPermission = Permission.CHANGE_PERMISSION;
@@ -1162,27 +1165,27 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 //				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "InvalidToken"));
 //				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "InvalidToken"));
 
-				 
-				 clientSubject = "testPerson_InvalidVsSchema";
-				 setupClientSubject(clientSubject);	
-				 // bad credentials should always fail			 
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken"));
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "InvalidToken"));
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "InvalidToken"));
-				 
-				 clientSubject = "testPerson_MissingMappedID";
-				 setupClientSubject(clientSubject);	
-				 // bad credentials should always fail			 
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken"));
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "InvalidToken"));
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "InvalidToken"));
-				 
-				 clientSubject = "testPerson_MissingSelf";
-				 setupClientSubject(clientSubject);
-				 // bad credentials should always fail			 
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken"));
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "InvalidToken"));
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "InvalidToken"));
+				//  TODO:  enable when ready to test				 				 
+//				 clientSubject = "testPerson_InvalidVsSchema";
+//				 setupClientSubject(clientSubject);	
+//				 // bad credentials should always fail			 
+//				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken"));
+//				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "InvalidToken"));
+//				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "InvalidToken"));
+//				 
+//				 clientSubject = "testPerson_MissingMappedID";
+//				 setupClientSubject(clientSubject);	
+//				 // bad credentials should always fail			 
+//				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken"));
+//				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "InvalidToken"));
+//				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "InvalidToken"));
+//				 
+//				 clientSubject = "testPerson_MissingSelf";
+//				 setupClientSubject(clientSubject);
+//				 // bad credentials should always fail			 
+//				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken"));
+//				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "InvalidToken"));
+//				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "InvalidToken"));
 				 
 				 for (String result : results) {
 					 if (result.contains("FAILED!!")) {
@@ -1204,7 +1207,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 
 	 
 	 @Test
-	 public void testIsAuthorized_vs_policy_allows_aNamedGroup_to_Read() {
+	 public void testIsAuthorized_AccessPolicy_is_testGroup_can_Read() {
 		 String procuringSubjectString = "testRightsHolder";
 		 String objectSubjectString = "testGroup";
 		 Permission objectPermission = Permission.READ;
@@ -1296,26 +1299,27 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 //				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "InvalidToken"));
 //				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "InvalidToken"));
 
-				 clientSubject = "testPerson_InvalidVsSchema";
-				 setupClientSubject(clientSubject);
-				 // bad credentials should always fail			 
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken"));
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "InvalidToken"));
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "InvalidToken"));
-				 
-				 clientSubject = "testPerson_MissingMappedID";
-				 setupClientSubject(clientSubject);
-				 // bad credentials should always fail			 
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken"));
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "InvalidToken"));
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "InvalidToken"));
-				 
-				 clientSubject = "testPerson_MissingSelf";
-				 setupClientSubject(clientSubject);
-				 // bad credentials should always fail			 
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken"));
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "InvalidToken"));
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "InvalidToken"));
+				//  TODO:  enable when ready to test				 
+//				 clientSubject = "testPerson_InvalidVsSchema";
+//				 setupClientSubject(clientSubject);
+//				 // bad credentials should always fail			 
+//				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken"));
+//				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "InvalidToken"));
+//				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "InvalidToken"));
+//				 
+//				 clientSubject = "testPerson_MissingMappedID";
+//				 setupClientSubject(clientSubject);
+//				 // bad credentials should always fail			 
+//				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken"));
+//				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "InvalidToken"));
+//				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "InvalidToken"));
+//				 
+//				 clientSubject = "testPerson_MissingSelf";
+//				 setupClientSubject(clientSubject);
+//				 // bad credentials should always fail			 
+//				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken"));
+//				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "InvalidToken"));
+//				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "InvalidToken"));
 				 
 				 for (String result : results) {
 					 if (result.contains("FAILED!!")) {
@@ -1338,7 +1342,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 	 
 
 	 @Test
-	 public void testIsAuthorized_vs_policy_allows_aNamedGroup_to_Write() {
+	 public void testIsAuthorized_AccessPolicy_is_testGroup_can_Write() {
 		 String procuringSubjectString = "testRightsHolder";
 		 String objectSubjectString = "testGroup";
 		 Permission objectPermission = Permission.WRITE;
@@ -1429,27 +1433,27 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 //				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "InvalidToken"));
 //				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "InvalidToken"));
 
-				 
-				 clientSubject = "testPerson_InvalidVsSchema";
-				 setupClientSubject(clientSubject);
-				 // bad credentials should always fail			 
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken"));
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "InvalidToken"));
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "InvalidToken"));
-				 
-				 clientSubject = "testPerson_MissingMappedID";
-				 setupClientSubject(clientSubject);
-				 // bad credentials should always fail			 
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken"));
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "InvalidToken"));
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "InvalidToken"));
-				 
-				 clientSubject = "testPerson_MissingSelf";
-				 setupClientSubject(clientSubject);
-				 // bad credentials should always fail			 
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken"));
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "InvalidToken"));
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "InvalidToken"));
+				//  TODO:  enable when ready to test				 				 
+//				 clientSubject = "testPerson_InvalidVsSchema";
+//				 setupClientSubject(clientSubject);
+//				 // bad credentials should always fail			 
+//				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken"));
+//				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "InvalidToken"));
+//				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "InvalidToken"));
+//				 
+//				 clientSubject = "testPerson_MissingMappedID";
+//				 setupClientSubject(clientSubject);
+//				 // bad credentials should always fail			 
+//				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken"));
+//				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "InvalidToken"));
+//				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "InvalidToken"));
+//				 
+//				 clientSubject = "testPerson_MissingSelf";
+//				 setupClientSubject(clientSubject);
+//				 // bad credentials should always fail			 
+//				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken"));
+//				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "InvalidToken"));
+//				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "InvalidToken"));
 				 
 				 for (String result : results) {
 					 if (result.contains("FAILED!!")) {
@@ -1472,7 +1476,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 	 
 	 
 	 @Test
-	 public void testIsAuthorized_vs_policy_allows_aNamedGroup_to_ChangePerm() {
+	 public void testIsAuthorized_AccessPolicy_is_testGroup_can_ChangePerm() {
 		 String procuringSubjectString = "testRightsHolder";
 		 String objectSubjectString = "testGroup";
 		 Permission objectPermission = Permission.CHANGE_PERMISSION;
@@ -1562,28 +1566,28 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 //				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "InvalidToken"));
 //				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "InvalidToken"));
 
-
-				 clientSubject = "testPerson_InvalidVsSchema";
-				 setupClientSubject(clientSubject);
-				 // bad credentials should always fail			 
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken"));
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "InvalidToken"));
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "InvalidToken"));
-				 
-				 clientSubject = "testPerson_MissingMappedID";
-				 setupClientSubject(clientSubject);	
-				 // bad credentials should always fail			 
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken"));
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "InvalidToken"));
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "InvalidToken"));
-				 
-				 clientSubject = "testPerson_MissingSelf";
-				 setupClientSubject(clientSubject);	
-				 // bad credentials should always fail			 
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken"));
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "InvalidToken"));
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "InvalidToken"));
-				 
+				//  TODO:  enable when ready to test				 
+//				 clientSubject = "testPerson_InvalidVsSchema";
+//				 setupClientSubject(clientSubject);
+//				 // bad credentials should always fail			 
+//				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken"));
+//				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "InvalidToken"));
+//				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "InvalidToken"));
+//				 
+//				 clientSubject = "testPerson_MissingMappedID";
+//				 setupClientSubject(clientSubject);	
+//				 // bad credentials should always fail			 
+//				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken"));
+//				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "InvalidToken"));
+//				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "InvalidToken"));
+//				 
+//				 clientSubject = "testPerson_MissingSelf";
+//				 setupClientSubject(clientSubject);	
+//				 // bad credentials should always fail			 
+//				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken"));
+//				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "InvalidToken"));
+//				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "InvalidToken"));
+//				 
 				 for (String result : results) {
 					 if (result.contains("FAILED!!")) {
 						 handleFail(null, currentUrl + " " + tablifyResults(testObject, results) );

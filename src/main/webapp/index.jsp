@@ -40,9 +40,10 @@
 	</table>
       </div>
     <div class="padded">This service runs basic tests to check the correctness of a DataONE
-      Member Node Web Services interface. Tier 4 methods are currently excluded, as they
-      require interaction with 2 other nodes.  (Tests for Tier 4 methods will necessitate
-      another strategy, and for now, please contact the DataONE developers team for advice.)
+      Member Node Web Services interface. Tier 4 methods work properly in the context of a
+      multi-node environment, so the Tier 4 tests included here are mostly testing proper
+      exceptions are thrown when given bad input.  Contact the DataONE developers team
+      for instructions on how to fully test this tier.
       </div>
     <div class="padded">In this test service, we provide one or more test for each method
           to cover common expected situations, and a summary result by Tier is given (pass / fail).

@@ -286,7 +286,7 @@ public class TestRunnerHttpServlet extends HttpServlet
 		
 		if (testResult.getMessage() != null && testResult.getMessage().contains("\n")) {
 			Element formattedText = new Element("pre");
-			formattedText.appendChild(testResult.getMessage());
+			formattedText.appendChild(testResult.getMessage().replace("\n","\r\n"));
 			description.appendChild(formattedText);
 		} else {
 			description.appendChild(testResult.getMessage());
