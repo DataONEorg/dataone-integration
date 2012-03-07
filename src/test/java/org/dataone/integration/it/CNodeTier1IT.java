@@ -60,6 +60,7 @@ import org.dataone.service.types.v1.SystemMetadata;
 import org.dataone.service.util.D1Url;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.springframework.util.StringUtils;
 
 /**
  * Test the DataONE Java client methods that focus on CN services.
@@ -413,6 +414,7 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
      */
     @Test
     public void testGenerateIdentifier() {
+    	setupClientSubject("testSubmitter");
     	Iterator<Node> it = getCoordinatingNodeIterator();
     	while (it.hasNext()) {
     		currentUrl = it.next().getBaseURL();
@@ -422,8 +424,17 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
     		try {
     			String fragment = "CNodeTier1Test";
     			Identifier response = cn.generateIdentifier(null,"UUID",fragment);
-    			checkTrue(currentUrl,"generateIdentifier(...) should return an Identifier object" +
-    					"containing the given fragment", response.getValue().contains(fragment));
+    			//TODO: UUID isn't supporting the fragment concept, so can't check 
+    			// this yet.
+//    			checkTrue(currentUrl,"generateIdentifier(...) should return an Identifier object" +
+//    					" containing the given fragment: '" + fragment + "' Got: '" + response.getValue() + "'",
+//    					response.getValue().contains(fragment));
+    			checkTrue(currentUrl,"generateIdentifier(...) should return a UUID-style" +
+    					"identifier with 5 hexidecimal segments separated by '-'s.  Got: " +
+    					response.getValue(),
+    					StringUtils.countOccurrencesOf(response.getValue(),"-") >=4);
+    					
+	
     		} 
     		catch (IndexOutOfBoundsException e) {
     			handleFail(currentUrl,"No Objects available to test against");
@@ -811,7 +822,7 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
      * the systemMetadataModified date/time is earlier than startTime.
      */
     @Test
-    public void testListObjects_StartTimeTest() {
+    public void testListObjects_fromDateTest() {
        	Iterator<Node> it = getCoordinatingNodeIterator();
     	while (it.hasNext()) {
     		currentUrl = it.next().getBaseURL();
