@@ -35,7 +35,7 @@ public class CNCNReplicationIT extends ContextAwareTestCaseDataone {
 			new HashMap<String,Set<String>>();
 		
 		// get all CN instances and get the objectList
-		Iterator it = getCoordinatingNodeIterator();
+		Iterator<Node> it = getCoordinatingNodeIterator();
 		while (it.hasNext()) {
 			Node node = (Node) it.next();
 			String currentUrl = node.getBaseURL();

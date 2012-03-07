@@ -52,7 +52,7 @@ public class CNodeTier2RegisterIT extends ContextAwareTestCaseDataone {
 		return "tests the CN.Register methods";
 	}
 	
-	
+	@Ignore("need to create a subject that can do this call an MN or CN subject")
 	@Test
 	public void testUpdateNodeCapabilities() {
 		// TODO: set the appropriate subject - will need a subject that can
@@ -93,6 +93,8 @@ public class CNodeTier2RegisterIT extends ContextAwareTestCaseDataone {
 			}
 		}
 	}
+	
+	
 	
 	@Test
 	public void testUpdateNodeCapabilities_NotFound() {
@@ -142,10 +144,13 @@ public class CNodeTier2RegisterIT extends ContextAwareTestCaseDataone {
 		}
 	}
 	
+	
+	
 	@Test
 	public void testUpdateNodeCapabilities_NotAuthorized() {
 		//TODO ensure that the current subject is not able to update the node record
 		// do this by looking at the node record?
+		setupClientSubject("testSubmitter");
 		Iterator<Node> it = getCoordinatingNodeIterator();
 		while (it.hasNext()) {
 			currentUrl = it.next().getBaseURL();
@@ -232,7 +237,7 @@ public class CNodeTier2RegisterIT extends ContextAwareTestCaseDataone {
 		}
 	}
 
-
+	
 	@Test
 	public void testRegister() {
 		// TODO: set the appropriate subject - will need a subject that can

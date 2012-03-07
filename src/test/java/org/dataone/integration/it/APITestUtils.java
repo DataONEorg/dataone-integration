@@ -39,6 +39,7 @@ import org.dataone.service.types.v1.Node;
 import org.dataone.service.types.v1.NodeList;
 import org.dataone.service.types.v1.NodeReference;
 import org.dataone.service.types.v1.NodeType;
+import org.dataone.service.types.v1.ObjectFormatIdentifier;
 import org.dataone.service.types.v1.ObjectLocation;
 import org.dataone.service.types.v1.ObjectLocationList;
 import org.dataone.service.types.v1.Permission;
@@ -51,103 +52,115 @@ import org.dataone.service.types.v1.Subject;
  * Utilities that are useful for generating test data.
  */
 public class APITestUtils {
+
+
+
+	/**
+	 * Generate a list of potential replica target nodes using the capabilities
+	 * of the authoritative node and those of the MNs in the NodeList from the CN
+	 * @param cn the CN providing the NodeList
+	 * @param authNode the authoritative Node for the object
+	 * @return the potential replica list of MNs
+	 */
+	protected static List<NodeReference> generatePotentialReplicaNodeList(CNode cn, Node authNode) {
+
+		// get the full node list from the cn
+		NodeList nodeList = null;
+		List<Node> nodes = null;
+
+		// get the node list from the CN
+		try {
+			nodeList = cn.listNodes();
+			nodes = nodeList.getNodeList();
+
+		} catch (NotImplemented e) {
+			e.printStackTrace();
+
+		} catch (ServiceFailure e) {
+			e.printStackTrace();
+
+		}
+
+		//create the list of potential target nodes 
+		List<NodeReference> potentialNodeList = new ArrayList<NodeReference>();
+
+		// verify the versions of replication the authNode supports
+		List<String> implementedVersions = new ArrayList<String>();
+		List<Service> origServices = authNode.getServices().getServiceList();
+		for (Service service : origServices) {
+			if(service.getName().equals("MNReplication") &&
+					service.getAvailable()) {
+				implementedVersions.add(service.getVersion());
+
+			}
+		}
+
+		// build the potential list of target nodes
+		for(Node node : nodes) {
+
+			// only add MNs as targets, excluding the authoritative MN and MNs that are not tagged to replicate
+			if ( (node.getType() == NodeType.MN) && node.isReplicate() &&
+					!node.getIdentifier().getValue().equals(authNode.getIdentifier().getValue())) {
+
+				for (Service service : node.getServices().getServiceList()) {
+					if(service.getName().equals("MNReplication") &&
+							implementedVersions.contains(service.getVersion()) &&
+							service.getAvailable()) {
+						potentialNodeList.add(node.getIdentifier());
+					}
+				}             
+			}
+		}
+		return potentialNodeList;
+	}
+
 	
-
-
-    /**
-     * Generate a list of potential replica target nodes using the capabilities
-     * of the authoritative node and those of the MNs in the NodeList from the CN
-     * @param cn the CN providing the NodeList
-     * @param authNode the authoritative Node for the object
-     * @return the potential replica list of MNs
-     */
-    protected static List<NodeReference> generatePotentialReplicaNodeList(CNode cn, Node authNode) {
-        
-        // get the full node list from the cn
-        NodeList nodeList = null;
-        List<Node> nodes = null;
-        
-        // get the node list from the CN
-        try {
-            nodeList = cn.listNodes();
-            nodes = nodeList.getNodeList();
-            
-        } catch (NotImplemented e) {
-            e.printStackTrace();
-            
-        } catch (ServiceFailure e) {
-            e.printStackTrace();
-            
-        }
-        
-        //create the list of potential target nodes 
-        List<NodeReference> potentialNodeList = new ArrayList<NodeReference>();
-        
-        // verify the versions of replication the authNode supports
-        List<String> implementedVersions = new ArrayList<String>();
-        List<Service> origServices = authNode.getServices().getServiceList();
-        for (Service service : origServices) {
-            if(service.getName().equals("MNReplication") &&
-               service.getAvailable()) {
-                implementedVersions.add(service.getVersion());
-                
-            }
-        }
-
-        // build the potential list of target nodes
-        for(Node node : nodes) {
-          
-            // only add MNs as targets, excluding the authoritative MN and MNs that are not tagged to replicate
-            if ( (node.getType() == NodeType.MN) && node.isReplicate() &&
-                !node.getIdentifier().getValue().equals(authNode.getIdentifier().getValue())) {
-                
-                for (Service service : node.getServices().getServiceList()) {
-                    if(service.getName().equals("MNReplication") &&
-                       implementedVersions.contains(service.getVersion()) &&
-                       service.getAvailable()) {
-                        potentialNodeList.add(node.getIdentifier());
-                    }
-                }             
-            }
-        }
-        return potentialNodeList;
-    }
- 
-    public static Subject buildSubject(String value) {
-		 Subject s = new Subject();
-		 s.setValue(value);
-		 return s;
-		 
-	 }
-	 
-	 public static AccessRule buildAccessRule(String subjectString, Permission permission)
-	 {
-		 if (subjectString == null || permission == null) {
-			 return null;
-		 }
-		 
-		 AccessRule ar = new AccessRule();
-		 ar.addSubject(buildSubject(subjectString));
-		 ar.addPermission(permission);
-		 return ar;
-	 }
 	
-	 
-	 public static Identifier buildIdentifier(String value) {
-		 Identifier id = new Identifier();
-		 id.setValue(value);
-		 return id;
-	 }
-    
-  
-  
-  public Person buildPerson(Subject subject, String familyName, 
-		  String givenName, String emailString) 
-  {
-	  String[] badParam = new String[]{};
-	  Person person = new Person();
-//	  try {
-//		InternetAddress ia = new InternetAddress(emailString, true);
+	public static Subject buildSubject(String value) 
+	{
+		Subject s = new Subject();
+		s.setValue(value);
+		return s;
+	}
+
+
+	
+	public static AccessRule buildAccessRule(String subjectString, Permission permission)
+	{
+		if (subjectString == null || permission == null) {
+			return null;
+		}
+		AccessRule ar = new AccessRule();
+		ar.addSubject(buildSubject(subjectString));
+		ar.addPermission(permission);
+		return ar;
+	}
+
+
+	
+	public static Identifier buildIdentifier(String value) {
+		Identifier id = new Identifier();
+		id.setValue(value);
+		return id;
+	}
+
+	
+	
+	public static ObjectFormatIdentifier buildFormatIdentifier(String value) {
+		ObjectFormatIdentifier fid = new ObjectFormatIdentifier();
+		fid.setValue(value);
+		return fid;
+	}
+
+
+
+	public Person buildPerson(Subject subject, String familyName, 
+			String givenName, String emailString) 
+	{
+		String[] badParam = new String[]{};
+		Person person = new Person();
+		//	  try {
+			//		InternetAddress ia = new InternetAddress(emailString, true);
 		if (emailString == null || emailString.trim().equals(""))
 			badParam[badParam.length] = "emailString";
 		if (familyName == null || familyName.trim().equals(""))
@@ -156,23 +169,23 @@ public class APITestUtils {
 			badParam[badParam.length] = "givenName";
 		if (subject == null || subject.getValue().equals(""))
 			badParam[badParam.length] = "subject";
-		
+
 		if (badParam.length > 0)
 			throw new IllegalArgumentException("null or empty string values for parameters: " + badParam);
-		
-//	} catch (AddressException e) {
-//		// thrown by IndernetAddress constructor
-//	}
-	  
-	  person.addEmail(emailString);
-	  person.addGivenName(givenName);
-	  person.setFamilyName(familyName);
-	  person.setSubject(subject);
-	  return person;
-  }
 
-  
-  
+		//	} catch (AddressException e) {
+		//		// thrown by IndernetAddress constructor
+		//	}
+
+		person.addEmail(emailString);
+		person.addGivenName(givenName);
+		person.setFamilyName(familyName);
+		person.setSubject(subject);
+		return person;
+	}
+
+
+
 	protected static int countLocationsWithResolve(CNode cn, Identifier pid) throws InvalidToken, ServiceFailure,
 	NotAuthorized, NotFound, InvalidRequest, NotImplemented {
 
@@ -180,8 +193,8 @@ public class APITestUtils {
 		List<ObjectLocation> locs = oll.getObjectLocationList();
 		return locs.toArray().length;
 	}
-	
-	
+
+
 	/**
 	 * checks a member node to see if it implements a tier.  Interrogates the 
 	 * services returned by mn.getCapabilities().  If any services of a given
@@ -215,8 +228,8 @@ public class APITestUtils {
 		}
 		return false;
 	}
-	
-	
+
+
 	/**
 	 * Given a node object will determine if the provided serviceName
 	 * is available
@@ -230,15 +243,15 @@ public class APITestUtils {
 		NodeList nl = new NodeList();
 		nl.addNode(node);
 
-//		Set<Node> n = NodelistUtil.selectNodesByService(nl, serviceName, null, true);
+		//		Set<Node> n = NodelistUtil.selectNodesByService(nl, serviceName, null, true);
 		Set<Node> n = selectNodesByService(nl, serviceName, null, true);
 		if (n.isEmpty()) {
 			return false;
 		}
 		return true;
 	}
-	
-	
+
+
 	/**
 	 * duplicate of NodelistUtil copied to allow testing of release candidates
 	 * @param nodeList
@@ -247,33 +260,33 @@ public class APITestUtils {
 	 * @param isAvailable
 	 * @return
 	 */
-    public static Set<Node> selectNodesByService(NodeList nodeList, String serviceName, String version, boolean isAvailable)
-    {
-    	Set<Node> nodeSet = new TreeSet<Node>();
-    	for(int i=0; i < nodeList.sizeNodeList(); i++) 
-    	{
-    		Node node = nodeList.getNode(i);
-    		for (Service service: node.getServices().getServiceList())
-    		{	
-    			if (service.getName().equalsIgnoreCase(serviceName)) {
-    				boolean availability = true;
-    				if (service.getAvailable() != null) {
-    					availability = service.getAvailable().booleanValue();
-    				}
-    				if (availability == isAvailable) {
-    					if (version != null) {
-    						if (service.getVersion().equalsIgnoreCase(version)) {
-    							nodeSet.add(node);
-    						}
-    					} else {
-    						nodeSet.add(node);
-    						break;
-    					}
-    				}
-    			}
-    		}
-        }
+	public static Set<Node> selectNodesByService(NodeList nodeList, String serviceName, String version, boolean isAvailable)
+	{
+		Set<Node> nodeSet = new TreeSet<Node>();
+		for(int i=0; i < nodeList.sizeNodeList(); i++) 
+		{
+			Node node = nodeList.getNode(i);
+			for (Service service: node.getServices().getServiceList())
+			{	
+				if (service.getName().equalsIgnoreCase(serviceName)) {
+					boolean availability = true;
+					if (service.getAvailable() != null) {
+						availability = service.getAvailable().booleanValue();
+					}
+					if (availability == isAvailable) {
+						if (version != null) {
+							if (service.getVersion().equalsIgnoreCase(version)) {
+								nodeSet.add(node);
+							}
+						} else {
+							nodeSet.add(node);
+							break;
+						}
+					}
+				}
+			}
+		}
 		return nodeSet;
 	}
-    
+
 }

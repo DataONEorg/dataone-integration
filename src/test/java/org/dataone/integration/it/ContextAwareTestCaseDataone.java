@@ -9,7 +9,6 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.security.NoSuchAlgorithmException;
@@ -21,7 +20,6 @@ import java.util.Set;
 import java.util.Vector;
 import java.util.concurrent.Callable;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.dataone.client.CNode;
@@ -56,7 +54,6 @@ import org.dataone.service.types.v1.Permission;
 import org.dataone.service.types.v1.Subject;
 import org.dataone.service.types.v1.SystemMetadata;
 import org.dataone.service.types.v1.util.AccessUtil;
-import org.dataone.service.types.v1.util.NodelistUtil;
 import org.dataone.service.util.Constants;
 import org.dataone.service.util.TypeMarshaller;
 import org.jibx.runtime.JiBXException;
@@ -744,12 +741,12 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 //		Subject startingClientSubject = ClientIdentityManager.getCurrentIdentity();
 		X509Certificate certificate = CertificateManager.getInstance().loadCertificate();
 		String startingCertLoc = CertificateManager.getInstance().getCertificateLocation();
-		String startingClientSubjectName = null;
-		if (certificate != null) {
-			startingClientSubjectName = CertificateManager.getInstance().getSubjectDN(certificate);
-		} else {
-			startingClientSubjectName = Constants.SUBJECT_PUBLIC;
-		}
+//		String startingClientSubjectName = null;
+//		if (certificate != null) {
+//			startingClientSubjectName = CertificateManager.getInstance().getSubjectDN(certificate);
+//		} else {
+//			startingClientSubjectName = Constants.SUBJECT_PUBLIC;
+//		}
 		
 		// following the testing rule of doing all creates under the testSubmitter subject
 		setupClientSubject(submitterSubjectLabel);

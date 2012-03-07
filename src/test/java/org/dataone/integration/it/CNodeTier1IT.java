@@ -35,7 +35,6 @@ import org.dataone.client.auth.ClientIdentityManager;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.IdentifierNotUnique;
 import org.dataone.service.exceptions.InvalidRequest;
-import org.dataone.service.exceptions.NotAuthorized;
 import org.dataone.service.exceptions.NotFound;
 import org.dataone.service.exceptions.ServiceFailure;
 import org.dataone.service.types.v1.Checksum;
@@ -202,7 +201,7 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
     		try {
     			ObjectFormatIdentifier formatId = new ObjectFormatIdentifier();
     			formatId.setValue("aBogusFormat");
-    			ObjectFormat response = cn.getFormat(formatId);
+    			cn.getFormat(formatId);
     		
     			handleFail(currentUrl,"getFormat(...) with a bogus formatID should " +
     					"throw an exception.");
@@ -455,7 +454,7 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
 
     		try {
     			String fragment = "CNodeTier1Test";
-    			Identifier response = cn.generateIdentifier(null,"bloip",fragment);
+    			cn.generateIdentifier(null,"bloip",fragment);
     			handleFail(currentUrl,"generateIdentifier(...) with a bogus scheme should" +
     					"throw an exception (should not have reached here)");
     		} 
@@ -652,10 +651,10 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
 					System.out.println();
 					System.out.println(j + "    unicode String:: " + unicodeString.get(j));
 					String idString = unicodeIdPrefix + ExampleUtilities.generateIdentifier() + "_" + unicodeString.get(j) ;
-					String idStringEscaped = unicodeIdPrefix  + ExampleUtilities.generateIdentifier() + "_" + escapedString.get(j);
+//					String idStringEscaped = unicodeIdPrefix  + ExampleUtilities.generateIdentifier() + "_" + escapedString.get(j);
 
 
-					Object[] dataPackage = ExampleUtilities.generateTestSciMetaDataPackage(idStringEscaped,false);
+					Object[] dataPackage = ExampleUtilities.generateTestSciMetaDataPackage(idString,false);
 
 					// rGuid is either going to be the escaped ID or the non-escaped ID
 					Identifier rGuid = null;
@@ -752,6 +751,42 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
 				Date endTime = new Date(System.currentTimeMillis() - 1 * 60 * 1000);
 				ObjectFormatIdentifier formatId = new ObjectFormatIdentifier();
 				formatId.setValue(format_text_csv);
+    			Boolean replicaStatus = true;
+				ol = cn.listObjects(null, startTime, endTime, 
+						formatId, replicaStatus , 
+						Integer.valueOf(0),
+						Integer.valueOf(10));
+    			checkTrue(currentUrl,"listObjects(<parameters>) returns an ObjectList", ol != null);
+    		} 
+    		catch (BaseException e) {
+    			handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
+    					e.getDetail_code() + ":: " + e.getDescription());
+    		}
+    		catch(Exception e) {
+    			e.printStackTrace();
+    			handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+    		}
+    	}
+    }
+ 
+    @Ignore("test in progress")
+    @Test
+    public void testListObjects_formatID_filter() {
+       	Iterator<Node> it = getCoordinatingNodeIterator();
+    	while (it.hasNext()) {
+    		currentUrl = it.next().getBaseURL();
+    		CNode cn = new CNode(currentUrl);
+    		currentUrl = cn.getNodeBaseServiceUrl();
+    		printTestHeader("testListObjects() vs. node: " + currentUrl);
+
+    		try {
+    			ObjectList ol = cn.listObjects(null);
+    			checkTrue(currentUrl,"listObjects() should return an ObjectList", ol != null);
+    			
+    			Date startTime = new Date(System.currentTimeMillis() - 10 * 60 * 1000);
+				Date endTime = new Date(System.currentTimeMillis() - 1 * 60 * 1000);
+				ObjectFormatIdentifier formatId = new ObjectFormatIdentifier();
+				formatId.setValue(ExampleUtilities.FORMAT_EML_2_1_0);
     			Boolean replicaStatus = true;
 				ol = cn.listObjects(null, startTime, endTime, 
 						formatId, replicaStatus , 
@@ -1068,6 +1103,9 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
 			currentUrl = cn.getNodeBaseServiceUrl();
 			printTestHeader("testSearch_Solr_unicodeTests(...) vs. node: " + currentUrl);
 			
+			Vector<String> nodeSummary = new Vector<String>();
+			nodeSummary.add("Node Test Summary for node: " + currentUrl );
+			
 			for (int i=0; i<unicodeString.size(); i++) 
 			{
 				String status = "OK   ";
@@ -1075,7 +1113,7 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
 				//   String unicode = unicodeString.get(j);
 				System.out.println();
 				System.out.println(i + "    unicode String:: " + unicodeString.get(i));
-				String idSubStringEscaped =  escapedString.get(i);
+//				String idSubStringEscaped =  escapedString.get(i);
 
 				try {
 					D1Url query = new D1Url("a","b");
@@ -1092,14 +1130,24 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
 					handleFail(currentUrl,"No Objects available to test against");
 				}
 	    		catch (BaseException e) {
+	    			status = "Error";
 	    			handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
 	    					e.getDetail_code() + ":: " + e.getDescription());
 	    		}
 				catch(Exception e) {
+					status = "Error";
 					e.printStackTrace();
 					handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
 				}
+
+				nodeSummary.add("Test " + i + ": " + status + ": " + unicodeString.get(i));
 			}
+			System.out.println();
+			for (int k=0; k<nodeSummary.size(); k++) 
+			{
+				System.out.println(nodeSummary.get(k));
+			}
+			System.out.println();
 		}
 	}
 
@@ -1181,22 +1229,7 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
 				System.out.println("*** ID string:  " + idString);
 
 				//insert a data file
-				InputStream objectStream = this.getClass().getResourceAsStream("/d1_testdocs/knb-lter-cdr.329066.1.data");
-				SystemMetadata sysmeta = ExampleUtilities.generateSystemMetadata(pid, "text/csv", objectStream,null);
-				objectStream = this.getClass().getResourceAsStream("/d1_testdocs/knb-lter-cdr.329066.1.data");
-
-				Identifier rPid = null;
-
-				rPid = mn.create(token, pid, objectStream, sysmeta);
-				System.out.println("    == returned Guid (rGuid): " + rPid.getValue());
-				//					mn.setAccessPolicy(token, rGuid, buildPublicReadAccessPolicy());
-				checkEquals(currentUrl,"created pid should equal provided",
-						rPid.getValue(),pid.getValue());
-
-
-				// to prevent a null pointer exception
-				if (rPid == null) 
-					rPid = pid;
+				Identifier rPid = createPublicTestObject(mn, idString);
 
 				ObjectLocationList oll = cn.resolve(token, rPid);
 				for (ObjectLocation ol : oll.getObjectLocationList()) {
@@ -1232,8 +1265,7 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
 
 	@Override
 	protected String getTestDescription() {
-		// TODO Auto-generated method stub
-		return null;
+		return "Test the Tier1 CN methods";
 	}
 	
 }

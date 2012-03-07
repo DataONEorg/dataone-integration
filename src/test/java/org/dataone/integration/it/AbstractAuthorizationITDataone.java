@@ -2,15 +2,12 @@ package org.dataone.integration.it;
 
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
 import org.dataone.client.CNode;
 import org.dataone.client.D1Node;
 import org.dataone.client.MNode;
-import org.dataone.integration.it.ContextAwareTestCaseDataone.TestIterationEndingException;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.IdentifierNotUnique;
 import org.dataone.service.exceptions.InsufficientResources;
@@ -26,11 +23,9 @@ import org.dataone.service.types.v1.AccessRule;
 import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Node;
 import org.dataone.service.types.v1.Permission;
-import org.dataone.service.types.v1.Session;
 import org.dataone.service.types.v1.Subject;
 import org.dataone.service.types.v1.SystemMetadata;
 import org.dataone.service.util.Constants;
-import org.junit.Ignore;
 import org.junit.Test;
 
 public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCaseDataone {
@@ -851,7 +846,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 				 
 				 // run tests
 				 String clientSubject = "testRightsHolder";
-				 Subject s = setupClientSubject(clientSubject);  // should always have access
+				 setupClientSubject(clientSubject);  // should always have access
 				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "true"));
 				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "true"));
 				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "true"));

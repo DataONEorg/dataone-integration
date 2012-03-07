@@ -25,8 +25,6 @@ import java.util.Iterator;
 import java.util.Map;
 
 import org.dataone.client.CNode;
-import org.dataone.client.D1Client;
-import org.dataone.client.MNode;
 import org.dataone.client.auth.CertificateManager;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.InvalidRequest;
