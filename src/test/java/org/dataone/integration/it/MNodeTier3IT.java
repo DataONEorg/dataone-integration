@@ -187,22 +187,25 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 					String idStringEscaped = idPrefix  + ExampleUtilities.generateIdentifier() + "_" + escapedString.get(j);
 
 
-					Object[] dataPackage = ExampleUtilities.generateTestSciDataPackage(idStringEscaped,false);
+					Object[] dataPackage = ExampleUtilities.generateTestSciDataPackage(idString,false);
+
+					checkEquals(currentUrl, "ExampleUtilities.generateTestSciDataPackage() should produce" +
+							"identifier same as the one provided", ((Identifier) dataPackage[0]).getValue(),
+							idString);
 
 					// rGuid is either going to be the escaped ID or the non-escaped ID
-					Identifier rGuid = null;
-
-					rGuid = mn.create(null, (Identifier) dataPackage[0], 
+					Identifier rPid = mn.create(null, (Identifier) dataPackage[0], 
 							(InputStream)dataPackage[1], (SystemMetadata)dataPackage[2]);
-					System.out.println("    == returned Guid (rGuid): " + rGuid.getValue());
-//					mn.setAccessPolicy(null, rGuid, buildPublicReadAccessPolicy());
+					System.out.println("    == returned Guid (rGuid): " + rPid.getValue());
+
 					checkEquals(currentUrl,"guid returned from create should equal that given",
-							((Identifier)dataPackage[0]).getValue(), rGuid.getValue());
-					InputStream data = mn.get(null, rGuid);
+							((Identifier)dataPackage[0]).getValue(), rPid.getValue());
+					
+					InputStream data = mn.get(null, rPid);
 					checkTrue(currentUrl, "get against the object should not equal null", null != data);
-					String str = IOUtils.toString(data);
-					checkTrue(currentUrl,"should be able to read the content as created ('" + str.substring(0,100) + "...')",
-							str.indexOf("IPCC Data Distribution Centre Results ") != -1);
+//					String str = IOUtils.toString(data);
+//					checkTrue(currentUrl,"should be able to read the content as created ('" + str.substring(0,100) + "...')",
+//							str.indexOf("IPCC Data Distribution Centre Results ") != -1);
 					data.close();
 				}
 				catch (BaseException e) {

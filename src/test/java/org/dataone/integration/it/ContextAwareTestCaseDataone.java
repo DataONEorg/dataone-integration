@@ -50,6 +50,7 @@ import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Node;
 import org.dataone.service.types.v1.NodeList;
 import org.dataone.service.types.v1.NodeType;
+import org.dataone.service.types.v1.ObjectFormatIdentifier;
 import org.dataone.service.types.v1.ObjectList;
 import org.dataone.service.types.v1.Permission;
 import org.dataone.service.types.v1.Subject;
@@ -78,7 +79,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 
 	public static final String QUERYTYPE_SOLR = "SOLR";
 	public static final String CHECKSUM_ALGORITHM = "MD5";
-	
+	public static final String DEFAULT_TEST_OBJECTFORMAT = ExampleUtilities.FORMAT_EML_2_0_1;
 
 	
 	private  boolean alreadySetup = false;
@@ -381,7 +382,9 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 		try {
 			ObjectList ol = null;
 			try {
-				ol = d1Node.listObjects(null);
+				ObjectFormatIdentifier formatId = new ObjectFormatIdentifier();
+				formatId.setValue(DEFAULT_TEST_OBJECTFORMAT);
+				ol = d1Node.listObjects(null, null, null, formatId, null, null, null);
 			} catch (BaseException e) {
 				e.printStackTrace();
 			}
@@ -764,17 +767,16 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 			certificate = CertificateManager.getInstance().loadCertificate();
 			String submitterX500 = CertificateManager.getInstance().getSubjectDN(certificate);
 		
-			if (d1Node instanceof MNode) {
-				byte[] contentBytes = "Plain text source for test object".getBytes("UTF-8");
+//			if (d1Node instanceof MNode) {
+//				byte[] contentBytes = "Plain text source for test object".getBytes("UTF-8");
+//				objectInputStream = new ByteArrayInputStream(contentBytes);
+//				d1o = new D1Object(pid, contentBytes, ExampleUtilities.FORMAT_TEXT_PLAIN, submitterX500, "bogusAuthoritativeNode");
+//			} else {
+				byte[] contentBytes = ExampleUtilities.getExampleObjectOfType(DEFAULT_TEST_OBJECTFORMAT);
 				objectInputStream = new ByteArrayInputStream(contentBytes);
-				d1o = new D1Object(pid, contentBytes, ExampleUtilities.FORMAT_TEXT_PLAIN, submitterX500, "bogusAuthoritativeNode");
-			} else {
-				byte[] contentBytes = ExampleUtilities.getExampleObjectOfType(ExampleUtilities.FORMAT_EML_2_0_1);
-				objectInputStream = new ByteArrayInputStream(contentBytes);
-				d1o = new D1Object(pid, 
-						ExampleUtilities.getExampleObjectOfType(ExampleUtilities.FORMAT_EML_2_0_1), 
-						ExampleUtilities.FORMAT_EML_2_0_1, submitterX500, "bogusAuthoritativeNode");
-			}
+				d1o = new D1Object(pid, contentBytes,
+						DEFAULT_TEST_OBJECTFORMAT, submitterX500, "bogusAuthoritativeNode");
+//			}
 			sysMeta = d1o.getSystemMetadata();
 		} catch (NoSuchAlgorithmException e) {
 			e.printStackTrace();
