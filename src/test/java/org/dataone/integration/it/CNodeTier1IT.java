@@ -29,12 +29,15 @@ import java.util.Vector;
 import org.apache.commons.io.IOUtils;
 import org.apache.solr.client.solrj.util.ClientUtils;
 import org.dataone.client.CNode;
+import org.dataone.client.D1Client;
+import org.dataone.client.MNode;
 import org.dataone.client.auth.ClientIdentityManager;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.IdentifierNotUnique;
 import org.dataone.service.exceptions.InvalidRequest;
 import org.dataone.service.exceptions.NotAuthorized;
 import org.dataone.service.exceptions.NotFound;
+import org.dataone.service.exceptions.ServiceFailure;
 import org.dataone.service.types.v1.Checksum;
 import org.dataone.service.types.v1.ChecksumAlgorithmList;
 import org.dataone.service.types.v1.DescribeResponse;
@@ -49,8 +52,10 @@ import org.dataone.service.types.v1.ObjectFormatIdentifier;
 import org.dataone.service.types.v1.ObjectFormatList;
 import org.dataone.service.types.v1.ObjectInfo;
 import org.dataone.service.types.v1.ObjectList;
+import org.dataone.service.types.v1.ObjectLocation;
 import org.dataone.service.types.v1.ObjectLocationList;
 import org.dataone.service.types.v1.Permission;
+import org.dataone.service.types.v1.Session;
 import org.dataone.service.types.v1.Subject;
 import org.dataone.service.types.v1.SystemMetadata;
 import org.dataone.service.util.D1Url;
@@ -59,19 +64,23 @@ import org.junit.Test;
 
 /**
  * Test the DataONE Java client methods that focus on CN services.
- * @author Matthew Jones
+ * @author Rob Nahf
  */
 public class CNodeTier1IT extends ContextAwareTestCaseDataone {
 
 	private  String format_text_csv = "text/csv";
 
-	private static Identifier reservedIdentifier = null;
+//	private static Identifier reservedIdentifier = null;
 
-	private static String unicodeIdPrefix = "testCNodeTier1:Unicode:";
-
+//	private static String unicodeIdPrefix = "testCNodeTier1:Unicode:";
+	private static String unicodeIdPrefix = "testMNodeTier3";
+	
 	private static String identifierEncodingTestFile = "/d1_testdocs/encodingTestSet/testUnicodeStrings.utf8.txt";
 	//	private static String identifierEncodingTestFile = "/d1_testdocs/encodingTestSet/testAsciiStrings.utf8.txt";
 
+	private static Vector<String> testPIDEncodingStrings = new Vector<String>();
+	private static Vector<String> encodedPIDStrings = new Vector<String>();
+	
 	private static String currentUrl;
 
 
@@ -244,12 +253,16 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
     	}
     }
 
-
+    /**
+     * Tests that getLogRecords() returns Log object, and if able to create on the cn,
+     * creates a test object, then looks for it in a subsequent getLogRecords() call
+     * 
+     */
     @Test
     public void testGetLogRecords()
     {
     	// can be anyone
-    	setupClientSubject("testPerson");
+    	setupClientSubject("testRightsHolder");
     	Iterator<Node> it = getCoordinatingNodeIterator();
        while (it.hasNext()) {
     	   currentUrl = it.next().getBaseURL();
@@ -265,6 +278,9 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
            try {
         	   Log eventLog = cn.getLogRecords(null, fromDate, null, null, null, null);
         	   checkTrue(currentUrl,"getLogRecords should return a log datatype", eventLog != null);
+        	   
+        	   // TODO: change the event to look for to a read event,
+        	   // it would probably be simpler.
         	   
         	   // check that log events are created
         	   Identifier pid = new Identifier();
@@ -459,10 +475,14 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
     	}
     }
 
-    
+    /**
+     * Creates an identifier and reserves it.  Then checks that the client indeed
+     * has the reservation (hasReservation());
+     */
     @Test
     public void testHasReservation() {
     	
+    	setupClientSubject("testSubmitter");
     	Subject clientSubject = ClientIdentityManager.getCurrentIdentity();
     	Iterator<Node> it = getCoordinatingNodeIterator();
     	while (it.hasNext()) {
@@ -472,14 +492,14 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
     		
     		try {
     			boolean response = false;
-    			if (reservedIdentifier != null) {
-    				response = cn.hasReservation(null,clientSubject,reservedIdentifier);
-    			} else {
+//    			if (reservedIdentifier != null) {
+//    				response = cn.hasReservation(null,clientSubject,reservedIdentifier);
+//    			} else {
     				Identifier pid = new Identifier();
     				pid.setValue(ExampleUtilities.generateIdentifier());
     				cn.reserveIdentifier(null, pid );
     				response = cn.hasReservation(null,clientSubject,pid);
-    			}
+//    			}
     			checkTrue(currentUrl,"response cannot be false. [Only true or exception].", response);
     		} 
     		catch (IndexOutOfBoundsException e) {
@@ -495,7 +515,10 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
     	}
     }
     
-    
+    /**
+     * Generates a new identifier, and tries hasReservation() without first reserving it.
+     * Expect a NotFound exception.  
+     */
     @Test
     public void testHasReservation_noReservation() {
     	
@@ -710,7 +733,7 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
 
     
     /**
-     * Tests the parameterless and parameterized listObject methods for propert returns.
+     * Tests the parameterless and parameterized listObject methods for proper returns.
      */
     @Test
     public void testListObjects() {
@@ -750,7 +773,7 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
     
     /**
      * Tests that the startTime parameter successfully filters out records where
-     * the systemMetadataModified date/time is earler than startTime.
+     * the systemMetadataModified date/time is earlier than startTime.
      */
     @Test
     public void testListObjects_StartTimeTest() {
@@ -808,9 +831,16 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
     }
     
     
+    /**
+     * Tests that an object identifier returned by listObjects is retrievable
+     * using cn.get().  Since only science metadata objects are gettable on 
+     * the CNs, the listObjects() call filters on one of the objectFormatIds
+     * for science metadata.  The test assumes that data replication between
+     * the CNs has occurred.
+     */
     @Test
     public void testGet() {
- //   	setupClientSubject_NoCert();
+    	setupClientSubject_NoCert();
        	Iterator<Node> it = getCoordinatingNodeIterator();
     	while (it.hasNext()) {
     		currentUrl = it.next().getBaseURL();
@@ -897,9 +927,14 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
     }
     
 
-
+    /**
+     * This test procures an objectlist (if no objects in it, it creates one),
+     * and checks for successful return of an ObjectLocationList from cn.resolve()
+     * for the first item in the objectlist.  
+     */
     @Test
     public void testResolve() {
+    	setupClientSubject_NoCert();
     	Iterator<Node> it = getCoordinatingNodeIterator();
     	while (it.hasNext()) {
     		currentUrl = it.next().getBaseURL();
@@ -912,7 +947,7 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
     			log.debug("   pid = " + pid.getValue());
 
     			ObjectLocationList response = cn.resolve(null,pid);
-    			checkTrue(currentUrl,"resolve(...) returns a ObjectLocationList object",
+    			checkTrue(currentUrl,"resolve(...) returns an ObjectLocationList object",
     					response != null && response instanceof ObjectLocationList);
     		} 
     		catch (IndexOutOfBoundsException e) {
@@ -929,7 +964,10 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
     	}
     }
     
-
+    /**
+     * Checks that a Checksum object is returned from cn.getChecksum() for a
+     * public readable object
+     */
 	@Test
 	public void testGetChecksum() {
     	setupClientSubject_NoCert();
@@ -959,7 +997,10 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
 		}
 	}
 	
- 
+	/**
+	 * Test runs a basic solr query ("q=*:*") using cn.search().  Successful if
+	 * an ObjectList is returned. (can be empty)
+	 */
 	@Test
 	public void testSearch() {
 		Iterator<Node> it = getCoordinatingNodeIterator();
@@ -988,7 +1029,12 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
 	}
 	
 	
-	
+	/**
+	 * This test searches for identifiers containing the representative unicode
+	 * characters, and is successful if ObjectList is returned (can be empty).
+	 * The goal is to rule out encoding issues with the request and processing.
+	 * It does NOT test that an object with those characters are found.
+	 */
 	@Test
 	public void testSearch_Solr_unicodeTests() {
 		
@@ -1026,7 +1072,7 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
 			{
 				String status = "OK   ";
 
-				//    			String unicode = unicodeString.get(j);
+				//   String unicode = unicodeString.get(j);
 				System.out.println();
 				System.out.println(i + "    unicode String:: " + unicodeString.get(i));
 				String idSubStringEscaped =  escapedString.get(i);
@@ -1034,12 +1080,14 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
 				try {
 					D1Url query = new D1Url("a","b");
 					String wildcardPattern = unicodeIdPrefix + "*" + unicodeString.get(i) + "*";
-					String escapedWildcardPattern = ClientUtils.escapeQueryChars(wildcardPattern);
-					query.addNonEmptyParamPair("q", "id:" + escapedWildcardPattern);
+					String solrEscapedWildcardPattern = ClientUtils.escapeQueryChars(wildcardPattern);
+					query.addNonEmptyParamPair("q", "id:" + solrEscapedWildcardPattern);
 
 					ObjectList response = cn.search(null,"solr",query);
-					checkTrue(currentUrl,"search(...) returns a ObjectList object", response != null);
-				} 
+					checkTrue(currentUrl,"search(...) should return an ObjectList", response != null);
+					
+//					checkTrue(currentUrl,"search(...) should ")
+				}
 				catch (IndexOutOfBoundsException e) {
 					handleFail(currentUrl,"No Objects available to test against");
 				}
@@ -1056,6 +1104,131 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
 	}
 
 
+	/**
+	 * Test ID encoding using the same resolve procedure
+	 * (it tests create, get, getsystemMetadata, and resolve)
+	 * @throws ServiceFailure 
+	 */
+	@Ignore("test not adapted for v1.0.0")
+	@Test
+	public void test_IdEncoding() throws ServiceFailure 
+	{
+		setupClientSubject("testRightsHolder");
+		Iterator<Node> it = getCoordinatingNodeIterator();
+		printTestHeader("Testing IdentifierEncoding - setting up identifiers to check");
+
+		// get identifiers to check with
+		Vector<String> unicodeString = new Vector<String>();
+		Vector<String> escapedString = new Vector<String>();
+		InputStream is = this.getClass().getResourceAsStream(identifierEncodingTestFile);
+		Scanner s = new Scanner(is,"UTF-8");
+		String[] temp;
+		int c = 0;
+		try{
+			while (s.hasNextLine()) {
+				String line = s.nextLine();
+				if (line.startsWith("common-") || line.startsWith("path-"))
+				{
+					System.out.println(c++ + "   " + line);
+					temp = line.split("\t");
+					unicodeString.add(temp[0]);
+					escapedString.add(temp[1]);		
+				}
+			}
+		} finally {
+			s.close();
+		}
+		
+		Vector<String> testIDs  = new Vector<String>();	
+		Vector<String> encodedIDs  = new Vector<String>();	
+//		printHeader("test_IdEncoding");
+			
+		for (int j=0; j<testPIDEncodingStrings.size(); j++) 
+		{
+			String idStringPrefix = "cn:testid:" + ExampleUtilities.generateIdentifier() + ":";
+			testIDs.add(idStringPrefix + testPIDEncodingStrings.get(j));
+			encodedIDs.add(idStringPrefix + encodedPIDStrings.get(j));
+		}
+		resolveRunner(testIDs,encodedIDs);
+	}
+
+	/*
+	 * a general procedure for creating and testing the return from resolve for different
+	 * identifier strings
+	 */
+	private void resolveRunner(Vector<String> ids, Vector<String> encodedIDs) throws ServiceFailure {
+
+		Vector<String> summaryReport = new Vector<String>();
+		
+		CNode cn = D1Client.getCN();
+
+		MNode mn = D1Client.getMN(mnBaseUrl);
+
+		Session token = null; //mn.login(principal, "kepler");
+		// run tests for each identifier
+		Identifier pid = new Identifier();
+		String status;
+		String message;
+		for (int j=0; j<ids.size(); j++) 
+		{
+			status = "OK   ";
+			message = "-";
+			try {
+				String idString = ids.get(j);
+				String encodedID = encodedIDs.get(j);
+				pid.setValue(idString);
+				System.out.println();
+				System.out.println("*** ID string:  " + idString);
+
+				//insert a data file
+				InputStream objectStream = this.getClass().getResourceAsStream("/d1_testdocs/knb-lter-cdr.329066.1.data");
+				SystemMetadata sysmeta = ExampleUtilities.generateSystemMetadata(pid, "text/csv", objectStream,null);
+				objectStream = this.getClass().getResourceAsStream("/d1_testdocs/knb-lter-cdr.329066.1.data");
+
+				Identifier rPid = null;
+
+				rPid = mn.create(token, pid, objectStream, sysmeta);
+				System.out.println("    == returned Guid (rGuid): " + rPid.getValue());
+				//					mn.setAccessPolicy(token, rGuid, buildPublicReadAccessPolicy());
+				checkEquals(currentUrl,"created pid should equal provided",
+						rPid.getValue(),pid.getValue());
+
+
+				// to prevent a null pointer exception
+				if (rPid == null) 
+					rPid = pid;
+
+				ObjectLocationList oll = cn.resolve(token, rPid);
+				for (ObjectLocation ol : oll.getObjectLocationList()) {
+					System.out.println("   === Location: " + ol.getNodeIdentifier().getValue()
+							+ " (" + ol.getUrl() + ")");
+					if (ol.getUrl().contains(encodedID))
+						checkTrue(currentUrl,"objectLocationList should contain the encodedID",true);
+					else
+					{
+						status = "Fail";
+						message = "encodedID not found: " + encodedID;
+						handleFail(currentUrl," encodedID not found: " + encodedID);
+					}
+				}
+			}
+			catch (Exception e) {
+
+				status  = "error";
+				message = e.getMessage();
+				handleFail(currentUrl,"error in resolveRunner: " + e.getMessage());
+			}
+			summaryReport.add(j + " " + status + " " + ids.get(j) + "  " + message);
+		}
+
+		System.out.println("*********  Test Summary ************");
+
+		for (int j =0; j<summaryReport.size(); j++)
+		{
+			System.out.println(summaryReport.get(j));
+		}
+		System.out.println();
+	}
 
 	@Override
 	protected String getTestDescription() {

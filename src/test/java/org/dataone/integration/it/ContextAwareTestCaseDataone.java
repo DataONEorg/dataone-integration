@@ -306,8 +306,8 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 
 
     /**
-     * get an ObjectList from listObjects, and if empty, try to create a public 
-     * readable object
+     * get an ObjectList from listObjects as the current user, and if empty, 
+     * try to create a public readable object.
      * @param d1Node
      * @return
      * @throws TestIterationEndingException

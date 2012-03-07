@@ -156,7 +156,7 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 					System.out.println(c++ + "   " + line);
 					temp = line.split("\t");
 					unicodeString.add(temp[0]);
-					escapedString.add(temp[1]);		
+					escapedString.add(temp[1]);	
 				}
 			}
 		} finally {
@@ -179,34 +179,39 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 			for (int j=0; j<unicodeString.size(); j++) 
 			{
 				String status = "OK   ";
+				String testLoc = "      ";
 				try {
 					//    			String unicode = unicodeString.get(j);
-					System.out.println();
-					System.out.println(j + "    unicode String:: " + unicodeString.get(j));
+					log.info("");
+					log.info(j + "    unicode String:: " + unicodeString.get(j));
 					String idString = idPrefix + ExampleUtilities.generateIdentifier() + "_" + unicodeString.get(j) ;
 					String idStringEscaped = idPrefix  + ExampleUtilities.generateIdentifier() + "_" + escapedString.get(j);
 
-
+					testLoc = "generate";
 					Object[] dataPackage = ExampleUtilities.generateTestSciDataPackage(idString,false);
 
 					checkEquals(currentUrl, "ExampleUtilities.generateTestSciDataPackage() should produce" +
 							"identifier same as the one provided", ((Identifier) dataPackage[0]).getValue(),
 							idString);
 
+					testLoc = "create";
 					// rGuid is either going to be the escaped ID or the non-escaped ID
 					Identifier rPid = mn.create(null, (Identifier) dataPackage[0], 
 							(InputStream)dataPackage[1], (SystemMetadata)dataPackage[2]);
-					System.out.println("    == returned Guid (rGuid): " + rPid.getValue());
+					log.info("    == returned Guid (rPid): " + rPid.getValue());
 
-					checkEquals(currentUrl,"guid returned from create should equal that given",
+					checkEquals(currentUrl,"pid returned from create should equal that given",
 							((Identifier)dataPackage[0]).getValue(), rPid.getValue());
 					
+					testLoc = "get   ";
+					Thread.sleep(1000);
 					InputStream data = mn.get(null, rPid);
 					checkTrue(currentUrl, "get against the object should not equal null", null != data);
 //					String str = IOUtils.toString(data);
 //					checkTrue(currentUrl,"should be able to read the content as created ('" + str.substring(0,100) + "...')",
 //							str.indexOf("IPCC Data Distribution Centre Results ") != -1);
 					data.close();
+					testLoc = "      ";
 				}
 				catch (BaseException e) {
 					status = "Error";
@@ -217,13 +222,14 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 					status = "Error";
 					e.printStackTrace();
 					handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
-				}	
-				nodeSummary.add("Test " + j + ": " + status + ":  " + unicodeString.get(j));
+				}
+				
+				nodeSummary.add("Test " + j + ": " + status + ": " + testLoc + ": " + unicodeString.get(j));
 			}
 			System.out.println();
 			for (int k=0; k<nodeSummary.size(); k++) 
 			{
-				log.info(nodeSummary.get(k));
+				System.out.println(nodeSummary.get(k));
 			}
 			System.out.println();
 		}
