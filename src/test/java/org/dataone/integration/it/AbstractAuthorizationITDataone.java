@@ -8,6 +8,7 @@ import java.util.List;
 import org.dataone.client.CNode;
 import org.dataone.client.D1Node;
 import org.dataone.client.MNode;
+import org.dataone.configuration.Settings;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.IdentifierNotUnique;
 import org.dataone.service.exceptions.InsufficientResources;
@@ -26,11 +27,16 @@ import org.dataone.service.types.v1.Permission;
 import org.dataone.service.types.v1.Subject;
 import org.dataone.service.types.v1.SystemMetadata;
 import org.dataone.service.util.Constants;
+import org.junit.Before;
 import org.junit.Test;
 
 public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCaseDataone {
 
-	protected static String testObjectSeriesSuffix = "." + "6";
+	// this here defines the default
+	// can be overwritten by property passed into base class
+	protected String testObjectSeriesSuffix = "." + "6";
+	
+	
 	private static String currentUrl;
 
 	/**
@@ -41,6 +47,12 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 	protected abstract D1Node instantiateD1Node(String baseUrl);
 
 
+	@Before
+	public void setUpTestObjectSeries() throws Exception {
+		if (testObjectSeries != null) {
+			testObjectSeriesSuffix = "." + testObjectSeries;
+		}
+	}
 	
 	private String checkExpectedIsAuthorizedOutcome(D1Node d1Node, Identifier pid, 
 			String subjectLabel, Permission permission, String expectedOutcome) 

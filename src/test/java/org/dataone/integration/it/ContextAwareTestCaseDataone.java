@@ -74,7 +74,7 @@ import org.junit.rules.ErrorCollector;
  */
 public abstract class ContextAwareTestCaseDataone implements IntegrationTestContextParameters {
 
-	public static final String QUERYTYPE_SOLR = "SOLR";
+	public static final String QUERYTYPE_SOLR = "solr";
 	public static final String CHECKSUM_ALGORITHM = "MD5";
 	public static final String DEFAULT_TEST_OBJECTFORMAT = ExampleUtilities.FORMAT_EML_2_0_1;
 
@@ -88,6 +88,8 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 	protected  String cnBaseUrl = null;
 	protected  String mnBaseUrl = null;
 	protected  String nodelistUri = null;
+	
+	protected  String testObjectSeries = null;
 
 	public  List<Node> memberNodeList = null;
 	public  List<Node> coordinatingNodeList = new Vector<Node>();
@@ -139,15 +141,27 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 			// PARAM_MN_URL to a property containing the thread ID, to avoid any concurrency
 			// issues (settings getting changed by another client).
 			
-			String urlThrID = System.getProperty("mnwebtester.thread." 
+			String urlThrIdUrl = System.getProperty("mnwebtester.thread." 
 					+ Thread.currentThread().getId() + ".mn.baseurl");
-			if (urlThrID != null) {
+			
+			if (urlThrIdUrl != null) {
 				log.info("*** mn.baseurl obtained from thread.X.mn.baseurl property");
-				mnBaseUrl = urlThrID;
+				mnBaseUrl = urlThrIdUrl;
+				
 			} else if (mnBaseUrl != null) {
 				log.info("*** mn.baseurl set from context.mn.baseurl property");
 			}
 			
+			String urlThrIdObjectSeries = System.getProperty("mnwebtester.thread." 
+					+ Thread.currentThread().getId() + ".tierTesting.object.series");
+			
+			if (urlThrIdObjectSeries != null) {
+				log.info("*** testObjectSeries obtained from thread.X.tierTesting.object.series property");
+				testObjectSeries = urlThrIdObjectSeries;
+			}
+				
+				
+				
 			log.info("****************************************************");
 
 			if (mnBaseUrl != null) {

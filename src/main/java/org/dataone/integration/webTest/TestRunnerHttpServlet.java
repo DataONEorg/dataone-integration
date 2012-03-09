@@ -9,6 +9,7 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.Map;
 import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -29,6 +30,7 @@ import nu.xom.Serializer;
 import nu.xom.ValidityException;
 
 import org.apache.commons.configuration.Configuration;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.dataone.configuration.Settings;
@@ -95,9 +97,9 @@ public class TestRunnerHttpServlet extends HttpServlet
 		if (req.getParameter("mNodeUrl") != null) {
 			try {
 				rsp.setContentType("text/html; charset=UTF-8");
-				
-				executeJUnitRun(req.getParameter("mNodeUrl"), req.getParameter("maxTier"),rsp.getOutputStream());
-			} catch (ClassNotFoundException e) {
+				executeJUnitRun(req ,rsp.getOutputStream());
+			} 
+			catch (ClassNotFoundException e) {
 				throw new ServletException("Internal Configuration problem: Test classes Not Found",e);
 			}
 			
@@ -108,17 +110,36 @@ public class TestRunnerHttpServlet extends HttpServlet
 	}
 	
 	
-	private void executeJUnitRun(String mNodeBaseUrl, String maxTier, ServletOutputStream out) 
+	private void executeJUnitRun(HttpServletRequest req, ServletOutputStream out) 
 	throws IOException, ClassNotFoundException 
 	{	
+		String mNodeBaseUrl = req.getParameter("mNodeUrl");
+		String testObjectSeries = req.getParameter("testObjectSeries");	
+		String maxTier = req.getParameter("maxTier"); 
+		
+		if (log.isDebugEnabled() ) {
+			Map params = req.getParameterMap();
+			log.debug(":::::::request parameters::::::");
+			for (Object key: params.keySet()) {
+				log.debug(String.format("param: %s = %s", key.toString(), params.get(key).toString()));
+			}
+		}
+		
 		Serializer serializer = new Serializer(out);
 		serializer.setIndent(2); // pretty-print output
+		
 		
 		log.info("setting system property '" + TestSettings.CONTEXT_MN_URL +
 				"' to value '" + mNodeBaseUrl + "'");
 		System.setProperty(TestSettings.CONTEXT_MN_URL, mNodeBaseUrl);
-		String threadProperty = "mnwebtester.thread." + Thread.currentThread().getId() + ".mn.baseurl";
-		System.setProperty(threadProperty, mNodeBaseUrl);
+		
+		// part of thread-aware way of passing form parameters to ContextAwareTestCaseDataone
+		// the other part is in ContextAwareTestCaseDataone
+		String threadPropertyBase = "mnwebtester.thread." + Thread.currentThread().getId();
+		System.setProperty(threadPropertyBase + ".mn.baseurl", mNodeBaseUrl);
+		if ( StringUtils.isNotEmpty( testObjectSeries ) )
+			System.setProperty(threadPropertyBase + ".tierTesting.object.series", testObjectSeries);
+		
 		Configuration c = Settings.getResetConfiguration();
 		
 		

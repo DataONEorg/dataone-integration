@@ -60,6 +60,12 @@
 	    </td>
 	  </tr>
 	  <tr>
+        <td align="right">Test Object series suffix override** <em>(optional)</em>:</td>
+        <td>
+          <input title="Test Object Series Suffix" size="5" name="testObjectSeries" type="text" />
+        </td>
+      </tr>
+	  <tr>
 	    <td align="right">Maximum Tier to test:</td>
 	    <td>
 	      <select title="Maximum Tier Level to Test" size="1" name="maxTier">
@@ -81,6 +87,16 @@
       </div>
       <div class="padded" style="font-size:smaller;">* <i>not including version path segment.  
 	      (e.g. </i> <b>"http://my.server.org/mn"</b> <i> rather than </i> <b>"http://my.server.org/mn/v1"</b> <i>)</i> 
+	</div>
+	<div class="padded" style="font-size:smaller;">** <i>The series designator is
+	the number or letter added as a suffix to the end of the testObject base name.
+	Tier 1 & 2 MemberNode testers will always want to set this to the series designator
+	used when creating the test objects.  For example, if you created 
+	'TierTesting:testObject:Public_Read.1', you need to set the value in the input
+	 field to "1" so the tester looks for that object and its cohort. 
+	 Tier 3 and higher MemberNodes can leave blank to use the default set internally.
+	 Internally, that series designator will change only if a prior series of 
+	 objects are discovered to be defective.
 	</div>
       </form>
     </body>
