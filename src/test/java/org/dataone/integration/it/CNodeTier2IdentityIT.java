@@ -27,6 +27,7 @@ import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.types.v1.Node;
 import org.dataone.service.types.v1.Person;
 import org.dataone.service.types.v1.Subject;
+import org.dataone.service.types.v1.SubjectInfo;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -37,10 +38,16 @@ import org.junit.Test;
 public class CNodeTier2IdentityIT extends ContextAwareTestCaseDataone {
 
 	
-	 private static String currentUrl;
+	private static String currentUrl;
 
-	@Test
+	 
+	/**
+	 * This is difficult to run over and over, because it require creating
+	 * new certificates for each new subject provided. 
+	 */
+//	@Test
 	public void testRegisterAccount() {
+		setupClientSubject("testPerson");
 		Iterator<Node> it = getCoordinatingNodeIterator();
 		while (it.hasNext()) {
 			currentUrl = it.next().getBaseURL();
@@ -48,9 +55,11 @@ public class CNodeTier2IdentityIT extends ContextAwareTestCaseDataone {
 			printTestHeader("testRegisterAccount(...) vs. node: " + currentUrl);
 
 			try {
-				// TODO:  fill out person object
-				Subject response = cn.registerAccount(null, new Person());
-				checkTrue(currentUrl,"registerAccount(...) returns a Subject object", response != null);
+				Subject response = cn.registerAccount(null, APITestUtils.buildPerson(
+						APITestUtils.buildSubject("testAccountA"),
+						"aFamily", "aGivenName", "me@foo.bar"));
+				checkTrue(currentUrl,"registerAccount(...) returns a Subject object",
+						response != null);
 				// checkTrue(currentUrl,"response cannot be false. [Only true or exception].", response);
 			} 
 			catch (IndexOutOfBoundsException e) {
@@ -67,7 +76,7 @@ public class CNodeTier2IdentityIT extends ContextAwareTestCaseDataone {
 	}
 
 
-	@Test
+//	@Test
 	public void testUpdateAccount() {
 		Iterator<Node> it = getCoordinatingNodeIterator();
 		while (it.hasNext()) {
@@ -94,7 +103,7 @@ public class CNodeTier2IdentityIT extends ContextAwareTestCaseDataone {
 	}
 
 
-	@Test
+//	@Test
 	public void testVerifyAccount() {
 		Iterator<Node> it = getCoordinatingNodeIterator();
 		while (it.hasNext()) {
@@ -119,60 +128,64 @@ public class CNodeTier2IdentityIT extends ContextAwareTestCaseDataone {
 		}
 	}
 
-	@Ignore("test not written yet")
+//	@Ignore("test not written yet")
 	@Test
 	public void testGetSubjectInfo() {
-//		Iterator<Node> it = getCoordinatingNodeIterator();
-//		while (it.hasNext()) {
-//			currentUrl = it.next().getBaseURL();
-//			CNode cn = new CNode(currentUrl);
-//			printTestHeader("testGetSubjectInfo(...) vs. node: " + currentUrl);
-//
-//			try {
-//
-//				SubjectInfo response = cn.getSubjectInfo();
-//				checkTrue(currentUrl,"getSubjectInfo(...) returns a SubjectInfo object", response != null);
-//				// checkTrue(currentUrl,"response cannot be false. [Only true or exception].", response);
-//			} 
-//			catch (IndexOutOfBoundsException e) {
-//				handleFail(currentUrl,"No Objects available to test against");
-//			}
-//			catch (BaseException e) {
-//				handleFail(currentUrl,e.getDescription());
-//			}
-//			catch(Exception e) {
-//				e.printStackTrace();
-//				handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
-//			}
-//		}
+		Iterator<Node> it = getCoordinatingNodeIterator();
+		while (it.hasNext()) {
+			currentUrl = it.next().getBaseURL();
+			CNode cn = new CNode(currentUrl);
+			printTestHeader("testGetSubjectInfo(...) vs. node: " + currentUrl);
+
+			try {
+				SubjectInfo subjectList = cn.listSubjects(null,"",null,null,null);
+				Subject personSubject = subjectList.getPersonList().get(0).getSubject();
+				SubjectInfo response = cn.getSubjectInfo(null,personSubject);
+				checkTrue(currentUrl,"getSubjectInfo(...) returns a SubjectInfo object", response != null);
+				// checkTrue(currentUrl,"response cannot be false. [Only true or exception].", response);
+			} 
+			catch (IndexOutOfBoundsException e) {
+				handleFail(currentUrl,"No Objects available to test against");
+			}
+			catch (BaseException e) {
+				handleFail(currentUrl,e.getDescription());
+			}
+			catch(Exception e) {
+				e.printStackTrace();
+				handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+			}
+		}
 	}
 
 
-	@Ignore("test not written yet")
+
 	@Test
 	public void testListSubjects() {
-//		Iterator<Node> it = getCoordinatingNodeIterator();
-//		while (it.hasNext()) {
-//			currentUrl = it.next().getBaseURL();
-//			CNode cn = new CNode(currentUrl);
-//			printTestHeader("testListSubjects(...) vs. node: " + currentUrl);
-//
-//			try {
-//				SubjectInfo response = cn.listSubjects();
-//				checkTrue(currentUrl,"listSubjects(...) returns a SubjectInfo object", response != null);
-//				// checkTrue(currentUrl,"response cannot be false. [Only true or exception].", response);
-//			} 
-//			catch (IndexOutOfBoundsException e) {
-//				handleFail(currentUrl,"No Objects available to test against");
-//			}
-//			catch (BaseException e) {
-//				handleFail(currentUrl,e.getDescription());
-//			}
-//			catch(Exception e) {
-//				e.printStackTrace();
-//				handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
-//			}
-//		}
+		Iterator<Node> it = getCoordinatingNodeIterator();
+		while (it.hasNext()) {
+			currentUrl = it.next().getBaseURL();
+			CNode cn = new CNode(currentUrl);
+			printTestHeader("testListSubjects(...) vs. node: " + currentUrl);
+
+			try {
+				SubjectInfo response = cn.listSubjects(null,"",null,null,null);
+				checkTrue(currentUrl,"listSubjects(...) returns a SubjectInfo object", response != null);
+				for (Person p: response.getPersonList()) {
+					System.out.println("subject: " + p.getSubject().getValue());
+				}
+				// checkTrue(currentUrl,"response cannot be false. [Only true or exception].", response);
+			} 
+			catch (IndexOutOfBoundsException e) {
+				handleFail(currentUrl,"No Objects available to test against");
+			}
+			catch (BaseException e) {
+				handleFail(currentUrl,e.getDescription());
+			}
+			catch(Exception e) {
+				e.printStackTrace();
+				handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+			}
+		}
 	}
 	
 	

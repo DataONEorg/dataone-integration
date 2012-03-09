@@ -835,16 +835,16 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
     			checkTrue(currentUrl,"listObjects() should return an ObjectList", ol != null);
     			
     			ObjectInfo oi0 = ol.getObjectInfo(0);
-    			Date startTime = null;
+    			Date fromDate = null;
    				ObjectInfo excludedObjectInfo = null;
    				for (ObjectInfo oi: ol.getObjectInfoList()) {
    					if (!oi.getDateSysMetadataModified().equals(oi0.getDateSysMetadataModified())) {
    						// which is earlier?  can't assume chronological order of objectlist
    						if (oi.getDateSysMetadataModified().after(oi0.getDateSysMetadataModified())) {
-   							startTime = oi.getDateSysMetadataModified();
+   							fromDate = oi.getDateSysMetadataModified();
    							excludedObjectInfo = oi0;
    						} else {
-   							startTime = oi0.getDateSysMetadataModified();
+   							fromDate = oi0.getDateSysMetadataModified();
    							excludedObjectInfo = oi;
    						}
    						break;
@@ -855,12 +855,13 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
     			} else {
    				
     				// call listObjects with a startTime
-    				ol = cn.listObjects(null, startTime, null, null, null, null, null);
+    				ol = cn.listObjects(null, fromDate, null, null, null, null, null);
 
     				for (ObjectInfo oi: ol.getObjectInfoList()) {
     					if (oi.getIdentifier().equals(excludedObjectInfo.getIdentifier())) {
     						handleFail(currentUrl,"identifier " + excludedObjectInfo.getIdentifier().getValue() +
-    								" should not be in the objectList where startTime set to " + startTime);
+    								" should not be in the objectList where startTime set to " + fromDate);
+    						break;
     					}
     				}
     			}

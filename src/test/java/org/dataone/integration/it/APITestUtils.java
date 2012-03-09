@@ -154,7 +154,7 @@ public class APITestUtils {
 
 
 
-	public Person buildPerson(Subject subject, String familyName, 
+	public static Person buildPerson(Subject subject, String familyName, 
 			String givenName, String emailString) 
 	{
 		String[] badParam = new String[]{};
