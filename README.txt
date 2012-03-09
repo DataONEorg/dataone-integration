@@ -31,7 +31,9 @@ This package supports test execution from 4 main environments:
     a) Eclipse
     b) the commandline (via mvn)
     c) from our continuous integration server, Hudson
-    d) from a web browser
+    d) from a web browser (via deployment of the MNWebTester .war)
+         - the default configuration for web tests only runs a subset 
+           of tests ("MNodeTier" tests), but theoretically can run others.
 
 It currently supports execution of java-based tests and plans to support running
 the python tests soon.  Except when running via Eclipse, the surefire maven 
@@ -42,17 +44,14 @@ See LICENSE.txt for the details of distributing this software.
 
 Usage:
 ------
-Usage for this package follows the Maven WAR packaging lifecycle.  In particular
+Usage for this package follows the Maven WAR packaging lifecycle.  The following
+goals do useful things:
 
-Running all tests:
- * mvn test   - used to run the unit tests
- * mvn verify - used to run the integration tests
- * mvn install - used to install the WAR in your local maven repository
-
- * mvn tomcat:deploy - used to deploy the war to a local tomcat server (local
-       configuration required)
-
-Java integration testing options **
+ * mvn test      - used to run the unit tests
+ * mvn package   - used to build the MNWebTester WAR file.
+ * mvn verify    - used to run the integration tests
+ 
+Java integration testing options**
   described fully at:
         http://maven.apache.org/plugins/maven-failsafe-plugin/examples/single-test.html
 
@@ -61,13 +60,31 @@ Examples:
  running multiple tests:                   mvn -Dit.test=*Core* verify
  
  ** However: specifying methods within the class is supposed to work, 
- but doesn't in practice for reasons unknown.
+ but doesn't in practice for reasons unknown.  For example the following
+ will NOT work:
     running one method in integration test:   mvn -Dit.test={pathlessTestName}#{method} verify
     running subset of methods in test:        mvn -Dit.test=someTest#*get*
 
 
-Notes for Developers:
+Deploying MNWebTester
 ---------------------
+To deploy a new MNWebTester, do the following:
+1. commit changes to svn
+2. perform 'svn update'              to bring the revision number up-to-date on you local copy
+3. optional:  perform 'mvn clean'    to remove old builds
+4. perform 'mvn package'             to build the war file
+5. scp target/MNWebTester{_some_version_and_revision}.war mncheck.test.dataone.org:
+6. ssh to mncheck.test.dataone.org
+7. sudo cp MNWebTester{...}.war /var/lib/tomcat6/webapps
+
+Note: The pom contains some ant commands that don't work in the shell-less environment 
+that Hudson uses when it runs mvn commands, so auto deploy of the MNWebTester doesn't
+currently work on Hudson.
+
+
+
+Notes for further development:
+------------------------------
 Integration tests are defined as tests that require infrastructure beyond the current
 package and it's dependencies.  This would include functional and use case tests, but
 not the unit tests that typically must pass before committing the code.
