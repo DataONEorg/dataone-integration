@@ -122,7 +122,7 @@ public class MNodeTier4IT extends ContextAwareTestCaseDataone {
 			catch (IndexOutOfBoundsException e) {
     			handleFail(currentUrl,"No Objects available to test against");
     		}
-			catch (InvalidToken e) {
+			catch (NotAuthorized e) {
 				// expected behavior
 			}
     		catch (BaseException e) {
