@@ -28,6 +28,7 @@ import org.dataone.service.types.v1.Subject;
 import org.dataone.service.types.v1.SystemMetadata;
 import org.dataone.service.util.Constants;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCaseDataone {
@@ -108,7 +109,8 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 		 return id;
 	 }
 
-
+	 
+	 @Ignore("This test is not valid -- ping() does not take or require authentication")
 	 @Test
 	 public void testConnectionLayer_SelfSignedCert() 
 	 {
