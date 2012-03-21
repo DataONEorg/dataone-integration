@@ -4,7 +4,7 @@
 	<groupId>org.dataone</groupId>
 	<artifactId>d1_integration</artifactId>
 	<packaging>war</packaging>
-	<version>1.0.1-RC4-SNAPSHOT</version>
+	<version>1.0.1-RC5-SNAPSHOT</version>
 	<name>DataONE Integration Testing Package</name>
 	<url>http://dataone.org</url>
 	<repositories>
@@ -37,7 +37,7 @@
 		<dependency>
 			<groupId>org.dataone</groupId>
 			<artifactId>d1_libclient_java</artifactId>
-			<version>1.0.1-RC4</version>
+			<version>1.0.1-RC5</version>
 		</dependency>
 		<dependency>
 			<groupId>org.dataone</groupId>

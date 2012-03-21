@@ -102,7 +102,7 @@ public class MNodeTier4IT extends ContextAwareTestCaseDataone {
 	 *  exception when a non-MemberNode client calls the method.
 	 */
 	@Test
-	public void testGetReplica_AuthenticatedITKUser() {
+	public void testGetReplica_ValidCertificate_NotMN() {
 
 		setupClientSubject("testRightsHolder");
 
@@ -205,6 +205,45 @@ public class MNodeTier4IT extends ContextAwareTestCaseDataone {
 				Object[] dataPackage = ExampleUtilities.generateTestSciDataPackage("mNodeTier4", true);				
 				mn.replicate(null, (SystemMetadata) dataPackage[2], sourceNode);	
 				handleFail(currentUrl,"should not be able to initiate replication without a certificate");
+			}
+			catch (NotAuthorized na) {
+				// expected behavior
+			}
+			catch (BaseException e) {
+				handleFail(currentUrl,"Expected NotAuthorized, got: " +
+						e.getClass().getSimpleName() + ": " + 
+						e.getDetail_code() + ": " + e.getDescription());
+			}
+			catch(Exception e) {
+				e.printStackTrace();
+				handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+			}	
+		}
+	}
+	
+	
+	/**
+	 *  Test MN.Replicate() functionality
+	 */
+	@Test
+	public void testReplicate_ValidCertificate_NotCN() {
+
+		setupClientSubject("testPerson");
+
+		Iterator<Node> it = getMemberNodeIterator();  	
+
+		while (it.hasNext()) {
+			currentUrl = it.next().getBaseURL();
+			MNode mn = D1Client.getMN(currentUrl);
+			currentUrl = mn.getNodeBaseServiceUrl();
+			printTestHeader("testReplicate_ValidCertificate_NotCN vs. node: " + currentUrl);
+
+			NodeReference sourceNode = new NodeReference();
+			sourceNode.setValue("bad");
+			try {
+				Object[] dataPackage = ExampleUtilities.generateTestSciDataPackage("mNodeTier4", true);				
+				mn.replicate(null, (SystemMetadata) dataPackage[2], sourceNode);	
+				handleFail(currentUrl,"should not be able to initiate replication a certificate representing a CN");
 			}
 			catch (NotAuthorized na) {
 				// expected behavior

@@ -27,6 +27,7 @@ import java.util.Iterator;
 import org.dataone.client.D1Client;
 import org.dataone.client.MNode;
 import org.dataone.service.exceptions.BaseException;
+import org.dataone.service.exceptions.NotAuthorized;
 import org.dataone.service.exceptions.ServiceFailure;
 import org.dataone.service.exceptions.SynchronizationFailed;
 import org.dataone.service.types.v1.Checksum;
@@ -249,7 +250,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     		printTestHeader("testListObjects() vs. node: " + currentUrl);
 
     		try {
-    			ObjectList ol = procureObjectList(mn);//mn.listObjects(null);
+    			ObjectList ol = procureObjectList(mn);
     			checkTrue(currentUrl,"listObjects() should return an ObjectList", ol != null);
     			if (ol.getTotal() == 0)
     				throw new TestIterationEndingException("no objects found in listObjects");
@@ -417,7 +418,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     
     
     @Test
-    public void testSynchronizationFailed() {
+    public void testSynchronizationFailed_NoCert() {
     	setupClientSubject_NoCert();
        	Iterator<Node> it = getMemberNodeIterator();
     	while (it.hasNext()) {
@@ -433,6 +434,9 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     			mn.synchronizationFailed(null, 
     					new SynchronizationFailed("0","a message",id.getValue(),null));
     			checkTrue(currentUrl,"synchronizationFailed() does not throw exception", true);
+    		}
+    		catch (NotAuthorized e) {
+    			; // this is an acceptable (and preferrable) outcome for calling without a client cert.
     		}
     		catch (IndexOutOfBoundsException e) {
     			handleFail(currentUrl,"No Objects available to test against");
