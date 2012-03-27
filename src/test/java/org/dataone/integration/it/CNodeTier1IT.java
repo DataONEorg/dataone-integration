@@ -253,9 +253,9 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
     	}
     }
 
+    
     /**
-     * Tests that getLogRecords() returns Log object, and if able to create on the cn,
-     * creates a test object, then looks for it in a subsequent getLogRecords() call
+     * Tests that getLogRecords() returns Log object, using the simplest case: no parameters.
      * 
      */
     @Test
@@ -264,68 +264,91 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
     	// can be anyone
     	setupClientSubject("testRightsHolder");
     	Iterator<Node> it = getCoordinatingNodeIterator();
-       while (it.hasNext()) {
-    	   currentUrl = it.next().getBaseURL();
-    	   CNode cn = new CNode(currentUrl);
-    	   printTestHeader("testGetLogRecords(...) vs. node: " + currentUrl);  
-    	   currentUrl = cn.getNodeBaseServiceUrl();
-     
+    	while (it.hasNext()) {
+    		currentUrl = it.next().getBaseURL();
+    		CNode cn = new CNode(currentUrl);
+    		printTestHeader("testGetLogRecords(...) vs. node: " + currentUrl);  
+    		currentUrl = cn.getNodeBaseServiceUrl();
 
-           log.info("current time is: " + new Date());
-           Date fromDate = new Date(System.currentTimeMillis() - 7 * 24 * 60 * 60 * 1000);
-           log.info("fromDate is: " + fromDate);
+    		try {
+    			Log eventLog = cn.getLogRecords(null, null, null, null, null, null);
+    			checkTrue(currentUrl,"getLogRecords should return a log datatype", eventLog != null);
+    		}
+    		catch (BaseException e) {
+    			handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
+    					e.getDetail_code() + ": " + e.getDescription());
+    		}
+    		catch(Exception e) {
+    			e.printStackTrace();
+    			handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+    		}	           
+    	}
+    }
 
-           try {
-        	   Log eventLog = cn.getLogRecords(null, fromDate, null, null, null, null);
-        	   checkTrue(currentUrl,"getLogRecords should return a log datatype", eventLog != null);
-        	   
-        	   // TODO: change the event to look for to a read event,
-        	   // it would probably be simpler.
-        	   
-        	   // check that log events are created
-        	   Identifier pid = new Identifier();
-        	   pid.setValue("aBogusIdentifier");
-        	   boolean canCreate = false;
-        	   try {
-        		   canCreate = cn.isAuthorized(null, pid, Permission.WRITE);
-        	   } catch (Exception e) {
-        		   // do nothing - can't expect to create in Tier1 tests
-        		   log.info("Cannot create objects so skipping more precise logging test "
-        				   + "on node: " + currentUrl);
-        	   }
-        	   if (canCreate) { 
-        		     pid = ExampleUtilities.doCreateNewObject(cn, "TierTesting:");
-        		   Date toDate = new Date(System.currentTimeMillis());
-        		   log.info("toDate is: " + toDate);
+    
+    /**
+     * Tests that setting fromDate parameter for getLogRecords() excludes earlier
+     * records.
+     * 
+     */
+    @Test
+    public void testGetLogRecords_DateSlicing()
+    {
+    	// can be anyone
+    	setupClientSubject("testRightsHolder");
+    	Iterator<Node> it = getCoordinatingNodeIterator();
+    	while (it.hasNext()) {
+    		currentUrl = it.next().getBaseURL();
+    		CNode cn = new CNode(currentUrl);
+    		printTestHeader("testGetLogRecords(...) vs. node: " + currentUrl);  
+    		currentUrl = cn.getNodeBaseServiceUrl();
 
-        		   eventLog = cn.getLogRecords(null, fromDate, toDate, Event.CREATE, null, null);
-        		   log.info("log size: " + eventLog.sizeLogEntryList());
-        		   boolean isfound = false;
-        		   for(int i=0; i<eventLog.sizeLogEntryList(); i++)
-        		   { //check to see if our create event is in the log
-        			   LogEntry le = eventLog.getLogEntry(i);
-        			   log.debug("le: " + le.getIdentifier().getValue());
-        			   log.debug("rGuid: " + pid.getValue());
-        			   if(le.getIdentifier().getValue().trim().equals(pid.getValue().trim()))
-        			   {
-        				   isfound = true;
-        				   log.info("log record found");
-        				   break;
-        			   }
-        		   }
-        		   log.info("isfound: " + isfound);
-        		   checkTrue(currentUrl, "newly created object is in the log", isfound); 
-        	   }
-			} 
-			catch (BaseException e) {
-				handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
-						e.getDetail_code() + ": " + e.getDescription());
-			}
-			catch(Exception e) {
-				e.printStackTrace();
-				handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
-			}	           
-       }
+    		try {
+    			Log eventLog = cn.getLogRecords(null, null, null, null, null, null);
+    			int allEventsCount = eventLog.getTotal();
+    			
+    			
+    			LogEntry entry0 = eventLog.getLogEntry(0);
+    			Date fromDate = null;
+    			LogEntry excludedEntry = null;
+   				for (LogEntry le: eventLog.getLogEntryList()) {
+   					if (!le.getDateLogged().equals(entry0.getDateLogged())) {
+   						// which is earlier?  can't assume chronological order of the list
+   						if (le.getDateLogged().after(entry0.getDateLogged())) {
+   							fromDate = le.getDateLogged();
+   							excludedEntry = entry0;
+   						} else {
+   							fromDate = entry0.getDateLogged();
+   							excludedEntry = le;
+   						}
+   						break;
+   					}
+   				}
+   				if (excludedEntry == null) {
+    				handleFail(currentUrl,"could not find 2 objects with different dateLogged times");
+    			} else {
+   				
+    				// call with a fromDate
+    				eventLog = cn.getLogRecords(null, fromDate, null, null, null, null);
+
+    				for (LogEntry le : eventLog.getLogEntryList()) {
+    					if (le.getEntryId().equals(excludedEntry.getEntryId())) {
+    						handleFail(currentUrl,"entryID " + excludedEntry.getEntryId() +
+    								" should not be in the event log where fromDate set to " + fromDate);
+    						break;
+    					}
+    				}
+    			}
+    		} 
+    		catch (BaseException e) {
+    			handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
+    					e.getDetail_code() + ": " + e.getDescription());
+    		}
+    		catch(Exception e) {
+    			e.printStackTrace();
+    			handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+    		}	           
+    	}
     }
     
     
