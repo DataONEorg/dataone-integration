@@ -208,9 +208,12 @@ public class CNodeTier2AuthorizationIT extends AbstractAuthorizationITDataone {
 
 	
     /**
-	 * Tests the dataONE service API setAccessPolicy method, first calling the
-	 * Tier 3 create method, to setup an object whose access policy can be 
-	 * manipulated for the test. 
+	 * Tests the dataONE service API setAccessPolicy method, and requires a
+	 * designated object that the "testRightsHolder" can change.
+	 * Outline for the test:  find the object, clear the AP, try isAuthorized()
+	 * with non-owner (should fail), as owner setAccessPolicy(), try isAuthorized()
+	 * with non-owner client who should now have access.
+	 * 
 	 * on the first object returned from the Tier1 listObjects() method.  
 	 * Anything other than the boolean true is considered a test failure.
 	 */
@@ -218,12 +221,8 @@ public class CNodeTier2AuthorizationIT extends AbstractAuthorizationITDataone {
     @Test
 	public void testSetAccessPolicy() 
     {	
-    	setupClientSubject("testReader");
-    	String readerSubject = CertificateManager.getInstance()
-    		.getSubjectDN(CertificateManager.getInstance().loadCertificate());
-	
-    	
-    	Iterator<Node> it = getMemberNodeIterator();
+
+       	Iterator<Node> it = getMemberNodeIterator();
 		while (it.hasNext()) {
 			currentUrl = it.next().getBaseURL();
 			CNode cn = new CNode(currentUrl);
@@ -231,24 +230,25 @@ public class CNodeTier2AuthorizationIT extends AbstractAuthorizationITDataone {
 			printTestHeader("testSetAccessPolicy() vs. node: " + currentUrl);
 
 			try {
-				String testingSubject = "testRightsHolder";
-				setupClientSubject(testingSubject);
+				Subject ownerSubject = setupClientSubject("testRightsHolder");				 
 				
-				Identifier id = new Identifier(); id.setValue("setAccessPolicyTestObject");
-				
-				Identifier changeableObject = procureTestObject(cn, 
-						AccessUtil.createAccessRule(new String[]{testingSubject},
-								new Permission[]{Permission.CHANGE_PERMISSION}), id);
-				if (changeableObject != null)
-				{					
+				Identifier changeableObject = procureTestObject(
+						cn, 
+						AccessUtil.createAccessRule(
+								new Subject[]{ownerSubject},
+								new Permission[]{Permission.CHANGE_PERMISSION}),
+						APITestUtils.buildIdentifier("TierTesting:testObject:setAccess." + testObjectSeries)
+						); 
+				if (changeableObject != null){
+					
 					log.info("clear the AccessPolicy");
 					SystemMetadata smd = cn.getSystemMetadata(null,changeableObject);
 					long serialVersion = smd.getSerialVersion().longValue();
 					boolean success = cn.setAccessPolicy(null, changeableObject, 
 							new AccessPolicy(), serialVersion);
 
-					// ensure blank policy with get, isAuthorized
-					setupClientSubject("testReader");				
+					// ensure blank policy with isAuthorized(), get()
+					Subject readerSubject = setupClientSubject("testPerson");				
 					try {
 						cn.isAuthorized(null, changeableObject, Permission.READ);
 						handleFail(currentUrl,"1. isAuthorized by the reader should fail");
@@ -262,15 +262,15 @@ public class CNodeTier2AuthorizationIT extends AbstractAuthorizationITDataone {
 						// this is what we want
 					}
 
-
-					log.info("allow read permission for testReader");
+					
+//					log.info("allow read permission for client-who-is-the-object's-RightsHolder");
 					setupClientSubject("testRightsHolder");
 					smd = cn.getSystemMetadata(null, changeableObject);
 					serialVersion = smd.getSerialVersion().longValue();
 					success = cn.setAccessPolicy(null, changeableObject, 
-							AccessUtil.createSingleRuleAccessPolicy(new String[] {readerSubject},
+							AccessUtil.createSingleRuleAccessPolicy(new String[] {readerSubject.getValue()},
 									new Permission[] {Permission.READ}), serialVersion);
-					checkTrue(currentUrl,"3. testWriter should be able to set the access policy",success);
+					checkTrue(currentUrl,"3. testRightsHolder should be able to set the access policy",success);
 
 
 					// test for success
@@ -283,7 +283,7 @@ public class CNodeTier2AuthorizationIT extends AbstractAuthorizationITDataone {
 								+ changeableObject.getValue() + "'");
 					}
 
-					log.info("now trying get as the testReader");
+					log.info("now trying get() as the testReader");
 					try {
 						cn.get(null, changeableObject);
 					} catch (NotAuthorized na) {
@@ -306,24 +306,24 @@ public class CNodeTier2AuthorizationIT extends AbstractAuthorizationITDataone {
 						// this is what we want
 					}
 
-					log.info("finally test access against anonymous client");
-					setupClientSubject_NoCert();
-					try {
-						cn.get(null, changeableObject);
-						handleFail(currentUrl,"8. anonymous client (no certificate) should not be" +
-						"able to get the object");
-					} catch (NotAuthorized na) {
-						// this is what we want
-					}
-
-					log.info("and test isAuthorized on it with certificateless client");
-					try {
-						cn.isAuthorized(null, changeableObject, Permission.READ);
-						handleFail(currentUrl,"9. anonymous client (no certificate) should not be " +
-						"able to get successful response from isAuthorized()");
-					} catch (NotAuthorized na) {
-						// this is what we want
-					}
+//					log.info("finally test access against anonymous client");
+//					setupClientSubject_NoCert();
+//					try {
+//						cn.get(null, changeableObject);
+//						handleFail(currentUrl,"8. anonymous client (no certificate) should not be" +
+//						"able to get the object");
+//					} catch (NotAuthorized na) {
+//						// this is what we want
+//					}
+//
+//					log.info("and test isAuthorized on it with certificateless client");
+//					try {
+//						cn.isAuthorized(null, changeableObject, Permission.READ);
+//						handleFail(currentUrl,"9. anonymous client (no certificate) should not be " +
+//						"able to get successful response from isAuthorized()");
+//					} catch (NotAuthorized na) {
+//						// this is what we want
+//					}
 				}
 			} catch (IndexOutOfBoundsException e) {
 				handleFail(currentUrl,"No Objects available to test against");
@@ -359,7 +359,8 @@ public class CNodeTier2AuthorizationIT extends AbstractAuthorizationITDataone {
 				String testingSubject = "testRightsHolder";
 				setupClientSubject(testingSubject);
 				
-				Identifier id = new Identifier(); id.setValue("setAccessPolicyTestObject");
+				Identifier id = new Identifier(); 
+				id.setValue("setAccessPolicyTestObject");
 				
 				Identifier changeableObject = procureTestObject(cn, 
 						AccessUtil.createAccessRule(new String[]{testingSubject},
