@@ -42,6 +42,15 @@ public class ContextAwareTestCaseDataoneTest {
 	}
 
 	@Test
+	public void testNodeAbbreviation() {
+		
+		String demo2 = "https://demo2.test.dataone.org/knb/d1/mn/v1".replaceFirst("https{0,1}://", "").replaceFirst("\\..+", "");
+		assertEquals("demo2",demo2);
+		String cndev = "https://cn-dev.dataone.org/cn/v1".replaceFirst("https{0,1}://", "").replaceFirst("\\..+", "");
+		assertEquals("cn-dev",cndev);
+	}
+	
+	@Test
 	public void testSetupClientSubject_Person() throws Exception
 	{
 		runTestSetupClient_Typical("testPerson");

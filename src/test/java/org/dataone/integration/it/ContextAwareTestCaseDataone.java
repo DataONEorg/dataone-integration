@@ -91,9 +91,12 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 	
 	protected  String testObjectSeries = null;
 
+	protected String cnSubmitter = Settings.getConfiguration().getString("dataone.it.cnode.submitter.cn","urn:node:cnDev");
+	
 	public  List<Node> memberNodeList = null;
 	public  List<Node> coordinatingNodeList = new Vector<Node>();
 	public  List<Node> monitorNodeList = new Vector<Node>();
+	
 	
 	protected abstract String getTestDescription();
 	
@@ -493,7 +496,8 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 					identifier = createTestObject(d1Node, pid, accessRule);
 				}
 			} else {
-				throw e;
+				log.debug("procureTestObject: calling createTestObject");
+				identifier = createTestObject(d1Node, pid, accessRule);
 			}
 		}
 		log.info(" ====>>>>> pid of procured test Object: " + identifier.getValue());
@@ -678,7 +682,10 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 	{
 		// create the identifier for the test object
 		Identifier pid = new Identifier();
-		String prefix = d1Node.getClass().getSimpleName() +  "TierTests.";
+
+		String nodeAbbrev = createNodeAbbreviation(d1Node.getNodeBaseServiceUrl());
+
+		String prefix = d1Node.getClass().getSimpleName() +  "TierTests." + nodeAbbrev + ".";
 		if (idSuffix != null) {
 			pid.setValue(prefix + ExampleUtilities.generateIdentifier() +
 					"." + idSuffix);
@@ -688,6 +695,13 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 
 		return createTestObject(d1Node, pid, accessRule);
 	}
+	
+	
+	protected String createNodeAbbreviation(String baseUrl) {
+		String nodeAbbrev = baseUrl.replaceFirst("https{0,1}://", "").replaceFirst("\\..+", "");
+		return nodeAbbrev;
+	}
+	
 	
 	/**
 	 * Convenience method for creating test Object that submits as the 
@@ -714,7 +728,11 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 	{
 		// the default is to do all of the creates under the testSubmitter subject
 		// and assign rights to testRightsHolder
-		return createTestObject(d1Node, pid, accessRule,"testSubmitter","CN=testRightsHolder,DC=dataone,DC=org");
+		if (d1Node instanceof MNode) {
+			return createTestObject(d1Node, pid, accessRule,"testSubmitter","CN=testRightsHolder,DC=dataone,DC=org");
+		} else {
+			return createTestObject(d1Node, pid, accessRule,cnSubmitter,"CN=testRightsHolder,DC=dataone,DC=org");
+		}
 	}
 	
 	
@@ -762,9 +780,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 //			startingClientSubjectName = Constants.SUBJECT_PUBLIC;
 //		}
 		
-		// following the testing rule of doing all creates under the testSubmitter subject
 		setupClientSubject(submitterSubjectLabel);
-
 		
 
 		// prepare the data object for the create:
