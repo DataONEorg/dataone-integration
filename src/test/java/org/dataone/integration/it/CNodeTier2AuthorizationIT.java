@@ -30,6 +30,7 @@ import java.util.Map;
 import org.apache.commons.io.IOUtils;
 import org.dataone.client.CNode;
 import org.dataone.client.auth.CertificateManager;
+import org.dataone.configuration.Settings;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.InvalidRequest;
 import org.dataone.service.exceptions.InvalidToken;
@@ -226,7 +227,9 @@ public class CNodeTier2AuthorizationIT extends AbstractAuthorizationITDataone {
     @Test
 	public void testSetAccessPolicy() 
     {	
-       	Iterator<Node> it = getCoordinatingNodeIterator();
+       	boolean origObjectCacheSetting = Settings.getConfiguration().getBoolean("D1Client.useLocalCache");
+    	Settings.getConfiguration().setProperty("D1Client.useLocalCache", false);
+    	Iterator<Node> it = getCoordinatingNodeIterator();
 		while (it.hasNext()) {
 			currentUrl = it.next().getBaseURL();
 			CNode cn = new CNode(currentUrl);
@@ -264,7 +267,7 @@ public class CNodeTier2AuthorizationIT extends AbstractAuthorizationITDataone {
 					}
 					try {
 						cn.get(null, changeableObject);
-						handleFail(currentUrl,"2. getting the newly created object as reader should fail");
+						handleFail(currentUrl,"2. getting the newly created object as a reader should fail");
 					} catch (NotAuthorized na) {
 						// this is what we want
 					}
@@ -284,7 +287,6 @@ public class CNodeTier2AuthorizationIT extends AbstractAuthorizationITDataone {
 					ByteArrayOutputStream os = new ByteArrayOutputStream();
 					TypeMarshaller.marshalTypeToOutputStream(smd.getAccessPolicy(), os);
 					log.info(os.toString());
-					
 					
 					
 					// test for success
@@ -323,25 +325,26 @@ public class CNodeTier2AuthorizationIT extends AbstractAuthorizationITDataone {
 					} catch (NotAuthorized na) {
 						// this is what we want
 					}
-					log.info("done..");
-//					log.info("finally test access against anonymous client");
-//					setupClientSubject_NoCert();
-//					try {
-//						cn.get(null, changeableObject);
-//						handleFail(currentUrl,"8. anonymous client (no certificate) should not be" +
-//						"able to get the object");
-//					} catch (NotAuthorized na) {
-//						// this is what we want
-//					}
-//
-//					log.info("and test isAuthorized on it with certificateless client");
-//					try {
-//						cn.isAuthorized(null, changeableObject, Permission.READ);
-//						handleFail(currentUrl,"9. anonymous client (no certificate) should not be " +
-//						"able to get successful response from isAuthorized()");
-//					} catch (NotAuthorized na) {
-//						// this is what we want
-//					}
+
+					log.info("finally test access against anonymous client");
+					setupClientSubject_NoCert();
+					try {
+						cn.get(null, changeableObject);
+						handleFail(currentUrl,"8. anonymous client (no certificate) should not be" +
+						"able to get the object");
+					} catch (NotAuthorized na) {
+						// this is what we want
+					}
+
+					log.info("and test isAuthorized on it with certificateless client");
+					try {
+						cn.isAuthorized(null, changeableObject, Permission.READ);
+						handleFail(currentUrl,"9. anonymous client (no certificate) should not be " +
+						"able to get successful response from isAuthorized()");
+					} catch (NotAuthorized na) {
+						// this is what we want
+					}
+					log.info("done.");
 				}
 			} catch (IndexOutOfBoundsException e) {
 				handleFail(currentUrl,"No Objects available to test against");
@@ -353,6 +356,7 @@ public class CNodeTier2AuthorizationIT extends AbstractAuthorizationITDataone {
 				handleFail(currentUrl, e.getClass().getName() + ": " + e.getMessage());
 			}
 		}
+		Settings.getConfiguration().setProperty("D1Client.useLocalCache", origObjectCacheSetting);
 	}
     
     /**
