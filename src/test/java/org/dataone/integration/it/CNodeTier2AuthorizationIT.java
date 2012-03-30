@@ -22,34 +22,23 @@ package org.dataone.integration.it;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
-import java.io.OutputStream;
-import java.math.BigInteger;
 import java.util.Iterator;
 import java.util.Map;
 
 import org.apache.commons.io.IOUtils;
 import org.dataone.client.CNode;
-import org.dataone.client.auth.CertificateManager;
 import org.dataone.configuration.Settings;
 import org.dataone.service.exceptions.BaseException;
-import org.dataone.service.exceptions.InvalidRequest;
-import org.dataone.service.exceptions.InvalidToken;
 import org.dataone.service.exceptions.NotAuthorized;
-import org.dataone.service.exceptions.NotFound;
-import org.dataone.service.exceptions.NotImplemented;
-import org.dataone.service.exceptions.ServiceFailure;
 import org.dataone.service.types.v1.AccessPolicy;
-import org.dataone.service.types.v1.AccessRule;
 import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Node;
-import org.dataone.service.types.v1.ObjectInfo;
 import org.dataone.service.types.v1.ObjectList;
 import org.dataone.service.types.v1.Permission;
 import org.dataone.service.types.v1.Subject;
 import org.dataone.service.types.v1.SystemMetadata;
 import org.dataone.service.types.v1.util.AccessUtil;
 import org.dataone.service.util.TypeMarshaller;
-import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -111,15 +100,14 @@ public class CNodeTier2AuthorizationIT extends AbstractAuthorizationITDataone {
 
 	
 	/**
-	 * Requirements: an object whose rightsHolder can be changed without
-	 * upsetting other authorization tests.	
-	 * The cardinality of the rightsHolder field is [1..1].  Approach is to change
-	 * to 
+	 * Creates an object with no AccessPolicy.  changes ownership to different
+	 * subject, then tests original rightsholder can't access/change, and the 
+	 * new one can.
 	 */
-	@Ignore("not ready yet")
 	@Test
-	public void testSetRightsHolder() {
-		setupClientSubject("testSubmitter");
+	public void testSetRightsHolder() 
+	{
+		Subject inheritorSubject = setupClientSubject("testPerson");
 		Iterator<Node> it = getCoordinatingNodeIterator();
 		while (it.hasNext()) {
 			currentUrl = it.next().getBaseURL();
@@ -127,26 +115,49 @@ public class CNodeTier2AuthorizationIT extends AbstractAuthorizationITDataone {
 			printTestHeader("testSetRightsHolder(...) vs. node: " + currentUrl);
 
 			try {
-//				Identifier myObject = procureTestObject(cn,new Permission[] {Permission.CHANGE_PERMISSION});
+				Subject ownerSubject = setupClientSubject("testRightsHolder");
 				
-				Identifier pid = getOwnedObject(cn);
-				// TODO:  if nothing from existing, will need to create one
+				// create a new identifier for testing, owned by current subject and with null AP
+				Identifier changeableObject = APITestUtils.buildIdentifier(
+						"TierTesting:setRH:" + ExampleUtilities.generateIdentifier()); 
+
+				changeableObject = createTestObject(cn, changeableObject, null);
 				
-				if (pid == null) {
-					handleFail(currentUrl,"do not have an object that am rightsHolder to use to test setRightsHolder");
+				if (changeableObject != null) {
+					SystemMetadata smd = cn.getSystemMetadata(null, changeableObject);
+					Identifier response = cn.setRightsHolder(
+							null, 
+							changeableObject,
+							inheritorSubject, 
+							smd.getSerialVersion().longValue());
+				
+					checkTrue(currentUrl,"1. setRightsHolder(...) returns a Identifier object", response != null);
+					try {
+						cn.isAuthorized(null, changeableObject, Permission.CHANGE_PERMISSION);
+						handleFail(currentUrl, "2. isAuthorized to CHANGE as former rightsHolder should fail.");
+					} 
+					catch (NotAuthorized e) {
+						; // expected
+					}
+					
+					setupClientSubject("testPerson");
+					try {
+						cn.isAuthorized(null, changeableObject, Permission.CHANGE_PERMISSION);
+					} catch (NotAuthorized na) {
+						handleFail(currentUrl,"3. testPerson should now be able to CHANGE the object");
+					}
+					
+					try {
+						smd = cn.getSystemMetadata(null, changeableObject);
+						checkTrue(currentUrl, "4. testPerson should be the rightsHolder",smd.getRightsHolder().equals(inheritorSubject));
+					} catch (NotAuthorized na) {
+						handleFail(currentUrl,"5. testPerson should now be able to get the systemmetadata");
+					}
+					// clean up step to try to put it back under the testRightsHolder subject.
+					cn.setRightsHolder(null, changeableObject, ownerSubject, smd.getSerialVersion().longValue());
+					
 				} else {
-					// TODO: create a real request
-					Identifier pidToGiveAway = pid;
-					SystemMetadata smd = cn.getSystemMetadata(null, pidToGiveAway);
-					BigInteger serialVersion = smd.getSerialVersion();
-				 
-					Subject inheritor = new Subject();
-					inheritor.setValue("CN=testSubmitter,DC=dataone,DC=org");
-					Identifier response = cn.setRightsHolder(null, 
-							pid,
-							inheritor, serialVersion.longValue());
-				
-					checkTrue(currentUrl,"setRightsHolder(...) returns a Identifier object", response != null);
+					handleFail(currentUrl,"could not create object for testing setRightsHolder");
 				}
 			} 
 			catch (IndexOutOfBoundsException e) {
@@ -163,54 +174,6 @@ public class CNodeTier2AuthorizationIT extends AbstractAuthorizationITDataone {
 	}
 
 	
-	private Identifier getOwnedObject(CNode cn) {
-
-//		Subject me = ClientAuthUtils.whoami();
-//		Subject me2 = getCurrentClientSubject();
-		Identifier pid = null;
-		try {
-			
-			ObjectList ol = cn.listObjects(null);
-			for (ObjectInfo oi: ol.getObjectInfoList())
-			{
-				if (cn.isAuthorized(null, oi.getIdentifier(), Permission.CHANGE_PERMISSION))
-				{
-					SystemMetadata smd = cn.getSystemMetadata(null, oi.getIdentifier());
-					boolean noCPinAP = true;
-					for (AccessRule ar: smd.getAccessPolicy().getAllowList())
-					{
-						for (Permission p: ar.getPermissionList()) {
-							if (p == Permission.CHANGE_PERMISSION) {
-								noCPinAP = false;
-								break;
-							}
-						}
-					}
-					if (noCPinAP) {
-						pid = oi.getIdentifier();
-						break;
-					}
-				}			
-			}
-		} catch (InvalidToken e) {
-			//allow object list to be null
-		} catch (ServiceFailure e) {
-			//allow object list to be null
-		} catch (NotAuthorized e) {
-			//allow object list to be null
-		} catch (InvalidRequest e) {
-			//allow object list to be null
-		} catch (NotImplemented e) {
-			//allow object list to be null
-		} catch (NotFound e) {
-			//allow object list to be null
-		}
-		return pid;
-	}
-	
-	
-	
-
 
 	
     /**
@@ -223,7 +186,6 @@ public class CNodeTier2AuthorizationIT extends AbstractAuthorizationITDataone {
 	 * on the first object returned from the Tier1 listObjects() method.  
 	 * Anything other than the boolean true is considered a test failure.
 	 */
-//	@Ignore("test needs review")
     @Test
 	public void testSetAccessPolicy() 
     {	
@@ -358,178 +320,8 @@ public class CNodeTier2AuthorizationIT extends AbstractAuthorizationITDataone {
 		}
 		Settings.getConfiguration().setProperty("D1Client.useLocalCache", origObjectCacheSetting);
 	}
-    
-    /**
-	 * Tests the dataONE service API setAccessPolicy method, calling it with
-	 * no subject/certificate, after first calling the Tier 3 create method, 
-	 * to setup an object whose access policy can be manipulated for the test. 
-	 * <p>
-	 * Anything other than the boolean true is considered a test failure.
-	 */
-	@Ignore("test needs review")
-    @Test
-	public void testSetAccessPolicy_NoCert() 
-    {	
-		Iterator<Node> it = getMemberNodeIterator();
-		while (it.hasNext()) {
-			currentUrl = it.next().getBaseURL();
-			CNode cn = new CNode(currentUrl);
-			currentUrl = cn.getNodeBaseServiceUrl();
-			printTestHeader("testSetAccessPolicy_NoCert() vs. node: " + currentUrl);
-
-			try {
-				String testingSubject = "testRightsHolder";
-				setupClientSubject(testingSubject);
-				
-				Identifier id = new Identifier(); 
-				id.setValue("setAccessPolicyTestObject");
-				
-				Identifier changeableObject = procureTestObject(cn, 
-						AccessUtil.createAccessRule(new String[]{testingSubject},
-								new Permission[]{Permission.CHANGE_PERMISSION}), id);
-				
-				if (changeableObject != null) 
-				{	
-					setupClientSubject_NoCert();
-					log.info("  subject cleared");
-					// set access on the object
-					SystemMetadata smd = cn.getSystemMetadata(null, changeableObject);
-					boolean success = cn.setAccessPolicy(null, changeableObject, 
-							AccessUtil.createSingleRuleAccessPolicy(new String[]{"foo"},
-									new Permission[]{Permission.READ}),
-									smd.getSerialVersion().longValue());
-					handleFail(currentUrl,"with no client certificate, setAccessPolicy should throw exception");
-				}
-			} catch (IndexOutOfBoundsException e) {
-				handleFail(currentUrl,"No Objects available to test against");
-			} catch (BaseException e) {
-				checkEquals(currentUrl, "with no client certificate: " + e.getDetail_code() + ": " + e.getDescription(), 
-						e.getClass().getSimpleName(), "NotAuthorized");
-			} catch (Exception e) {
-				e.printStackTrace();
-				handleFail(currentUrl, e.getClass().getName() + ": " + e.getMessage());
-			}
-		}
-    }
-
 	
-  /** 
-  * Implementation for setAccess Tests for various types of users
-  * @param subject - the subject that 
-  * @param clientSetupMethod
-  */
-	private void runSetAccessForSymbolicPrincipal(String subject, String clientSubjectName)
-	{
-		Iterator<Node> it = getCoordinatingNodeIterator();
-		while (it.hasNext()) {
-			currentUrl = it.next().getBaseURL();
-			CNode cn = new CNode(currentUrl);
-			printTestHeader("testSetAccess_" + subject + "() vs. node: " + currentUrl);
-
-			try {
-				setupClientSubject(clientSubjectName);
-				
-				Identifier id = new Identifier(); id.setValue("setAccessPolicyTestObject");
-				
-				Identifier changeableObject = procureTestObject(cn, 
-						AccessUtil.createAccessRule(new String[]{clientSubjectName},
-								new Permission[]{Permission.CHANGE_PERMISSION}), id);
-				
-				if (changeableObject != null)
-				{
-					log.info("clear the AccessPolicy");
-					cn.setAccessPolicy(null, changeableObject, new AccessPolicy(), 1);
-
-					// ensure subject under test isn't authorized with get, isAuthorized
-					// prior to setting up the symbolic principal in accessPolicy
-					setupClientSubject("NoCert");
-					try {
-						cn.isAuthorized(null, changeableObject, Permission.READ);
-						handleFail(currentUrl,"1. isAuthorized by " + subject + " should fail");
-					} catch (NotAuthorized na) {
-						// should fail
-					}
-					try {
-						cn.get(null, changeableObject);
-						handleFail(currentUrl,"2. getting the object as " + subject + " should fail");
-					} catch (NotAuthorized na) {
-						// this is what we want
-					}
-
-					try {
-						setupClientSubject("testWriter");
-						cn.setAccessPolicy(null, changeableObject, 
-								AccessUtil.createSingleRuleAccessPolicy(
-										new String[]{subject},
-										new Permission[]{Permission.READ}), 1);
-					}
-					catch (BaseException e) {
-						handleFail(currentUrl, "3. testWriter should be able to set the access policy, " +
-								"but got: " + e.getClass().getSimpleName() + ": " + e.getDescription());
-					}
-
-					// test for success
-					log.info("trying isAuthorized as " + clientSubjectName + " (as " + subject + ")");
-					setupClientSubject("NoCert");
-					try {
-						cn.isAuthorized(null, changeableObject, Permission.READ);
-					} catch (NotAuthorized na) {
-						handleFail(currentUrl,"4. " + subject + " should be authorized to read this pid '" 
-								+ changeableObject.getValue() + "'\n" + na.getClass().getSimpleName() + ": "
-								+ na.getDetail_code() + ": " + na.getDescription());
-					}
-
-					log.info("trying get as " + clientSubjectName + " (as " + subject + ")");
-					try {
-						cn.get(null, changeableObject);
-					} catch (NotAuthorized na) {
-						handleFail(currentUrl,"5. " + subject + " should now be able to get the object");
-					}
-				} else {
-					handleFail(currentUrl,"No object available to setAccessPolicy with");
-				}
-			} catch (IndexOutOfBoundsException e) {
-				handleFail(currentUrl,"No Objects available to test against");
-			} catch (BaseException e) {
-				handleFail(currentUrl, e.getClass().getSimpleName() + ": " + e.getDescription());
-			} catch (Exception e) {
-				e.printStackTrace();
-				handleFail(currentUrl, e.getClass().getName() + ": " + e.getMessage());
-			}
-			
-		}
-	}	
 	
-
-//
-//	@Test
-//	public void testSetAccessPolicy() {
-//		Iterator<Node> it = getCoordinatingNodeIterator();
-//		while (it.hasNext()) {
-//			currentUrl = it.next().getBaseURL();
-//			CNode cn = new CNode(currentUrl);
-//			printTestHeader("testSetAccessPolicy(...) vs. node: " + currentUrl);
-//
-//			try {
-//				ObjectInfo oi = getPrefetchedObject(currentUrl,0);    
-//				log.debug("   pid = " + oi.getIdentifier());
-//
-//				boolean response = cn.setAccessPolicy();
-//				checkTrue(currentUrl,"setAccessPolicy(...) returns a boolean object", response != null);
-//				// checkTrue(currentUrl,"response cannot be false. [Only true or exception].", response);
-//			} 
-//			catch (IndexOutOfBoundsException e) {
-//				handleFail(currentUrl,"No Objects available to test against");
-//			}
-//			catch (BaseException e) {
-//				handleFail(currentUrl,e.getDescription());
-//			}
-//			catch(Exception e) {
-//				e.printStackTrace();
-//				handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
-//			}
-//		}
-//	}
 
 	@Override
 	protected String getTestDescription() {
