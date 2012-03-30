@@ -23,7 +23,6 @@ package org.dataone.integration.it;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.util.Iterator;
-import java.util.Map;
 
 import org.apache.commons.io.IOUtils;
 import org.dataone.client.CNode;
@@ -33,7 +32,6 @@ import org.dataone.service.exceptions.NotAuthorized;
 import org.dataone.service.types.v1.AccessPolicy;
 import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Node;
-import org.dataone.service.types.v1.ObjectList;
 import org.dataone.service.types.v1.Permission;
 import org.dataone.service.types.v1.Subject;
 import org.dataone.service.types.v1.SystemMetadata;
@@ -43,13 +41,13 @@ import org.junit.Test;
 
 /**
  * Test the DataONE Java client methods that focus on CN services.
- * @author Matthew Jones
+ * @author Rob Nahf
  */
 public class CNodeTier2AuthorizationIT extends AbstractAuthorizationITDataone {
 	
 	private static String currentUrl;
-	private static Map<String,ObjectList> listedObjects;
- 
+	
+	
 	@Override
 	protected Iterator<Node> getNodeIterator() 
 	{
