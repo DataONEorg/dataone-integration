@@ -42,6 +42,7 @@ import org.dataone.service.types.v1.ObjectInfo;
 import org.dataone.service.types.v1.ObjectList;
 import org.dataone.service.types.v1.Permission;
 import org.dataone.service.types.v1.SystemMetadata;
+import org.dataone.service.util.DateTimeMarshaller;
 import org.junit.Assume;
 import org.junit.Test;
 
@@ -235,13 +236,14 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     	}
     }
     
+   
     
     /**
-     * Tests that the startTime parameter successfully filters out records where
-     * the systemMetadataModified date/time is earler than startTime.
+     * Tests that the fromDate parameter successfully filters out records where
+     * the systemMetadataModified date/time is earler than fromDate.
      */
     @Test
-    public void testListObjects_StartTimeTest() {
+    public void testListObjects_FromDateTest() {
        	Iterator<Node> it = getMemberNodeIterator();
     	while (it.hasNext()) {
     		currentUrl = it.next().getBaseURL();
@@ -255,36 +257,43 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     			if (ol.getTotal() == 0)
     				throw new TestIterationEndingException("no objects found in listObjects");
     			ObjectInfo oi0 = ol.getObjectInfo(0);
-    			Date startTime = null;
+    			Date fromDate = null;
    				ObjectInfo excludedObjectInfo = null;
    				for (ObjectInfo oi: ol.getObjectInfoList()) {
    					if (!oi.getDateSysMetadataModified().equals(oi0.getDateSysMetadataModified())) {
    						// which is earlier?  can't assume chronological order of objectlist
    						if (oi.getDateSysMetadataModified().after(oi0.getDateSysMetadataModified())) {
-   							startTime = oi.getDateSysMetadataModified();
+   							fromDate = oi.getDateSysMetadataModified();
    							excludedObjectInfo = oi0;
    						} else {
-   							startTime = oi0.getDateSysMetadataModified();
+   							fromDate = oi0.getDateSysMetadataModified();
    							excludedObjectInfo = oi;
    						}
    						break;
    					}
    				}
    				if (excludedObjectInfo == null) {
-    				handleFail(currentUrl,"could not find 2 objects with different sysmeta modified dates");
-    			} else {
-   				
-    				// call listObjects with a startTime
-    				ol = mn.listObjects(null, startTime, null, null, null, null, null);
+   					// all objects in list have same date, so set the from date
+   					// to a future date
+   					long millisec = oi0.getDateSysMetadataModified().getTime() + 60000;
+   					fromDate = new Date(millisec);
+   					excludedObjectInfo = oi0;
+   				}
 
-    				for (ObjectInfo oi: ol.getObjectInfoList()) {
-    					if (oi.getIdentifier().equals(excludedObjectInfo.getIdentifier())) {
-    						handleFail(currentUrl,"identifier " + excludedObjectInfo.getIdentifier().getValue() +
-    								" with sysMetaModified date of " + excludedObjectInfo.getDateSysMetadataModified() +
-    								" should not be in the objectList where startTime set to " + startTime);
-    					}
-    				}
-    			}
+   				// call listObjects with a fromDate
+   				ol = mn.listObjects(null, fromDate, null, null, null, null, null);
+
+   				for (ObjectInfo oi: ol.getObjectInfoList()) {
+   					if (oi.getIdentifier().equals(excludedObjectInfo.getIdentifier())) {
+   						handleFail(currentUrl,String.format("identifier %s with sysMetaModified date of '%s'" +
+   								" should not be in the objectList where 'fromDate' parameter set to '%s'", 
+   								excludedObjectInfo.getIdentifier().getValue(),
+   								DateTimeMarshaller.serializeDateToUTC(excludedObjectInfo.getDateSysMetadataModified()),
+   								DateTimeMarshaller.serializeDateToUTC(fromDate)
+   						));
+   					}
+   				}
+
     		} 
     		catch (BaseException e) {
     			handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
@@ -296,6 +305,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     		}
     	}
     }
+    
     
     
     @Test

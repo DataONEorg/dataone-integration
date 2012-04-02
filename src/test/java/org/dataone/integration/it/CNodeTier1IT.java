@@ -32,6 +32,7 @@ import org.dataone.client.CNode;
 import org.dataone.client.D1Client;
 import org.dataone.client.MNode;
 import org.dataone.client.auth.ClientIdentityManager;
+import org.dataone.integration.it.ContextAwareTestCaseDataone.TestIterationEndingException;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.IdentifierNotUnique;
 import org.dataone.service.exceptions.InvalidRequest;
@@ -58,6 +59,7 @@ import org.dataone.service.types.v1.Session;
 import org.dataone.service.types.v1.Subject;
 import org.dataone.service.types.v1.SystemMetadata;
 import org.dataone.service.util.D1Url;
+import org.dataone.service.util.DateTimeMarshaller;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.util.StringUtils;
@@ -841,11 +843,11 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
     
     
     /**
-     * Tests that the startTime parameter successfully filters out records where
-     * the systemMetadataModified date/time is earlier than startTime.
+     * Tests that the fromDate parameter successfully filters out records where
+     * the systemMetadataModified date/time is earler than fromDate.
      */
     @Test
-    public void testListObjects_fromDateTest() {
+    public void testListObjects_FromDateTest() {
        	Iterator<Node> it = getCoordinatingNodeIterator();
     	while (it.hasNext()) {
     		currentUrl = it.next().getBaseURL();
@@ -854,9 +856,10 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
     		printTestHeader("testListObjects() vs. node: " + currentUrl);
 
     		try {
-    			ObjectList ol = cn.listObjects(null);
+    			ObjectList ol = procureObjectList(cn);
     			checkTrue(currentUrl,"listObjects() should return an ObjectList", ol != null);
-    			
+    			if (ol.getTotal() == 0)
+    				throw new TestIterationEndingException("no objects found in listObjects");
     			ObjectInfo oi0 = ol.getObjectInfo(0);
     			Date fromDate = null;
    				ObjectInfo excludedObjectInfo = null;
@@ -874,20 +877,27 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
    					}
    				}
    				if (excludedObjectInfo == null) {
-    				handleFail(currentUrl,"could not find 2 objects with different sysmeta modified dates");
-    			} else {
-   				
-    				// call listObjects with a startTime
-    				ol = cn.listObjects(null, fromDate, null, null, null, null, null);
+   					// all objects in list have same date, so set the from date
+   					// to a future date
+   					long millisec = oi0.getDateSysMetadataModified().getTime() + 60000;
+   					fromDate = new Date(millisec);
+   					excludedObjectInfo = oi0;
+   				}
 
-    				for (ObjectInfo oi: ol.getObjectInfoList()) {
-    					if (oi.getIdentifier().equals(excludedObjectInfo.getIdentifier())) {
-    						handleFail(currentUrl,"identifier " + excludedObjectInfo.getIdentifier().getValue() +
-    								" should not be in the objectList where startTime set to " + fromDate);
-    						break;
-    					}
-    				}
-    			}
+   				// call listObjects with a fromDate
+   				ol = cn.listObjects(null, fromDate, null, null, null, null, null);
+
+   				for (ObjectInfo oi: ol.getObjectInfoList()) {
+   					if (oi.getIdentifier().equals(excludedObjectInfo.getIdentifier())) {
+   						handleFail(currentUrl,String.format("identifier %s with sysMetaModified date of '%s'" +
+   								" should not be in the objectList where 'fromDate' parameter set to '%s'", 
+   								excludedObjectInfo.getIdentifier().getValue(),
+   								DateTimeMarshaller.serializeDateToUTC(excludedObjectInfo.getDateSysMetadataModified()),
+   								DateTimeMarshaller.serializeDateToUTC(fromDate)
+   						));
+   					}
+   				}
+
     		} 
     		catch (BaseException e) {
     			handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
@@ -899,6 +909,7 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
     		}
     	}
     }
+    
     
     
     /**
