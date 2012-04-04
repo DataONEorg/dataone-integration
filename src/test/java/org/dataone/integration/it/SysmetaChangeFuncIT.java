@@ -42,6 +42,8 @@ public class SysmetaChangeFuncIT extends ContextAwareTestCaseDataone {
 	Map<MNode,Identifier> createdObjectMap;
 	List<MNode> syncedMNs;
 	
+	int maxWaitMinutes = 5;
+	
 	@Before
 	public void createTestObjects() throws ServiceFailure, InvalidToken, NotAuthorized, NotImplemented
 	{
@@ -125,7 +127,7 @@ public class SysmetaChangeFuncIT extends ContextAwareTestCaseDataone {
 		
 		// change the systemMetadata on the CN
 		
-		Map<MNode,Subject> expectedChange = new HashMap<MNode,Subject>();
+		Map<MNode,String> expectedChange = new HashMap<MNode,String>();
 		Map<Identifier,SystemMetadata> cnSmd = new HashMap<Identifier,SystemMetadata>();
 		CNode cn = D1Client.getCN();
 		for (MNode mn : createdObjectMap.keySet()) { 
@@ -139,11 +141,11 @@ public class SysmetaChangeFuncIT extends ContextAwareTestCaseDataone {
 				if (smdCN.getRightsHolder().equals(testPerson)) {
 					setupClientSubject("testPerson");
 					cn.setRightsHolder(null, pid, testRH, smdCN.getSerialVersion().longValue());					
-					expectedChange.put(mn, setupClientSubject("testRightsHolder")); 
+					expectedChange.put(mn, setupClientSubject("testRightsHolder").getValue()); 
 				} else {
 					setupClientSubject("testRightsHolder");  
 					cn.setRightsHolder(null, pid, testPerson, smdCN.getSerialVersion().longValue());					
-					expectedChange.put(mn, setupClientSubject("testPerson"));
+					expectedChange.put(mn, setupClientSubject("testPerson").getValue());
 				}
 				cnSmd.put(pid,smdCN);
 				totalReplicaCount += smdCN.getReplicaList().size();
@@ -154,75 +156,62 @@ public class SysmetaChangeFuncIT extends ContextAwareTestCaseDataone {
 			}
 		}
 		
+		testReplicas(cnSmd,expectedChange,"rightsHolder");
 		
 		// check for changes to be reflected in the sysmeta on the replica MNs
 	
-		Map<Identifier,List<Replica>> testedReplicas = new HashMap<Identifier, List<Replica>>();
-		// but don't wait forever...
-		int maxMinutes = 5;
-		long cutoffTime = new Date().getTime() + maxMinutes * 60 * 1000;
-		int tested = 0;
-		while (cutoffTime > new Date().getTime() && tested < totalReplicaCount ) {
-			Thread.sleep(10 * 1000);
-			
-			// iterate through the pids of those successfully altered on the CN
-			Iterator<MNode> it = expectedChange.keySet().iterator();
-			while (it.hasNext()) {
-				MNode mn = it.next();
-				Identifier pid = createdObjectMap.get(mn);
-				log.info("checking replicas of " + pid.getValue());
-				// check each object's replicas
-				
-				for (Replica replica : cnSmd.get(pid).getReplicaList()) {
-					if (testedReplicas.get(pid) == null) 
-						testedReplicas.put(pid, new ArrayList<Replica>());
-			
-					if (!testedReplicas.get(pid).contains(replica)) {
-						try {
-							D1Node d1Node = D1Client.getMN(replica.getReplicaMemberNode());
-							SystemMetadata smdMN = d1Node.getSystemMetadata(null, pid);
-
-							if (smdMN.getSerialVersion().compareTo(cnSmd.get(pid).getSerialVersion()) > 0) {  // BigInts use this idiom for comparison
-								// there's been a change
-								log.info("pid: " + pid.getValue() + ". mn: " + replica.getReplicaMemberNode().getValue() + 
-										". mnRH: " + smdMN.getRightsHolder().getValue());
-								checkEquals(currentUrl, String.format("the updated sysmeta for '%s' should have '%s' as rightsHolder.",
-										pid.getValue(), 
-										expectedChange.get(mn).getValue()),
-										smdMN.getRightsHolder().getValue(),
-										expectedChange.get(mn).getValue()
-								);
-								testedReplicas.get(pid).add(replica);
-								tested++;
-							}
-						}
-						catch (BaseException e) {
-							log.warn("problem getting sysmeta from the mn::" +
-									e.getClass().getSimpleName() + ": " + e.getDetail_code() + ": " + e.getDescription());
-						}
-					} // test block
-				} // replica loop
-			} // object loop
-		} // time loop
+//		Map<Identifier,List<Replica>> testedReplicas = new HashMap<Identifier, List<Replica>>();
+//		// but don't wait forever...
+//		int maxMinutes = 5;
+//		long cutoffTime = new Date().getTime() + maxMinutes * 60 * 1000;
+//		int tested = 0;
+//		while (cutoffTime > new Date().getTime() && tested < totalReplicaCount ) {
+//			Thread.sleep(10 * 1000);
+//			
+//			// iterate through the pids of those successfully altered on the CN
+//			Iterator<MNode> it = expectedChange.keySet().iterator();
+//			while (it.hasNext()) {
+//				MNode mn = it.next();
+//				Identifier pid = createdObjectMap.get(mn);
+//				log.info("checking replicas of " + pid.getValue());
+//				// check each object's replicas
+//				
+//				for (Replica replica : cnSmd.get(pid).getReplicaList()) {
+//					if (testedReplicas.get(pid) == null) 
+//						testedReplicas.put(pid, new ArrayList<Replica>());
+//			
+//					if (!testedReplicas.get(pid).contains(replica)) {
+//						try {
+//							D1Node d1Node = D1Client.getMN(replica.getReplicaMemberNode());
+//							SystemMetadata smdMN = d1Node.getSystemMetadata(null, pid);
+//
+//							if (smdMN.getSerialVersion().compareTo(cnSmd.get(pid).getSerialVersion()) > 0) {  // BigInts use this idiom for comparison
+//								// there's been a change
+//								log.info("pid: " + pid.getValue() + ". mn: " + replica.getReplicaMemberNode().getValue() + 
+//										". mnRH: " + smdMN.getRightsHolder().getValue());
+//								checkEquals(currentUrl, String.format("the updated sysmeta for '%s' should have '%s' as rightsHolder.",
+//										pid.getValue(), 
+//										expectedChange.get(mn).getValue()),
+//										smdMN.getRightsHolder().getValue(),
+//										expectedChange.get(mn).getValue()
+//								);
+//								testedReplicas.get(pid).add(replica);
+//								tested++;
+//							}
+//						}
+//						catch (BaseException e) {
+//							log.warn("problem getting sysmeta from the mn::" +
+//									e.getClass().getSimpleName() + ": " + e.getDetail_code() + ": " + e.getDescription());
+//						}
+//					} // test block
+//				} // replica loop
+//			} // object loop
+//		} // time loop
 		
 		
 		// finally report on timed-out tests
 		
-		for (MNode mn : createdObjectMap.keySet()) { 
-			currentUrl = mn.getNodeBaseServiceUrl();
-			Identifier pid = createdObjectMap.get(mn);
-			for (Replica r: cnSmd.get(pid).getReplicaList()) {
-				if (!testedReplicas.get(pid).contains(r)) {
-					// mn didn't have updated sysmetadata, so never tested
-					handleFail(currentUrl,String.format("replica '%s' for pid '%s' did not " +
-							"get updated within test timeframe (%d minutes)",
-							r.getReplicaMemberNode().getValue(),
-							pid.getValue(),
-							maxMinutes));
-				}
-			}
-			
-		}
+		
 		
 //		Iterator<Identifier> it = testedReplicas.keySet().iterator();
 //		while (it.hasNext()) {
@@ -281,8 +270,7 @@ public class SysmetaChangeFuncIT extends ContextAwareTestCaseDataone {
 		
 		Map<Identifier,List<Replica>> testedReplicas = new HashMap<Identifier, List<Replica>>();
 		// but don't wait forever...
-		int maxMinutes = 5;
-		long cutoffTime = new Date().getTime() + maxMinutes * 60 * 1000;
+		long cutoffTime = new Date().getTime() + maxWaitMinutes * 60 * 1000;
 		int tested = 0;
 		while (cutoffTime > new Date().getTime() && tested < totalReplicaCount ) {
 			Thread.sleep(10 * 1000);
@@ -327,6 +315,22 @@ public class SysmetaChangeFuncIT extends ContextAwareTestCaseDataone {
 			} // object loop
 		} // time loop
 		
+		for (MNode mn : createdObjectMap.keySet()) { 
+			currentUrl = mn.getNodeBaseServiceUrl();
+			Identifier pid = createdObjectMap.get(mn);
+			for (Replica r: cnSmd.get(pid).getReplicaList()) {
+				if (!testedReplicas.get(pid).contains(r)) {
+					// mn didn't have updated sysmetadata, so never tested
+					handleFail(currentUrl,String.format("replica '%s' for pid '%s' did not " +
+							"get updated within test timeframe (%d minutes)",
+							r.getReplicaMemberNode().getValue(),
+							pid.getValue(),
+							maxWaitMinutes));
+				}
+			}
+			
+		}
+//		return testedReplicas;
 	}
 	
 	private String pullSMDValue(SystemMetadata smd, String type) {
