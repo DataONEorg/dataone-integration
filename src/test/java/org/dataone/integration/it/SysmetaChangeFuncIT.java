@@ -7,10 +7,13 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
+import org.apache.commons.lang.StringUtils;
 import org.dataone.client.CNode;
 import org.dataone.client.D1Client;
 import org.dataone.client.D1Node;
+import org.dataone.client.D1TypeBuilder;
 import org.dataone.client.MNode;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.InvalidToken;
@@ -18,12 +21,15 @@ import org.dataone.service.exceptions.NotAuthorized;
 import org.dataone.service.exceptions.NotFound;
 import org.dataone.service.exceptions.NotImplemented;
 import org.dataone.service.exceptions.ServiceFailure;
+import org.dataone.service.types.v1.AccessPolicy;
+import org.dataone.service.types.v1.AccessRule;
 import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Node;
 import org.dataone.service.types.v1.Permission;
 import org.dataone.service.types.v1.Replica;
 import org.dataone.service.types.v1.Subject;
 import org.dataone.service.types.v1.SystemMetadata;
+import org.dataone.service.types.v1.util.AccessUtil;
 import org.dataone.service.util.Constants;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -156,7 +162,7 @@ public class SysmetaChangeFuncIT extends ContextAwareTestCaseDataone {
 			}
 		}
 		
-		testReplicas(cnSmd,expectedChange,"rightsHolder");
+		testReplicas(cnSmd,expectedChange,"rightsHolder", "the updated sysmeta for '%s' should have '%s' as rightsHolder.");
 		
 		// check for changes to be reflected in the sysmeta on the replica MNs
 	
@@ -225,10 +231,93 @@ public class SysmetaChangeFuncIT extends ContextAwareTestCaseDataone {
 	
 	
 	@Test
-	public void testSetAccessPolicyUseCase() throws ServiceFailure
+	public void testSetAccessPolicyUseCase() throws ServiceFailure, InterruptedException
 	{
+		Subject testPerson = setupClientSubject("testPerson");
 
+		int totalReplicaCount = 0;
+		
+		
+		// change the systemMetadata on the CN
+		
+		Map<MNode,String> expectedChange = new HashMap<MNode,String>();
+		Map<Identifier,SystemMetadata> cnSmd = new HashMap<Identifier,SystemMetadata>();
+		CNode cn = D1Client.getCN();
+		for (MNode mn : createdObjectMap.keySet()) { 
+			currentUrl = mn.getNodeBaseServiceUrl();
+			Identifier pid = createdObjectMap.get(mn);
+				
+			try {
+				// gather the 'before' info
+				SystemMetadata smdCN = cn.getSystemMetadata(null, pid);
+
+				// change the sysmeta on the cn		
+				if (smdCN.getRightsHolder().equals(testPerson)) {
+					setupClientSubject("testPerson");
+				} else {
+					setupClientSubject("testRightsHolder");  
+				}
+
+				String verifiedPermission = pullSMDValue(smdCN,"accessPolicy");
+				AccessPolicy ap = smdCN.getAccessPolicy();
+				if (verifiedPermission == null) {
+					ap.addAllow(APITestUtils.buildAccessRule(Constants.SUBJECT_VERIFIED_USER, Permission.READ));
+					cn.setAccessPolicy(null, pid, ap, smdCN.getSerialVersion().longValue());					
+					expectedChange.put(mn, Permission.READ.toString()); 
+				
+				} else if (verifiedPermission.equals(Permission.READ.toString())) {
+					AccessPolicy edittedAP = new AccessPolicy();
+					for (AccessRule ar: ap.getAllowList()) {
+						if (ar.getSubjectList().contains(D1TypeBuilder.buildSubject(Constants.SUBJECT_VERIFIED_USER))) {
+							List<Permission> lp = new ArrayList<Permission>();
+							lp.add(Permission.WRITE);
+							ar.setPermissionList(lp);
+						}
+						edittedAP.addAllow(ar);
+					}
+					cn.setAccessPolicy(null, pid, edittedAP, smdCN.getSerialVersion().longValue());			
+					expectedChange.put(mn, Permission.WRITE.toString());
+					
+				} else if (verifiedPermission.equals(Permission.WRITE.toString())) {
+					AccessPolicy edittedAP = new AccessPolicy();
+					for (AccessRule ar: ap.getAllowList()) {
+						if (ar.getSubjectList().contains(D1TypeBuilder.buildSubject(Constants.SUBJECT_VERIFIED_USER))) {
+							List<Permission> lp = new ArrayList<Permission>();
+							lp.add(Permission.READ);
+							ar.setPermissionList(lp);
+						}
+						edittedAP.addAllow(ar);
+					}
+					cn.setAccessPolicy(null, pid, edittedAP, smdCN.getSerialVersion().longValue());			
+					expectedChange.put(mn, Permission.READ.toString());
+					
+					// this case shouldn't happen, but you never know....
+				} else if (verifiedPermission.equals(Permission.CHANGE_PERMISSION.toString())) {
+					AccessPolicy edittedAP = new AccessPolicy();
+					for (AccessRule ar: ap.getAllowList()) {
+						if (ar.getSubjectList().contains(Constants.SUBJECT_VERIFIED_USER)) {
+							List<Permission> lp = new ArrayList<Permission>();
+							lp.add(Permission.READ);
+							ar.setPermissionList(lp);
+						}
+						edittedAP.addAllow(ar);
+					}
+					cn.setAccessPolicy(null, pid, edittedAP, smdCN.getSerialVersion().longValue());			
+					expectedChange.put(mn, Permission.READ.toString());
+				}
+				
+				cnSmd.put(pid,smdCN);
+				totalReplicaCount += smdCN.getReplicaList().size();
+			}
+			catch (BaseException e) {
+				e.printStackTrace();
+				handleFail(currentUrl,e.getClass().getSimpleName() + ": " + e.getDetail_code() + ": " + e.getDescription());
+			}
+		}
+		
+		testReplicas(cnSmd,expectedChange,"accessPolicy","the updated sysmeta for '%s' should have Permission '%s' for the verifiedUser subject in the accessPolicy.");
 	}
+	
 	
 	
 	@Test
@@ -259,7 +348,7 @@ public class SysmetaChangeFuncIT extends ContextAwareTestCaseDataone {
 	}
 
 	
-	private void testReplicas(Map<Identifier,SystemMetadata> cnSmd, Map<MNode,String> expectedChange, String testType) throws InterruptedException
+	private void testReplicas(Map<Identifier,SystemMetadata> cnSmd, Map<MNode,String> expectedChange, String testType, String messageString) throws InterruptedException
 	{
 		int totalReplicaCount = 0;
 		Iterator<Identifier> idit = cnSmd.keySet().iterator();
@@ -296,7 +385,7 @@ public class SysmetaChangeFuncIT extends ContextAwareTestCaseDataone {
 								// there's been a change
 								log.info("pid: " + pid.getValue() + ". mn: " + replica.getReplicaMemberNode().getValue() + 
 										". mnRH: " + smdMN.getRightsHolder().getValue());
-								checkEquals(currentUrl, String.format("the updated sysmeta for '%s' should have '%s' as rightsHolder.",
+								checkEquals(d1Node.getNodeBaseServiceUrl(), String.format(messageString,
 										pid.getValue(), 
 										expectedChange.get(mn)),
 										pullSMDValue(smdMN, testType),
@@ -338,7 +427,12 @@ public class SysmetaChangeFuncIT extends ContextAwareTestCaseDataone {
 			return smd.getRightsHolder().getValue();
 		if (type.equals("setRepPolicyNumReps"))
 			return smd.getReplicationPolicy().getNumberReplicas().toString();
-			
+		if (type.equals("accessPolicy")) {
+			HashMap<Subject,Set<Permission>> whosGotWhat = AccessUtil.getPermissionMap(smd.getAccessPolicy());
+			Set<Permission> perms = whosGotWhat.get(D1TypeBuilder.buildSubject(Constants.SUBJECT_VERIFIED_USER));
+			// should not have more than one permission, so not going to worry about the order if more than one
+			return StringUtils.join(perms, ",");
+		}
 		return null;
 		
 	}
