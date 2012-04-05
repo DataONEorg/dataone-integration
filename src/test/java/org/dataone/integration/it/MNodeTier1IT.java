@@ -283,16 +283,20 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
    				// call listObjects with a fromDate
    				ol = mn.listObjects(null, fromDate, null, null, null, null, null);
 
-   				for (ObjectInfo oi: ol.getObjectInfoList()) {
-   					if (oi.getIdentifier().equals(excludedObjectInfo.getIdentifier())) {
-   						handleFail(currentUrl,String.format("identifier %s with sysMetaModified date of '%s'" +
-   								" should not be in the objectList where 'fromDate' parameter set to '%s'", 
-   								excludedObjectInfo.getIdentifier().getValue(),
-   								DateTimeMarshaller.serializeDateToUTC(excludedObjectInfo.getDateSysMetadataModified()),
-   								DateTimeMarshaller.serializeDateToUTC(fromDate)
-   						));
+   				if (ol.getObjectInfoList() != null) {
+   					// at least some objects returned
+   					// so we have to check that the excluded object was excluded
+   					for (ObjectInfo oi: ol.getObjectInfoList()) {
+   						if (oi.getIdentifier().equals(excludedObjectInfo.getIdentifier())) {
+   							handleFail(currentUrl,String.format("identifier %s with sysMetaModified date of '%s'" +
+   									" should not be in the objectList where 'fromDate' parameter set to '%s'", 
+   									excludedObjectInfo.getIdentifier().getValue(),
+   									DateTimeMarshaller.serializeDateToUTC(excludedObjectInfo.getDateSysMetadataModified()),
+   									DateTimeMarshaller.serializeDateToUTC(fromDate)
+   									));
+   						}
    					}
-   				}
+   				} // else the excluded object was definitely excluded - test passes
 
     		} 
     		catch (BaseException e) {
