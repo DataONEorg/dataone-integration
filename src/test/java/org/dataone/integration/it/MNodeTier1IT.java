@@ -23,9 +23,12 @@ package org.dataone.integration.it;
 import java.io.InputStream;
 import java.util.Date;
 import java.util.Iterator;
+import java.util.List;
 
 import org.dataone.client.D1Client;
+import org.dataone.client.D1TypeBuilder;
 import org.dataone.client.MNode;
+import org.dataone.client.auth.CertificateManager;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.NotAuthorized;
 import org.dataone.service.exceptions.ServiceFailure;
@@ -37,10 +40,12 @@ import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Log;
 import org.dataone.service.types.v1.LogEntry;
 import org.dataone.service.types.v1.Node;
+import org.dataone.service.types.v1.NodeReference;
 import org.dataone.service.types.v1.ObjectFormatIdentifier;
 import org.dataone.service.types.v1.ObjectInfo;
 import org.dataone.service.types.v1.ObjectList;
 import org.dataone.service.types.v1.Permission;
+import org.dataone.service.types.v1.Subject;
 import org.dataone.service.types.v1.SystemMetadata;
 import org.dataone.service.util.DateTimeMarshaller;
 import org.junit.Assume;
@@ -195,6 +200,83 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     }
     
     /**
+     * Tests that at least one of the node contacts is RFC2253 compatible, 
+     * meaning that it could be represented by a CILogon issued certificate
+     */
+    @Test
+    public void testGetCapabilities_HasCompatibleNodeContact() {
+    	setupClientSubject_NoCert();
+    	Iterator<Node> it = getMemberNodeIterator();
+    	while (it.hasNext()) {
+    		currentUrl = it.next().getBaseURL();
+    		MNode mn = D1Client.getMN(currentUrl);
+    		currentUrl = mn.getNodeBaseServiceUrl();
+    		printTestHeader("testGetCapabilities() vs. node: " + currentUrl);
+
+    		try {
+    			Node node = mn.getCapabilities();
+    			checkTrue(currentUrl,"getCapabilities returns a Node", node != null);
+    		
+    			List<Subject> contacts = node.getContactSubjectList();
+    			boolean found = false;
+    			if (contacts != null) {
+    				for (Subject s : contacts) {
+    					try {
+    						String standardizedName = CertificateManager.getInstance().standardizeDN(s.getValue());
+    						found = true;
+    					} catch (IllegalArgumentException e) {
+    						; // this can happen legally, but means that it is not actionable
+    					}
+    				}
+    			}
+    			checkTrue(currentUrl,"the node should have at least one contactSubject that conforms to RFC2253.", found);
+    			
+    		} 
+    		catch (BaseException e) {
+    			handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
+    					e.getDetail_code() + ":: " + e.getDescription());
+    		}
+    		catch(Exception e) {
+    			e.printStackTrace();
+    			handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+    		}
+    	}
+    }
+    
+    /**
+     * Tests that the nodeReference of the node is in the proper urn format.
+     */
+    @Test
+    public void testGetCapabilities_NodeIdentityValidFormat() {
+    	setupClientSubject_NoCert();
+    	Iterator<Node> it = getMemberNodeIterator();
+    	while (it.hasNext()) {
+    		currentUrl = it.next().getBaseURL();
+    		MNode mn = D1Client.getMN(currentUrl);
+    		currentUrl = mn.getNodeBaseServiceUrl();
+    		printTestHeader("testGetCapabilities() vs. node: " + currentUrl);
+
+    		try {
+    			Node node = mn.getCapabilities();
+    			checkTrue(currentUrl,"getCapabilities returns a Node", node != null);
+    		
+    			NodeReference nodeRef = node.getIdentifier();
+    			checkTrue(currentUrl,"the node identifier should conform to specification 'urn:node:[\\w_]{2,23}'",
+    					nodeRef.getValue().matches("^urn:node:[\\w_]{2,23}"));
+    			
+    		} 
+    		catch (BaseException e) {
+    			handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
+    					e.getDetail_code() + ":: " + e.getDescription());
+    		}
+    		catch(Exception e) {
+    			e.printStackTrace();
+    			handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+    		}
+    	}
+    }
+    
+    /**
      * Tests the parameterless and parameterized listObject methods for propert returns.
      */
     @Test
@@ -298,6 +380,68 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
    					}
    				} // else the excluded object was definitely excluded - test passes
 
+    		} 
+    		catch (BaseException e) {
+    			handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
+    					e.getDetail_code() + ":: " + e.getDescription());
+    		}
+    		catch(Exception e) {
+    			e.printStackTrace();
+    			handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+    		}
+    	}
+    }
+    
+    
+    /**
+     * Tests that the formatID parameter successfully filters records by
+     * the given formatId
+     */
+    @Test
+    public void testListObjects_FormatIdFilteringTest() {
+       	Iterator<Node> it = getMemberNodeIterator();
+    	while (it.hasNext()) {
+    		currentUrl = it.next().getBaseURL();
+    		MNode mn = D1Client.getMN(currentUrl);
+    		currentUrl = mn.getNodeBaseServiceUrl();
+    		printTestHeader("testListObjects() vs. node: " + currentUrl);
+
+    		try {
+    			ObjectList ol = mn.listObjects(null, null, null, null, null, 0, 0);
+    			if (ol.getTotal() == 0) {
+    				// procure also creates!
+    				ol = procureObjectList(mn);
+    			} else {
+    				ol = mn.listObjects(null, null, null, null, null, 0, ol.getTotal());
+    			}
+    			checkTrue(currentUrl,"listObjects() should return an ObjectList", ol != null);
+    			if (ol.getTotal() == 0)
+    				throw new TestIterationEndingException("no objects found in listObjects");
+    			ObjectFormatIdentifier excludedFormat = ol.getObjectInfo(0).getFormatId();
+    			for (ObjectInfo oi : ol.getObjectInfoList()) {
+    				if (!oi.getFormatId().equals(excludedFormat)) {
+    					ObjectList ol2 = mn.listObjects(null, null, null, oi.getFormatId(),
+    	   						null, null, null);
+    	   				checkTrue(currentUrl,"objectList filtered by " + oi.getFormatId().getValue() +
+    	   				      " should contain fewer objects than unfiltered", 
+    	   				      ol2.getTotal() <  ol.getTotal()
+    	   				      );
+    	   				break;
+    				}
+    			}
+    			
+   				// call listObjects with a fake format
+   				ol = mn.listObjects(null, null, null, D1TypeBuilder.buildFormatIdentifier("fake_format"),
+   						null, null, null);
+   				if (ol.getTotal() == 0) {
+   					handleFail(currentUrl,"filtering the object list by a fake " +
+   							"format should return zero objects");
+   				}
+   				
+   				
+   				
+   				
+   				
     		} 
     		catch (BaseException e) {
     			handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
