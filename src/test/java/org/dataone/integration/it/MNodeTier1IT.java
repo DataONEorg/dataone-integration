@@ -25,6 +25,7 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
+import org.dataone.client.CNode;
 import org.dataone.client.D1Client;
 import org.dataone.client.D1TypeBuilder;
 import org.dataone.client.MNode;
@@ -171,7 +172,67 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
 			}	           
        }
     }
-	
+
+    @Test
+    public void testGetLogRecords_DateSlicing()
+    {
+    	// can be anyone
+    	setupClientSubject("testRightsHolder");
+    	Iterator<Node> it = getMemberNodeIterator();
+    	while (it.hasNext()) {
+    		currentUrl = it.next().getBaseURL();
+    		MNode mn = new MNode(currentUrl);
+    		printTestHeader("testGetLogRecords(...) vs. node: " + currentUrl);  
+    		currentUrl = mn.getNodeBaseServiceUrl();
+
+    		try {
+    			Log eventLog = mn.getLogRecords(null, null, null, null, null, null);
+    			int allEventsCount = eventLog.getTotal();
+    			
+    			
+    			LogEntry entry0 = eventLog.getLogEntry(0);
+    			Date fromDate = null;
+    			LogEntry excludedEntry = null;
+   				for (LogEntry le: eventLog.getLogEntryList()) {
+   					if (!le.getDateLogged().equals(entry0.getDateLogged())) {
+   						// which is earlier?  can't assume chronological order of the list
+   						if (le.getDateLogged().after(entry0.getDateLogged())) {
+   							fromDate = le.getDateLogged();
+   							excludedEntry = entry0;
+   						} else {
+   							fromDate = entry0.getDateLogged();
+   							excludedEntry = le;
+   						}
+   						break;
+   					}
+   				}
+   				if (excludedEntry == null) {
+    				handleFail(currentUrl,"could not find 2 objects with different dateLogged times");
+    			} else {
+   				
+    				// call with a fromDate
+    				eventLog = mn.getLogRecords(null, fromDate, null, null, null, null);
+
+    				for (LogEntry le : eventLog.getLogEntryList()) {
+    					if (le.getEntryId().equals(excludedEntry.getEntryId())) {
+    						handleFail(currentUrl,"entryID " + excludedEntry.getEntryId() +
+    								" should not be in the event log where fromDate set to " + fromDate);
+    						break;
+    					}
+    				}
+    			}
+    		} 
+    		catch (BaseException e) {
+    			handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
+    					e.getDetail_code() + ": " + e.getDescription());
+    		}
+    		catch(Exception e) {
+    			e.printStackTrace();
+    			handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+    		}	           
+    	}
+    }
+    
     
     
     @Test
