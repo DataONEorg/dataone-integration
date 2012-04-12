@@ -4,12 +4,17 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
-import java.io.InputStream;
+
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+
 
 import org.dataone.client.CNode;
 import org.dataone.client.D1Client;
 import org.dataone.client.MNode;
 import org.dataone.service.util.EncodingUtilities;
+import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.IdentifierNotUnique;
 import org.dataone.service.exceptions.InsufficientResources;
 import org.dataone.service.exceptions.InvalidRequest;
@@ -21,14 +26,15 @@ import org.dataone.service.exceptions.NotImplemented;
 import org.dataone.service.exceptions.ServiceFailure;
 import org.dataone.service.exceptions.UnsupportedType;
 import org.dataone.service.types.v1.Identifier;
+import org.dataone.service.types.v1.Node;
+import org.dataone.service.types.v1.ObjectInfo;
 import org.dataone.service.types.v1.ObjectList;
+import org.dataone.service.types.v1.ObjectLocationList;
 import org.dataone.service.types.v1.Session;
 import org.dataone.service.types.v1.SystemMetadata;
-import org.junit.Before;
 import org.junit.Ignore;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ErrorCollector;
+
 
 /**
  * The goal here is to test synchronization of metadata created on a MN
@@ -60,7 +66,7 @@ public class SynchronizationIT extends ContextAwareTestCaseDataone {
 	// as of jan20, 2011, dev nodes on a 5 minute synchronize cycle
 	private static final int synchronizeWaitLimitSec = 7 * 60;
 	
-	
+	private String currentUrl;
 /* other mn info	
 	http://dev-dryad-mn.dataone.org
 	http://dev-dryad-mn.dataone.org/mn/
@@ -72,18 +78,17 @@ public class SynchronizationIT extends ContextAwareTestCaseDataone {
 	
 	private static final String prefix = "synch:testID";
 	
-	@Rule 
-	public ErrorCollector errorCollector = new ErrorCollector();
+//	@Rule 
+//	public ErrorCollector errorCollector = new ErrorCollector();
 	
     
     /**
      * test the unit test harness
      */
     @Test
-    public void testHarness()
+    public void testTrue()
     {
-        assertTrue(true);
-        assertEquals("1", "1");
+ 
     }
 
 	/**
@@ -92,81 +97,199 @@ public class SynchronizationIT extends ContextAwareTestCaseDataone {
 	 * synch runs.
 	 * @throws NotFound 
 	 */
-	@Ignore("test not adapted for v0.6.x")
+	@Ignore("in progress")
 	@Test
-	public void testMDSynchronizeWithMulti() throws ServiceFailure, NotImplemented, InterruptedException, 
+	public void testMDSynchronizeNewData() throws ServiceFailure, NotImplemented, InterruptedException, 
 	InvalidToken, NotAuthorized, InvalidRequest, IOException, IdentifierNotUnique, UnsupportedType,
 	InsufficientResources, InvalidSystemMetadata, NotFound 
 	{
-		// create the players
 		CNode cn = D1Client.getCN();
-		MNode mn1 = D1Client.getMN(mn1_Url);	
-		Session token = null;
 		
-		// create new object on MN_1
-		Identifier pid = ExampleUtilities.doCreateNewObject(mn1, prefix);
+		Iterator<Node> it = getMemberNodeIterator();
+		while (it.hasNext()) {
+			currentUrl = it.next().getBaseURL();
+			MNode mn = new MNode(currentUrl);  
+			currentUrl = mn.getNodeBaseServiceUrl();
+			printTestHeader("testing synchronization for node: " + currentUrl);
 
-		// poll resolve until the new object is found;
-		int callsPassing = 0;
-		int elapsedTimeSec = 0;
-		boolean testsRemain = true;
-		boolean resolveTodo = true;
-		boolean getTodo = true;
-		boolean metaTodo = true;
-		boolean searchTodo = true;
-		while (testsRemain && (elapsedTimeSec <= synchronizeWaitLimitSec))
-		{
-			
-			if (resolveTodo) {
-				try {
-					if (ExampleUtilities.countLocationsWithResolve(cn,pid) > 0) {
-						resolveTodo = false;
-						System.out.println("...resolve call succeeded");
+			log.info("current time is: " + new Date());
+			Date fromDate = new Date(System.currentTimeMillis() - 7 * 24 * 60 * 60 * 1000);
+			log.info("fromDate is: " + fromDate);
+		
+		
+		// create new object on MN
+			Identifier pid = ExampleUtilities.doCreateNewObject(mn, prefix);
+
+			// poll resolve until the new object is found;
+			int callsPassing = 0;
+			int elapsedTimeSec = 0;
+			boolean testsRemain = true;
+			boolean resolveTodo = true;
+			boolean metaTodo = true;
+			boolean searchTodo = true;
+			while (testsRemain && (elapsedTimeSec <= synchronizeWaitLimitSec))
+			{
+
+				if (resolveTodo) {
+					try {
+						if (ExampleUtilities.countLocationsWithResolve(cn,pid) > 0) {
+							resolveTodo = false;
+							System.out.println("...resolve call succeeded");
+							callsPassing++;
+						}
+					} catch (NotFound e) {
+						resolveTodo = true;
+					}
+				}
+				if (metaTodo) {
+					try {
+						SystemMetadata s = cn.getSystemMetadata(null,pid);
+						metaTodo = false;
+						System.out.println("...meta call succeeded");
+						callsPassing++;
+					} catch (NotFound e) {
+						metaTodo = true;
+					} 
+				}
+				if (searchTodo) {
+					ObjectList ol = cn.search(null,QUERYTYPE_SOLR,
+							"query="+EncodingUtilities.encodeUrlQuerySegment(pid.getValue()));
+					if (ol.getCount() > 0) {
+						searchTodo = false;
+						System.out.println("...search call succeeded");
 						callsPassing++;
 					}
-				} catch (NotFound e) {
-					resolveTodo = true;
 				}
-			}
-			if (getTodo) {
-				try {
-					InputStream is = cn.get(token,pid);
-					getTodo = false;
-					System.out.println("...get call succeeded");
-					callsPassing++;
-				} catch (NotFound e) {
-					getTodo = true;
-				} 
-			}
-			if (metaTodo) {
-				try {
-					SystemMetadata s = cn.getSystemMetadata(token,pid);
-					metaTodo = false;
-					System.out.println("...meta call succeeded");
-					callsPassing++;
-				} catch (NotFound e) {
-					metaTodo = true;
-				} 
-			}
-			if (searchTodo) {
-				ObjectList ol = cn.search(token,QUERYTYPE_SOLR,
-						"query="+EncodingUtilities.encodeUrlQuerySegment(pid.getValue()));
-				if (ol.getCount() > 0) {
-					searchTodo = false;
-					System.out.println("...search call succeeded");
-					callsPassing++;
-				}
-			}
-			Thread.sleep(pollingFrequencySec * 1000); // millisec's
-			elapsedTimeSec += pollingFrequencySec;
-			System.out.println(" = = time elapsed: " + elapsedTimeSec);
-		
-			testsRemain = resolveTodo && getTodo && metaTodo && searchTodo; 
-		} 
-		assertTrue("synchronize succeeded at least partially on " + cn_id, callsPassing > 0);
-		assertTrue("synchronize succeeded fully on" + cn_id, callsPassing == 4);
+				Thread.sleep(pollingFrequencySec * 1000); // millisec's
+				elapsedTimeSec += pollingFrequencySec;
+				System.out.println(" = = time elapsed: " + elapsedTimeSec);
+
+				testsRemain = resolveTodo && metaTodo && searchTodo; 
+			} 
+			assertTrue("synchronize succeeded at least partially on " + cn_id, callsPassing > 0);
+			assertTrue("synchronize succeeded fully on" + cn_id, callsPassing == 4);
+		}
 	}
 
+	
+	
+//	@Ignore("in progress")
+	@Test
+	public void testAllObjectsSynchronized() throws ServiceFailure
+	{
+		setupClientSubject("testRightsHolder");
+		
+		CNode cn = D1Client.getCN();
+		
+		Iterator<Node> it = getMemberNodeIterator();
+		while (it.hasNext()) {
+			currentUrl = it.next().getBaseURL();
+			MNode mn = new MNode(currentUrl);  
+			currentUrl = mn.getNodeBaseServiceUrl();
+			printTestHeader("testing synchronization for node: " + currentUrl);
+
+			
+			try {
+				ObjectList ol = mn.listObjects(null, null, null, null, null, null, 0);
+				Date now = new Date();
+				Date toDate = new Date(now.getTime() - 5 * 60 * 1000);
+				ol = mn.listObjects(null, null, toDate, null, null, 0, ol.getTotal());
+				log.info("  total objects at T-5min = " + ol.getCount() );
+				if (ol.getCount() > 0) {		
+					boolean hasExceptions = false;
+					HashMap<String,Integer> resTable = new HashMap<String,Integer>();
+					for (ObjectInfo oi : ol.getObjectInfoList()) {
+
+						String result = null;
+						try {
+							ObjectLocationList oll = cn.resolve(null, oi.getIdentifier());
+							result = "resolved";
+						} catch (BaseException be) {
+							if (!(be instanceof NotAuthorized))
+								hasExceptions = true;
+							result = be.getClass().getSimpleName();
+							log.info("exception: " + result + ": " + be.getDescription());
+						}
+						int y = resTable.containsKey(result) ? resTable.get(result).intValue() : 0;
+						resTable.put(result,new Integer(y+1));
+					}
+					
+					StringBuffer results = new StringBuffer();
+					for (String result : resTable.keySet()) {
+						results.append(result + " = " + resTable.get(result) + "; ");
+					}
+					log.info("results: " + results.toString());
+					if (hasExceptions) {
+						handleFail(currentUrl,"not all objects on the mn could be cn.resolved: " + results.toString());
+					} 
+				}
+			} catch (BaseException be) {
+				handleFail(currentUrl,"problem getting ObjectList");
+			} 
+			
+		}
+//			log.info("current time is: " + new Date());
+//			Date fromDate = new Date(System.currentTimeMillis() - 7 * 24 * 60 * 60 * 1000);
+//			log.info("fromDate is: " + fromDate);
+//		
+//		
+//		// create new object on MN
+//			Identifier pid = ExampleUtilities.doCreateNewObject(mn, prefix);
+//
+//			// poll resolve until the new object is found;
+//			int callsPassing = 0;
+//			int elapsedTimeSec = 0;
+//			boolean testsRemain = true;
+//			boolean resolveTodo = true;
+//			boolean metaTodo = true;
+//			boolean searchTodo = true;
+//			while (testsRemain && (elapsedTimeSec <= synchronizeWaitLimitSec))
+//			{
+//
+//				if (resolveTodo) {
+//					try {
+//						if (ExampleUtilities.countLocationsWithResolve(cn,pid) > 0) {
+//							resolveTodo = false;
+//							System.out.println("...resolve call succeeded");
+//							callsPassing++;
+//						}
+//					} catch (NotFound e) {
+//						resolveTodo = true;
+//					}
+//				}
+//				if (metaTodo) {
+//					try {
+//						SystemMetadata s = cn.getSystemMetadata(null,pid);
+//						metaTodo = false;
+//						System.out.println("...meta call succeeded");
+//						callsPassing++;
+//					} catch (NotFound e) {
+//						metaTodo = true;
+//					} 
+//				}
+//				if (searchTodo) {
+//					ObjectList ol = cn.search(null,QUERYTYPE_SOLR,
+//							"query="+EncodingUtilities.encodeUrlQuerySegment(pid.getValue()));
+//					if (ol.getCount() > 0) {
+//						searchTodo = false;
+//						System.out.println("...search call succeeded");
+//						callsPassing++;
+//					}
+//				}
+//				Thread.sleep(pollingFrequencySec * 1000); // millisec's
+//				elapsedTimeSec += pollingFrequencySec;
+//				System.out.println(" = = time elapsed: " + elapsedTimeSec);
+//
+//				testsRemain = resolveTodo && metaTodo && searchTodo; 
+//			} 
+//			assertTrue("synchronize succeeded at least partially on " + cn_id, callsPassing > 0);
+//			assertTrue("synchronize succeeded fully on" + cn_id, callsPassing == 4);
+//		}
+	}
+	
+	
+	
+	
 	/**
 	 * Naive test of metadata Replication to the CNs
 	 * Using getSystemMetadata call to detect successful synchronization  
