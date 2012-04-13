@@ -22,6 +22,7 @@ package org.dataone.integration.it;
 
 import java.io.InputStream;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
@@ -50,6 +51,7 @@ import org.dataone.service.types.v1.Subject;
 import org.dataone.service.types.v1.SystemMetadata;
 import org.dataone.service.util.DateTimeMarshaller;
 import org.junit.Assume;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -103,8 +105,45 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
 	}
 	
 	
+    /**
+     * Tests that getLogRecords() returns Log object, using the simplest case: no parameters.
+     * 
+     */
     @Test
     public void testGetLogRecords()
+    {
+    	// can be anyone
+    	setupClientSubject("testRightsHolder");
+    	Iterator<Node> it = getMemberNodeIterator();
+    	while (it.hasNext()) {
+    		currentUrl = it.next().getBaseURL();
+    		MNode mn = new MNode(currentUrl);
+    		printTestHeader("testGetLogRecords(...) vs. node: " + currentUrl);  
+    		currentUrl = mn.getNodeBaseServiceUrl();
+
+    		try {
+    			Log eventLog = mn.getLogRecords(null, null, null, null, null, null);   			
+    			checkTrue(currentUrl,"getLogRecords should return a log datatype", eventLog != null);
+    		}
+    		catch (BaseException e) {
+    			handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
+    					e.getDetail_code() + ": " + e.getDescription());
+    		}
+    		catch(Exception e) {
+    			e.printStackTrace();
+    			handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+    		}	           
+    	}
+    }
+	
+    
+    /**
+     * Testing event filtering is complicated on an ever-growing log file, unless
+     * we filter within a time window.  
+     */
+    @Ignore("needs review")
+    @Test
+    public void testGetLogRecords_eventFilter()
     {
     	setupClientSubject_NoCert();
     	Iterator<Node> it = getMemberNodeIterator();
@@ -112,56 +151,204 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     	   currentUrl = it.next().getBaseURL();
            MNode mn = D1Client.getMN(currentUrl);  
            currentUrl = mn.getNodeBaseServiceUrl();
-           printTestHeader("testGetLogRecords() vs. node: " + currentUrl);
+           printTestHeader("testGetLogRecords_eventFilter() vs. node: " + currentUrl);
 
-           log.info("current time is: " + new Date());
-           Date fromDate = new Date(System.currentTimeMillis() - 7 * 24 * 60 * 60 * 1000);
-           log.info("fromDate is: " + fromDate);
+//           log.info("current time is: " + new Date());
+//           Date fromDate = new Date(System.currentTimeMillis() - 7 * 24 * 60 * 60 * 1000);
+//           log.info("fromDate is: " + fromDate);
 
            try {
-        	   Log eventLog = mn.getLogRecords(null, fromDate, null, null, null, null);
-        	   checkTrue(currentUrl,"getOperationStatistics returns a log datatype", eventLog != null);
-
-        	   // check that log events are created
-        	   Node node = mn.getCapabilities();
-        	   if (APITestUtils.isServiceAvailable(node, "MNStorage")) {
-//        		   Identifier pid = ExampleUtilities.doCreateNewObject(mn, idPrefix);
-        		   Identifier pid = null;
-        		   try {
-        			   pid = createPublicTestObject(mn, null);
-        		   } catch (BaseException be) {
-        			   throw new TestIterationEndingException("Could not create a test object for the getLogRecords() test.", be);
-        		   }
-        		   Date toDate = new Date(System.currentTimeMillis());
-        		   log.info("toDate is: " + toDate);
-
-        		   eventLog = mn.getLogRecords(null, fromDate, toDate, Event.CREATE, null, null);
-        		   log.info("log size: " + eventLog.sizeLogEntryList());
-        		   boolean isfound = false;
-        		   for (int i=0; i<eventLog.sizeLogEntryList(); i++)
-        		   { //check to see if our create event is in the log
-        			   LogEntry le = eventLog.getLogEntry(i);
-        			   log.debug("le: " + le.getIdentifier().getValue());
-        			   log.debug("rGuid: " + pid.getValue());
-        			   if(le.getIdentifier().getValue().trim().equals(pid.getValue().trim()))
-        			   {
-        				   isfound = true;
-        				   log.info("log record found");
-        				   break;
+        	   
+        	   
+        	   Date t0 = new Date();
+        	   Date toDate = t0;
+        	   Date fromDate = t0;
+        	   
+        	   Log entries = mn.getLogRecords(null, null, toDate, null, 0, 0);
+        	   int totalEntries = entries.getTotal();
+        	   
+        	   if (totalEntries > 0) {
+        	   
+        		   Event targetType = null;
+        		   Event otherType = null;
+        		   
+        		   int numEventTypes = 0;
+        		   int currentTotal = 0;
+        		   
+        		   while (otherType == null && currentTotal < totalEntries) {
+        			   // slide the time window
+        			   toDate = fromDate;
+        			   fromDate = new Date(fromDate.getTime() - 1000 * 60 * 60);  // 1 hour increments
+        			   entries = mn.getLogRecords(null, fromDate, toDate, null, null, null);
+        			   
+        			   currentTotal = entries.getTotal();
+        			   
+        			   for (LogEntry le: entries.getLogEntryList()) {
+        				   if (targetType == null) {
+        					   targetType = le.getEvent();
+        				   } else if (!le.getEvent().equals(targetType)) {
+        					   otherType = le.getEvent();
+        					   break;
+        				   }
         			   }
         		   }
-        		   log.info("isfound: " + isfound);
-        		   checkTrue(currentUrl, "newly created object is in the log", isfound); 
-        	   } else {
-        		   // do nothing - can't expect to create in Tier1 tests
-        		   log.info("Cannot create objects so skipping more precise logging test "
-        				   + "on node: " + currentUrl);
+
+        		   if (otherType == null) {
+        			   if (targetType.equals(Event.READ)) {
+        				   entries = mn.getLogRecords(null, fromDate, t0, Event.CREATE, 0, 0);
+            			   checkEquals(currentUrl,"Log contains only READ events, " +
+            			   		"so should get 0 CREATE events",String.valueOf(entries.getTotal()),"0");
+        			   } else {
+        				   entries = mn.getLogRecords(null, fromDate, t0, Event.READ, 0, 0);
+            			   checkEquals(currentUrl,"Log contains only " + targetType + " events, " +
+            			   		"so should get 0 READ events",String.valueOf(entries.getTotal()),"0");
+        			   }
+        		   } else {
+        			   entries = mn.getLogRecords(null,fromDate,t0 ,targetType, 0, 0);
+        			   boolean oneTypeOnly = true;
+        			   for (LogEntry le: entries.getLogEntryList()) {
+        				   if (!le.getEvent().equals(targetType)) {
+        					   oneTypeOnly = false;
+        					   break;
+        				   }
+        			   }
+        			   checkTrue(currentUrl, "Filtered log for the time period should contain only " +
+        			   		"logs of type " + targetType.xmlValue(),oneTypeOnly);
+        		   }
         	   }
            }
-           catch (TestIterationEndingException e) {
-        	   handleFail(currentUrl, e.getMessage() + ":: cause: "
-        			   + e.getCause().getClass().getSimpleName() + ": " + e.getCause().getMessage());
-           }
+       
+//        	   
+//        	   
+//
+//        	   if (entries.getTotal() >  0) {
+//        		   int unfilteredTotal = entries.getTotal();
+//        		   Event targetEvent = entries.getLogEntry(0).getEvent();
+//        		   
+//        		   boolean moreEvents = true;
+//        		   
+//        		   boolean filtered = false;
+//				   boolean problem = false;
+//				   int filteredTotal = unfilteredTotal;
+//
+//				   HashMap<Event,Integer> eventTotalMap = new HashMap<Event,Integer>();
+//				   for (Event e : Event.values()) {
+//					   entries = mn.getLogRecords(null, null, null, e, 0, 0);
+//					   if (entries.getTotal() > 0)	
+//						   eventTotalMap.put(e,entries.getTotal());
+//				   }
+//				   if (eventTotalMap.size() > 1) {
+//					   int calcTotal = 0;
+//					   for (Event e: eventTotalMap.keySet()) {
+//						   calcTotal += eventTotalMap.get(e);
+//					   }
+//					   checkTrue(currentUrl,"Sum of events should equal sum of ")
+//				   
+//						   if (entries.getTotal() > 0 && entries.getTotal() < unfilteredTotal) {
+//							   filteredTotal = entries.getTotal();
+//							   filtered = true;
+//							   for (LogEntry le: entries.getLogEntryList()) {
+//								   if (!le.getEvent().equals(e)) {
+//									   problem = true;
+//									   break eventLoop;
+//								   }
+//							   }
+//							   break;
+//						   }       				   
+//        			   }
+//				   checkFalse(currentUrl,"Filtering log by Event type should only return those types of events",problem);
+//				   checkTrue(currentUrl,"Filtering should find ", filteredTotal < unfilteredTotal);
+//        	   
+//        	   }
+//        		   
+//        		   // nicely iterate over 
+//        		   int i = 1;
+//        		   while (otherType == null && i < total) {
+//        			   entries = mn.getLogRecords(null, null, null, null, i, 50);
+//        			   i += 50;
+//        			   
+//        			   for ( LogEntry le : entries.getLogEntryList()) {
+//        				   if (!le.getEvent().equals(targetType)) {
+//        					   otherType = le.getEvent();
+//        					   break;
+//        				   }
+//        			   }
+//        		   }
+//        		   int lastStart = i - 50;
+//        		   
+//        		   if (otherType != null) {
+//        			   if (targetType.equals(Event.READ)) {
+//        				   entries = mn.getLogRecords(null, null, null, Event.CREATE, 0, 0);
+//            			   checkEquals(currentUrl,"Log contains only READ events, " +
+//            			   		"so should get 0 CREATE events",String.valueOf(entries.getTotal()),"0");
+//        			   } else {
+//        				   entries = mn.getLogRecords(null, null, null, Event.READ, 0, 0);
+//            			   checkEquals(currentUrl,"Log contains only " + targetType + " events, " +
+//            			   		"so should get 0 READ events",String.valueOf(entries.getTotal()),"0");
+//        			   }
+//        		   } else {
+//        			   entries = mn.getLogRecords(null,null,null,targetType, i, 0);
+//        			   checkTrue(currentUrl, "Log contains")
+//        		   }
+//
+//        		   
+//        	   }
+//        	   
+//        	   // read an object  to make sure there's a read event in the logs.
+//        	   Identifier pid = procurePublicReadableTestObject(mn);
+//        	   InputStream is = mn.get(null, pid);
+//        	   is.close();
+//        	   Thread.sleep(500);
+//        	   
+//        	   
+//        	   Log eventLog = mn.getLogRecords(null, null, null, Event.READ, null, null);
+//        	   eventLog.getLogEntryList();
+//        	   checkTrue(currentUrl,"getLogRecords should return at least one recordlog datatype", eventLog != null);
+//        	   
+//        	   
+//        	   
+//        	   
+//        	   
+//        	   // check that log events are created
+//        	   Node node = mn.getCapabilities();
+//        	   if (APITestUtils.isServiceAvailable(node, "MNStorage")) {
+////        		   Identifier pid = ExampleUtilities.doCreateNewObject(mn, idPrefix);
+//        		   Identifier pid = null;
+//        		   try {
+//        			   pid = createPublicTestObject(mn, null);
+//        		   } catch (BaseException be) {
+//        			   throw new TestIterationEndingException("Could not create a test object for the getLogRecords() test.", be);
+//        		   }
+//        		   Date toDate = new Date(System.currentTimeMillis());
+//        		   log.info("toDate is: " + toDate);
+//
+//        		   eventLog = mn.getLogRecords(null, fromDate, toDate, Event.CREATE, null, null);
+//        		   log.info("log size: " + eventLog.sizeLogEntryList());
+//        		   boolean isfound = false;
+//        		   for (int i=0; i<eventLog.sizeLogEntryList(); i++)
+//        		   { //check to see if our create event is in the log
+//        			   LogEntry le = eventLog.getLogEntry(i);
+//        			   log.debug("le: " + le.getIdentifier().getValue());
+//        			   log.debug("rGuid: " + pid.getValue());
+//        			   if(le.getIdentifier().getValue().trim().equals(pid.getValue().trim()))
+//        			   {
+//        				   isfound = true;
+//        				   log.info("log record found");
+//        				   break;
+//        			   }
+//        		   }
+//        		   log.info("isfound: " + isfound);
+//        		   checkTrue(currentUrl, "newly created object is in the log", isfound); 
+//        	   } else {
+//        		   // do nothing - can't expect to create in Tier1 tests
+//        		   log.info("Cannot create objects so skipping more precise logging test "
+//        				   + "on node: " + currentUrl);
+//        	   }
+//           }
+//           catch (TestIterationEndingException e) {
+//        	   handleFail(currentUrl, e.getMessage() + ":: cause: "
+//        			   + e.getCause().getClass().getSimpleName() + ": " + e.getCause().getMessage());
+//           }
            catch (BaseException e) {
         	   handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
         			   e.getDetail_code() + ": " + e.getDescription());
@@ -172,6 +359,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
 			}	           
        }
     }
+    
 
     @Test
     public void testGetLogRecords_DateSlicing()
@@ -494,7 +682,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
    				// call listObjects with a fake format
    				ol = mn.listObjects(null, null, null, D1TypeBuilder.buildFormatIdentifier("fake_format"),
    						null, null, null);
-   				if (ol.getTotal() == 0) {
+   				if (ol.getTotal() != 0) {
    					handleFail(currentUrl,"filtering the object list by a fake " +
    							"format should return zero objects");
    				}
