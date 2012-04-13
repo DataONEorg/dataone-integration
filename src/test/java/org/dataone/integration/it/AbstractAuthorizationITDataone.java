@@ -349,8 +349,8 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 				 Identifier testObject = procureSpecialTestObject(d1Node,
 						 buildAccessRule(objectSubjectString,objectPermission),
 						 buildIdentifier(objectIdentifier),
-  				 		 "testGroup");
-//			 "CN=testGroup,DC=dataone,DC=org");
+//  				 		 "testGroup");
+				 "CN=testGroup,DC=dataone,DC=org");
 
 
 				// run tests
@@ -1252,7 +1252,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 	 @Test
 	 public void testIsAuthorized_AccessPolicy_is_testGroup_can_Read() {
 		 String procuringSubjectString = "testRightsHolder";
-		 String objectSubjectString = "testGroup";
+		 String objectSubjectString = "CN=testGroup,DC=dataone,DC=org";
 		 Permission objectPermission = Permission.READ;
 //		 String objectIdentifier = "TierTesting:testObject:testGroup_READ" + testObjectSeriesSuffix;
 		 
@@ -1391,7 +1391,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 	 @Test
 	 public void testIsAuthorized_AccessPolicy_is_testGroup_can_Write() {
 		 String procuringSubjectString = "testRightsHolder";
-		 String objectSubjectString = "testGroup";
+		 String objectSubjectString = "CN=testGroup,DC=dataone,DC=org";
 		 Permission objectPermission = Permission.WRITE;
 //		 String objectIdentifier = "TierTesting:testObject:testGroup_WRITE" + testObjectSeriesSuffix;
 		 
@@ -1528,7 +1528,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 	 @Test
 	 public void testIsAuthorized_AccessPolicy_is_testGroup_can_ChangePerm() {
 		 String procuringSubjectString = "testRightsHolder";
-		 String objectSubjectString = "testGroup";
+		 String objectSubjectString = "CN=testGroup,DC=dataone,DC=org";
 		 Permission objectPermission = Permission.CHANGE_PERMISSION;
 //		 String objectIdentifier = "TierTesting:testObject:testGroup_CHANGE" + testObjectSeriesSuffix;
 		 
