@@ -35,7 +35,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 
 	// this here defines the default
 	// can be overwritten by property passed into base class
-	protected String testObjectSeriesSuffix = "." + "8";
+	protected String testObjectSeriesSuffix = "." + "10";
 	
 	
 	private static String currentUrl;
@@ -109,12 +109,18 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 		 return id;
 	 }
 
-// Since knb passes through untrusted connections as public, it doesn't make sense
-// to split out this test anymore.
+
+	 /**
+	  * Client behavior is funky for self-signed certs - for this client it gets
+	  * through as public, but other clients are rejected.
+	  * This test will test the downgraded permissions to make sure it only has
+	  * access to public data, not it's own.
+	  */
+	 @Ignore("testing with the other tests against the various test objects")
 	 @Test
 	 public void testConnectionLayer_SelfSignedCert() 
 	 {
-		 setupClientSubject("testPerson_SelfSigned");
+
 		 Iterator<Node> it = getNodeIterator();
 		 while (it.hasNext()) {
 			 try {
@@ -123,6 +129,9 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 //				 d1Node.ping();
 //				 d1Node.listObjects(null);
 //				 d1Node.getLogRecords(null);
+				 setupClientSubject("testPerson_SelfSigned");
+				 
+				 
 				 Identifier pid = procurePublicReadableTestObject(d1Node);
 				 d1Node.isAuthorized(null, pid, Permission.READ);
 				 handleFail(currentUrl, "ssl connection should not succeed with a self-signed certificate (untrusted CA): testPerson READ vs. " + pid.getValue());
@@ -280,9 +289,9 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 				 clientSubject = "testPerson_SelfSigned";
 				 setupClientSubject(clientSubject);	
 				 // bad credentials should always fail			 
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken OR NotAuthorized"));
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "InvalidToken OR NotAuthorized"));
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "InvalidToken OR NotAuthorized"));
+				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "NotAuthorized"));
+				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "NotAuthorized"));
+				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "NotAuthorized"));
 				 
 				//  TODO:  enable when ready to test				 
 //				 clientSubject = "testPerson_InvalidVsSchema";
@@ -419,9 +428,9 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 				 clientSubject = "testPerson_SelfSigned";
 				 setupClientSubject(clientSubject);	
 				 // bad credentials should always fail			 
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken OR NotAuthorized"));
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "InvalidToken OR NotAuthorized"));
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "InvalidToken OR NotAuthorized"));
+				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "NotAuthorized"));
+				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "NotAuthorized"));
+				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "NotAuthorized"));
 				 
 				//  TODO:  enable when ready to test				 
 //				 clientSubject = "testPerson_InvalidVsSchema";
@@ -547,8 +556,8 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 				 clientSubject = "testPerson_SelfSigned";
 				 setupClientSubject(clientSubject);	
 				 // bad credentials should always fail			 
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "true"));
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "true"));
+				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "NotAuthorized"));
+				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "NotAuthorized"));
 				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "true"));
 
 				//  TODO:  enable when ready to test				 
@@ -557,21 +566,21 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 //				 // bad credentials should always fail			 
 //				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken"));
 //				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "InvalidToken"));
-//				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "InvalidToken"));
+//				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "true"));
 //				 
 //				 clientSubject = "testPerson_MissingMappedID";
 //				 setupClientSubject(clientSubject);
 //				 // bad credentials should always fail			 
 //				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken"));
 //				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "InvalidToken"));
-//				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "InvalidToken"));
+//				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "true"));
 //				 
 //				 clientSubject = "testPerson_MissingSelf";
 //				 setupClientSubject(clientSubject);	
 //				 // bad credentials should always fail			 
 //				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken"));
 //				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "InvalidToken"));
-//				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "InvalidToken"));
+//				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "true"));
 				 
 				 for (String result : results) {
 					 if (result.contains("FAILED!!")) {
@@ -673,9 +682,9 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 				 clientSubject = "testPerson_SelfSigned";
 				 setupClientSubject(clientSubject);	
 				 // bad credentials should always fail			 
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken OR NotAuthorized"));
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "InvalidToken OR NotAuthorized"));
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "InvalidToken OR NotAuthorized"));
+				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "NotAuthorized"));
+				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "NotAuthorized"));
+				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "NotAuthorized"));
 				 
 				//  TODO:  enable when ready to test				 				 
 //				 clientSubject = "testPerson_InvalidVsSchema";
@@ -811,9 +820,9 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 				 clientSubject = "testPerson_SelfSigned";
 				 setupClientSubject(clientSubject);	
 				 // bad credentials should always fail			 
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken OR NotAuthorized"));
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "InvalidToken OR NotAuthorized"));
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "InvalidToken OR NotAuthorized"));
+				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "NotAuthorized"));
+				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "NotAuthorized"));
+				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "NotAuthorized"));
 
 				//  TODO:  enable when ready to test				 				 
 //				 clientSubject = "testPerson_InvalidVsSchema";
@@ -945,9 +954,9 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 				 clientSubject = "testPerson_SelfSigned";
 				 setupClientSubject(clientSubject);	
 				 // bad credentials should always fail			 
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken OR NotAuthorized"));
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "InvalidToken OR NotAuthorized"));
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "InvalidToken OR NotAuthorized"));
+				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "NotAuthorized"));
+				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "NotAuthorized"));
+				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "NotAuthorized"));
 
 //  TODO:  enable when ready to test				 
 //				 clientSubject = "testPerson_InvalidVsSchema";
@@ -1075,9 +1084,9 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 				 clientSubject = "testPerson_SelfSigned";
 				 setupClientSubject(clientSubject);	
 				 // bad credentials should always fail			 
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken OR NotAuthorized"));
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "InvalidToken OR NotAuthorized"));
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "InvalidToken OR NotAuthorized"));
+				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "NotAuthorized"));
+				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "NotAuthorized"));
+				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "NotAuthorized"));
 
 				//  TODO:  enable when ready to test				 				 
 //				 clientSubject = "testPerson_InvalidVsSchema";
@@ -1204,9 +1213,9 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 				 clientSubject = "testPerson_SelfSigned";
 				 setupClientSubject(clientSubject);	
 				 // bad credentials should always fail			 
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken OR NotAuthorized"));
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "InvalidToken OR NotAuthorized"));
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "InvalidToken OR NotAuthorized"));
+				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "NotAuthorized"));
+				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "NotAuthorized"));
+				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "NotAuthorized"));
 
 				//  TODO:  enable when ready to test				 				 
 //				 clientSubject = "testPerson_InvalidVsSchema";
@@ -1342,9 +1351,9 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 				 clientSubject = "testPerson_SelfSigned";
 				 setupClientSubject(clientSubject);
 				 // bad credentials should always fail			 
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken OR NotAuthorized"));
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "InvalidToken OR NotAuthorized"));
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "InvalidToken OR NotAuthorized"));
+				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "NotAuthorized"));
+				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "NotAuthorized"));
+				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "NotAuthorized"));
 
 				//  TODO:  enable when ready to test				 
 //				 clientSubject = "testPerson_InvalidVsSchema";
@@ -1479,9 +1488,9 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 				 clientSubject = "testPerson_SelfSigned";
 				 setupClientSubject(clientSubject);	
 				 // bad credentials should always fail			 
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken OR NotAuthorized"));
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "InvalidToken OR NotAuthorized"));
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "InvalidToken OR NotAuthorized"));
+				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "NotAuthorized"));
+				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "NotAuthorized"));
+				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "NotAuthorized"));
 
 				//  TODO:  enable when ready to test				 				 
 //				 clientSubject = "testPerson_InvalidVsSchema";
@@ -1615,9 +1624,9 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 				 clientSubject = "testPerson_SelfSigned";
 				 setupClientSubject(clientSubject);
 				 // bad credentials should always fail			 
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "InvalidToken OR NotAuthorized"));
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "InvalidToken OR NotAuthorized"));
-				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "InvalidToken OR NotAuthorized"));
+				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "NotAuthorized"));
+				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "NotAuthorized"));
+				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "NotAuthorized"));
 
 				//  TODO:  enable when ready to test				 
 //				 clientSubject = "testPerson_InvalidVsSchema";
