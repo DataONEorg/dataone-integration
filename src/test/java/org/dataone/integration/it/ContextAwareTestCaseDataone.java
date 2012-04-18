@@ -76,8 +76,9 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 
 	public static final String QUERYTYPE_SOLR = "solr";
 	public static final String CHECKSUM_ALGORITHM = "MD5";
-	public static final String DEFAULT_TEST_OBJECTFORMAT = ExampleUtilities.FORMAT_EML_2_0_1;
-
+//	public static final String DEFAULT_TEST_OBJECTFORMAT = ExampleUtilities.FORMAT_EML_2_0_1;
+	public static final String DEFAULT_TEST_OBJECTFORMAT = ExampleUtilities.FORMAT_TEXT_PLAIN;
+//	public static final String DEFAULT_TEST_OBJECTFORMAT = ExampleUtilities.FORMAT_EML_2_0_0;
 	
 	private  boolean alreadySetup = false;
 	

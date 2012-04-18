@@ -35,7 +35,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 
 	// this here defines the default
 	// can be overwritten by property passed into base class
-	protected String testObjectSeriesSuffix = "." + "10";
+	protected String testObjectSeriesSuffix = "." + "11";
 	
 	
 	private static String currentUrl;
