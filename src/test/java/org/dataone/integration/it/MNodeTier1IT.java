@@ -377,6 +377,8 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     			Log eventLog = mn.getLogRecords(null, null, null, null, null, null);
     			int allEventsCount = eventLog.getTotal();
     			
+    			// handle empty MN where there are no log records
+    			Assume.assumeTrue(allEventsCount == 0);
     			
     			LogEntry entry0 = eventLog.getLogEntry(0);
     			Date fromDate = null;
