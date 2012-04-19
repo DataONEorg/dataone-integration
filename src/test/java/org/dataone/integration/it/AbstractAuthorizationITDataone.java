@@ -33,9 +33,9 @@ import org.junit.Test;
 
 public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCaseDataone {
 
-	// this here defines the default
-	// can be overwritten by property passed into base class
-	protected String testObjectSeriesSuffix = "." + "11";
+//	// this here defines the default
+//	// can be overwritten by property passed into base class
+//	protected String testObjectSeriesSuffix = "." + "12";
 	
 	
 	private static String currentUrl;
@@ -48,12 +48,12 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 	protected abstract D1Node instantiateD1Node(String baseUrl);
 
 
-	@Before
-	public void setUpTestObjectSeries() throws Exception {
-		if (testObjectSeries != null) {
-			testObjectSeriesSuffix = "." + testObjectSeries;
-		}
-	}
+//	@Before
+//	public void setUpTestObjectSeries() throws Exception {
+//		if (testObjectSeries != null) {
+//			testObjectSeriesSuffix = "." + testObjectSeries;
+//		}
+//	}
 	
 	private String checkExpectedIsAuthorizedOutcome(D1Node d1Node, Identifier pid, 
 			String subjectLabel, Permission permission, String expectedOutcome) 
@@ -131,8 +131,11 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 //				 d1Node.getLogRecords(null);
 				 setupClientSubject("testPerson_SelfSigned");
 				 
+				 String objectIdentifier = "TierTesting:" + 
+						 	createNodeAbbreviation(d1Node.getNodeBaseServiceUrl()) +
+						 	":Public_READ" + testObjectSeriesSuffix;
+				 Identifier pid = procurePublicReadableTestObject(d1Node,buildIdentifier(objectIdentifier));
 				 
-				 Identifier pid = procurePublicReadableTestObject(d1Node);
 				 d1Node.isAuthorized(null, pid, Permission.READ);
 				 handleFail(currentUrl, "ssl connection should not succeed with a self-signed certificate (untrusted CA): testPerson READ vs. " + pid.getValue());
 			 } catch (BaseException be) {

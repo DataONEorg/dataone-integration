@@ -26,6 +26,7 @@ import java.util.Iterator;
 
 import org.apache.commons.io.IOUtils;
 import org.dataone.client.CNode;
+import org.dataone.client.D1TypeBuilder;
 import org.dataone.configuration.Settings;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.NotAuthorized;
@@ -79,8 +80,11 @@ public class CNodeTier2AuthorizationIT extends AbstractAuthorizationITDataone {
 			printTestHeader("testIsAuthorized() vs. node: " + currentUrl);
 				
 			try {
-				
-				Identifier pid = procurePublicReadableTestObject(cn);
+				String objectIdentifier = "TierTesting:" + 
+					 	createNodeAbbreviation(cn.getNodeBaseServiceUrl()) +
+					 	":Public_READ" + testObjectSeriesSuffix;
+				Identifier pid = procurePublicReadableTestObject(cn,D1TypeBuilder.buildIdentifier(objectIdentifier));
+//				Identifier pid = procurePublicReadableTestObject(cn);
 				boolean success = cn.isAuthorized(null, pid, Permission.READ);
 				checkTrue(currentUrl,"isAuthorized response should never be false. [Only true or exception].", success);
 			} 

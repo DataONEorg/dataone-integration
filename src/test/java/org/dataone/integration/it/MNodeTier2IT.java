@@ -20,14 +20,20 @@
 
 package org.dataone.integration.it;
 
+import java.io.InputStream;
+import java.util.Date;
 import java.util.Iterator;
 
 import org.dataone.client.D1Client;
+import org.dataone.client.D1TypeBuilder;
 import org.dataone.client.MNode;
 import org.dataone.service.exceptions.BaseException;
+import org.dataone.service.exceptions.NotAuthorized;
 import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Node;
 import org.dataone.service.types.v1.Permission;
+import org.dataone.service.types.v1.SystemMetadata;
+import org.junit.Ignore;
 import org.junit.Test;
 
 
@@ -51,7 +57,7 @@ import org.junit.Test;
  *  
  * @author Rob Nahf
  */
-public class MNodeTier2IT extends AbstractAuthorizationITDataone  {
+public class MNodeTier2IT extends AbstractAuthorizationITDataone {
 
     private static String currentUrl;
         
@@ -94,14 +100,161 @@ public class MNodeTier2IT extends AbstractAuthorizationITDataone  {
 			printTestHeader("testIsAuthorized() vs. node: " + currentUrl);
 				
 			try {
-				
-				Identifier pid = procurePublicReadableTestObject(mn);
+				String objectIdentifier = "TierTesting:" + 
+					 	createNodeAbbreviation(mn.getNodeBaseServiceUrl()) +
+					 	":Public_READ" + testObjectSeriesSuffix;
+				Identifier pid = procurePublicReadableTestObject(mn,D1TypeBuilder.buildIdentifier(objectIdentifier));
+
 				boolean success = mn.isAuthorized(null, pid, Permission.READ);
 				checkTrue(currentUrl,"isAuthorized response should never be false. [Only true or exception].", success);
 			} 
     		catch (BaseException e) {
 				handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
 						e.getDetail_code() + ": " + e.getDescription());
+			}
+			catch(Exception e) {
+				e.printStackTrace();
+				handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+			}	
+		}
+	}
+
+	
+
+	@Test
+	public void testSystemMetadataChanged() {
+		Iterator<Node> it = getMemberNodeIterator();
+
+		while ( it.hasNext() ) {
+			setupClientSubject("urn:node:cnDev");
+
+			currentUrl = it.next().getBaseURL();
+			MNode mn = D1Client.getMN(currentUrl);
+			currentUrl = mn.getNodeBaseServiceUrl();
+			printTestHeader("testSystemMetadataChanged() vs. node: " + currentUrl);
+		
+			try {
+				String objectIdentifier = "TierTesting:" + 
+					 	createNodeAbbreviation(mn.getNodeBaseServiceUrl()) +
+					 	":Public_READ" + testObjectSeriesSuffix;
+				Identifier pid = procurePublicReadableTestObject(mn,D1TypeBuilder.buildIdentifier(objectIdentifier));
+
+
+				Date afterCreate = new Date();
+				mn.systemMetadataChanged(null, pid, 10, afterCreate);
+			}	
+			catch (BaseException e) {
+				handleFail(currentUrl,e.getClass().getSimpleName() + ": " 
+						+ e.getDetail_code() + ": " + e.getDescription());
+			}
+			catch(Exception e) {
+				e.printStackTrace();
+				handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+			}	
+		}
+	}
+	
+	
+//	@Test
+	public void testSystemMetadataChanged_EarlierDate() {
+		Iterator<Node> it = getMemberNodeIterator();
+
+		while ( it.hasNext() ) {
+			setupClientSubject("urn:node:cnDev");
+
+			currentUrl = it.next().getBaseURL();
+			MNode mn = D1Client.getMN(currentUrl);
+			currentUrl = mn.getNodeBaseServiceUrl();
+			printTestHeader("testSystemMetadataChanged() vs. node: " + currentUrl);
+		
+			try {
+				String objectIdentifier = "TierTesting:" + 
+					 	createNodeAbbreviation(mn.getNodeBaseServiceUrl()) +
+					 	":Public_READ" + testObjectSeriesSuffix;
+				Identifier pid = procurePublicReadableTestObject(mn,D1TypeBuilder.buildIdentifier(objectIdentifier));
+
+
+				Date modDate = mn.getSystemMetadata(null, pid).getDateSysMetadataModified();
+				mn.systemMetadataChanged(null, pid, 10, new Date(modDate.getTime()-10000));
+			}	
+			catch (BaseException e) {
+				handleFail(currentUrl,e.getClass().getSimpleName() + ": " 
+						+ e.getDetail_code() + ": " + e.getDescription());
+			}
+			catch(Exception e) {
+				e.printStackTrace();
+				handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+			}	
+		}
+	}
+	
+	/**
+	 * This test tries to have a non-CN subject call the method.  should fail.
+	 */
+	@Test
+	public void testSystemMetadataChanged_authenticatedITKuser() {
+		Iterator<Node> it = getMemberNodeIterator();
+
+		while ( it.hasNext() ) {
+			setupClientSubject("testPerson");
+
+			currentUrl = it.next().getBaseURL();
+			MNode mn = D1Client.getMN(currentUrl);
+			currentUrl = mn.getNodeBaseServiceUrl();
+			printTestHeader("testSystemMetadataChanged_authITKuser() vs. node: " + currentUrl);
+		
+			try {
+				Object[] dataPackage = ExampleUtilities.generateTestSciDataPackage("mNodeTier3",true);
+		
+				Identifier pid = mn.create(null,(Identifier) dataPackage[0],
+						(InputStream) dataPackage[1], (SystemMetadata) dataPackage[2]);
+
+				Date afterCreate = new Date();
+				mn.systemMetadataChanged(null, pid, 10, afterCreate);
+			}
+			catch (NotAuthorized e) {
+				// expected response
+			}
+			catch (BaseException e) {
+				handleFail(currentUrl,"Expected InvalidToken, got: " +
+						e.getClass().getSimpleName() + ": " + e.getDetail_code() + 
+						": " + e.getDescription());
+			}
+			catch(Exception e) {
+				e.printStackTrace();
+				handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+			}	
+		}
+	}
+
+
+	
+//	@Ignore("do not know how to test in stand-alone mode.")
+//	@Test
+	public void testSystemMetadataChanged_withCreate() {
+		Iterator<Node> it = getMemberNodeIterator();
+
+		while ( it.hasNext() ) {
+			setupClientSubject("urn:node:cnDev");
+
+			currentUrl = it.next().getBaseURL();
+			MNode mn = D1Client.getMN(currentUrl);
+			currentUrl = mn.getNodeBaseServiceUrl();
+			printTestHeader("testSystemMetadataChanged() vs. node: " + currentUrl);
+		
+			try {
+				Object[] dataPackage = ExampleUtilities.generateTestSciDataPackage("mNodeTier3TestDelete",true);
+		
+				Identifier pid = mn.create(null,(Identifier) dataPackage[0],
+						(InputStream) dataPackage[1], (SystemMetadata) dataPackage[2]);
+
+				Date afterCreate = new Date();
+				mn.systemMetadataChanged(null, pid, 10, afterCreate);
+			}	
+			catch (BaseException e) {
+				handleFail(currentUrl,"Expected InvalidToken, got: " +
+						e.getClass().getSimpleName() + ": " + e.getDetail_code() + 
+						": " + e.getDescription());
 			}
 			catch(Exception e) {
 				e.printStackTrace();

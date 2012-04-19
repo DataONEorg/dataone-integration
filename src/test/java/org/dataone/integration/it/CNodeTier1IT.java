@@ -30,6 +30,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.solr.client.solrj.util.ClientUtils;
 import org.dataone.client.CNode;
 import org.dataone.client.D1Client;
+import org.dataone.client.D1TypeBuilder;
 import org.dataone.client.MNode;
 import org.dataone.client.auth.ClientIdentityManager;
 import org.dataone.integration.it.ContextAwareTestCaseDataone.TestIterationEndingException;
@@ -930,7 +931,11 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
     		printTestHeader("testGet() vs. node: " + currentUrl);
 
     		try {
-    			Identifier id = procurePublicReadableTestObject(cn);
+    			String objectIdentifier = "TierTesting:" + 
+					 	createNodeAbbreviation(cn.getNodeBaseServiceUrl()) +
+					 	":Public_READ" + testObjectSeriesSuffix;
+				Identifier id = procurePublicReadableTestObject(cn,D1TypeBuilder.buildIdentifier(objectIdentifier));
+//    			Identifier id = procurePublicReadableTestObject(cn);
     			InputStream is = cn.get(null,id);
     			checkTrue(currentUrl,"get() returns an objectStream", is != null);
     		}
@@ -959,7 +964,11 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
     		printTestHeader("testGetSystemMetadata() vs. node: " + currentUrl);
     		
     		try {
-    			Identifier id = procurePublicReadableTestObject(cn);
+    			String objectIdentifier = "TierTesting:" + 
+					 	createNodeAbbreviation(cn.getNodeBaseServiceUrl()) +
+					 	":Public_READ" + testObjectSeriesSuffix;
+				Identifier id = procurePublicReadableTestObject(cn,D1TypeBuilder.buildIdentifier(objectIdentifier));
+//    			Identifier id = procurePublicReadableTestObject(cn);
     			SystemMetadata smd = cn.getSystemMetadata(null,id);
     			checkTrue(currentUrl,"getSystemMetadata() returns a SystemMetadata object", smd != null);
     		} 
@@ -989,7 +998,11 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
     		printTestHeader("testDescribe() vs. node: " + currentUrl);
 		
     		try {
-    			Identifier id = procurePublicReadableTestObject(cn);
+    			String objectIdentifier = "TierTesting:" + 
+					 	createNodeAbbreviation(cn.getNodeBaseServiceUrl()) +
+					 	":Public_READ" + testObjectSeriesSuffix;
+				Identifier id = procurePublicReadableTestObject(cn,D1TypeBuilder.buildIdentifier(objectIdentifier));
+//    			Identifier id = procurePublicReadableTestObject(cn);
     			DescribeResponse dr = cn.describe(null,id);
     			checkTrue(currentUrl,"describe() returns a DescribeResponse object", dr != null);	
     		} 
@@ -1059,8 +1072,12 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
 			currentUrl = cn.getNodeBaseServiceUrl();
 			printTestHeader("testGetChecksum(...) vs. node: " + currentUrl);
 
-			try {   
-    			Identifier id = procurePublicReadableTestObject(cn);
+			try { 
+				String objectIdentifier = "TierTesting:" + 
+					 	createNodeAbbreviation(cn.getNodeBaseServiceUrl()) +
+					 	":Public_READ" + testObjectSeriesSuffix;
+				Identifier id = procurePublicReadableTestObject(cn,D1TypeBuilder.buildIdentifier(objectIdentifier));
+ //   			Identifier id = procurePublicReadableTestObject(cn);
     			Checksum cs = cn.getChecksum(null,id);
     			checkTrue(currentUrl,"getChecksum() returns a Checksum object", cs != null);
     		} 

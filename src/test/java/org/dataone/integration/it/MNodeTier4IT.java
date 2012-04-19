@@ -31,6 +31,7 @@ import java.util.Iterator;
 
 import org.dataone.client.D1Client;
 import org.dataone.client.D1Object;
+import org.dataone.client.D1TypeBuilder;
 import org.dataone.client.MNode;
 import org.dataone.client.auth.CertificateManager;
 import org.dataone.service.exceptions.BaseException;
@@ -78,7 +79,11 @@ public class MNodeTier4IT extends ContextAwareTestCaseDataone {
 			printTestHeader("testGetReplica() vs. node: " + currentUrl);
 
 			try {
-				Identifier pid = procurePublicReadableTestObject(mn);
+				String objectIdentifier = "TierTesting:" + 
+					 	createNodeAbbreviation(mn.getNodeBaseServiceUrl()) +
+					 	":Public_READ" + testObjectSeriesSuffix;
+				Identifier pid = procurePublicReadableTestObject(mn,D1TypeBuilder.buildIdentifier(objectIdentifier));
+//				Identifier pid = procurePublicReadableTestObject(mn);
 				InputStream is = mn.getReplica(null, pid);
 				checkTrue(currentUrl,"get() returns an objectStream", is != null);
 			}
@@ -115,7 +120,11 @@ public class MNodeTier4IT extends ContextAwareTestCaseDataone {
 			printTestHeader("testGetReplica_AuthenticateITKUser() vs. node: " + currentUrl);
 
 			try {
-				Identifier pid = procurePublicReadableTestObject(mn);
+				String objectIdentifier = "TierTesting:" + 
+					 	createNodeAbbreviation(mn.getNodeBaseServiceUrl()) +
+					 	":Public_READ" + testObjectSeriesSuffix;
+				Identifier pid = procurePublicReadableTestObject(mn,D1TypeBuilder.buildIdentifier(objectIdentifier));
+//				Identifier pid = procurePublicReadableTestObject(mn);
 				InputStream is = mn.getReplica(null, pid);
 				checkTrue(currentUrl,"get() returns an objectStream", is != null);
 			}
@@ -155,7 +164,11 @@ public class MNodeTier4IT extends ContextAwareTestCaseDataone {
 			printTestHeader("testGetReplica_NoCert() vs. node: " + currentUrl);
 
 			try {
-				Identifier pid = procurePublicReadableTestObject(mn);
+				String objectIdentifier = "TierTesting:" + 
+					 	createNodeAbbreviation(mn.getNodeBaseServiceUrl()) +
+					 	":Public_READ" + testObjectSeriesSuffix;
+				Identifier pid = procurePublicReadableTestObject(mn,D1TypeBuilder.buildIdentifier(objectIdentifier));
+//				Identifier pid = procurePublicReadableTestObject(mn);
 				InputStream is = mn.getReplica(null, pid);
 				handleFail(currentUrl,"with no client certificate, getReplica() should throw exception");
 			}

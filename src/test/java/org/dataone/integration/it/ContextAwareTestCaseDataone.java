@@ -13,6 +13,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -26,6 +27,7 @@ import org.dataone.client.CNode;
 import org.dataone.client.D1Client;
 import org.dataone.client.D1Node;
 import org.dataone.client.D1Object;
+import org.dataone.client.D1TypeBuilder;
 import org.dataone.client.MNode;
 import org.dataone.client.auth.CertificateManager;
 import org.dataone.client.auth.ClientIdentityManager;
@@ -49,6 +51,7 @@ import org.dataone.service.types.v1.Node;
 import org.dataone.service.types.v1.NodeList;
 import org.dataone.service.types.v1.NodeType;
 import org.dataone.service.types.v1.ObjectFormatIdentifier;
+import org.dataone.service.types.v1.ObjectInfo;
 import org.dataone.service.types.v1.ObjectList;
 import org.dataone.service.types.v1.Permission;
 import org.dataone.service.types.v1.Subject;
@@ -76,8 +79,8 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 
 	public static final String QUERYTYPE_SOLR = "solr";
 	public static final String CHECKSUM_ALGORITHM = "MD5";
-//	public static final String DEFAULT_TEST_OBJECTFORMAT = ExampleUtilities.FORMAT_EML_2_0_1;
-	public static final String DEFAULT_TEST_OBJECTFORMAT = ExampleUtilities.FORMAT_TEXT_PLAIN;
+	public static final String DEFAULT_TEST_OBJECTFORMAT = ExampleUtilities.FORMAT_EML_2_0_1;
+//	public static final String DEFAULT_TEST_OBJECTFORMAT = ExampleUtilities.FORMAT_TEXT_PLAIN;
 //	public static final String DEFAULT_TEST_OBJECTFORMAT = ExampleUtilities.FORMAT_EML_2_0_0;
 	
 	private  boolean alreadySetup = false;
@@ -89,7 +92,10 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 	protected  String cnBaseUrl = null;
 	protected  String mnBaseUrl = null;
 	protected  String nodelistUri = null;
-	
+
+	// this here defines the default
+	// can be overwritten by property passed into base class
+	protected String testObjectSeriesSuffix = "." + "12";
 	protected  String testObjectSeries = null;
 
 	protected String cnSubmitter = Settings.getConfiguration().getString("dataone.it.cnode.submitter.cn","urn:node:cnDev");
@@ -228,6 +234,13 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 
 			log.info("****************************************************");
 		}  // settings already set up
+	}
+	
+	@Before
+	public void setUpTestObjectSeries() throws Exception {
+		if (testObjectSeries != null) {
+			testObjectSeriesSuffix = "." + testObjectSeries;
+		}
 	}
 	
 	protected Iterator<Node> getMemberNodeIterator() {
@@ -371,68 +384,72 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 //	}
 
     /**
-     * A method primarily for READ interface testing, it first tries to get an
-     * object from listObjects, then if not possible, tries to create one.
+     * A method primarily for READ interface testing, that has to efficiently get
+     * a public object from Tier1, Tier2, and Tier3+ nodes.  First does a procureTestObject
+     * then failing that, does a listObjects(), and subsequent getSysMeta to see
+     * if there is any object that satisfies the criteria (PublicReadable)
      *    
      * @param d1Node
      * @return Identifier for object to be used for testing
      * @throws TestIterationEndingException 
      */
-	protected Identifier procurePublicReadableTestObject(D1Node d1Node) 
+	protected Identifier procurePublicReadableTestObject(D1Node d1Node, Identifier firstTry) 
 	throws TestIterationEndingException
 	{
-		// remember who the client currently is
-//		Subject startingClientSubject = ClientIdentityManager.getCurrentIdentity();
-		X509Certificate certificate = CertificateManager.getInstance().loadCertificate();
-		String startingCertLoc = CertificateManager.getInstance().getCertificateLocation();
-//		String startingClientSubjectName = null;
-//		if (certificate != null) {
-//			startingClientSubjectName = CertificateManager.getInstance().getSubjectDN(certificate);
-//		} else {
-//			startingClientSubjectName = Constants.SUBJECT_PUBLIC;
-//		}
-
-		setupClientSubject_NoCert();
-		Identifier pid = null;
+		Identifier identifier = null;
 		try {
-			ObjectList ol = null;
+			identifier  = procureTestObject(
+					d1Node,
+					D1TypeBuilder.buildAccessRule(
+							Constants.SUBJECT_PUBLIC,
+							Permission.READ),
+					firstTry);
+		}
+		catch (Exception e) {
+			; // fallback to plan B
+		}		
+		
+		if (identifier == null) {
+
 			try {
-				ObjectFormatIdentifier formatId = new ObjectFormatIdentifier();
-				formatId.setValue(DEFAULT_TEST_OBJECTFORMAT);
-				ol = d1Node.listObjects(null, null, null, formatId, null, null, null);
-			} catch (BaseException e) {
-				e.printStackTrace();
-			}
-			if (ol != null && ol.sizeObjectInfoList() > 0) {
-				pid = ol.getObjectInfo(0).getIdentifier();
-			} 
-			else if (d1Node instanceof MNode) {
-				try {
-					Node node = ((MNode)d1Node).getCapabilities();
-					if (APITestUtils.isServiceAvailable(node, "MNStorage")) {
-						// creates a new object containing a unique identifier
-						pid = createPublicTestObject(d1Node,"");
-					} 
+				ObjectList ol = d1Node.listObjects(null);
+				if (ol != null && ol.getCount() > 0) {
+					long start = (new Date()).getTime();
+					for (ObjectInfo oi: ol.getObjectInfoList()) {
+						try {
+							SystemMetadata smd = d1Node.getSystemMetadata(null,oi.getIdentifier());
+							if (AccessUtil.getPermissionMap(smd.getAccessPolicy())
+									.containsKey(Constants.SUBJECT_PUBLIC)) 
+							{
+								identifier = oi.getIdentifier();
+								break;
+							} 
+						} catch (BaseException e) {
+							; 
+						}
+						// don't search forever...
+						long now = (new Date()).getTime();
+						if (now > start + 30 * 1000) 
+							break;
+					}
 				}
-				catch (Exception e) {
-					throw new TestIterationEndingException("could not procure a test object",e);
+				else {
+					// empty object list
+					throw new TestIterationEndingException("could not create a test object and objectList is empty");
 				}
-			} else {
-				throw new TestIterationEndingException("could not procure a test object");
 			}
-		} finally {
-			// reset the client to the starting subject/certificate
-			// (this should work for public user, too, since we create a public user by 
-			// using a bogus certificate location)
-			CertificateManager.getInstance().setCertificateLocation(startingCertLoc);
-			if (log.isDebugEnabled()) {
-				certificate = CertificateManager.getInstance().loadCertificate();
-				String currentX500 = CertificateManager.getInstance().getSubjectDN(certificate);
-				log.debug("current client certificate " + currentX500);
+			catch (BaseException be) {  // from initial list objects
+				throw new TestIterationEndingException("could not create a test object " +
+						"and listObjects() threw exception",be);
 			}
 		}
 		
-		return pid;
+		if (identifier == null)
+			// nothing public found
+			throw new TestIterationEndingException("could not create a test object and" +
+					" could not find object with a public accessRule in reasonable amount of time");
+		
+		return identifier;
 	}
     
     
@@ -481,6 +498,11 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 					AccessRule ar = smd.getAccessPolicy().getAllow(0);
 					if (ar.sizePermissionList() == 1 && ar.sizeSubjectList() == 1) {
 						identifier = pid;
+						if (!ar.getPermission(0).equals(accessRule.getPermission(0))) 
+							throw new TestIterationEndingException("the AccessRule (permission) of the returned object does not match what's requested");	
+						if (!ar.getSubject(0).equals(accessRule.getSubject(0))) 
+							throw new TestIterationEndingException("the AccessRule (subject) of the returned object does not match what's requested");	
+
 					} else {
 						throw new TestIterationEndingException("the AccessRule of the returned object has either multiple subjects or multiple permissions");
 					}

@@ -22,18 +22,15 @@ package org.dataone.integration.it;
 
 import java.io.InputStream;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
-import org.dataone.client.CNode;
 import org.dataone.client.D1Client;
 import org.dataone.client.D1TypeBuilder;
 import org.dataone.client.MNode;
 import org.dataone.client.auth.CertificateManager;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.NotAuthorized;
-import org.dataone.service.exceptions.ServiceFailure;
 import org.dataone.service.exceptions.SynchronizationFailed;
 import org.dataone.service.types.v1.Checksum;
 import org.dataone.service.types.v1.DescribeResponse;
@@ -46,11 +43,10 @@ import org.dataone.service.types.v1.NodeReference;
 import org.dataone.service.types.v1.ObjectFormatIdentifier;
 import org.dataone.service.types.v1.ObjectInfo;
 import org.dataone.service.types.v1.ObjectList;
-import org.dataone.service.types.v1.Permission;
 import org.dataone.service.types.v1.Subject;
 import org.dataone.service.types.v1.SystemMetadata;
 import org.dataone.service.util.DateTimeMarshaller;
-import org.junit.Assume;
+
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -62,10 +58,6 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
 
 
     private  String format_text_csv = "text/csv";
-
-    private static final String idPrefix = "mnTier1:";
-    private static final String bogusId = "foobarbaz214";
-
     private  String currentUrl;
     
 
@@ -113,7 +105,8 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     public void testGetLogRecords()
     {
     	// can be anyone
-    	setupClientSubject("testRightsHolder");
+//    	setupClientSubject("testRightsHolder");
+    	setupClientSubject_NoCert();
     	Iterator<Node> it = getMemberNodeIterator();
     	while (it.hasNext()) {
     		currentUrl = it.next().getBaseURL();
@@ -141,7 +134,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
      * Testing event filtering is complicated on an ever-growing log file, unless
      * we filter within a time window.  
      */
-    @Ignore("needs review")
+ //   @Ignore("needs review")
     @Test
     public void testGetLogRecords_eventFilter()
     {
@@ -172,7 +165,6 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
         		   Event targetType = null;
         		   Event otherType = null;
         		   
-        		   int numEventTypes = 0;
         		   int currentTotal = 0;
         		   
         		   while (otherType == null && currentTotal < totalEntries) {
@@ -204,7 +196,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
             			   		"so should get 0 READ events",String.valueOf(entries.getTotal()),"0");
         			   }
         		   } else {
-        			   entries = mn.getLogRecords(null,fromDate,t0 ,targetType, 0, 0);
+        			   entries = mn.getLogRecords(null,fromDate,t0 ,targetType, null, null);
         			   boolean oneTypeOnly = true;
         			   for (LogEntry le: entries.getLogEntryList()) {
         				   if (!le.getEvent().equals(targetType)) {
@@ -218,137 +210,6 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
         	   }
            }
        
-//        	   
-//        	   
-//
-//        	   if (entries.getTotal() >  0) {
-//        		   int unfilteredTotal = entries.getTotal();
-//        		   Event targetEvent = entries.getLogEntry(0).getEvent();
-//        		   
-//        		   boolean moreEvents = true;
-//        		   
-//        		   boolean filtered = false;
-//				   boolean problem = false;
-//				   int filteredTotal = unfilteredTotal;
-//
-//				   HashMap<Event,Integer> eventTotalMap = new HashMap<Event,Integer>();
-//				   for (Event e : Event.values()) {
-//					   entries = mn.getLogRecords(null, null, null, e, 0, 0);
-//					   if (entries.getTotal() > 0)	
-//						   eventTotalMap.put(e,entries.getTotal());
-//				   }
-//				   if (eventTotalMap.size() > 1) {
-//					   int calcTotal = 0;
-//					   for (Event e: eventTotalMap.keySet()) {
-//						   calcTotal += eventTotalMap.get(e);
-//					   }
-//					   checkTrue(currentUrl,"Sum of events should equal sum of ")
-//				   
-//						   if (entries.getTotal() > 0 && entries.getTotal() < unfilteredTotal) {
-//							   filteredTotal = entries.getTotal();
-//							   filtered = true;
-//							   for (LogEntry le: entries.getLogEntryList()) {
-//								   if (!le.getEvent().equals(e)) {
-//									   problem = true;
-//									   break eventLoop;
-//								   }
-//							   }
-//							   break;
-//						   }       				   
-//        			   }
-//				   checkFalse(currentUrl,"Filtering log by Event type should only return those types of events",problem);
-//				   checkTrue(currentUrl,"Filtering should find ", filteredTotal < unfilteredTotal);
-//        	   
-//        	   }
-//        		   
-//        		   // nicely iterate over 
-//        		   int i = 1;
-//        		   while (otherType == null && i < total) {
-//        			   entries = mn.getLogRecords(null, null, null, null, i, 50);
-//        			   i += 50;
-//        			   
-//        			   for ( LogEntry le : entries.getLogEntryList()) {
-//        				   if (!le.getEvent().equals(targetType)) {
-//        					   otherType = le.getEvent();
-//        					   break;
-//        				   }
-//        			   }
-//        		   }
-//        		   int lastStart = i - 50;
-//        		   
-//        		   if (otherType != null) {
-//        			   if (targetType.equals(Event.READ)) {
-//        				   entries = mn.getLogRecords(null, null, null, Event.CREATE, 0, 0);
-//            			   checkEquals(currentUrl,"Log contains only READ events, " +
-//            			   		"so should get 0 CREATE events",String.valueOf(entries.getTotal()),"0");
-//        			   } else {
-//        				   entries = mn.getLogRecords(null, null, null, Event.READ, 0, 0);
-//            			   checkEquals(currentUrl,"Log contains only " + targetType + " events, " +
-//            			   		"so should get 0 READ events",String.valueOf(entries.getTotal()),"0");
-//        			   }
-//        		   } else {
-//        			   entries = mn.getLogRecords(null,null,null,targetType, i, 0);
-//        			   checkTrue(currentUrl, "Log contains")
-//        		   }
-//
-//        		   
-//        	   }
-//        	   
-//        	   // read an object  to make sure there's a read event in the logs.
-//        	   Identifier pid = procurePublicReadableTestObject(mn);
-//        	   InputStream is = mn.get(null, pid);
-//        	   is.close();
-//        	   Thread.sleep(500);
-//        	   
-//        	   
-//        	   Log eventLog = mn.getLogRecords(null, null, null, Event.READ, null, null);
-//        	   eventLog.getLogEntryList();
-//        	   checkTrue(currentUrl,"getLogRecords should return at least one recordlog datatype", eventLog != null);
-//        	   
-//        	   
-//        	   
-//        	   
-//        	   
-//        	   // check that log events are created
-//        	   Node node = mn.getCapabilities();
-//        	   if (APITestUtils.isServiceAvailable(node, "MNStorage")) {
-////        		   Identifier pid = ExampleUtilities.doCreateNewObject(mn, idPrefix);
-//        		   Identifier pid = null;
-//        		   try {
-//        			   pid = createPublicTestObject(mn, null);
-//        		   } catch (BaseException be) {
-//        			   throw new TestIterationEndingException("Could not create a test object for the getLogRecords() test.", be);
-//        		   }
-//        		   Date toDate = new Date(System.currentTimeMillis());
-//        		   log.info("toDate is: " + toDate);
-//
-//        		   eventLog = mn.getLogRecords(null, fromDate, toDate, Event.CREATE, null, null);
-//        		   log.info("log size: " + eventLog.sizeLogEntryList());
-//        		   boolean isfound = false;
-//        		   for (int i=0; i<eventLog.sizeLogEntryList(); i++)
-//        		   { //check to see if our create event is in the log
-//        			   LogEntry le = eventLog.getLogEntry(i);
-//        			   log.debug("le: " + le.getIdentifier().getValue());
-//        			   log.debug("rGuid: " + pid.getValue());
-//        			   if(le.getIdentifier().getValue().trim().equals(pid.getValue().trim()))
-//        			   {
-//        				   isfound = true;
-//        				   log.info("log record found");
-//        				   break;
-//        			   }
-//        		   }
-//        		   log.info("isfound: " + isfound);
-//        		   checkTrue(currentUrl, "newly created object is in the log", isfound); 
-//        	   } else {
-//        		   // do nothing - can't expect to create in Tier1 tests
-//        		   log.info("Cannot create objects so skipping more precise logging test "
-//        				   + "on node: " + currentUrl);
-//        	   }
-//           }
-//           catch (TestIterationEndingException e) {
-//        	   handleFail(currentUrl, e.getMessage() + ":: cause: "
-//        			   + e.getCause().getClass().getSimpleName() + ": " + e.getCause().getMessage());
-//           }
            catch (BaseException e) {
         	   handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
         			   e.getDetail_code() + ": " + e.getDescription());
@@ -365,7 +226,8 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     public void testGetLogRecords_DateSlicing()
     {
     	// can be anyone
-    	setupClientSubject("testRightsHolder");
+//    	setupClientSubject("testRightsHolder");
+    	setupClientSubject_NoCert();
     	Iterator<Node> it = getMemberNodeIterator();
     	while (it.hasNext()) {
     		currentUrl = it.next().getBaseURL();
@@ -375,42 +237,66 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
 
     		try {
     			Log eventLog = mn.getLogRecords(null, null, null, null, null, null);
-    			int allEventsCount = eventLog.getTotal();
     			
-    			// handle empty MN where there are no log records
-    			Assume.assumeTrue(allEventsCount == 0);
-    			
-    			LogEntry entry0 = eventLog.getLogEntry(0);
-    			Date fromDate = null;
-    			LogEntry excludedEntry = null;
-   				for (LogEntry le: eventLog.getLogEntryList()) {
-   					if (!le.getDateLogged().equals(entry0.getDateLogged())) {
-   						// which is earlier?  can't assume chronological order of the list
-   						if (le.getDateLogged().after(entry0.getDateLogged())) {
-   							fromDate = le.getDateLogged();
-   							excludedEntry = entry0;
-   						} else {
-   							fromDate = entry0.getDateLogged();
-   							excludedEntry = le;
-   						}
-   						break;
-   					}
-   				}
-   				if (excludedEntry == null) {
-    				handleFail(currentUrl,"could not find 2 objects with different dateLogged times");
+    			if (eventLog.getCount() == 0) {
+    				
+    				// read an existing object
+    				try {
+    					String objectIdentifier = "TierTesting:" + 
+    					 	createNodeAbbreviation(mn.getNodeBaseServiceUrl()) +
+    					 	":Public_READ" + testObjectSeriesSuffix;
+    					Identifier id = procurePublicReadableTestObject(mn,D1TypeBuilder.buildIdentifier(objectIdentifier));
+    					InputStream is = mn.get(null, id);
+    					is.close();
+    					Thread.sleep(1000); // just in case...
+    					eventLog = mn.getLogRecords(null, null, null, null, null, null);
+    				}
+    				catch (TestIterationEndingException e) {
+    					;  // 
+    				}
+    			}
+    				
+    			if (eventLog.getCount() == 0) {
+    				// still zero?  something's probably wrong
+    				handleFail(currentUrl,"the event log contains no entries after trying to read an object");
+    				
     			} else {
-   				
-    				// call with a fromDate
-    				eventLog = mn.getLogRecords(null, fromDate, null, null, null, null);
-
-    				for (LogEntry le : eventLog.getLogEntryList()) {
-    					if (le.getEntryId().equals(excludedEntry.getEntryId())) {
-    						handleFail(currentUrl,"entryID " + excludedEntry.getEntryId() +
-    								" should not be in the event log where fromDate set to " + fromDate);
+    				// try to find log entries with different dates, should be quick...
+    				LogEntry entry0 = eventLog.getLogEntry(0);
+    				Date fromDate = null;
+    				LogEntry excludedEntry = null;
+    				for (LogEntry le: eventLog.getLogEntryList()) {
+    					if (!le.getDateLogged().equals(entry0.getDateLogged())) {
+    						// which is earlier?  can't assume chronological order of the list
+    						if (le.getDateLogged().after(entry0.getDateLogged())) {
+    							fromDate = le.getDateLogged();
+    							excludedEntry = entry0;
+    						} else {
+    							fromDate = entry0.getDateLogged();
+    							excludedEntry = le;
+    						}
     						break;
     					}
     				}
-    			}
+    				
+    				
+    				if (excludedEntry == null) {
+    					handleFail(currentUrl,"could not find 2 objects with different dateLogged times");
+    				} 
+    				else {
+
+    					// call with a fromDate
+    					eventLog = mn.getLogRecords(null, fromDate, null, null, null, null);
+
+    					for (LogEntry le : eventLog.getLogEntryList()) {
+    						if (le.getEntryId().equals(excludedEntry.getEntryId())) {
+    							handleFail(currentUrl,"entryID " + excludedEntry.getEntryId() +
+    									" should not be in the event log where fromDate set to " + fromDate);
+    							break;
+    						}
+    					}
+    				}
+    			} 
     		} 
     		catch (BaseException e) {
     			handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
@@ -718,7 +604,11 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     		printTestHeader("testGet() vs. node: " + currentUrl);
 
     		try {
-    			Identifier id = procurePublicReadableTestObject(mn);
+    			String objectIdentifier = "TierTesting:" + 
+					 	createNodeAbbreviation(mn.getNodeBaseServiceUrl()) +
+					 	":Public_READ" + testObjectSeriesSuffix;
+				Identifier id = procurePublicReadableTestObject(mn,D1TypeBuilder.buildIdentifier(objectIdentifier));
+ //   			Identifier id = procurePublicReadableTestObject(mn);
     			InputStream is = mn.get(null,id);
     			checkTrue(currentUrl,"get() returns an objectStream", is != null);
     		}
@@ -748,7 +638,11 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     		printTestHeader("testGetSystemMetadata() vs. node: " + currentUrl);
     		
     		try {
-    			Identifier id = procurePublicReadableTestObject(mn);
+    			String objectIdentifier = "TierTesting:" + 
+					 	createNodeAbbreviation(mn.getNodeBaseServiceUrl()) +
+					 	":Public_READ" + testObjectSeriesSuffix;
+				Identifier id = procurePublicReadableTestObject(mn,D1TypeBuilder.buildIdentifier(objectIdentifier));
+//    			Identifier id = procurePublicReadableTestObject(mn);
     			SystemMetadata smd = mn.getSystemMetadata(null,id);
     			checkTrue(currentUrl,"getSystemMetadata() returns a SystemMetadata object", smd != null);
     		} 
@@ -778,7 +672,11 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     		printTestHeader("testDescribe() vs. node: " + currentUrl);
 		
     		try {
-    			Identifier id = procurePublicReadableTestObject(mn);
+    			String objectIdentifier = "TierTesting:" + 
+					 	createNodeAbbreviation(mn.getNodeBaseServiceUrl()) +
+					 	":Public_READ" + testObjectSeriesSuffix;
+				Identifier id = procurePublicReadableTestObject(mn,D1TypeBuilder.buildIdentifier(objectIdentifier));
+//    			Identifier id = procurePublicReadableTestObject(mn);
     			DescribeResponse dr = mn.describe(null,id);
     			checkTrue(currentUrl,"describe() returns a DescribeResponse object", dr != null);	
     		} 
@@ -807,7 +705,11 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     		printTestHeader("testGetChecksum() vs. node: " + currentUrl);
 
     		try {   
-    			Identifier id = procurePublicReadableTestObject(mn);
+    			String objectIdentifier = "TierTesting:" + 
+					 	createNodeAbbreviation(mn.getNodeBaseServiceUrl()) +
+					 	":Public_READ" + testObjectSeriesSuffix;
+				Identifier id = procurePublicReadableTestObject(mn,D1TypeBuilder.buildIdentifier(objectIdentifier));
+//    			Identifier id = procurePublicReadableTestObject(mn);
     			Checksum cs = mn.getChecksum(null,id,CHECKSUM_ALGORITHM);
     			checkTrue(currentUrl,"getChecksum() returns a Checksum object", cs != null);
     		} 
@@ -837,7 +739,12 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     		printTestHeader("testSynchronizationFailed() vs. node: " + currentUrl);
  		
     		try {
-    			Identifier id = procurePublicReadableTestObject(mn);
+    			
+    			String objectIdentifier = "TierTesting:" + 
+					 	createNodeAbbreviation(mn.getNodeBaseServiceUrl()) +
+					 	":Public_READ" + testObjectSeriesSuffix;
+				Identifier id = procurePublicReadableTestObject(mn,D1TypeBuilder.buildIdentifier(objectIdentifier));
+//				Identifier id = procurePublicReadableTestObject(mn);
     			SynchronizationFailed sf = new SynchronizationFailed("0","a message",id.getValue(),null);
     			System.out.println(sf.serialize(SynchronizationFailed.FMT_XML));
     			mn.synchronizationFailed(null, 
