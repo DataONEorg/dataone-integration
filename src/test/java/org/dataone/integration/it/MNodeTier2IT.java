@@ -121,7 +121,7 @@ public class MNodeTier2IT extends AbstractAuthorizationITDataone {
 
 	
 
-	@Test
+//	@Test
 	public void testSystemMetadataChanged() {
 		Iterator<Node> it = getMemberNodeIterator();
 
@@ -138,10 +138,19 @@ public class MNodeTier2IT extends AbstractAuthorizationITDataone {
 					 	createNodeAbbreviation(mn.getNodeBaseServiceUrl()) +
 					 	":Public_READ" + testObjectSeriesSuffix;
 				Identifier pid = procurePublicReadableTestObject(mn,D1TypeBuilder.buildIdentifier(objectIdentifier));
-
-
-				Date afterCreate = new Date();
-				mn.systemMetadataChanged(null, pid, 10, afterCreate);
+				SystemMetadata smd = mn.getSystemMetadata(null, pid);
+				if (smd.getDateSysMetadataModified().getTime() - 
+						smd.getDateUploaded().getTime() > 5000) {
+					// probably synced by now, assuming no changes until
+					// after sync are happening.
+					Date afterCreate = new Date();
+					mn.systemMetadataChanged(null, pid, 10, afterCreate);
+				} else {
+					handleFail(currentUrl,"systemMetadataChanged() will likely fail because" +
+							" the object is probably new and not synced, and not known to " +
+							"the CN");
+				}
+				
 			}	
 			catch (BaseException e) {
 				handleFail(currentUrl,e.getClass().getSimpleName() + ": " 

@@ -153,6 +153,8 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 				String line = s.nextLine();
 				if (line.startsWith("common-") || line.startsWith("path-"))
 				{
+					if (line.contains("supplementary"))
+						continue;
 					System.out.println(c++ + "   " + line);
 					temp = line.split("\t");
 					unicodeString.add(temp[0]);
