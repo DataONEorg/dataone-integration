@@ -157,7 +157,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
         	   Date toDate = t0;
         	   Date fromDate = t0;
         	   
-        	   Log entries = mn.getLogRecords(null, null, toDate, null, 0, 0);
+        	   Log entries = mn.getLogRecords(null, null, toDate, null, null, 0, 0);
         	   int totalEntries = entries.getTotal();
         	   
         	   if (totalEntries > 0) {
@@ -171,7 +171,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
         			   // slide the time window
         			   toDate = fromDate;
         			   fromDate = new Date(fromDate.getTime() - 1000 * 60 * 60);  // 1 hour increments
-        			   entries = mn.getLogRecords(null, fromDate, toDate, null, null, null);
+        			   entries = mn.getLogRecords(null, fromDate, toDate, null, null, null, null);
         			   
         			   currentTotal = entries.getTotal();
         			   
@@ -187,16 +187,16 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
 
         		   if (otherType == null) {
         			   if (targetType.equals(Event.READ)) {
-        				   entries = mn.getLogRecords(null, fromDate, t0, Event.CREATE, 0, 0);
+        				   entries = mn.getLogRecords(null, fromDate, t0, Event.CREATE, null, 0, 0);
             			   checkEquals(currentUrl,"Log contains only READ events, " +
             			   		"so should get 0 CREATE events",String.valueOf(entries.getTotal()),"0");
         			   } else {
-        				   entries = mn.getLogRecords(null, fromDate, t0, Event.READ, 0, 0);
+        				   entries = mn.getLogRecords(null, fromDate, t0, Event.READ, null, 0, 0);
             			   checkEquals(currentUrl,"Log contains only " + targetType + " events, " +
             			   		"so should get 0 READ events",String.valueOf(entries.getTotal()),"0");
         			   }
         		   } else {
-        			   entries = mn.getLogRecords(null,fromDate,t0 ,targetType, null, null);
+        			   entries = mn.getLogRecords(null,fromDate,t0 ,targetType, null, null, null);
         			   boolean oneTypeOnly = true;
         			   for (LogEntry le: entries.getLogEntryList()) {
         				   if (!le.getEvent().equals(targetType)) {

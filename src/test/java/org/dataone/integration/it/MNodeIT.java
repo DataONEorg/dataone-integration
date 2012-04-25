@@ -191,7 +191,7 @@ public class MNodeIT extends ContextAwareTestCaseDataone  {
                //get the logs for the last minute
                Date end = new Date(System.currentTimeMillis() + 500000);
                System.out.println("start: " + start + " end: " + end);
-               Log log = mn.getLogRecords(token, start, end, Event.CREATE, null, null);
+               Log log = mn.getLogRecords(token, start, end, Event.CREATE, null, null, null);
                System.out.println("log size: " + log.sizeLogEntryList());
                boolean isfound = false;
                for(int i=0; i<log.sizeLogEntryList(); i++)
