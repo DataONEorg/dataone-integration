@@ -64,8 +64,8 @@ public class MNodeTier4IT extends ContextAwareTestCaseDataone {
 	 *  Test MNReplication.getReplica() functionality.  This tests the normal usage
 	 *  where the caller is a MemberNode. Other callers should fail.
 	 */
-	@Ignore("cannot test until testMN certificate is created")
-	@Test
+//	@Ignore("cannot test a passing situation in standalone mode")
+//	@Test
 	public void testGetReplica() {
 
 		setupClientSubject("testMN");
@@ -106,7 +106,7 @@ public class MNodeTier4IT extends ContextAwareTestCaseDataone {
 	 *  Test MNReplication.getReplica() functionality.  This tests for expected 
 	 *  exception when a non-MemberNode client calls the method.
 	 */
-	@Test
+//	@Test
 	public void testGetReplica_ValidCertificate_NotMN() {
 
 		setupClientSubject("testRightsHolder");
@@ -189,8 +189,8 @@ public class MNodeTier4IT extends ContextAwareTestCaseDataone {
 		}
 	}
 
-	@Ignore("test not implemented")
-	@Test
+//	@Ignore("test not implemented")
+//	@Test
 	public void testReplicate() {
 		
 	}

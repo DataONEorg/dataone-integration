@@ -134,7 +134,6 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
      * Testing event filtering is complicated on an ever-growing log file, unless
      * we filter within a time window.  
      */
- //   @Ignore("needs review")
     @Test
     public void testGetLogRecords_eventFilter()
     {
@@ -145,10 +144,6 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
            MNode mn = D1Client.getMN(currentUrl);  
            currentUrl = mn.getNodeBaseServiceUrl();
            printTestHeader("testGetLogRecords_eventFilter() vs. node: " + currentUrl);
-
-//           log.info("current time is: " + new Date());
-//           Date fromDate = new Date(System.currentTimeMillis() - 7 * 24 * 60 * 60 * 1000);
-//           log.info("fromDate is: " + fromDate);
 
            try {
         	   
@@ -221,6 +216,92 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
        }
     }
     
+    
+    @Test
+    public void testGetLogRecords_pidFilter()
+    {
+    	setupClientSubject_NoCert();
+    	Iterator<Node> it = getMemberNodeIterator();
+       while (it.hasNext()) {
+    	   currentUrl = it.next().getBaseURL();
+           MNode mn = D1Client.getMN(currentUrl);  
+           currentUrl = mn.getNodeBaseServiceUrl();
+           printTestHeader("testGetLogRecords_eventFilter() vs. node: " + currentUrl);
+
+           try {
+        	   
+        	   
+        	   Date t0 = new Date();
+        	   Date toDate = t0;
+        	   Date fromDate = t0;
+        	   
+        	   Log entries = mn.getLogRecords(null, null, toDate, null, null, 0, 0);
+        	   int totalEntries = entries.getTotal();
+        	   
+        	   if (totalEntries > 0) {
+        	   
+        		   Identifier targetIdentifier = null;
+        		   Identifier otherIdentifier = null;
+        		   
+        		   int currentTotal = 0;
+        		   
+        		   while (otherIdentifier == null && currentTotal < totalEntries) {
+        			   // slide the time window
+        			   toDate = fromDate;
+        			   fromDate = new Date(fromDate.getTime() - 1000 * 60 * 60);  // 1 hour increments
+        			   entries = mn.getLogRecords(null, fromDate, toDate, null, null, null, null);
+        			   
+        			   currentTotal = entries.getTotal();
+        			   
+        			   for (LogEntry le: entries.getLogEntryList()) {
+        				   if (targetIdentifier == null) {
+        					   targetIdentifier = le.getIdentifier();
+        				   } else if (!le.getEvent().equals(targetIdentifier)) {
+        					   otherIdentifier = le.getIdentifier();
+        					   break;
+        				   }
+        			   }
+        		   }
+
+        		   if (otherIdentifier == null) {
+        			   // create a new target that is non existent
+        			   otherIdentifier = targetIdentifier;
+        			   targetIdentifier = D1TypeBuilder.buildIdentifier(targetIdentifier.getValue()
+        					   + new Date().getTime());
+        		   	   
+        			   entries = mn.getLogRecords(null, fromDate, t0, 
+        					   null, targetIdentifier.getValue(), 0, 0);
+        			   checkEquals(currentUrl,"Log should be empty for the derived identifier pattern " +
+            			   		targetIdentifier.getValue(),String.valueOf(entries.getTotal()),"0");
+        			   
+        		   } 
+        		   else {
+        			   entries = mn.getLogRecords(null,fromDate, t0, 
+        					   null, targetIdentifier.getValue(), null, null);
+        			   boolean oneTypeOnly = true;
+        			   for (LogEntry le: entries.getLogEntryList()) {
+        				   if (!le.getIdentifier().equals(targetIdentifier)) {
+        					   oneTypeOnly = false;
+        					   break;
+        				   }
+        			   }
+        			   checkTrue(currentUrl, "Filtered log for the time period should " +
+        			   		"contain only entries for the target identifier: " + targetIdentifier.getValue(),
+        			   		oneTypeOnly);
+        		   }
+        	   }
+           }
+       
+           catch (BaseException e) {
+        	   handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
+        			   e.getDetail_code() + ": " + e.getDescription());
+           }
+			catch(Exception e) {
+				e.printStackTrace();
+				handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+			}	           
+       }
+    }
 
     @Test
     public void testGetLogRecords_DateSlicing()
