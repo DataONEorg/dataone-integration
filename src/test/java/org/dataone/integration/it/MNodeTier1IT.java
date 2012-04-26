@@ -495,7 +495,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     }
     
     /**
-     * Tests the parameterless and parameterized listObject methods for propert returns.
+     * Tests the parameterless and parameterized listObject methods for proper returns.
      */
     @Test
     public void testListObjects() {
@@ -507,15 +507,15 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     		printTestHeader("testListObjects() vs. node: " + currentUrl);
 
     		try {
-    			ObjectList ol = procureObjectList(mn);//.listObjects(null);
+    			ObjectList ol = procureObjectList(mn);
     			checkTrue(mn.getLatestRequestUrl(),"listObjects() should return an ObjectList", ol != null);
     			
-    			Date startTime = new Date(System.currentTimeMillis() - 10 * 60 * 1000);
-				Date endTime = new Date(System.currentTimeMillis() - 1 * 60 * 1000);
+    			Date fromDate = new Date(System.currentTimeMillis() - 10 * 60 * 1000);
+				Date toDate = new Date(System.currentTimeMillis() - 1 * 60 * 1000);
 				ObjectFormatIdentifier formatId = new ObjectFormatIdentifier();
 				formatId.setValue(format_text_csv);
     			Boolean replicaStatus = true;
-				ol = mn.listObjects(null, startTime, endTime, 
+				ol = mn.listObjects(null, fromDate, toDate, 
 						formatId, replicaStatus , 
 						Integer.valueOf(0),
 						Integer.valueOf(10));
@@ -697,7 +697,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     			handleFail(mn.getLatestRequestUrl(),"No Objects available to test against");
     		}
     		catch (BaseException e) {
-    			handleFail(mn.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
+    			handleFail(mn.getLatestRequestUrl(), e.getClass().getSimpleName() + ": " + 
     					e.getDetail_code() + ":: " + e.getDescription());
     		}
     		catch(Exception e) {

@@ -354,20 +354,31 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 	}
 	
 
+	protected ObjectList procureObjectList(D1Node d1Node) 
+	throws TestIterationEndingException 
+	{
+		return procureObjectList(d1Node,false);
+	}
 
     /**
      * get an ObjectList from listObjects as the current user, and if empty, 
      * try to create a public readable object.
      * @param d1Node
+     * @param getAll - sets the start and count parameter to get the entire list.
      * @return
      * @throws TestIterationEndingException
      */
-    protected ObjectList procureObjectList(D1Node d1Node) 
+    protected ObjectList procureObjectList(D1Node d1Node, boolean getAll) 
     throws TestIterationEndingException 
     {
     	ObjectList objectList = null;
     	try {
-			objectList = d1Node.listObjects(null);
+    		if (getAll) {
+    			objectList = d1Node.listObjects(null, null, null, null, null, 0, 0);
+    			objectList = d1Node.listObjects(null, null, null, null, null, 0, objectList.getTotal());
+    		} else {
+    			objectList = d1Node.listObjects(null);
+    		}
     	} catch (BaseException e) {
 			throw new TestIterationEndingException("unexpected error thrown by listObjects()", e);
 		}
