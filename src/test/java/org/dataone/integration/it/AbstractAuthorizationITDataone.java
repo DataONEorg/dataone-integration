@@ -286,6 +286,11 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "true"));
 				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "true"));
 
+				 clientSubject = "testMappedToMappedPerson";
+				 setupClientSubject(clientSubject);				 
+				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "true"));
+				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "true"));
+				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "true"));
 				 
 				 clientSubject = "testGroupie";
 				 setupClientSubject(clientSubject); 
@@ -419,8 +424,13 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 					 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "NotAuthorized")); 
 				 }
 				 
-				 // BRL - group membership is transitive, so this is successful
 				 clientSubject = "testMappedPerson";
+				 setupClientSubject(clientSubject);				 
+				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "true"));
+				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "true"));
+				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "true"));
+				 
+				 clientSubject = "testMappedToMappedPerson";
 				 setupClientSubject(clientSubject);				 
 				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "true"));
 				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "true"));
@@ -554,6 +564,12 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "NotAuthorized"));
 				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "true"));
 
+				 clientSubject = "testMappedToMappedPerson";
+				 setupClientSubject(clientSubject);			 
+				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "NotAuthorized"));
+				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "NotAuthorized"));
+				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "true"));
+				 
 				 clientSubject = "testGroupie";
 				 setupClientSubject(clientSubject); 
 				 // to test access as a group member (of testPerson)
@@ -675,6 +691,12 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 
 				 
 				 clientSubject = "testMappedPerson";
+				 setupClientSubject(clientSubject);				 
+				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "NotAuthorized"));
+				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "NotAuthorized"));
+				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "true"));
+				 
+				 clientSubject = "testMappedToMappedPerson";
 				 setupClientSubject(clientSubject);				 
 				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "NotAuthorized"));
 				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "NotAuthorized"));
@@ -810,7 +832,14 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 					 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "NotAuthorized")); 
 				 }
 				 
+				 
 				 clientSubject = "testMappedPerson";
+				 setupClientSubject(clientSubject);
+				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "NotAuthorized"));
+				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "NotAuthorized"));
+				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "true"));
+				 
+				 clientSubject = "testMappedToMappedPerson";
 				 setupClientSubject(clientSubject);
 				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "NotAuthorized"));
 				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "NotAuthorized"));
@@ -949,6 +978,12 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "NotAuthorized"));
 				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "NotAuthorized"));
 				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "true"));
+				 
+				 clientSubject = "testMappedToMappedPerson";
+				 setupClientSubject(clientSubject);				 
+				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "NotAuthorized"));
+				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "NotAuthorized"));
+				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "true"));
 
 				 
 				 clientSubject = "testGroupie";
@@ -1081,6 +1116,12 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "true"));
 				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "true"));
 
+				 clientSubject = "testMappedToMappedPerson";
+				 setupClientSubject(clientSubject);				 
+				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "NotAuthorized"));
+				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "true"));
+				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "true"));
+				 
 				 
 				 clientSubject = "testGroupie";
 				 setupClientSubject(clientSubject);
@@ -1204,7 +1245,14 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "true"));
 				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "true"));
 				 
+				 
 				 clientSubject = "testMappedPerson";
+				 setupClientSubject(clientSubject);				 
+				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "true"));
+				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "true"));
+				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "true"));
+				 
+				 clientSubject = "testMappedToMappedPerson";
 				 setupClientSubject(clientSubject);				 
 				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "true"));
 				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "true"));
@@ -1347,6 +1395,12 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "NotAuthorized"));
 				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "NotAuthorized"));
 				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "true"));
+				 
+				 clientSubject = "testMappedToMappedPerson";
+				 setupClientSubject(clientSubject);			 
+				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "NotAuthorized"));
+				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "NotAuthorized"));
+				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "true"));
 
 				 
 				 clientSubject = "testGroupie";
@@ -1484,6 +1538,13 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "NotAuthorized"));
 				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "true"));
 				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "true"));
+				 
+				 clientSubject = "testMappedToMappedPerson";
+				 setupClientSubject(clientSubject);			 
+				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "NotAuthorized"));
+				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "true"));
+				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "true"));
+
 
 				 
 				 clientSubject = "testGroupie";
@@ -1616,6 +1677,12 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 				 }
 				 
 				 clientSubject = "testMappedPerson";
+				 setupClientSubject(clientSubject);				 
+				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "true"));
+				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "true"));
+				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "true"));
+				 
+				 clientSubject = "testMappedToMappedPerson";
 				 setupClientSubject(clientSubject);				 
 				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.CHANGE_PERMISSION, "true"));
 				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.WRITE,             "true"));
