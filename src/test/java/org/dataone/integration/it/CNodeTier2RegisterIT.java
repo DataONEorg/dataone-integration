@@ -66,7 +66,7 @@ public class CNodeTier2RegisterIT extends ContextAwareTestCaseDataone {
 			try {
 				Set<Node> cNodeSet = NodelistUtil.selectNodes(cn.listNodes(), NodeType.CN);
 				if (cNodeSet.isEmpty()) {
-					handleFail(currentUrl,"Cannot test updateNodeCapabilities unless there is a node in the NodeList");
+					handleFail(cn.getLatestRequestUrl(),"Cannot test updateNodeCapabilities unless there is a node in the NodeList");
 				} else {
 					Node node = cNodeSet.iterator().next();
 					NodeReference nodeRef = node.getIdentifier();
@@ -77,7 +77,7 @@ public class CNodeTier2RegisterIT extends ContextAwareTestCaseDataone {
 					node.setPing(ping);
 					
 					boolean response = cn.updateNodeCapabilities(null,nodeRef,node);
-					checkTrue(currentUrl,"response cannot be false. [Only true or exception].", response);
+					checkTrue(cn.getLatestRequestUrl(),"response cannot be false. [Only true or exception].", response);
 			
 					// TODO: confirm the changed node record.  currently cannot do this as the node update
 					// process is not automatic.
@@ -85,7 +85,7 @@ public class CNodeTier2RegisterIT extends ContextAwareTestCaseDataone {
 				} 
 			}
 			catch (BaseException e) {
-				handleFail(currentUrl,e.getDescription());
+				handleFail(cn.getLatestRequestUrl(),e.getDescription());
 			}
 			catch(Exception e) {
 				e.printStackTrace();
@@ -110,7 +110,7 @@ public class CNodeTier2RegisterIT extends ContextAwareTestCaseDataone {
 			try {
 				Set<Node> cNodeSet = NodelistUtil.selectNodes(cn.listNodes(), NodeType.CN);
 				if (cNodeSet.isEmpty()) {
-					handleFail(currentUrl,"Cannot test updateNodeCapabilities unless there is a node in the NodeList");
+					handleFail(cn.getLatestRequestUrl(),"Cannot test updateNodeCapabilities unless there is a node in the NodeList");
 				} else {
 					Node node = cNodeSet.iterator().next();
 					NodeReference nodeRef = node.getIdentifier();
@@ -123,7 +123,7 @@ public class CNodeTier2RegisterIT extends ContextAwareTestCaseDataone {
 					node.setPing(ping);
 					
 					boolean response = cn.updateNodeCapabilities(null,nodeRef,node);
-					handleFail(currentUrl,"updateNodeCapabilities on fictitious node should fail");
+					handleFail(cn.getLatestRequestUrl(),"updateNodeCapabilities on fictitious node should fail");
 			
 					// TODO: confirm the changed node record.  currently cannot do this as the node update
 					// process is not automatic.
@@ -134,7 +134,7 @@ public class CNodeTier2RegisterIT extends ContextAwareTestCaseDataone {
 				// this is the expected behavior
 			}
 			catch (BaseException e) {
-				handleFail(currentUrl,"expected fail with NotFound. Got: " + e.getClass() + 
+				handleFail(cn.getLatestRequestUrl(),"expected fail with NotFound. Got: " + e.getClass() + 
 						":: " + e.getDescription());
 			}
 			catch(Exception e) {
@@ -160,7 +160,7 @@ public class CNodeTier2RegisterIT extends ContextAwareTestCaseDataone {
 			try {
 				Set<Node> cNodeSet = NodelistUtil.selectNodes(cn.listNodes(), NodeType.CN);
 				if (cNodeSet.isEmpty()) {
-					handleFail(currentUrl,"Cannot test updateNodeCapabilities unless there is a node in the NodeList");
+					handleFail(cn.getLatestRequestUrl(),"Cannot test updateNodeCapabilities unless there is a node in the NodeList");
 				} else {
 					Node node = cNodeSet.iterator().next();
 					NodeReference nodeRef = node.getIdentifier();
@@ -171,7 +171,7 @@ public class CNodeTier2RegisterIT extends ContextAwareTestCaseDataone {
 					node.setPing(ping);
 					
 					boolean response = cn.updateNodeCapabilities(null,nodeRef,node);
-					handleFail(currentUrl,"updateNodeCapabilities on fictitious node should fail");
+					handleFail(cn.getLatestRequestUrl(),"updateNodeCapabilities on fictitious node should fail");
 			
 					// TODO: confirm the changed node record.  currently cannot do this as the node update
 					// process is not automatic.
@@ -182,7 +182,7 @@ public class CNodeTier2RegisterIT extends ContextAwareTestCaseDataone {
 				// this is the expected behavior
 			}
 			catch (BaseException e) {
-				handleFail(currentUrl,"expected fail with NotAuthorized. Got: " + e.getClass() + 
+				handleFail(cn.getLatestRequestUrl(),"expected fail with NotAuthorized. Got: " + e.getClass() + 
 						":: " + e.getDescription());
 			}
 			catch(Exception e) {
@@ -207,7 +207,7 @@ public class CNodeTier2RegisterIT extends ContextAwareTestCaseDataone {
 			try {
 				Set<Node> cNodeSet = NodelistUtil.selectNodes(cn.listNodes(), NodeType.CN);
 				if (cNodeSet.isEmpty()) {
-					handleFail(currentUrl,"Cannot test updateNodeCapabilities unless there is a node in the NodeList");
+					handleFail(cn.getLatestRequestUrl(),"Cannot test updateNodeCapabilities unless there is a node in the NodeList");
 				} else {
 					Node node = cNodeSet.iterator().next();
 					node.setDescription(node.getDescription() + 
@@ -220,14 +220,14 @@ public class CNodeTier2RegisterIT extends ContextAwareTestCaseDataone {
 					node.setPing(ping);
 					
 					boolean response = cn.updateNodeCapabilities(null,nodeRef,node);
-					handleFail(currentUrl,"updateNodeCapabilities to update other fields should fail");
+					handleFail(cn.getLatestRequestUrl(),"updateNodeCapabilities to update other fields should fail");
 				} 
 			}
 			catch (InvalidRequest e) {
 				// this is the expected behavior
 			}
 			catch (BaseException e) {
-				handleFail(currentUrl,"expected fail with InvalidRequest. Got: " + e.getClass() + 
+				handleFail(cn.getLatestRequestUrl(),"expected fail with InvalidRequest. Got: " + e.getClass() + 
 						":: " + e.getDescription());
 			}
 			catch(Exception e) {
@@ -252,7 +252,7 @@ public class CNodeTier2RegisterIT extends ContextAwareTestCaseDataone {
 			try {
 				Set<Node> mNodeSet = NodelistUtil.selectNodes(cn.listNodes(), NodeType.MN);
 				if (mNodeSet.isEmpty()) {
-					handleFail(currentUrl,"Cannot test cn.register() unless there is a Member Node in the NodeList");
+					handleFail(cn.getLatestRequestUrl(),"Cannot test cn.register() unless there is a Member Node in the NodeList");
 				} else {
 					Node node = mNodeSet.iterator().next();
 					String nr = node.getIdentifier().getValue();
@@ -261,11 +261,11 @@ public class CNodeTier2RegisterIT extends ContextAwareTestCaseDataone {
 					node.setIdentifier(newRef);
 					node.setBaseURL(node.getBaseURL() + "/fakeBaseUrlThatIsDifferent");
 					NodeReference response = cn.register(null,node);
-					checkTrue(currentUrl,"register(...) returns a NodeReference object", response != null);
+					checkTrue(cn.getLatestRequestUrl(),"register(...) returns a NodeReference object", response != null);
 				}
 			} 
 			catch (BaseException e) {
-				handleFail(currentUrl,e.getDescription());
+				handleFail(cn.getLatestRequestUrl(),e.getDescription());
 			}
 			catch(Exception e) {
 				e.printStackTrace();
@@ -288,12 +288,12 @@ public class CNodeTier2RegisterIT extends ContextAwareTestCaseDataone {
 			try {
 				Set<Node> mNodeSet = NodelistUtil.selectNodes(cn.listNodes(), NodeType.MN);
 				if (mNodeSet.isEmpty()) {
-					handleFail(currentUrl,"Cannot test cn.register() unless there is a Member Node in the NodeList");
+					handleFail(cn.getLatestRequestUrl(),"Cannot test cn.register() unless there is a Member Node in the NodeList");
 				} else {
 					Node node = mNodeSet.iterator().next();
 					// attempt to re-register a node...
 					NodeReference response = cn.register(null,node);
-					handleFail(currentUrl,"register(...) should throw IndentifierNotUnique exception when" +
+					handleFail(cn.getLatestRequestUrl(),"register(...) should throw IndentifierNotUnique exception when" +
 							" trying to re-register a node (same Identifer)");
 				}
 			} 
@@ -301,7 +301,7 @@ public class CNodeTier2RegisterIT extends ContextAwareTestCaseDataone {
 				// this is expected outcome
 			}
 			catch (BaseException e) {
-				handleFail(currentUrl,"expected fail with InvalidRequest. Got: " + e.getClass() + 
+				handleFail(cn.getLatestRequestUrl(),"expected fail with InvalidRequest. Got: " + e.getClass() + 
 					":: "+ e.getDescription());
 			}
 			catch(Exception e) {

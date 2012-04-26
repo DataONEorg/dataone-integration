@@ -70,16 +70,16 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 						(InputStream) dataPackage[1], (SystemMetadata) dataPackage[2]);	
 				
 				
-				checkEquals(currentUrl,"pid of created object should equal that given",
+				checkEquals(mn.getLatestRequestUrl(),"pid of created object should equal that given",
 						((Identifier)dataPackage[0]).getValue(), pid.getValue());
 				
 				InputStream theDataObject = mn.get(null,pid);
 				String objectData = IOUtils.toString(theDataObject);
-				checkTrue(currentUrl,"should get back an object containing submitted text:" + objectData.substring(0, 1000),
+				checkTrue(mn.getLatestRequestUrl(),"should get back an object containing submitted text:" + objectData.substring(0, 1000),
 						objectData.contains("IPCC Data Distribution Centre Results "));
 			}
 			catch (BaseException e) {
-				handleFail(currentUrl,e.getClass().getSimpleName() + ": " 
+				handleFail(mn.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " 
 						+ e.getDetail_code() + ": " + e.getDescription());
 			}
 			catch(Exception e) {
@@ -110,13 +110,13 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 				
 				mn.create(null,(Identifier) dataPackage[0],
 						(InputStream) dataPackage[1], (SystemMetadata) dataPackage[2]);			
-				handleFail(currentUrl,"should not be able to create an object if no certificate");
+				handleFail(mn.getLatestRequestUrl(),"should not be able to create an object if no certificate");
 			}
 			catch (InvalidToken na) {
 				// expected behavior
 			}
 			catch (BaseException e) {
-				handleFail(currentUrl,"Expected InvalidToken, got: " +
+				handleFail(mn.getLatestRequestUrl(),"Expected InvalidToken, got: " +
 						e.getClass().getSimpleName() + ": " 
 						+ e.getDetail_code() + ": " + e.getDescription());
 			}
@@ -192,7 +192,7 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 					testLoc = "generate";
 					Object[] dataPackage = ExampleUtilities.generateTestSciDataPackage(idString,false);
 
-					checkEquals(currentUrl, "ExampleUtilities.generateTestSciDataPackage() should produce" +
+					checkEquals(mn.getLatestRequestUrl(), "ExampleUtilities.generateTestSciDataPackage() should produce" +
 							"identifier same as the one provided", ((Identifier) dataPackage[0]).getValue(),
 							idString);
 
@@ -202,22 +202,22 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 							(InputStream)dataPackage[1], (SystemMetadata)dataPackage[2]);
 					log.info("    == returned Guid (rPid): " + rPid.getValue());
 
-					checkEquals(currentUrl,"pid returned from create should equal that given",
+					checkEquals(mn.getLatestRequestUrl(),"pid returned from create should equal that given",
 							((Identifier)dataPackage[0]).getValue(), rPid.getValue());
 					
 					testLoc = "get   ";
 					Thread.sleep(1000);
 					InputStream data = mn.get(null, rPid);
-					checkTrue(currentUrl, "get against the object should not equal null", null != data);
+					checkTrue(mn.getLatestRequestUrl(), "get against the object should not equal null", null != data);
 //					String str = IOUtils.toString(data);
-//					checkTrue(currentUrl,"should be able to read the content as created ('" + str.substring(0,100) + "...')",
+//					checkTrue(mn.getLatestRequestUrl(),"should be able to read the content as created ('" + str.substring(0,100) + "...')",
 //							str.indexOf("IPCC Data Distribution Centre Results ") != -1);
 					data.close();
 					testLoc = "      ";
 				}
 				catch (BaseException e) {
 					status = "Error";
-					handleFail(currentUrl,e.getClass().getSimpleName() +
+					handleFail(mn.getLatestRequestUrl(),e.getClass().getSimpleName() +
 							": " + e.getDetail_code() + ": " + e.getDescription());
 				}
 				catch(Exception e) {
@@ -279,19 +279,19 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 						(SystemMetadata) dataPackage[2]  // new sysmeta
 						);
 		
-				checkEquals(currentUrl,"pid returned from update should match that given",
+				checkEquals(mn.getLatestRequestUrl(),"pid returned from update should match that given",
 						newPid.getValue(), updatedPid.getValue());
 
 				// check obsoletes and obsoletedBy fields
 				 SystemMetadata updatedSysmeta = mn.getSystemMetadata(null, updatedPid);
-				 checkEquals(currentUrl,"sysmeta of updatePid should have the originalPid in obsoletes field",
+				 checkEquals(mn.getLatestRequestUrl(),"sysmeta of updatePid should have the originalPid in obsoletes field",
 						 updatedSysmeta.getObsoletes().getValue(),originalPid.getValue());
 				 
-				 checkTrue(currentUrl, "MN should be setting the dateSystemMetadataModified property",
+				 checkTrue(mn.getLatestRequestUrl(), "MN should be setting the dateSystemMetadataModified property",
 						 updatedSysmeta.getDateSysMetadataModified() != null);
 				 
 				 SystemMetadata oldSysmeta = mn.getSystemMetadata(null, originalPid);
-				 checkEquals(currentUrl,"sysmeta of original Pid should have new pid in obsoletedBy field",
+				 checkEquals(mn.getLatestRequestUrl(),"sysmeta of original Pid should have new pid in obsoletedBy field",
 						 oldSysmeta.getObsoletedBy().getValue(),updatedPid.getValue());
 				 
 				 // the old pid needs to be in a timebound listObject search
@@ -302,12 +302,12 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 						 foundUpdatedSysmeta = true;
 					 }
 				 }
-				 checkTrue(currentUrl,"should find original pid in time-bound listObject " +
+				 checkTrue(mn.getLatestRequestUrl(),"should find original pid in time-bound listObject " +
 				 		"where start time is after original create and before update",foundUpdatedSysmeta);
 				 
 			}
 			catch (BaseException e) {
-				handleFail(currentUrl,e.getClass().getSimpleName() + 
+				handleFail(mn.getLatestRequestUrl(),e.getClass().getSimpleName() + 
 						": " + e.getDetail_code() + ": " + e.getDescription());
 			}
 			catch(Exception e) {
@@ -353,7 +353,7 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 						newPid, smd);
 				smd = mn.getSystemMetadata(null, updatedPid);
 				if (smd.getObsoletedBy() != null) {
-					handleFail(currentUrl,"should not be able to update with obsoletedBy " +
+					handleFail(mn.getLatestRequestUrl(),"should not be able to update with obsoletedBy " +
 						"field set (for pid = " + updatedPid.getValue() + ")");		
 				}
 			}
@@ -361,7 +361,7 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 				// expected outcome
 			}
 			catch (BaseException e) {
-				handleFail(currentUrl,e.getClass().getSimpleName() + 
+				handleFail(mn.getLatestRequestUrl(),e.getClass().getSimpleName() + 
 						": " + e.getDetail_code() + ": " + e.getDescription());
 			}
 			catch(Exception e) {
@@ -407,14 +407,14 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 						originalPid,
 						(InputStream) dataPackage[1],    // new data
 						newPid, smd);
-				handleFail(currentUrl,"should not be able to update with faulty " +
+				handleFail(mn.getLatestRequestUrl(),"should not be able to update with faulty " +
 					"obsoletes information (for pid = " + updatedPid.getValue() + ")");		
 			}
 			catch (InvalidSystemMetadata e) {
 				// expected outcome
 			}
 			catch (BaseException e) {
-				handleFail(currentUrl,e.getClass().getSimpleName() + 
+				handleFail(mn.getLatestRequestUrl(),e.getClass().getSimpleName() + 
 						": " + e.getDetail_code() + ": " + e.getDescription());
 			}
 			catch(Exception e) {
@@ -470,20 +470,20 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 						sysmeta                       // modified sysmeta
 						);
 		
-					handleFail(currentUrl,"should not be able to update an object if no certificate " +
+					handleFail(mn.getLatestRequestUrl(),"should not be able to update an object if no certificate " +
 							"(updated  " + pid + " with " + updatedPid);
 				} 
 				catch (InvalidToken na) {
 						// expected behavior
 				}
 				catch (BaseException e) {
-					handleFail(currentUrl,"Expected InvalidToken, got: " +
+					handleFail(mn.getLatestRequestUrl(),"Expected InvalidToken, got: " +
 						e.getClass().getSimpleName() + ": " + e.getDetail_code() + 
 						": " + e.getDescription());
 				}
 			}
 			catch (BaseException e) {
-				handleFail(currentUrl,"Exception while setting up test (mn.create): " +
+				handleFail(mn.getLatestRequestUrl(),"Exception while setting up test (mn.create): " +
 						e.getClass().getSimpleName() + ": " + e.getDetail_code() + 
 						": " + e.getDescription());
 			}
@@ -519,14 +519,14 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 				// try the delete
 				Identifier deletedPid = mn.delete(null, pid);
 
-				checkEquals(currentUrl,"pid returned from delete should match that given",
+				checkEquals(mn.getLatestRequestUrl(),"pid returned from delete should match that given",
 						((Identifier)dataPackage[0]).getValue(), deletedPid.getValue());
 				
 				SystemMetadata smd = mn.getSystemMetadata(null, pid);
-				checkTrue(currentUrl, "sysmeta for deleted object should be has status of archived",smd.getArchived());
+				checkTrue(mn.getLatestRequestUrl(), "sysmeta for deleted object should be has status of archived",smd.getArchived());
 			}
 			catch (BaseException e) {
-				handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
+				handleFail(mn.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
 						e.getDetail_code() + ": " + e.getDescription());
 			}
 			catch(Exception e) {
@@ -558,14 +558,14 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 				fakePid.setValue("fakeID." + ExampleUtilities.generateIdentifier());
 				Identifier deletedPid = mn.delete(null, fakePid);
 
-				handleFail(currentUrl,"member node should return NotFound if pid" +
+				handleFail(mn.getLatestRequestUrl(),"member node should return NotFound if pid" +
 						"to be deleted does not exist there.  Pid: " + deletedPid);
 			}
 			catch (NotFound e) {
 				// expected outcome
 			}
 			catch (BaseException e) {
-				handleFail(currentUrl,"Expected NotFound, got: " + e.getClass().getSimpleName() +
+				handleFail(mn.getLatestRequestUrl(),"Expected NotFound, got: " + e.getClass().getSimpleName() +
 						": " + e.getDetail_code() + ": " + e.getDescription());
 			}
 			catch(Exception e) {
@@ -598,7 +598,7 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 				setupClientSubject_NoCert();
 				// try the delete
 				mn.delete(null, pid);
-				handleFail(currentUrl,"should not be able to delete an object if no certificate");
+				handleFail(mn.getLatestRequestUrl(),"should not be able to delete an object if no certificate");
 			}
 			catch (InvalidToken na) {
 				try {
@@ -610,14 +610,14 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 					}
 				}
 				catch (BaseException e) {
-					handleFail(currentUrl,"Got InvalidToken, but couldn't perform subsequent get(). Instead: " +
+					handleFail(mn.getLatestRequestUrl(),"Got InvalidToken, but couldn't perform subsequent get(). Instead: " +
 							e.getClass().getSimpleName() + ": " + e.getDetail_code() + 
 							": " + e.getDescription());
 				} 
 				
 			}
 			catch (BaseException e) {
-				handleFail(currentUrl,"Expected InvalidToken, got: " +
+				handleFail(mn.getLatestRequestUrl(),"Expected InvalidToken, got: " +
 						e.getClass().getSimpleName() + ": " + e.getDetail_code() + 
 						": " + e.getDescription());
 			}

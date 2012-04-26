@@ -86,10 +86,10 @@ public class CNodeTier2AuthorizationIT extends AbstractAuthorizationITDataone {
 				Identifier pid = procurePublicReadableTestObject(cn,D1TypeBuilder.buildIdentifier(objectIdentifier));
 //				Identifier pid = procurePublicReadableTestObject(cn);
 				boolean success = cn.isAuthorized(null, pid, Permission.READ);
-				checkTrue(currentUrl,"isAuthorized response should never be false. [Only true or exception].", success);
+				checkTrue(cn.getLatestRequestUrl(),"isAuthorized response should never be false. [Only true or exception].", success);
 			} 
     		catch (BaseException e) {
-				handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
+				handleFail(cn.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
 						e.getDetail_code() + ": " + e.getDescription());
 			}
 			catch(Exception e) {
@@ -133,10 +133,10 @@ public class CNodeTier2AuthorizationIT extends AbstractAuthorizationITDataone {
 							inheritorSubject, 
 							smd.getSerialVersion().longValue());
 				
-					checkTrue(currentUrl,"1. setRightsHolder(...) returns a Identifier object", response != null);
+					checkTrue(cn.getLatestRequestUrl(),"1. setRightsHolder(...) returns a Identifier object", response != null);
 					try {
 						cn.isAuthorized(null, changeableObject, Permission.CHANGE_PERMISSION);
-						handleFail(currentUrl, "2. isAuthorized to CHANGE as former rightsHolder should fail.");
+						handleFail(cn.getLatestRequestUrl(), "2. isAuthorized to CHANGE as former rightsHolder should fail.");
 					} 
 					catch (NotAuthorized e) {
 						; // expected
@@ -146,27 +146,27 @@ public class CNodeTier2AuthorizationIT extends AbstractAuthorizationITDataone {
 					try {
 						cn.isAuthorized(null, changeableObject, Permission.CHANGE_PERMISSION);
 					} catch (NotAuthorized na) {
-						handleFail(currentUrl,"3. testPerson should now be able to CHANGE the object");
+						handleFail(cn.getLatestRequestUrl(),"3. testPerson should now be able to CHANGE the object");
 					}
 					
 					try {
 						smd = cn.getSystemMetadata(null, changeableObject);
-						checkTrue(currentUrl, "4. testPerson should be the rightsHolder",smd.getRightsHolder().equals(inheritorSubject));
+						checkTrue(cn.getLatestRequestUrl(), "4. testPerson should be the rightsHolder",smd.getRightsHolder().equals(inheritorSubject));
 					} catch (NotAuthorized na) {
-						handleFail(currentUrl,"5. testPerson should now be able to get the systemmetadata");
+						handleFail(cn.getLatestRequestUrl(),"5. testPerson should now be able to get the systemmetadata");
 					}
 					// clean up step to try to put it back under the testRightsHolder subject.
 					cn.setRightsHolder(null, changeableObject, ownerSubject, smd.getSerialVersion().longValue());
 					
 				} else {
-					handleFail(currentUrl,"could not create object for testing setRightsHolder");
+					handleFail(cn.getLatestRequestUrl(),"could not create object for testing setRightsHolder");
 				}
 			} 
 			catch (IndexOutOfBoundsException e) {
-				handleFail(currentUrl,"No Objects available to test against");
+				handleFail(cn.getLatestRequestUrl(),"No Objects available to test against");
 			}
 			catch (BaseException e) {
-				handleFail(currentUrl,e.getDescription());
+				handleFail(cn.getLatestRequestUrl(),e.getDescription());
 			}
 			catch(Exception e) {
 				e.printStackTrace();
@@ -225,13 +225,13 @@ public class CNodeTier2AuthorizationIT extends AbstractAuthorizationITDataone {
 					Subject readerSubject = setupClientSubject("testPerson");				
 					try {
 						cn.isAuthorized(null, changeableObject, Permission.READ);
-						handleFail(currentUrl,"1. isAuthorized by the reader should fail");
+						handleFail(cn.getLatestRequestUrl(),"1. isAuthorized by the reader should fail");
 					} catch (NotAuthorized na) {
 						// should fail
 					}
 					try {
 						cn.get(null, changeableObject);
-						handleFail(currentUrl,"2. getting the newly created object as a reader should fail");
+						handleFail(cn.getLatestRequestUrl(),"2. getting the newly created object as a reader should fail");
 					} catch (NotAuthorized na) {
 						// this is what we want
 					}
@@ -244,7 +244,7 @@ public class CNodeTier2AuthorizationIT extends AbstractAuthorizationITDataone {
 					success = cn.setAccessPolicy(null, changeableObject, 
 							AccessUtil.createSingleRuleAccessPolicy(new String[] {readerSubject.getValue()},
 									new Permission[] {Permission.READ}), serialVersion);
-					checkTrue(currentUrl,"3. testRightsHolder should be able to set the access policy",success);
+					checkTrue(cn.getLatestRequestUrl(),"3. testRightsHolder should be able to set the access policy",success);
 					
 					
 					smd = cn.getSystemMetadata(null, changeableObject);
@@ -259,7 +259,7 @@ public class CNodeTier2AuthorizationIT extends AbstractAuthorizationITDataone {
 					try {
 						cn.isAuthorized(null, changeableObject, Permission.READ);
 					} catch (NotAuthorized na) {
-						handleFail(currentUrl,"4. testPerson should be authorized to read this pid '" 
+						handleFail(cn.getLatestRequestUrl(),"4. testPerson should be authorized to read this pid '" 
 								+ changeableObject.getValue() + "'");
 					}
 
@@ -267,7 +267,7 @@ public class CNodeTier2AuthorizationIT extends AbstractAuthorizationITDataone {
 					try {
 						cn.get(null, changeableObject);
 					} catch (NotAuthorized na) {
-						handleFail(currentUrl,"5. testPerson should now be able to get the object");
+						handleFail(cn.getLatestRequestUrl(),"5. testPerson should now be able to get the object");
 					}
 
 					log.info("now try to get as a known user with no rights to the object (should not be able)");
@@ -277,7 +277,7 @@ public class CNodeTier2AuthorizationIT extends AbstractAuthorizationITDataone {
 					try {
 						InputStream is = cn.get(null, changeableObject);
 						log.info(IOUtils.toString(is));
-						handleFail(currentUrl,"6. testSubmitter should not be able to get the object");
+						handleFail(cn.getLatestRequestUrl(),"6. testSubmitter should not be able to get the object");
 						
 					} catch (NotAuthorized na) {
 						// this is what we want
@@ -285,7 +285,7 @@ public class CNodeTier2AuthorizationIT extends AbstractAuthorizationITDataone {
 					log.info("now try isAuthorized() on it as a known user with no rights to the object");
 					try {
 						cn.isAuthorized(null, changeableObject, Permission.READ);
-						handleFail(currentUrl,"7. testSubmitter should not be authorized to read the object");
+						handleFail(cn.getLatestRequestUrl(),"7. testSubmitter should not be authorized to read the object");
 					} catch (NotAuthorized na) {
 						// this is what we want
 					}
@@ -294,7 +294,7 @@ public class CNodeTier2AuthorizationIT extends AbstractAuthorizationITDataone {
 					setupClientSubject_NoCert();
 					try {
 						cn.get(null, changeableObject);
-						handleFail(currentUrl,"8. anonymous client (no certificate) should not be" +
+						handleFail(cn.getLatestRequestUrl(),"8. anonymous client (no certificate) should not be" +
 						"able to get the object");
 					} catch (NotAuthorized na) {
 						// this is what we want
@@ -303,7 +303,7 @@ public class CNodeTier2AuthorizationIT extends AbstractAuthorizationITDataone {
 					log.info("and test isAuthorized on it with certificateless client");
 					try {
 						cn.isAuthorized(null, changeableObject, Permission.READ);
-						handleFail(currentUrl,"9. anonymous client (no certificate) should not be " +
+						handleFail(cn.getLatestRequestUrl(),"9. anonymous client (no certificate) should not be " +
 						"able to get successful response from isAuthorized()");
 					} catch (NotAuthorized na) {
 						// this is what we want
@@ -311,9 +311,9 @@ public class CNodeTier2AuthorizationIT extends AbstractAuthorizationITDataone {
 					log.info("done.");
 				}
 			} catch (IndexOutOfBoundsException e) {
-				handleFail(currentUrl,"No Objects available to test against");
+				handleFail(cn.getLatestRequestUrl(),"No Objects available to test against");
 			} catch (BaseException e) {
-				handleFail(currentUrl, e.getClass().getSimpleName() + ": " + 
+				handleFail(cn.getLatestRequestUrl(), e.getClass().getSimpleName() + ": " + 
 						e.getDetail_code() + ": " + e.getDescription());
 			} catch (Exception e) {
 				e.printStackTrace();

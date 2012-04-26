@@ -67,7 +67,7 @@ public class MNodeTier0IT extends ContextAwareTestCaseDataone  {
 				Node node = TypeMarshaller.unmarshalTypeFromStream(Node.class, is);
 			} 
 			catch (BaseException e) {
-				handleFail(currentUrl,e.getClass().getSimpleName() + ":: " + e.getDescription());
+				handleFail(mn.getLatestRequestUrl(),e.getClass().getSimpleName() + ":: " + e.getDescription());
 			}
 			catch(Exception e) {
 				e.printStackTrace();

@@ -82,11 +82,11 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
 //				Assume.assumeTrue(APITestUtils.isTierImplemented(mn, "Tier5"));
 				Date pingDate = mn.ping();
 				
-				checkTrue(currentUrl,"ping should return a valid date", pingDate != null);
+				checkTrue(mn.getLatestRequestUrl(),"ping should return a valid date", pingDate != null);
 				// other invalid dates will be thrown as IOExceptions cast to ServiceFailures
 			} 
 			catch (BaseException e) {
-				handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
+				handleFail(mn.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
 						e.getDetail_code() + ":: " + e.getDescription());
 			}
 			catch(Exception e) {
@@ -116,10 +116,10 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
 
     		try {
     			Log eventLog = mn.getLogRecords(null, null, null, null, null, null);   			
-    			checkTrue(currentUrl,"getLogRecords should return a log datatype", eventLog != null);
+    			checkTrue(mn.getLatestRequestUrl(),"getLogRecords should return a log datatype", eventLog != null);
     		}
     		catch (BaseException e) {
-    			handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
+    			handleFail(mn.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
     					e.getDetail_code() + ": " + e.getDescription());
     		}
     		catch(Exception e) {
@@ -183,11 +183,11 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
         		   if (otherType == null) {
         			   if (targetType.equals(Event.READ)) {
         				   entries = mn.getLogRecords(null, fromDate, t0, Event.CREATE, null, 0, 0);
-            			   checkEquals(currentUrl,"Log contains only READ events, " +
+            			   checkEquals(mn.getLatestRequestUrl(),"Log contains only READ events, " +
             			   		"so should get 0 CREATE events",String.valueOf(entries.getTotal()),"0");
         			   } else {
         				   entries = mn.getLogRecords(null, fromDate, t0, Event.READ, null, 0, 0);
-            			   checkEquals(currentUrl,"Log contains only " + targetType + " events, " +
+            			   checkEquals(mn.getLatestRequestUrl(),"Log contains only " + targetType + " events, " +
             			   		"so should get 0 READ events",String.valueOf(entries.getTotal()),"0");
         			   }
         		   } else {
@@ -199,14 +199,14 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
         					   break;
         				   }
         			   }
-        			   checkTrue(currentUrl, "Filtered log for the time period should contain only " +
+        			   checkTrue(mn.getLatestRequestUrl(), "Filtered log for the time period should contain only " +
         			   		"logs of type " + targetType.xmlValue(),oneTypeOnly);
         		   }
         	   }
            }
        
            catch (BaseException e) {
-        	   handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
+        	   handleFail(mn.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
         			   e.getDetail_code() + ": " + e.getDescription());
            }
 			catch(Exception e) {
@@ -271,7 +271,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
         		   	   
         			   entries = mn.getLogRecords(null, fromDate, t0, 
         					   null, targetIdentifier.getValue(), 0, 0);
-        			   checkEquals(currentUrl,"Log should be empty for the derived identifier pattern " +
+        			   checkEquals(mn.getLatestRequestUrl(),"Log should be empty for the derived identifier pattern " +
             			   		targetIdentifier.getValue(),String.valueOf(entries.getTotal()),"0");
         			   
         		   } 
@@ -285,7 +285,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
         					   break;
         				   }
         			   }
-        			   checkTrue(currentUrl, "Filtered log for the time period should " +
+        			   checkTrue(mn.getLatestRequestUrl(), "Filtered log for the time period should " +
         			   		"contain only entries for the target identifier: " + targetIdentifier.getValue(),
         			   		oneTypeOnly);
         		   }
@@ -293,7 +293,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
            }
        
            catch (BaseException e) {
-        	   handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
+        	   handleFail(mn.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
         			   e.getDetail_code() + ": " + e.getDescription());
            }
 			catch(Exception e) {
@@ -339,7 +339,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     				
     			if (eventLog.getCount() == 0) {
     				// still zero?  something's probably wrong
-    				handleFail(currentUrl,"the event log contains no entries after trying to read an object");
+    				handleFail(mn.getLatestRequestUrl(),"the event log contains no entries after trying to read an object");
     				
     			} else {
     				// try to find log entries with different dates, should be quick...
@@ -362,7 +362,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     				
     				
     				if (excludedEntry == null) {
-    					handleFail(currentUrl,"could not find 2 objects with different dateLogged times");
+    					handleFail(mn.getLatestRequestUrl(),"could not find 2 objects with different dateLogged times");
     				} 
     				else {
 
@@ -371,7 +371,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
 
     					for (LogEntry le : eventLog.getLogEntryList()) {
     						if (le.getEntryId().equals(excludedEntry.getEntryId())) {
-    							handleFail(currentUrl,"entryID " + excludedEntry.getEntryId() +
+    							handleFail(mn.getLatestRequestUrl(),"entryID " + excludedEntry.getEntryId() +
     									" should not be in the event log where fromDate set to " + fromDate);
     							break;
     						}
@@ -380,7 +380,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     			} 
     		} 
     		catch (BaseException e) {
-    			handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
+    			handleFail(mn.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
     					e.getDetail_code() + ": " + e.getDescription());
     		}
     		catch(Exception e) {
@@ -404,10 +404,10 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
 
     		try {
     			Node node = mn.getCapabilities();
-    			checkTrue(currentUrl,"getCapabilities returns a Node", node != null);
+    			checkTrue(mn.getLatestRequestUrl(),"getCapabilities returns a Node", node != null);
     		} 
     		catch (BaseException e) {
-    			handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
+    			handleFail(mn.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
     					e.getDetail_code() + ":: " + e.getDescription());
     		}
     		catch(Exception e) {
@@ -433,7 +433,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
 
     		try {
     			Node node = mn.getCapabilities();
-    			checkTrue(currentUrl,"getCapabilities returns a Node", node != null);
+    			checkTrue(mn.getLatestRequestUrl(),"getCapabilities returns a Node", node != null);
     		
     			List<Subject> contacts = node.getContactSubjectList();
     			boolean found = false;
@@ -447,11 +447,11 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     					}
     				}
     			}
-    			checkTrue(currentUrl,"the node should have at least one contactSubject that conforms to RFC2253.", found);
+    			checkTrue(mn.getLatestRequestUrl(),"the node should have at least one contactSubject that conforms to RFC2253.", found);
     			
     		} 
     		catch (BaseException e) {
-    			handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
+    			handleFail(mn.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
     					e.getDetail_code() + ":: " + e.getDescription());
     		}
     		catch(Exception e) {
@@ -476,15 +476,15 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
 
     		try {
     			Node node = mn.getCapabilities();
-    			checkTrue(currentUrl,"getCapabilities returns a Node", node != null);
+    			checkTrue(mn.getLatestRequestUrl(),"getCapabilities returns a Node", node != null);
     		
     			NodeReference nodeRef = node.getIdentifier();
-    			checkTrue(currentUrl,"the node identifier should conform to specification 'urn:node:[\\w_]{2,23}'",
+    			checkTrue(mn.getLatestRequestUrl(),"the node identifier should conform to specification 'urn:node:[\\w_]{2,23}'",
     					nodeRef.getValue().matches("^urn:node:[\\w_]{2,23}"));
     			
     		} 
     		catch (BaseException e) {
-    			handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
+    			handleFail(mn.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
     					e.getDetail_code() + ":: " + e.getDescription());
     		}
     		catch(Exception e) {
@@ -508,7 +508,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
 
     		try {
     			ObjectList ol = procureObjectList(mn);//.listObjects(null);
-    			checkTrue(currentUrl,"listObjects() should return an ObjectList", ol != null);
+    			checkTrue(mn.getLatestRequestUrl(),"listObjects() should return an ObjectList", ol != null);
     			
     			Date startTime = new Date(System.currentTimeMillis() - 10 * 60 * 1000);
 				Date endTime = new Date(System.currentTimeMillis() - 1 * 60 * 1000);
@@ -519,14 +519,14 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
 						formatId, replicaStatus , 
 						Integer.valueOf(0),
 						Integer.valueOf(10));
-    			checkTrue(currentUrl,"listObjects(<parameters>) returns an ObjectList", ol != null);
+    			checkTrue(mn.getLatestRequestUrl(),"listObjects(<parameters>) returns an ObjectList", ol != null);
     		} 
     		catch (TestIterationEndingException e) {
-    			handleFail(currentUrl, e.getMessage() + ":: cause: "
+    			handleFail(mn.getLatestRequestUrl(), e.getMessage() + ":: cause: "
     					+ e.getCause().getClass().getSimpleName() + ": " + e.getCause().getMessage());
     		}
     		catch (BaseException e) {
-    			handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
+    			handleFail(mn.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
     					e.getDetail_code() + ":: " + e.getDescription());
     		}
     		catch(Exception e) {
@@ -553,7 +553,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
 
     		try {
     			ObjectList ol = procureObjectList(mn);
-    			checkTrue(currentUrl,"listObjects() should return an ObjectList", ol != null);
+    			checkTrue(mn.getLatestRequestUrl(),"listObjects() should return an ObjectList", ol != null);
     			if (ol.getTotal() == 0)
     				throw new TestIterationEndingException("no objects found in listObjects");
     			ObjectInfo oi0 = ol.getObjectInfo(0);
@@ -588,7 +588,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
    					// so we have to check that the excluded object was excluded
    					for (ObjectInfo oi: ol.getObjectInfoList()) {
    						if (oi.getIdentifier().equals(excludedObjectInfo.getIdentifier())) {
-   							handleFail(currentUrl,String.format("identifier %s with sysMetaModified date of '%s'" +
+   							handleFail(mn.getLatestRequestUrl(),String.format("identifier %s with sysMetaModified date of '%s'" +
    									" should not be in the objectList where 'fromDate' parameter set to '%s'", 
    									excludedObjectInfo.getIdentifier().getValue(),
    									DateTimeMarshaller.serializeDateToUTC(excludedObjectInfo.getDateSysMetadataModified()),
@@ -600,7 +600,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
 
     		} 
     		catch (BaseException e) {
-    			handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
+    			handleFail(mn.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
     					e.getDetail_code() + ":: " + e.getDescription());
     		}
     		catch(Exception e) {
@@ -632,7 +632,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     			} else {
     				ol = mn.listObjects(null, null, null, null, null, 0, ol.getTotal());
     			}
-    			checkTrue(currentUrl,"listObjects() should return an ObjectList", ol != null);
+    			checkTrue(mn.getLatestRequestUrl(),"listObjects() should return an ObjectList", ol != null);
     			if (ol.getTotal() == 0)
     				throw new TestIterationEndingException("no objects found in listObjects");
     			ObjectFormatIdentifier excludedFormat = ol.getObjectInfo(0).getFormatId();
@@ -640,7 +640,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     				if (!oi.getFormatId().equals(excludedFormat)) {
     					ObjectList ol2 = mn.listObjects(null, null, null, oi.getFormatId(),
     	   						null, null, null);
-    	   				checkTrue(currentUrl,"objectList filtered by " + oi.getFormatId().getValue() +
+    	   				checkTrue(mn.getLatestRequestUrl(),"objectList filtered by " + oi.getFormatId().getValue() +
     	   				      " should contain fewer objects than unfiltered", 
     	   				      ol2.getTotal() <  ol.getTotal()
     	   				      );
@@ -652,7 +652,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
    				ol = mn.listObjects(null, null, null, D1TypeBuilder.buildFormatIdentifier("fake_format"),
    						null, null, null);
    				if (ol.getTotal() != 0) {
-   					handleFail(currentUrl,"filtering the object list by a fake " +
+   					handleFail(mn.getLatestRequestUrl(),"filtering the object list by a fake " +
    							"format should return zero objects");
    				}
    				
@@ -662,7 +662,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
    				
     		} 
     		catch (BaseException e) {
-    			handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
+    			handleFail(mn.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
     					e.getDetail_code() + ":: " + e.getDescription());
     		}
     		catch(Exception e) {
@@ -691,13 +691,13 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
 				Identifier id = procurePublicReadableTestObject(mn,D1TypeBuilder.buildIdentifier(objectIdentifier));
  //   			Identifier id = procurePublicReadableTestObject(mn);
     			InputStream is = mn.get(null,id);
-    			checkTrue(currentUrl,"get() returns an objectStream", is != null);
+    			checkTrue(mn.getLatestRequestUrl(),"get() returns an objectStream", is != null);
     		}
     		catch (IndexOutOfBoundsException e) {
-    			handleFail(currentUrl,"No Objects available to test against");
+    			handleFail(mn.getLatestRequestUrl(),"No Objects available to test against");
     		}
     		catch (BaseException e) {
-    			handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
+    			handleFail(mn.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
     					e.getDetail_code() + ":: " + e.getDescription());
     		}
     		catch(Exception e) {
@@ -725,13 +725,13 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
 				Identifier id = procurePublicReadableTestObject(mn,D1TypeBuilder.buildIdentifier(objectIdentifier));
 //    			Identifier id = procurePublicReadableTestObject(mn);
     			SystemMetadata smd = mn.getSystemMetadata(null,id);
-    			checkTrue(currentUrl,"getSystemMetadata() returns a SystemMetadata object", smd != null);
+    			checkTrue(mn.getLatestRequestUrl(),"getSystemMetadata() returns a SystemMetadata object", smd != null);
     		} 
     		catch (IndexOutOfBoundsException e) {
     			handleFail(currentUrl,"No Objects available to test against");
     		}
     		catch (BaseException e) {
-    			handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
+    			handleFail(mn.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
     					e.getDetail_code() + ":: " + e.getDescription());
     		}
     		catch(Exception e) {
@@ -759,13 +759,13 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
 				Identifier id = procurePublicReadableTestObject(mn,D1TypeBuilder.buildIdentifier(objectIdentifier));
 //    			Identifier id = procurePublicReadableTestObject(mn);
     			DescribeResponse dr = mn.describe(null,id);
-    			checkTrue(currentUrl,"describe() returns a DescribeResponse object", dr != null);	
+    			checkTrue(mn.getLatestRequestUrl(),"describe() returns a DescribeResponse object", dr != null);	
     		} 
     		catch (IndexOutOfBoundsException e) {
-    			handleFail(currentUrl,"No Objects available to test against");
+    			handleFail(mn.getLatestRequestUrl(),"No Objects available to test against");
     		}
     		catch (BaseException e) {
-    			handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
+    			handleFail(mn.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
     					e.getDetail_code() + ":: " + e.getDescription());
     		}
     		catch(Exception e) {
@@ -792,13 +792,13 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
 				Identifier id = procurePublicReadableTestObject(mn,D1TypeBuilder.buildIdentifier(objectIdentifier));
 //    			Identifier id = procurePublicReadableTestObject(mn);
     			Checksum cs = mn.getChecksum(null,id,CHECKSUM_ALGORITHM);
-    			checkTrue(currentUrl,"getChecksum() returns a Checksum object", cs != null);
+    			checkTrue(mn.getLatestRequestUrl(),"getChecksum() returns a Checksum object", cs != null);
     		} 
     		catch (IndexOutOfBoundsException e) {
-    			handleFail(currentUrl,"No Objects available to test against");
+    			handleFail(mn.getLatestRequestUrl(),"No Objects available to test against");
     		}
     		catch (BaseException e) {
-    			handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
+    			handleFail(mn.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
     					e.getDetail_code() + ":: " + e.getDescription());
     		}
     		catch(Exception e) {
@@ -830,16 +830,16 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     			System.out.println(sf.serialize(SynchronizationFailed.FMT_XML));
     			mn.synchronizationFailed(null, 
     					new SynchronizationFailed("0","a message",id.getValue(),null));
-    			checkTrue(currentUrl,"synchronizationFailed() does not throw exception", true);
+    			checkTrue(mn.getLatestRequestUrl(),"synchronizationFailed() does not throw exception", true);
     		}
     		catch (NotAuthorized e) {
     			; // this is an acceptable (and preferrable) outcome for calling without a client cert.
     		}
     		catch (IndexOutOfBoundsException e) {
-    			handleFail(currentUrl,"No Objects available to test against");
+    			handleFail(mn.getLatestRequestUrl(),"No Objects available to test against");
     		}
     		catch (BaseException e) {
-    			handleFail(currentUrl,e.getClass().getSimpleName() + ":: " + 
+    			handleFail(mn.getLatestRequestUrl(),e.getClass().getSimpleName() + ":: " + 
     					e.getDetail_code() + " " + e.getDescription());
     		}
     		catch(Exception e) {

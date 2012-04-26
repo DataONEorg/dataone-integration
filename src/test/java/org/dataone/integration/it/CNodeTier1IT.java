@@ -105,11 +105,11 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
 			try {
 				Date pingDate = cn.ping();
 				
-				checkTrue(currentUrl,"ping() should return a valid date", pingDate != null);
+				checkTrue(cn.getLatestRequestUrl(),"ping() should return a valid date", pingDate != null);
 				// other invalid dates will be thrown as IOExceptions cast to ServiceFailures
 			} 
 			catch (BaseException e) {
-				handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
+				handleFail(cn.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
 						e.getDetail_code() + ":: " + e.getDescription());
 			}
 			catch(Exception e) {
@@ -135,14 +135,14 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
 
     		try {
     			ObjectFormatList response = cn.listFormats();
-    			checkTrue(currentUrl,"listFormats(...) returns an ObjectFormatList object",
+    			checkTrue(cn.getLatestRequestUrl(),"listFormats(...) returns an ObjectFormatList object",
     					response instanceof ObjectFormatList);
     		} 
     		catch (IndexOutOfBoundsException e) {
-    			handleFail(currentUrl,"No Objects available to test against");
+    			handleFail(cn.getLatestRequestUrl(),"No Objects available to test against");
     		}
     		catch (BaseException e) {
-    			handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
+    			handleFail(cn.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
     					e.getDetail_code() + ":: " + e.getDescription());
     		}
     		catch(Exception e) {
@@ -170,17 +170,17 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
     			if (ofList.getCount() > 0) {
     				ObjectFormatIdentifier formatId = ofList.getObjectFormat(0).getFormatId();
     				ObjectFormat response = cn.getFormat(formatId);
-    				checkTrue(currentUrl,"getFormat(...) returns an ObjectFormat object", 
+    				checkTrue(cn.getLatestRequestUrl(),"getFormat(...) returns an ObjectFormat object", 
     						response instanceof ObjectFormat);
     			} else {
-    				handleFail(currentUrl,"no formats in format list to use for testing getFormat()");
+    				handleFail(cn.getLatestRequestUrl(),"no formats in format list to use for testing getFormat()");
     			}
     		} 
     		catch (IndexOutOfBoundsException e) {
-    			handleFail(currentUrl,"No Objects available to test against");
+    			handleFail(cn.getLatestRequestUrl(),"No Objects available to test against");
     		}
     		catch (BaseException e) {
-    			handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
+    			handleFail(cn.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
     					e.getDetail_code() + ":: " + e.getDescription());
     		}
     		catch(Exception e) {
@@ -207,17 +207,17 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
     			formatId.setValue("aBogusFormat");
     			cn.getFormat(formatId);
     		
-    			handleFail(currentUrl,"getFormat(...) with a bogus formatID should " +
+    			handleFail(cn.getLatestRequestUrl(),"getFormat(...) with a bogus formatID should " +
     					"throw an exception.");
     		} 
     		catch (IndexOutOfBoundsException e) {
-    			handleFail(currentUrl,"No Objects available to test against");
+    			handleFail(cn.getLatestRequestUrl(),"No Objects available to test against");
     		}
     		catch (NotFound e) {
     			// the desired outcome
     		}
     		catch (BaseException e) {
-    			handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
+    			handleFail(cn.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
     					e.getDetail_code() + ":: " + e.getDescription());
     		}
     		catch(Exception e) {
@@ -239,14 +239,14 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
 
     		try {
     			ChecksumAlgorithmList response = cn.listChecksumAlgorithms();
-    			checkTrue(currentUrl,"listChecksumAlgorithms(...) returns a valid ChecksumAlgorithmList object", 
+    			checkTrue(cn.getLatestRequestUrl(),"listChecksumAlgorithms(...) returns a valid ChecksumAlgorithmList object", 
     					response instanceof ChecksumAlgorithmList);
     		} 
     		catch (IndexOutOfBoundsException e) {
-    			handleFail(currentUrl,"No Objects available to test against");
+    			handleFail(cn.getLatestRequestUrl(),"No Objects available to test against");
     		}
     		catch (BaseException e) {
-    			handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
+    			handleFail(cn.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
     					e.getDetail_code() + ":: " + e.getDescription());
     		}
     		catch(Exception e) {
@@ -275,10 +275,10 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
 
     		try {
     			Log eventLog = cn.getLogRecords(null, null, null, null, null, null);
-    			checkTrue(currentUrl,"getLogRecords should return a log datatype", eventLog != null);
+    			checkTrue(cn.getLatestRequestUrl(),"getLogRecords should return a log datatype", eventLog != null);
     		}
     		catch (BaseException e) {
-    			handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
+    			handleFail(cn.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
     					e.getDetail_code() + ": " + e.getDescription());
     		}
     		catch(Exception e) {
@@ -328,7 +328,7 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
    					}
    				}
    				if (excludedEntry == null) {
-    				handleFail(currentUrl,"could not find 2 objects with different dateLogged times");
+    				handleFail(cn.getLatestRequestUrl(),"could not find 2 objects with different dateLogged times");
     			} else {
    				
     				// call with a fromDate
@@ -336,7 +336,7 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
 
     				for (LogEntry le : eventLog.getLogEntryList()) {
     					if (le.getEntryId().equals(excludedEntry.getEntryId())) {
-    						handleFail(currentUrl,"entryID " + excludedEntry.getEntryId() +
+    						handleFail(cn.getLatestRequestUrl(),"entryID " + excludedEntry.getEntryId() +
     								" should not be in the event log where fromDate set to " + fromDate);
     						break;
     					}
@@ -344,7 +344,7 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
     			}
     		} 
     		catch (BaseException e) {
-    			handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
+    			handleFail(cn.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
     					e.getDetail_code() + ": " + e.getDescription());
     		}
     		catch(Exception e) {
@@ -370,14 +370,14 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
 
     		try {
     			NodeList response = cn.listNodes();
-    			checkTrue(currentUrl,"listNodes(...) returns a valid NodeList object", 
+    			checkTrue(cn.getLatestRequestUrl(),"listNodes(...) returns a valid NodeList object", 
     					response instanceof NodeList);
     		} 
     		catch (IndexOutOfBoundsException e) {
-    			handleFail(currentUrl,"No Objects available to test against");
+    			handleFail(cn.getLatestRequestUrl(),"No Objects available to test against");
     		}
     		catch (BaseException e) {
-    			handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
+    			handleFail(cn.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
     					e.getDetail_code() + ":: " + e.getDescription());
     		}
     		catch(Exception e) {
@@ -406,7 +406,7 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
     			pid.setValue(ExampleUtilities.generateIdentifier());
 
     			Identifier response = cn.reserveIdentifier(null,pid);
-    			checkTrue(currentUrl,"reserveIdentifier(...) should return the given identifier",
+    			checkTrue(cn.getLatestRequestUrl(),"reserveIdentifier(...) should return the given identifier",
     					response.equals(pid));
     			isReserved = true;
     			// try again - should fail
@@ -414,17 +414,17 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
 
     		} 
     		catch (IndexOutOfBoundsException e) {
-    			handleFail(currentUrl,"No Objects available to test against");
+    			handleFail(cn.getLatestRequestUrl(),"No Objects available to test against");
     		}
     		catch (IdentifierNotUnique e) {
     			if (isReserved) {
     				// then got the desired outcome
     			} else {
-    				handleFail(currentUrl,e.getDescription());
+    				handleFail(cn.getLatestRequestUrl(),e.getDescription());
     			}
     		}
     		catch (BaseException e) {
-    			handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
+    			handleFail(cn.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
     					e.getDetail_code() + ":: " + e.getDescription());
     		}
     		catch(Exception e) {
@@ -452,10 +452,10 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
     			Identifier response = cn.generateIdentifier(null,"UUID",fragment);
     			//TODO: UUID isn't supporting the fragment concept, so can't check 
     			// this yet.
-//    			checkTrue(currentUrl,"generateIdentifier(...) should return an Identifier object" +
+//    			checkTrue(cn.getLatestRequestUrl(),"generateIdentifier(...) should return an Identifier object" +
 //    					" containing the given fragment: '" + fragment + "' Got: '" + response.getValue() + "'",
 //    					response.getValue().contains(fragment));
-    			checkTrue(currentUrl,"generateIdentifier(...) should return a UUID-style" +
+    			checkTrue(cn.getLatestRequestUrl(),"generateIdentifier(...) should return a UUID-style" +
     					"identifier with 5 hexidecimal segments separated by '-'s.  Got: " +
     					response.getValue(),
     					StringUtils.countOccurrencesOf(response.getValue(),"-") >=4);
@@ -463,10 +463,10 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
 	
     		} 
     		catch (IndexOutOfBoundsException e) {
-    			handleFail(currentUrl,"No Objects available to test against");
+    			handleFail(cn.getLatestRequestUrl(),"No Objects available to test against");
     		}
     		catch (BaseException e) {
-    			handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
+    			handleFail(cn.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
     					e.getDetail_code() + ":: " + e.getDescription());
     		}
     		catch(Exception e) {
@@ -492,17 +492,17 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
     		try {
     			String fragment = "CNodeTier1Test";
     			cn.generateIdentifier(null,"bloip",fragment);
-    			handleFail(currentUrl,"generateIdentifier(...) with a bogus scheme should" +
+    			handleFail(cn.getLatestRequestUrl(),"generateIdentifier(...) with a bogus scheme should" +
     					"throw an exception (should not have reached here)");
     		} 
     		catch (IndexOutOfBoundsException e) {
-    			handleFail(currentUrl,"No Objects available to test against");
+    			handleFail(cn.getLatestRequestUrl(),"No Objects available to test against");
     		}
     		catch (InvalidRequest e) {
     			// the expected outcome indicating good behavior :-)
     		}
     		catch (BaseException e) {
-    			handleFail(currentUrl,e.getDescription());
+    			handleFail(cn.getLatestRequestUrl(),e.getDescription());
     		}
     		catch(Exception e) {
     			e.printStackTrace();
@@ -536,13 +536,13 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
     				cn.reserveIdentifier(null, pid );
     				response = cn.hasReservation(null,clientSubject,pid);
 //    			}
-    			checkTrue(currentUrl,"response cannot be false. [Only true or exception].", response);
+    			checkTrue(cn.getLatestRequestUrl(),"response cannot be false. [Only true or exception].", response);
     		} 
     		catch (IndexOutOfBoundsException e) {
-    			handleFail(currentUrl,"No Objects available to test against");
+    			handleFail(cn.getLatestRequestUrl(),"No Objects available to test against");
     		}
     		catch (BaseException e) {
-    			handleFail(currentUrl,e.getDescription());
+    			handleFail(cn.getLatestRequestUrl(),e.getDescription());
     		}
     		catch(Exception e) {
     			e.printStackTrace();
@@ -572,7 +572,7 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
     			pid.setValue(ExampleUtilities.generateIdentifier());
     			response = cn.hasReservation(null,clientSubject, pid);
 
-    			checkTrue(currentUrl,"response cannot be false. [Only true or exception].", 
+    			checkTrue(cn.getLatestRequestUrl(),"response cannot be false. [Only true or exception].", 
     					response);
     		}
     		catch (NotFound e) {
@@ -582,10 +582,10 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
 //    			; // this is also acceptable
 //    		}
     		catch (IndexOutOfBoundsException e) {
-    			handleFail(currentUrl,"No Objects available to test against");
+    			handleFail(cn.getLatestRequestUrl(),"No Objects available to test against");
     		}
     		catch (BaseException e) {
-    			handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
+    			handleFail(cn.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
     					e.getDetail_code() + ":: " + e.getDescription());
     		}
     		catch(Exception e) {
@@ -615,16 +615,16 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
 				Identifier pid = cn.create(null,(Identifier) dataPackage[0],
 						(InputStream) dataPackage[1], (SystemMetadata) dataPackage[2]);	
 				
-				checkEquals(currentUrl,"pid of created object should equal that given",
+				checkEquals(cn.getLatestRequestUrl(),"pid of created object should equal that given",
 						((Identifier)dataPackage[0]).getValue(), pid.getValue());
 				
 				InputStream theDataObject = cn.get(null,pid);
 				String objectData = IOUtils.toString(theDataObject);
-				checkTrue(currentUrl,"should get back an object containing submitted text:" + objectData,
+				checkTrue(cn.getLatestRequestUrl(),"should get back an object containing submitted text:" + objectData,
 						objectData.contains("Plain text source"));
 			}
 			catch (BaseException e) {
-				handleFail(currentUrl,e.getClass().getSimpleName() + ": " 
+				handleFail(cn.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " 
 						+ e.getDetail_code() + ": " + e.getDescription());
 			}
 			catch(Exception e) {
@@ -699,18 +699,18 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
 					rGuid = cn.create(null, (Identifier) dataPackage[0], 
 							(InputStream)dataPackage[1], (SystemMetadata)dataPackage[2]);
 					System.out.println("    == returned Guid (rGuid): " + rGuid.getValue());
-					checkEquals(currentUrl,"guid returned from create should equal that given",
+					checkEquals(cn.getLatestRequestUrl(),"guid returned from create should equal that given",
 							((Identifier)dataPackage[0]).getValue(), rGuid.getValue());
 					InputStream data = cn.get(null, rGuid);
-					checkTrue(currentUrl, "get against the object should not equal null", null != data);
+					checkTrue(cn.getLatestRequestUrl(), "get against the object should not equal null", null != data);
 					String str = IOUtils.toString(data);
-					checkTrue(currentUrl,"should be able to read the content as created ('" + str + "')",
+					checkTrue(cn.getLatestRequestUrl(),"should be able to read the content as created ('" + str + "')",
 							str.indexOf("Plain text source") != -1);
 					data.close();
 				}
 				catch (BaseException e) {
 					status = "Error";
-					handleFail(currentUrl,e.getClass().getSimpleName() +
+					handleFail(cn.getLatestRequestUrl(),e.getClass().getSimpleName() +
 							": " + e.getDetail_code() + ": " + e.getDescription());
 				}
 				catch(Exception e) {
@@ -748,16 +748,16 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
 				SystemMetadata smd = (SystemMetadata) dataPackage[2];
 				Identifier pid = cn.registerSystemMetadata(null,(Identifier) dataPackage[0], smd);	
 				
-				checkEquals(currentUrl,"pid of registered sysmetadata should equal that given",
+				checkEquals(cn.getLatestRequestUrl(),"pid of registered sysmetadata should equal that given",
 						((Identifier)dataPackage[0]).getValue(), pid.getValue());
 				
 				SystemMetadata smdReturned = cn.getSystemMetadata(null,pid);
-				checkEquals(currentUrl,"should be able to get registered sysmeta",
+				checkEquals(cn.getLatestRequestUrl(),"should be able to get registered sysmeta",
 						smdReturned.getIdentifier().getValue(),
 						smd.getIdentifier().getValue());
 			}
 			catch (BaseException e) {
-				handleFail(currentUrl,e.getClass().getSimpleName() + ": " 
+				handleFail(cn.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " 
 						+ e.getDetail_code() + ": " + e.getDescription());
 			}
 			catch(Exception e) {
@@ -782,7 +782,7 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
 
     		try {
     			ObjectList ol = cn.listObjects(null);
-    			checkTrue(currentUrl,"listObjects() should return an ObjectList", ol != null);
+    			checkTrue(cn.getLatestRequestUrl(),"listObjects() should return an ObjectList", ol != null);
     			
     			Date startTime = new Date(System.currentTimeMillis() - 10 * 60 * 1000);
 				Date endTime = new Date(System.currentTimeMillis() - 1 * 60 * 1000);
@@ -793,10 +793,10 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
 						formatId, replicaStatus , 
 						Integer.valueOf(0),
 						Integer.valueOf(10));
-    			checkTrue(currentUrl,"listObjects(<parameters>) returns an ObjectList", ol != null);
+    			checkTrue(cn.getLatestRequestUrl(),"listObjects(<parameters>) returns an ObjectList", ol != null);
     		} 
     		catch (BaseException e) {
-    			handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
+    			handleFail(cn.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
     					e.getDetail_code() + ":: " + e.getDescription());
     		}
     		catch(Exception e) {
@@ -818,7 +818,7 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
 
     		try {
     			ObjectList ol = cn.listObjects(null);
-    			checkTrue(currentUrl,"listObjects() should return an ObjectList", ol != null);
+    			checkTrue(cn.getLatestRequestUrl(),"listObjects() should return an ObjectList", ol != null);
     			
     			Date startTime = new Date(System.currentTimeMillis() - 10 * 60 * 1000);
 				Date endTime = new Date(System.currentTimeMillis() - 1 * 60 * 1000);
@@ -829,10 +829,10 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
 						formatId, replicaStatus , 
 						Integer.valueOf(0),
 						Integer.valueOf(10));
-    			checkTrue(currentUrl,"listObjects(<parameters>) returns an ObjectList", ol != null);
+    			checkTrue(cn.getLatestRequestUrl(),"listObjects(<parameters>) returns an ObjectList", ol != null);
     		} 
     		catch (BaseException e) {
-    			handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
+    			handleFail(cn.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
     					e.getDetail_code() + ":: " + e.getDescription());
     		}
     		catch(Exception e) {
@@ -858,7 +858,7 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
 
     		try {
     			ObjectList ol = procureObjectList(cn);
-    			checkTrue(currentUrl,"listObjects() should return an ObjectList", ol != null);
+    			checkTrue(cn.getLatestRequestUrl(),"listObjects() should return an ObjectList", ol != null);
     			if (ol.getTotal() == 0)
     				throw new TestIterationEndingException("no objects found in listObjects");
     			ObjectInfo oi0 = ol.getObjectInfo(0);
@@ -890,7 +890,7 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
 
    				for (ObjectInfo oi: ol.getObjectInfoList()) {
    					if (oi.getIdentifier().equals(excludedObjectInfo.getIdentifier())) {
-   						handleFail(currentUrl,String.format("identifier %s with sysMetaModified date of '%s'" +
+   						handleFail(cn.getLatestRequestUrl(),String.format("identifier %s with sysMetaModified date of '%s'" +
    								" should not be in the objectList where 'fromDate' parameter set to '%s'", 
    								excludedObjectInfo.getIdentifier().getValue(),
    								DateTimeMarshaller.serializeDateToUTC(excludedObjectInfo.getDateSysMetadataModified()),
@@ -901,7 +901,7 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
 
     		} 
     		catch (BaseException e) {
-    			handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
+    			handleFail(cn.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
     					e.getDetail_code() + ":: " + e.getDescription());
     		}
     		catch(Exception e) {
@@ -937,13 +937,13 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
 				Identifier id = procurePublicReadableTestObject(cn,D1TypeBuilder.buildIdentifier(objectIdentifier));
 //    			Identifier id = procurePublicReadableTestObject(cn);
     			InputStream is = cn.get(null,id);
-    			checkTrue(currentUrl,"get() returns an objectStream", is != null);
+    			checkTrue(cn.getLatestRequestUrl(),"get() returns an objectStream", is != null);
     		}
     		catch (IndexOutOfBoundsException e) {
-    			handleFail(currentUrl,"No Objects available to test against");
+    			handleFail(cn.getLatestRequestUrl(),"No Objects available to test against");
     		}
     		catch (BaseException e) {
-    			handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
+    			handleFail(cn.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
     					e.getDetail_code() + ":: " + e.getDescription());
     		}
     		catch(Exception e) {
@@ -970,13 +970,13 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
 				Identifier id = procurePublicReadableTestObject(cn,D1TypeBuilder.buildIdentifier(objectIdentifier));
 //    			Identifier id = procurePublicReadableTestObject(cn);
     			SystemMetadata smd = cn.getSystemMetadata(null,id);
-    			checkTrue(currentUrl,"getSystemMetadata() returns a SystemMetadata object", smd != null);
+    			checkTrue(cn.getLatestRequestUrl(),"getSystemMetadata() returns a SystemMetadata object", smd != null);
     		} 
     		catch (IndexOutOfBoundsException e) {
-    			handleFail(currentUrl,"No Objects available to test against");
+    			handleFail(cn.getLatestRequestUrl(),"No Objects available to test against");
     		}
     		catch (BaseException e) {
-    			handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
+    			handleFail(cn.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
     					e.getDetail_code() + ":: " + e.getDescription());
     		}
     		catch(Exception e) {
@@ -1004,13 +1004,13 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
 				Identifier id = procurePublicReadableTestObject(cn,D1TypeBuilder.buildIdentifier(objectIdentifier));
 //    			Identifier id = procurePublicReadableTestObject(cn);
     			DescribeResponse dr = cn.describe(null,id);
-    			checkTrue(currentUrl,"describe() returns a DescribeResponse object", dr != null);	
+    			checkTrue(cn.getLatestRequestUrl(),"describe() returns a DescribeResponse object", dr != null);	
     		} 
     		catch (IndexOutOfBoundsException e) {
-    			handleFail(currentUrl,"No Objects available to test against");
+    			handleFail(cn.getLatestRequestUrl(),"No Objects available to test against");
     		}
     		catch (BaseException e) {
-    			handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
+    			handleFail(cn.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
     					e.getDetail_code() + ":: " + e.getDescription());
     		}
     		catch(Exception e) {
@@ -1041,14 +1041,14 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
     			log.debug("   pid = " + pid.getValue());
 
     			ObjectLocationList response = cn.resolve(null,pid);
-    			checkTrue(currentUrl,"resolve(...) returns an ObjectLocationList object",
+    			checkTrue(cn.getLatestRequestUrl(),"resolve(...) returns an ObjectLocationList object",
     					response != null && response instanceof ObjectLocationList);
     		} 
     		catch (IndexOutOfBoundsException e) {
-    			handleFail(currentUrl,"No Objects available to test against");
+    			handleFail(cn.getLatestRequestUrl(),"No Objects available to test against");
     		}
     		catch (BaseException e) {
-    			handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
+    			handleFail(cn.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
     					e.getDetail_code() + ":: " + e.getDescription());
     		}
     		catch(Exception e) {
@@ -1079,13 +1079,13 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
 				Identifier id = procurePublicReadableTestObject(cn,D1TypeBuilder.buildIdentifier(objectIdentifier));
  //   			Identifier id = procurePublicReadableTestObject(cn);
     			Checksum cs = cn.getChecksum(null,id);
-    			checkTrue(currentUrl,"getChecksum() returns a Checksum object", cs != null);
+    			checkTrue(cn.getLatestRequestUrl(),"getChecksum() returns a Checksum object", cs != null);
     		} 
     		catch (IndexOutOfBoundsException e) {
-    			handleFail(currentUrl,"No Objects available to test against");
+    			handleFail(cn.getLatestRequestUrl(),"No Objects available to test against");
     		}
     		catch (BaseException e) {
-    			handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
+    			handleFail(cn.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
     					e.getDetail_code() + ":: " + e.getDescription());
     		}
     		catch(Exception e) {
@@ -1110,13 +1110,13 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
 
 			try {
 				ObjectList response = cn.search(null,"solr","?q=*:*");
-				checkTrue(currentUrl,"search(...) returns a ObjectList object", response != null);
+				checkTrue(cn.getLatestRequestUrl(),"search(...) returns a ObjectList object", response != null);
 			} 
 			catch (IndexOutOfBoundsException e) {
-				handleFail(currentUrl,"No Objects available to test against");
+				handleFail(cn.getLatestRequestUrl(),"No Objects available to test against");
 			}
     		catch (BaseException e) {
-    			handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
+    			handleFail(cn.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
     					e.getDetail_code() + ":: " + e.getDescription());
     		}
 			catch(Exception e) {
@@ -1185,16 +1185,16 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
 					query.addNonEmptyParamPair("q", "id:" + solrEscapedWildcardPattern);
 
 					ObjectList response = cn.search(null,"solr",query);
-					checkTrue(currentUrl,"search(...) should return an ObjectList", response != null);
+					checkTrue(cn.getLatestRequestUrl(),"search(...) should return an ObjectList", response != null);
 					
-//					checkTrue(currentUrl,"search(...) should ")
+//					checkTrue(cn.getLatestRequestUrl(),"search(...) should ")
 				}
 				catch (IndexOutOfBoundsException e) {
-					handleFail(currentUrl,"No Objects available to test against");
+					handleFail(cn.getLatestRequestUrl(),"No Objects available to test against");
 				}
 	    		catch (BaseException e) {
 	    			status = "Error";
-	    			handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
+	    			handleFail(cn.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
 	    					e.getDetail_code() + ":: " + e.getDescription());
 	    		}
 				catch(Exception e) {
@@ -1299,12 +1299,12 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
 					System.out.println("   === Location: " + ol.getNodeIdentifier().getValue()
 							+ " (" + ol.getUrl() + ")");
 					if (ol.getUrl().contains(encodedID))
-						checkTrue(currentUrl,"objectLocationList should contain the encodedID",true);
+						checkTrue(cn.getLatestRequestUrl(),"objectLocationList should contain the encodedID",true);
 					else
 					{
 						status = "Fail";
 						message = "encodedID not found: " + encodedID;
-						handleFail(currentUrl," encodedID not found: " + encodedID);
+						handleFail(cn.getLatestRequestUrl()," encodedID not found: " + encodedID);
 					}
 				}
 			}
@@ -1312,7 +1312,7 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
 
 				status  = "error";
 				message = e.getMessage();
-				handleFail(currentUrl,"error in resolveRunner: " + e.getMessage());
+				handleFail(cn.getLatestRequestUrl(),"error in resolveRunner: " + e.getMessage());
 			}
 			summaryReport.add(j + " " + status + " " + ids.get(j) + "  " + message);
 		}

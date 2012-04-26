@@ -95,7 +95,7 @@ public class CNodeTier4IT extends ContextAwareTestCaseDataone {
 					listedObjects.put(currentUrl, ol);
 				} 
 				catch (BaseException e) {
-					handleFail(currentUrl,e.getDescription());
+					handleFail(cn.getLatestRequestUrl(),e.getDescription());
 				}
 				catch(Exception e) {
 					log.warn(e.getClass().getName() + ": " + e.getMessage());
@@ -137,18 +137,18 @@ public class CNodeTier4IT extends ContextAwareTestCaseDataone {
 				boolean response = cn.setReplicationStatus(null,oi.getIdentifier(),new NodeReference(),
 						ReplicationStatus.FAILED,new ServiceFailure("0000","a test exception"));
 
-//				checkTrue(currentUrl,"response cannot be false. [Only true or exception].", response);
+//				checkTrue(cn.getLatestRequestUrl(),"response cannot be false. [Only true or exception].", response);
 				
-				handleFail(currentUrl,"setReplicationStatus should fail when using no-rights client subject");
+				handleFail(cn.getLatestRequestUrl(),"setReplicationStatus should fail when using no-rights client subject");
 			} 
 			catch (IndexOutOfBoundsException e) {
-				handleFail(currentUrl,"No Objects available to test against");
+				handleFail(cn.getLatestRequestUrl(),"No Objects available to test against");
 			}
 			catch (NotAuthorized e) {
 				// the expected outcome
 			}
 			catch (BaseException e) {
-				handleFail(currentUrl,"expected fail with NotAuthorized. Got: " + e.getClass() + 
+				handleFail(cn.getLatestRequestUrl(),"expected fail with NotAuthorized. Got: " + e.getClass() + 
 						":: " + e.getDescription());
 			}
 			catch(Exception e) {
@@ -180,16 +180,16 @@ public class CNodeTier4IT extends ContextAwareTestCaseDataone {
 				boolean response = cn.setReplicationStatus(null,pid, new NodeReference(),
 						ReplicationStatus.COMPLETED, new ServiceFailure("0000","a test exception"));
 
-				handleFail(currentUrl,"setReplicationStatus should fail when bogus nodeReference passed in");
+				handleFail(cn.getLatestRequestUrl(),"setReplicationStatus should fail when bogus nodeReference passed in");
 			} 
 			catch (IndexOutOfBoundsException e) {
-				handleFail(currentUrl,"No Objects available to test against");
+				handleFail(cn.getLatestRequestUrl(),"No Objects available to test against");
 			}
 			catch (InvalidRequest e) {
 				// the expected outcome
 			}
 			catch (BaseException e) {
-				handleFail(currentUrl,"expected fail with InvalidRequest. Got: " + e.getClass() + 
+				handleFail(cn.getLatestRequestUrl(),"expected fail with InvalidRequest. Got: " + e.getClass() + 
 						":: " + e.getDescription());
 			}
 			catch(Exception e) {
@@ -220,13 +220,13 @@ public class CNodeTier4IT extends ContextAwareTestCaseDataone {
 				boolean response = cn.setReplicationStatus(null,pid, new NodeReference(),
 						ReplicationStatus.FAILED, new ServiceFailure("0000","a test exception"));
 
-				handleFail(currentUrl,"setReplicationStatus should fail when fictitious pid passed in");
+				handleFail(cn.getLatestRequestUrl(),"setReplicationStatus should fail when fictitious pid passed in");
 			} 
 			catch (NotFound e) {
 				// the expected outcome
 			}
 			catch (BaseException e) {
-				handleFail(currentUrl,"expected fail with NotFound. Got: " + e.getClass() + 
+				handleFail(cn.getLatestRequestUrl(),"expected fail with NotFound. Got: " + e.getClass() + 
 						":: " + e.getDescription());
 			}
 			catch(Exception e) {
@@ -257,13 +257,13 @@ public class CNodeTier4IT extends ContextAwareTestCaseDataone {
 				
 				boolean response = cn.setReplicationPolicy(null,oi.getIdentifier(),
 						policy, serialVersion.longValue());
-				checkTrue(currentUrl,"response cannot be false. [Only true or exception].", response);
+				checkTrue(cn.getLatestRequestUrl(),"response cannot be false. [Only true or exception].", response);
 			} 
 			catch (IndexOutOfBoundsException e) {
-				handleFail(currentUrl,"No Objects available to test against");
+				handleFail(cn.getLatestRequestUrl(),"No Objects available to test against");
 			}
 			catch (BaseException e) {
-				handleFail(currentUrl,e.getDescription());
+				handleFail(cn.getLatestRequestUrl(),e.getDescription());
 			}
 			catch(Exception e) {
 				e.printStackTrace();
@@ -293,16 +293,16 @@ public class CNodeTier4IT extends ContextAwareTestCaseDataone {
 				
 				boolean response = cn.setReplicationPolicy(null,oi.getIdentifier(),
 						policy, serialVersion.longValue());
-				handleFail(currentUrl,"setReplicationPolicy should fail when using no-right client subject");
+				handleFail(cn.getLatestRequestUrl(),"setReplicationPolicy should fail when using no-right client subject");
 			} 
 			catch (IndexOutOfBoundsException e) {
-				handleFail(currentUrl,"No Objects available to test against");
+				handleFail(cn.getLatestRequestUrl(),"No Objects available to test against");
 			}
 			catch (NotAuthorized e) {
 				// the expected outcome
 			}
 			catch (BaseException e) {
-				handleFail(currentUrl,"expected fail with NotAuthorized. Got: " + e.getClass() + 
+				handleFail(cn.getLatestRequestUrl(),"expected fail with NotAuthorized. Got: " + e.getClass() + 
 						":: " + e.getDescription());
 			}
 			catch(Exception e) {
@@ -331,14 +331,14 @@ public class CNodeTier4IT extends ContextAwareTestCaseDataone {
 				
 				boolean response = cn.setReplicationPolicy(null,pid,
 						policy, 100);
-				handleFail(currentUrl,"setReplicationPolicy should fail when passing in fictitious pid");
+				handleFail(cn.getLatestRequestUrl(),"setReplicationPolicy should fail when passing in fictitious pid");
 			} 
 			
 			catch (NotFound e) {
 				// the expected outcome
 			}
 			catch (BaseException e) {
-				handleFail(currentUrl,"expected fail with NotFound. Got: " + e.getClass() + 
+				handleFail(cn.getLatestRequestUrl(),"expected fail with NotFound. Got: " + e.getClass() + 
 						":: " + e.getDescription());
 			}
 			catch(Exception e) {
@@ -369,16 +369,16 @@ public class CNodeTier4IT extends ContextAwareTestCaseDataone {
 
 				boolean response = cn.setReplicationPolicy(null,oi.getIdentifier(),
 						policy, serialVersion.longValue()+10);
-				handleFail(currentUrl,"setReplicationPolicy should fail when setting a bogus serial version of the sysmeta");
+				handleFail(cn.getLatestRequestUrl(),"setReplicationPolicy should fail when setting a bogus serial version of the sysmeta");
 			} 
 			catch (IndexOutOfBoundsException e) {
-				handleFail(currentUrl,"No Objects available to test against");
+				handleFail(cn.getLatestRequestUrl(),"No Objects available to test against");
 			}
 			catch (VersionMismatch e) {
 				// the expected outcome
 			}
 			catch (BaseException e) {
-				handleFail(currentUrl,"expected fail with VersionMismatch. Got: " + e.getClass() + 
+				handleFail(cn.getLatestRequestUrl(),"expected fail with VersionMismatch. Got: " + e.getClass() + 
 						":: " + e.getDescription());
 			}
 			catch(Exception e) {
@@ -409,16 +409,16 @@ public class CNodeTier4IT extends ContextAwareTestCaseDataone {
 				
 				boolean response = cn.setReplicationPolicy(null,oi.getIdentifier(),
 						policy, serialVersion);
-				handleFail(currentUrl,"setReplicationPolicy should fail when setting number of replicas to -1");
+				handleFail(cn.getLatestRequestUrl(),"setReplicationPolicy should fail when setting number of replicas to -1");
 			} 
 			catch (IndexOutOfBoundsException e) {
-				handleFail(currentUrl,"No Objects available to test against");
+				handleFail(cn.getLatestRequestUrl(),"No Objects available to test against");
 			}
 			catch (InvalidRequest e) {
 				// the expected outcome
 			}
 			catch (BaseException e) {
-				handleFail(currentUrl,"expected fail with InvalidRequest. Got: " + e.getClass() + 
+				handleFail(cn.getLatestRequestUrl(),"expected fail with InvalidRequest. Got: " + e.getClass() + 
 						":: " + e.getDescription());
 			}
 			catch(Exception e) {
@@ -450,17 +450,17 @@ public class CNodeTier4IT extends ContextAwareTestCaseDataone {
 				
 				boolean response = cn.isNodeAuthorized(null, subject, oi.getIdentifier());
 				
-//				checkTrue(currentUrl,"response cannot be false. [Only true or exception].", response);
-				handleFail(currentUrl,"isNodeAuthorized should fail when using no-rights client subject");
+//				checkTrue(cn.getLatestRequestUrl(),"response cannot be false. [Only true or exception].", response);
+				handleFail(cn.getLatestRequestUrl(),"isNodeAuthorized should fail when using no-rights client subject");
 			} 
 			catch (IndexOutOfBoundsException e) {
-				handleFail(currentUrl,"No Objects available to test against");
+				handleFail(cn.getLatestRequestUrl(),"No Objects available to test against");
 			}
 			catch (InvalidToken e) {
 				// the expected outcome
 			}
 			catch (BaseException e) {
-				handleFail(currentUrl,"expected fail with InvalidToken. Got: " + e.getClass() + 
+				handleFail(cn.getLatestRequestUrl(),"expected fail with InvalidToken. Got: " + e.getClass() + 
 						":: " + e.getDescription());
 			}
 			catch(Exception e) {
@@ -490,17 +490,17 @@ public class CNodeTier4IT extends ContextAwareTestCaseDataone {
 			
 				boolean response = cn.isNodeAuthorized(null, noRightsSubject, oi.getIdentifier());
 				
-//				checkTrue(currentUrl,"response cannot be false. [Only true or exception].", response);
-				handleFail(currentUrl,"isNodeAuthorized should fail when using no-rights client subject");
+//				checkTrue(cn.getLatestRequestUrl(),"response cannot be false. [Only true or exception].", response);
+				handleFail(cn.getLatestRequestUrl(),"isNodeAuthorized should fail when using no-rights client subject");
 			} 
 			catch (IndexOutOfBoundsException e) {
-				handleFail(currentUrl,"No Objects available to test against");
+				handleFail(cn.getLatestRequestUrl(),"No Objects available to test against");
 			}
 			catch (NotAuthorized e) {
 				// the expected outcome
 			}
 			catch (BaseException e) {
-				handleFail(currentUrl,"expected fail with NotAuthorized. Got: " + e.getClass() + 
+				handleFail(cn.getLatestRequestUrl(),"expected fail with NotAuthorized. Got: " + e.getClass() + 
 						":: " + e.getDescription());
 			}
 			catch(Exception e) {
@@ -529,16 +529,16 @@ public class CNodeTier4IT extends ContextAwareTestCaseDataone {
 				// passing in a null value for subject
 				boolean response = cn.isNodeAuthorized(null, null, oi.getIdentifier());
 				
-				handleFail(currentUrl,"isNodeAuthorized should fail when passing in null subject (omitting subject)");
+				handleFail(cn.getLatestRequestUrl(),"isNodeAuthorized should fail when passing in null subject (omitting subject)");
 			} 
 			catch (IndexOutOfBoundsException e) {
-				handleFail(currentUrl,"No Objects available to test against");
+				handleFail(cn.getLatestRequestUrl(),"No Objects available to test against");
 			}
 			catch (InvalidRequest e) {
 				// the expected outcome
 			}
 			catch (BaseException e) {
-				handleFail(currentUrl,"expected fail with InvalidRequest. Got: " + e.getClass() + 
+				handleFail(cn.getLatestRequestUrl(),"expected fail with InvalidRequest. Got: " + e.getClass() + 
 						":: " + e.getDescription());
 			}
 			catch(Exception e) {
@@ -569,13 +569,13 @@ public class CNodeTier4IT extends ContextAwareTestCaseDataone {
 				// passing in a null value for subject
 				boolean response = cn.isNodeAuthorized(null, subject, pid);
 				
-				handleFail(currentUrl,"isNodeAuthorized should fail when passing in fictitious pid");
+				handleFail(cn.getLatestRequestUrl(),"isNodeAuthorized should fail when passing in fictitious pid");
 			}
 			catch (NotFound e) {
 				// the expected outcome
 			}
 			catch (BaseException e) {
-				handleFail(currentUrl,"expected fail with NotFound. Got: " + e.getClass() + 
+				handleFail(cn.getLatestRequestUrl(),"expected fail with NotFound. Got: " + e.getClass() + 
 						":: " + e.getDescription());
 			}
 			catch(Exception e) {
@@ -614,13 +614,13 @@ public class CNodeTier4IT extends ContextAwareTestCaseDataone {
 				// try an update to the replica by replacing it with itself... (no changes)
 				boolean response = cn.updateReplicationMetadata(null, replicatedObject, replica, serialVersion);
 
-				checkTrue(currentUrl,"response cannot be false. [Only true or exception].", response);
+				checkTrue(cn.getLatestRequestUrl(),"response cannot be false. [Only true or exception].", response);
 			}
 			catch (IndexOutOfBoundsException e) {
-				handleFail(currentUrl,"No Objects available to test against");
+				handleFail(cn.getLatestRequestUrl(),"No Objects available to test against");
 			}
 			catch (BaseException e) {
-				handleFail(currentUrl,e.getDescription());
+				handleFail(cn.getLatestRequestUrl(),e.getDescription());
 			}
 			 
 			catch(Exception e) {
@@ -658,16 +658,16 @@ public class CNodeTier4IT extends ContextAwareTestCaseDataone {
 				// try an update to the replica by replacing it with itself... (no changes)
 				boolean response = cn.updateReplicationMetadata(null, replicatedObject, replica, serialVersion);
 
-				handleFail(currentUrl,"updateReplicaMetadata should fail when using no-rights subject");
+				handleFail(cn.getLatestRequestUrl(),"updateReplicaMetadata should fail when using no-rights subject");
 			}
 			catch (IndexOutOfBoundsException e) {
-				handleFail(currentUrl,"No Objects available to test against");
+				handleFail(cn.getLatestRequestUrl(),"No Objects available to test against");
 			}
 			catch (NotAuthorized e) {
 				// the expected outcome
 			}
 			catch (BaseException e) {
-				handleFail(currentUrl,"expected fail with NotAuthorized. Got: " + e.getClass() + 
+				handleFail(cn.getLatestRequestUrl(),"expected fail with NotAuthorized. Got: " + e.getClass() + 
 						":: " + e.getDescription());
 			}
 			catch(Exception e) {
@@ -709,16 +709,16 @@ public class CNodeTier4IT extends ContextAwareTestCaseDataone {
 				// try an update to the replica by replacing it with itself... (no changes)
 				boolean response = cn.updateReplicationMetadata(null, badPid, replica, serialVersion);
 
-				handleFail(currentUrl,"updateReplicaMetadata should fail when using no-rights subject");
+				handleFail(cn.getLatestRequestUrl(),"updateReplicaMetadata should fail when using no-rights subject");
 			}
 			catch (IndexOutOfBoundsException e) {
-				handleFail(currentUrl,"No Objects available to test against");
+				handleFail(cn.getLatestRequestUrl(),"No Objects available to test against");
 			}
 			catch (NotFound e) {
 				// the expected outcome
 			}
 			catch (BaseException e) {
-				handleFail(currentUrl,"expected fail with NotFound. Got: " + e.getClass() + 
+				handleFail(cn.getLatestRequestUrl(),"expected fail with NotFound. Got: " + e.getClass() + 
 						":: " + e.getDescription());
 			}
 			catch(Exception e) {
@@ -757,16 +757,16 @@ public class CNodeTier4IT extends ContextAwareTestCaseDataone {
 				// try an update to the replica by replacing it with a null value
 				boolean response = cn.updateReplicationMetadata(null, replicatedObject, null, serialVersion);
 
-				handleFail(currentUrl,"updateReplicaMetadata should fail when using no-rights subject");
+				handleFail(cn.getLatestRequestUrl(),"updateReplicaMetadata should fail when using no-rights subject");
 			}
 			catch (IndexOutOfBoundsException e) {
-				handleFail(currentUrl,"No Objects available to test against");
+				handleFail(cn.getLatestRequestUrl(),"No Objects available to test against");
 			}
 			catch (InvalidRequest e) {
 				// the expected outcome
 			}
 			catch (BaseException e) {
-				handleFail(currentUrl,"expected fail with InvalidRequest. Got: " + e.getClass() + 
+				handleFail(cn.getLatestRequestUrl(),"expected fail with InvalidRequest. Got: " + e.getClass() + 
 						":: " + e.getDescription());
 			}
 			catch(Exception e) {
@@ -805,16 +805,16 @@ public class CNodeTier4IT extends ContextAwareTestCaseDataone {
 				// try an update to the replica by replacing it with itself... (no changes)
 				boolean response = cn.updateReplicationMetadata(null, replicatedObject, replica, serialVersion + 10);
 
-				handleFail(currentUrl,"updateReplicaMetadata should fail when passing in a bad serialVersion");
+				handleFail(cn.getLatestRequestUrl(),"updateReplicaMetadata should fail when passing in a bad serialVersion");
 			}
 			catch (IndexOutOfBoundsException e) {
-				handleFail(currentUrl,"No Objects available to test against");
+				handleFail(cn.getLatestRequestUrl(),"No Objects available to test against");
 			}
 			catch (VersionMismatch e) {
 				// the expected outcome
 			}
 			catch (BaseException e) {
-				handleFail(currentUrl,"expected fail with VersionMismatch. Got: " + e.getClass() + 
+				handleFail(cn.getLatestRequestUrl(),"expected fail with VersionMismatch. Got: " + e.getClass() + 
 						":: " + e.getDescription());
 			}
 			catch(Exception e) {

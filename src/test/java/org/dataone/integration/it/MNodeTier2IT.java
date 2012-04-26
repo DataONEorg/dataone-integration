@@ -106,10 +106,10 @@ public class MNodeTier2IT extends AbstractAuthorizationITDataone {
 				Identifier pid = procurePublicReadableTestObject(mn,D1TypeBuilder.buildIdentifier(objectIdentifier));
 
 				boolean success = mn.isAuthorized(null, pid, Permission.READ);
-				checkTrue(currentUrl,"isAuthorized response should never be false. [Only true or exception].", success);
+				checkTrue(mn.getLatestRequestUrl(),"isAuthorized response should never be false. [Only true or exception].", success);
 			} 
     		catch (BaseException e) {
-				handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
+				handleFail(mn.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
 						e.getDetail_code() + ": " + e.getDescription());
 			}
 			catch(Exception e) {
@@ -146,14 +146,14 @@ public class MNodeTier2IT extends AbstractAuthorizationITDataone {
 					Date afterCreate = new Date();
 					mn.systemMetadataChanged(null, pid, 10, afterCreate);
 				} else {
-					handleFail(currentUrl,"systemMetadataChanged() will likely fail because" +
+					handleFail(mn.getLatestRequestUrl(),"systemMetadataChanged() will likely fail because" +
 							" the object is probably new and not synced, and not known to " +
 							"the CN");
 				}
 				
 			}	
 			catch (BaseException e) {
-				handleFail(currentUrl,e.getClass().getSimpleName() + ": " 
+				handleFail(mn.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " 
 						+ e.getDetail_code() + ": " + e.getDescription());
 			}
 			catch(Exception e) {
@@ -187,7 +187,7 @@ public class MNodeTier2IT extends AbstractAuthorizationITDataone {
 				mn.systemMetadataChanged(null, pid, 10, new Date(modDate.getTime()-10000));
 			}	
 			catch (BaseException e) {
-				handleFail(currentUrl,e.getClass().getSimpleName() + ": " 
+				handleFail(mn.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " 
 						+ e.getDetail_code() + ": " + e.getDescription());
 			}
 			catch(Exception e) {
@@ -225,7 +225,7 @@ public class MNodeTier2IT extends AbstractAuthorizationITDataone {
 				// expected response
 			}
 			catch (BaseException e) {
-				handleFail(currentUrl,"Expected InvalidToken, got: " +
+				handleFail(mn.getLatestRequestUrl(),"Expected InvalidToken, got: " +
 						e.getClass().getSimpleName() + ": " + e.getDetail_code() + 
 						": " + e.getDescription());
 			}
@@ -261,7 +261,7 @@ public class MNodeTier2IT extends AbstractAuthorizationITDataone {
 				mn.systemMetadataChanged(null, pid, 10, afterCreate);
 			}	
 			catch (BaseException e) {
-				handleFail(currentUrl,"Expected InvalidToken, got: " +
+				handleFail(mn.getLatestRequestUrl(),"Expected InvalidToken, got: " +
 						e.getClass().getSimpleName() + ": " + e.getDetail_code() + 
 						": " + e.getDescription());
 			}

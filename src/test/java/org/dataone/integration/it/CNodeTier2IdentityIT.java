@@ -58,15 +58,15 @@ public class CNodeTier2IdentityIT extends ContextAwareTestCaseDataone {
 				Subject response = cn.registerAccount(null, APITestUtils.buildPerson(
 						APITestUtils.buildSubject("testAccountA"),
 						"aFamily", "aGivenName", "me@foo.bar"));
-				checkTrue(currentUrl,"registerAccount(...) returns a Subject object",
+				checkTrue(cn.getLatestRequestUrl(),"registerAccount(...) returns a Subject object",
 						response != null);
-				// checkTrue(currentUrl,"response cannot be false. [Only true or exception].", response);
+				// checkTrue(cn.getLatestRequestUrl(),"response cannot be false. [Only true or exception].", response);
 			} 
 			catch (IndexOutOfBoundsException e) {
-				handleFail(currentUrl,"No Objects available to test against");
+				handleFail(cn.getLatestRequestUrl(),"No Objects available to test against");
 			}
 			catch (BaseException e) {
-				handleFail(currentUrl,e.getDescription());
+				handleFail(cn.getLatestRequestUrl(),e.getDescription());
 			}
 			catch(Exception e) {
 				e.printStackTrace();
@@ -86,14 +86,14 @@ public class CNodeTier2IdentityIT extends ContextAwareTestCaseDataone {
 
 			try {
 				Subject response = cn.updateAccount(null,new Person());
-				checkTrue(currentUrl,"updateAccount(...) returns a Subject object", response != null);
-				// checkTrue(currentUrl,"response cannot be false. [Only true or exception].", response);
+				checkTrue(cn.getLatestRequestUrl(),"updateAccount(...) returns a Subject object", response != null);
+				// checkTrue(cn.getLatestRequestUrl(),"response cannot be false. [Only true or exception].", response);
 			} 
 			catch (IndexOutOfBoundsException e) {
-				handleFail(currentUrl,"No Objects available to test against");
+				handleFail(cn.getLatestRequestUrl(),"No Objects available to test against");
 			}
 			catch (BaseException e) {
-				handleFail(currentUrl,e.getDescription());
+				handleFail(cn.getLatestRequestUrl(),e.getDescription());
 			}
 			catch(Exception e) {
 				e.printStackTrace();
@@ -113,13 +113,13 @@ public class CNodeTier2IdentityIT extends ContextAwareTestCaseDataone {
 
 			try {
 				boolean response = cn.verifyAccount(null,new Subject());
-				checkTrue(currentUrl,"response cannot be false. [Only true or exception].", response);
+				checkTrue(cn.getLatestRequestUrl(),"response cannot be false. [Only true or exception].", response);
 			} 
 			catch (IndexOutOfBoundsException e) {
-				handleFail(currentUrl,"No Objects available to test against");
+				handleFail(cn.getLatestRequestUrl(),"No Objects available to test against");
 			}
 			catch (BaseException e) {
-				handleFail(currentUrl,e.getDescription());
+				handleFail(cn.getLatestRequestUrl(),e.getDescription());
 			}
 			catch(Exception e) {
 				e.printStackTrace();
@@ -141,14 +141,14 @@ public class CNodeTier2IdentityIT extends ContextAwareTestCaseDataone {
 				SubjectInfo subjectList = cn.listSubjects(null,"",null,null,null);
 				Subject personSubject = subjectList.getPersonList().get(0).getSubject();
 				SubjectInfo response = cn.getSubjectInfo(null,personSubject);
-				checkTrue(currentUrl,"getSubjectInfo(...) returns a SubjectInfo object", response != null);
-				// checkTrue(currentUrl,"response cannot be false. [Only true or exception].", response);
+				checkTrue(cn.getLatestRequestUrl(),"getSubjectInfo(...) returns a SubjectInfo object", response != null);
+				// checkTrue(cn.getLatestRequestUrl(),"response cannot be false. [Only true or exception].", response);
 			} 
 			catch (IndexOutOfBoundsException e) {
-				handleFail(currentUrl,"No Objects available to test against");
+				handleFail(cn.getLatestRequestUrl(),"No Objects available to test against");
 			}
 			catch (BaseException e) {
-				handleFail(currentUrl,e.getDescription());
+				handleFail(cn.getLatestRequestUrl(),e.getDescription());
 			}
 			catch(Exception e) {
 				e.printStackTrace();
@@ -169,17 +169,17 @@ public class CNodeTier2IdentityIT extends ContextAwareTestCaseDataone {
 
 			try {
 				SubjectInfo response = cn.listSubjects(null,"",null,null,null);
-				checkTrue(currentUrl,"listSubjects(...) returns a SubjectInfo object", response != null);
+				checkTrue(cn.getLatestRequestUrl(),"listSubjects(...) returns a SubjectInfo object", response != null);
 				for (Person p: response.getPersonList()) {
 					System.out.println("subject: " + p.getSubject().getValue());
 				}
-				// checkTrue(currentUrl,"response cannot be false. [Only true or exception].", response);
+				// checkTrue(cn.getLatestRequestUrl(),"response cannot be false. [Only true or exception].", response);
 			} 
 			catch (IndexOutOfBoundsException e) {
-				handleFail(currentUrl,"No Objects available to test against");
+				handleFail(cn.getLatestRequestUrl(),"No Objects available to test against");
 			}
 			catch (BaseException e) {
-				handleFail(currentUrl,e.getDescription());
+				handleFail(cn.getLatestRequestUrl(),e.getDescription());
 			}
 			catch(Exception e) {
 				e.printStackTrace();
@@ -201,14 +201,14 @@ public class CNodeTier2IdentityIT extends ContextAwareTestCaseDataone {
 //			try {
 
 //				boolean response = cn.mapIdentity();
-//				checkTrue(currentUrl,"mapIdentity(...) returns a boolean object", response != null);
-//				// checkTrue(currentUrl,"response cannot be false. [Only true or exception].", response);
+//				checkTrue(cn.getLatestRequestUrl(),"mapIdentity(...) returns a boolean object", response != null);
+//				// checkTrue(cn.getLatestRequestUrl(),"response cannot be false. [Only true or exception].", response);
 //			} 
 //			catch (IndexOutOfBoundsException e) {
-//				handleFail(currentUrl,"No Objects available to test against");
+//				handleFail(cn.getLatestRequestUrl(),"No Objects available to test against");
 //			}
 //			catch (BaseException e) {
-//				handleFail(currentUrl,e.getDescription());
+//				handleFail(cn.getLatestRequestUrl(),e.getDescription());
 //			}
 //			catch(Exception e) {
 //				e.printStackTrace();
@@ -229,14 +229,14 @@ public class CNodeTier2IdentityIT extends ContextAwareTestCaseDataone {
 //
 //			try {
 //				boolean response = cn.requestMapIdentity();
-//				checkTrue(currentUrl,"requestMapIdentity(...) returns a boolean object", response != null);
-//				// checkTrue(currentUrl,"response cannot be false. [Only true or exception].", response);
+//				checkTrue(cn.getLatestRequestUrl(),"requestMapIdentity(...) returns a boolean object", response != null);
+//				// checkTrue(cn.getLatestRequestUrl(),"response cannot be false. [Only true or exception].", response);
 //			} 
 //			catch (IndexOutOfBoundsException e) {
-//				handleFail(currentUrl,"No Objects available to test against");
+//				handleFail(cn.getLatestRequestUrl(),"No Objects available to test against");
 //			}
 //			catch (BaseException e) {
-//				handleFail(currentUrl,e.getDescription());
+//				handleFail(cn.getLatestRequestUrl(),e.getDescription());
 //			}
 //			catch(Exception e) {
 //				e.printStackTrace();
@@ -257,14 +257,14 @@ public class CNodeTier2IdentityIT extends ContextAwareTestCaseDataone {
 //
 //			try {
 //				SubjectInfo response = cn.getPendingMapIdentity();
-//				checkTrue(currentUrl,"getPendingMapIdentity(...) returns a SubjectInfo object", response != null);
-//				// checkTrue(currentUrl,"response cannot be false. [Only true or exception].", response);
+//				checkTrue(cn.getLatestRequestUrl(),"getPendingMapIdentity(...) returns a SubjectInfo object", response != null);
+//				// checkTrue(cn.getLatestRequestUrl(),"response cannot be false. [Only true or exception].", response);
 //			} 
 //			catch (IndexOutOfBoundsException e) {
-//				handleFail(currentUrl,"No Objects available to test against");
+//				handleFail(cn.getLatestRequestUrl(),"No Objects available to test against");
 //			}
 //			catch (BaseException e) {
-//				handleFail(currentUrl,e.getDescription());
+//				handleFail(cn.getLatestRequestUrl(),e.getDescription());
 //			}
 //			catch(Exception e) {
 //				e.printStackTrace();
@@ -285,14 +285,14 @@ public class CNodeTier2IdentityIT extends ContextAwareTestCaseDataone {
 //
 //			try {
 //				boolean response = cn.confirmMapIdentity();
-//				checkTrue(currentUrl,"confirmMapIdentity(...) returns a boolean object", response != null);
-//				// checkTrue(currentUrl,"response cannot be false. [Only true or exception].", response);
+//				checkTrue(cn.getLatestRequestUrl(),"confirmMapIdentity(...) returns a boolean object", response != null);
+//				// checkTrue(cn.getLatestRequestUrl(),"response cannot be false. [Only true or exception].", response);
 //			} 
 //			catch (IndexOutOfBoundsException e) {
-//				handleFail(currentUrl,"No Objects available to test against");
+//				handleFail(cn.getLatestRequestUrl(),"No Objects available to test against");
 //			}
 //			catch (BaseException e) {
-//				handleFail(currentUrl,e.getDescription());
+//				handleFail(cn.getLatestRequestUrl(),e.getDescription());
 //			}
 //			catch(Exception e) {
 //				e.printStackTrace();
@@ -313,14 +313,14 @@ public class CNodeTier2IdentityIT extends ContextAwareTestCaseDataone {
 //
 //			try {
 //				boolean response = cn.denyMapIdentity();
-//				checkTrue(currentUrl,"denyMapIdentity(...) returns a boolean object", response != null);
-//				// checkTrue(currentUrl,"response cannot be false. [Only true or exception].", response);
+//				checkTrue(cn.getLatestRequestUrl(),"denyMapIdentity(...) returns a boolean object", response != null);
+//				// checkTrue(cn.getLatestRequestUrl(),"response cannot be false. [Only true or exception].", response);
 //			} 
 //			catch (IndexOutOfBoundsException e) {
-//				handleFail(currentUrl,"No Objects available to test against");
+//				handleFail(cn.getLatestRequestUrl(),"No Objects available to test against");
 //			}
 //			catch (BaseException e) {
-//				handleFail(currentUrl,e.getDescription());
+//				handleFail(cn.getLatestRequestUrl(),e.getDescription());
 //			}
 //			catch(Exception e) {
 //				e.printStackTrace();
@@ -341,14 +341,14 @@ public class CNodeTier2IdentityIT extends ContextAwareTestCaseDataone {
 //
 //			try {
 //				boolean response = cn.removeMapIdentity();
-//				checkTrue(currentUrl,"removeMapIdentity(...) returns a boolean object", response != null);
-//				// checkTrue(currentUrl,"response cannot be false. [Only true or exception].", response);
+//				checkTrue(cn.getLatestRequestUrl(),"removeMapIdentity(...) returns a boolean object", response != null);
+//				// checkTrue(cn.getLatestRequestUrl(),"response cannot be false. [Only true or exception].", response);
 //			} 
 //			catch (IndexOutOfBoundsException e) {
-//				handleFail(currentUrl,"No Objects available to test against");
+//				handleFail(cn.getLatestRequestUrl(),"No Objects available to test against");
 //			}
 //			catch (BaseException e) {
-//				handleFail(currentUrl,e.getDescription());
+//				handleFail(cn.getLatestRequestUrl(),e.getDescription());
 //			}
 //			catch(Exception e) {
 //				e.printStackTrace();
@@ -369,14 +369,14 @@ public class CNodeTier2IdentityIT extends ContextAwareTestCaseDataone {
 //
 //			try {//
 //				Subject response = cn.createGroup();
-//				checkTrue(currentUrl,"createGroup(...) returns a Subject object", response != null);
-//				// checkTrue(currentUrl,"response cannot be false. [Only true or exception].", response);
+//				checkTrue(cn.getLatestRequestUrl(),"createGroup(...) returns a Subject object", response != null);
+//				// checkTrue(cn.getLatestRequestUrl(),"response cannot be false. [Only true or exception].", response);
 //			} 
 //			catch (IndexOutOfBoundsException e) {
-//				handleFail(currentUrl,"No Objects available to test against");
+//				handleFail(cn.getLatestRequestUrl(),"No Objects available to test against");
 //			}
 //			catch (BaseException e) {
-//				handleFail(currentUrl,e.getDescription());
+//				handleFail(cn.getLatestRequestUrl(),e.getDescription());
 //			}
 //			catch(Exception e) {
 //				e.printStackTrace();
@@ -397,14 +397,14 @@ public class CNodeTier2IdentityIT extends ContextAwareTestCaseDataone {
 //
 //			try {
 //				boolean response = cn.updateGroup();
-//				checkTrue(currentUrl,"updateGroup(...) returns a boolean object", response != null);
-//				// checkTrue(currentUrl,"response cannot be false. [Only true or exception].", response);
+//				checkTrue(cn.getLatestRequestUrl(),"updateGroup(...) returns a boolean object", response != null);
+//				// checkTrue(cn.getLatestRequestUrl(),"response cannot be false. [Only true or exception].", response);
 //			} 
 //			catch (IndexOutOfBoundsException e) {
-//				handleFail(currentUrl,"No Objects available to test against");
+//				handleFail(cn.getLatestRequestUrl(),"No Objects available to test against");
 //			}
 //			catch (BaseException e) {
-//				handleFail(currentUrl,e.getDescription());
+//				handleFail(cn.getLatestRequestUrl(),e.getDescription());
 //			}
 //			catch(Exception e) {
 //				e.printStackTrace();
