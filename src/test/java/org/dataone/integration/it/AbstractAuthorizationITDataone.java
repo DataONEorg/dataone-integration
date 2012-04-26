@@ -145,9 +145,10 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 
 		 Iterator<Node> it = getNodeIterator();
 		 while (it.hasNext()) {
+			 currentUrl = it.next().getBaseURL();
+			 D1Node d1Node = instantiateD1Node(currentUrl);
+			 
 			 try {
-				 currentUrl = it.next().getBaseURL();
-				 D1Node d1Node = instantiateD1Node(currentUrl); 
 //				 d1Node.ping();
 //				 d1Node.listObjects(null);
 //				 d1Node.getLogRecords(null);
@@ -159,10 +160,10 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 				 Identifier pid = procurePublicReadableTestObject(d1Node,buildIdentifier(objectIdentifier));
 				 
 				 d1Node.isAuthorized(null, pid, Permission.READ);
-				 handleFail(currentUrl, "ssl connection should not succeed with a self-signed certificate (untrusted CA): testPerson READ vs. " + pid.getValue());
+				 handleFail(d1Node.getLatestRequestUrl(), "ssl connection should not succeed with a self-signed certificate (untrusted CA): testPerson READ vs. " + pid.getValue());
 			 } catch (BaseException be) {
 				 if (!(be instanceof ServiceFailure)) {
-				 handleFail(currentUrl,"a self-signed certificate should not be trusted and should throw a ServiceFailure. Got: " 
+				 handleFail(d1Node.getLatestRequestUrl(),"a self-signed certificate should not be trusted and should throw a ServiceFailure. Got: " 
 						 + be.getClass().getSimpleName() + ": " + 
 						 be.getDetail_code() + ":: " + be.getDescription());
 				 }
@@ -182,13 +183,14 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 		 setupClientSubject("testPerson_Expired");
 		 Iterator<Node> it = getNodeIterator();
 		 while (it.hasNext()) {
+			 currentUrl = it.next().getBaseURL();
+			 D1Node d1Node = instantiateD1Node(currentUrl);
+			 
 			 try {
-				 currentUrl = it.next().getBaseURL();
-				 D1Node d1Node = instantiateD1Node(currentUrl); 
 				 d1Node.ping();
 			 } catch (BaseException be) {
 				 if (!(be instanceof ServiceFailure)) {
-				 handleFail(currentUrl,"an Expired Certificate should throw a ServiceFailure. Got: " 
+				 handleFail(d1Node.getLatestRequestUrl(),"an Expired Certificate should throw a ServiceFailure. Got: " 
 						 + be.getClass().getSimpleName() + ": " + 
 						 be.getDetail_code() + ":: " + be.getDescription());
 				 }
@@ -207,12 +209,13 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 		 setupClientSubject("testSubmitter");
 		 Iterator<Node> it = getNodeIterator();
 		 while (it.hasNext()) {
+			 currentUrl = it.next().getBaseURL();
+			 D1Node d1Node = instantiateD1Node(currentUrl);
+			 
 			 try {
-				 currentUrl = it.next().getBaseURL();
-				 D1Node d1Node = instantiateD1Node(currentUrl); 
 				 d1Node.ping();
 			 } catch (BaseException e) {
-				 handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
+				 handleFail(d1Node.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
 						 e.getDetail_code() + ":: " + e.getDescription());
 			 }
 			 catch(Exception e) {
@@ -240,9 +243,10 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 		 
 		 Iterator<Node> it = getNodeIterator();
 		 while (it.hasNext()) {
+			 currentUrl = it.next().getBaseURL();
+			 D1Node d1Node = instantiateD1Node(currentUrl);
+			 
 			 try {
-				 currentUrl = it.next().getBaseURL();
-				 D1Node d1Node = instantiateD1Node(currentUrl);
 
 				 String objectIdentifier = "TierTesting:" + 
 				 	createNodeAbbreviation(d1Node.getNodeBaseServiceUrl()) +
@@ -342,13 +346,13 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 				 
 				 for (String result : results) {
 					 if (result.contains("FAILED!!")) {
-						 handleFail(currentUrl,tablifyResults(testObject, results) );
+						 handleFail(d1Node.getLatestRequestUrl(),tablifyResults(testObject, results) );
 						 break;
 					 }
 				 }
 				 
 			 } catch (BaseException e) {
-						handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
+						handleFail(d1Node.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
 								e.getDetail_code() + ": " + e.getDescription());
 						 
 			 } catch (Exception e) {
@@ -370,10 +374,10 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 		 
 		 Iterator<Node> it = getNodeIterator();
 		 while (it.hasNext()) {
+			 currentUrl = it.next().getBaseURL();
+			 D1Node d1Node = instantiateD1Node(currentUrl);
+			 
 			 try {
-				 currentUrl = it.next().getBaseURL();
-				 D1Node d1Node = instantiateD1Node(currentUrl);
-
 				 String objectIdentifier = "TierTesting:" + 
 				 	createNodeAbbreviation(d1Node.getNodeBaseServiceUrl()) +
 				 	":RightsHolder_testGroup" + testObjectSeriesSuffix;
@@ -487,7 +491,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 				 }
 				 
 			 } catch (BaseException e) {
-					handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
+					handleFail(d1Node.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
 							e.getDetail_code() + ": " + e.getDescription());
 					 		 
 			 } catch (Exception e) {
@@ -508,10 +512,10 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 		 
 		 Iterator<Node> it = getNodeIterator();
 		 while (it.hasNext()) {
+			 currentUrl = it.next().getBaseURL();
+			 D1Node d1Node = instantiateD1Node(currentUrl);
+			 
 			 try {
-				 currentUrl = it.next().getBaseURL();
-				 D1Node d1Node = instantiateD1Node(currentUrl);
-
 				 String objectIdentifier = "TierTesting:" + 
 				 	createNodeAbbreviation(d1Node.getNodeBaseServiceUrl()) +
 				 	":Public_READ" + testObjectSeriesSuffix;
@@ -615,7 +619,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 				 }
 				 
 			 } catch (BaseException e) {
-					handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
+					handleFail(d1Node.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
 							e.getDetail_code() + ": " + e.getDescription());
 					 	 
 			 } catch (Exception e) {
@@ -635,10 +639,10 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 		 
 		 Iterator<Node> it = getNodeIterator();
 		 while (it.hasNext()) {
+			 currentUrl = it.next().getBaseURL();
+			 D1Node d1Node = instantiateD1Node(currentUrl);
+			 
 			 try {
-				 currentUrl = it.next().getBaseURL();
-				 D1Node d1Node = instantiateD1Node(currentUrl);
-
 				 String objectIdentifier = "TierTesting:" + 
 				 	createNodeAbbreviation(d1Node.getNodeBaseServiceUrl()) +
 				 	":Authenticated_READ" + testObjectSeriesSuffix;				
@@ -741,7 +745,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 				 }
 				 
 			 } catch (BaseException e) {
-					handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
+					handleFail(d1Node.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
 							e.getDetail_code() + ": " + e.getDescription());
 
 				 
@@ -763,10 +767,10 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 		 
 		 Iterator<Node> it = getNodeIterator();
 		 while (it.hasNext()) {
+			 currentUrl = it.next().getBaseURL();
+			 D1Node d1Node = instantiateD1Node(currentUrl);
+			 
 			 try {
-				 currentUrl = it.next().getBaseURL();
-				 D1Node d1Node = instantiateD1Node(currentUrl);
-
 				 String objectIdentifier = "TierTesting:" + 
 				 	createNodeAbbreviation(d1Node.getNodeBaseServiceUrl()) +
 				 	":Verified_READ" + testObjectSeriesSuffix;		
@@ -879,7 +883,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 				 }
 				 
 			 } catch (BaseException e) {
-					handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
+					handleFail(d1Node.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
 							e.getDetail_code() + ": " + e.getDescription());
 					 
 			 } catch (Exception e) {
@@ -900,10 +904,10 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 		 
 		 Iterator<Node> it = getNodeIterator();
 		 while (it.hasNext()) {
-			 try {
-				 currentUrl = it.next().getBaseURL();
-				 D1Node d1Node = instantiateD1Node(currentUrl);
-				 
+			 currentUrl = it.next().getBaseURL();
+			 D1Node d1Node = instantiateD1Node(currentUrl);
+			 
+			 try { 
 				 // get or create the test object
 
 				 String objectIdentifier = "TierTesting:" + 
@@ -1013,7 +1017,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 				 }
 
 			 } catch (BaseException e) {
-					handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
+					handleFail(d1Node.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
 							e.getDetail_code() + ": " + e.getDescription());
 					 
 			 } catch (Exception e) {
@@ -1034,10 +1038,10 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 		 
 		 Iterator<Node> it = getNodeIterator();
 		 while (it.hasNext()) {
+			 currentUrl = it.next().getBaseURL();
+			 D1Node d1Node = instantiateD1Node(currentUrl);
+			 
 			 try {
-				 currentUrl = it.next().getBaseURL();
-				 D1Node d1Node = instantiateD1Node(currentUrl);
-
 				 String objectIdentifier = "TierTesting:" + 
 				 	createNodeAbbreviation(d1Node.getNodeBaseServiceUrl()) +
 				 	":testPerson_WRITE" + testObjectSeriesSuffix;		
@@ -1143,7 +1147,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 				 }
 			 
 			 } catch (BaseException e) {
-					handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
+					handleFail(d1Node.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
 							e.getDetail_code() + ": " + e.getDescription());
 					 	 
 
@@ -1164,10 +1168,10 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 		 
 		 Iterator<Node> it = getNodeIterator();
 		 while (it.hasNext()) {
+			 currentUrl = it.next().getBaseURL();
+			 D1Node d1Node = instantiateD1Node(currentUrl);
+			 
 			 try {
-				 currentUrl = it.next().getBaseURL();
-				 D1Node d1Node = instantiateD1Node(currentUrl);
-
 				 String objectIdentifier = "TierTesting:" + 
 				 	createNodeAbbreviation(d1Node.getNodeBaseServiceUrl()) +
 				 	":testPerson_CHANGE" + testObjectSeriesSuffix;		
@@ -1272,7 +1276,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 				 }
 				 
 			 } catch (BaseException e) {
-					handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
+					handleFail(d1Node.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
 							e.getDetail_code() + ": " + e.getDescription());
 					 
 			 } catch (Exception e) {
@@ -1292,10 +1296,10 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 		 
 		 Iterator<Node> it = getNodeIterator();
 		 while (it.hasNext()) {
+			 currentUrl = it.next().getBaseURL();
+			 D1Node d1Node = instantiateD1Node(currentUrl);
+			 
 			 try {
-				 currentUrl = it.next().getBaseURL();
-				 D1Node d1Node = instantiateD1Node(currentUrl);
-
 				 // get or create the test object
 				 
 				 String objectIdentifier = "TierTesting:" + 
@@ -1410,7 +1414,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 				 }
 				 
 			 } catch (BaseException e) {
-					handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
+					handleFail(d1Node.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
 							e.getDetail_code() + ": " + e.getDescription());
 					 
 			 } catch (Exception e) {
@@ -1431,10 +1435,10 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 		 
 		 Iterator<Node> it = getNodeIterator();
 		 while (it.hasNext()) {
+			 currentUrl = it.next().getBaseURL();
+			 D1Node d1Node = instantiateD1Node(currentUrl);
+			 
 			 try {
-				 currentUrl = it.next().getBaseURL();
-				 D1Node d1Node = instantiateD1Node(currentUrl);
-
 				 // get or create the test object
 				 String objectIdentifier = "TierTesting:" + 
 				 	createNodeAbbreviation(d1Node.getNodeBaseServiceUrl()) +
@@ -1547,7 +1551,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 				 }
 				 
 			 } catch (BaseException e) {
-					handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
+					handleFail(d1Node.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
 							e.getDetail_code() + ": " + e.getDescription());
 					 
 
@@ -1568,10 +1572,10 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 		 
 		 Iterator<Node> it = getNodeIterator();
 		 while (it.hasNext()) {
+			 currentUrl = it.next().getBaseURL();
+			 D1Node d1Node = instantiateD1Node(currentUrl);
+			 
 			 try {
-				 currentUrl = it.next().getBaseURL();
-				 D1Node d1Node = instantiateD1Node(currentUrl);
-
 				 // get or create the test object
 				 String objectIdentifier = "TierTesting:" + 
 				 	createNodeAbbreviation(d1Node.getNodeBaseServiceUrl()) +
@@ -1683,7 +1687,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 				 }
 				 
 			 } catch (BaseException e) {
-					handleFail(currentUrl,e.getClass().getSimpleName() + ": " + 
+					handleFail(d1Node.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
 							e.getDetail_code() + ": " + e.getDescription());
 					 	 
 
