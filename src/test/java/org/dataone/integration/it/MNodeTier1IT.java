@@ -168,16 +168,17 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
         			   fromDate = new Date(fromDate.getTime() - 1000 * 60 * 60);  // 1 hour increments
         			   entries = mn.getLogRecords(null, fromDate, toDate, null, null, null, null);
         			   
-        			   currentTotal = entries.getTotal();
-        			   
-        			   for (LogEntry le: entries.getLogEntryList()) {
-        				   if (targetType == null) {
-        					   targetType = le.getEvent();
-        				   } else if (!le.getEvent().equals(targetType)) {
-        					   otherType = le.getEvent();
-        					   break;
+        			   currentTotal += entries.getTotal();
+        			   if (entries.getCount() > 0) {
+        				   for (LogEntry le: entries.getLogEntryList()) {
+        					   if (targetType == null) {
+        						   targetType = le.getEvent();
+        					   } else if (!le.getEvent().equals(targetType)) {
+        						   otherType = le.getEvent();
+        						   break;
+        					   }
         				   }
-        			   }
+        			   } 
         		   }
 
         		   if (otherType == null) {
@@ -372,6 +373,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     					for (LogEntry le : eventLog.getLogEntryList()) {
     						if (le.getEntryId().equals(excludedEntry.getEntryId())) {
     							handleFail(mn.getLatestRequestUrl(),"entryID " + excludedEntry.getEntryId() +
+    									" at " + excludedEntry.getDateLogged() + 
     									" should not be in the event log where fromDate set to " + fromDate);
     							break;
     						}
