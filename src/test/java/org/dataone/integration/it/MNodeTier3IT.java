@@ -495,10 +495,10 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 	}
 	
 	/**
-	 *  Test MNStorage.delete() functionality
+	 *  Test MNStorage.archive() functionality
 	 */
 	@Test
-	public void testDelete() 
+	public void testArchive() 
 	{
 		Iterator<Node> it = getMemberNodeIterator();
 
@@ -508,7 +508,7 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 			currentUrl = it.next().getBaseURL();
 			MNode mn = D1Client.getMN(currentUrl);
 			currentUrl = mn.getNodeBaseServiceUrl();
-			printTestHeader("testDelete() vs. node: " + currentUrl);
+			printTestHeader("testArchive() vs. node: " + currentUrl);
 
 			Identifier pid = null;
 			try {
@@ -517,13 +517,13 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 						(InputStream) dataPackage[1], (SystemMetadata) dataPackage[2]);
 				
 				// try the delete
-				Identifier deletedPid = mn.delete(null, pid);
+				Identifier archivedPid = mn.archive(null, pid);
 
-				checkEquals(mn.getLatestRequestUrl(),"pid returned from delete should match that given",
-						((Identifier)dataPackage[0]).getValue(), deletedPid.getValue());
+				checkEquals(mn.getLatestRequestUrl(),"pid returned from archive should match that given",
+						((Identifier)dataPackage[0]).getValue(), archivedPid.getValue());
 				
 				SystemMetadata smd = mn.getSystemMetadata(null, pid);
-				checkTrue(mn.getLatestRequestUrl(), "sysmeta for deleted object should be has status of archived",smd.getArchived());
+				checkTrue(mn.getLatestRequestUrl(), "sysmeta for archived object should be has status of archived",smd.getArchived());
 			}
 			catch (BaseException e) {
 				handleFail(mn.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
@@ -540,7 +540,7 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 	 *  Test MNStorage.delete() functionality
 	 */
 	@Test
-	public void testDelete_NotFound() 
+	public void testArchive_NotFound() 
 	{
 		Iterator<Node> it = getMemberNodeIterator();
 
@@ -550,16 +550,16 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 			currentUrl = it.next().getBaseURL();
 			MNode mn = D1Client.getMN(currentUrl);
 			currentUrl = mn.getNodeBaseServiceUrl();
-			printTestHeader("testDelete() vs. node: " + currentUrl);
+			printTestHeader("testArchive() vs. node: " + currentUrl);
 
 			try {
 				// try the delete
 				Identifier fakePid = new Identifier();
 				fakePid.setValue("fakeID." + ExampleUtilities.generateIdentifier());
-				Identifier deletedPid = mn.delete(null, fakePid);
+				Identifier archivedPid = mn.delete(null, fakePid);
 
 				handleFail(mn.getLatestRequestUrl(),"member node should return NotFound if pid" +
-						"to be deleted does not exist there.  Pid: " + deletedPid);
+						"to be archived does not exist there.  Pid: " + archivedPid);
 			}
 			catch (NotFound e) {
 				// expected outcome
@@ -576,29 +576,29 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 	}
 	
 	@Test
-	public void testDelete_NoCert() 
+	public void testArchive_NoCert() 
 	{
 		Iterator<Node> it = getMemberNodeIterator();
 
 		while ( it.hasNext() ) {
-			// subject under which to create the object to be deleted
+			// subject under which to create the object to be archived
 			setupClientSubject("testRightsHolder");
 
 			currentUrl = it.next().getBaseURL();
 			MNode mn = D1Client.getMN(currentUrl);
 			currentUrl = mn.getNodeBaseServiceUrl();
-			printTestHeader("testDelete_NoCert() vs. node: " + currentUrl);
+			printTestHeader("testArchive_NoCert() vs. node: " + currentUrl);
 
 			Identifier pid = null;
 			try {
-				Object[] dataPackage = ExampleUtilities.generateTestSciDataPackage("mNodeTier3TestDelete",true);
+				Object[] dataPackage = ExampleUtilities.generateTestSciDataPackage("mNodeTier3TestArchive",true);
 				pid = mn.create(null,(Identifier) dataPackage[0],
 						(InputStream) dataPackage[1], (SystemMetadata) dataPackage[2]);
 				
 				setupClientSubject_NoCert();
-				// try the delete
-				mn.delete(null, pid);
-				handleFail(mn.getLatestRequestUrl(),"should not be able to delete an object if no certificate");
+				// try the archive
+				mn.archive(null, pid);
+				handleFail(mn.getLatestRequestUrl(),"should not be able to archive an object if no certificate");
 			}
 			catch (InvalidToken na) {
 				try {
