@@ -117,7 +117,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 
 	// this here defines the default
 	// can be overwritten by property passed into base class
-	protected String testObjectSeriesSuffix = "." + "13";
+	protected String testObjectSeriesSuffix = "." + "14";
 	protected  String testObjectSeries = null;
 
 	protected String cnSubmitter = Settings.getConfiguration().getString("dataone.it.cnode.submitter.cn","urn:node:cnDev");
