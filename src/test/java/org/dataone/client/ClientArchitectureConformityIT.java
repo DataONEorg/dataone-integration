@@ -64,6 +64,7 @@ import org.dataone.service.types.v1.Permission;
 import org.dataone.service.types.v1.Person;
 import org.dataone.service.types.v1.Replica;
 import org.dataone.service.types.v1.ReplicationStatus;
+import org.dataone.service.types.v1.Session;
 import org.dataone.service.types.v1.Subject;
 import org.junit.BeforeClass;
 import org.junit.Rule;
@@ -91,12 +92,14 @@ import org.junit.runners.Parameterized.Parameters;
  * to spot the real failures from the fake, but eventually, the tests should account
  * for these parameter naming exceptions.
  * <li> Our current implementation of the echo service has been specially configured
- * to handle http PUT methods, so the following is just for awareness.  Howere, by default
+ * to handle http PUT methods, so the following is just for awareness.  However, by default
  * a django echo server doesn't return message body information from http PUTs. 
  * In this case, methods using PUT would return more errors than
  * they should.  In that case, manual inspection of the code is needed for validating
  * the method. To help the tester, there's a static property "ignorePUTexceptions" 
  * that can be set to true after doing those manual checks.
+ * <li> Overridden methods may not be properly mapped.
+ * </ul>
  * 
  * These tests run using a Parameterized JUnit runner, and I haven't figured out
  * how to have eclipse run just one method, so you'll probably have to run it
@@ -376,17 +379,62 @@ public class ClientArchitectureConformityIT {
 		}
 		
 		// check that there are equal number of parameters
+//		checkEquals(currentMethodKey,"number of parameters in implemented method should match " +
+//				"number of parameters in documentation", implParamTypes.length, docParamTypes.size());
+
+		// now that we are not putting the session object in api parameters, but still
+		// have it listed in the documentation, it's more difficult to compare the number
+		// of parameters, so need to detect in the impl, and account for it.
+		boolean implHasSession = false;
+		for (Class<?> type: implParamTypes) {
+			if (type.getSimpleName().equals("Session")) {
+				implHasSession = true;
+				break;
+			}
+		}
+		
+		boolean docHasSession = false;
+		for (String type: docParamTypes) {
+			if (type.equals("Session")) {
+				docHasSession = true;
+				break;
+			}
+		}
+		
+		int sessionCorrection = 0;
+		if (docHasSession && !implHasSession) {
+			sessionCorrection = 1;
+//			// need to adjust the position in the array, too
+//			class<?>[] tmp = new class<?>[implparamtypes.length+1];
+//			tmp[0] = session.class;
+//			for (int i = 1; i<implparamtypes.length + 1; i++) {
+//				tmp[i] = implparamtypes[i-1];
+//			}
+//			implparamtypes = tmp;
+		}
+		
+
 		checkEquals(currentMethodKey,"number of parameters in implemented method should match " +
-				"number of parameters in documentation", implParamTypes.length, docParamTypes.size());
+		"number of parameters in documentation", implParamTypes.length + sessionCorrection, docParamTypes.size());
+		
 		
 		// check that types agree
-		for (int i=0; i<docParamTypes.size(); i++) {
+		for (int i=0; i<implParamTypes.length; i++) {
 			if (i < implParamTypes.length) {
 				String paramTypeSimpleName = implParamTypes[i].getSimpleName(); // don't have to worry about arrays
-				checkTrue(currentMethodKey,"Implemented parameter type ("+ paramTypeSimpleName +
-						") at position " + i + " should match documented type ("+ docParamTypes.get(i) +")", 
-					ArchitectureUtils.checkDocTypeEqualsJavaType(docParamTypes.get(i), 
-							paramTypeSimpleName));
+				if (sessionCorrection == 0) {
+					checkTrue(currentMethodKey,"Implemented parameter type ("+ paramTypeSimpleName +
+							") at position " + i + " should match documented type ("+ docParamTypes.get(i) +")", 
+							ArchitectureUtils.checkDocTypeEqualsJavaType(docParamTypes.get(i), 
+									paramTypeSimpleName));
+				}
+				else {
+					checkTrue(currentMethodKey,"Implemented parameter type ("+ paramTypeSimpleName +
+							") at position " + i + " should match documented type ("+ docParamTypes.get(i+1) +") " +
+							"at position " + (i+1), 
+							ArchitectureUtils.checkDocTypeEqualsJavaType(docParamTypes.get(i+1), 
+									paramTypeSimpleName));
+				}
 			} else {
 				handleFail(currentMethodKey,"Implementation does not have parameter at position " + i);
 			}
