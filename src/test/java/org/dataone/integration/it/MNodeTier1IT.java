@@ -30,6 +30,7 @@ import org.dataone.client.D1TypeBuilder;
 import org.dataone.client.MNode;
 import org.dataone.client.auth.CertificateManager;
 import org.dataone.service.exceptions.BaseException;
+import org.dataone.service.exceptions.InvalidToken;
 import org.dataone.service.exceptions.NotAuthorized;
 import org.dataone.service.exceptions.SynchronizationFailed;
 import org.dataone.service.types.v1.Checksum;
@@ -850,4 +851,139 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     		}
     	}
     }
+    
+    
+	/**
+	 *  Test MNReplication.getReplica() functionality.  This tests the normal usage
+	 *  where the caller is a MemberNode. Other callers should fail.
+	 */
+//	@Ignore("cannot test a passing situation in standalone mode")
+//	@Test
+	public void testGetReplica() {
+
+		setupClientSubject("testMN");
+
+		Iterator<Node> it = getMemberNodeIterator();  	
+
+		while (it.hasNext()) {
+			currentUrl = it.next().getBaseURL();
+			MNode mn = D1Client.getMN(currentUrl);
+			currentUrl = mn.getNodeBaseServiceUrl();
+			printTestHeader("testGetReplica() vs. node: " + currentUrl);
+
+			try {
+				String objectIdentifier = "TierTesting:" + 
+					 	createNodeAbbreviation(mn.getNodeBaseServiceUrl()) +
+					 	":Public_READ" + testObjectSeriesSuffix;
+				Identifier pid = procurePublicReadableTestObject(mn,D1TypeBuilder.buildIdentifier(objectIdentifier));
+//				Identifier pid = procurePublicReadableTestObject(mn);
+				InputStream is = mn.getReplica(null, pid);
+				checkTrue(mn.getLatestRequestUrl(),"get() returns an objectStream", is != null);
+			}
+			catch (IndexOutOfBoundsException e) {
+    			handleFail(mn.getLatestRequestUrl(),"No Objects available to test against");
+    		}
+    		catch (BaseException e) {
+    			handleFail(mn.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
+    					e.getDetail_code() + ":: " + e.getDescription());
+    		}
+    		catch(Exception e) {
+    			e.printStackTrace();
+    			handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+    		}
+		}
+	}
+	
+	
+	/**
+	 *  Test MNReplication.getReplica() functionality.  This tests for expected 
+	 *  exception when a non-MemberNode client calls the method.
+	 */
+	// TODO: is this doable in stand-alone mode?
+	
+	@Test
+	public void testGetReplica_ValidCertificate_NotMN() {
+
+		setupClientSubject("testRightsHolder");
+
+		Iterator<Node> it = getMemberNodeIterator();  	
+
+		while (it.hasNext()) {
+			currentUrl = it.next().getBaseURL();
+			MNode mn = D1Client.getMN(currentUrl);
+			currentUrl = mn.getNodeBaseServiceUrl();
+			printTestHeader("testGetReplica_AuthenticateITKUser() vs. node: " + currentUrl);
+
+			try {
+				String objectIdentifier = "TierTesting:" + 
+					 	createNodeAbbreviation(mn.getNodeBaseServiceUrl()) +
+					 	":Public_READ" + testObjectSeriesSuffix;
+				Identifier pid = procurePublicReadableTestObject(mn,D1TypeBuilder.buildIdentifier(objectIdentifier));
+//				Identifier pid = procurePublicReadableTestObject(mn);
+				InputStream is = mn.getReplica(null, pid);
+				checkTrue(mn.getLatestRequestUrl(),"get() returns an objectStream", is != null);
+			}
+			catch (IndexOutOfBoundsException e) {
+    			handleFail(mn.getLatestRequestUrl(),"No Objects available to test against");
+    		}
+			catch (NotAuthorized e) {
+				// expected behavior
+			}
+    		catch (BaseException e) {
+    			handleFail(mn.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
+    					e.getDetail_code() + ":: " + e.getDescription());
+    		}
+    		catch(Exception e) {
+    			e.printStackTrace();
+    			handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+    		}
+		}
+	}
+	
+	
+	/**
+	 *  Test MNReplication.getReplica() functionality.  Normal usage is the caller
+	 *  being another MemberNode.  Others should fail.  This tests the latter case.   
+	 */
+	@Test
+	public void testGetReplica_NoCertificate() {
+
+		setupClientSubject_NoCert();
+
+		Iterator<Node> it = getMemberNodeIterator();  	
+
+		while (it.hasNext()) {
+			currentUrl = it.next().getBaseURL();
+			MNode mn = D1Client.getMN(currentUrl);
+			currentUrl = mn.getNodeBaseServiceUrl();
+			printTestHeader("testGetReplica_NoCert() vs. node: " + currentUrl);
+
+			try {
+				String objectIdentifier = "TierTesting:" + 
+					 	createNodeAbbreviation(mn.getNodeBaseServiceUrl()) +
+					 	":Public_READ" + testObjectSeriesSuffix;
+				Identifier pid = procurePublicReadableTestObject(mn,D1TypeBuilder.buildIdentifier(objectIdentifier));
+//				Identifier pid = procurePublicReadableTestObject(mn);
+				InputStream is = mn.getReplica(null, pid);
+				handleFail(mn.getLatestRequestUrl(),"with no client certificate, getReplica() should throw exception");
+			}
+			catch (IndexOutOfBoundsException e) {
+    			handleFail(mn.getLatestRequestUrl(),"No Objects available to test against");
+    		}
+			catch (InvalidToken e) {
+				// expected behavior
+			}
+			catch (NotAuthorized e) {
+				// also expected behavior
+			}
+    		catch (BaseException e) {
+    			handleFail(mn.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
+    					e.getDetail_code() + ":: " + e.getDescription());
+    		}
+    		catch(Exception e) {
+    			e.printStackTrace();
+    			handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+    		}
+		}
+	}
 }
