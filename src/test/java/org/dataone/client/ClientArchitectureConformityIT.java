@@ -455,16 +455,24 @@ public class ClientArchitectureConformityIT {
 			handleFail(currentMethodKey,"bad nodeType value: " + nodeType.xmlValue());
 		}
 		
+		String expectedReturnType = currentMethodKey.endsWith("ping") ? "Date" : docReturnType.get(0);
+		
 		// check that types agree
 		String returnTypeSimpleName = implReturnType.getSimpleName(); // don't have to worry about arrays
-		checkTrue(currentMethodKey,"Implemented return type ("+ returnTypeSimpleName +
-						") should match documented type ("+ docReturnType.get(0) +")", 
-					ArchitectureUtils.checkDocTypeEqualsJavaType(docReturnType.get(0), 
-							returnTypeSimpleName));
+		checkTrue(currentMethodKey,
+				  String.format("Implemented return type (%s) should match documented type (%s)",
+							returnTypeSimpleName, expectedReturnType),
+			      ArchitectureUtils.checkDocTypeEqualsJavaType(
+			    		  expectedReturnType, 
+			    		  returnTypeSimpleName)
+			      );
 	}
 	
 	
-	
+	/**
+	 * Tests that the documented http verb is the one returned by the echo service.
+	 * Expect HEAD requests to return null (because they can't take message bodies);
+	 */
 	@Test
 	public void testHttpVerb()
 	{
@@ -474,9 +482,15 @@ public class ClientArchitectureConformityIT {
 			String echoResponse = getEchoResponse(ECHO_MMP);
 			exceptionLocation = "get verb from documentMap";
 			String docVerb = methodMap.get(currentMethodKey).get("verb").get(0);
-			checkEquals(currentMethodKey, "method verb should agree",
+			if (docVerb.equals("HEAD")) {
+				checkEquals(currentMethodKey, "HEAD method will return 'null'",
+						getVerb(echoResponse),
+						null);	
+			} else {
+				checkEquals(currentMethodKey, "method verb should agree",
 					getVerb(echoResponse),
 					docVerb);
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 			handleFail(currentMethodKey,"unexpected error at '" + exceptionLocation +
@@ -603,7 +617,10 @@ public class ClientArchitectureConformityIT {
 			
 	}
 	
-	
+	/**
+	 * Check the method against all D1 exceptions.  If it's supposed to be thrown
+	 * according to the documentation, 
+	 */
 	@Test
 	public void testMethodExceptionHandling()
 	{
@@ -614,22 +631,30 @@ public class ClientArchitectureConformityIT {
 		{
 			String exceptionName = null;
 			try {	
+				
 				ArrayList<String> docExceptions = (ArrayList<String>) methodMap.get(currentMethodKey).get("exceptions");
-				Class<?>[] implExceptions = null;
-				if (nodeType.equals(NodeType.CN)) {
-					implExceptions = getCNInterfaceMethods().get(currentMethodKey).getExceptionTypes();
-				} else if (nodeType.equals(NodeType.MN)) {
-					implExceptions = getMNInterfaceMethods().get(currentMethodKey).getExceptionTypes();
-				} else {
-					handleFail(currentMethodKey,"test misconfiguration - NodeType is " + nodeType);
-				}
 
-				ArrayList<String> implExList = new ArrayList<String>();
-				for (Class<?> exceptionClass : implExceptions) {
-					implExList.add(exceptionClass.getClass().getSimpleName());
-				}
+//				ArrayList<String> implExList = new ArrayList<String>();				
+//				Class<?>[] implExceptions = null;
+//				if (nodeType.equals(NodeType.CN)) {
+//					implExceptions = getCNInterfaceMethods().get(currentMethodKey).getExceptionTypes();
+//				} else if (nodeType.equals(NodeType.MN)) {
+//					implExceptions = getMNInterfaceMethods().get(currentMethodKey).getExceptionTypes();
+//				} else {
+//					handleFail(currentMethodKey,"test misconfiguration - NodeType is " + nodeType);
+//				}
+//				
+//				for (Class<?> exceptionClass : implExceptions) {
+//					implExList.add(exceptionClass.getClass().getSimpleName());
+//				}
+				
+				
 				List<String> d1ExceptionList = getD1Exceptions();
 				for (String d1Exception : d1ExceptionList) {
+					if (d1Exception.equals("SynchronizationFailed")) {
+						log.info(" : : : : : SKIPPING: " + d1Exception);
+						continue;
+					}
 					log.info(" : : : : : checking: " + d1Exception);
 					String actualException =  getExceptionResponse(d1Exception);
 					if (docExceptions.contains(d1Exception)) {
