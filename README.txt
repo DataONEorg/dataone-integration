@@ -60,8 +60,9 @@ Examples:
  running multiple tests:                   mvn -Dit.test=*Core* verify
  
  ** However: specifying methods within the class is supposed to work, 
- but doesn't in practice for reasons unknown.  For example the following
- will NOT work:
+    but doesn't in practice for reasons unknown.  For example the following
+    will NOT work:
+    
     running one method in integration test:   mvn -Dit.test={pathlessTestName}#{method} verify
     running subset of methods in test:        mvn -Dit.test=someTest#*get*
 
@@ -81,6 +82,26 @@ Note: The pom contains some ant commands that don't work in the shell-less envir
 that Hudson uses when it runs mvn commands, so auto deploy of the MNWebTester doesn't
 currently work on Hudson.
 
+
+
+Running the Web Tests Locally
+-----------------------------
+If you are a member node, are ambitious, and want to run the same tests found in 
+the web tester locally, you would checkout the d1_integration package and run it 
+either through Eclipse, or from the command line.
+
+The member node tier tests (MNodeTier*IT) are 'context aware', and require the
+context to passed into the tests at runtime.  Specifically, the system property 
+'context.mn.basurl' needs to be set.  This would then be combined with the built-in
+maven control for running specific tests, as described above.
+
+For example: 
+   mvn -Dcontext.mn.baseurl=https://dryad.foo.org/mn -Dit.test=MNodeTier1IT verify
+   mvn -Dcontext.mn.baseurl=https://dryad.foo.org/mn -Dit.test=MNodeTier* verify
+
+
+For more advanced local setups, please contact the dataone core team for advice
+and additional context properties.
 
 
 Notes for further development:
