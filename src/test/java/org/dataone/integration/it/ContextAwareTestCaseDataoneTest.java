@@ -78,11 +78,17 @@ public class ContextAwareTestCaseDataoneTest {
 		runTestSetupClient_Typical("testPerson");
 	}
 	
-	@Test
-	public void testSetupClientSubject_MappedPerson() throws Exception
+//	@Test
+	public void testSetupClientSubject_EQPerson1() throws Exception
 	{
-		runTestSetupClient_Typical("testMappedPerson");
-	}	
+		runTestSetupClient_Typical("testEQPerson1");
+	}
+	
+//	@Test
+	public void testSetupClientSubject_EQPerson3() throws Exception
+	{
+		runTestSetupClient_Typical("testEQPerson3");
+	}
 	
 	@Test
 	public void testSetupClientSubject_RightsHolder() throws Exception
