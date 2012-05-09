@@ -502,6 +502,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
      */
     @Test
     public void testListObjects() {
+    	setupClientSubject_NoCert();
        	Iterator<Node> it = getMemberNodeIterator();
     	while (it.hasNext()) {
     		currentUrl = it.next().getBaseURL();
@@ -547,6 +548,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
      */
     @Test
     public void testListObjects_FromDateTest() {
+    	setupClientSubject_NoCert();
        	Iterator<Node> it = getMemberNodeIterator();
     	while (it.hasNext()) {
     		currentUrl = it.next().getBaseURL();
@@ -620,6 +622,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
      */
     @Test
     public void testListObjects_FormatIdFilteringTest() {
+    	setupClientSubject_NoCert();
        	Iterator<Node> it = getMemberNodeIterator();
     	while (it.hasNext()) {
     		currentUrl = it.next().getBaseURL();
