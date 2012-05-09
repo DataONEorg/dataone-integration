@@ -473,7 +473,8 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 			}
 			catch (BaseException be) {  // from initial list objects
 				throw new TestIterationEndingException("could not create a test object " +
-						"and listObjects() threw exception",be);
+						"and listObjects() threw exception:: " + be.getClass().getSimpleName() +
+						" :: " + be.getDescription(),be);
 			}
 		}
 		

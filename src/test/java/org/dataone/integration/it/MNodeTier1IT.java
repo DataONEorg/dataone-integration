@@ -696,8 +696,9 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     			InputStream is = mn.get(null,id);
     			checkTrue(mn.getLatestRequestUrl(),"get() returns an objectStream", is != null);
     		}
-    		catch (IndexOutOfBoundsException e) {
-    			handleFail(mn.getLatestRequestUrl(),"No Objects available to test against");
+    		catch (TestIterationEndingException e) {
+    			handleFail(mn.getLatestRequestUrl(),"No Objects available to test against:: " + 
+    						e.getMessage());
     		}
     		catch (BaseException e) {
     			handleFail(mn.getLatestRequestUrl(), e.getClass().getSimpleName() + ": " + 
