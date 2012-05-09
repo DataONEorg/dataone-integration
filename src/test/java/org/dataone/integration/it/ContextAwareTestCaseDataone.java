@@ -827,98 +827,98 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 	UnsupportedEncodingException, NotFound
 	{
 		// remember who the client currently is
-//		Subject startingClientSubject = ClientIdentityManager.getCurrentIdentity();
 		X509Certificate certificate = CertificateManager.getInstance().loadCertificate();
 		String startingCertLoc = CertificateManager.getInstance().getCertificateLocation();
-//		String startingClientSubjectName = null;
-//		if (certificate != null) {
-//			startingClientSubjectName = CertificateManager.getInstance().getSubjectDN(certificate);
-//		} else {
-//			startingClientSubjectName = Constants.SUBJECT_PUBLIC;
-//		}
 		
-		setupClientSubject(submitterSubjectLabel);
+		Identifier retPid = null;
 		
-
-		// prepare the data object for the create:
-		// generate some data bytes as an input stream		
-		
-		ByteArrayInputStream objectInputStream = null;
-		D1Object d1o = null;
-		SystemMetadata sysMeta = null;
 		try {
-			// make the submitter the same as the cert DN 
-			certificate = CertificateManager.getInstance().loadCertificate();
-			String submitterX500 = CertificateManager.getInstance().getSubjectDN(certificate);
-		
-//			if (d1Node instanceof MNode) {
-//				byte[] contentBytes = "Plain text source for test object".getBytes("UTF-8");
-//				objectInputStream = new ByteArrayInputStream(contentBytes);
-//				d1o = new D1Object(pid, contentBytes, ExampleUtilities.FORMAT_TEXT_PLAIN, submitterX500, "bogusAuthoritativeNode");
-//			} else {
+			setupClientSubject(submitterSubjectLabel);
+
+
+			// prepare the data object for the create:
+			// generate some data bytes as an input stream		
+
+			ByteArrayInputStream objectInputStream = null;
+			D1Object d1o = null;
+			SystemMetadata sysMeta = null;
+			try {
+				// make the submitter the same as the cert DN 
+				certificate = CertificateManager.getInstance().loadCertificate();
+				String submitterX500 = CertificateManager.getInstance().getSubjectDN(certificate);
+
+				//			if (d1Node instanceof MNode) {
+				//				byte[] contentBytes = "Plain text source for test object".getBytes("UTF-8");
+				//				objectInputStream = new ByteArrayInputStream(contentBytes);
+				//				d1o = new D1Object(pid, contentBytes, ExampleUtilities.FORMAT_TEXT_PLAIN, submitterX500, "bogusAuthoritativeNode");
+				//			} else {
 				byte[] contentBytes = ExampleUtilities.getExampleObjectOfType(DEFAULT_TEST_OBJECTFORMAT);
 				objectInputStream = new ByteArrayInputStream(contentBytes);
 				d1o = new D1Object(pid, contentBytes,
 						DEFAULT_TEST_OBJECTFORMAT, submitterX500, "bogusAuthoritativeNode");
-//			}
-			sysMeta = d1o.getSystemMetadata();
-		} catch (NoSuchAlgorithmException e) {
-			e.printStackTrace();
-			throw new ServiceFailure("0000","client misconfiguration related to checksum algorithms");
-		} catch (NotFound e) {
-			// method misconfiguration related to choice of object format
-			e.printStackTrace();
-			throw e;
-		} catch (IOException e) {
-			e.printStackTrace();
-			throw new ServiceFailure("0000","client misconfiguration related to reading of content byte[]");
-		}
-		
-		// set the rightsHolder property
-		Subject rightsHolder = new Subject();
-		rightsHolder.setValue(rightsHolderSubjectName);
-		sysMeta.setRightsHolder(rightsHolder);
-		
-		// build an AccessPolicy if given an AccessRule
-		if (accessRule != null) {
-			AccessPolicy ap = new AccessPolicy();
-			ap.addAllow(accessRule);
-			sysMeta.setAccessPolicy(ap);
-		}
-		
-		// create the test object on the given mNode		
-		if (log.isInfoEnabled()) {
-			log.info("creating a test object.  pid = " + pid.getValue());
-			ByteArrayOutputStream os = new ByteArrayOutputStream();
-			try {
-				TypeMarshaller.marshalTypeToOutputStream(sysMeta, os);
-			} catch (JiBXException e) {
+				//			}
+				sysMeta = d1o.getSystemMetadata();
+			} catch (NoSuchAlgorithmException e) {
 				e.printStackTrace();
+				throw new ServiceFailure("0000","client misconfiguration related to checksum algorithms");
+			} catch (NotFound e) {
+				// method misconfiguration related to choice of object format
+				e.printStackTrace();
+				throw e;
 			} catch (IOException e) {
 				e.printStackTrace();
+				throw new ServiceFailure("0000","client misconfiguration related to reading of content byte[]");
 			}
-			log.info("SystemMetadata for pid: " + pid.getValue() + "\n" 
-				+ os.toString());
-		}
-		Identifier retPid = null;
-		if (d1Node instanceof MNode) {
-			retPid = ((MNode)d1Node).create(null, pid, objectInputStream, sysMeta);
-		} else {
-			retPid = ((CNode)d1Node).create(null, pid, objectInputStream, sysMeta);
-		}
-		log.info("object created.  pid = " + retPid.getValue());
-		checkEquals(d1Node.getNodeBaseServiceUrl(),
-				"createTestObject(): returned pid from the create() should match what was given",
-				pid.getValue(), retPid.getValue());
 
-		// reset the client to the starting subject/certificate
-		// (this should work for public user, too, since we create a public user by 
-		// using a bogus certificate location)
-		CertificateManager.getInstance().setCertificateLocation(startingCertLoc);
-		if (log.isDebugEnabled()) {
-			certificate = CertificateManager.getInstance().loadCertificate();
-			String currentX500 = CertificateManager.getInstance().getSubjectDN(certificate);
-			log.debug("current client certificate " + currentX500);
+			// set the rightsHolder property
+			Subject rightsHolder = new Subject();
+			rightsHolder.setValue(rightsHolderSubjectName);
+			sysMeta.setRightsHolder(rightsHolder);
+
+			// build an AccessPolicy if given an AccessRule
+			if (accessRule != null) {
+				AccessPolicy ap = new AccessPolicy();
+				ap.addAllow(accessRule);
+				sysMeta.setAccessPolicy(ap);
+			}
+
+			// create the test object on the given mNode		
+			if (log.isInfoEnabled()) {
+				log.info("creating a test object.  pid = " + pid.getValue());
+				ByteArrayOutputStream os = new ByteArrayOutputStream();
+				try {
+					TypeMarshaller.marshalTypeToOutputStream(sysMeta, os);
+				} catch (JiBXException e) {
+					e.printStackTrace();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+				log.info("SystemMetadata for pid: " + pid.getValue() + "\n" 
+						+ os.toString());
+			}
+			
+			if (d1Node instanceof MNode) {
+				retPid = ((MNode)d1Node).create(null, pid, objectInputStream, sysMeta);
+			} else {
+				retPid = ((CNode)d1Node).create(null, pid, objectInputStream, sysMeta);
+			}
+			log.info("object created.  pid = " + retPid.getValue());
+			checkEquals(d1Node.getNodeBaseServiceUrl(),
+					"createTestObject(): returned pid from the create() should match what was given",
+					pid.getValue(), retPid.getValue());
+
+			
+		}
+		finally {
+			// reset the client to the starting subject/certificate
+			// (this should work for public user, too, since we create a public user by 
+			// using a bogus certificate location)
+			CertificateManager.getInstance().setCertificateLocation(startingCertLoc);
+			if (log.isDebugEnabled()) {
+				certificate = CertificateManager.getInstance().loadCertificate();
+				String currentX500 = CertificateManager.getInstance().getSubjectDN(certificate);
+				log.debug("current client certificate " + currentX500);
+			}
 		}
 		
 		return retPid;
