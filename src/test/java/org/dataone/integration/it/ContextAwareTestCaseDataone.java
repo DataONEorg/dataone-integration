@@ -793,6 +793,19 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 	}
 	
 	
+	protected Identifier createTestObject(D1Node d1Node, Identifier pid, 
+			AccessRule accessRule, String submitterSubjectLabel, String rightsHolderSubjectName) 
+	throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique, UnsupportedType, 
+	InsufficientResources, InvalidSystemMetadata, NotImplemented, InvalidRequest, 
+	UnsupportedEncodingException, NotFound
+	{
+		AccessPolicy policy = null;
+		if (accessRule != null) {
+			policy = new AccessPolicy();
+			policy.addAllow(accessRule);
+		}
+		return createTestObject( d1Node, pid, policy, submitterSubjectLabel, rightsHolderSubjectName);	
+	}
 	
 	/**
 	 * Creates a test object according to the parameters provided.  The method becomes
@@ -801,7 +814,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 	 * remembers the starting client subject 
 	 * @param d1Node - the node to create the object on
 	 * @param pid - the identifier for the create object
-	 * @param accessRule - the single access rule that will become the AccessPolicy
+	 * @param policy - the single access rule that will become the AccessPolicy
 	 *                     for the created object.  null results in null AccessPolicy
 	 * @param submitterSubjectLabel - label for the submitter subject, to be used as 
 	 *                                the client subject, via setupClientSubject() method
@@ -821,7 +834,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 	 * @throws NotFound
 	 */
 	protected Identifier createTestObject(D1Node d1Node, Identifier pid, 
-			AccessRule accessRule, String submitterSubjectLabel, String rightsHolderSubjectName) 
+			AccessPolicy policy, String submitterSubjectLabel, String rightsHolderSubjectName) 
 	throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique, UnsupportedType, 
 	InsufficientResources, InvalidSystemMetadata, NotImplemented, InvalidRequest, 
 	UnsupportedEncodingException, NotFound
@@ -876,10 +889,8 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 			sysMeta.setRightsHolder(rightsHolder);
 
 			// build an AccessPolicy if given an AccessRule
-			if (accessRule != null) {
-				AccessPolicy ap = new AccessPolicy();
-				ap.addAllow(accessRule);
-				sysMeta.setAccessPolicy(ap);
+			if (policy != null) {
+				sysMeta.setAccessPolicy(policy);
 			}
 
 			// create the test object on the given mNode		

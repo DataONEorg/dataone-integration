@@ -42,12 +42,14 @@ import org.dataone.service.exceptions.NotFound;
 import org.dataone.service.exceptions.NotImplemented;
 import org.dataone.service.exceptions.ServiceFailure;
 import org.dataone.service.exceptions.UnsupportedType;
+import org.dataone.service.types.v1.AccessPolicy;
 import org.dataone.service.types.v1.AccessRule;
 import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Node;
 import org.dataone.service.types.v1.Permission;
 import org.dataone.service.types.v1.Subject;
 import org.dataone.service.types.v1.SystemMetadata;
+import org.dataone.service.types.v1.util.AccessUtil;
 import org.dataone.service.util.Constants;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -87,14 +89,8 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 				pid.getValue() + "'", 
 				permission.toString().toLowerCase().replace("_permission","") + "'"
 				);
-		String outcome = null;
-		try {
-			boolean booleanOutcome = d1Node.isAuthorized(null, pid, permission);
-			outcome = booleanOutcome ? "true" : "false";
-		}
-		catch (BaseException e) {
-			outcome = e.getClass().getSimpleName();
-		}	
+
+		String outcome = getOutcomeAsString(d1Node, pid, permission);
 		
 		if (expectedOutcome.contains(outcome)) {
 			testResult += String.format("  PASSED ('%s')", expectedOutcome);
@@ -105,6 +101,20 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 		return testResult;
 	}
 
+	
+	private String getOutcomeAsString(D1Node d1Node, Identifier pid, Permission permission) {
+		String outcome = null;
+		try {
+			boolean booleanOutcome = d1Node.isAuthorized(null, pid, permission);
+			outcome = booleanOutcome ? "true" : "false";
+		}
+		catch (BaseException e) {
+			outcome = e.getClass().getSimpleName();
+		}
+		return outcome;
+	}
+	
+	
 
 	 private Subject buildSubject(String value) {
 		 Subject s = new Subject();
@@ -1907,8 +1917,197 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 		 }
 	 }
 
+	 private String buildTestFQDN(String cn) {
+		 return String.format("CN=%s,DC=dataone,DC=org",cn);
+	 }
+	 
+	 @Test
+	 public void testIsAuthorized_ComplicatedAccessPolicy() {
+		 
+		 String procuringSubjectString = "testRightsHolder";
+		 
+		 // set up the complicated access policy
+		 // 1. aa,bb, => READ
+		 // 2. testPerson => READ
+		 // 3. ee,ff,testPerson => READ, WRITE
+		 AccessPolicy complicatedPolicy = new AccessPolicy();
+		 complicatedPolicy.addAllow(AccessUtil.createAccessRule(
+				 new String[] {buildTestFQDN("testGroupie")},
+				 new Permission[] {Permission.READ, Permission.WRITE}));
+		 complicatedPolicy.addAllow(AccessUtil.createAccessRule(
+				 new String[] {buildTestFQDN("testPerson")},
+				 new Permission[] {Permission.READ}));
+		 complicatedPolicy.addAllow(AccessUtil.createAccessRule(
+				 new String[] {buildTestFQDN("cc"),
+						       buildTestFQDN("testPerson")},
+				 new Permission[] {Permission.WRITE}));
+
+		 
+		 
+		 
+		 Iterator<Node> it = getNodeIterator();
+		 while (it.hasNext()) {
+			 currentUrl = it.next().getBaseURL();
+			 D1Node d1Node = instantiateD1Node(currentUrl);
+			 
+			 try {
+				 String objectIdentifier = "TierTesting:" + 
+				 	createNodeAbbreviation(d1Node.getNodeBaseServiceUrl()) +
+				 	":ComplicatedPolicy" + testObjectSeriesSuffix;				
+
+				 setupClientSubject(procuringSubjectString);
+				 Identifier testObject = procureSpecialTestObject(d1Node,
+						 complicatedPolicy,
+						 buildIdentifier(objectIdentifier));
+				 
+				 String clientSubject = "testPerson";
+				 setupClientSubject(clientSubject);
+				 
+				 ArrayList<String> results = new ArrayList<String>();
+				 
+				 // TODO:  set up the proper tests
+				 
+				 String outcome;
+				 outcome = getOutcomeAsString(d1Node, testObject, Permission.READ);
+				 if (! outcome.equals("true"))
+					 results.add(String.format("FAILED!! %s should be allowed %s access" +
+					 		" to %s. isAuthorized method did not process the 2nd or " +
+					 		"3rd AccessRule.  Got %s",
+					 		clientSubject,
+					 		Permission.READ.xmlValue(),
+					 		testObject.getValue(),
+					 		outcome));
+				 
+				 outcome = getOutcomeAsString(d1Node, testObject, Permission.WRITE);
+				 if (! outcome.equals("true"))
+					 results.add(String.format("FAILED!! %s should be allowed %s access " +
+					 		"to %s. isAuthorized method did not apply WRITE permission " +
+					 		"to 2nd Subject in the AccessRule. Got %s",
+					 		clientSubject,
+					 		Permission.WRITE.xmlValue(),
+					 		testObject.getValue(),
+					 		outcome));
+					 
+				 outcome = getOutcomeAsString(d1Node, testObject, Permission.CHANGE_PERMISSION);
+				 if (! outcome.equals("NotAuthorized"))
+					 results.add(String.format("FAILED!! %s should NOT be allowed %s access " +
+					 		"to %s. Got %s",
+					 		clientSubject,
+					 		Permission.CHANGE_PERMISSION.xmlValue(),
+					 		testObject.getValue(),
+					 		outcome));
+				 
+				 
+				 clientSubject = "testGroupie";
+				 setupClientSubject(clientSubject);
+				 
+				 outcome = getOutcomeAsString(d1Node, testObject, Permission.WRITE);
+				 if (! outcome.equals("true"))
+					 results.add(String.format("FAILED!! %s should be allowed %s access " +
+					 		"to %s. isAuthorized method did not apply WRITE permission " +
+					 		"to 2nd Permission in the AccessRule. Got %s",
+					 		clientSubject,
+					 		Permission.WRITE.xmlValue(),
+					 		testObject.getValue(),
+					 		outcome));
+				 
+				 outcome = getOutcomeAsString(d1Node, testObject, Permission.CHANGE_PERMISSION);
+				 if (! outcome.equals("NotAuthorized"))
+					 results.add(String.format("FAILED!! %s should NOT be allowed %s access " +
+					 		"to %s. Got %s",
+					 		clientSubject,
+					 		Permission.CHANGE_PERMISSION.xmlValue(),
+					 		testObject.getValue(),
+					 		outcome));
+			 
+				 for (String result : results) {
+					 if (result.contains("FAILED!!")) {
+						 handleFail(null, currentUrl + " " + tablifyResults(testObject, results) );
+						 break;
+					 }
+				 }
+			 } catch (BaseException e) {
+					handleFail(d1Node.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
+							e.getDetail_code() + ": " + e.getDescription());
+					 	 
+
+			 } catch (Exception e) {
+				 e.printStackTrace();
+				 handleFail(currentUrl, e.getClass().getName() + ": " + e.getMessage());
+			 }
+		 }
+	 }
 	 
 	 
+	 private Identifier procureSpecialTestObject(D1Node d1Node, AccessPolicy accessPolicy, Identifier pid) 
+	 throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique, UnsupportedType, 
+	 InsufficientResources, InvalidSystemMetadata, NotImplemented, InvalidRequest, 
+	 UnsupportedEncodingException, NotFound, TestIterationEndingException 
+	 {
+		 Identifier identifier = null;
+		 try {
+			 log.debug("procureTestObject: checking system metadata of requested object");
+			 SystemMetadata smd = d1Node.getSystemMetadata(null, pid);	 
+		 
+			 if (accessPolicy == null) {
+				 // need the accessPolicy to be null, or contain no accessrules
+				 if (smd.getAccessPolicy() == null || smd.getAccessPolicy().sizeAllowList() == 0) {
+					 identifier = pid;
+				 } else {
+					 throw new TestIterationEndingException("returned object doesn't have the expected accessRules");
+				 }
+			 } else {
+				 if (smd.getAccessPolicy() != null && smd.getAccessPolicy().sizeAllowList() == accessPolicy.sizeAllowList()) {
+					 // keeping it simple by requiring exact match to accessPolicy
+					 boolean mismatch = false;
+					 try {
+						 policyCompare:
+							 for (int i = 0; i< accessPolicy.sizeAllowList(); i++) {
+								 AccessRule ar = accessPolicy.getAllow(i);
+								 
+								 for (int j = 0; j < ar.sizeSubjectList(); j++) {
+									 if (!ar.getSubject(j).equals(smd.getAccessPolicy().getAllow(i).getSubject(j))) {
+										 mismatch = true;
+										 break policyCompare;
+									 }
+								 }
+								 for (int k = 0; k < ar.sizePermissionList(); k++) {
+									 if (!ar.getPermission(k).equals(smd.getAccessPolicy().getAllow(i).getPermission(k))) {
+										 mismatch = true;
+										 break policyCompare;
+									 }
+								 }
+							 }
+					 } catch (Exception e) {
+						 // assume it's because there's a null pointer or index out of bounds
+						 // due to differences in list sizes
+						 throw new TestIterationEndingException("the AccessPolicy of the returned object doesn't match the one required");
+					 }
+					 if (mismatch) {
+						 throw new TestIterationEndingException("the AccessPolicy of the returned object doesn't match the one required");
+					 }	
+					 else {
+						 identifier = pid;
+					 }
+				 }
+				 else {	
+					 throw new TestIterationEndingException("the AccessPolicy of the returned object does not match requirements.");
+				 }
+			 }
+		 } 
+		 catch (NotFound e) {
+			 if (d1Node instanceof MNode) {
+				 Node node = ((MNode) d1Node).getCapabilities();
+				 if (APITestUtils.isServiceAvailable(node, "MNStorage")) {
+					 log.debug("procureTestObject: calling createTestObject");
+					 identifier = createTestObject(d1Node, pid, accessPolicy, "testSubmitter","CN=testRightsHolder,DC=dataone,DC=org");
+				 }
+			 } else {
+				 throw e;
+			 }
+		 }
+		 return identifier;
+	 }
 	 
 	 
 	 

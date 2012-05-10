@@ -78,13 +78,13 @@ public class ContextAwareTestCaseDataoneTest {
 		runTestSetupClient_Typical("testPerson");
 	}
 	
-//	@Test
+	@Test
 	public void testSetupClientSubject_EQPerson1() throws Exception
 	{
 		runTestSetupClient_Typical("testEQPerson1");
 	}
 	
-//	@Test
+	@Test
 	public void testSetupClientSubject_EQPerson3() throws Exception
 	{
 		runTestSetupClient_Typical("testEQPerson3");
