@@ -636,7 +636,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     				// procure also creates!
     				ol = procureObjectList(mn);
     			} else {
-    				ol = mn.listObjects(null, null, null, null, null, 0, ol.getTotal());
+    				ol = APITestUtils.pagedListObjects(mn, null, null, null, null, 0, ol.getTotal());
     			}
     			checkTrue(mn.getLatestRequestUrl(),"listObjects() should return an ObjectList", ol != null);
     			if (ol.getTotal() == 0)

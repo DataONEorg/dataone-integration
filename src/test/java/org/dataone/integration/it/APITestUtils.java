@@ -21,11 +21,13 @@
 package org.dataone.integration.it;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
 import org.dataone.client.CNode;
+import org.dataone.client.D1Node;
 import org.dataone.client.MNode;
 import org.dataone.service.exceptions.InvalidRequest;
 import org.dataone.service.exceptions.InvalidToken;
@@ -40,11 +42,13 @@ import org.dataone.service.types.v1.NodeList;
 import org.dataone.service.types.v1.NodeReference;
 import org.dataone.service.types.v1.NodeType;
 import org.dataone.service.types.v1.ObjectFormatIdentifier;
+import org.dataone.service.types.v1.ObjectList;
 import org.dataone.service.types.v1.ObjectLocation;
 import org.dataone.service.types.v1.ObjectLocationList;
 import org.dataone.service.types.v1.Permission;
 import org.dataone.service.types.v1.Person;
 import org.dataone.service.types.v1.Service;
+import org.dataone.service.types.v1.Session;
 import org.dataone.service.types.v1.Subject;
 
 
@@ -288,5 +292,54 @@ public class APITestUtils {
 		}
 		return nodeSet;
 	}
+	
+	/**
+	 * Calls list objects iteratively using the paging mechanism in order to
+	 * respect any server-imposed paging limits
+	 * @param d1Node
+	 * @param fromDate
+	 * @param toDate
+	 * @param formatid
+	 * @param replicaStatus
+	 * @param start
+	 * @param count
+	 * @return
+	 * @throws InvalidRequest
+	 * @throws InvalidToken
+	 * @throws NotAuthorized
+	 * @throws NotImplemented
+	 * @throws ServiceFailure
+	 */
+	public static ObjectList pagedListObjects(D1Node d1Node, Date fromDate, Date toDate, 
+      ObjectFormatIdentifier formatid, Boolean replicaStatus, Integer start, Integer count) 
+    throws InvalidRequest, InvalidToken, NotAuthorized, NotImplemented, ServiceFailure
+    {
+		
+		ObjectList ol = d1Node.listObjects(null, fromDate, toDate, formatid, replicaStatus, start, null);
+		if (ol.getTotal() == ol.getCount()) {
+			// don't need to ask for more
+			if (ol.getCount() > count) {
+				// need to trim the object list to match the requested amount
+				ol.setObjectInfoList(ol.getObjectInfoList().subList(0, count));
+				ol.setCount(count);
+			}
+		}
+		
+		
+		int retrieved = ol.getCount();
+		int serverPageSize = ol.getCount();  // server is happy to return this amount at a time.
+		int totalNeeded = count > ol.getTotal() ? count : ol.getTotal();
+		int remaining = totalNeeded - retrieved;
+		while (remaining > 0) {
+			int pageSize = remaining < serverPageSize ? remaining : serverPageSize;
+			start = retrieved;
+			ObjectList nextList = d1Node.listObjects(null, fromDate, toDate, formatid, replicaStatus, start, pageSize);
+			retrieved += nextList.getCount();
+			remaining = totalNeeded - retrieved;
+			ol.getObjectInfoList().addAll(nextList.getObjectInfoList());
+		}
+		ol.setCount(ol.sizeObjectInfoList());
+		return ol;
+    }
 
 }
