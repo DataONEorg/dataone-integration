@@ -516,7 +516,7 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 				pid = mn.create(null,(Identifier) dataPackage[0],
 						(InputStream) dataPackage[1], (SystemMetadata) dataPackage[2]);
 				
-				// try the delete
+				// try the archive
 				Identifier archivedPid = mn.archive(null, pid);
 
 				checkEquals(mn.getLatestRequestUrl(),"pid returned from archive should match that given",
@@ -537,7 +537,7 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 	}
 	
 	/**
-	 *  Test MNStorage.delete() functionality
+	 *  Test MNStorage.archive() functionality
 	 */
 	@Test
 	public void testArchive_NotFound() 
@@ -553,10 +553,10 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 			printTestHeader("testArchive() vs. node: " + currentUrl);
 
 			try {
-				// try the delete
+				// try the archive
 				Identifier fakePid = new Identifier();
 				fakePid.setValue("fakeID." + ExampleUtilities.generateIdentifier());
-				Identifier archivedPid = mn.delete(null, fakePid);
+				Identifier archivedPid = mn.archive(null, fakePid);
 
 				handleFail(mn.getLatestRequestUrl(),"member node should return NotFound if pid" +
 						"to be archived does not exist there.  Pid: " + archivedPid);
@@ -574,6 +574,7 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 			}	
 		}
 	}
+	
 	
 	@Test
 	public void testArchive_NoCert() 
@@ -629,6 +630,79 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 
 	}
 		
+	
+	@Test
+	public void testDelete_NoCert() 
+	{
+		Iterator<Node> it = getMemberNodeIterator();
+
+		while ( it.hasNext() ) {
+			// subject under which to create the object to be archived
+			setupClientSubject("testRightsHolder");
+
+			currentUrl = it.next().getBaseURL();
+			MNode mn = D1Client.getMN(currentUrl);
+			currentUrl = mn.getNodeBaseServiceUrl();
+			printTestHeader("testDelete_NoCert() vs. node: " + currentUrl);
+
+			Identifier pid = null;
+			try {
+				Object[] dataPackage = ExampleUtilities.generateTestSciDataPackage("mNodeTier3TestDelete",true);
+				pid = mn.create(null,(Identifier) dataPackage[0],
+						(InputStream) dataPackage[1], (SystemMetadata) dataPackage[2]);
+				
+				setupClientSubject_NoCert();
+				// try the archive
+				mn.delete(null, pid);
+				handleFail(mn.getLatestRequestUrl(),"should not be able to archive an object if no certificate");
+			}
+			catch (InvalidToken na) {
+				try {
+					setupClientSubject("testRightsHolder");
+					InputStream is = mn.get(null, pid);	
+					try {
+						is.close();
+					} catch (IOException e) {
+					}
+				}
+				catch (BaseException e) {
+					handleFail(mn.getLatestRequestUrl(),"Got InvalidToken, but couldn't perform subsequent get(). Instead: " +
+							e.getClass().getSimpleName() + ": " + e.getDetail_code() + 
+							": " + e.getDescription());
+				} 
+				
+			}
+			catch (NotAuthorized na) {
+				try {
+					setupClientSubject("testRightsHolder");
+					InputStream is = mn.get(null, pid);	
+					try {
+						is.close();
+					} catch (IOException e) {
+					}
+				}
+				catch (BaseException e) {
+					handleFail(mn.getLatestRequestUrl(),"Got NotAuthorized, but couldn't perform subsequent get(). Instead: " +
+							e.getClass().getSimpleName() + ": " + e.getDetail_code() + 
+							": " + e.getDescription());
+				} 
+				
+			}
+			catch (BaseException e) {
+				handleFail(mn.getLatestRequestUrl(),"Expected InvalidToken, got: " +
+						e.getClass().getSimpleName() + ": " + e.getDetail_code() + 
+						": " + e.getDescription());
+			}
+			catch(Exception e) {
+				e.printStackTrace();
+				handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+			}	
+		}
+
+	}
+	
+
+	
 	
 	@Override
 	protected String getTestDescription() {

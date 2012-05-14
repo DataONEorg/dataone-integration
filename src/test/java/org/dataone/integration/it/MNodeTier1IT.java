@@ -166,10 +166,12 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
         		   while (otherType == null && currentTotal < totalEntries) {
         			   // slide the time window
         			   toDate = fromDate;
-        			   fromDate = new Date(fromDate.getTime() - 1000 * 60 * 60);  // 1 hour increments
+        			   fromDate = new Date(fromDate.getTime() - 1000 * 60 * 60 * 4);  // 4 hour increments
+        			   log.debug(String.format("from: %s,     to: %s",fromDate, toDate));
+        			   
         			   entries = mn.getLogRecords(null, fromDate, toDate, null, null, null, null);
         			   
-        			   currentTotal += entries.getTotal();
+        			   currentTotal += entries.getCount();
         			   if (entries.getCount() > 0) {
         				   for (LogEntry le: entries.getLogEntryList()) {
         					   if (targetType == null) {
@@ -179,7 +181,31 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
         						   break;
         					   }
         				   }
-        			   } 
+        			   }
+        			   
+        			   if (entries.getCount() < entries.getTotal()) {
+        				   // need to get the rest within this filtering
+        				   int size = entries.getCount();
+        				   int c = size;  // we already got the first page
+        				   int filterTotal = entries.getTotal();
+        				   while (c < filterTotal) {
+        					   entries = mn.getLogRecords(null, fromDate, toDate, null, null, c, size);
+        					   c += entries.getCount();
+        					   currentTotal += entries.getCount();
+        					   
+        					   if (entries.getCount() > 0) {
+                				   for (LogEntry le: entries.getLogEntryList()) {
+                					   if (targetType == null) {
+                						   targetType = le.getEvent();
+                					   } else if (!le.getEvent().equals(targetType)) {
+                						   otherType = le.getEvent();
+                						   break;
+                					   }
+                				   }
+                			   } 
+        					   
+        				   }
+        			   }
         		   }
 
         		   if (otherType == null) {
@@ -369,7 +395,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     				else {
 
     					// call with a fromDate
-    					eventLog = mn.getLogRecords(null, fromDate, null, null, null, null);
+    					eventLog = mn.getLogRecords(fromDate, null, null, null, null, null);
 
     					for (LogEntry le : eventLog.getLogEntryList()) {
     						if (le.getEntryId().equals(excludedEntry.getEntryId())) {
@@ -880,7 +906,6 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
 					 	createNodeAbbreviation(mn.getNodeBaseServiceUrl()) +
 					 	":Public_READ" + testObjectSeriesSuffix;
 				Identifier pid = procurePublicReadableTestObject(mn,D1TypeBuilder.buildIdentifier(objectIdentifier));
-//				Identifier pid = procurePublicReadableTestObject(mn);
 				InputStream is = mn.getReplica(null, pid);
 				checkTrue(mn.getLatestRequestUrl(),"get() returns an objectStream", is != null);
 			}
@@ -923,9 +948,8 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
 					 	createNodeAbbreviation(mn.getNodeBaseServiceUrl()) +
 					 	":Public_READ" + testObjectSeriesSuffix;
 				Identifier pid = procurePublicReadableTestObject(mn,D1TypeBuilder.buildIdentifier(objectIdentifier));
-//				Identifier pid = procurePublicReadableTestObject(mn);
 				InputStream is = mn.getReplica(null, pid);
-				checkTrue(mn.getLatestRequestUrl(),"get() returns an objectStream", is != null);
+				handleFail(mn.getLatestRequestUrl(),"with non-Node client certificate, getReplica() should throw exception");
 			}
 			catch (IndexOutOfBoundsException e) {
     			handleFail(mn.getLatestRequestUrl(),"No Objects available to test against");
@@ -967,7 +991,6 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
 					 	createNodeAbbreviation(mn.getNodeBaseServiceUrl()) +
 					 	":Public_READ" + testObjectSeriesSuffix;
 				Identifier pid = procurePublicReadableTestObject(mn,D1TypeBuilder.buildIdentifier(objectIdentifier));
-//				Identifier pid = procurePublicReadableTestObject(mn);
 				InputStream is = mn.getReplica(null, pid);
 				handleFail(mn.getLatestRequestUrl(),"with no client certificate, getReplica() should throw exception");
 			}

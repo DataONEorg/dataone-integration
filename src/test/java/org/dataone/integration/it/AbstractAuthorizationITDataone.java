@@ -1958,7 +1958,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 				 setupClientSubject(procuringSubjectString);
 				 Identifier testObject = procureSpecialTestObject(d1Node,
 						 complicatedPolicy,
-						 buildIdentifier(objectIdentifier));
+						 buildIdentifier(objectIdentifier), false);
 				 
 				 String clientSubject = "testPerson";
 				 setupClientSubject(clientSubject);
@@ -2039,7 +2039,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 	 }
 	 
 	 
-	 private Identifier procureSpecialTestObject(D1Node d1Node, AccessPolicy accessPolicy, Identifier pid) 
+	 private Identifier procureSpecialTestObject(D1Node d1Node, AccessPolicy accessPolicy, Identifier pid, boolean exactPolicy) 
 	 throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique, UnsupportedType, 
 	 InsufficientResources, InvalidSystemMetadata, NotImplemented, InvalidRequest, 
 	 UnsupportedEncodingException, NotFound, TestIterationEndingException 
@@ -2049,50 +2049,56 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 			 log.debug("procureTestObject: checking system metadata of requested object");
 			 SystemMetadata smd = d1Node.getSystemMetadata(null, pid);	 
 		 
-			 if (accessPolicy == null) {
-				 // need the accessPolicy to be null, or contain no accessrules
-				 if (smd.getAccessPolicy() == null || smd.getAccessPolicy().sizeAllowList() == 0) {
-					 identifier = pid;
+			 if (exactPolicy) {
+				 if (accessPolicy == null) {
+					 // need the accessPolicy to be null, or contain no accessrules
+					 if (smd.getAccessPolicy() == null || smd.getAccessPolicy().sizeAllowList() == 0) {
+						 identifier = pid;
+					 } else {
+						 throw new TestIterationEndingException("returned object doesn't have the expected accessRules");
+					 }
 				 } else {
-					 throw new TestIterationEndingException("returned object doesn't have the expected accessRules");
+					 if (smd.getAccessPolicy() != null && smd.getAccessPolicy().sizeAllowList() == accessPolicy.sizeAllowList()) {
+						 // keeping it simple by requiring exact match to accessPolicy
+						 boolean mismatch = false;
+						 try {
+							 policyCompare:
+								 for (int i = 0; i< accessPolicy.sizeAllowList(); i++) {
+									 AccessRule ar = accessPolicy.getAllow(i);
+
+									 for (int j = 0; j < ar.sizeSubjectList(); j++) {
+										 if (!ar.getSubject(j).equals(smd.getAccessPolicy().getAllow(i).getSubject(j))) {
+											 mismatch = true;
+											 break policyCompare;
+										 }
+									 }
+									 for (int k = 0; k < ar.sizePermissionList(); k++) {
+										 if (!ar.getPermission(k).equals(smd.getAccessPolicy().getAllow(i).getPermission(k))) {
+											 mismatch = true;
+											 break policyCompare;
+										 }
+									 }
+								 }
+						 } catch (Exception e) {
+							 // assume it's because there's a null pointer or index out of bounds
+							 // due to differences in list sizes
+							 throw new TestIterationEndingException("the AccessPolicy of the returned object " +
+									 "doesn't match the one required. Got exception: " + e.getClass() + " " + e.getMessage());
+						 }
+						 if (mismatch) {
+							 throw new TestIterationEndingException("the AccessPolicy of the returned object doesn't match the one required");
+						 }	
+						 else {
+							 identifier = pid;
+						 }
+					 }
+					 else {	
+						 throw new TestIterationEndingException("the AccessPolicy of the returned object " +
+						 "does not match requirements. The number of allowRules differs.");
+					 }
 				 }
 			 } else {
-				 if (smd.getAccessPolicy() != null && smd.getAccessPolicy().sizeAllowList() == accessPolicy.sizeAllowList()) {
-					 // keeping it simple by requiring exact match to accessPolicy
-					 boolean mismatch = false;
-					 try {
-						 policyCompare:
-							 for (int i = 0; i< accessPolicy.sizeAllowList(); i++) {
-								 AccessRule ar = accessPolicy.getAllow(i);
-								 
-								 for (int j = 0; j < ar.sizeSubjectList(); j++) {
-									 if (!ar.getSubject(j).equals(smd.getAccessPolicy().getAllow(i).getSubject(j))) {
-										 mismatch = true;
-										 break policyCompare;
-									 }
-								 }
-								 for (int k = 0; k < ar.sizePermissionList(); k++) {
-									 if (!ar.getPermission(k).equals(smd.getAccessPolicy().getAllow(i).getPermission(k))) {
-										 mismatch = true;
-										 break policyCompare;
-									 }
-								 }
-							 }
-					 } catch (Exception e) {
-						 // assume it's because there's a null pointer or index out of bounds
-						 // due to differences in list sizes
-						 throw new TestIterationEndingException("the AccessPolicy of the returned object doesn't match the one required");
-					 }
-					 if (mismatch) {
-						 throw new TestIterationEndingException("the AccessPolicy of the returned object doesn't match the one required");
-					 }	
-					 else {
-						 identifier = pid;
-					 }
-				 }
-				 else {	
-					 throw new TestIterationEndingException("the AccessPolicy of the returned object does not match requirements.");
-				 }
+				 identifier = pid;
 			 }
 		 } 
 		 catch (NotFound e) {
