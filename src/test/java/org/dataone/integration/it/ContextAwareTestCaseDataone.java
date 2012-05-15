@@ -120,7 +120,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 	protected String testObjectSeriesSuffix = "." + "14";
 	protected  String testObjectSeries = null;
 
-	protected String cnSubmitter = Settings.getConfiguration().getString("dataone.it.cnode.submitter.cn","urn:node:cnDev");
+	protected String cnSubmitter = Settings.getConfiguration().getString("dataone.it.cnode.submitter.cn", /* default */ "urn:node:cnDev");
 	
 	public  List<Node> memberNodeList = null;
 	public  List<Node> coordinatingNodeList = new Vector<Node>();

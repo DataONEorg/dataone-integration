@@ -24,6 +24,8 @@ import java.io.InputStream;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Scanner;
+import java.util.Vector;
 
 import org.dataone.client.D1Client;
 import org.dataone.client.D1TypeBuilder;
@@ -32,6 +34,8 @@ import org.dataone.client.auth.CertificateManager;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.InvalidToken;
 import org.dataone.service.exceptions.NotAuthorized;
+import org.dataone.service.exceptions.NotFound;
+import org.dataone.service.exceptions.ServiceFailure;
 import org.dataone.service.exceptions.SynchronizationFailed;
 import org.dataone.service.types.v1.Checksum;
 import org.dataone.service.types.v1.DescribeResponse;
@@ -48,6 +52,7 @@ import org.dataone.service.types.v1.Subject;
 import org.dataone.service.types.v1.SystemMetadata;
 import org.dataone.service.util.DateTimeMarshaller;
 
+import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -60,11 +65,43 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
 
     private  String format_text_csv = "text/csv";
     private  String currentUrl;
-    
+    private Vector<String> unicodeStringV;
+	private Vector<String> escapedStringV;
 
 	@Override
 	protected String getTestDescription() {
 		return "Test Case that runs through the Member Node Tier 1 API methods";
+	}
+	
+	@Before
+	public void setupIdentifierVectors() {
+		if (unicodeStringV == null) {
+			// get identifiers to check with
+			unicodeStringV = new Vector<String>();
+			escapedStringV = new Vector<String>();
+			//   TODO: test against Unicode characters when metacat supports unicode    	
+			InputStream is = this.getClass().getResourceAsStream("/d1_testdocs/encodingTestSet/testUnicodeStrings.utf8.txt");
+			//InputStream is = this.getClass().getResourceAsStream("/d1_testdocs/encodingTestSet/testAsciiStrings.utf8.txt");
+			Scanner s = new Scanner(is,"UTF-8");
+			String[] temp;
+			int c = 0;
+			try{
+				while (s.hasNextLine()) {
+					String line = s.nextLine();
+					if (line.startsWith("common-") || line.startsWith("path-"))
+					{
+						if (line.contains("supplementary"))
+							continue;
+						System.out.println(c++ + "   " + line);
+						temp = line.split("\t");
+						unicodeStringV.add(temp[0]);
+						escapedStringV.add(temp[1]);	
+					}
+				}
+			} finally {
+				s.close();
+			}
+		}
 	}
 	
 	@Test
@@ -250,85 +287,85 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     {
     	setupClientSubject_NoCert();
     	Iterator<Node> it = getMemberNodeIterator();
-       while (it.hasNext()) {
-    	   currentUrl = it.next().getBaseURL();
-           MNode mn = D1Client.getMN(currentUrl);  
-           currentUrl = mn.getNodeBaseServiceUrl();
-           printTestHeader("testGetLogRecords_eventFilter() vs. node: " + currentUrl);
+    	while (it.hasNext()) {
+    		currentUrl = it.next().getBaseURL();
+    		MNode mn = D1Client.getMN(currentUrl);  
+    		currentUrl = mn.getNodeBaseServiceUrl();
+    		printTestHeader("testGetLogRecords_eventFilter() vs. node: " + currentUrl);
 
-           try {
-        	   
-        	   
-        	   Date t0 = new Date();
-        	   Date toDate = t0;
-        	   Date fromDate = t0;
-        	   
-        	   Log entries = mn.getLogRecords(null, null, toDate, null, null, 0, 0);
-        	   int totalEntries = entries.getTotal();
-        	   
-        	   if (totalEntries > 0) {
-        	   
-        		   Identifier targetIdentifier = null;
-        		   Identifier otherIdentifier = null;
-        		   
-        		   int currentTotal = 0;
-        		   
-        		   while (otherIdentifier == null && currentTotal < totalEntries) {
-        			   // slide the time window
-        			   toDate = fromDate;
-        			   fromDate = new Date(fromDate.getTime() - 1000 * 60 * 60);  // 1 hour increments
-        			   entries = mn.getLogRecords(null, fromDate, toDate, null, null, null, null);
-        			   
-        			   currentTotal = entries.getTotal();
-        			   
-        			   for (LogEntry le: entries.getLogEntryList()) {
-        				   if (targetIdentifier == null) {
-        					   targetIdentifier = le.getIdentifier();
-        				   } else if (!le.getEvent().equals(targetIdentifier)) {
-        					   otherIdentifier = le.getIdentifier();
-        					   break;
-        				   }
-        			   }
-        		   }
+    		try {
+    			Date t0 = new Date();
+    			Date toDate = t0;
+    			Date fromDate = t0;
 
-        		   if (otherIdentifier == null) {
-        			   // create a new target that is non existent
-        			   otherIdentifier = targetIdentifier;
-        			   targetIdentifier = D1TypeBuilder.buildIdentifier(targetIdentifier.getValue()
-        					   + new Date().getTime());
-        		   	   
-        			   entries = mn.getLogRecords(null, fromDate, t0, 
-        					   null, targetIdentifier.getValue(), 0, 0);
-        			   checkEquals(mn.getLatestRequestUrl(),"Log should be empty for the derived identifier pattern " +
-            			   		targetIdentifier.getValue(),String.valueOf(entries.getTotal()),"0");
-        			   
-        		   } 
-        		   else {
-        			   entries = mn.getLogRecords(null,fromDate, t0, 
-        					   null, targetIdentifier.getValue(), null, null);
-        			   boolean oneTypeOnly = true;
-        			   for (LogEntry le: entries.getLogEntryList()) {
-        				   if (!le.getIdentifier().equals(targetIdentifier)) {
-        					   oneTypeOnly = false;
-        					   break;
-        				   }
-        			   }
-        			   checkTrue(mn.getLatestRequestUrl(), "Filtered log for the time period should " +
-        			   		"contain only entries for the target identifier: " + targetIdentifier.getValue(),
-        			   		oneTypeOnly);
-        		   }
-        	   }
-           }
-       
-           catch (BaseException e) {
-        	   handleFail(mn.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
-        			   e.getDetail_code() + ": " + e.getDescription());
-           }
-			catch(Exception e) {
-				e.printStackTrace();
-				handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
-			}	           
-       }
+    			Log entries = mn.getLogRecords(null, null, toDate, null, null, 0, 0);
+    			int totalEntries = entries.getTotal();
+
+    			if (totalEntries > 0) {
+
+    				Identifier targetIdentifier = null;
+    				Identifier otherIdentifier = null;
+
+    				int currentTotal = 0;
+
+    				while (otherIdentifier == null && currentTotal < totalEntries) {
+    					// slide the time window
+    					toDate = fromDate;
+    					fromDate = new Date(fromDate.getTime() - 1000 * 60 * 60);  // 1 hour increments
+    					entries = mn.getLogRecords(null, fromDate, toDate, null, null, null, null);
+
+    					currentTotal = entries.getTotal();
+    					
+    					if (entries.sizeLogEntryList() > 0) {
+    						for (LogEntry le: entries.getLogEntryList()) {
+    							if (targetIdentifier == null) {
+    								targetIdentifier = le.getIdentifier();
+    							} else if (!le.getEvent().equals(targetIdentifier)) {
+    								otherIdentifier = le.getIdentifier();
+    								break;
+    							}
+    						}
+    					}
+    				}
+
+    				if (otherIdentifier == null) {
+    					// create a new target that is non existent
+    					otherIdentifier = targetIdentifier;
+    					targetIdentifier = D1TypeBuilder.buildIdentifier(targetIdentifier.getValue()
+    							+ new Date().getTime());
+
+    					entries = mn.getLogRecords(null, fromDate, t0, 
+    							null, targetIdentifier.getValue(), 0, 0);
+    					checkEquals(mn.getLatestRequestUrl(),"Log should be empty for the derived identifier pattern " +
+    							targetIdentifier.getValue(),String.valueOf(entries.getTotal()),"0");
+
+    				} 
+    				else {
+    					entries = mn.getLogRecords(null,fromDate, t0, 
+    							null, targetIdentifier.getValue(), null, null);
+    					boolean oneTypeOnly = true;
+    					for (LogEntry le: entries.getLogEntryList()) {
+    						if (!le.getIdentifier().equals(targetIdentifier)) {
+    							oneTypeOnly = false;
+    							break;
+    						}
+    					}
+    					checkTrue(mn.getLatestRequestUrl(), "Filtered log for the time period should " +
+    							"contain only entries for the target identifier: " + targetIdentifier.getValue(),
+    							oneTypeOnly);
+    				}
+    			}
+    		}
+
+    		catch (BaseException e) {
+    			handleFail(mn.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
+    					e.getDetail_code() + ": " + e.getDescription());
+    		}
+    		catch(Exception e) {
+    			e.printStackTrace();
+    			handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+    		}	           
+    	}
     }
 
     @Test
@@ -742,6 +779,121 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     
     
     @Test
+    public void testGet_NotFound() {
+    	setupClientSubject_NoCert();
+       	Iterator<Node> it = getMemberNodeIterator();
+    	while (it.hasNext()) {
+    		currentUrl = it.next().getBaseURL();
+    		MNode mn = D1Client.getMN(currentUrl);
+    		currentUrl = mn.getNodeBaseServiceUrl();
+    		printTestHeader("testGet() vs. node: " + currentUrl);
+
+    		try {
+    			String fakeID = "TestingNotFound:" + ExampleUtilities.generateIdentifier(); 
+    			InputStream is = mn.get(null,D1TypeBuilder.buildIdentifier(fakeID));
+    			handleFail(mn.getLatestRequestUrl(),"get(fakeID) should not return an objectStream.");
+    			is.close();
+    		}
+    		catch (NotFound nf) {
+    			;  // expected outcome
+    		}
+    		catch (BaseException e) {
+    			handleFail(mn.getLatestRequestUrl(), e.getClass().getSimpleName() + ": " + 
+    					e.getDetail_code() + ":: " + e.getDescription());
+    		}
+    		catch(Exception e) {
+    			e.printStackTrace();
+    			handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+    		}
+    	}
+    }
+    
+    
+    /**
+     * test getting data with challenging unicode identifiers.  Will try to 
+     * differentiate between NotFound and ServiceFailure
+     */
+	@Test
+    public void testGet_IdentifierEncoding() 
+    {
+		setupClientSubject_NoCert();
+		Iterator<Node> it = getMemberNodeIterator();
+		
+		while (it.hasNext()) {
+			currentUrl = it.next().getBaseURL();
+			MNode mn = D1Client.getMN(currentUrl);
+			currentUrl = mn.getNodeBaseServiceUrl();
+			printTestHeader("testGet_IdentifierEncoding() vs. node: " + currentUrl);
+			
+
+			Vector<String> nodeSummary = new Vector<String>();
+			nodeSummary.add("Node Test Summary for node: " + currentUrl );
+
+			printTestHeader("  Node:: " + currentUrl);
+
+			for (int j=0; j<unicodeStringV.size(); j++) 
+			{
+				String status = "OK   ";
+				
+				log.info("");
+				log.info(j + "    unicode String:: " + unicodeStringV.get(j));
+				String idString = "Test" + ExampleUtilities.generateIdentifier() + "_" + unicodeStringV.get(j) ;
+				String idStringEscaped = "Test"  + ExampleUtilities.generateIdentifier() + "_" + escapedStringV.get(j);
+				
+				
+				try {
+					
+					InputStream data = mn.get(null, D1TypeBuilder.buildIdentifier(idString));
+					handleFail(mn.getLatestRequestUrl(), "get() against the fake identifier (" +
+							idStringEscaped + ") should throw NotFound");
+					data.close();
+					status = "Error";
+				}
+				catch (NotFound nf) {
+					;
+				}
+				catch (ServiceFailure e) {
+					if (e.getDescription().contains("Providing message body")) {
+						if (e.getDescription().contains("404: NotFound:")) {
+							// acceptable result
+							;
+						}
+					} 
+					else {
+						status = String.format("Error:: %s: %s: %s",
+								e.getClass().getSimpleName(),
+								e.getDetail_code(),
+								first100Characters(e.getDescription()));
+					}
+				}
+				catch (BaseException e) {
+					status = String.format("Error:: %s: %s: %s",
+							e.getClass().getSimpleName(),
+							e.getDetail_code(),
+							first100Characters(e.getDescription()));
+				}
+				catch(Exception e) {
+					status = "Error";
+					e.printStackTrace();
+					status = String.format("Error:: %s: %s",
+							e.getClass().getName(),
+							first100Characters(e.getMessage()));
+				}
+
+				nodeSummary.add("Test " + j + ": " + status + ": " + unicodeStringV.get(j));
+			}
+			
+			for (String result : nodeSummary) {
+				if (result.contains("Error")) {
+					handleFail(null, currentUrl + " " + tablifyResults(nodeSummary) );
+					break;
+				}
+			}
+		}
+    }
+    
+    
+    @Test
     public void testGetSystemMetadata() {
     	setupClientSubject_NoCert();
        	Iterator<Node> it = getMemberNodeIterator();
@@ -773,8 +925,119 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     		}
     	}
     }
+
     
-    
+    @Test
+    public void testGetSystemMetadata_NotFound() {
+    	setupClientSubject_NoCert();
+       	Iterator<Node> it = getMemberNodeIterator();
+    	while (it.hasNext()) {
+    		currentUrl = it.next().getBaseURL();
+    		MNode mn = D1Client.getMN(currentUrl);
+    		currentUrl = mn.getNodeBaseServiceUrl();
+    		printTestHeader("testGetSystemMetadata() vs. node: " + currentUrl);
+
+    		try {
+    			String fakeID = "TestingNotFound:" + ExampleUtilities.generateIdentifier(); 
+    			SystemMetadata smd = mn.getSystemMetadata(null,D1TypeBuilder.buildIdentifier(fakeID));
+    			handleFail(mn.getLatestRequestUrl(),"getSystemMetadata(fakeID) should not throw dataone NotFound.");
+    		}
+    		catch (NotFound nf) {
+    			;  // expected outcome
+    		}
+    		catch (BaseException e) {
+    			handleFail(mn.getLatestRequestUrl(), e.getClass().getSimpleName() + ": " + 
+    					e.getDetail_code() + ":: " + e.getDescription());
+    		}
+    		catch(Exception e) {
+    			e.printStackTrace();
+    			handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+    		}
+    	}
+    }
+       			
+
+	@Test
+    public void testGetSystemMetadata_IdentifierEncoding() 
+    {
+		setupClientSubject_NoCert();
+		Iterator<Node> it = getMemberNodeIterator();
+		printTestHeader("Testing IdentifierEncoding - setting up identifiers to check");
+	
+		while (it.hasNext()) {
+			currentUrl = it.next().getBaseURL();
+			MNode mn = D1Client.getMN(currentUrl);
+			currentUrl = mn.getNodeBaseServiceUrl();
+			printTestHeader("testGetSystemMetadata_IdentifierEncoding() vs. node: " + currentUrl);
+			
+
+			Vector<String> nodeSummary = new Vector<String>();
+			nodeSummary.add("Node Test Summary for node: " + currentUrl );
+
+			printTestHeader("  Node:: " + currentUrl);
+
+			for (int j=0; j<unicodeStringV.size(); j++) 
+			{
+				String status = "OK   ";
+				
+				log.info("");
+				log.info(j + "    unicode String:: " + unicodeStringV.get(j));
+				String idString = "Test" + ExampleUtilities.generateIdentifier() + "_" + unicodeStringV.get(j) ;
+				String idStringEscaped = "Test"  + ExampleUtilities.generateIdentifier() + "_" + escapedStringV.get(j);
+				
+				
+				try {
+					mn.getSystemMetadata(null, D1TypeBuilder.buildIdentifier(idString));
+					handleFail(mn.getLatestRequestUrl(), "getSystemMetadata() against the fake identifier (" +
+							idStringEscaped + ") should throw NotFound");
+
+					status = "Error";
+				}
+				catch (NotFound nf) {
+					;
+				}
+				catch (ServiceFailure e) {
+					if (e.getDescription().contains("Providing message body")) {
+						if (e.getDescription().contains("404: NotFound:")) {
+							// acceptable result
+							;
+						}
+					} 
+					else {
+						status = String.format("Error:: %s: %s: %s",
+								e.getClass().getSimpleName(),
+								e.getDetail_code(),
+								first100Characters(e.getDescription()));
+					}
+				}
+				catch (BaseException e) {
+					status = String.format("Error:: %s: %s: %s",
+							e.getClass().getSimpleName(),
+							e.getDetail_code(),
+							first100Characters(e.getDescription()));
+				}
+				catch(Exception e) {
+					status = "Error";
+					e.printStackTrace();
+					status = String.format("Error:: %s: %s",
+							e.getClass().getName(),
+							first100Characters(e.getMessage()));
+				}
+
+				nodeSummary.add("Test " + j + ": " + status + ": " + unicodeStringV.get(j));
+			}
+			
+			for (String result : nodeSummary) {
+				if (result.contains("Error")) {
+					handleFail(null, currentUrl + " " + tablifyResults(nodeSummary) );
+					break;
+				}
+			}
+	    }
+    }
+					
+					
+
     @Test
     public void testDescribe() {
     	setupClientSubject_NoCert();
@@ -807,7 +1070,122 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     		}
     	}
     }
+ 
+    
+    @Test
+    public void testDescribe_NotFound() {
+    	setupClientSubject_NoCert();
+       	Iterator<Node> it = getMemberNodeIterator();
+    	while (it.hasNext()) {
+    		currentUrl = it.next().getBaseURL();
+    		MNode mn = D1Client.getMN(currentUrl);
+    		currentUrl = mn.getNodeBaseServiceUrl();
+    		printTestHeader("testDescribe() vs. node: " + currentUrl);
 
+    		try {
+    			String fakeID = "TestingNotFound:" + ExampleUtilities.generateIdentifier(); 
+    			mn.describe(null,D1TypeBuilder.buildIdentifier(fakeID));
+    			handleFail(mn.getLatestRequestUrl(),"describe(fakeID) should return a d1 NotFound in the header.");
+    			
+    		}
+    		catch (NotFound nf) {
+    			;  // expected outcome
+    		}
+    		catch (BaseException e) {
+    			handleFail(mn.getLatestRequestUrl(), e.getClass().getSimpleName() + ": " + 
+    					e.getDetail_code() + ":: " + e.getDescription());
+    		}
+    		catch(Exception e) {
+    			e.printStackTrace();
+    			handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+    		}
+    	}
+    }
+    
+    
+
+	@Test
+	public void testDescribe_IdentifierEncoding() 
+	{
+		setupClientSubject_NoCert();
+		Iterator<Node> it = getMemberNodeIterator();
+
+		while (it.hasNext()) {
+			currentUrl = it.next().getBaseURL();
+			MNode mn = D1Client.getMN(currentUrl);
+			currentUrl = mn.getNodeBaseServiceUrl();
+			printTestHeader("testDescribe_IdentifierEncoding() vs. node: " + currentUrl);
+
+
+			Vector<String> nodeSummary = new Vector<String>();
+			nodeSummary.add("Node Test Summary for node: " + currentUrl );
+
+			printTestHeader("  Node:: " + currentUrl);
+
+			for (int j=0; j<unicodeStringV.size(); j++) 
+			{
+				String status = "OK   ";
+
+				log.info("");
+				log.info(j + "    unicode String:: " + unicodeStringV.get(j));
+				String idString = "Test" + ExampleUtilities.generateIdentifier() + "_" + unicodeStringV.get(j) ;
+				String idStringEscaped = "Test"  + ExampleUtilities.generateIdentifier() + "_" + escapedStringV.get(j);
+
+
+
+
+				try {	
+					mn.describe(null, D1TypeBuilder.buildIdentifier(idString));
+					handleFail(mn.getLatestRequestUrl(), "getSystemMetadata() against the fake identifier (" +
+							idStringEscaped + ") should throw NotFound");
+
+					status = "Error";
+				}
+				catch (NotFound nf) {
+					;
+				}
+				catch (ServiceFailure e) {
+					if (e.getDescription().contains("Providing message body")) {
+						if (e.getDescription().contains("404: NotFound:")) {
+							// acceptable result
+							;
+						}
+					} 
+					else {
+						status = String.format("Error:: %s: %s: %s",
+								e.getClass().getSimpleName(),
+								e.getDetail_code(),
+								first100Characters(e.getDescription()));
+					}
+				}
+				catch (BaseException e) {
+					status = String.format("Error:: %s: %s: %s",
+							e.getClass().getSimpleName(),
+							e.getDetail_code(),
+							first100Characters(e.getDescription()));
+				}
+				catch(Exception e) {
+					status = "Error";
+					e.printStackTrace();
+					status = String.format("Error:: %s: %s",
+							e.getClass().getName(),
+							first100Characters(e.getMessage()));
+				}
+
+				nodeSummary.add("Test " + j + ": " + status + ": " + unicodeStringV.get(j));
+			}
+			
+			for (String result : nodeSummary) {
+				if (result.contains("Error")) {
+					handleFail(null, currentUrl + " " + tablifyResults(nodeSummary) );
+					break;
+				}
+			}
+	    }
+	}
+					
+
+    
     @Test
     public void testGetChecksum() {
     	setupClientSubject_NoCert();
@@ -840,7 +1218,117 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     		}
     	}
     }
+    	
+
+    @Test
+    public void testGetChecksum_NotFound() {
+    	setupClientSubject_NoCert();
+       	Iterator<Node> it = getMemberNodeIterator();
+    	while (it.hasNext()) {
+    		currentUrl = it.next().getBaseURL();
+    		MNode mn = D1Client.getMN(currentUrl);
+    		currentUrl = mn.getNodeBaseServiceUrl();
+    		printTestHeader("testGetChecksum() vs. node: " + currentUrl);
+
+    		try {
+    			String fakeID = "TestingNotFound:" + ExampleUtilities.generateIdentifier(); 
+    			mn.getChecksum(null,D1TypeBuilder.buildIdentifier(fakeID), null);
+    			handleFail(mn.getLatestRequestUrl(),"getChecksum(fakeID) should return a NotFound");
+    		}
+    		catch (NotFound nf) {
+    			;  // expected outcome
+    		}
+    		catch (BaseException e) {
+    			handleFail(mn.getLatestRequestUrl(), e.getClass().getSimpleName() + ": " + 
+    					e.getDetail_code() + ":: " + e.getDescription());
+    		}
+    		catch(Exception e) {
+    			e.printStackTrace();
+    			handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+    		}
+    	}
+    }
     
+    
+    
+	@Test
+	public void testGetChecksum_IdentifierEncoding() 
+	{
+		setupClientSubject_NoCert();
+		Iterator<Node> it = getMemberNodeIterator();
+
+		while (it.hasNext()) {
+			currentUrl = it.next().getBaseURL();
+			MNode mn = D1Client.getMN(currentUrl);
+			currentUrl = mn.getNodeBaseServiceUrl();
+			printTestHeader("testGetChecksum_IdentifierEncoding() vs. node: " + currentUrl);
+
+
+			Vector<String> nodeSummary = new Vector<String>();
+			nodeSummary.add("Node Test Summary for node: " + currentUrl );
+
+			printTestHeader("  Node:: " + currentUrl);
+
+			for (int j=0; j<unicodeStringV.size(); j++) 
+			{
+				String status = "OK   ";
+
+				log.info("");
+				log.info(j + "    unicode String:: " + unicodeStringV.get(j));
+				String idString = "Test" + ExampleUtilities.generateIdentifier() + "_" + unicodeStringV.get(j) ;
+				String idStringEscaped = "Test"  + ExampleUtilities.generateIdentifier() + "_" + escapedStringV.get(j);		
+
+				try {
+					mn.getChecksum(null, D1TypeBuilder.buildIdentifier(idString), null);
+					handleFail(mn.getLatestRequestUrl(), "getSystemMetadata() against the fake identifier (" +
+							idStringEscaped + ") should throw NotFound");
+
+					status = "Error";
+				}
+				catch (NotFound nf) {
+					;
+				}
+				catch (ServiceFailure e) {
+					if (e.getDescription().contains("Providing message body")) {
+						if (e.getDescription().contains("404: NotFound:")) {
+							// acceptable result
+							;
+						}
+					} 
+					else {
+						status = String.format("Error:: %s: %s: %s",
+								e.getClass().getSimpleName(),
+								e.getDetail_code(),
+								first100Characters(e.getDescription()));
+					}
+				}
+				catch (BaseException e) {
+					status = String.format("Error:: %s: %s: %s",
+							e.getClass().getSimpleName(),
+							e.getDetail_code(),
+							first100Characters(e.getDescription()));
+				}
+				catch(Exception e) {
+					status = "Error";
+					e.printStackTrace();
+					status = String.format("Error:: %s: %s",
+							e.getClass().getName(),
+							first100Characters(e.getMessage()));
+				}
+
+				nodeSummary.add("Test " + j + ": " + status + ": " + unicodeStringV.get(j));
+			}
+			
+			for (String result : nodeSummary) {
+				if (result.contains("Error")) {
+					handleFail(null, currentUrl + " " + tablifyResults(nodeSummary) );
+					break;
+				}
+			}
+		}
+	}
+
+
     
     @Test
     public void testSynchronizationFailed_NoCert() {
@@ -1012,5 +1500,135 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     			handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
     		}
 		}
+	}
+	
+
+//    @Test
+    public void testGetReplica_NotFound() {
+    	setupClientSubject_NoCert();
+       	Iterator<Node> it = getMemberNodeIterator();
+    	while (it.hasNext()) {
+    		currentUrl = it.next().getBaseURL();
+    		MNode mn = D1Client.getMN(currentUrl);
+    		currentUrl = mn.getNodeBaseServiceUrl();
+    		printTestHeader("testGetReplica() vs. node: " + currentUrl);
+
+    		try {
+    			String fakeID = "TestingNotFound:" + ExampleUtilities.generateIdentifier(); 
+    			InputStream is = mn.get(null,D1TypeBuilder.buildIdentifier(fakeID));
+    			handleFail(mn.getLatestRequestUrl(),"getReplica(fakeID) should not return an objectStream.");
+    			is.close();
+    		}
+    		catch (NotFound nf) {
+    			;  // expected outcome
+    		}
+    		catch (BaseException e) {
+    			handleFail(mn.getLatestRequestUrl(), e.getClass().getSimpleName() + ": " + 
+    					e.getDetail_code() + ":: " + e.getDescription());
+    		}
+    		catch(Exception e) {
+    			e.printStackTrace();
+    			handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+    		}
+    	}
+    }
+    
+    
+
+//	@Test
+	public void testGetReplica_IdentifierEncoding() 
+	{
+		setupClientSubject_NoCert();
+		Iterator<Node> it = getMemberNodeIterator();
+
+		while (it.hasNext()) {
+			currentUrl = it.next().getBaseURL();
+			MNode mn = D1Client.getMN(currentUrl);
+			currentUrl = mn.getNodeBaseServiceUrl();
+			printTestHeader("testGetReplica_IdentifierEncoding() vs. node: " + currentUrl);
+
+
+			Vector<String> nodeSummary = new Vector<String>();
+			nodeSummary.add("Node Test Summary for node: " + currentUrl );
+
+			printTestHeader("  Node:: " + currentUrl);
+
+			for (int j=0; j<unicodeStringV.size(); j++) 
+			{
+				String status = "OK   ";
+
+				log.info("");
+				log.info(j + "    unicode String:: " + unicodeStringV.get(j));
+				String idString = "Test" + ExampleUtilities.generateIdentifier() + "_" + unicodeStringV.get(j) ;
+				String idStringEscaped = "Test"  + ExampleUtilities.generateIdentifier() + "_" + escapedStringV.get(j);
+
+
+				try {
+					mn.getReplica(null, D1TypeBuilder.buildIdentifier(idString));
+					handleFail(mn.getLatestRequestUrl(), "getSystemMetadata() against the fake identifier (" +
+							idStringEscaped + ") should throw NotFound");
+
+					status = "Error";
+				}
+				catch (NotFound nf) {
+					;
+				}
+				catch (ServiceFailure e) {
+					if (e.getDescription().contains("Providing message body")) {
+						if (e.getDescription().contains("404: NotFound:")) {
+							// acceptable result
+							;
+						}
+					} 
+					else {
+						status = String.format("Error:: %s: %s: %s",
+								e.getClass().getSimpleName(),
+								e.getDetail_code(),
+								first100Characters(e.getDescription()));
+					}
+				}
+				catch (BaseException e) {
+					status = String.format("Error:: %s: %s: %s",
+							e.getClass().getSimpleName(),
+							e.getDetail_code(),
+							first100Characters(e.getDescription()));
+				}
+				catch(Exception e) {
+					status = "Error";
+					e.printStackTrace();
+					status = String.format("Error:: %s: %s",
+							e.getClass().getName(),
+							first100Characters(e.getMessage()));
+				}
+
+				nodeSummary.add("Test " + j + ": " + status + ": " + unicodeStringV.get(j));
+			}
+			
+			for (String result : nodeSummary) {
+				if (result.contains("Error")) {
+					handleFail(null, currentUrl + " " + tablifyResults(nodeSummary) );
+					break;
+				}
+			}
+		}
+	}
+
+	
+	private String first100Characters(String s) {
+		if (s.length() <= 100) 
+			return s;
+		
+		return s.substring(0, 100) + "...";
+		
+	}
+
+	private String tablifyResults(Vector<String> results)
+	{
+		StringBuffer table = new StringBuffer("Failed 1 or more identifier encoding tests");
+		for (String result: results) {
+			table.append(result);	
+			table.append("\n    ");
+		}
+		return table.toString();		 
 	}
 }
