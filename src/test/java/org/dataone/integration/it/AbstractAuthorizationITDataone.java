@@ -30,7 +30,6 @@ import java.util.List;
 import org.dataone.client.CNode;
 import org.dataone.client.D1Node;
 import org.dataone.client.MNode;
-import org.dataone.configuration.Settings;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.IdentifierNotUnique;
 import org.dataone.service.exceptions.InsufficientResources;
@@ -51,7 +50,6 @@ import org.dataone.service.types.v1.Subject;
 import org.dataone.service.types.v1.SystemMetadata;
 import org.dataone.service.types.v1.util.AccessUtil;
 import org.dataone.service.util.Constants;
-import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -2022,7 +2020,11 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 			 
 				 for (String result : results) {
 					 if (result.contains("FAILED!!")) {
-						 handleFail(null, currentUrl + " " + tablifyResults(testObject, results) );
+						 StringBuffer res = new StringBuffer();
+						 for (String r : results) {
+							 res.append(r + "\n");
+						 }
+						 handleFail(currentUrl,res.toString());
 						 break;
 					 }
 				 }

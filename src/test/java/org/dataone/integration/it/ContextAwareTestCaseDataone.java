@@ -72,7 +72,6 @@ import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Node;
 import org.dataone.service.types.v1.NodeList;
 import org.dataone.service.types.v1.NodeType;
-import org.dataone.service.types.v1.ObjectFormatIdentifier;
 import org.dataone.service.types.v1.ObjectInfo;
 import org.dataone.service.types.v1.ObjectList;
 import org.dataone.service.types.v1.Permission;
@@ -329,25 +328,15 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 	 */
 	protected static Subject setupClientSubject(String subjectName) 
 	{		
-		
 		// 1. set up the client certificate
 		String testCertDirectory = (String) Settings.getConfiguration().getProperty("d1.test.cert.location");	
-		
-		URL url = ContextAwareTestCaseDataone.class.getClassLoader().getResource(testCertDirectory + subjectName +".crt");
-		
+				
 		CertificateManager cm = CertificateManager.getInstance();
-		cm.setCertificateLocation(url.getPath());
+		cm.setCertificateLocation(testCertDirectory + subjectName + ".crt");
 		cm.loadCertificate();
 
 		// 2. return the subject corresponding to the loaded certificate		
 		Subject clientSubject = ClientIdentityManager.getCurrentIdentity();
-
-// this section seems to be wrong, calling the wrong getSubjectDN()		
-//		 = CertificateManager.getInstance().loadCertificate().getSubjectDN().toString();
-//		 String subjectDN = 
-//		Subject subject = new Subject();
-//		subject.setValue(subjectDN);
-		
 		
 		log.info("client setup as Subject: " + clientSubject.getValue());
 		return clientSubject;
@@ -545,6 +534,10 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 				}
 			}
 		} 
+//		catch (NotAuthorized e) {
+//			identifier = pid;
+//			// give it a go...
+//		}
 		catch (NotFound e) {
 			if (d1Node instanceof MNode) {
 				Node node = ((MNode) d1Node).getCapabilities();
@@ -868,7 +861,9 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 				byte[] contentBytes = ExampleUtilities.getExampleObjectOfType(DEFAULT_TEST_OBJECTFORMAT);
 				objectInputStream = new ByteArrayInputStream(contentBytes);
 				d1o = new D1Object(pid, contentBytes,
-						DEFAULT_TEST_OBJECTFORMAT, submitterX500, "bogusAuthoritativeNode");
+						D1TypeBuilder.buildFormatIdentifier(DEFAULT_TEST_OBJECTFORMAT),
+						D1TypeBuilder.buildSubject(submitterX500),
+						D1TypeBuilder.buildNodeReference("bogusAuthoritativeNode"));
 				//			}
 				sysMeta = d1o.getSystemMetadata();
 			} catch (NoSuchAlgorithmException e) {
