@@ -441,7 +441,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 						try {
 							SystemMetadata smd = d1Node.getSystemMetadata(null,oi.getIdentifier());
 							if (AccessUtil.getPermissionMap(smd.getAccessPolicy())
-									.containsKey(Constants.SUBJECT_PUBLIC)) 
+									.containsKey(D1TypeBuilder.buildSubject(Constants.SUBJECT_PUBLIC))) 
 							{
 								identifier = oi.getIdentifier();
 								break;
