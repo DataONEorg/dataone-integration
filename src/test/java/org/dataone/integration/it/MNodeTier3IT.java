@@ -115,8 +115,11 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 			catch (InvalidToken na) {
 				// expected behavior
 			}
+			catch (NotAuthorized na) {
+				// expected behavior
+			}
 			catch (BaseException e) {
-				handleFail(mn.getLatestRequestUrl(),"Expected InvalidToken, got: " +
+				handleFail(mn.getLatestRequestUrl(),"Expected InvalidToken or NotAuthorized, got: " +
 						e.getClass().getSimpleName() + ": " 
 						+ e.getDetail_code() + ": " + e.getDescription());
 			}
@@ -131,7 +134,7 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
     /**
      * test creation of data with challenging unicode identifier.
      */
-//	@Ignore("ignoring to save time for local testing")
+	@Ignore("ignoring to save time for local testing")
 	@Test
     public void testCreateData_IdentifierEncoding() 
     {
@@ -236,6 +239,7 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 			System.out.println();
 		}
     }
+
 
 	
 	/**
@@ -476,10 +480,13 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 				catch (InvalidToken na) {
 						// expected behavior
 				}
+				catch (NotAuthorized na) {
+					// expected behavior
+				}
 				catch (BaseException e) {
-					handleFail(mn.getLatestRequestUrl(),"Expected InvalidToken, got: " +
-						e.getClass().getSimpleName() + ": " + e.getDetail_code() + 
-						": " + e.getDescription());
+					handleFail(mn.getLatestRequestUrl(),"Expected InvalidToken or NotAuthorized, got: " +
+							e.getClass().getSimpleName() + ": " 
+							+ e.getDetail_code() + ": " + e.getDescription());
 				}
 			}
 			catch (BaseException e) {
@@ -617,11 +624,28 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 				} 
 				
 			}
-			catch (BaseException e) {
-				handleFail(mn.getLatestRequestUrl(),"Expected InvalidToken, got: " +
-						e.getClass().getSimpleName() + ": " + e.getDetail_code() + 
-						": " + e.getDescription());
+			catch (NotAuthorized na) {
+				try {
+					setupClientSubject("testRightsHolder");
+					InputStream is = mn.get(null, pid);	
+					try {
+						is.close();
+					} catch (IOException e) {
+					}
+				}
+				catch (BaseException e) {
+					handleFail(mn.getLatestRequestUrl(),"Got InvalidToken, but couldn't perform subsequent get(). Instead: " +
+							e.getClass().getSimpleName() + ": " + e.getDetail_code() + 
+							": " + e.getDescription());
+				} 
+				
 			}
+			catch (BaseException e) {
+				handleFail(mn.getLatestRequestUrl(),"Expected InvalidToken or NotAuthorized, got: " +
+						e.getClass().getSimpleName() + ": " 
+						+ e.getDetail_code() + ": " + e.getDescription());
+			}
+			
 			catch(Exception e) {
 				e.printStackTrace();
 				handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
@@ -654,7 +678,7 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 				setupClientSubject_NoCert();
 				// try the archive
 				mn.delete(null, pid);
-				handleFail(mn.getLatestRequestUrl(),"should not be able to archive an object if no certificate");
+				handleFail(mn.getLatestRequestUrl(),"should not be able to delete an object if no certificate");
 			}
 			catch (InvalidToken na) {
 				try {

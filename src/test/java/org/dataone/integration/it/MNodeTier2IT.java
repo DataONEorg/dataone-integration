@@ -225,7 +225,7 @@ public class MNodeTier2IT extends AbstractAuthorizationITDataone {
 				// expected response
 			}
 			catch (BaseException e) {
-				handleFail(mn.getLatestRequestUrl(),"Expected InvalidToken, got: " +
+				handleFail(mn.getLatestRequestUrl(),"Expect an ITK client to receive NotAuthorized, got: " +
 						e.getClass().getSimpleName() + ": " + e.getDetail_code() + 
 						": " + e.getDescription());
 			}

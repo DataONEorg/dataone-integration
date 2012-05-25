@@ -51,6 +51,7 @@ public class MNodeTier0IT extends ContextAwareTestCaseDataone  {
 	 */
 	@Test
 	public void testBaseUrlResponse() {
+		setupClientSubject_NoCert();
 		Iterator<Node> it = getMemberNodeIterator();
 		while (it.hasNext()) {
 			currentUrl = it.next().getBaseURL();
