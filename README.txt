@@ -88,7 +88,7 @@ Running the Web Tests Locally
 -----------------------------
 If you are a member node, are ambitious, and want to run the same tests found in 
 the web tester locally, you would checkout the d1_integration package and run it 
-either through Eclipse, or from the command line.
+either through Eclipse, or from the command line.   
 
 The member node tier tests (MNodeTier*IT) are 'context aware', and require the
 context to passed into the tests at runtime.  Specifically, the system property 
@@ -98,6 +98,28 @@ maven control for running specific tests, as described above.
 For example: 
    mvn -Dcontext.mn.baseurl=https://dryad.foo.org/mn -Dit.test=MNodeTier1IT verify
    mvn -Dcontext.mn.baseurl=https://dryad.foo.org/mn -Dit.test=MNodeTier* verify
+
+
+Additionally, these tests make use of a set of client certificates when making 
+api calls.  These need to be downloaded separately and installed on the machine
+from where the tests are being run.  Please contact coredev@dataone.org to request
+the certificates.
+
+the property and default that controls where the libclient will look for these is:
+
+  d1.test.cert.location=/etc/dataone/client/testClientCerts/
+
+Installation involves securing that path so that it is private to the user running
+the tests, THEN extracting the certificates into the directory. The following shows
+the starting tar file and the extracted directory.  Note that this entire directory
+is secured by removing any permissions for group or other.  (chmod 700 .)
+
+ 0 drwx------   6 me  staff    204 May 21 11:49 .
+ 0 drwxr-xr-x  68 me  staff   2312 May 21 10:06 ..
+ 8 lrwxr-xr-x   1 me  staff     24 May 21 11:49 testClientCerts -> testClientCerts-20120518
+ 0 drwxr-xr-x  12 me  staff    408 May 18 23:09 testClientCerts-20120518
+48 -rw-r--r--   1 me  staff  23360 May 21 11:48 testClientCerts-20120518.tgz
+
 
 
 For more advanced local setups, please contact the dataone core team for advice

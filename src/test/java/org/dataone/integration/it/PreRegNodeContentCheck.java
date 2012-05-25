@@ -112,7 +112,7 @@ public class PreRegNodeContentCheck { //extends ContextAwareTestCaseDataone {
 	
 	
 	
-	@Test
+//	@Test
 	public void registerMercuryNode() {
 		
 		String cnBase = "https://cn-dev.dataone.org/cn";
