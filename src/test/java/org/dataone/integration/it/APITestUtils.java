@@ -29,6 +29,7 @@ import java.util.TreeSet;
 import org.dataone.client.CNode;
 import org.dataone.client.D1Node;
 import org.dataone.client.MNode;
+import org.dataone.service.exceptions.InsufficientResources;
 import org.dataone.service.exceptions.InvalidRequest;
 import org.dataone.service.exceptions.InvalidToken;
 import org.dataone.service.exceptions.NotAuthorized;
@@ -36,7 +37,9 @@ import org.dataone.service.exceptions.NotFound;
 import org.dataone.service.exceptions.NotImplemented;
 import org.dataone.service.exceptions.ServiceFailure;
 import org.dataone.service.types.v1.AccessRule;
+import org.dataone.service.types.v1.Event;
 import org.dataone.service.types.v1.Identifier;
+import org.dataone.service.types.v1.Log;
 import org.dataone.service.types.v1.Node;
 import org.dataone.service.types.v1.NodeList;
 import org.dataone.service.types.v1.NodeReference;
@@ -316,9 +319,9 @@ public class APITestUtils {
     {
 		
 		ObjectList ol = d1Node.listObjects(null, fromDate, toDate, formatid, replicaStatus, start, null);
-		if (ol.getTotal() == ol.getCount()) {
+		if (ol.getTotal() == ol.getObjectInfoList().size()) {
 			// don't need to ask for more
-			if (ol.getCount() > count) {
+			if (ol.getObjectInfoList().size() > count) {
 				// need to trim the object list to match the requested amount
 				ol.setObjectInfoList(ol.getObjectInfoList().subList(0, count));
 				ol.setCount(count);
@@ -326,15 +329,15 @@ public class APITestUtils {
 		}
 		
 		
-		int retrieved = ol.getCount();
-		int serverPageSize = ol.getCount();  // server is happy to return this amount at a time.
+		int retrieved = ol.getObjectInfoList().size();
+		int serverPageSize = ol.getObjectInfoList().size();  // server is happy to return this amount at a time.
 		int totalNeeded = count > ol.getTotal() ? count : ol.getTotal();
 		int remaining = totalNeeded - retrieved;
 		while (remaining > 0) {
 			int pageSize = remaining < serverPageSize ? remaining : serverPageSize;
 			start = retrieved;
 			ObjectList nextList = d1Node.listObjects(null, fromDate, toDate, formatid, replicaStatus, start, pageSize);
-			retrieved += nextList.getCount();
+			retrieved += nextList.getObjectInfoList().size();
 			remaining = totalNeeded - retrieved;
 			ol.getObjectInfoList().addAll(nextList.getObjectInfoList());
 		}
@@ -342,4 +345,56 @@ public class APITestUtils {
 		return ol;
     }
 
+	
+	/**
+	 * Calls list objects iteratively using the paging mechanism in order to
+	 * respect any server-imposed paging limits
+	 * @param d1Node
+	 * @param fromDate
+	 * @param toDate
+	 * @param formatid
+	 * @param replicaStatus
+	 * @param start
+	 * @param count
+	 * @return
+	 * @throws InvalidRequest
+	 * @throws InvalidToken
+	 * @throws NotAuthorized
+	 * @throws NotImplemented
+	 * @throws ServiceFailure
+	 * @throws InsufficientResources 
+	 */
+	public static Log pagedGetLogRecords(D1Node d1Node, Date fromDate, Date toDate, 
+      Event event, String pidFilter, Integer start, Integer count) 
+      throws InvalidToken, InvalidRequest, ServiceFailure, NotAuthorized, NotImplemented, InsufficientResources 
+    {
+		
+		Log entries = d1Node.getLogRecords(null, fromDate, toDate, event, pidFilter, start, null);
+		if (entries.getTotal() == entries.getCount()) {
+			// don't need to ask for more
+			if (count != null && entries.getLogEntryList().size() > count) {
+				// need to trim the object list to match the requested amount
+				entries.setLogEntryList(entries.getLogEntryList().subList(0, count));
+				entries.setCount(count);
+			}
+		}
+		
+		count = -1;
+		int retrieved = entries.getLogEntryList().size();
+		int serverPageSize = entries.getLogEntryList().size();  // server is happy to return this amount at a time.
+		int totalNeeded = (count > entries.getTotal()) ? count : entries.getTotal();
+		int remaining = totalNeeded - retrieved;
+		while (remaining > 0) {
+			int pageSize = remaining < serverPageSize ? remaining : serverPageSize;
+			start = retrieved;
+			Log nextList = d1Node.getLogRecords(null, fromDate, toDate, event, pidFilter, start, pageSize);
+			retrieved += nextList.getLogEntryList().size();
+			remaining = totalNeeded - retrieved;
+			entries.getLogEntryList().addAll(nextList.getLogEntryList());
+		}
+		entries.setCount(entries.sizeLogEntryList());
+		return entries;
+    }
+
+	
 }

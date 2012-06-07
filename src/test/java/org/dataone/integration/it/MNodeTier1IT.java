@@ -142,8 +142,6 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     @Test
     public void testGetLogRecords()
     {
-    	// can be anyone
-//    	setupClientSubject("testRightsHolder");
     	setupClientSubject_NoCert();
     	Iterator<Node> it = getMemberNodeIterator();
     	while (it.hasNext()) {
@@ -155,6 +153,67 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     		try {
     			Log eventLog = mn.getLogRecords(null, null, null, null, null, null);   			
     			checkTrue(mn.getLatestRequestUrl(),"getLogRecords should return a log datatype", eventLog != null);
+    			
+    			Date fromDate = new Date();
+    			Thread.sleep(1000);
+    			Date toDate = new Date();
+    			eventLog = mn.getLogRecords(fromDate, toDate, Event.READ, "pidFilter" ,0, 10);
+    			checkTrue(mn.getLatestRequestUrl(),"getLogRecords(<parameters>) returns a Log", eventLog != null);
+    		}
+    		catch (BaseException e) {
+    			handleFail(mn.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
+    					e.getDetail_code() + ": " + e.getDescription());
+    		}
+    		catch(Exception e) {
+    			e.printStackTrace();
+    			handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+    		}	           
+    	}
+    }
+    
+    /**
+     * Tests that count and start parameters are functioning, and getCount() and getTotal()
+     * are reasonable values.
+     */
+    @Test
+    public void testGetLogRecords_Slicing()
+    {
+    	setupClientSubject_NoCert();
+    	Iterator<Node> it = getMemberNodeIterator();
+    	while (it.hasNext()) {
+    		currentUrl = it.next().getBaseURL();
+    		MNode mn = new MNode(currentUrl);
+    		printTestHeader("testGetLogRecords_Slicing(...) vs. node: " + currentUrl);  
+    		currentUrl = mn.getNodeBaseServiceUrl();
+
+    		try {
+    			Log eventLog = mn.getLogRecords(null, null, null, null, null, null);   			
+    			// make sure the count is accurate
+    			checkEquals(mn.getLatestRequestUrl(),"getLogRecords().getCount() should" +
+    					" equal the number of returned LogEntries", 
+    					String.valueOf(eventLog.getCount()),
+    					String.valueOf(eventLog.getLogEntryList().size())
+    					);
+    			
+    			
+    			// heuristic test on total attribute
+    			checkTrue(mn.getLatestRequestUrl(),"total attribute should be >= count",
+    					eventLog.getTotal() >= eventLog.getCount()
+    					);
+
+    			// test that one can limit the count
+    			int halfCount = eventLog.getLogEntryList().size() / 2; // rounds down
+    			eventLog = mn.getLogRecords(null, null, null, null, null, 0, halfCount);
+    			checkEquals(mn.getLatestRequestUrl(), "Should be able to limit " +
+    					"the number of returned entries using 'count' parameter.",
+    					String.valueOf(eventLog.getLogEntryList().size()),
+    					String.valueOf(halfCount));
+    			
+    			// TODO:  test that 'start' parameter does what it says
+
+    			// TODO: paging test
+    			
+    			
     		}
     		catch (BaseException e) {
     			handleFail(mn.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
@@ -169,121 +228,90 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
 	
     
     /**
-     * Testing event filtering is complicated on an ever-growing log file, unless
-     * we filter within a time window.  
+     * Tier 1 MNs might only have READ events, so will get the log records from
+     * a given period and if only one type, filter for a different one an expect 
+     * zero returned.  If 2 types, just expect fewer records.
+     * Must be careful to check that all the records requested are returned.
      */
     @Test
-    public void testGetLogRecords_eventFilter()
+    public void testGetLogRecords_eventFiltering()
     {
     	setupClientSubject_NoCert();
     	Iterator<Node> it = getMemberNodeIterator();
-       while (it.hasNext()) {
+    	while (it.hasNext()) {
     	   currentUrl = it.next().getBaseURL();
            MNode mn = D1Client.getMN(currentUrl);  
            currentUrl = mn.getNodeBaseServiceUrl();
-           printTestHeader("testGetLogRecords_eventFilter() vs. node: " + currentUrl);
+           printTestHeader("testGetLogRecords_eventFiltering() vs. node: " + currentUrl);
 
            try {
-        	   
-        	   
-        	   Date t0 = new Date();
-        	   Date toDate = t0;
-        	   Date fromDate = t0;
-        	   
-        	   Log entries = mn.getLogRecords(null, null, toDate, null, null, 0, 0);
-        	   int totalEntries = entries.getTotal();
-        	   
-        	   if (totalEntries > 0) {
-        	   
-        		   Event targetType = null;
-        		   Event otherType = null;
-        		   
-        		   int currentTotal = 0;
-        		   
-        		   while (otherType == null && currentTotal < totalEntries) {
-        			   // slide the time window
-        			   toDate = fromDate;
-        			   fromDate = new Date(fromDate.getTime() - 1000 * 60 * 60 * 4);  // 4 hour increments
-        			   log.debug(String.format("from: %s,     to: %s",fromDate, toDate));
-        			   
-        			   entries = mn.getLogRecords(null, fromDate, toDate, null, null, null, null);
-        			   
-        			   currentTotal += entries.getCount();
-        			   if (entries.getCount() > 0) {
-        				   for (LogEntry le: entries.getLogEntryList()) {
-        					   if (targetType == null) {
-        						   targetType = le.getEvent();
-        					   } else if (!le.getEvent().equals(targetType)) {
-        						   otherType = le.getEvent();
-        						   break;
-        					   }
-        				   }
-        			   }
-        			   
-        			   if (entries.getCount() < entries.getTotal()) {
-        				   // need to get the rest within this filtering
-        				   int size = entries.getCount();
-        				   int c = size;  // we already got the first page
-        				   int filterTotal = entries.getTotal();
-        				   while (c < filterTotal) {
-        					   entries = mn.getLogRecords(null, fromDate, toDate, null, null, c, size);
-        					   c += entries.getCount();
-        					   currentTotal += entries.getCount();
-        					   
-        					   if (entries.getCount() > 0) {
-                				   for (LogEntry le: entries.getLogEntryList()) {
-                					   if (targetType == null) {
-                						   targetType = le.getEvent();
-                					   } else if (!le.getEvent().equals(targetType)) {
-                						   otherType = le.getEvent();
-                						   break;
-                					   }
-                				   }
-                			   } 
-        					   
-        				   }
-        			   }
-        		   }
+        	   Date toDate = new Date();
 
-        		   if (otherType == null) {
-        			   if (targetType.equals(Event.READ)) {
-        				   entries = mn.getLogRecords(null, fromDate, t0, Event.CREATE, null, 0, 0);
-            			   checkEquals(mn.getLatestRequestUrl(),"Log contains only READ events, " +
-            			   		"so should get 0 CREATE events",String.valueOf(entries.getTotal()),"0");
-        			   } else {
-        				   entries = mn.getLogRecords(null, fromDate, t0, Event.READ, null, 0, 0);
-            			   checkEquals(mn.getLatestRequestUrl(),"Log contains only " + targetType + " events, " +
-            			   		"so should get 0 READ events",String.valueOf(entries.getTotal()),"0");
-        			   }
-        		   } else {
-        			   entries = mn.getLogRecords(null,fromDate,t0 ,targetType, null, null, null);
-        			   boolean oneTypeOnly = true;
-        			   for (LogEntry le: entries.getLogEntryList()) {
-        				   if (!le.getEvent().equals(targetType)) {
-        					   oneTypeOnly = false;
-        					   break;
-        				   }
-        			   }
-        			   checkTrue(mn.getLatestRequestUrl(), "Filtered log for the time period should contain only " +
-        			   		"logs of type " + targetType.xmlValue(),oneTypeOnly);
+        	   // using the paged-implementation to make sure we get them all.
+        	   Log entries = APITestUtils.pagedGetLogRecords(mn, null, toDate, null, null, null, null);
+
+        	   if (entries.getCount() == 0) {
+        		   // try to create a log event
+        		   // if it can't it will throw a TestIterationEndingException
+        		   Identifier pid = procurePublicReadableTestObject(mn,null);
+        		   mn.get(pid);
+        		   toDate = new Date();
+        		   entries = APITestUtils.pagedGetLogRecords(mn, null, toDate, null, null, null, null);
+        	   }
+
+        	   Event targetType = entries.getLogEntry(0).getEvent();
+        	   Event otherType = null;
+
+        	   for (LogEntry le : entries.getLogEntryList()) {
+        		   if ( ! le.getEvent().equals(targetType) ) {
+        			   otherType = le.getEvent();
+        			   break;
         		   }
         	   }
+
+        	   if (otherType == null) {
+        		   if (targetType.equals(Event.READ)) {
+        			   entries = mn.getLogRecords(null, null, toDate, Event.CREATE, null, 0, 0);
+        			   checkEquals(mn.getLatestRequestUrl(),"Log contains only READ events, " +
+        					   "so should get 0 CREATE events", String.valueOf(entries.getTotal()),"0");
+        		   } else {
+        			   entries = mn.getLogRecords(null, null, toDate, Event.READ, null, 0, 0);
+        			   checkEquals(mn.getLatestRequestUrl(),"Log contains only " + targetType + " events, " +
+        					   "so should get 0 READ events",String.valueOf(entries.getTotal()),"0");
+        		   }
+        	   } else {
+        		   entries = APITestUtils.pagedGetLogRecords(mn, null, toDate ,targetType, null, null, null);
+        		   boolean oneTypeOnly = true;
+        		   Event unfilteredType = null;
+        		   for (LogEntry le: entries.getLogEntryList()) {
+        			   if (!le.getEvent().equals(targetType)) {
+        				   oneTypeOnly = false;
+        				   unfilteredType = le.getEvent();
+        				   break;
+        			   }
+        		   }
+        		   checkTrue(mn.getLatestRequestUrl(), "Filtered log for the time period should contain only " +
+        				   "logs of type " + targetType.xmlValue() + ". Got " + unfilteredType, oneTypeOnly);
+        	   }
            }
-       
            catch (BaseException e) {
         	   handleFail(mn.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
         			   e.getDetail_code() + ": " + e.getDescription());
            }
-			catch(Exception e) {
-				e.printStackTrace();
-				handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
-			}	           
+           catch(Exception e) {
+        	   e.printStackTrace();
+        	   handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+           }
        }
     }
     
-    
+    /**
+     * Test that pidFilter only returns objects starting with the given string
+     * Want to find a negative case and to make sure it is filtered out when the
+     * filter is applied.
+     */
     @Test
-    public void testGetLogRecords_pidFilter()
+    public void testGetLogRecords_pidFiltering()
     {
     	setupClientSubject_NoCert();
     	Iterator<Node> it = getMemberNodeIterator();
@@ -291,69 +319,64 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     		currentUrl = it.next().getBaseURL();
     		MNode mn = D1Client.getMN(currentUrl);  
     		currentUrl = mn.getNodeBaseServiceUrl();
-    		printTestHeader("testGetLogRecords_eventFilter() vs. node: " + currentUrl);
+    		printTestHeader("testGetLogRecords_pidFiltering() vs. node: " + currentUrl);
 
     		try {
     			Date t0 = new Date();
     			Date toDate = t0;
     			Date fromDate = t0;
 
-    			Log entries = mn.getLogRecords(null, null, toDate, null, null, 0, 0);
-    			int totalEntries = entries.getTotal();
+    			Log entries = APITestUtils.pagedGetLogRecords(mn, null, toDate, null, null, 0, 0);
 
-    			if (totalEntries > 0) {
+    			if (entries.getTotal() == 0) {
+    				// try to create a log event
+    				// if it can't it will throw a TestIterationEndingException
+    				Identifier pid = procurePublicReadableTestObject(mn,null);
+    				mn.get(pid);
+    				toDate = new Date();
+    				entries = APITestUtils.pagedGetLogRecords(mn, null, toDate, null, null, null, null);
+    			}
 
-    				Identifier targetIdentifier = null;
-    				Identifier otherIdentifier = null;
+    			// should have at least one log entry at this point
+    			
+    			Identifier targetIdentifier = entries.getLogEntry(0).getIdentifier();
+    			Identifier otherIdentifier = null;
+    			
+    			for (LogEntry le : entries.getLogEntryList()) {
+    				if (! le.getIdentifier().equals(targetIdentifier) ) {
+    					otherIdentifier = le.getIdentifier();
+    					break;
+    				}
+    			}
+    			
+    			if (otherIdentifier == null) {
+    				// create a new target that is non existent
+    				otherIdentifier = targetIdentifier;
+    				targetIdentifier = D1TypeBuilder.buildIdentifier(targetIdentifier.getValue()
+    						+ new Date().getTime());
 
-    				int currentTotal = 0;
+    				entries = mn.getLogRecords(null, fromDate, t0, 
+    						null, targetIdentifier.getValue(), 0, 0);
+    				checkEquals(mn.getLatestRequestUrl(),"Log should be empty for the derived identifier pattern " +
+    						targetIdentifier.getValue(),String.valueOf(entries.getTotal()),"0");
 
-    				while (otherIdentifier == null && currentTotal < totalEntries) {
-    					// slide the time window
-    					toDate = fromDate;
-    					fromDate = new Date(fromDate.getTime() - 1000 * 60 * 60);  // 1 hour increments
-    					entries = mn.getLogRecords(null, fromDate, toDate, null, null, null, null);
-
-    					currentTotal = entries.getTotal();
-    					
-    					if (entries.sizeLogEntryList() > 0) {
-    						for (LogEntry le: entries.getLogEntryList()) {
-    							if (targetIdentifier == null) {
-    								targetIdentifier = le.getIdentifier();
-    							} else if (!le.getEvent().equals(targetIdentifier)) {
-    								otherIdentifier = le.getIdentifier();
-    								break;
-    							}
-    						}
+    			} 
+    			else {
+    				entries = mn.getLogRecords(null,fromDate, t0, 
+    						null, targetIdentifier.getValue(), null, null);
+    				boolean oneTypeOnly = true;
+    				for (LogEntry le: entries.getLogEntryList()) {
+    					if (!le.getIdentifier().equals(targetIdentifier)) {
+    						oneTypeOnly = false;
+    						break;
     					}
     				}
-
-    				if (otherIdentifier == null) {
-    					// create a new target that is non existent
-    					otherIdentifier = targetIdentifier;
-    					targetIdentifier = D1TypeBuilder.buildIdentifier(targetIdentifier.getValue()
-    							+ new Date().getTime());
-
-    					entries = mn.getLogRecords(null, fromDate, t0, 
-    							null, targetIdentifier.getValue(), 0, 0);
-    					checkEquals(mn.getLatestRequestUrl(),"Log should be empty for the derived identifier pattern " +
-    							targetIdentifier.getValue(),String.valueOf(entries.getTotal()),"0");
-
-    				} 
-    				else {
-    					entries = mn.getLogRecords(null,fromDate, t0, 
-    							null, targetIdentifier.getValue(), null, null);
-    					boolean oneTypeOnly = true;
-    					for (LogEntry le: entries.getLogEntryList()) {
-    						if (!le.getIdentifier().equals(targetIdentifier)) {
-    							oneTypeOnly = false;
-    							break;
-    						}
-    					}
-    					checkTrue(mn.getLatestRequestUrl(), "Filtered log for the time period should " +
-    							"contain only entries for the target identifier: " + targetIdentifier.getValue(),
-    							oneTypeOnly);
-    				}
+//    				checkTrue(mn.getLatestRequestUrl(), "Filtered log for the time period should " +
+//    						"contain only entries for the target identifier: " + targetIdentifier.getValue(),
+//    						oneTypeOnly);
+    				checkTrue(mn.getLatestRequestUrl(), "The optional pidFilter parameter is not filtering log records. " +
+    						"The log would otherwise contain only entries for the target identifier: " + targetIdentifier.getValue(),
+    						oneTypeOnly);
     			}
     		}
 
@@ -368,8 +391,10 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     	}
     }
 
+
+
     @Test
-    public void testGetLogRecords_DateSlicing()
+    public void testGetLogRecords_DateFiltering()
     {
     	// can be anyone
 //    	setupClientSubject("testRightsHolder");
@@ -378,13 +403,13 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     	while (it.hasNext()) {
     		currentUrl = it.next().getBaseURL();
     		MNode mn = new MNode(currentUrl);
-    		printTestHeader("testGetLogRecords(...) vs. node: " + currentUrl);  
+    		printTestHeader("testGetLogRecords_DateFiltering(...) vs. node: " + currentUrl);  
     		currentUrl = mn.getNodeBaseServiceUrl();
 
     		try {
     			Log eventLog = mn.getLogRecords(null, null, null, null, null, null);
     			
-    			if (eventLog.getCount() == 0) {
+    			if (eventLog.getLogEntryList().size() == 0) {
     				
     				// read an existing object
     				try {
@@ -402,7 +427,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     				}
     			}
     				
-    			if (eventLog.getCount() == 0) {
+    			if (eventLog.getLogEntryList().size() == 0) {
     				// still zero?  something's probably wrong
     				handleFail(mn.getLatestRequestUrl(),"the event log contains no entries after trying to read an object");
     				
@@ -602,7 +627,62 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     		}
     	}
     }
+   
     
+    /**
+     * Tests that count and start parameters are functioning, and getCount() and getTotal()
+     * are reasonable values.
+     */
+    @Test
+    public void testListObjects_Slicing()
+    {
+    	setupClientSubject_NoCert();
+    	Iterator<Node> it = getMemberNodeIterator();
+    	while (it.hasNext()) {
+    		currentUrl = it.next().getBaseURL();
+    		MNode mn = new MNode(currentUrl);
+    		printTestHeader("testListObjects_Slicing(...) vs. node: " + currentUrl);  
+    		currentUrl = mn.getNodeBaseServiceUrl();
+
+    		try {
+    			ObjectList ol = mn.listObjects();
+    			// make sure the count is accurate
+    			checkEquals(mn.getLatestRequestUrl(),"listObjects().getCount() should" +
+    					" equal the number of returned ObjectInfos", 
+    					String.valueOf(ol.getCount()),
+    					String.valueOf(ol.getObjectInfoList().size())
+    					);
+    			
+    			
+    			// heuristic test on total attribute
+    			checkTrue(mn.getLatestRequestUrl(),"total attribute should be >= count",
+    					ol.getTotal() >= ol.getCount()
+    					);
+
+    			// test that one can limit the count
+    			int halfCount = ol.getObjectInfoList().size() / 2; // rounds down
+    			ol = mn.listObjects(null, null, null, null, null, 0, halfCount);
+    			checkEquals(mn.getLatestRequestUrl(), "Should be able to limit " +
+    					"the number of returned ObjectInfos using 'count' parameter.",
+    					String.valueOf(ol.getObjectInfoList().size()),
+    					String.valueOf(halfCount));
+    			
+    			// TODO:  test that 'start' parameter does what it says
+
+    			// TODO: paging test
+    			
+    			
+    		}
+    		catch (BaseException e) {
+    			handleFail(mn.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
+    					e.getDetail_code() + ": " + e.getDescription());
+    		}
+    		catch(Exception e) {
+    			e.printStackTrace();
+    			handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+    		}	           
+    	}
+    }
    
     
     /**
@@ -1370,6 +1450,10 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     	}
     }
     
+ //TODO: refactor getReplica tests so Tier1 nodes are treated differently - make sure 
+ // the getReplica request is logged differently
+    // Tier2 nodes and above can't be tested
+    
     
 	/**
 	 *  Test MNReplication.getReplica() functionality.  This tests the normal usage
@@ -1418,7 +1502,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
 	 */
 	// TODO: is this doable in stand-alone mode?
 	
-	@Test
+//	@Test
 	public void testGetReplica_ValidCertificate_NotMN() {
 
 		setupClientSubject("testRightsHolder");
@@ -1461,7 +1545,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
 	 *  Test MNReplication.getReplica() functionality.  Normal usage is the caller
 	 *  being another MemberNode.  Others should fail.  This tests the latter case.   
 	 */
-	@Test
+//	@Test
 	public void testGetReplica_NoCertificate() {
 
 		setupClientSubject_NoCert();
