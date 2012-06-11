@@ -254,34 +254,34 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
 
     		try {
     			Log eventLog = mn.getLogRecords(null, null, null, null, null, null);   			
-    			// make sure the count is accurate
-    			checkEquals(mn.getLatestRequestUrl(),"getLogRecords().getCount() should" +
-    					" equal the number of returned LogEntries", 
-    					String.valueOf(eventLog.getCount()),
-    					String.valueOf(eventLog.getLogEntryList().size())
-    					);
     			
-    			
-    			// heuristic tests on total attribute
-    			checkTrue(mn.getLatestRequestUrl(),"total attribute should be >= count",
-    					eventLog.getTotal() >= eventLog.getCount()
-    					);
-    			checkTrue(mn.getLatestRequestUrl(), "total attribute should be >= the number of items returned",
-    					eventLog.getTotal() >= eventLog.sizeLogEntryList()
-    					);
+    			StringBuffer sb = new StringBuffer();
+    			int i = 0;
+    			if (eventLog.getCount() != eventLog.sizeLogEntryList())
+    				sb.append(++i + ". 'count' attribute should equal the number of LogEntry objects returned.  \n");
+    		
+    			if (eventLog.getTotal() < eventLog.getCount())
+    				sb.append(++i + ". 'total' attribute should be >= the 'count' attribute in the returned Log.  \n");
+
+    			if (eventLog.getTotal() < eventLog.sizeLogEntryList())
+    				sb.append(++i + "'total' attribute should be >= the number of LogEntry objects returned.  \n");
+
 
     			// test that one can limit the count
-    			int halfCount = eventLog.getLogEntryList().size() / 2; // rounds down
-    			eventLog = mn.getLogRecords(null, null, null, null, null, 0, halfCount);
-    			checkEquals(mn.getLatestRequestUrl(), "Should be able to limit " +
-    					"the number of returned entries using 'count' parameter.",
-    					String.valueOf(eventLog.getLogEntryList().size()),
-    					String.valueOf(halfCount));
-    			
+    			int halfCount = eventLog.sizeLogEntryList() / 2; // rounds down
+    			eventLog = mn.getLogRecords(null, null, null, null, 0, halfCount);
+
+    			if (eventLog.sizeLogEntryList() != halfCount)
+    				sb.append(++i + ". should be able to limit the number of returned LogEntry objects using 'count' parameter.");
+    				    			
     			// TODO:  test that 'start' parameter does what it says
 
     			// TODO: paging test
     			
+    			
+    			if (i > 0) {
+    				handleFail(mn.getLatestRequestUrl(),"Slicing errors:\n" + sb.toString());
+    			}   			
     			
     		}
     		catch (NotAuthorized e) {
@@ -746,30 +746,33 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     		try {
     			ObjectList ol = mn.listObjects();
     			// make sure the count is accurate
-    			checkEquals(mn.getLatestRequestUrl(),"listObjects().getCount() should" +
-    					" equal the number of returned ObjectInfos", 
-    					String.valueOf(ol.getCount()),
-    					String.valueOf(ol.getObjectInfoList().size())
-    					);
-    			
-    			
-    			// heuristic test on total attribute
-    			checkTrue(mn.getLatestRequestUrl(),"total attribute should be >= count",
-    					ol.getTotal() >= ol.getCount()
-    					);
+    			StringBuffer sb = new StringBuffer();
+    			int i = 0;
+    			if (ol.getCount() != ol.sizeObjectInfoList())
+    				sb.append(++i + ". 'count' attribute should equal the number of ObjectInfos returned.  \n");
+    		
+    			if (ol.getTotal() < ol.getCount())
+    				sb.append(++i + ". 'total' attribute should be >= the 'count' attribute in the returned ObjectList.  \n");
+
+    			if (ol.getTotal() < ol.sizeObjectInfoList())
+    				sb.append(++i + "'total' attribute should be >= the number of ObjectInfos returned.  \n");
+
 
     			// test that one can limit the count
-    			int halfCount = ol.getObjectInfoList().size() / 2; // rounds down
+    			int halfCount = ol.sizeObjectInfoList() / 2; // rounds down
     			ol = mn.listObjects(null, null, null, null, null, 0, halfCount);
-    			checkEquals(mn.getLatestRequestUrl(), "Should be able to limit " +
-    					"the number of returned ObjectInfos using 'count' parameter.",
-    					String.valueOf(ol.getObjectInfoList().size()),
-    					String.valueOf(halfCount));
-    			
+
+    			if (ol.sizeObjectInfoList() != halfCount)
+    				sb.append(++i + ". should be able to limit the number of returned ObjectInfos using 'count' parameter.");
+    				    			
     			// TODO:  test that 'start' parameter does what it says
 
     			// TODO: paging test
     			
+    			
+    			if (i > 0) {
+    				handleFail(mn.getLatestRequestUrl(),"Slicing errors:\n" + sb.toString());
+    			}
     			
     		}
     		catch (BaseException e) {

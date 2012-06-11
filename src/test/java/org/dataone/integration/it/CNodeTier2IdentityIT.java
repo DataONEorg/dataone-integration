@@ -24,6 +24,7 @@ import java.util.Iterator;
 
 import org.dataone.client.CNode;
 import org.dataone.service.exceptions.BaseException;
+import org.dataone.service.exceptions.NotAuthorized;
 import org.dataone.service.types.v1.Node;
 import org.dataone.service.types.v1.Person;
 import org.dataone.service.types.v1.Subject;
@@ -187,6 +188,63 @@ public class CNodeTier2IdentityIT extends ContextAwareTestCaseDataone {
 			}
 		}
 	}
+
+	
+	
+    /**
+     * Tests that count and start parameters are functioning, and getCount() and getTotal()
+     * are reasonable values.
+     */
+	@Ignore("slicing behavior not yet defined for SubjectInfo - there are two lists contained therein.")
+	@Test
+    public void testListSubjects_Slicing()
+    {
+    	Iterator<Node> it = getCoordinatingNodeIterator();
+    	while (it.hasNext()) {
+    		currentUrl = it.next().getBaseURL();
+    		CNode cn = new CNode(currentUrl);
+    		printTestHeader("testListSubjects_Slicing(...) vs. node: " + currentUrl);  
+    		currentUrl = cn.getNodeBaseServiceUrl();
+
+    		try {
+    			SubjectInfo si = cn.listSubjects(null, null, null, null);   			
+    			
+    			StringBuffer sb = new StringBuffer();
+    			int i = 0;
+    			
+    			// test that one can limit the count
+    			int halfCount = si.sizeGroupList() + si.sizePersonList() / 2; // rounds down
+    			si = cn.listSubjects(null, null, 0, halfCount);
+
+    			if (si.sizeGroupList() + si.sizePersonList()  != halfCount)
+    				sb.append(++i + ". Should be able to limit the number of returned Subject objects using the 'count' parameter.");
+    				    			
+    			// TODO:  test that 'start' parameter does what it says
+
+    			// TODO: paging test
+    			
+    			
+    			if (i > 0) {
+    				handleFail(cn.getLatestRequestUrl(),"Slicing errors:\n" + sb.toString());
+    			}   			
+    			
+    		}
+    		catch (NotAuthorized e) {
+    			handleFail(cn.getLatestRequestUrl(),"Should not get a NotAuthorized when connecting" +
+    					"with a cn admin subject . Check NodeList and MN configuration.  Msg details:" +
+    					e.getDetail_code() + ": " + e.getDescription());
+    		}
+    		catch (BaseException e) {
+    			handleFail(cn.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
+    					e.getDetail_code() + ": " + e.getDescription());
+    		}
+    		catch(Exception e) {
+    			e.printStackTrace();
+    			handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+    		}	           
+    	}
+    }
+	
 	
 	
 	@Ignore("test not written yet")

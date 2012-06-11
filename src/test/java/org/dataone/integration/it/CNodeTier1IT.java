@@ -33,16 +33,15 @@ import org.dataone.client.D1Client;
 import org.dataone.client.D1TypeBuilder;
 import org.dataone.client.MNode;
 import org.dataone.client.auth.ClientIdentityManager;
-import org.dataone.integration.it.ContextAwareTestCaseDataone.TestIterationEndingException;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.IdentifierNotUnique;
 import org.dataone.service.exceptions.InvalidRequest;
+import org.dataone.service.exceptions.NotAuthorized;
 import org.dataone.service.exceptions.NotFound;
 import org.dataone.service.exceptions.ServiceFailure;
 import org.dataone.service.types.v1.Checksum;
 import org.dataone.service.types.v1.ChecksumAlgorithmList;
 import org.dataone.service.types.v1.DescribeResponse;
-import org.dataone.service.types.v1.Event;
 import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Log;
 import org.dataone.service.types.v1.LogEntry;
@@ -55,7 +54,6 @@ import org.dataone.service.types.v1.ObjectInfo;
 import org.dataone.service.types.v1.ObjectList;
 import org.dataone.service.types.v1.ObjectLocation;
 import org.dataone.service.types.v1.ObjectLocationList;
-import org.dataone.service.types.v1.Permission;
 import org.dataone.service.types.v1.Session;
 import org.dataone.service.types.v1.Subject;
 import org.dataone.service.types.v1.SystemMetadata;
@@ -290,12 +288,79 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
 
     
     /**
+     * Tests that count and start parameters are functioning, and getCount() and getTotal()
+     * are reasonable values.
+     */
+    @Test
+    public void testGetLogRecords_Slicing()
+    {
+    	// TODO: change to testCnAdmin subject when obtained
+    	setupClientSubject("cn-sandbox-unm-1");
+//    	setupClientSubject_NoCert();
+    	Iterator<Node> it = getCoordinatingNodeIterator();
+    	while (it.hasNext()) {
+    		currentUrl = it.next().getBaseURL();
+    		CNode cn = new CNode(currentUrl);
+    		printTestHeader("testGetLogRecords_Slicing(...) vs. node: " + currentUrl);  
+    		currentUrl = cn.getNodeBaseServiceUrl();
+
+    		try {
+    			Log eventLog = cn.getLogRecords(null, null, null, null, null, null);   			
+    			
+    			StringBuffer sb = new StringBuffer();
+    			int i = 0;
+    			if (eventLog.getCount() != eventLog.sizeLogEntryList())
+    				sb.append(++i + ". 'count' attribute should equal the number of LogEntry objects returned.  \n");
+    		
+    			if (eventLog.getTotal() < eventLog.getCount())
+    				sb.append(++i + ". 'total' attribute should be >= the 'count' attribute in the returned Log.  \n");
+
+    			if (eventLog.getTotal() < eventLog.sizeLogEntryList())
+    				sb.append(++i + "'total' attribute should be >= the number of LogEntry objects returned.  \n");
+
+
+    			// test that one can limit the count
+    			int halfCount = eventLog.sizeLogEntryList() / 2; // rounds down
+    			eventLog = cn.getLogRecords(null, null, null, null, 0, halfCount);
+
+    			if (eventLog.sizeLogEntryList() != halfCount)
+    				sb.append(++i + ". should be able limit the number of returned LogEntry objects using 'count' parameter.");
+    				    			
+    			// TODO:  test that 'start' parameter does what it says
+
+    			// TODO: paging test
+    			
+    			
+    			if (i > 0) {
+    				handleFail(cn.getLatestRequestUrl(),"Slicing errors:\n" + sb.toString());
+    			}   			
+    			
+    		}
+    		catch (NotAuthorized e) {
+    			handleFail(cn.getLatestRequestUrl(),"Should not get a NotAuthorized when connecting" +
+    					"with a cn admin subject . Check NodeList and MN configuration.  Msg details:" +
+    					e.getDetail_code() + ": " + e.getDescription());
+    		}
+    		catch (BaseException e) {
+    			handleFail(cn.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
+    					e.getDetail_code() + ": " + e.getDescription());
+    		}
+    		catch(Exception e) {
+    			e.printStackTrace();
+    			handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+    		}	           
+    	}
+    }
+	
+    
+    
+    /**
      * Tests that setting fromDate parameter for getLogRecords() excludes earlier
      * records.
      * 
      */
     @Test
-    public void testGetLogRecords_DateSlicing()
+    public void testGetLogRecords_DateFiltering()
     {
     	// can be anyone
     	setupClientSubject("testRightsHolder");
@@ -805,7 +870,61 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
     		}
     	}
     }
- 
+
+    @Test
+    public void testListObjects_Slicing()
+    {
+    	setupClientSubject_NoCert();
+    	Iterator<Node> it = getCoordinatingNodeIterator();
+    	while (it.hasNext()) {
+    		currentUrl = it.next().getBaseURL();
+    		CNode cn = new CNode(currentUrl);
+    		printTestHeader("testListObjects_Slicing(...) vs. node: " + currentUrl);  
+    		currentUrl = cn.getNodeBaseServiceUrl();
+
+    		try {
+    			ObjectList ol = cn.listObjects();
+    			// make sure the count is accurate
+    			StringBuffer sb = new StringBuffer();
+    			int i = 0;
+    			if (ol.getCount() != ol.sizeObjectInfoList())
+    				sb.append(++i + ". 'count' attribute should equal the number of ObjectInfos returned.  \n");
+    		
+    			if (ol.getTotal() < ol.getCount())
+    				sb.append(++i + ". 'total' attribute should be >= the 'count' attribute in the returned ObjectList.  \n");
+
+    			if (ol.getTotal() < ol.sizeObjectInfoList())
+    				sb.append(++i + "'total' attribute should be >= the number of ObjectInfos returned.  \n");
+
+
+    			// test that one can limit the count
+    			int halfCount = ol.sizeObjectInfoList() / 2; // rounds down
+    			ol = cn.listObjects(null, null, null, null, null, 0, halfCount);
+
+    			if (ol.sizeObjectInfoList() != halfCount)
+    				sb.append(++i + ". should be able to limit the number of returned ObjectInfos using 'count' parameter.");
+    				    			
+    			// TODO:  test that 'start' parameter does what it says
+
+    			// TODO: paging test
+    			
+    			
+    			if (i > 0) {
+    				handleFail(cn.getLatestRequestUrl(),"Slicing errors:\n" + sb.toString());
+    			}
+    			
+    		}
+    		catch (BaseException e) {
+    			handleFail(cn.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
+    					e.getDetail_code() + ": " + e.getDescription());
+    		}
+    		catch(Exception e) {
+    			e.printStackTrace();
+    			handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+    		}	           
+    	}
+    }
+    
     @Ignore("test in progress")
     @Test
     public void testListObjects_formatID_filter() {

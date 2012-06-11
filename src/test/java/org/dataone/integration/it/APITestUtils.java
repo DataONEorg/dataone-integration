@@ -319,9 +319,9 @@ public class APITestUtils {
     {
 		
 		ObjectList ol = d1Node.listObjects(null, fromDate, toDate, formatid, replicaStatus, start, null);
-		if (ol.getTotal() == ol.getObjectInfoList().size()) {
+		if (ol.getTotal() == ol.sizeObjectInfoList()) {
 			// don't need to ask for more
-			if (ol.getObjectInfoList().size() > count) {
+			if (ol.sizeObjectInfoList() > count) {
 				// need to trim the object list to match the requested amount
 				ol.setObjectInfoList(ol.getObjectInfoList().subList(0, count));
 				ol.setCount(count);
@@ -329,15 +329,15 @@ public class APITestUtils {
 		}
 		
 		
-		int retrieved = ol.getObjectInfoList().size();
-		int serverPageSize = ol.getObjectInfoList().size();  // server is happy to return this amount at a time.
+		int retrieved = ol.sizeObjectInfoList();
+		int serverPageSize = ol.sizeObjectInfoList();  // server is happy to return this amount at a time.
 		int totalNeeded = count > ol.getTotal() ? count : ol.getTotal();
 		int remaining = totalNeeded - retrieved;
 		while (remaining > 0) {
 			int pageSize = remaining < serverPageSize ? remaining : serverPageSize;
 			start = retrieved;
 			ObjectList nextList = d1Node.listObjects(null, fromDate, toDate, formatid, replicaStatus, start, pageSize);
-			retrieved += nextList.getObjectInfoList().size();
+			retrieved += nextList.sizeObjectInfoList();
 			remaining = totalNeeded - retrieved;
 			ol.getObjectInfoList().addAll(nextList.getObjectInfoList());
 		}
@@ -370,9 +370,9 @@ public class APITestUtils {
     {
 		
 		Log entries = d1Node.getLogRecords(null, fromDate, toDate, event, pidFilter, start, null);
-		if (entries.getTotal() == entries.getCount()) {
+		if (entries.getTotal() == entries.sizeLogEntryList()) {
 			// don't need to ask for more
-			if (count != null && entries.getLogEntryList().size() > count) {
+			if (count != null && entries.sizeLogEntryList() > count) {
 				// need to trim the object list to match the requested amount
 				entries.setLogEntryList(entries.getLogEntryList().subList(0, count));
 				entries.setCount(count);
@@ -380,15 +380,15 @@ public class APITestUtils {
 		}
 		
 		count = -1;
-		int retrieved = entries.getLogEntryList().size();
-		int serverPageSize = entries.getLogEntryList().size();  // server is happy to return this amount at a time.
+		int retrieved = entries.sizeLogEntryList();
+		int serverPageSize = entries.sizeLogEntryList();  // server is happy to return this amount at a time.
 		int totalNeeded = (count > entries.getTotal()) ? count : entries.getTotal();
 		int remaining = totalNeeded - retrieved;
 		while (remaining > 0) {
 			int pageSize = remaining < serverPageSize ? remaining : serverPageSize;
 			start = retrieved;
 			Log nextList = d1Node.getLogRecords(null, fromDate, toDate, event, pidFilter, start, pageSize);
-			retrieved += nextList.getLogEntryList().size();
+			retrieved += nextList.sizeLogEntryList();
 			remaining = totalNeeded - retrieved;
 			entries.getLogEntryList().addAll(nextList.getLogEntryList());
 		}
