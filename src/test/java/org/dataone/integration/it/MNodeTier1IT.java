@@ -134,14 +134,73 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
 		}
 	}
 	
+    /**
+     * Tests that getLogRecords() implements access restriction properly, testing
+     * the negative case - where client is not a CN.
+     * 
+     */
+    @Test
+    public void testGetLogRecords_AccessRestriction()
+    {
+    	
+    	setupClientSubject_NoCert();
+    	Iterator<Node> it = getMemberNodeIterator();
+    	while (it.hasNext()) {
+    		currentUrl = it.next().getBaseURL();
+    		MNode mn = new MNode(currentUrl);
+    		printTestHeader("testGetLogRecords(...) vs. node: " + currentUrl);  
+    		currentUrl = mn.getNodeBaseServiceUrl();
+
+    		try {
+    			Log eventLog = mn.getLogRecords(null, null, null, null, null, null);   			
+    			checkTrue(mn.getLatestRequestUrl(),"getLogRecords without a client certificate" +
+    					"should return a Log datatype or NotAuthorized", eventLog != null);
+    			
+    			//check that the identifiers in the log entries are all public read
+    			if (eventLog.getLogEntryList().size() > 0) {
+    				LogEntry currentEntry = null;
+    				try {
+    					for (LogEntry le : eventLog.getLogEntryList()) {
+    						currentEntry = le;
+    						mn.describe(le.getIdentifier());
+    					}
+    				}
+    				catch (NotAuthorized e) {
+    					handleFail(mn.getLatestRequestUrl(), String.format(
+    							"The returned log should not contain log entries which " +
+    							"are not publicly available.  Got entry %s for identifier %s",
+    							currentEntry.getEntryId(),
+    							currentEntry.getIdentifier().getValue())
+    							);
+    				}
+    			}
+    			
+    			
+    		}
+    		catch (NotAuthorized e) {
+    			; // a valid response, where access is restricted to CNs
+    		}
+    		catch (BaseException e) {
+    			handleFail(mn.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
+    					e.getDetail_code() + ": " + e.getDescription());
+    		}
+    		catch(Exception e) {
+    			e.printStackTrace();
+    			handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+    		}	           
+    	}
+    }
+	
 	
     /**
      * Tests that getLogRecords() returns Log object, using the simplest case: no parameters.
-     * 
+     * Also tests with all parameters are set.  Passes the tests by returning a Log object.
      */
     @Test
     public void testGetLogRecords()
     {
+    	//TODO: change to use a testCNAdmin certificate
+//    	setupClientSubject("cn-sandbox-unm-1");
     	setupClientSubject_NoCert();
     	Iterator<Node> it = getMemberNodeIterator();
     	while (it.hasNext()) {
@@ -159,6 +218,11 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     			Date toDate = new Date();
     			eventLog = mn.getLogRecords(fromDate, toDate, Event.READ, "pidFilter" ,0, 10);
     			checkTrue(mn.getLatestRequestUrl(),"getLogRecords(<parameters>) returns a Log", eventLog != null);
+    		}
+    		catch (NotAuthorized e) {
+    			handleFail(mn.getLatestRequestUrl(),"Should not get a NotAuthorized when connecting" +
+    					"with a cn admin subject . Check NodeList and MN configuration.  Msg details:" +
+    					e.getDetail_code() + ": " + e.getDescription());
     		}
     		catch (BaseException e) {
     			handleFail(mn.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
@@ -178,6 +242,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     @Test
     public void testGetLogRecords_Slicing()
     {
+    	// TODO: change to testCnAdmin subject when obtained
     	setupClientSubject_NoCert();
     	Iterator<Node> it = getMemberNodeIterator();
     	while (it.hasNext()) {
@@ -196,9 +261,12 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     					);
     			
     			
-    			// heuristic test on total attribute
+    			// heuristic tests on total attribute
     			checkTrue(mn.getLatestRequestUrl(),"total attribute should be >= count",
     					eventLog.getTotal() >= eventLog.getCount()
+    					);
+    			checkTrue(mn.getLatestRequestUrl(), "total attribute should be >= the number of items returned",
+    					eventLog.getTotal() >= eventLog.sizeLogEntryList()
     					);
 
     			// test that one can limit the count
@@ -214,6 +282,11 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     			// TODO: paging test
     			
     			
+    		}
+    		catch (NotAuthorized e) {
+    			handleFail(mn.getLatestRequestUrl(),"Should not get a NotAuthorized when connecting" +
+    					"with a cn admin subject . Check NodeList and MN configuration.  Msg details:" +
+    					e.getDetail_code() + ": " + e.getDescription());
     		}
     		catch (BaseException e) {
     			handleFail(mn.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
@@ -236,73 +309,79 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     @Test
     public void testGetLogRecords_eventFiltering()
     {
+    	// TODO: change to testCnAdmin subject when obtained
     	setupClientSubject_NoCert();
     	Iterator<Node> it = getMemberNodeIterator();
     	while (it.hasNext()) {
-    	   currentUrl = it.next().getBaseURL();
-           MNode mn = D1Client.getMN(currentUrl);  
-           currentUrl = mn.getNodeBaseServiceUrl();
-           printTestHeader("testGetLogRecords_eventFiltering() vs. node: " + currentUrl);
+    		currentUrl = it.next().getBaseURL();
+    		MNode mn = D1Client.getMN(currentUrl);  
+    		currentUrl = mn.getNodeBaseServiceUrl();
+    		printTestHeader("testGetLogRecords_eventFiltering() vs. node: " + currentUrl);
 
-           try {
-        	   Date toDate = new Date();
+    		try {
+    			Date toDate = new Date();
 
-        	   // using the paged-implementation to make sure we get them all.
-        	   Log entries = APITestUtils.pagedGetLogRecords(mn, null, toDate, null, null, null, null);
+    			// using the paged-implementation to make sure we get them all.
+    			Log entries = APITestUtils.pagedGetLogRecords(mn, null, toDate, null, null, null, null);
 
-        	   if (entries.getCount() == 0) {
-        		   // try to create a log event
-        		   // if it can't it will throw a TestIterationEndingException
-        		   Identifier pid = procurePublicReadableTestObject(mn,null);
-        		   mn.get(pid);
-        		   toDate = new Date();
-        		   entries = APITestUtils.pagedGetLogRecords(mn, null, toDate, null, null, null, null);
-        	   }
+    			if (entries.getCount() == 0) {
+    				// try to create a log event
+    				// if it can't it will throw a TestIterationEndingException
+    				Identifier pid = procurePublicReadableTestObject(mn,null);
+    				mn.get(pid);
+    				toDate = new Date();
+    				entries = APITestUtils.pagedGetLogRecords(mn, null, toDate, null, null, null, null);
+    			}
 
-        	   Event targetType = entries.getLogEntry(0).getEvent();
-        	   Event otherType = null;
+    			Event targetType = entries.getLogEntry(0).getEvent();
+    			Event otherType = null;
 
-        	   for (LogEntry le : entries.getLogEntryList()) {
-        		   if ( ! le.getEvent().equals(targetType) ) {
-        			   otherType = le.getEvent();
-        			   break;
-        		   }
-        	   }
+    			for (LogEntry le : entries.getLogEntryList()) {
+    				if ( ! le.getEvent().equals(targetType) ) {
+    					otherType = le.getEvent();
+    					break;
+    				}
+    			}
 
-        	   if (otherType == null) {
-        		   if (targetType.equals(Event.READ)) {
-        			   entries = mn.getLogRecords(null, null, toDate, Event.CREATE, null, 0, 0);
-        			   checkEquals(mn.getLatestRequestUrl(),"Log contains only READ events, " +
-        					   "so should get 0 CREATE events", String.valueOf(entries.getTotal()),"0");
-        		   } else {
-        			   entries = mn.getLogRecords(null, null, toDate, Event.READ, null, 0, 0);
-        			   checkEquals(mn.getLatestRequestUrl(),"Log contains only " + targetType + " events, " +
-        					   "so should get 0 READ events",String.valueOf(entries.getTotal()),"0");
-        		   }
-        	   } else {
-        		   entries = APITestUtils.pagedGetLogRecords(mn, null, toDate ,targetType, null, null, null);
-        		   boolean oneTypeOnly = true;
-        		   Event unfilteredType = null;
-        		   for (LogEntry le: entries.getLogEntryList()) {
-        			   if (!le.getEvent().equals(targetType)) {
-        				   oneTypeOnly = false;
-        				   unfilteredType = le.getEvent();
-        				   break;
-        			   }
-        		   }
-        		   checkTrue(mn.getLatestRequestUrl(), "Filtered log for the time period should contain only " +
-        				   "logs of type " + targetType.xmlValue() + ". Got " + unfilteredType, oneTypeOnly);
-        	   }
-           }
-           catch (BaseException e) {
-        	   handleFail(mn.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
-        			   e.getDetail_code() + ": " + e.getDescription());
-           }
-           catch(Exception e) {
-        	   e.printStackTrace();
-        	   handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
-           }
-       }
+    			if (otherType == null) {
+    				if (targetType.equals(Event.READ)) {
+    					entries = mn.getLogRecords(null, null, toDate, Event.CREATE, null, 0, 0);
+    					checkEquals(mn.getLatestRequestUrl(),"Log contains only READ events, " +
+    							"so should get 0 CREATE events", String.valueOf(entries.getTotal()),"0");
+    				} else {
+    					entries = mn.getLogRecords(null, null, toDate, Event.READ, null, 0, 0);
+    					checkEquals(mn.getLatestRequestUrl(),"Log contains only " + targetType + " events, " +
+    							"so should get 0 READ events",String.valueOf(entries.getTotal()),"0");
+    				}
+    			} else {
+    				entries = APITestUtils.pagedGetLogRecords(mn, null, toDate ,targetType, null, null, null);
+    				boolean oneTypeOnly = true;
+    				Event unfilteredType = null;
+    				for (LogEntry le: entries.getLogEntryList()) {
+    					if (!le.getEvent().equals(targetType)) {
+    						oneTypeOnly = false;
+    						unfilteredType = le.getEvent();
+    						break;
+    					}
+    				}
+    				checkTrue(mn.getLatestRequestUrl(), "Filtered log for the time period should contain only " +
+    						"logs of type " + targetType.xmlValue() + ". Got " + unfilteredType, oneTypeOnly);
+    			}
+    		}
+    		catch (NotAuthorized e) {
+    			handleFail(mn.getLatestRequestUrl(),"Should not get a NotAuthorized when connecting" +
+    					"with a cn admin subject . Check NodeList and MN configuration.  Msg details:" +
+    					e.getDetail_code() + ": " + e.getDescription());
+    		}
+    		catch (BaseException e) {
+    			handleFail(mn.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
+    					e.getDetail_code() + ": " + e.getDescription());
+    		}
+    		catch(Exception e) {
+    			e.printStackTrace();
+    			handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+    		}
+    	}
     }
     
     /**
@@ -313,6 +392,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     @Test
     public void testGetLogRecords_pidFiltering()
     {
+    	// TODO: change to testCnAdmin subject when obtained
     	setupClientSubject_NoCert();
     	Iterator<Node> it = getMemberNodeIterator();
     	while (it.hasNext()) {
@@ -338,48 +418,59 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     			}
 
     			// should have at least one log entry at this point
-    			
-    			Identifier targetIdentifier = entries.getLogEntry(0).getIdentifier();
-    			Identifier otherIdentifier = null;
-    			
-    			for (LogEntry le : entries.getLogEntryList()) {
-    				if (! le.getIdentifier().equals(targetIdentifier) ) {
-    					otherIdentifier = le.getIdentifier();
-    					break;
-    				}
-    			}
-    			
-    			if (otherIdentifier == null) {
-    				// create a new target that is non existent
-    				otherIdentifier = targetIdentifier;
-    				targetIdentifier = D1TypeBuilder.buildIdentifier(targetIdentifier.getValue()
-    						+ new Date().getTime());
+    			if (entries.sizeLogEntryList() > 0) {
+    				Identifier targetIdentifier = entries.getLogEntry(0).getIdentifier();
+    				Identifier otherIdentifier = null;
 
-    				entries = mn.getLogRecords(null, fromDate, t0, 
-    						null, targetIdentifier.getValue(), 0, 0);
-    				checkEquals(mn.getLatestRequestUrl(),"Log should be empty for the derived identifier pattern " +
-    						targetIdentifier.getValue(),String.valueOf(entries.getTotal()),"0");
-
-    			} 
-    			else {
-    				entries = mn.getLogRecords(null,fromDate, t0, 
-    						null, targetIdentifier.getValue(), null, null);
-    				boolean oneTypeOnly = true;
-    				for (LogEntry le: entries.getLogEntryList()) {
-    					if (!le.getIdentifier().equals(targetIdentifier)) {
-    						oneTypeOnly = false;
+    				for (LogEntry le : entries.getLogEntryList()) {
+    					if (! le.getIdentifier().equals(targetIdentifier) ) {
+    						otherIdentifier = le.getIdentifier();
     						break;
     					}
     				}
-//    				checkTrue(mn.getLatestRequestUrl(), "Filtered log for the time period should " +
-//    						"contain only entries for the target identifier: " + targetIdentifier.getValue(),
-//    						oneTypeOnly);
+
+    				if (otherIdentifier == null) {
+    					// create a new target that is non existent
+    					otherIdentifier = targetIdentifier;
+    					targetIdentifier = D1TypeBuilder.buildIdentifier(targetIdentifier.getValue()
+    							+ new Date().getTime());
+
+    					entries = mn.getLogRecords(null, null, t0, 
+    							null, targetIdentifier.getValue(), 0, 0);
+    					checkEquals(mn.getLatestRequestUrl(),"Log should be empty for the derived identifier pattern " +
+    							targetIdentifier.getValue(),String.valueOf(entries.getTotal()),"0");
+
+    				} 
+    				else {
+    					entries = mn.getLogRecords(null, null, toDate, 
+    							null, targetIdentifier.getValue(), null, null);
+    					boolean oneTypeOnly = true;
+
+    					for (LogEntry le: entries.getLogEntryList()) {
+    						if (!le.getIdentifier().equals(targetIdentifier)) {
+    							oneTypeOnly = false;
+    							break;
+    						}
+    					}
+    				 
+    				//    				checkTrue(mn.getLatestRequestUrl(), "Filtered log for the time period should " +
+    				//    						"contain only entries for the target identifier: " + targetIdentifier.getValue(),
+    				//    						oneTypeOnly);
     				checkTrue(mn.getLatestRequestUrl(), "The optional pidFilter parameter is not filtering log records. " +
     						"The log would otherwise contain only entries for the target identifier: " + targetIdentifier.getValue(),
     						oneTypeOnly);
+    				}
     			}
+    			else {
+					handleFail(mn.getLatestRequestUrl(), "After successfully reading an object, should " +
+							"have at least one log record.  Got zero");
+				}
     		}
-
+    		catch (NotAuthorized e) {
+    			handleFail(mn.getLatestRequestUrl(),"Should not get a NotAuthorized when connecting" +
+    					"with a cn admin subject . Check NodeList and MN configuration.  Msg details:" +
+    					e.getDetail_code() + ": " + e.getDescription());
+    		}
     		catch (BaseException e) {
     			handleFail(mn.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
     					e.getDetail_code() + ": " + e.getDescription());
@@ -396,8 +487,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     @Test
     public void testGetLogRecords_DateFiltering()
     {
-    	// can be anyone
-//    	setupClientSubject("testRightsHolder");
+    	// TODO: change to testCnAdmin subject when obtained
     	setupClientSubject_NoCert();
     	Iterator<Node> it = getMemberNodeIterator();
     	while (it.hasNext()) {
@@ -470,6 +560,11 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     				}
     			} 
     		} 
+    		catch (NotAuthorized e) {
+    			handleFail(mn.getLatestRequestUrl(),"Should not get a NotAuthorized when connecting" +
+    					"with a cn admin subject . Check NodeList and MN configuration.  Msg details:" +
+    					e.getDetail_code() + ": " + e.getDescription());
+    		}
     		catch (BaseException e) {
     			handleFail(mn.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
     					e.getDetail_code() + ": " + e.getDescription());
