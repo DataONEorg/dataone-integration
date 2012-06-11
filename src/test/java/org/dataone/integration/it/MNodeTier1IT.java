@@ -200,8 +200,8 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     public void testGetLogRecords()
     {
     	//TODO: change to use a testCNAdmin certificate
-//    	setupClientSubject("cn-sandbox-unm-1");
-    	setupClientSubject_NoCert();
+    	setupClientSubject("cn-sandbox-unm-1");
+//    	setupClientSubject_NoCert();
     	Iterator<Node> it = getMemberNodeIterator();
     	while (it.hasNext()) {
     		currentUrl = it.next().getBaseURL();
@@ -243,7 +243,8 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     public void testGetLogRecords_Slicing()
     {
     	// TODO: change to testCnAdmin subject when obtained
-    	setupClientSubject_NoCert();
+    	setupClientSubject("cn-sandbox-unm-1");
+//    	setupClientSubject_NoCert();
     	Iterator<Node> it = getMemberNodeIterator();
     	while (it.hasNext()) {
     		currentUrl = it.next().getBaseURL();
@@ -310,7 +311,8 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     public void testGetLogRecords_eventFiltering()
     {
     	// TODO: change to testCnAdmin subject when obtained
-    	setupClientSubject_NoCert();
+    	setupClientSubject("cn-sandbox-unm-1");
+//    	setupClientSubject_NoCert();
     	Iterator<Node> it = getMemberNodeIterator();
     	while (it.hasNext()) {
     		currentUrl = it.next().getBaseURL();
@@ -393,7 +395,8 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     public void testGetLogRecords_pidFiltering()
     {
     	// TODO: change to testCnAdmin subject when obtained
-    	setupClientSubject_NoCert();
+    	setupClientSubject("cn-sandbox-unm-1");
+//    	setupClientSubject_NoCert();
     	Iterator<Node> it = getMemberNodeIterator();
     	while (it.hasNext()) {
     		currentUrl = it.next().getBaseURL();
@@ -488,7 +491,8 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     public void testGetLogRecords_DateFiltering()
     {
     	// TODO: change to testCnAdmin subject when obtained
-    	setupClientSubject_NoCert();
+    	setupClientSubject("cn-sandbox-unm-1");
+//    	setupClientSubject_NoCert();
     	Iterator<Node> it = getMemberNodeIterator();
     	while (it.hasNext()) {
     		currentUrl = it.next().getBaseURL();
