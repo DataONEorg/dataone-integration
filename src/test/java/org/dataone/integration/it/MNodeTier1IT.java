@@ -31,6 +31,7 @@ import org.dataone.client.D1Client;
 import org.dataone.client.D1TypeBuilder;
 import org.dataone.client.MNode;
 import org.dataone.client.auth.CertificateManager;
+import org.dataone.configuration.Settings;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.InvalidToken;
 import org.dataone.service.exceptions.NotAuthorized;
@@ -65,8 +66,8 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
 
     private  String format_text_csv = "text/csv";
     private  String currentUrl;
-    private Vector<String> unicodeStringV;
-	private Vector<String> escapedStringV;
+    private static Vector<String> unicodeStringV;
+	private static Vector<String> escapedStringV;
 
 	@Override
 	protected String getTestDescription() {
@@ -142,7 +143,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     @Test
     public void testGetLogRecords_AccessRestriction()
     {
-    	
+    	Settings.getConfiguration().setProperty("D1Client.D1Node.getLogRecords.timeout", "60000");
     	setupClientSubject_NoCert();
     	Iterator<Node> it = getMemberNodeIterator();
     	while (it.hasNext()) {
@@ -199,6 +200,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     @Test
     public void testGetLogRecords()
     {
+    	Settings.getConfiguration().setProperty("D1Client.D1Node.getLogRecords.timeout", "60000");
     	//TODO: change to use a testCNAdmin certificate
     	setupClientSubject("urn:node:cnStageUNM1");
 //    	setupClientSubject_NoCert();
@@ -242,6 +244,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     @Test
     public void testGetLogRecords_Slicing()
     {
+    	Settings.getConfiguration().setProperty("D1Client.D1Node.getLogRecords.timeout", "60000");
     	// TODO: change to testCnAdmin subject when obtained
     	setupClientSubject("urn:node:cnStageUNM1");
 //    	setupClientSubject_NoCert();
@@ -310,6 +313,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     @Test
     public void testGetLogRecords_eventFiltering()
     {
+    	Settings.getConfiguration().setProperty("D1Client.D1Node.getLogRecords.timeout", "60000");
     	// TODO: change to testCnAdmin subject when obtained
     	setupClientSubject("urn:node:cnStageUNM1");
 //    	setupClientSubject_NoCert();
@@ -394,6 +398,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     @Test
     public void testGetLogRecords_pidFiltering()
     {
+    	Settings.getConfiguration().setProperty("D1Client.D1Node.getLogRecords.timeout", "60000");
     	// TODO: change to testCnAdmin subject when obtained
     	setupClientSubject("urn:node:cnStageUNM1");
 //    	setupClientSubject_NoCert();
@@ -492,6 +497,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     @Test
     public void testGetLogRecords_DateFiltering()
     {
+    	Settings.getConfiguration().setProperty("D1Client.D1Node.getLogRecords.timeout", "60000");
     	// TODO: change to testCnAdmin subject when obtained
     	setupClientSubject("urn:node:cnStageUNM1");
 //    	setupClientSubject_NoCert();
