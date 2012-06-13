@@ -93,8 +93,14 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
 					{
 						if (line.contains("supplementary"))
 							continue;
-						System.out.println(c++ + "   " + line);
+						
 						temp = line.split("\t");
+						
+						// identifiers can't contain spaces by default
+						if (temp[0].contains(" ")) 
+							continue;
+						
+						log.info(c++ + "   " + line);
 						unicodeStringV.add(temp[0]);
 						escapedStringV.add(temp[1]);	
 					}
