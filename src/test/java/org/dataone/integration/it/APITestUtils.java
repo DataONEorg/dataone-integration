@@ -317,7 +317,10 @@ public class APITestUtils {
       ObjectFormatIdentifier formatid, Boolean replicaStatus, Integer start, Integer count) 
     throws InvalidRequest, InvalidToken, NotAuthorized, NotImplemented, ServiceFailure
     {
-		
+
+		if (count != null && count <= 0) {
+			return d1Node.listObjects(null, fromDate, toDate, formatid, replicaStatus, start, 0);
+		} 
 		ObjectList ol = d1Node.listObjects(null, fromDate, toDate, formatid, replicaStatus, start, null);
 		if (ol.getTotal() == ol.sizeObjectInfoList()) {
 			// don't need to ask for more
@@ -368,6 +371,10 @@ public class APITestUtils {
       Event event, String pidFilter, Integer start, Integer count) 
       throws InvalidToken, InvalidRequest, ServiceFailure, NotAuthorized, NotImplemented, InsufficientResources 
     {
+
+		if (count != null && count <= 0) {
+			return d1Node.getLogRecords(null, fromDate, toDate, event, pidFilter, start, 0);
+		} 
 		
 		Log entries = d1Node.getLogRecords(null, fromDate, toDate, event, pidFilter, start, null);
 		if (entries.getTotal() == entries.sizeLogEntryList()) {

@@ -409,7 +409,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     			Date toDate = t0;
     			Date fromDate = t0;
 
-    			Log entries = APITestUtils.pagedGetLogRecords(mn, null, toDate, null, null, 0, 0);
+    			Log entries = APITestUtils.pagedGetLogRecords(mn, null, toDate, null, null, null, null);
 
     			if (entries.getTotal() == 0) {
     				// try to create a log event
@@ -448,20 +448,22 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     					entries = mn.getLogRecords(null, null, toDate, 
     							null, targetIdentifier.getValue(), null, null);
     					boolean oneTypeOnly = true;
-
-    					for (LogEntry le: entries.getLogEntryList()) {
-    						if (!le.getIdentifier().equals(targetIdentifier)) {
-    							oneTypeOnly = false;
-    							break;
+    					if (entries.sizeLogEntryList() > 0) {
+    						for (LogEntry le: entries.getLogEntryList()) {
+    							if (!le.getIdentifier().equals(targetIdentifier)) {
+    								oneTypeOnly = false;
+    								break;
+    							}
     						}
+//    	    				checkTrue(mn.getLatestRequestUrl(), "Filtered log for the time period should " +
+    	    				//    						"contain only entries for the target identifier: " + targetIdentifier.getValue(),
+    	    				//    						oneTypeOnly);
+    						checkTrue(mn.getLatestRequestUrl(), "The optional pidFilter parameter is not filtering log records. " +
+    								"The log would otherwise contain only entries for the target identifier: " + targetIdentifier.getValue(),
+    								oneTypeOnly);
+    					} else {
+    						handleFail(mn.getLatestRequestUrl(), "should still get a LogEntry when applying 'pidFilter' parameter");
     					}
-    				 
-    				//    				checkTrue(mn.getLatestRequestUrl(), "Filtered log for the time period should " +
-    				//    						"contain only entries for the target identifier: " + targetIdentifier.getValue(),
-    				//    						oneTypeOnly);
-    				checkTrue(mn.getLatestRequestUrl(), "The optional pidFilter parameter is not filtering log records. " +
-    						"The log would otherwise contain only entries for the target identifier: " + targetIdentifier.getValue(),
-    						oneTypeOnly);
     				}
     			}
     			else {
