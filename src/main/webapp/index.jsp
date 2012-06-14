@@ -69,11 +69,11 @@
 	    <td align="right">Maximum Tier to test:</td>
 	    <td>
 	      <select title="Maximum Tier Level to Test" size="1" name="maxTier">
-                <option selected value="Tier4">Tier 4</option>
-                <option>Tier 3</option>
-                <option>Tier 2</option>
+                <option selected value="Tier0">Tier 0</option>
                 <option>Tier 1</option>
-                <option>Tier 0</option>
+                <option>Tier 2</option>
+                <option>Tier 3</option>
+                <option>Tier 4</option>
               </select>
 	    </td>
 	  </tr>

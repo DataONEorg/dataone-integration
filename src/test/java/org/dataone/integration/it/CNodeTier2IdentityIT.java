@@ -23,8 +23,10 @@ package org.dataone.integration.it;
 import java.util.Iterator;
 
 import org.dataone.client.CNode;
+import org.dataone.client.D1TypeBuilder;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.NotAuthorized;
+import org.dataone.service.exceptions.NotFound;
 import org.dataone.service.types.v1.Node;
 import org.dataone.service.types.v1.Person;
 import org.dataone.service.types.v1.Subject;
@@ -147,6 +149,45 @@ public class CNodeTier2IdentityIT extends ContextAwareTestCaseDataone {
 			} 
 			catch (IndexOutOfBoundsException e) {
 				handleFail(cn.getLatestRequestUrl(),"No Objects available to test against");
+			}
+			catch (BaseException e) {
+				handleFail(cn.getLatestRequestUrl(),e.getDescription());
+			}
+			catch(Exception e) {
+				e.printStackTrace();
+				handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+			}
+		}
+	}
+	
+	
+	/** 
+	 * URL character escaping tests are mostly done via get(Identifier), but since
+	 * Identifiers cannot contain spaces, that case is not tested there.  It is
+	 * tested here, instead. 
+	 */
+	@Test
+	public void testGetSubjectInfo_UrlEncodingSpaces() {
+		Iterator<Node> it = getCoordinatingNodeIterator();
+		while (it.hasNext()) {
+			currentUrl = it.next().getBaseURL();
+			CNode cn = new CNode(currentUrl);
+			printTestHeader("testGetSubjectInfo(...) vs. node: " + currentUrl);
+
+			try {
+				SubjectInfo response = cn.getSubjectInfo(null,
+						D1TypeBuilder.buildSubject("CN=Duque de Alburquerque, DC=spain, DC=emp"));
+				checkTrue(cn.getLatestRequestUrl(),"getSubjectInfo(<subject with spaces>) should return either a SubjectInfo, or a NotFound", response != null);
+				// checkTrue(cn.getLatestRequestUrl(),"response cannot be false. [Only true or exception].", response);
+			} 
+			catch (IndexOutOfBoundsException e) {
+				handleFail(cn.getLatestRequestUrl(),"No Objects available to test against");
+			}
+			catch (NotFound e) {
+				handleFail(cn.getLatestRequestUrl(),e.getDescription());
+			}
+			catch (NotAuthorized e) {
+				handleFail(cn.getLatestRequestUrl(),e.getDescription());
 			}
 			catch (BaseException e) {
 				handleFail(cn.getLatestRequestUrl(),e.getDescription());
