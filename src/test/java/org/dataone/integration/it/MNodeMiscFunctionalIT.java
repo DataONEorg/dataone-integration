@@ -22,6 +22,8 @@
 
 package org.dataone.integration.it;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Date;
@@ -31,13 +33,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import java.security.cert.X509Certificate;
+
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.dataone.client.CNode;
 import org.dataone.client.D1Client;
 import org.dataone.client.D1Node;
+import org.dataone.client.D1Object;
 import org.dataone.client.D1TypeBuilder;
 import org.dataone.client.MNode;
+import org.dataone.client.auth.CertificateManager;
 import org.dataone.service.exceptions.BaseException;
+import org.dataone.service.exceptions.IdentifierNotUnique;
 import org.dataone.service.exceptions.InvalidToken;
 import org.dataone.service.exceptions.NotAuthorized;
 import org.dataone.service.exceptions.NotFound;
@@ -71,7 +79,8 @@ public class MNodeMiscFunctionalIT extends ContextAwareTestCaseDataone {
 	
 	int maxWaitMinutes = 5;
 	
-	@Before
+	
+//	@Before
 	public void createTestObjects() throws ServiceFailure, InvalidToken, NotAuthorized, NotImplemented
 	{
 		if (createdObjectMap == null) {
@@ -144,19 +153,170 @@ public class MNodeMiscFunctionalIT extends ContextAwareTestCaseDataone {
 	
 	/**
 	 * reserve an ID, then try to create the object.  Should succeed.
-	 * This test checks that an MN is check with the CN before creating object.
+	 * This test checks that an MN checks with the CN before creating object.
 	 */
+	@Ignore("not tested")
 	@Test
 	public void testCreateUsingReserveId() {
-		
+		setupClientSubject("testSubmitter");
+    	
+		// let's do this for each CN in the environment...
+		Iterator<Node> it = getCoordinatingNodeIterator();
+		while (it.hasNext()) {
+			currentUrl = it.next().getBaseURL();
+			CNode cn = new CNode(currentUrl);
+			printTestHeader("testCreateUsingReserveId using node: " + currentUrl);
+
+			Iterator<Node> mit = getMemberNodeIterator();
+
+			while (mit.hasNext()) {
+				MNode mn = new MNode(it.next().getBaseURL());
+
+				boolean isReserved = false;
+				try {
+					Identifier pid = new Identifier();
+					pid.setValue("MNodeMiscFunc:" + ExampleUtilities.generateIdentifier());
+
+					Identifier response = cn.reserveIdentifier(null,pid);
+					checkTrue(cn.getLatestRequestUrl(),"reserveIdentifier(...) should return the given identifier",
+							response.equals(pid));
+					isReserved = true;
+
+					// ensures that the reservation was made
+					try {
+						response = cn.reserveIdentifier(null,pid);
+					}
+					catch (IdentifierNotUnique e) {
+						if (isReserved) {
+							// then got the desired outcome
+						} else {
+							handleFail(cn.getLatestRequestUrl(),e.getDescription());
+							continue;
+						}
+					}
+
+
+					// successful reservation, so now try the create
+					X509Certificate certificate = CertificateManager.getInstance().loadCertificate();
+					String submitterX500 = CertificateManager.getInstance().getSubjectDN(certificate);
+
+					byte[] contentBytes = ExampleUtilities.getExampleObjectOfType(DEFAULT_TEST_OBJECTFORMAT);
+					InputStream objectInputStream = new ByteArrayInputStream(contentBytes);
+					D1Object d1o = new D1Object(pid, contentBytes,
+							D1TypeBuilder.buildFormatIdentifier(DEFAULT_TEST_OBJECTFORMAT),
+							D1TypeBuilder.buildSubject(submitterX500),
+							D1TypeBuilder.buildNodeReference("bogusAuthoritativeNode"));
+
+					SystemMetadata sysMeta = d1o.getSystemMetadata();
+					Identifier rPid = mn.create(pid, objectInputStream, sysMeta);
+
+					checkEquals(mn.getLatestRequestUrl(),"pid of created object should equal that given",
+							rPid.getValue(), pid.getValue());
+
+					InputStream theDataObject = mn.get(null,pid);
+					String objectData = IOUtils.toString(theDataObject);
+					checkTrue(mn.getLatestRequestUrl(),"should get back an object containing submitted text:" + objectData.substring(0, 1000),
+							objectData.contains("IPCC Data Distribution Centre Results "));
+				
+				
+				}
+				// handle fails per CN-MN combination
+				catch (BaseException e) {
+					handleFail(cn.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
+							e.getDetail_code() + ":: " + e.getDescription());
+				}
+				catch(Exception e) {
+					e.printStackTrace();
+					handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+				}
+			}
+    	}
 	}
+	
+	
 	
 	/**
 	 * reserve an ID using one subject, then try to create with another. Should fail.
 	 */
+	@Ignore("not tested")
 	@Test
 	public void testCreateUsingReserveId_NotReserver() {
-		
+
+    	
+		// let's do this for each CN in the environment...
+		Iterator<Node> it = getCoordinatingNodeIterator();
+		while (it.hasNext()) {
+			currentUrl = it.next().getBaseURL();
+			CNode cn = new CNode(currentUrl);
+			printTestHeader("testCreateUsingReserveId using node: " + currentUrl);
+
+			Iterator<Node> mit = getMemberNodeIterator();
+
+			while (mit.hasNext()) {
+				MNode mn = new MNode(it.next().getBaseURL());
+
+				boolean isReserved = false;
+				try {
+					setupClientSubject("testSubmitter");
+					
+					Identifier pid = new Identifier();
+					pid.setValue("MNodeMiscFunc:" + ExampleUtilities.generateIdentifier());
+
+					Identifier response = cn.reserveIdentifier(null,pid);
+					checkTrue(cn.getLatestRequestUrl(),"reserveIdentifier(...) should return the given identifier",
+							response.equals(pid));
+					isReserved = true;
+
+					// ensures that the reservation was made
+					try {
+						response = cn.reserveIdentifier(null,pid);
+					}
+					catch (IdentifierNotUnique e) {
+						if (isReserved) {
+							// then got the desired outcome
+						} else {
+							handleFail(cn.getLatestRequestUrl(),e.getDescription());
+							continue;
+						}
+					}
+
+
+					// successful reservation, so now try the create
+					setupClientSubject("testRightsHolder");
+					
+					X509Certificate certificate = CertificateManager.getInstance().loadCertificate();
+					String submitterX500 = CertificateManager.getInstance().getSubjectDN(certificate);
+
+					byte[] contentBytes = ExampleUtilities.getExampleObjectOfType(DEFAULT_TEST_OBJECTFORMAT);
+					InputStream objectInputStream = new ByteArrayInputStream(contentBytes);
+					D1Object d1o = new D1Object(pid, contentBytes,
+							D1TypeBuilder.buildFormatIdentifier(DEFAULT_TEST_OBJECTFORMAT),
+							D1TypeBuilder.buildSubject(submitterX500),
+							D1TypeBuilder.buildNodeReference("bogusAuthoritativeNode"));
+
+					SystemMetadata sysMeta = d1o.getSystemMetadata();
+					Identifier rPid = mn.create(pid, objectInputStream, sysMeta);
+
+					handleFail(mn.getLatestRequestUrl(),"testRightsHolder subject should not be able to " +
+							"create the object using pid " + pid.getValue() + " when the identifier was " +
+									"reserved by the testSubmitter subject");
+
+				}
+				catch (NotAuthorized e) {
+					// expected outcome
+					;
+				}
+				// handle fails per CN-MN combination
+				catch (BaseException e) {
+					handleFail(cn.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
+							e.getDetail_code() + ":: " + e.getDescription());
+				}
+				catch(Exception e) {
+					e.printStackTrace();
+					handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+				}
+			}
+    	}
 	}
 	
 	/**
@@ -164,6 +324,7 @@ public class MNodeMiscFunctionalIT extends ContextAwareTestCaseDataone {
 	 * for Tier2+ nodes, which also need to check with CN via isNodeAuthorized().
 	 * Can it be tested without initiating replication? via systemMetadata change?
 	 */
+	@Ignore("not tested")
 	@Test
 	public void testGetReplica_CallLoggedAsReplicate() {
 		
@@ -179,9 +340,39 @@ public class MNodeMiscFunctionalIT extends ContextAwareTestCaseDataone {
 	 *   Tier 1 nodes, (all public content) will not test the same.  They will
 	 *   not fail.
 	 */
-	@Test
+	@Ignore("not tested")
+//	@Test
 	public void testGetReplica_isNodeAuthorized() {
-		
+		setupClientSubject("testMN"); // an unregistered MN
+
+		Iterator<Node> it = getMemberNodeIterator();  	
+
+		while (it.hasNext()) {
+			currentUrl = it.next().getBaseURL();
+			MNode mn = D1Client.getMN(currentUrl);
+			currentUrl = mn.getNodeBaseServiceUrl();
+			printTestHeader("testGetReplica() vs. node: " + currentUrl);
+
+			try {
+				String objectIdentifier = "TierTesting:" + 
+					 	createNodeAbbreviation(mn.getNodeBaseServiceUrl()) +
+					 	":Public_READ" + testObjectSeriesSuffix;
+				Identifier pid = procurePublicReadableTestObject(mn,D1TypeBuilder.buildIdentifier(objectIdentifier));
+				InputStream is = mn.getReplica(null, pid);
+				checkTrue(mn.getLatestRequestUrl(),"get() returns an objectStream", is != null);
+			}
+			catch (IndexOutOfBoundsException e) {
+    			handleFail(mn.getLatestRequestUrl(),"No Objects available to test against");
+    		}
+    		catch (BaseException e) {
+    			handleFail(mn.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
+    					e.getDetail_code() + ":: " + e.getDescription());
+    		}
+    		catch(Exception e) {
+    			e.printStackTrace();
+    			handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+    		}
+		}
 	}
 	
 	

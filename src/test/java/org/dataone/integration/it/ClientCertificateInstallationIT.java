@@ -128,6 +128,20 @@ public class ClientCertificateInstallationIT {
 	{
 		runTestSetupClient_Typical("urn:node:cnDevUNM1", false);
 	}
+	
+	@Ignore("not yet implemented")
+	@Test
+	public void testSetupClientSubject_testCnAdmin() throws Exception
+	{
+		runTestSetupClient_Typical("testCnAdmin", false);
+	}
+	
+	@Ignore("not yet implemented")
+	@Test
+	public void testSetupClientSubject_testMonitor() throws Exception
+	{
+		runTestSetupClient_Typical("testMonitor", false);
+	}
 
 	
 
