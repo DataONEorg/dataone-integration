@@ -125,10 +125,16 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
 			
 			try {
 //				Assume.assumeTrue(APITestUtils.isTierImplemented(mn, "Tier5"));
+				Date localNow = new Date();
 				Date pingDate = mn.ping();
 				
 				checkTrue(mn.getLatestRequestUrl(),"ping should return a valid date", pingDate != null);
 				// other invalid dates will be thrown as IOExceptions cast to ServiceFailures
+
+				checkTrue(mn.getLatestRequestUrl(), "returned date should be within 1 minute of time measured on test machine",
+						pingDate.getTime() - localNow.getTime() < 1000 * 60  &&
+						localNow.getTime() - pingDate.getTime() > -1000 * 60);
+				
 			} 
 			catch (BaseException e) {
 				handleFail(mn.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
