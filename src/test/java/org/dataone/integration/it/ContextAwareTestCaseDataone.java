@@ -113,6 +113,8 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 	protected  String cnBaseUrl = null;
 	protected  String mnBaseUrl = null;
 	protected  String nodelistUri = null;
+	protected  String referenceContext = null;
+	protected  String referenceCnBaseUrl = null;
 
 	// this here defines the default
 	// can be overwritten by property passed into base class
@@ -274,6 +276,14 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 	
 	protected Iterator<Node> getMonitorNodeIterator() {
 		return monitorNodeList.iterator();
+	}
+	
+	//TODO: figure out how to get the cn baseurl from the reference label..
+	protected String getReferenceContextCnUrl() {
+		if (referenceCnBaseUrl != null) 
+			return referenceCnBaseUrl;
+		
+		return null;
 	}
 	
 //	/**

@@ -36,6 +36,11 @@ package org.dataone.integration.it;
  * CN_URL - the base url of a coordinating node to be tested. used for testing a single node
  * MN_URL - the base url of a member node to be tested. used for testing a single node.
  * 
+ * Pre-registration tests need to refer to a context prior to the node being added
+ * to the context's nodelist.  The CN is the Reference environment against which these
+ * tests run 
+ * REFERENCE_CN_URL - the baseURL of the CN that will determine the reference for the tests
+ * REFERENCE_CONTEXT - the context name (LOCAL,DEV,STAGING,PROD) for the reference environment
  */
 public interface IntegrationTestContextParameters {
 	
@@ -53,6 +58,8 @@ public interface IntegrationTestContextParameters {
 	public final static String PARAM_MN_URL = "context.mn.baseurl";    // the base url for the MN being tested
 	public final static String PARAM_NODELIST_URI = "context.nodelist.uri";  // a uri (file or url) of the nodelist to use to set the environment
 
+	public final static String PARAM_REFERENCE_CONTEXT = "reference.context.label"; 
+	public final static String PARAM_REFERENCE_CN_URL = "reference.cn.baseurl"; 
 	
 	public final static String PARAM_TEST_SETTINGS_URI = "opt.overriding.properties.filename";
 	
