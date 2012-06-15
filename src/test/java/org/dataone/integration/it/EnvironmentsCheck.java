@@ -1,18 +1,34 @@
 package org.dataone.integration.it;
 
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+
+import java.util.Date;
 import java.util.HashMap;
+import java.util.concurrent.Callable;
 
 import org.dataone.client.CNode;
+import org.dataone.client.D1Node;
+import org.dataone.client.MNode;
+import org.dataone.service.exceptions.BaseException;
+import org.dataone.service.exceptions.InsufficientResources;
 import org.dataone.service.exceptions.NotImplemented;
 import org.dataone.service.exceptions.ServiceFailure;
 import org.dataone.service.types.v1.Node;
 import org.dataone.service.types.v1.NodeList;
 import org.dataone.service.types.v1.NodeReference;
+import org.dataone.service.types.v1.NodeType;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ErrorCollector;
 
 
 public class EnvironmentsCheck {
 
+	private static final int MAX_CLOCK_DRIFT_SEC = 5;
+	
+	
 	String[] rrCns = new String[] { 
 			"https://cn-dev-rr.dataone.org/cn",
 			"https://cn-sandbox.dataone.org/cn",
@@ -97,6 +113,124 @@ public class EnvironmentsCheck {
 		
 		
 	}
+	
+	
+	@Test
+	public void testUTC() {
+		for (String baseUrl: rrCns) {
+			CNode cn = new CNode(baseUrl);
+			NodeList nl;
+		
+			long startTime = (new Date()).getTime();
+			
+			try {
+				nl = cn.listNodes();
+				System.out.println("");
+				System.out.println("CONTEXT STARTING POINT: " + baseUrl);
+				
+				System.out.println(String.format("%-64s\t%s\t%s\t%s\t%s\t%s",
+						"node",
+						"startTime",
+						"callTime",
+						"pingDate",
+						"callDuration",
+						"adjustedTime"));
+				
+				Long minTime = null;
+				Long maxTime = null;
+				for (Node n: nl.getNodeList()) {
+					D1Node d1Node = null;
+					if (n.getType().equals(NodeType.CN)) {
+						d1Node = new CNode(n.getBaseURL());
+					} else if (n.getType().equals(NodeType.MN)) {
+						d1Node = new MNode(n.getBaseURL());
+					}
+					long callTime = (new Date()).getTime();
+					try {
+						Date pingDate = d1Node.ping();
+						long callReturnTime = (new Date()).getTime();
+
+//						long adjustedTime = pingDate.getTime() - (startTime - callTime);
+						long adjustedTime = pingDate.getTime() - callTime;
+						
+						System.out.println(String.format("%-64s\t%d\t%d\t%d\t%d\t%4d",
+								n.getBaseURL(),
+								startTime,
+								callTime,
+								pingDate.getTime(),
+								callReturnTime - callTime,
+								adjustedTime));
+						
+						
+						
+						if ( minTime == null || adjustedTime < minTime) {
+							minTime = new Long(adjustedTime);
+						}
+						if ( maxTime == null || adjustedTime > maxTime) {
+							maxTime = new Long(adjustedTime);
+						}
+						if (minTime != null && maxTime != null) {
+							checkTrue(baseUrl, "normalized ping times within the environment should be" +
+								" within " + MAX_CLOCK_DRIFT_SEC + " seconds of each other (see test output for table)", maxTime - minTime < MAX_CLOCK_DRIFT_SEC * 1000);
+						}
+					}
+					catch (BaseException be) {
+						System.err.println(String.format("ERROR: ping() from %s " + 
+								" threw exception %s",
+								n.getBaseURL(),
+								be.getClass().getSimpleName()
+								));
+					}
+				}
+				
+				System.out.println("minTime = " + minTime);
+				System.out.println("maxTime = " + maxTime);
+				System.out.println("delta T = " + (maxTime - minTime));
+				System.out.println();
+				
+			} catch (NotImplemented e) {
+				System.err.println("ERROR: could not get NodeList from " + baseUrl
+						+ ". Got NotImplemented::" + e.getDescription());
+			} catch (ServiceFailure e) {
+				System.err.println("ERROR: could not get NodeList from " + baseUrl
+						+ ". Got ServiceFailure::" + e.getDescription());
+			}
+		}
+	}
+	
+	/**
+	 * Tests should use the error collector to handle JUnit assertions
+	 * and keep going.  The check methods in this class use this errorCollector
+	 * the check methods 
+	 */
+	@Rule 
+    public ErrorCollector errorCollector = new ErrorCollector();
+	
+	
+    /**
+	 * performs the equivalent of the junit assertTrue method
+	 * using the errorCollector to record the error and keep going
+	 * 
+	 * @param message
+	 * @param s1
+	 * @param s2
+	 */
+    public void checkTrue(final String host, final String message, final boolean b)
+    {
+        errorCollector.checkSucceeds(new Callable<Object>() 
+        {
+            public Object call() throws Exception 
+            {
+            	if (host != null) {	
+            		assertThat(message + "  [for host " + host + "]", b, is(true));
+            	} else {
+            		assertThat(message, b, is(true));
+            	}
+                return null;
+            }
+        });
+    }
+	
 	
 	
 }
