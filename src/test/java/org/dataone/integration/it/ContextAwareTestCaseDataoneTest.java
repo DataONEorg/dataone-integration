@@ -24,20 +24,27 @@ package org.dataone.integration.it;
 
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
+import org.apache.commons.lang.StringUtils;
 import org.dataone.configuration.Settings;
-import org.junit.Before;
+import org.dataone.configuration.TestSettings;
+import org.hsqldb.lib.StringUtil;
+import org.junit.After;
 import org.junit.Test;
 
 public class ContextAwareTestCaseDataoneTest { 
 
 
-	@Before
-	public void setUp() throws Exception
+	
+	@After
+	public void tearDown() throws Exception
 	{
-		Settings.getResetConfiguration();
-		// do nothing except override the setUp method in the base class
-		// which is not needed here (cannot be called)
+		System.clearProperty(TestSettings.REFERENCE_CONTEXT_LABEL);
+		System.clearProperty(TestSettings.REFERENCE_CN_URL);
+		System.clearProperty(TestSettings.CONTEXT_MN_URL);
+		System.clearProperty(TestSettings.CONTEXT_LABEL);
 	}
 
 	@Test
@@ -48,4 +55,39 @@ public class ContextAwareTestCaseDataoneTest {
 		String cndev = "https://cn-dev.dataone.org/cn/v1".replaceFirst("https{0,1}://", "").replaceFirst("\\..+", "");
 		assertEquals("cn-dev",cndev);
 	}
+	
+	@Test
+	public void testReferenceContextLabel() throws Exception {
+		System.setProperty(TestSettings.REFERENCE_CONTEXT_LABEL, "DEV");
+		System.setProperty(TestSettings.CONTEXT_LABEL, "DEV");
+		Settings.getResetConfiguration();
+		
+		ContextAwareTestCaseDataone tc = new MNodeTier0IT();
+		
+		tc.setUpContext();
+		String refCNbaseUrl = tc.getReferenceContextCnUrl();
+		System.out.println("reference BaseUrl = " + refCNbaseUrl);
+		
+		String prodCNurl = Settings.getConfiguration().getString("D1Client.CN_URL");		
+		assertEquals("reference CN should equal context CN in this test",prodCNurl,refCNbaseUrl);
+		assertFalse("reference and context CNs should not be empty or null", StringUtils.isEmpty(refCNbaseUrl));
+	}
+	
+	
+	@Test
+	public void testReferenceContextLabel_isolation() throws Exception {
+		System.setProperty(TestSettings.REFERENCE_CONTEXT_LABEL, "DEV");
+		System.setProperty(TestSettings.CONTEXT_MN_URL, "https://mn-x.dataone.org/mn");
+		Settings.getResetConfiguration();
+		ContextAwareTestCaseDataone tc = new MNodeTier0IT();
+		
+		tc.setUpContext();
+		String refCNbaseUrl = tc.getReferenceContextCnUrl();
+		System.out.println("reference BaseUrl = " + refCNbaseUrl);
+		
+		String prodCNurl = Settings.getConfiguration().getString("D1Client.CN_URL");	
+		System.out.println("context CN url = " + prodCNurl);
+		assertTrue("reference CN should not bleed over into context CN", StringUtil.isEmpty(prodCNurl));
+	}
+	
 }

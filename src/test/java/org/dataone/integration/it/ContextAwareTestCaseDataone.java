@@ -255,6 +255,13 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 				}			
 			} // nodelist set up
 
+			//  now set up the reference cnBaseUrl, if it's provided 
+			referenceCnBaseUrl = Settings.getConfiguration().getString(PARAM_REFERENCE_CN_URL);
+			if (referenceCnBaseUrl == null) {
+				referenceContext = Settings.getConfiguration().getString(PARAM_REFERENCE_CONTEXT,null);
+				referenceCnBaseUrl = TestSettings.getReferenceCnBaseUrl(referenceContext);
+			}
+			
 			log.info("****************************************************");
 		}  // settings already set up
 	}
@@ -278,12 +285,13 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 		return monitorNodeList.iterator();
 	}
 	
-	//TODO: figure out how to get the cn baseurl from the reference label..
+	/**
+	 * returns the reference CN baseUrl passed in on reference.context.label
+	 * or reference.cn.baseUrl
+	 * @return
+	 */
 	protected String getReferenceContextCnUrl() {
-		if (referenceCnBaseUrl != null) 
 			return referenceCnBaseUrl;
-		
-		return null;
 	}
 	
 //	/**

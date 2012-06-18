@@ -43,6 +43,8 @@ public class TestSettings {
 	public static String CONTEXT_NODELIST_URI = "context.nodelist.uri";
 	public static String CONTEXT_MN_URL       = "context.mn.baseurl";
 	public static String CONTEXT_CN_URL       = "context.cn.baseurl";
+	public static String REFERENCE_CN_URL       = "reference.cn.baseurl";
+	public static String REFERENCE_CONTEXT_LABEL       = "reference.context.label";
 	
 
 	/**
@@ -83,6 +85,10 @@ public class TestSettings {
 				System.getProperty(CONTEXT_CN_URL,System.getenv(CONTEXT_CN_URL)));
 		configuration.setProperty(CONTEXT_NODELIST_URI,
 				System.getProperty(CONTEXT_NODELIST_URI,System.getenv(CONTEXT_NODELIST_URI)));
+		configuration.setProperty(REFERENCE_CN_URL,
+				System.getProperty(REFERENCE_CN_URL,System.getenv(REFERENCE_CN_URL)));
+		configuration.setProperty(REFERENCE_CONTEXT_LABEL,
+				System.getProperty(REFERENCE_CONTEXT_LABEL,System.getenv(REFERENCE_CONTEXT_LABEL)));
 				
 		
 		
@@ -117,6 +123,28 @@ public class TestSettings {
 		return configuration;
 	}
 
+	
+	/**
+	 * This method is used to extract the reference CN url from either of the two
+	 * reference properties.  These properties do not change the CN url that's
+	 * loaded into the Settings configuration. 
+	 * @param referenceContextLabel
+	 * @return
+	 * @throws ConfigurationException
+	 */
+	public static String getReferenceCnBaseUrl(String referenceContextLabel) 
+	throws ConfigurationException 
+	{
+		String fileName = STD_CONFIG_PATH + "/context." + referenceContextLabel + ".test.properties";
+		log.info("attempting to load context-specific configuration file (context " + 
+				referenceContextLabel + "): " + fileName);
+		
+		CompositeConfiguration configuration = new CompositeConfiguration();
+		loadConfigurationFile(configuration, fileName,false);
+		
+		return configuration.getString("D1Client.CN_URL");
+	}
+	
 	
 	private static String determineContext(Configuration config) throws ConfigurationException
 	{		
