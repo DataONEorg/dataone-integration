@@ -331,7 +331,7 @@ public class APITestUtils {
 			}
 		}
 		
-		
+		count = -1;
 		int retrieved = ol.sizeObjectInfoList();
 		int serverPageSize = ol.sizeObjectInfoList();  // server is happy to return this amount at a time.
 		int totalNeeded = count > ol.getTotal() ? count : ol.getTotal();
