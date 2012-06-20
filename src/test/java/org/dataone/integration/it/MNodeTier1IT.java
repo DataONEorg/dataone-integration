@@ -175,7 +175,12 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     				try {
     					for (LogEntry le : eventLog.getLogEntryList()) {
     						currentEntry = le;
-    						mn.describe(le.getIdentifier());
+    						try {
+    							mn.describe(le.getIdentifier());
+    						}
+    						catch (NotFound e) {
+    	    	    			; // a semi-valid repsonse.  Sometimes logged objects have been deleted.
+    	    	    		}
     					}
     				}
     				catch (NotAuthorized e) {
@@ -186,6 +191,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     							currentEntry.getIdentifier().getValue())
     							);
     				}
+    				
     			}
     			
     			
@@ -193,6 +199,8 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     		catch (NotAuthorized e) {
     			; // a valid response, where access is restricted to CNs
     		}
+    		
+    	
     		catch (BaseException e) {
     			handleFail(mn.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
     					e.getDetail_code() + ": " + e.getDescription());

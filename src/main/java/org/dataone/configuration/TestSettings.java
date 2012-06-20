@@ -31,6 +31,7 @@ import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.DefaultConfigurationBuilder;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.configuration.SystemConfiguration;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -135,14 +136,18 @@ public class TestSettings {
 	public static String getReferenceCnBaseUrl(String referenceContextLabel) 
 	throws ConfigurationException 
 	{
-		String fileName = STD_CONFIG_PATH + "/context." + referenceContextLabel + ".test.properties";
-		log.info("attempting to load context-specific configuration file (context " + 
+		String cnUrl = null;
+		if (StringUtils.isNotEmpty(referenceContextLabel)) {
+			String fileName = STD_CONFIG_PATH + "/context." + referenceContextLabel + ".test.properties";
+			log.info("attempting to load context-specific configuration file (context " + 
 				referenceContextLabel + "): " + fileName);
 		
-		CompositeConfiguration configuration = new CompositeConfiguration();
-		loadConfigurationFile(configuration, fileName,false);
+			CompositeConfiguration configuration = new CompositeConfiguration();
+			loadConfigurationFile(configuration, fileName,false);
 		
-		return configuration.getString("D1Client.CN_URL");
+			cnUrl = configuration.getString("D1Client.CN_URL");
+		} 
+		return cnUrl;
 	}
 	
 	
