@@ -121,7 +121,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 	protected String testObjectSeriesSuffix = "." + "14";
 	protected  String testObjectSeries = null;
 
-	protected String cnSubmitter = Settings.getConfiguration().getString("dataone.it.cnode.submitter.cn", /* default */ "urn:node:cnDev");
+	protected String cnSubmitter = Settings.getConfiguration().getString("dataone.it.cnode.submitter.cn", /* default */ "urn:node:cnDevUNM1");
 	
 	public  List<Node> memberNodeList = null;
 	public  List<Node> coordinatingNodeList = new Vector<Node>();
@@ -456,6 +456,10 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 				if (ol != null && ol.getCount() > 0) {
 					long start = (new Date()).getTime();
 					for (ObjectInfo oi: ol.getObjectInfoList()) {
+						if (d1Node instanceof CNode) {
+							if (!oi.getFormatId().getValue().startsWith("eml:"))
+								continue;
+						}
 						try {
 							SystemMetadata smd = d1Node.getSystemMetadata(null,oi.getIdentifier());
 							if (AccessUtil.getPermissionMap(smd.getAccessPolicy())
