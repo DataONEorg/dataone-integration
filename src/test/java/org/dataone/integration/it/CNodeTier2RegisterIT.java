@@ -25,6 +25,7 @@ import java.util.Iterator;
 import java.util.Set;
 
 import org.dataone.client.CNode;
+import org.dataone.configuration.Settings;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.IdentifierNotUnique;
 import org.dataone.service.exceptions.InvalidRequest;
@@ -46,17 +47,21 @@ public class CNodeTier2RegisterIT extends ContextAwareTestCaseDataone {
 
 	private static String currentUrl;
 	
+	protected String cnSubmitter = Settings.getConfiguration().getString("dataone.it.cnode.submitter.cn", /* default */ "urn:node:cnDevUNM1");
+
+	
 
 	@Override
 	protected String getTestDescription() {
 		return "tests the CN.Register methods";
 	}
 	
-	@Ignore("need to create a subject that can do this call an MN or CN subject")
+	@Ignore("confirm the change to the Node record")
 	@Test
 	public void testUpdateNodeCapabilities() {
 		// TODO: set the appropriate subject - will need a subject that can
 		// update it's node record on the CN.  either an MN or CN subject.
+		setupClientSubject(cnSubmitter);
 		Iterator<Node> it = getCoordinatingNodeIterator();
 		while (it.hasNext()) {
 			currentUrl = it.next().getBaseURL();
@@ -98,9 +103,8 @@ public class CNodeTier2RegisterIT extends ContextAwareTestCaseDataone {
 	
 	@Test
 	public void testUpdateNodeCapabilities_NotFound() {
-		// TODO: set the appropriate subject - will need a subject that can
-		// update it's node record on the CN.  either an MN or CN subject.
 
+		setupClientSubject(cnSubmitter);
 		Iterator<Node> it = getCoordinatingNodeIterator();
 		while (it.hasNext()) {
 			currentUrl = it.next().getBaseURL();

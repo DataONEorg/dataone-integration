@@ -33,6 +33,7 @@ import org.dataone.client.D1Client;
 import org.dataone.client.D1TypeBuilder;
 import org.dataone.client.MNode;
 import org.dataone.client.auth.ClientIdentityManager;
+import org.dataone.configuration.Settings;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.IdentifierNotUnique;
 import org.dataone.service.exceptions.InvalidRequest;
@@ -74,7 +75,10 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
 //	private static Identifier reservedIdentifier = null;
 
 //	private static String unicodeIdPrefix = "testCNodeTier1:Unicode:";
-	private static String unicodeIdPrefix = "testMNodeTier3";
+	private static String unicodeIdPrefix = "testCNodeTier1";
+	
+	protected String cnSubmitter = Settings.getConfiguration().getString("dataone.it.cnode.submitter.cn", /* default */ "urn:node:cnDevUNM1");
+
 	
 	private static String identifierEncodingTestFile = "/d1_testdocs/encodingTestSet/testUnicodeStrings.utf8.txt";
 	//	private static String identifierEncodingTestFile = "/d1_testdocs/encodingTestSet/testAsciiStrings.utf8.txt";
@@ -262,8 +266,7 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
     @Test
     public void testGetLogRecords()
     {
-    	// can be anyone
-    	setupClientSubject("testRightsHolder");
+    	setupClientSubject(cnSubmitter);
     	Iterator<Node> it = getCoordinatingNodeIterator();
     	while (it.hasNext()) {
     		currentUrl = it.next().getBaseURL();
@@ -294,9 +297,7 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
     @Test
     public void testGetLogRecords_Slicing()
     {
-    	// TODO: change to testCnAdmin subject when obtained
-    	setupClientSubject("cn-sandbox-unm-1");
-//    	setupClientSubject_NoCert();
+    	setupClientSubject(cnSubmitter);
     	Iterator<Node> it = getCoordinatingNodeIterator();
     	while (it.hasNext()) {
     		currentUrl = it.next().getBaseURL();
@@ -362,8 +363,7 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
     @Test
     public void testGetLogRecords_DateFiltering()
     {
-    	// can be anyone
-    	setupClientSubject("testRightsHolder");
+    	setupClientSubject(cnSubmitter);
     	Iterator<Node> it = getCoordinatingNodeIterator();
     	while (it.hasNext()) {
     		currentUrl = it.next().getBaseURL();
