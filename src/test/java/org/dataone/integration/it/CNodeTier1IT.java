@@ -1005,7 +1005,7 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
    				}
 
    				// call listObjects with a fromDate
-   				ol = cn.listObjects(null, fromDate, null, null, null, null, null);
+   				ol = cn.listObjects(fromDate, null, null, null, null, null);
 
    				for (ObjectInfo oi: ol.getObjectInfoList()) {
    					if (oi.getIdentifier().equals(excludedObjectInfo.getIdentifier())) {
