@@ -30,6 +30,7 @@ import org.dataone.client.D1TypeBuilder;
 import org.dataone.configuration.Settings;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.NotAuthorized;
+import org.dataone.service.exceptions.NotFound;
 import org.dataone.service.types.v1.AccessPolicy;
 import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Node;
@@ -203,115 +204,120 @@ public class CNodeTier2AuthorizationIT extends AbstractAuthorizationITDataone {
 			try {
 				Subject ownerSubject = setupClientSubject("testRightsHolder");				 
 				
-				Identifier changeableObject = procureTestObject(
-						cn, 
-						AccessUtil.createAccessRule(
-								new Subject[]{ownerSubject},
-								new Permission[]{Permission.CHANGE_PERMISSION}),
-						APITestUtils.buildIdentifier("TierTesting:" + 
-							 	createNodeAbbreviation(cn.getNodeBaseServiceUrl()) +
-							 	":setAccess" + testObjectSeriesSuffix)
-						); 
+				// need to procure the target test object and verify 
+				// that we are the rightsHolder
+				Identifier changeableObject = D1TypeBuilder.buildIdentifier(
+						String.format("TierTesting:%s:setAccess%s",
+								createNodeAbbreviation(cn.getNodeBaseServiceUrl()),
+								testObjectSeriesSuffix));
 				
-				if (changeableObject != null) {
-					
-					log.info("clear the AccessPolicy");
-					SystemMetadata smd = cn.getSystemMetadata(null,changeableObject);
-					long serialVersion = smd.getSerialVersion().longValue();
-					boolean success = cn.setAccessPolicy(null, changeableObject, 
-							new AccessPolicy(), serialVersion);
-
-					// ensure blank policy with isAuthorized(), get()
-					Subject readerSubject = setupClientSubject("testPerson");				
-					try {
-						cn.isAuthorized(null, changeableObject, Permission.READ);
-						handleFail(cn.getLatestRequestUrl(),"1. isAuthorized by the reader should fail");
-					} catch (NotAuthorized na) {
-						// should fail
-					}
-					try {
-						cn.get(null, changeableObject);
-						handleFail(cn.getLatestRequestUrl(),"2. getting the newly created object as a reader should fail");
-					} catch (NotAuthorized na) {
-						// this is what we want
-					}
-
-					
-//					log.info("allow read permission for client-who-is-the-object's-RightsHolder");
-					setupClientSubject("testRightsHolder");
-					smd = cn.getSystemMetadata(null, changeableObject);
-					serialVersion = smd.getSerialVersion().longValue();
-					success = cn.setAccessPolicy(null, changeableObject, 
-							AccessUtil.createSingleRuleAccessPolicy(new String[] {readerSubject.getValue()},
-									new Permission[] {Permission.READ}), serialVersion);
-					checkTrue(cn.getLatestRequestUrl(),"3. testRightsHolder should be able to set the access policy",success);
-					
-					
-					smd = cn.getSystemMetadata(null, changeableObject);
-					ByteArrayOutputStream os = new ByteArrayOutputStream();
-					TypeMarshaller.marshalTypeToOutputStream(smd.getAccessPolicy(), os);
-					log.info(os.toString());
-					
-					
-					// test for success
-					log.info("trying isAuthorized as testPerson");
-					setupClientSubject("testPerson");			
-					try {
-						cn.isAuthorized(null, changeableObject, Permission.READ);
-					} catch (NotAuthorized na) {
-						handleFail(cn.getLatestRequestUrl(),"4. testPerson should be authorized to read this pid '" 
-								+ changeableObject.getValue() + "'");
-					}
-
-					log.info("now trying get() as testPerson");
-					try {
-						cn.get(null, changeableObject);
-					} catch (NotAuthorized na) {
-						handleFail(cn.getLatestRequestUrl(),"5. testPerson should now be able to get the object");
-					}
-
-					log.info("now try to get as a known user with no rights to the object (should not be able)");
-					
-					
-					setupClientSubject("testSubmitter");
-					try {
-						InputStream is = cn.get(null, changeableObject);
-						log.info(IOUtils.toString(is));
-						handleFail(cn.getLatestRequestUrl(),"6. testSubmitter should not be able to get the object");
-						
-					} catch (NotAuthorized na) {
-						// this is what we want
-					}
-					log.info("now try isAuthorized() on it as a known user with no rights to the object");
-					try {
-						cn.isAuthorized(null, changeableObject, Permission.READ);
-						handleFail(cn.getLatestRequestUrl(),"7. testSubmitter should not be authorized to read the object");
-					} catch (NotAuthorized na) {
-						// this is what we want
-					}
-
-					log.info("finally test access against anonymous client");
-					setupClientSubject_NoCert();
-					try {
-						cn.get(null, changeableObject);
-						handleFail(cn.getLatestRequestUrl(),"8. anonymous client (no certificate) should not be" +
-						"able to get the object");
-					} catch (NotAuthorized na) {
-						// this is what we want
-					}
-
-					log.info("and test isAuthorized on it with certificateless client");
-					try {
-						cn.isAuthorized(null, changeableObject, Permission.READ);
-						handleFail(cn.getLatestRequestUrl(),"9. anonymous client (no certificate) should not be " +
-						"able to get successful response from isAuthorized()");
-					} catch (NotAuthorized na) {
-						// this is what we want
-					}
-					log.info("done.");
+				SystemMetadata smd = null;
+				try {
+					smd = cn.getSystemMetadata(null,changeableObject);
+					if (!smd.getRightsHolder().equals(ownerSubject)) 
+						throw new TestIterationEndingException("the test object should be owned by "
+								+ "the client subject");
+				} 
+				catch (NotFound e) {
+					changeableObject = createTestObject(cn, changeableObject, null);
 				}
-			} catch (IndexOutOfBoundsException e) {
-				handleFail(cn.getLatestRequestUrl(),"No Objects available to test against");
+					
+				log.info("clear the AccessPolicy");
+				long serialVersion = smd.getSerialVersion().longValue();
+				boolean success = cn.setAccessPolicy(null, changeableObject, 
+						new AccessPolicy(), serialVersion);
+
+				// ensure blank policy with isAuthorized(), get()
+				Subject readerSubject = setupClientSubject("testPerson");				
+				try {
+					cn.isAuthorized(null, changeableObject, Permission.READ);
+					handleFail(cn.getLatestRequestUrl(),"1. isAuthorized by the reader should fail");
+				} catch (NotAuthorized na) {
+					// should fail
+				}
+				try {
+					cn.get(null, changeableObject);
+					handleFail(cn.getLatestRequestUrl(),"2. getting the newly created object as a reader should fail");
+				} catch (NotAuthorized na) {
+					// this is what we want
+				}
+
+
+				//					log.info("allow read permission for client-who-is-the-object's-RightsHolder");
+				setupClientSubject("testRightsHolder");
+				smd = cn.getSystemMetadata(null, changeableObject);
+				serialVersion = smd.getSerialVersion().longValue();
+				success = cn.setAccessPolicy(null, changeableObject, 
+						AccessUtil.createSingleRuleAccessPolicy(new String[] {readerSubject.getValue()},
+								new Permission[] {Permission.READ}), serialVersion);
+				checkTrue(cn.getLatestRequestUrl(),"3. testRightsHolder should be able to set the access policy",success);
+
+
+				smd = cn.getSystemMetadata(null, changeableObject);
+				ByteArrayOutputStream os = new ByteArrayOutputStream();
+				TypeMarshaller.marshalTypeToOutputStream(smd.getAccessPolicy(), os);
+				log.info(os.toString());
+
+
+				// test for success
+				log.info("trying isAuthorized as testPerson");
+				setupClientSubject("testPerson");			
+				try {
+					cn.isAuthorized(null, changeableObject, Permission.READ);
+				} catch (NotAuthorized na) {
+					handleFail(cn.getLatestRequestUrl(),"4. testPerson should be authorized to read this pid '" 
+							+ changeableObject.getValue() + "'");
+				}
+
+				log.info("now trying get() as testPerson");
+				try {
+					cn.get(null, changeableObject);
+				} catch (NotAuthorized na) {
+					handleFail(cn.getLatestRequestUrl(),"5. testPerson should now be able to get the object");
+				}
+
+				log.info("now try to get as a known user with no rights to the object (should not be able)");
+
+
+				setupClientSubject("testSubmitter");
+				try {
+					InputStream is = cn.get(null, changeableObject);
+					log.info(IOUtils.toString(is));
+					handleFail(cn.getLatestRequestUrl(),"6. testSubmitter should not be able to get the object");
+
+				} catch (NotAuthorized na) {
+					// this is what we want
+				}
+				log.info("now try isAuthorized() on it as a known user with no rights to the object");
+				try {
+					cn.isAuthorized(null, changeableObject, Permission.READ);
+					handleFail(cn.getLatestRequestUrl(),"7. testSubmitter should not be authorized to read the object");
+				} catch (NotAuthorized na) {
+					// this is what we want
+				}
+
+				log.info("finally test access against anonymous client");
+				setupClientSubject_NoCert();
+				try {
+					cn.get(null, changeableObject);
+					handleFail(cn.getLatestRequestUrl(),"8. anonymous client (no certificate) should not be" +
+							"able to get the object");
+				} catch (NotAuthorized na) {
+					// this is what we want
+				}
+
+				log.info("and test isAuthorized on it with certificateless client");
+				try {
+					cn.isAuthorized(null, changeableObject, Permission.READ);
+					handleFail(cn.getLatestRequestUrl(),"9. anonymous client (no certificate) should not be " +
+							"able to get successful response from isAuthorized()");
+				} catch (NotAuthorized na) {
+					// this is what we want
+				}
+				log.info("done.");
+
+			} catch (TestIterationEndingException e) {
+				handleFail(cn.getLatestRequestUrl(),"No Objects available to test against: " + e.getMessage());
 			} catch (BaseException e) {
 				handleFail(cn.getLatestRequestUrl(), e.getClass().getSimpleName() + ": " + 
 						e.getDetail_code() + ": " + e.getDescription());
