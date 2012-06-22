@@ -255,7 +255,7 @@ public class CNodeTier2RegisterIT extends ContextAwareTestCaseDataone {
 		}
 	}
 
-	
+	@Ignore("don't want to keep creating new phantom nodes")
 	@Test
 	public void testRegister() {
 		// TODO: set the appropriate subject - will need a subject that can
