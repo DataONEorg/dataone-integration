@@ -184,7 +184,7 @@ public class CNodeTier2IdentityIT extends ContextAwareTestCaseDataone {
 				handleFail(cn.getLatestRequestUrl(),"No Objects available to test against");
 			}
 			catch (NotFound e) {
-				handleFail(cn.getLatestRequestUrl(),e.getDescription());
+				; // the preferred response
 			}
 			catch (NotAuthorized e) {
 				handleFail(cn.getLatestRequestUrl(),e.getDescription());

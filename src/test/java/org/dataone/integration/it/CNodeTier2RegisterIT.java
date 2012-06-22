@@ -20,9 +20,12 @@
 
 package org.dataone.integration.it;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
+import java.util.TreeSet;
 
 import org.dataone.client.CNode;
 import org.dataone.configuration.Settings;
@@ -32,15 +35,21 @@ import org.dataone.service.exceptions.InvalidRequest;
 import org.dataone.service.exceptions.NotAuthorized;
 import org.dataone.service.exceptions.NotFound;
 import org.dataone.service.types.v1.Node;
+import org.dataone.service.types.v1.NodeList;
 import org.dataone.service.types.v1.NodeReference;
 import org.dataone.service.types.v1.NodeType;
 import org.dataone.service.types.v1.Ping;
+import org.dataone.service.types.v1.Subject;
 import org.dataone.service.types.v1.util.NodelistUtil;
 import org.junit.Ignore;
 import org.junit.Test;
 
 /**
- * Test the DataONE Java client methods that focus on CN services.
+ * Test the DataONE Java client methods that focus on CN Register services.
+ * The general strategy is to create and register a dummy member node for use
+ * by the other tests.  The catch is that the node does not show up in the
+ * nodelist until approved by manual intervention :-(
+ * 
  * @author Rob Nahf
  */
 public class CNodeTier2RegisterIT extends ContextAwareTestCaseDataone {
@@ -69,14 +78,16 @@ public class CNodeTier2RegisterIT extends ContextAwareTestCaseDataone {
 			printTestHeader("testUpdateNodeCapabilities(...) vs. node: " + currentUrl);
 
 			try {
-				Set<Node> cNodeSet = NodelistUtil.selectNodes(cn.listNodes(), NodeType.CN);
-				if (cNodeSet.isEmpty()) {
+				List<Node> cNodeList = selectNodes(cn.listNodes(), NodeType.CN);
+				if (cNodeList.isEmpty()) {
 					handleFail(cn.getLatestRequestUrl(),"Cannot test updateNodeCapabilities unless there is a node in the NodeList");
 				} else {
-					Node node = cNodeSet.iterator().next();
+					Node node = cNodeList.iterator().next();
 					NodeReference nodeRef = node.getIdentifier();
 					
 					Ping ping = node.getPing();
+					if (ping == null)
+						ping = new Ping();
 					Date orginalLastSuccess = ping.getLastSuccess();
 					ping.setLastSuccess(new Date());
 					node.setPing(ping);
@@ -104,7 +115,7 @@ public class CNodeTier2RegisterIT extends ContextAwareTestCaseDataone {
 	@Test
 	public void testUpdateNodeCapabilities_NotFound() {
 
-		setupClientSubject(cnSubmitter);
+		Subject clientSubject = setupClientSubject(cnSubmitter);
 		Iterator<Node> it = getCoordinatingNodeIterator();
 		while (it.hasNext()) {
 			currentUrl = it.next().getBaseURL();
@@ -112,26 +123,25 @@ public class CNodeTier2RegisterIT extends ContextAwareTestCaseDataone {
 			printTestHeader("testUpdateNodeCapabilities(...) vs. node: " + currentUrl);
 
 			try {
-				Set<Node> cNodeSet = NodelistUtil.selectNodes(cn.listNodes(), NodeType.CN);
-				if (cNodeSet.isEmpty()) {
+				List<Node> cNodeList = selectNodes(cn.listNodes(), NodeType.CN);
+				if (cNodeList.isEmpty()) {
 					handleFail(cn.getLatestRequestUrl(),"Cannot test updateNodeCapabilities unless there is a node in the NodeList");
 				} else {
-					Node node = cNodeSet.iterator().next();
+					Node node = cNodeList.iterator().next();
 					NodeReference nodeRef = node.getIdentifier();
 					nodeRef.setValue(nodeRef.getValue() + "bizzBazzBuzz");
 					node.setIdentifier(nodeRef);
+					node.addSubject(clientSubject);
 										
 					Ping ping = node.getPing();
+					if (ping == null)
+						ping = new Ping();
 					Date orginalLastSuccess = ping.getLastSuccess();
 					ping.setLastSuccess(new Date());
 					node.setPing(ping);
 					
 					boolean response = cn.updateNodeCapabilities(null,nodeRef,node);
-					handleFail(cn.getLatestRequestUrl(),"updateNodeCapabilities on fictitious node should fail");
-			
-					// TODO: confirm the changed node record.  currently cannot do this as the node update
-					// process is not automatic.
-									
+					handleFail(cn.getLatestRequestUrl(),"updateNodeCapabilities on fictitious node should fail");									
 				} 
 			}
 			catch (NotFound e) {
@@ -146,7 +156,7 @@ public class CNodeTier2RegisterIT extends ContextAwareTestCaseDataone {
 				handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
 			}
 		}
-	}
+	} 
 	
 	
 	
@@ -162,14 +172,16 @@ public class CNodeTier2RegisterIT extends ContextAwareTestCaseDataone {
 			printTestHeader("testUpdateNodeCapabilities(...) vs. node: " + currentUrl);
 
 			try {
-				Set<Node> cNodeSet = NodelistUtil.selectNodes(cn.listNodes(), NodeType.CN);
-				if (cNodeSet.isEmpty()) {
+				List<Node> cNodeList = selectNodes(cn.listNodes(), NodeType.CN);
+				if (cNodeList.isEmpty()) {
 					handleFail(cn.getLatestRequestUrl(),"Cannot test updateNodeCapabilities unless there is a node in the NodeList");
 				} else {
-					Node node = cNodeSet.iterator().next();
+					Node node = cNodeList.iterator().next();
 					NodeReference nodeRef = node.getIdentifier();
 										
 					Ping ping = node.getPing();
+					if (ping == null)
+						ping = new Ping();
 					Date orginalLastSuccess = ping.getLastSuccess();
 					ping.setLastSuccess(new Date());
 					node.setPing(ping);
@@ -209,16 +221,18 @@ public class CNodeTier2RegisterIT extends ContextAwareTestCaseDataone {
 			printTestHeader("testUpdateNodeCapabilities(...) vs. node: " + currentUrl);
 
 			try {
-				Set<Node> cNodeSet = NodelistUtil.selectNodes(cn.listNodes(), NodeType.CN);
-				if (cNodeSet.isEmpty()) {
+				List<Node> cNodeList = selectNodes(cn.listNodes(), NodeType.CN);
+				if (cNodeList.isEmpty()) {
 					handleFail(cn.getLatestRequestUrl(),"Cannot test updateNodeCapabilities unless there is a node in the NodeList");
 				} else {
-					Node node = cNodeSet.iterator().next();
+					Node node = cNodeList.iterator().next();
 					node.setDescription(node.getDescription() + 
 							" Tier2 updateNodeCapabilities_updatingOtherField test");
 					NodeReference nodeRef = node.getIdentifier();
 										
 					Ping ping = node.getPing();
+					if (ping == null)
+						ping = new Ping();
 					Date orginalLastSuccess = ping.getLastSuccess();
 					ping.setLastSuccess(new Date());
 					node.setPing(ping);
@@ -254,14 +268,14 @@ public class CNodeTier2RegisterIT extends ContextAwareTestCaseDataone {
 			printTestHeader("testRegister(...) vs. node: " + currentUrl);
 
 			try {
-				Set<Node> mNodeSet = NodelistUtil.selectNodes(cn.listNodes(), NodeType.MN);
-				if (mNodeSet.isEmpty()) {
+				List<Node> mNodeList = selectNodes(cn.listNodes(), NodeType.MN);
+				if (mNodeList.isEmpty()) {
 					handleFail(cn.getLatestRequestUrl(),"Cannot test cn.register() unless there is a Member Node in the NodeList");
 				} else {
-					Node node = mNodeSet.iterator().next();
+					Node node = mNodeList.iterator().next();
 					String nr = node.getIdentifier().getValue();
 					NodeReference newRef = new NodeReference();
-					newRef.setValue(nr + nr);
+					newRef.setValue(nr + "abcdefghij");
 					node.setIdentifier(newRef);
 					node.setBaseURL(node.getBaseURL() + "/fakeBaseUrlThatIsDifferent");
 					NodeReference response = cn.register(null,node);
@@ -290,11 +304,11 @@ public class CNodeTier2RegisterIT extends ContextAwareTestCaseDataone {
 			printTestHeader("testRegister(...) vs. node: " + currentUrl);
 
 			try {
-				Set<Node> mNodeSet = NodelistUtil.selectNodes(cn.listNodes(), NodeType.MN);
-				if (mNodeSet.isEmpty()) {
+				List<Node> mNodeList = selectNodes(cn.listNodes(), NodeType.MN);
+				if (mNodeList.isEmpty()) {
 					handleFail(cn.getLatestRequestUrl(),"Cannot test cn.register() unless there is a Member Node in the NodeList");
 				} else {
-					Node node = mNodeSet.iterator().next();
+					Node node = mNodeList.iterator().next();
 					// attempt to re-register a node...
 					NodeReference response = cn.register(null,node);
 					handleFail(cn.getLatestRequestUrl(),"register(...) should throw IndentifierNotUnique exception when" +
@@ -315,6 +329,17 @@ public class CNodeTier2RegisterIT extends ContextAwareTestCaseDataone {
 		}
 	}
 
-
+	private List<Node> selectNodes(NodeList nl, NodeType nodeType) {
+		List<Node> nodes = new ArrayList<Node>();
+		for(int i=0; i < nl.sizeNodeList(); i++) {
+			Node node = nl.getNode(i);
+			if (nodeType == null) {
+				nodes.add(node);
+			} else if (node.getType() == nodeType) {
+				nodes.add(node);
+			} 
+		}		
+		return nodes;
+	}
 
 }

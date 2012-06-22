@@ -397,7 +397,7 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
     			} else {
    				
     				// call with a fromDate
-    				eventLog = cn.getLogRecords(null, fromDate, null, null, null, null);
+    				eventLog = cn.getLogRecords(fromDate, null, null, null, null, null);
 
     				for (LogEntry le : eventLog.getLogEntryList()) {
     					if (le.getEntryId().equals(excludedEntry.getEntryId())) {

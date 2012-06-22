@@ -387,7 +387,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
     			objectList = d1Node.listObjects(null);
     		}
     	} catch (BaseException e) {
-			throw new TestIterationEndingException("unexpected error thrown by listObjects()", e);
+			throw new TestIterationEndingException("unexpected error thrown by listObjects(): " + e.getMessage(), e);
 		}
     	if (objectList.getTotal() == 0) {
     		try {
@@ -397,9 +397,9 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 					throw new TestIterationEndingException("could not find or create an object for use by listObjects().");
 				}
 			} catch (BaseException e) {
-				throw new TestIterationEndingException("could not find or create an object for use by listObjects().", e);
+				throw new TestIterationEndingException("could not find or create an object for use by listObjects(): " + e.getMessage(), e);
 			} catch (UnsupportedEncodingException e) {
-				throw new TestIterationEndingException("could not find or create an object for use by listObjects().", e);
+				throw new TestIterationEndingException("could not find or create an object for use by listObjects(): " + e.getMessage(), e);
 			}
     	}
     	return objectList;
