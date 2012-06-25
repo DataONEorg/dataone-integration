@@ -104,7 +104,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 //	public static final String DEFAULT_TEST_OBJECTFORMAT = ExampleUtilities.FORMAT_TEXT_PLAIN;
 //	public static final String DEFAULT_TEST_OBJECTFORMAT = ExampleUtilities.FORMAT_EML_2_0_0;
 	
-	private  boolean alreadySetup = false;
+	private static boolean alreadySetup = false;
 	
 	protected static Log log = LogFactory.getLog(ContextAwareTestCaseDataone.class);
 	
@@ -239,11 +239,27 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 				for(int i=0; i < allNodesList.size(); i++) {
 					Node currentNode = allNodesList.get(i);
 					if (currentNode.getType() == NodeType.CN) {
-						coordinatingNodeList.add(currentNode);
-						log.info("*** Adding CN to list: " + currentNode.getName() + " [" + currentNode.getBaseURL() +"]");
+						CNode cn = new CNode(currentNode.getBaseURL());
+						try {
+							cn.listNodes();
+							coordinatingNodeList.add(currentNode);
+							log.info("*** Adding CN to list: " + currentNode.getName() + " [" + currentNode.getBaseURL() +"]");
+						}
+						catch (Exception e) {
+							log.warn("*** Failed to add CN to list: " + currentNode.getName() + " [" + currentNode.getBaseURL() + 
+									"].  Could not reach the node:" + cn.getLatestRequestUrl());
+						}
 					} else if (currentNode.getType() == NodeType.MN) {
-						memberNodeList.add(currentNode);
-						log.info("*** Adding MN to list: " + currentNode.getName() + " [" + currentNode.getBaseURL() +"]");
+						MNode mn = new MNode(currentNode.getBaseURL());
+						try {
+							mn.getCapabilities();
+							memberNodeList.add(currentNode);
+							log.info("*** Adding MN to list: " + currentNode.getName() + " [" + currentNode.getBaseURL() +"]");
+						}
+						catch (Exception e) {
+							log.warn("*** Failed to add CN to list: " + currentNode.getName() + " [" + currentNode.getBaseURL() + 
+									"].  Could not reach the node:" + mn.getLatestRequestUrl());
+						}
 					} else if (currentNode.getType() == NodeType.MONITOR) {
 						monitorNodeList.add(currentNode);
 						log.info("*** Adding MonitorNode to list: " + currentNode.getName() + " [" + currentNode.getBaseURL() +"]");
@@ -1007,7 +1023,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
             public Object call() throws Exception 
             {
                 if (host != null) {
-                	assertThat(message + "  [for host " + host + "]", s1, is(s2));
+                	assertThat(message + "  [for host " + host + " ]", s1, is(s2));
                 } else {
                 	assertThat(message, s1, is(s2));
                 }
@@ -1032,7 +1048,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
             public Object call() throws Exception 
             {
             	if (host != null) {	
-            		assertThat(message + "  [for host " + host + "]", b, is(true));
+            		assertThat(message + "  [for host " + host + " ]", b, is(true));
             	} else {
             		assertThat(message, b, is(true));
             	}
@@ -1056,7 +1072,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
             public Object call() throws Exception 
             {
             	if (host != null) {	
-            		assertThat(message + "  [for host " + host + "]", b, is(false));
+            		assertThat(message + "  [for host " + host + " ]", b, is(false));
             	} else {
             		assertThat(message, b, is(false));
             	}
@@ -1079,7 +1095,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
             public Object call() throws Exception 
             {
             	if (host != null) {	
-            		fail(message + "  [for host " + host + "]");
+            		fail(message + "  [for host " + host + " ]");
             	} else {
             		fail(message);
             	}
