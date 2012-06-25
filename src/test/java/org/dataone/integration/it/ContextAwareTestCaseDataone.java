@@ -246,6 +246,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 							log.info("*** Adding CN to list: " + currentNode.getName() + " [" + currentNode.getBaseURL() +"]");
 						}
 						catch (Exception e) {
+							handleFail(cn.getLatestRequestUrl(), "Could not reach node at " + currentNode.getIdentifier() + " for testing. Skipping further test cases.");
 							log.warn("*** Failed to add CN to list: " + currentNode.getName() + " [" + currentNode.getBaseURL() + 
 									"].  Could not reach the node:" + cn.getLatestRequestUrl());
 						}
@@ -257,6 +258,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 							log.info("*** Adding MN to list: " + currentNode.getName() + " [" + currentNode.getBaseURL() +"]");
 						}
 						catch (Exception e) {
+							handleFail(mn.getLatestRequestUrl(), "Could not reach node at " + currentNode.getIdentifier() + " for testing. Skipping further test cases.");
 							log.warn("*** Failed to add CN to list: " + currentNode.getName() + " [" + currentNode.getBaseURL() + 
 									"].  Could not reach the node:" + mn.getLatestRequestUrl());
 						}
