@@ -123,9 +123,9 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 
 	protected String cnSubmitter = Settings.getConfiguration().getString("dataone.it.cnode.submitter.cn", /* default */ "urn:node:cnDevUNM1");
 	
-	public  List<Node> memberNodeList = null;
-	public  List<Node> coordinatingNodeList = new Vector<Node>();
-	public  List<Node> monitorNodeList = new Vector<Node>();
+	public static List<Node> memberNodeList = null;
+	public static List<Node> coordinatingNodeList = new Vector<Node>();
+	public static List<Node> monitorNodeList = new Vector<Node>();
 	
 	
 	protected abstract String getTestDescription();
@@ -243,28 +243,28 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 						try {
 							cn.listNodes();
 							coordinatingNodeList.add(currentNode);
-							log.info("*** Adding CN to list: " + currentNode.getName() + " [" + currentNode.getBaseURL() +"]");
+							log.info("*** Adding CN to list: " + currentNode.getName() + " [ " + currentNode.getBaseURL() +" ]");
 						}
 						catch (Exception e) {
-							handleFail(cn.getLatestRequestUrl(), "Could not reach node at " + currentNode.getIdentifier() + " for testing. Skipping further test cases.");
-							log.warn("*** Failed to add CN to list: " + currentNode.getName() + " [" + currentNode.getBaseURL() + 
-									"].  Could not reach the node:" + cn.getLatestRequestUrl());
+							handleFail(cn.getLatestRequestUrl(), "Could not reach node at " + currentNode.getIdentifier().getValue() + " for testing. Skipping further test cases.");
+							log.warn("*** Failed to add CN to list: " + currentNode.getName() + " [ " + currentNode.getBaseURL() + 
+									" ].  Could not reach the node:" + cn.getLatestRequestUrl());
 						}
 					} else if (currentNode.getType() == NodeType.MN) {
 						MNode mn = new MNode(currentNode.getBaseURL());
 						try {
 							mn.getCapabilities();
 							memberNodeList.add(currentNode);
-							log.info("*** Adding MN to list: " + currentNode.getName() + " [" + currentNode.getBaseURL() +"]");
+							log.info("*** Adding MN to list: " + currentNode.getName() + " [ " + currentNode.getBaseURL() +" ]");
 						}
 						catch (Exception e) {
-							handleFail(mn.getLatestRequestUrl(), "Could not reach node at " + currentNode.getIdentifier() + " for testing. Skipping further test cases.");
-							log.warn("*** Failed to add CN to list: " + currentNode.getName() + " [" + currentNode.getBaseURL() + 
-									"].  Could not reach the node:" + mn.getLatestRequestUrl());
+							handleFail(mn.getLatestRequestUrl(), "Could not reach node at " + currentNode.getIdentifier().getValue() + " for testing. Skipping further test cases.");
+							log.warn("*** Failed to add CN to list: " + currentNode.getName() + " [ " + currentNode.getBaseURL() + 
+									" ].  Could not reach the node:" + mn.getLatestRequestUrl());
 						}
 					} else if (currentNode.getType() == NodeType.MONITOR) {
 						monitorNodeList.add(currentNode);
-						log.info("*** Adding MonitorNode to list: " + currentNode.getName() + " [" + currentNode.getBaseURL() +"]");
+						log.info("*** Adding MonitorNode to list: " + currentNode.getName() + " [ " + currentNode.getBaseURL() +" ]");
 					} else {
 						log.warn("Node from nodelist is not of recognizable type: [" +
 								currentNode.getType() + "]. Removing from test list: " + 
