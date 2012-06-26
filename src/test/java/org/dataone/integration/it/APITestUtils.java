@@ -324,7 +324,7 @@ public class APITestUtils {
 		ObjectList ol = d1Node.listObjects(null, fromDate, toDate, formatid, replicaStatus, start, null);
 		if (ol.getTotal() == ol.sizeObjectInfoList()) {
 			// don't need to ask for more
-			if (ol.sizeObjectInfoList() > count) {
+			if (count != null && ol.sizeObjectInfoList() > count) {
 				// need to trim the object list to match the requested amount
 				ol.setObjectInfoList(ol.getObjectInfoList().subList(0, count));
 				ol.setCount(count);

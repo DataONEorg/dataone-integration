@@ -22,20 +22,18 @@
 
 package org.dataone.integration.it;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
-
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
-
+import java.util.Set;
 
 import org.dataone.client.CNode;
 import org.dataone.client.D1Client;
 import org.dataone.client.MNode;
-import org.dataone.service.util.EncodingUtilities;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.IdentifierNotUnique;
 import org.dataone.service.exceptions.InsufficientResources;
@@ -54,6 +52,7 @@ import org.dataone.service.types.v1.ObjectList;
 import org.dataone.service.types.v1.ObjectLocationList;
 import org.dataone.service.types.v1.Session;
 import org.dataone.service.types.v1.SystemMetadata;
+import org.dataone.service.util.EncodingUtilities;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -119,7 +118,7 @@ public class SynchronizationIT extends ContextAwareTestCaseDataone {
 	 * synch runs.
 	 * @throws NotFound 
 	 */
-	@Ignore("in progress")
+	@Ignore("takes too long")
 	@Test
 	public void testMDSynchronizeNewData() throws ServiceFailure, NotImplemented, InterruptedException, 
 	InvalidToken, NotAuthorized, InvalidRequest, IOException, IdentifierNotUnique, UnsupportedType,
@@ -195,10 +194,17 @@ public class SynchronizationIT extends ContextAwareTestCaseDataone {
 
 	
 	
-//	@Ignore("in progress")
+	/**
+	 * For each mn, resolve each Identifier in the ObjectList returned from the mn.
+	 * (The objectList filters out any objects within 5 minutes of test running time.)
+	 * Fails if NotFound is returned from any of the resolve calls. 
+	 * @throws ServiceFailure
+	 */
+	@Ignore("thorough, but expensive - calls resolve against all objects")
 	@Test
-	public void testAllObjectsSynchronized() throws ServiceFailure
+	public void testAllObjectsSynchronized_viaResolve() throws ServiceFailure
 	{
+		// just to be somebody other than public
 		setupClientSubject("testRightsHolder");
 		
 		CNode cn = D1Client.getCN();
@@ -210,12 +216,10 @@ public class SynchronizationIT extends ContextAwareTestCaseDataone {
 			currentUrl = mn.getNodeBaseServiceUrl();
 			printTestHeader("testing synchronization for node: " + currentUrl);
 
-			
 			try {
-				ObjectList ol = mn.listObjects(null, null, null, null, null, null, 0);
 				Date now = new Date();
 				Date toDate = new Date(now.getTime() - 5 * 60 * 1000);
-				ol = mn.listObjects(null, null, toDate, null, null, 0, ol.getTotal());
+				ObjectList ol = APITestUtils.pagedListObjects(mn, null, toDate, null, null, null, null);
 				log.info("  total objects at T-5min = " + ol.getCount() );
 				if (ol.getCount() > 0) {		
 					boolean hasExceptions = false;
@@ -307,6 +311,57 @@ public class SynchronizationIT extends ContextAwareTestCaseDataone {
 //			assertTrue("synchronize succeeded at least partially on " + cn_id, callsPassing > 0);
 //			assertTrue("synchronize succeeded fully on" + cn_id, callsPassing == 4);
 //		}
+	}
+	
+	
+	private Set<Identifier> buildIdentifierSet(ObjectList ol) {
+		Set<Identifier> idSet = new HashSet<Identifier>();
+		for (ObjectInfo oi: ol.getObjectInfoList()) {
+			idSet.add(oi.getIdentifier());
+		}
+		return idSet;
+	}
+	
+	@Test
+	public void testAllObjectsSynchronized_via_ListObjects()
+	{
+
+		setupClientSubject("testRightsHolder");
+		
+		CNode cn = null;
+		try {
+			cn = D1Client.getCN();
+			Date now = new Date();
+			Date toDate = new Date(now.getTime() - 10 * 60 * 1000);
+			ObjectList cnList = APITestUtils.pagedListObjects(cn, null, null, null, null, null, null);
+			Set<Identifier> cnIdentifierSet = buildIdentifierSet(cnList);
+			log.info("Size CN Objectlist = " + cnList.getCount());
+			Iterator<Node> it = getMemberNodeIterator();
+			while (it.hasNext()) {
+				currentUrl = it.next().getBaseURL();
+				MNode mn = new MNode(currentUrl);  
+				currentUrl = mn.getNodeBaseServiceUrl();
+				printTestHeader("testing synchronization for node: " + currentUrl);
+
+				try {
+					ObjectList ol = APITestUtils.pagedListObjects(mn, null, toDate, null, null, null, null);
+					log.info("  object count for mn at T-10min = " + ol.getCount() );
+					Set<Identifier> mnIds = buildIdentifierSet(ol);
+					
+					checkTrue(mn.getNodeBaseServiceUrl(),"The objects returned from mn.listObjects(where toDate='T-10min') should all be" +
+							" contained in the cn's objectList", cnIdentifierSet.containsAll(mnIds));
+					
+				} catch (BaseException be) {
+					handleFail(mn.getLatestRequestUrl(),"problem getting an ObjectList from the mn");
+				} catch (NullPointerException npe) {
+					handleFail(mn.getLatestRequestUrl(),"NPE thrown comparing cn identifiers to mn identifiers");
+				}
+			}
+		}
+		catch (BaseException be) {
+			String baseurl = cn != null ? cn.getNodeBaseServiceUrl() : "default CN";
+			handleFail(baseurl,"problem getting an ObjectList from the cn");
+		}
 	}
 	
 	
