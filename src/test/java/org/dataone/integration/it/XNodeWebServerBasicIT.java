@@ -46,6 +46,7 @@ import org.dataone.service.types.v1.Node;
 import org.dataone.service.util.Constants;
 import org.dataone.service.util.D1Url;
 import org.dataone.service.util.ExceptionHandler;
+import org.junit.Ignore;
 import org.junit.Test;
 
 
@@ -109,7 +110,7 @@ public class XNodeWebServerBasicIT extends ContextAwareTestCaseDataone {
 		}
 	}
 
-	
+	@Ignore("non deterministic test: extra parameter can be ignored")
 	@Test
 	public void testBadParameters_CNListObjects() throws ServiceFailure, ClientProtocolException, IOException
 	{

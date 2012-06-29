@@ -89,7 +89,6 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
 	private static String currentUrl;
 
 
-
 	
 	/**
 	 * tests that a valid date is returned from ping
@@ -1156,12 +1155,26 @@ public class CNodeTier1IT extends ContextAwareTestCaseDataone {
 
     		try {
     			ObjectList ol = procureObjectList(cn);
-    			Identifier pid = ol.getObjectInfo(0).getIdentifier();
+    			Identifier pid = null;
+    			for (int i = 0; i<ol.sizeObjectInfoList(); i++) {
+    				try {
+    					cn.getSystemMetadata(ol.getObjectInfo(i).getIdentifier());
+    					pid = ol.getObjectInfo(i).getIdentifier();
+    					break;
+    				} catch (BaseException be) {
+    					;
+    				}
+    			}
     			log.debug("   pid = " + pid.getValue());
 
-    			ObjectLocationList response = cn.resolve(null,pid);
-    			checkTrue(cn.getLatestRequestUrl(),"resolve(...) returns an ObjectLocationList object",
+    			if (pid != null) {
+    				ObjectLocationList response = cn.resolve(null,pid);
+    				checkTrue(cn.getLatestRequestUrl(),"resolve(...) returns an ObjectLocationList object",
     					response != null && response instanceof ObjectLocationList);
+    			}
+    			else {
+    				handleFail(currentUrl, "No public object available to test resolve against");
+    			}
     		} 
     		catch (IndexOutOfBoundsException e) {
     			handleFail(cn.getLatestRequestUrl(),"No Objects available to test against");
