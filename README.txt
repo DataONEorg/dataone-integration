@@ -36,11 +36,10 @@ This package supports test execution from 4 main environments:
            of tests ("MNodeTier" tests), but theoretically can run others.
 
 It currently supports execution of java-based tests and plans to support running
-the python tests soon.  Except when running via Eclipse, the surefire maven 
+the python tests in the future.  Except when running via Eclipse, the surefire maven 
 plugin is used, producing xml reports with execution details. For web tests, the
 html output is produced by custom code listening in on a test run.
-
-See LICENSE.txt for the details of distributing this software.  
+  
 
 Usage:
 ------
@@ -51,15 +50,14 @@ goals do useful things:
  * mvn package   - used to build the MNWebTester WAR file.
  * mvn verify    - used to run the integration tests
  
-Java integration testing options**
-  described fully at:
+Java integration testing options are described fully at:
         http://maven.apache.org/plugins/maven-failsafe-plugin/examples/single-test.html
 
 Examples: 
  running one integration test:             mvn -Dit.test={pathlessTestName} verify
  running multiple tests:                   mvn -Dit.test=*Core* verify
  
- ** However: specifying methods within the class is supposed to work, 
+However: specifying methods within the class is supposed to work, 
     but doesn't in practice for reasons unknown.  For example the following
     will NOT work:
     

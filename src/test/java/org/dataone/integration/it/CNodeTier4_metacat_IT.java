@@ -54,11 +54,8 @@ import org.junit.Test;
  * Test the DataONE Java client methods that focus on CN services.
  * @author Rob Nahf
  */
-public class CNodeTier4IT extends ContextAwareTestCaseDataone {
+public class CNodeTier4_metacat_IT extends ContextAwareTestCaseDataone {
 
-	
-
-	private static final String badIdentifier = "ThisIdentifierShouldNotExist";
 
 	private static String currentUrl;
 	private static Map<String,ObjectList> listedObjects;

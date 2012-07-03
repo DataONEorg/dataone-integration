@@ -782,7 +782,7 @@ public class CNodeTier1_metacat_IT extends ContextAwareTestCaseDataone {
 
 	@Override
 	protected String getTestDescription() {
-		return "Test the Tier1 CN methods implemented by metacat";
+		return "Test the Tier1 CN methods implemented by the metacat package";
 	}
 	
 }

@@ -24,8 +24,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
 
 import org.dataone.client.CNode;
 import org.dataone.configuration.Settings;
@@ -40,7 +38,6 @@ import org.dataone.service.types.v1.NodeReference;
 import org.dataone.service.types.v1.NodeType;
 import org.dataone.service.types.v1.Ping;
 import org.dataone.service.types.v1.Subject;
-import org.dataone.service.types.v1.util.NodelistUtil;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -52,7 +49,7 @@ import org.junit.Test;
  * 
  * @author Rob Nahf
  */
-public class CNodeTier2RegisterIT extends ContextAwareTestCaseDataone {
+public class CNodeTier2_nodeRegistry_IT extends ContextAwareTestCaseDataone {
 
 	private static String currentUrl;
 	
@@ -62,7 +59,7 @@ public class CNodeTier2RegisterIT extends ContextAwareTestCaseDataone {
 
 	@Override
 	protected String getTestDescription() {
-		return "tests the CN.Register methods";
+		return "tests CN Tier2 CN_Register methods implemented by the node registry component";
 	}
 	
 	@Ignore("confirm the change to the Node record")

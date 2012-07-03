@@ -45,7 +45,7 @@ import org.junit.Test;
  * Test the DataONE Java client methods that focus on CN services.
  * @author Rob Nahf
  */
-public class CNodeTier2AuthorizationIT extends AbstractAuthorizationITDataone {
+public class CNodeTier2Auth_metacat_IT extends AbstractAuthorizationITDataone {
 	
 	private static String currentUrl;
 	
@@ -333,8 +333,7 @@ public class CNodeTier2AuthorizationIT extends AbstractAuthorizationITDataone {
 
 	@Override
 	protected String getTestDescription() {
-		// TODO Auto-generated method stub
-		return null;
+		return "Tests CN Tier2 CN_Authorization methods implemented by metacat";
 	}
 	
 	
