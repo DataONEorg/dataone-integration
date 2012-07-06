@@ -1,9 +1,11 @@
 package org.dataone.integration.it;
 
+
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.fail;
 
 import java.util.Iterator;
+
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -22,6 +24,7 @@ import org.dataone.service.exceptions.ServiceFailure;
 import org.dataone.service.types.v1.Checksum;
 import org.dataone.service.types.v1.ChecksumAlgorithmList;
 import org.dataone.service.types.v1.Node;
+import org.dataone.service.types.v1.NodeList;
 import org.dataone.service.types.v1.NodeReference;
 import org.dataone.service.types.v1.ObjectFormatIdentifier;
 import org.dataone.service.types.v1.ObjectInfo;
@@ -34,7 +37,7 @@ public class PreRegNodeContentCheck extends ContextAwareTestCaseDataone {
 
 	ObjectList objectList = null;
 	
-	@Before
+//	@Before
 	public void fetchObjectList() {
 		
 		if (objectList == null) {
@@ -146,32 +149,10 @@ public class PreRegNodeContentCheck extends ContextAwareTestCaseDataone {
 			fail(e.getClass() + ": " + e.getMessage());
 		}
 	}
-	
-	
-	
-//	@Test
-	public void registerMercuryNode() {
-		
-		String cnBase = "https://cn-dev.dataone.org/cn";
-		String mnBase = "http://mercury.ornl.gov/clearinghouse/mn";
-		
-		MNode mn = new MNode(mnBase);
-		CNode cn = new CNode(cnBase);
-		
-		try 
-		{
-			Node mnNode = mn.getCapabilities();
-//			String id = mnNode.getIdentifier().getValue().replace(":daac:", ":node:");
-//			System.out.println(id);
-//			mnNode.setIdentifier(D1TypeBuilder.buildNodeReference(id));
-			NodeReference nodeRef = cn.register(null, mnNode);
-			
-		} catch (BaseException e) {
-			System.out.println(e.getClass() + ": " + e.getDescription());
-		}
-	}
 
-//	@Override
+	
+
+	@Override
 	protected String getTestDescription() {
 		// TODO Auto-generated method stub
 		return null;
