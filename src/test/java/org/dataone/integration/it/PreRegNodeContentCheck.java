@@ -6,6 +6,7 @@ import static org.junit.Assert.fail;
 
 import java.util.Iterator;
 
+import java.util.HashMap;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -23,6 +24,7 @@ import org.dataone.service.exceptions.NotImplemented;
 import org.dataone.service.exceptions.ServiceFailure;
 import org.dataone.service.types.v1.Checksum;
 import org.dataone.service.types.v1.ChecksumAlgorithmList;
+import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Node;
 import org.dataone.service.types.v1.NodeList;
 import org.dataone.service.types.v1.NodeReference;
@@ -37,8 +39,8 @@ public class PreRegNodeContentCheck extends ContextAwareTestCaseDataone {
 
 	ObjectList objectList = null;
 	
-//	@Before
-	public void fetchObjectList() {
+	@Before
+	public void fetchMnObjectList() {
 		
 		if (objectList == null) {
 			Iterator<Node> it = this.getMemberNodeIterator();
@@ -150,8 +152,59 @@ public class PreRegNodeContentCheck extends ContextAwareTestCaseDataone {
 		}
 	}
 
-	
+	/**
+	 * implementation note: This test doesn't hold the entire CN objectList in memory and/or a hashmap,
+	 * so should be resistant to the size of the cn objectlist.
+	 */
+	@Test
+	public void checkIdentifierCollisions() {
 
+		String cnUrl = getReferenceContextCnUrl();
+		CNode cn = new CNode(cnUrl);
+		
+		try {
+			HashMap<Identifier,ObjectInfo> mnOiMap = new HashMap<Identifier,ObjectInfo>(objectList.getObjectInfoList().size());
+			for (ObjectInfo oi: objectList.getObjectInfoList()) {
+				mnOiMap.put(oi.getIdentifier(), oi);
+			}
+			
+			int runningTotal = 0;
+			int olTotal = 0;
+			while (runningTotal < olTotal || olTotal == 0) {
+				ObjectList ol = cn.listObjects(null, null, null, null, runningTotal, 1000);
+				olTotal = ol.getTotal();
+				runningTotal += ol.getObjectInfoList().size();
+				for (ObjectInfo oi : ol.getObjectInfoList()) {
+					if (mnOiMap.containsKey(oi.getIdentifier())) {
+						if ( oi.getSize().equals( mnOiMap.get(oi.getIdentifier()).getSize() ) 
+							&& oi.getChecksum().getValue().equals( mnOiMap.get(oi.getIdentifier()).getChecksum().getValue()))
+						{
+							System.out.println("Identifier " + oi.getIdentifier().getValue() + " is already registered, yet appears to be the same object");
+						}
+						else {
+							System.out.println("Identifier " + oi.getIdentifier().getValue() + " is already registered:");
+							System.out.println(String.format("  cn: %s %d %s %s", 
+									oi.getIdentifier().getValue(),
+									oi.getSize(),
+									oi.getChecksum().getAlgorithm(),
+									oi.getChecksum().getValue()));
+							System.out.println(String.format("  mn: %s %d %s %s", 
+									oi.getIdentifier().getValue(),
+									mnOiMap.get(oi.getIdentifier()).getSize(),
+									mnOiMap.get(oi.getIdentifier()).getChecksum().getAlgorithm(),
+									mnOiMap.get(oi.getIdentifier()).getChecksum().getValue()));
+						}
+					}
+				}
+			
+			}
+		}
+		catch (BaseException be) {
+			;
+		}
+	}
+	
+	
 	@Override
 	protected String getTestDescription() {
 		// TODO Auto-generated method stub

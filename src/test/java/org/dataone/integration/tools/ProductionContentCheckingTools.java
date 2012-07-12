@@ -26,10 +26,13 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -138,8 +141,31 @@ public class ProductionContentCheckingTools  {
 		}
 		return oiSet;
 	}
+	
+	
+	private Set<String> buildSerializedObjectInfoSet_cs(ObjectList ol) {
+		
+		Set<String> oiSet = new HashSet<String>();
+
+		for (ObjectInfo oi: ol.getObjectInfoList()) {
+			oiSet.add(
+					String.format("%s\t%s\t%d\t%s\t%s\t%s",
+							oi.getChecksum().getAlgorithm(),
+			    			oi.getChecksum().getValue(),
+			    			oi.getSize(),
+			    			oi.getIdentifier().getValue(),
+			    			oi.getFormatId().getValue(),
+			    			DateTimeMarshaller.serializeDateToUTC(oi.getDateSysMetadataModified())
+			    			)		
+					);
+		}
+		return oiSet;
+	}
     
     
+	/**
+	 * this test is sensitive to the size of the CN objectList, memory-wise
+	 */
 	@Test
 	public void testAllObjectsSynchronized_via_ListObjects()
 	{
@@ -205,6 +231,168 @@ public class ProductionContentCheckingTools  {
 		}
 	}
 	
+	/**
+	 * this test is sensitive to the size of the CN objectList, memory-wise
+	 */
+	@Test
+	public void testAllObjectsSynchronized_via_ListObjects_cs() throws NotImplemented, ServiceFailure
+	{
+
+		CNode rrCn = null;
+//		try {
+			rrCn = new CNode("https://cn.dataone.org/cn");
+			
+			Set<Node> cnSet = NodelistUtil.selectNodes(rrCn.listNodes(),NodeType.CN);
+			
+			Date now = new Date();
+			Date toDate = new Date(now.getTime() - 10 * 60 * 1000);
+
+			System.out.println("date: " + now);
+			HashMap<String,Set<String>> olMap = new HashMap<String,Set<String>>();
+			Set<String> superSet = new TreeSet<String>();
+			for (Node n : cnSet) {
+				String url = n.getBaseURL();
+				// skip the round-robin cn
+				if (url.equals("https://cn.dataone.org/cn"))
+					continue;
+				System.out.println(url + "\n... doing listObjects()");
+				try { 
+					CNode cn = new CNode(url);
+					ObjectList ol = APITestUtils.pagedListObjects(cn, null, null, null, null, null, null);
+					System.out.println("... building serializedObjectInfo set");
+					Set<String> oiSet = buildSerializedObjectInfoSet_cs(ol);
+					olMap.put(url, oiSet);
+					superSet.addAll(oiSet);
+					System.out.println(String.format("cn: %s   ol size: %d",url, olMap.get(url).size()));
+				} 
+				catch (BaseException be) {
+					be.printStackTrace();
+					System.out.println("problem getting an ObjectList from the cn. " + be.getClass() + ": " + be.getDescription());
+				}
+			}
+			
+			Object[] urls = olMap.keySet().toArray();
+			
+			System.out.println();
+			for (int i=0; i<urls.length; i++) {
+				System.out.println((char) (i+65) + " = " + urls[i]);
+			}
+			System.out.println();
+			
+			Iterator<String> it = superSet.iterator();
+			while (it.hasNext()) {
+				String coi = it.next();
+				
+				String membership = "";
+				for (int i=0; i<urls.length; i++) {
+					char c = olMap.get(urls[i]).contains(coi) ?  (char) (i+65) : '-';
+					membership += c;
+				}
+				if (membership.contains("-")) {
+					System.out.println(membership + "\t" + coi.toString());
+				}
+				membership = "";
+			}
+
+//		}
+//		catch (BaseException be) {
+//			be.printStackTrace();
+//			String baseurl = rrCn != null ? rrCn.getNodeBaseServiceUrl() : "default CN";
+//			fail("problem getting an ObjectList from the cn. " + be.getClass() + ": " + be.getDescription());
+//		}
+	}
+	
+	
+	/**
+	 * this test is sensitive to the size of the CN objectList, memory-wise
+	 */
+	@Test
+	public void testListObjectsUniqueness()
+	{
+
+		CNode rrCn = null;
+		try {
+			rrCn = new CNode("https://cn.dataone.org/cn");
+			
+			Set<Node> cnSet = NodelistUtil.selectNodes(rrCn.listNodes(),NodeType.CN);
+			
+			Date now = new Date();
+			Date toDate = new Date(now.getTime() - 10 * 60 * 1000);
+
+			System.out.println("date: " + now);
+			HashMap<String,Set<String>> olMap = new HashMap<String,Set<String>>();
+			Set<String> superSet = new TreeSet<String>();
+			for (Node n : cnSet) {
+				String url = n.getBaseURL();
+				// skip the round-robin cn
+				if (url.equals("https://cn.dataone.org/cn"))
+					continue;
+				System.out.println(url + ": doing listObjects()");
+				try { 
+					CNode cn = new CNode(url);
+					List<ObjectInfo> oiList = 
+						APITestUtils.pagedListObjects(cn, null, null, null, null, null, null).getObjectInfoList();
+					
+					System.out.println("  ObjectList size = " + oiList.size());
+					
+					List<String> idList = new ArrayList<String>();
+					List<String> csList = new ArrayList<String>();
+					for (ObjectInfo oi : oiList) {
+						idList.add(oi.getIdentifier().getValue());	
+						csList.add(oi.getChecksum().getAlgorithm() + ":" + oi.getChecksum().getValue());
+					}
+					Map<String,Integer> idCardMap = CollectionUtils.getCardinalityMap(idList);
+					Map<String,Integer> csCardMap = CollectionUtils.getCardinalityMap(csList);
+					
+					System.out.println("  # identifiers = " + idCardMap.size());
+					
+					for (String key : idCardMap.keySet()) {
+						if (idCardMap.get(key) > 1) {
+							System.out.println(String.format("    %d of %s", idCardMap.get(key), key));
+						}
+					}
+					
+					System.out.println("  # checksums = " + csCardMap.size());
+					for (String key : csCardMap.keySet()) {
+						if (csCardMap.get(key) > 1) {
+							System.out.println(String.format("    %d of %s", csCardMap.get(key), key));
+						}
+					}
+				} 
+				catch (BaseException be) {
+					System.out.println("problem getting an ObjectList from the cn. " + be.getClass() + ": " + be.getDescription());
+				}
+			}
+			
+			Object[] urls = olMap.keySet().toArray();
+			
+			System.out.println();
+			for (int i=0; i<urls.length; i++) {
+				System.out.println((char) (i+65) + " = " + urls[i]);
+			}
+			System.out.println();
+			
+			Iterator<String> it = superSet.iterator();
+			while (it.hasNext()) {
+				String coi = it.next();
+				
+				String membership = "";
+				for (int i=0; i<urls.length; i++) {
+					char c = olMap.get(urls[i]).contains(coi) ?  (char) (i+65) : '-';
+					membership += c;
+				}
+				if (membership.contains("-")) {
+					System.out.println(membership + "\t" + coi.toString());
+				}
+				membership = "";
+			}
+
+		}
+		catch (BaseException be) {
+			String baseurl = rrCn != null ? rrCn.getNodeBaseServiceUrl() : "default CN";
+			fail("problem getting an ObjectList from the cn. " + be.getClass() + ": " + be.getDescription());
+		}
+	}
 	
 	
 	

@@ -79,7 +79,9 @@ public class MNodeMiscFunctionalIT extends ContextAwareTestCaseDataone {
 	
 	int maxWaitMinutes = 5;
 	
-	
+	/*
+	 * creates test objects on each MN, and waits for them to appear on the CN
+	 */
 //	@Before
 	public void createTestObjects() throws ServiceFailure, InvalidToken, NotAuthorized, NotImplemented
 	{

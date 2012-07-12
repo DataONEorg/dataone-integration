@@ -19,6 +19,7 @@ import org.dataone.service.types.v1.Node;
 import org.dataone.service.types.v1.NodeList;
 import org.dataone.service.types.v1.NodeReference;
 import org.dataone.service.types.v1.NodeType;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ErrorCollector;
@@ -196,6 +197,19 @@ public class EnvironmentsCheck {
 						+ ". Got ServiceFailure::" + e.getDescription());
 			}
 		}
+	}
+	
+	@Ignore("not written")
+	@Test
+	public void testNodeBaseUrlConcordance() {
+		// the baseurl in the nodelist should get you to the node, and also be 
+		// able to retrieve the Node object and confirm the id and baseurl
+	}
+	
+	@Ignore("not written")
+	@Test
+	public void testSpotTestResolve() {
+		// does resolve take you there?
 	}
 	
 	/**
