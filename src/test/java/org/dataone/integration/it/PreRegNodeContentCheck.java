@@ -4,30 +4,21 @@ package org.dataone.integration.it;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.fail;
 
-import java.util.Iterator;
-
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Set;
 import java.util.TreeSet;
 
 import org.dataone.client.CNode;
-import org.dataone.client.D1TypeBuilder;
 import org.dataone.client.MNode;
-import org.dataone.client.ObjectFormatCache;
 import org.dataone.configuration.Settings;
 import org.dataone.service.exceptions.BaseException;
-import org.dataone.service.exceptions.InvalidRequest;
-import org.dataone.service.exceptions.InvalidToken;
-import org.dataone.service.exceptions.NotAuthorized;
 import org.dataone.service.exceptions.NotFound;
 import org.dataone.service.exceptions.NotImplemented;
 import org.dataone.service.exceptions.ServiceFailure;
-import org.dataone.service.types.v1.Checksum;
 import org.dataone.service.types.v1.ChecksumAlgorithmList;
 import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Node;
-import org.dataone.service.types.v1.NodeList;
-import org.dataone.service.types.v1.NodeReference;
 import org.dataone.service.types.v1.ObjectFormatIdentifier;
 import org.dataone.service.types.v1.ObjectInfo;
 import org.dataone.service.types.v1.ObjectList;

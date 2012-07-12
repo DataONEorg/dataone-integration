@@ -22,10 +22,8 @@
 
 package org.dataone.integration.tools;
 
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -38,32 +36,16 @@ import java.util.TreeSet;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.dataone.client.CNode;
-import org.dataone.client.D1Client;
-import org.dataone.client.MNode;
 import org.dataone.integration.it.APITestUtils;
 import org.dataone.service.exceptions.BaseException;
-import org.dataone.service.exceptions.IdentifierNotUnique;
-import org.dataone.service.exceptions.InsufficientResources;
-import org.dataone.service.exceptions.InvalidRequest;
-import org.dataone.service.exceptions.InvalidSystemMetadata;
-import org.dataone.service.exceptions.InvalidToken;
-import org.dataone.service.exceptions.NotAuthorized;
-import org.dataone.service.exceptions.NotFound;
 import org.dataone.service.exceptions.NotImplemented;
 import org.dataone.service.exceptions.ServiceFailure;
-import org.dataone.service.exceptions.UnsupportedType;
-import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Node;
 import org.dataone.service.types.v1.NodeType;
 import org.dataone.service.types.v1.ObjectInfo;
 import org.dataone.service.types.v1.ObjectList;
-import org.dataone.service.types.v1.ObjectLocationList;
-import org.dataone.service.types.v1.Session;
-import org.dataone.service.types.v1.SystemMetadata;
 import org.dataone.service.types.v1.util.NodelistUtil;
 import org.dataone.service.util.DateTimeMarshaller;
-import org.dataone.service.util.EncodingUtilities;
-import org.junit.Ignore;
 import org.junit.Test;
 
 
