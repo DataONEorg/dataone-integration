@@ -4,7 +4,7 @@
 	<groupId>org.dataone</groupId>
 	<artifactId>d1_integration</artifactId>
 	<packaging>war</packaging>
-	<version>1.0.1-SNAPSHOT</version>
+	<version>1.0.4-SNAPSHOT</version>
 	<name>DataONE Integration Testing Package</name>
 	<url>http://dataone.org</url>
 	<repositories>
