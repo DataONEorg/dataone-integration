@@ -37,7 +37,7 @@
 		<dependency>
 			<groupId>org.dataone</groupId>
 			<artifactId>d1_libclient_java</artifactId>
-			<version>[1.0.3,1.1.0)</version>
+			<version>1.0.4</version>
 		</dependency>
 		<dependency>
 			<groupId>org.dataone</groupId>
@@ -51,11 +51,6 @@
 			<artifactId>junit</artifactId>
 			<version>4.7</version>
 			<type>jar</type>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.httpcomponents</groupId>
-			<artifactId>httpmime</artifactId>
-			<version>4.0-beta2</version>
 		</dependency>
 		<dependency>
 			<groupId>javax.servlet</groupId>

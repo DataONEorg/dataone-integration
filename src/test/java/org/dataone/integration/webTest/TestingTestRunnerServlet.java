@@ -81,7 +81,8 @@ public class TestingTestRunnerServlet {
 		// process the response - did it return anything meaningful?
 		String responseString = response.getContentAsString();
 		System.out.println(responseString);
-		assertTrue("Url successfully passed to servlet",responseString.contains(mNodeUrl));
+		assertTrue("Url should be successfully passed to servlet",responseString.contains(mNodeUrl));
+		assertTrue("response should contain final summary line",responseString.contains("RunCount"));
 	}
 
 }
