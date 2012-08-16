@@ -98,15 +98,21 @@ import org.junit.rules.ErrorCollector;
  */
 public abstract class ContextAwareTestCaseDataone implements IntegrationTestContextParameters {
 
+	protected static Log log = LogFactory.getLog(ContextAwareTestCaseDataone.class);
+	
+	
 	public static final String QUERYTYPE_SOLR = "solr";
 	public static final String CHECKSUM_ALGORITHM = "MD5";
 	public static final String DEFAULT_TEST_OBJECTFORMAT = ExampleUtilities.FORMAT_EML_2_0_1;
 //	public static final String DEFAULT_TEST_OBJECTFORMAT = ExampleUtilities.FORMAT_TEXT_PLAIN;
 //	public static final String DEFAULT_TEST_OBJECTFORMAT = ExampleUtilities.FORMAT_EML_2_0_0;
 	
-	private static boolean alreadySetup = false;
+
+	protected static String cnSubmitter = Settings.getConfiguration().getString("dataone.it.cnode.submitter.cn", /* default */ "urn:node:cnDevUNM1");
 	
-	protected static Log log = LogFactory.getLog(ContextAwareTestCaseDataone.class);
+	
+	// context-related instance variables
+	private boolean alreadySetup = false;
 	
 	// variables to the context interface parameters
 	protected  String testContext = null;
@@ -115,17 +121,17 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 	protected  String nodelistUri = null;
 	protected  String referenceContext = null;
 	protected  String referenceCnBaseUrl = null;
+	
+	public List<Node> memberNodeList = null;
+	public List<Node> coordinatingNodeList = new Vector<Node>();
+	public List<Node> monitorNodeList = new Vector<Node>();
+
 
 	// this here defines the default
 	// can be overwritten by property passed into base class
 	protected String testObjectSeriesSuffix = "." + "14";
-	protected  String testObjectSeries = null;
-
-	protected String cnSubmitter = Settings.getConfiguration().getString("dataone.it.cnode.submitter.cn", /* default */ "urn:node:cnDevUNM1");
+	protected String testObjectSeries = null;
 	
-	public static List<Node> memberNodeList = null;
-	public static List<Node> coordinatingNodeList = new Vector<Node>();
-	public static List<Node> monitorNodeList = new Vector<Node>();
 	
 	
 	protected abstract String getTestDescription();

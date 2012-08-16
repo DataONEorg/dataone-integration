@@ -57,7 +57,7 @@ import org.junit.runner.notification.RunListener;
 class StreamingWebTestListener extends RunListener 
 {
 	protected static Log logger = LogFactory.getLog(StreamingWebTestListener.class);
-	ArrayList<AtomicTest> testList = new ArrayList<AtomicTest>();
+//	ArrayList<AtomicTest> testList = new ArrayList<AtomicTest>();
 	private AtomicTest currentTest;
 	private String testCaseName;
 	private boolean newRun = true;

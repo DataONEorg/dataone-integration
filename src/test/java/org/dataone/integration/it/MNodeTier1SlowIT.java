@@ -61,7 +61,7 @@ import org.junit.Test;
  * Test the DataONE Java client methods.
  * @author Rob Nahf
  */
-public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
+public class MNodeTier1SlowIT extends ContextAwareTestCaseDataone  {
 
 
     private  String format_text_csv = "text/csv";
@@ -111,7 +111,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
 		}
 	}
 	
-	@Test
+//	@Test
 	public void testPing() {
 		setupClientSubject_NoCert();
 		Iterator<Node> it = getMemberNodeIterator();
@@ -152,7 +152,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
      * the negative case - where client is not a CN and is public.
      * 
      */
-//    @Test
+    @Test
     public void testGetLogRecords_AccessRestriction()
     {
     	Settings.getConfiguration().setProperty("D1Client.D1Node.getLogRecords.timeout", "60000");
@@ -217,7 +217,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
      * Tests that getLogRecords() returns Log object, using the simplest case: no parameters.
      * Also tests with all parameters are set.  Passes the tests by returning a Log object.
      */
-//    @Test
+    @Test
     public void testGetLogRecords()
     {
     	Settings.getConfiguration().setProperty("D1Client.D1Node.getLogRecords.timeout", "60000");
@@ -262,7 +262,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
      * Tests that count and start parameters are functioning, and getCount() and getTotal()
      * are reasonable values.
      */
-//    @Test
+    @Test
     public void testGetLogRecords_Slicing()
     {
     	Settings.getConfiguration().setProperty("D1Client.D1Node.getLogRecords.timeout", "60000");
@@ -332,7 +332,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
      * zero returned.  If 2 types, just expect fewer records.
      * Must be careful to check that all the records requested are returned.
      */
-//    @Test
+    @Test
     public void testGetLogRecords_eventFiltering()
     {
     	Settings.getConfiguration().setProperty("D1Client.D1Node.getLogRecords.timeout", "60000");
@@ -418,7 +418,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
      * Want to find a negative case and to make sure it is filtered out when the
      * filter is applied.
      */
-//    @Test
+    @Test
     public void testGetLogRecords_pidFiltering()
     {
     	Settings.getConfiguration().setProperty("D1Client.D1Node.getLogRecords.timeout", "60000");
@@ -518,7 +518,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
 
 
 
-//    @Test
+    @Test
     public void testGetLogRecords_DateFiltering()
     {
     	Settings.getConfiguration().setProperty("D1Client.D1Node.getLogRecords.timeout", "60000");
@@ -615,7 +615,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     
     
     
-    @Test
+ //   @Test
     public void testGetCapabilities() {
     	setupClientSubject_NoCert();
     	Iterator<Node> it = getMemberNodeIterator();
@@ -644,7 +644,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
      * Tests that at least one of the node contacts is RFC2253 compatible, 
      * meaning that it could be represented by a CILogon issued certificate
      */
-    @Test
+ //   @Test
     public void testGetCapabilities_HasCompatibleNodeContact() {
     	setupClientSubject_NoCert();
     	Iterator<Node> it = getMemberNodeIterator();
@@ -687,7 +687,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     /**
      * Tests that the nodeReference of the node is in the proper urn format.
      */
-    @Test
+ //   @Test
     public void testGetCapabilities_NodeIdentityValidFormat() {
     	setupClientSubject_NoCert();
     	Iterator<Node> it = getMemberNodeIterator();
@@ -720,7 +720,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     /**
      * Tests the parameterless and parameterized listObject methods for proper returns.
      */
-    @Test
+ //   @Test
     public void testListObjects() {
     	setupClientSubject_NoCert();
        	Iterator<Node> it = getMemberNodeIterator();
@@ -765,7 +765,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
      * Tests that count and start parameters are functioning, and getCount() and getTotal()
      * are reasonable values.
      */
-    @Test
+ //   @Test
     public void testListObjects_Slicing()
     {
     	setupClientSubject_NoCert();
@@ -824,7 +824,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
      * Tests that the fromDate parameter successfully filters out records where
      * the systemMetadataModified date/time is earler than fromDate.
      */
-    @Test
+ //   @Test
     public void testListObjects_FromDateTest() {
     	setupClientSubject_NoCert();
        	Iterator<Node> it = getMemberNodeIterator();
@@ -832,7 +832,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     		currentUrl = it.next().getBaseURL();
     		MNode mn = D1Client.getMN(currentUrl);
     		currentUrl = mn.getNodeBaseServiceUrl();
-    		printTestHeader("testListObjects_FromDateTest() vs. node: " + currentUrl);
+    		printTestHeader("testListObjects() vs. node: " + currentUrl);
 
     		try {
     			ObjectList ol = procureObjectList(mn);
@@ -898,7 +898,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
      * Tests that the formatID parameter successfully filters records by
      * the given formatId
      */
-    @Test
+//    @Test
     public void testListObjects_FormatIdFilteringTest() {
     	setupClientSubject_NoCert();
        	Iterator<Node> it = getMemberNodeIterator();
@@ -906,7 +906,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     		currentUrl = it.next().getBaseURL();
     		MNode mn = D1Client.getMN(currentUrl);
     		currentUrl = mn.getNodeBaseServiceUrl();
-    		printTestHeader("testListObjects_FormatIdFiltering() vs. node: " + currentUrl);
+    		printTestHeader("testListObjects() vs. node: " + currentUrl);
 
     		try {
     			ObjectList ol = mn.listObjects(null, null, null, null, null, 0, 0);
@@ -958,7 +958,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     
     
     
-    @Test
+//    @Test
     public void testGet() {
     	setupClientSubject_NoCert();
        	Iterator<Node> it = getMemberNodeIterator();
@@ -993,7 +993,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     }
     
     
-    @Test
+//    @Test
     public void testGet_NotFound() {
     	setupClientSubject_NoCert();
        	Iterator<Node> it = getMemberNodeIterator();
@@ -1028,7 +1028,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
      * test getting data with challenging unicode identifiers.  Will try to 
      * differentiate between NotFound and ServiceFailure
      */
-	@Test
+//	@Test
     public void testGet_IdentifierEncoding() 
     {
 		setupClientSubject_NoCert();
@@ -1108,7 +1108,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     }
     
     
-    @Test
+//    @Test
     public void testGetSystemMetadata() {
     	setupClientSubject_NoCert();
        	Iterator<Node> it = getMemberNodeIterator();
@@ -1142,7 +1142,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     }
 
     
-    @Test
+//    @Test
     public void testGetSystemMetadata_NotFound() {
     	setupClientSubject_NoCert();
        	Iterator<Node> it = getMemberNodeIterator();
@@ -1172,7 +1172,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     }
        			
 
-	@Test
+//	@Test
     public void testGetSystemMetadata_IdentifierEncoding() 
     {
 		setupClientSubject_NoCert();
@@ -1253,7 +1253,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
 					
 					
 
-    @Test
+//    @Test
     public void testDescribe() {
     	setupClientSubject_NoCert();
        	Iterator<Node> it = getMemberNodeIterator();
@@ -1287,7 +1287,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     }
  
     
-    @Test
+//    @Test
     public void testDescribe_NotFound() {
     	setupClientSubject_NoCert();
        	Iterator<Node> it = getMemberNodeIterator();
@@ -1319,7 +1319,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     
     
 
-	@Test
+//	@Test
 	public void testDescribe_IdentifierEncoding() 
 	{
 		setupClientSubject_NoCert();
@@ -1401,7 +1401,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
 					
 
     
-    @Test
+//    @Test
     public void testGetChecksum() {
     	setupClientSubject_NoCert();
        	Iterator<Node> it = getMemberNodeIterator();
@@ -1435,7 +1435,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     }
     	
 
-    @Test
+//    @Test
     public void testGetChecksum_NotFound() {
     	setupClientSubject_NoCert();
        	Iterator<Node> it = getMemberNodeIterator();
@@ -1466,7 +1466,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     
     
     
-	@Test
+//	@Test
 	public void testGetChecksum_IdentifierEncoding() 
 	{
 		setupClientSubject_NoCert();
@@ -1545,7 +1545,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
 
 
     
-    @Test
+//    @Test
     public void testSynchronizationFailed_NoCert() {
     	setupClientSubject_NoCert();
        	Iterator<Node> it = getMemberNodeIterator();

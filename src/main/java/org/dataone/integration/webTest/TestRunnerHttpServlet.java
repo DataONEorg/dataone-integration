@@ -209,7 +209,6 @@ public class TestRunnerHttpServlet extends HttpServlet
 		out.write("  </body>\n".getBytes("UTF-8"));
 		out.write("</html>\n".getBytes("UTF-8"));
 		out.flush();
-		out.close();
 	}
 
 	
