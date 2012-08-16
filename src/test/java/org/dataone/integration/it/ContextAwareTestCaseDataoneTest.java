@@ -32,6 +32,7 @@ import org.dataone.configuration.Settings;
 import org.dataone.configuration.TestSettings;
 import org.hsqldb.lib.StringUtil;
 import org.junit.After;
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class ContextAwareTestCaseDataoneTest { 
@@ -55,12 +56,15 @@ public class ContextAwareTestCaseDataoneTest {
 		String cndev = "https://cn-dev.dataone.org/cn/v1".replaceFirst("https{0,1}://", "").replaceFirst("\\..+", "");
 		assertEquals("cn-dev",cndev);
 	}
-	
+
+	@Ignore("skipping test because it's really an integration test - dependencies on client-side trust manager and registered MNode certificates")
 	@Test
 	public void testReferenceContextLabel() throws Exception {
 		System.setProperty(TestSettings.REFERENCE_CONTEXT_LABEL, "DEV");
 		System.setProperty(TestSettings.CONTEXT_LABEL, "DEV");
+
 		Settings.getResetConfiguration();
+		Settings.getConfiguration().setProperty("certificate.truststore.useDefault", false);
 		
 		ContextAwareTestCaseDataone tc = new MNodeTier0IT();
 		
