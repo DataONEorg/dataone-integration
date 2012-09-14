@@ -501,6 +501,70 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 		}
 	}
 	
+	
+	@Test
+	public void testUpdate_NoRightsOnObsoleted() {
+		setupClientSubject("testRightsHolder");
+
+		Iterator<Node> it = getMemberNodeIterator();
+
+		while ( it.hasNext() ) {
+
+			currentUrl = it.next().getBaseURL();
+			MNode mn = D1Client.getMN(currentUrl);
+			currentUrl = mn.getNodeBaseServiceUrl();
+			printTestHeader("testUpdate_NoRightsOnObsoleted() vs. node: " + currentUrl);
+
+			
+			try {
+				Object[] dataPackage = ExampleUtilities.generateTestSciDataPackage("mNodeTier3TestUpdate",true);
+				
+				Identifier originalPid = mn.create(null,(Identifier) dataPackage[0],
+						(InputStream) dataPackage[1], (SystemMetadata) dataPackage[2]);
+
+				// prep for checking update time. 
+				Thread.sleep(100);
+				Date now = new Date();
+				Thread.sleep(100);
+				
+				// create the new data package to update with. 
+				dataPackage = ExampleUtilities.generateTestSciDataPackage("mNodeTier3TestUpdate",true);
+				Identifier newPid = (Identifier) dataPackage[0];
+				
+				// change the client subject
+				setupClientSubject("testSubmitter");
+				
+				try {
+					// do the update
+					Identifier updatedPid = mn.update(null,
+						originalPid,
+						(InputStream) dataPackage[1],    // new data
+						newPid,
+						(SystemMetadata) dataPackage[2]  // new sysmeta
+						);
+					handleFail(mn.getLatestRequestUrl(), "update from different subject should fail");
+				} catch (NotAuthorized na) {
+					;
+				}
+					
+				SystemMetadata orig = mn.getSystemMetadata(originalPid);
+				checkTrue(mn.getLatestRequestUrl(), "Original object should not be obsoleted, but was obsoleted by " 
+							+ orig.getObsoletedBy().getValue(),
+							orig.getObsoletedBy() == null); 				 
+			}
+			catch (BaseException e) {
+				handleFail(mn.getLatestRequestUrl(),e.getClass().getSimpleName() + 
+						": " + e.getDetail_code() + ": " + e.getDescription());
+			}
+			catch(Exception e) {
+				e.printStackTrace();
+				handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+			}	
+		}
+	}
+
+	
+	
 	/**
 	 *  Test MNStorage.archive() functionality
 	 */

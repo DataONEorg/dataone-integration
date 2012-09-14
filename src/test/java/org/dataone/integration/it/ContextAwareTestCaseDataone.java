@@ -473,8 +473,9 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 			; // fallback to plan B
 		}		
 		
+		
+		BaseException latestException = null;
 		if (identifier == null) {
-
 			try {
 				ObjectList ol = d1Node.listObjects(null);
 				if (ol != null && ol.getCount() > 0) {
@@ -493,7 +494,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 								break;
 							} 
 						} catch (BaseException e) {
-							; 
+							latestException = e; 
 						}
 						// don't search forever...
 						long now = (new Date()).getTime();
@@ -515,9 +516,15 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 		
 		if (identifier == null)
 			// nothing public found
-			throw new TestIterationEndingException("could not create a test object and" +
-					" could not find object with a public accessRule in reasonable amount of time");
-		
+			if (latestException instanceof NotAuthorized) {
+				throw new TestIterationEndingException("could not create a test object and" +
+				" could not find object with a public accessRule in reasonable amount of time");
+			} else { // other problems, probably with parsing the sysmetadata leading to exceptions 
+				throw new TestIterationEndingException("could not create a test object and" +
+				" attempts to find an object with a public accessRule gave the following exception: " +
+				latestException.getClass().getSimpleName() + ":: " + latestException.getDescription(),
+				latestException);
+			}
 		return identifier;
 	}
     
