@@ -218,7 +218,7 @@ public class ExampleUtilities {
                 new String[] { Constants.SUBJECT_PUBLIC },
                 new Permission[] { Permission.READ }));
 
-        ByteArrayInputStream bis = new ByteArrayInputStream(d1o.getData());
+        ByteArrayInputStream bis = new ByteArrayInputStream(contentBytes);
         return new Object[] { guid, bis, sysMeta };
     }  
 	

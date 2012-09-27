@@ -44,7 +44,9 @@ public class ArchitectureUtils {
 	private static String methodRefDoc = 
 			"https://repository.dataone.org/documents/Projects/cicore/" +
 			"architecture/api-documentation/MethodCrossReference.xls";
+//	"file:/Users/rnahf/software/workspace/d1-architecture/MethodCrossReference.xls";
 
+	
 	public static boolean checkDocTypeEqualsJavaType(String docParamType, String implParamType)
 	{
 		docParamType = docParamType.toLowerCase();
