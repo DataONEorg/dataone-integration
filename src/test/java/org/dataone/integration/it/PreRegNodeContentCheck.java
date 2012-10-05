@@ -144,7 +144,12 @@ public class PreRegNodeContentCheck extends ContextAwareTestCaseDataone {
 	}
 
 	/**
-	 * implementation note: This test doesn't hold the entire CN objectList in memory and/or a hashmap,
+	 * This looks for identifiers in the potential membernode that might already be 
+	 * taken in DataONE.  If it's already there, it checks the size and checksum
+	 * to see if the associated object is the same or not.  This could happen when 
+	 * multiple nodes that may already hold copies of each other's data come online.
+	 * 
+	 * Implementation note: This test doesn't hold the entire CN objectList in memory and/or a hashmap,
 	 * so should be resistant to the size of the cn objectlist.
 	 */
 	@Test
@@ -191,7 +196,7 @@ public class PreRegNodeContentCheck extends ContextAwareTestCaseDataone {
 			}
 		}
 		catch (BaseException be) {
-			;
+			be.printStackTrace();
 		}
 	}
 	

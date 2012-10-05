@@ -92,7 +92,7 @@ public class PackageIT extends ContextAwareTestCaseDataone {
     
 	@Ignore("test not adapted for v0.6.x")
     @Test
-    public void testDataPackage() {
+    public void testDataPackage() throws IOException {
         for (int i = 0; i < memberNodeList.size(); i++) {
             currentUrl = memberNodeList.get(i).getBaseURL();
             MNode mn = D1Client.getMN(currentUrl);
