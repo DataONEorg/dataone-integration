@@ -30,6 +30,8 @@ import org.dataone.client.CNode;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.types.v1.Node;
 import org.dataone.service.types.v1.ObjectList;
+import org.dataone.service.types.v1.QueryEngineDescription;
+import org.dataone.service.types.v1.QueryEngineList;
 import org.dataone.service.util.D1Url;
 import org.junit.Test;
 
@@ -173,10 +175,99 @@ public class CNodeTier1_search_IT extends ContextAwareTestCaseDataone {
 		}
 	}
 
+	
+	/**
+	 * this test runs the base listQueryEngines request and makes sure we get
+	 * a proper response (QueryEngineList)
+	 */
+	@Test
+	public void testListQueryEngines() {
+		Iterator<Node> it = getCoordinatingNodeIterator();
+		while (it.hasNext()) {
+			currentUrl = it.next().getBaseURL();
+			CNode cn = new CNode(currentUrl);
+			currentUrl = cn.getNodeBaseServiceUrl();
+			printTestHeader("testSearch(...) vs. node: " + currentUrl);
+
+			try {
+				QueryEngineList response = cn.listQueryEngines();
+				checkTrue(cn.getLatestRequestUrl(),"listQueryEngines(...) returns a QueryEngineList object", response != null);
+			} 
+    		catch (BaseException e) {
+    			handleFail(cn.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
+    					e.getDetail_code() + ":: " + e.getDescription());
+    		}
+			catch(Exception e) {
+				e.printStackTrace();
+				handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+			}
+		}
+	}
+	
+	/**
+	 * this test runs the base listQueryEngines request and makes sure we get
+	 * a proper response (QueryEngineList)
+	 */
+	@Test
+	public void testGetQueryEngineDescription() {
+		Iterator<Node> it = getCoordinatingNodeIterator();
+		while (it.hasNext()) {
+			currentUrl = it.next().getBaseURL();
+			CNode cn = new CNode(currentUrl);
+			currentUrl = cn.getNodeBaseServiceUrl();
+			printTestHeader("testSearch(...) vs. node: " + currentUrl);
+
+			try {
+				QueryEngineList response = cn.listQueryEngines();
+				
+				QueryEngineDescription response2 = cn.getQueryEngineDescription(response.getQueryEngine(0));
+				checkTrue(cn.getLatestRequestUrl(),"getQueryEngineDescription(...)" +
+						" returns a QueryEngineDescription object", response2 != null);
+			} 
+    		catch (BaseException e) {
+    			handleFail(cn.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
+    					e.getDetail_code() + ":: " + e.getDescription());
+    		}
+			catch(Exception e) {
+				e.printStackTrace();
+				handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+			}
+		}
+	}
+	
+	/**
+	 * this test runs the base listQueryEngines request and makes sure we get
+	 * a proper response (QueryEngineList)
+	 */
+	@Test
+	public void testQuery() {
+		Iterator<Node> it = getCoordinatingNodeIterator();
+		while (it.hasNext()) {
+			currentUrl = it.next().getBaseURL();
+			CNode cn = new CNode(currentUrl);
+			currentUrl = cn.getNodeBaseServiceUrl();
+			printTestHeader("testQuery(...) vs. node: " + currentUrl);
+
+			try {
+				InputStream response2 = cn.query("solr","?q=*:*");
+				checkTrue(cn.getLatestRequestUrl(),"query(...)" +
+						" returns an InputStream object", response2 != null);
+			} 
+    		catch (BaseException e) {
+    			handleFail(cn.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
+    					e.getDetail_code() + ":: " + e.getDescription());
+    		}
+			catch(Exception e) {
+				e.printStackTrace();
+				handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+			}
+		}
+	}
+	
 
 	@Override
 	protected String getTestDescription() {
-		return "Test the Tier1 CN methods related to the search component";
+		return "Test the Tier1 CN methods related to the search & query component";
 	}
 	
 }
