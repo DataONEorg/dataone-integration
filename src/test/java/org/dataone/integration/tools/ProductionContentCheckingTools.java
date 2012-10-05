@@ -36,10 +36,12 @@ import java.util.TreeSet;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.dataone.client.CNode;
+import org.dataone.client.D1Client;
 import org.dataone.integration.it.APITestUtils;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.NotImplemented;
 import org.dataone.service.exceptions.ServiceFailure;
+import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Node;
 import org.dataone.service.types.v1.NodeType;
 import org.dataone.service.types.v1.ObjectInfo;
@@ -65,32 +67,8 @@ import org.junit.Test;
  *
  */
 public class ProductionContentCheckingTools  {
-	private static final String cn_id = "cn-dev";
-    private static final String TEST_CN_URL = "http://cn-dev.dataone.org/cn";
-	//private static final String cn_Url = "http://cn-dev.dataone.org/cn/";
-	// mn1 needs to be a node that supports login, create, get and meta
-	// TODO: unobfuscate urls when allowed to put test data into knb-mn
-    private static final String mn1_id = "http://___knb-mn.ecoinformatics.org";
-	private static final String mn1_Url = "http://___knb-mn.ecoinformatics.org/knb/";
-//	private static final String mn1_id = "unregistered";
-//	private static final String mn1_Url = "http://cn-dev.dataone.org/knb/d1/";
-	
-	private static final int pollingFrequencySec = 5;	
-	// as of jan20, 2011, dev nodes on a 5 minute synchronize cycle
-	private static final int synchronizeWaitLimitSec = 7 * 60;
-	
-	private String currentUrl;
-/* other mn info	
-	http://dev-dryad-mn.dataone.org
-	http://dev-dryad-mn.dataone.org/mn/
 
-	http://daacmn.dataone.utk.edu
-	http://daacmn.dataone.utk.edu/mn/
-
-*/
-	
-	private static final String prefix = "synch:testID";
-	
+	private String currentUrl;	
 //	@Rule 
 //	public ErrorCollector errorCollector = new ErrorCollector();
 	
@@ -143,8 +121,91 @@ public class ProductionContentCheckingTools  {
 		}
 		return oiSet;
 	}
-    
-    
+
+	
+	@Test
+	public void reportObjectInfoDifferences() 
+	{			
+		try {
+			ObjectList ol = null;
+			HashMap<String,Set<String>> olMap = new HashMap<String,Set<String>>();
+			Set<String> superSet = new TreeSet<String>();
+			
+			CNode rrCn = new CNode("https://cn.dataone.org/cn");
+			Set<Node> cnSet = NodelistUtil.selectNodes(rrCn.listNodes(),NodeType.CN);
+			for (Node n : cnSet) {
+				String url = n.getBaseURL();
+				// skip the round-robin cn
+				if (url.equals("https://cn.dataone.org/cn"))
+					continue;
+				System.out.println(url + ": doing listObjects()");
+				
+				Set<String> oiSet = new HashSet<String>(89);
+				try { 
+					CNode cn = new CNode(url);
+					
+					int runningTotal = 0;
+					int olTotal = 0;
+					int i = 0;
+					while (runningTotal < olTotal || olTotal == 0) {
+						ol = cn.listObjects(null, null, null, null, runningTotal, 1000);
+						olTotal = ol.getTotal();
+						runningTotal += ol.getObjectInfoList().size();
+						for (ObjectInfo oi : ol.getObjectInfoList()) {
+							String entry = String.format("%s\t%s\t%s\t%d\t%s\t%s",
+					    			oi.getIdentifier().getValue(),
+					    			oi.getFormatId().getValue(),
+					    			oi.getDateSysMetadataModified(),
+					    			oi.getSize(),
+					    			oi.getChecksum().getAlgorithm(),
+					    			oi.getChecksum().getValue());
+							i++;
+							if (!oiSet.add(entry))
+								System.out.println("   duplicate entry: " + i + " " + entry);
+						}
+						
+						System.out.println("  running total: " + runningTotal);
+					}
+					olMap.put(url, oiSet);
+					superSet.addAll(oiSet);
+					System.out.println(String.format("cn: %s   ol size: %d",url, olMap.get(url).size()));
+				} 
+				catch (BaseException be) {
+					System.out.println("problem getting an ObjectList from the cn. " + be.getClass() + ": " + be.getDescription());
+				}
+			}
+			Object[] urls = olMap.keySet().toArray();
+			
+			System.out.println();
+			for (int i=0; i<urls.length; i++) {
+				System.out.println((char) (i+65) + " = " + urls[i]);
+			}
+			System.out.println();
+			
+			Iterator<String> it = superSet.iterator();
+			while (it.hasNext()) {
+				String coi = it.next();
+				
+				String membership = "";
+				for (int i=0; i<urls.length; i++) {
+					char c = olMap.get(urls[i]).contains(coi) ?  (char) (i+65) : '-';
+					membership += c;
+				}
+				if (membership.contains("-")) {
+					System.out.println(membership + "\t" + coi.toString());
+				}
+				membership = "";
+			}
+
+		}
+		catch (BaseException be) {
+			fail("problem getting an ObjectList from the cn. " + be.getClass() + ": " + be.getDescription());
+		}
+	}
+	
+	
+	
+	
 	/**
 	 * this test is sensitive to the size of the CN objectList, memory-wise
 	 */
