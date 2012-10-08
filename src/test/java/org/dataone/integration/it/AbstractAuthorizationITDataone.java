@@ -69,59 +69,87 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 	protected abstract Iterator<Node> getNodeIterator();
 
 	protected abstract D1Node instantiateD1Node(String baseUrl);
-
-
-//	@Before
-//	public void setUpTestObjectSeries() throws Exception {
-//		if (testObjectSeries != null) {
-//			testObjectSeriesSuffix = "." + testObjectSeries;
-//		}
-//	}
 	
-	private String checkExpectedIsAuthorizedOutcome(D1Node d1Node, Identifier pid, 
-			String subjectLabel, Permission permission, String expectedOutcome) 
+	/**
+	 * used to determine which tests to run, based on Permission
+	 * (used to generalize for READ-only methods, like query)
+	 * @param p
+	 * @return
+	 */
+	protected abstract boolean runTest(Permission p);
+	
+	
+	protected String checkExpectedIsAuthorizedOutcome(D1Node d1Node, Identifier pid, 
+	String subjectLabel, Permission permission, String expectedOutcome) 
 	{
 //		log.debug("in: " + new Date().getTime());
-		String testResult = String.format("isAuth('%-30s,'%-45s,'%-6s): ", 
-				subjectLabel + "'", 
-				pid.getValue() + "'", 
-				permission.toString().toLowerCase().replace("_permission","") + "'"
+		String testResult = null;
+		if (runTest(permission)) {
+			testResult = String.format("assert client subject: %-30s is allowed to %-6s", 
+				subjectLabel, 
+				permission.toString().toLowerCase().replace("_permission","")
 				);
 
-		String outcome = getOutcomeAsString(d1Node, pid, permission);
-		
-		if (expectedOutcome.contains(outcome)) {
-			testResult += String.format("  PASSED ('%s')", expectedOutcome);
-		} else {
-			testResult += String.format("  FAILED!!  Expected: '%s'  got: '%s'", expectedOutcome, outcome);
+			String outcome = runAuthTest(d1Node, pid, permission);
+
+			if (expectedOutcome.contains(outcome)) {
+				testResult += String.format("  PASSED ('%s')", expectedOutcome);
+			} else {
+				testResult += String.format("  FAILED!!  Expected: '%s'  got: '%s'", expectedOutcome, outcome);
+			}
 		}
 //		log.debug("out: " + new Date().getTime());
 		return testResult;
 	}
 
 	
-	private String getOutcomeAsString(D1Node d1Node, Identifier pid, Permission permission) {
-		String outcome = null;
-		try {
-			boolean booleanOutcome = d1Node.isAuthorized(null, pid, permission);
-			outcome = booleanOutcome ? "true" : "false";
-		}
-		catch (BaseException e) {
-			outcome = e.getClass().getSimpleName();
-		}
-		return outcome;
-	}
-	
-	
+	protected abstract String runAuthTest(D1Node d1Node, Identifier pid, Permission permission);
 
-	 private Subject buildSubject(String value) {
-		 Subject s = new Subject();
-		 s.setValue(value);
-		 return s;
+
+	
+	/**
+	 * a label or description of the test
+	 * for example "/isAuthorized/{pid}?action={permission}"
+	 * @return
+	 */
+	protected abstract String getTestServiceEndpoint();
+	
+	
+	private String tablifyResults(Identifier testPid, List<String> results)
+	{
+		StringBuffer table = new StringBuffer("Failed 1 or more tests:\n    " +
+				getTestServiceEndpoint() + " vs. the test item:\n    ");
+		table.append(testPid.getValue() + docDescription(testPid) + "\n\n    ");
+		for (String result: results) {
+			if (result != null) {
+				table.append(result);	
+				table.append("\n    ");
+			}
+		}
+		return table.toString();		 
+	}
+
+
+	private String docDescription(Identifier pid) {
+		if (pid.getValue().contains("RightsHolder_")) {
+			String rh = pid.getValue().replaceAll(".+_", "").replaceAll("\\.[^.]*$","");
+			return String.format(" (null AccessPolicy & the RightsHolder = '%s')",rh);
+		}
+		String[] arSubjectPerm = pid.getValue().replaceAll(".*\\:", "").replaceAll("\\.[^.]*$","").split("_");
+		return String.format(" (item has accessRule where subject '%s' is allowed up to and including '%s')",arSubjectPerm[0],arSubjectPerm[1]);
+	}
+
+
+
+	
+	protected Subject buildSubject(String value) {
+		Subject s = new Subject();
+		s.setValue(value);
+		return s;
 		 
-	 }
+	}
 	 
-	 private AccessRule buildAccessRule(String subjectString, Permission permission)
+	 protected AccessRule buildAccessRule(String subjectString, Permission permission)
 	 {
 		 if (subjectString == null || permission == null) {
 			 return null;
@@ -134,7 +162,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 	 }
 	
 	 
-	 private Identifier buildIdentifier(String value) {
+	 protected Identifier buildIdentifier(String value) {
 		 Identifier id = new Identifier();
 		 id.setValue(value);
 		 return id;
@@ -360,7 +388,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 //				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "InvalidToken"));
 				 
 				 for (String result : results) {
-					 if (result.contains("FAILED!!")) {
+					 if (result != null && result.contains("FAILED!!")) {
 						 handleFail(d1Node.getLatestRequestUrl(),tablifyResults(testObject, results) );
 						 break;
 					 }
@@ -504,7 +532,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 //				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "InvalidToken"));
 				 
 				 for (String result : results) {
-					 if (result.contains("FAILED!!")) {
+					 if (result != null && result.contains("FAILED!!")) {
 						 handleFail(null, currentUrl + " " + tablifyResults(testObject, results) );
 						 break;
 					 }
@@ -638,7 +666,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 //				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "true"));
 				 
 				 for (String result : results) {
-					 if (result.contains("FAILED!!")) {
+					 if (result != null && result.contains("FAILED!!")) {
 						 handleFail(null, currentUrl + " " + tablifyResults(testObject, results) );
 						 break;
 					 }
@@ -770,7 +798,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 //				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "InvalidToken"));
 
 				 for (String result : results) {
-					 if (result.contains("FAILED!!")) {
+					 if (result != null && result.contains("FAILED!!")) {
 						 handleFail(null, currentUrl + " " + tablifyResults(testObject, results) );
 						 break;
 					 }
@@ -915,7 +943,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 //				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "InvalidToken"));
 				 
 				 for (String result : results) {
-					 if (result.contains("FAILED!!")) {
+					 if (result != null && result.contains("FAILED!!")) {
 						 handleFail(null, currentUrl + " " + tablifyResults(testObject, results) );
 						 break;
 					 }
@@ -1055,7 +1083,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 //				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "InvalidToken"));
 				 
 				 for (String result : results) {
-					 if (result.contains("FAILED!!")) {
+					 if (result != null && result.contains("FAILED!!")) {
 						 handleFail(null, currentUrl + " " + tablifyResults(testObject, results) );
 						 break;
 					 }
@@ -1191,7 +1219,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 //				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "InvalidToken"));
 
 				 for (String result : results) {
-					 if (result.contains("FAILED!!")) {
+					 if (result != null && result.contains("FAILED!!")) {
 						 handleFail(null, currentUrl + " " + tablifyResults(testObject, results) );
 						 break;
 					 }
@@ -1327,7 +1355,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 //				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "InvalidToken"));
 				 
 				 for (String result : results) {
-					 if (result.contains("FAILED!!")) {
+					 if (result != null && result.contains("FAILED!!")) {
 						 handleFail(null, currentUrl + " " + tablifyResults(testObject, results) );
 						 break;
 					 }
@@ -1471,7 +1499,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 //				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "InvalidToken"));
 				 
 				 for (String result : results) {
-					 if (result.contains("FAILED!!")) {
+					 if (result != null && result.contains("FAILED!!")) {
 						 handleFail(null, currentUrl + " " + tablifyResults(testObject, results) );
 						 break;
 					 }
@@ -1615,7 +1643,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 //				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "InvalidToken"));
 				 
 				 for (String result : results) {
-					 if (result.contains("FAILED!!")) {
+					 if (result != null && result.contains("FAILED!!")) {
 						 handleFail(null, currentUrl + " " + tablifyResults(testObject, results) );
 						 break;
 					 }
@@ -1757,7 +1785,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 //				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "InvalidToken"));
 //				 
 				 for (String result : results) {
-					 if (result.contains("FAILED!!")) {
+					 if (result != null && result.contains("FAILED!!")) {
 						 handleFail(null, currentUrl + " " + tablifyResults(testObject, results) );
 						 break;
 					 }
@@ -1898,7 +1926,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 //				 results.add(checkExpectedIsAuthorizedOutcome(d1Node, testObject, clientSubject, Permission.READ,              "InvalidToken"));
 //				 
 				 for (String result : results) {
-					 if (result.contains("FAILED!!")) {
+					 if (result != null && result.contains("FAILED!!")) {
 						 handleFail(null, currentUrl + " " + tablifyResults(testObject, results) );
 						 break;
 					 }
@@ -1967,7 +1995,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 				 // TODO:  set up the proper tests
 				 
 				 String outcome;
-				 outcome = getOutcomeAsString(d1Node, testObject, Permission.READ);
+				 outcome = runAuthTest(d1Node, testObject, Permission.READ);
 				 if (! outcome.equals("true"))
 					 results.add(String.format("FAILED!! %s should be allowed %s access" +
 					 		" to %s. isAuthorized method did not process the 2nd or " +
@@ -1977,7 +2005,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 					 		testObject.getValue(),
 					 		outcome));
 				 
-				 outcome = getOutcomeAsString(d1Node, testObject, Permission.WRITE);
+				 outcome = runAuthTest(d1Node, testObject, Permission.WRITE);
 				 if (! outcome.equals("true"))
 					 results.add(String.format("FAILED!! %s should be allowed %s access " +
 					 		"to %s. isAuthorized method did not apply WRITE permission " +
@@ -1987,7 +2015,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 					 		testObject.getValue(),
 					 		outcome));
 					 
-				 outcome = getOutcomeAsString(d1Node, testObject, Permission.CHANGE_PERMISSION);
+				 outcome = runAuthTest(d1Node, testObject, Permission.CHANGE_PERMISSION);
 				 if (! outcome.equals("NotAuthorized"))
 					 results.add(String.format("FAILED!! %s should NOT be allowed %s access " +
 					 		"to %s. Got %s",
@@ -2000,7 +2028,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 				 clientSubject = "testGroupie";
 				 setupClientSubject(clientSubject);
 				 
-				 outcome = getOutcomeAsString(d1Node, testObject, Permission.WRITE);
+				 outcome = runAuthTest(d1Node, testObject, Permission.WRITE);
 				 if (! outcome.equals("true"))
 					 results.add(String.format("FAILED!! %s should be allowed %s access " +
 					 		"to %s. isAuthorized method did not apply WRITE permission " +
@@ -2010,7 +2038,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 					 		testObject.getValue(),
 					 		outcome));
 				 
-				 outcome = getOutcomeAsString(d1Node, testObject, Permission.CHANGE_PERMISSION);
+				 outcome = runAuthTest(d1Node, testObject, Permission.CHANGE_PERMISSION);
 				 if (! outcome.equals("NotAuthorized"))
 					 results.add(String.format("FAILED!! %s should NOT be allowed %s access " +
 					 		"to %s. Got %s",
@@ -2020,7 +2048,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 					 		outcome));
 			 
 				 for (String result : results) {
-					 if (result.contains("FAILED!!")) {
+					 if (result != null && result.contains("FAILED!!")) {
 						 StringBuffer res = new StringBuffer();
 						 for (String r : results) {
 							 res.append(r + "\n");
@@ -2168,27 +2196,6 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 
 	 }
 
-	 private String tablifyResults(Identifier testPid, List<String> results)
-	 {
-		 StringBuffer table = new StringBuffer("Failed 1 or more tests:\nisAuthorized() vs. ");
-		 table.append(testPid.getValue() + docDescription(testPid) + "\n    ");
-		 for (String result: results) {
-//			 if (result.contains("FAILED!!")) {
-				 table.append(result);	
-				 table.append("\n    ");
-	//		 }
-		 }
-		 return table.toString();		 
-	 }
 
-
-	 private String docDescription(Identifier pid) {
-		 if (pid.getValue().contains("RightsHolder_")) {
-			 String rh = pid.getValue().replaceAll(".+_", "").replaceAll("\\.[^.]*$","");
-			 return String.format(" (null AccessPolicy & the RightsHolder = '%s')",rh);
-		 }
-		 String[] arSubjectPerm = pid.getValue().replaceAll(".*\\:", "").replaceAll("\\.[^.]*$","").split("_");
-		 return String.format(" (w/ accessRule where '%s' allowed '%s')",arSubjectPerm[0],arSubjectPerm[1]);
-	 }
 	
 }

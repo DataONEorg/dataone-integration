@@ -57,7 +57,7 @@ import org.junit.Test;
  *  
  * @author Rob Nahf
  */
-public class MNodeTier2IT extends AbstractAuthorizationITDataone {
+public class MNodeTier2IT extends AbstractAuthITDataoneIsAuthzd {
 
     private static String currentUrl;
         

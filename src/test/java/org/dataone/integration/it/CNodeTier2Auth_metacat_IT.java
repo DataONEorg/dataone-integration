@@ -45,7 +45,7 @@ import org.junit.Test;
  * Test the DataONE Java client methods that focus on CN services.
  * @author Rob Nahf
  */
-public class CNodeTier2Auth_metacat_IT extends AbstractAuthorizationITDataone {
+public class CNodeTier2Auth_metacat_IT extends AbstractAuthITDataoneIsAuthzd {
 	
 	private static String currentUrl;
 	
