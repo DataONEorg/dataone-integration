@@ -97,8 +97,8 @@ public class CNodeTier1_search_IT extends AbstractAuthorizationITDataone {
 		String outcome = null;
 		InputStream is = null;
 		try {
-			is =  d1Node.query("solr", "?q=id:" + EncodingUtilities.encodeUrlQuerySegment("\"" + pid.getValue() + "\""
-					+ "&fl=id&start=0&rows=1000"));
+			is =  d1Node.query("solr", "?q=id:" + EncodingUtilities.encodeUrlQuerySegment("\"" + pid.getValue() + "\""));
+//					+ "&fl=id&start=0&rows=1000"));
 			log.info(d1Node.getLatestRequestUrl());
 			String responseText = IOUtils.toString(is, "UTF-8");
 			if (responseText.contains("<result name=\"response\" numFound=\"0\"")) {
