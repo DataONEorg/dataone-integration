@@ -1995,58 +1995,63 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 				 // TODO:  set up the proper tests
 				 
 				 String outcome;
-				 outcome = runAuthTest(d1Node, testObject, Permission.READ);
-				 if (! outcome.equals("true"))
-					 results.add(String.format("FAILED!! %s should be allowed %s access" +
-					 		" to %s. isAuthorized method did not process the 2nd or " +
-					 		"3rd AccessRule.  Got %s",
-					 		clientSubject,
-					 		Permission.READ.xmlValue(),
-					 		testObject.getValue(),
-					 		outcome));
-				 
-				 outcome = runAuthTest(d1Node, testObject, Permission.WRITE);
-				 if (! outcome.equals("true"))
-					 results.add(String.format("FAILED!! %s should be allowed %s access " +
-					 		"to %s. isAuthorized method did not apply WRITE permission " +
-					 		"to 2nd Subject in the AccessRule. Got %s",
-					 		clientSubject,
-					 		Permission.WRITE.xmlValue(),
-					 		testObject.getValue(),
-					 		outcome));
-					 
-				 outcome = runAuthTest(d1Node, testObject, Permission.CHANGE_PERMISSION);
-				 if (! outcome.equals("NotAuthorized"))
-					 results.add(String.format("FAILED!! %s should NOT be allowed %s access " +
-					 		"to %s. Got %s",
-					 		clientSubject,
-					 		Permission.CHANGE_PERMISSION.xmlValue(),
-					 		testObject.getValue(),
-					 		outcome));
-				 
+				 if (runTest(Permission.READ)) {
+					 outcome = runAuthTest(d1Node, testObject, Permission.READ);
+					 if (! outcome.equals("true"))
+						 results.add(String.format("FAILED!! %s should be allowed %s access" +
+								 " to %s. isAuthorized method did not process the 2nd or " +
+								 "3rd AccessRule.  Got %s",
+								 clientSubject,
+								 Permission.READ.xmlValue(),
+								 testObject.getValue(),
+								 outcome));
+				 }
+				 if (runTest(Permission.WRITE)) {
+					 outcome = runAuthTest(d1Node, testObject, Permission.WRITE);
+					 if (! outcome.equals("true"))
+						 results.add(String.format("FAILED!! %s should be allowed %s access " +
+								 "to %s. isAuthorized method did not apply WRITE permission " +
+								 "to 2nd Subject in the AccessRule. Got %s",
+								 clientSubject,
+								 Permission.WRITE.xmlValue(),
+								 testObject.getValue(),
+								 outcome));
+				 }
+				 if (runTest(Permission.CHANGE_PERMISSION)) {
+					 outcome = runAuthTest(d1Node, testObject, Permission.CHANGE_PERMISSION);
+					 if (! outcome.equals("NotAuthorized"))
+						 results.add(String.format("FAILED!! %s should NOT be allowed %s access " +
+								 "to %s. Got %s",
+								 clientSubject,
+								 Permission.CHANGE_PERMISSION.xmlValue(),
+								 testObject.getValue(),
+								 outcome));
+				 }
 				 
 				 clientSubject = "testGroupie";
 				 setupClientSubject(clientSubject);
 				 
-				 outcome = runAuthTest(d1Node, testObject, Permission.WRITE);
-				 if (! outcome.equals("true"))
-					 results.add(String.format("FAILED!! %s should be allowed %s access " +
-					 		"to %s. isAuthorized method did not apply WRITE permission " +
-					 		"to 2nd Permission in the AccessRule. Got %s",
-					 		clientSubject,
-					 		Permission.WRITE.xmlValue(),
-					 		testObject.getValue(),
-					 		outcome));
-				 
-				 outcome = runAuthTest(d1Node, testObject, Permission.CHANGE_PERMISSION);
-				 if (! outcome.equals("NotAuthorized"))
-					 results.add(String.format("FAILED!! %s should NOT be allowed %s access " +
-					 		"to %s. Got %s",
-					 		clientSubject,
-					 		Permission.CHANGE_PERMISSION.xmlValue(),
-					 		testObject.getValue(),
-					 		outcome));
-			 
+				 if (runTest(Permission.WRITE)) {
+					 outcome = runAuthTest(d1Node, testObject, Permission.WRITE);
+					 if (! outcome.equals("true"))
+						 results.add(String.format("FAILED!! %s should be allowed %s access " +
+								 "to %s. isAuthorized method did not apply WRITE permission " +
+								 "to 2nd Permission in the AccessRule. Got %s",
+								 clientSubject,
+								 Permission.WRITE.xmlValue(),
+								 testObject.getValue(),
+								 outcome));
+				 }
+				 if (runTest(Permission.CHANGE_PERMISSION)) {
+					 outcome = runAuthTest(d1Node, testObject, Permission.CHANGE_PERMISSION);
+					 if (! outcome.equals("NotAuthorized"))
+						 results.add(String.format("FAILED!! %s should NOT be allowed %s access " +
+								 "to %s. Got %s",
+								 clientSubject,
+								 Permission.CHANGE_PERMISSION.xmlValue(),
+								 testObject.getValue(),
+								 outcome));
+				 }
 				 for (String result : results) {
 					 if (result != null && result.contains("FAILED!!")) {
 						 StringBuffer res = new StringBuffer();
