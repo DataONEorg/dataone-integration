@@ -4,11 +4,15 @@ package org.dataone.integration.it;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.fail;
 
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.dataone.client.CNode;
 import org.dataone.client.MNode;
 import org.dataone.configuration.Settings;
@@ -31,8 +35,7 @@ public class PreRegNodeContentCheck extends ContextAwareTestCaseDataone {
 	ObjectList objectList = null;
 	
 	@Before
-	public void fetchMnObjectList() {
-		
+	public void fetchMnObjectList() {		
 		if (objectList == null) {
 			Iterator<Node> it = this.getMemberNodeIterator();
 			MNode mn = new MNode(it.next().getBaseURL());
@@ -142,6 +145,25 @@ public class PreRegNodeContentCheck extends ContextAwareTestCaseDataone {
 			fail(e.getClass() + ": " + e.getMessage());
 		}
 	}
+	
+	
+	
+	private Set<String> buildSerializedObjectInfoSet(ObjectList ol) {
+
+		Set<String> oiSet = new HashSet<String>(ol.getTotal(),1);
+
+		for (ObjectInfo oi: ol.getObjectInfoList()) {
+			oiSet.add(
+					String.format("%s\t%s\t%d\t%s\t%s",
+							oi.getIdentifier().getValue(),
+							oi.getFormatId().getValue(),
+							oi.getSize(),
+							oi.getChecksum().getAlgorithm(),
+							oi.getChecksum().getValue())
+			);
+		}
+		return oiSet;
+	}
 
 	/**
 	 * This looks for identifiers in the potential membernode that might already be 
@@ -200,7 +222,71 @@ public class PreRegNodeContentCheck extends ContextAwareTestCaseDataone {
 		}
 	}
 	
+	private Map<String,String> buildObjectIdentifierMap(ObjectList ol) {
+
+		Map<String,String> oiMap = new HashMap<String,String>(89);
+		int i = 0;
+		for (ObjectInfo oi: ol.getObjectInfoList()) {
+			if (++i % 3000 == 0) {
+				System.out.println(i);
+			}
+			oiMap.put(oi.getIdentifier().getValue(),
+					String.format("%s\t%s\t%d\t%s\t%s",
+							oi.getIdentifier().getValue(),
+							oi.getFormatId().getValue(),
+							oi.getSize(),
+							oi.getChecksum().getAlgorithm(),
+							oi.getChecksum().getValue())
+							);
+		}
+		return oiMap;
+	}
 	
+	
+	/**
+	 * Identifiers in the potential MN should not already be registered in dataONE,
+	 * but if they do, they should have the same objectInfo (checksum, size, formatId)
+	 * NOTE: This test is sensitive to large cn objectLists
+	 * @throws ServiceFailure
+	 * @throws NotImplemented
+	 */
+	//@Test
+	// this test is sensitive to large cn objectlists
+	public void checkIdentifierCollision() throws ServiceFailure, NotImplemented {
+		
+		// must be cn admin to get around access restrictions on cn.describe
+		try {
+			
+			String cnUrl = getReferenceContextCnUrl();
+			CNode cn = new CNode(cnUrl);
+			
+			ObjectList cnOL = APITestUtils.pagedListObjects(cn, null, null, null, null, null, null);
+			Map<String,String> cnOISet = buildObjectIdentifierMap(cnOL);
+			Map<String,String> mnOISet = buildObjectIdentifierMap(objectList);
+
+			Collection<String> collisions = CollectionUtils.intersection(mnOISet.keySet(), cnOISet.keySet());
+			
+			if (! collisions.isEmpty()) {
+			
+				for (String pid : collisions) {
+					if (!mnOISet.get(pid).equals(cnOISet.get(pid))) {
+						System.out.println(String.format("%s already registered and is different:", pid));
+						System.out.println("   mn: " + mnOISet.get(pid));
+						System.out.println("   cn: " + cnOISet.get(pid));
+					}
+					else {
+						System.out.println(String.format("%s already registered but is same**",pid));
+					}
+				}
+			}
+		}
+		catch (BaseException be) {
+			fail("problem getting an ObjectList from the cn. " + be.getClass() + ": " + be.getDescription());
+		}
+	}
+
+	
+
 	@Override
 	protected String getTestDescription() {
 		// TODO Auto-generated method stub
