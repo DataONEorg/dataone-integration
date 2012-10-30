@@ -167,7 +167,7 @@ public class PackageIT extends ContextAwareTestCaseDataone {
 //                String[] describedBy = {};
                 D1Object d1o = new D1Object(id, data, "text/csv", principal, TEST_MN_ID);
                 checkTrue(d1o != null);
-                d1o.create(token);
+                D1Client.create(token, d1o);
                 d1o.setPublicAccess(token);
                 
                 // Now check if the object is on the MN
@@ -178,7 +178,7 @@ public class PackageIT extends ContextAwareTestCaseDataone {
                 // Now check that create() fails if called a second time
                 try {
                     System.out.println("Trying create a second time, expecting an exception due to ID conflicts...");
-                    d1o.create(token);
+                    D1Client.create(token,d1o);
                     // Should not get here, because the object already exists on the MN
                 } catch (IdentifierNotUnique e) {
                     checkTrue(e != null);
