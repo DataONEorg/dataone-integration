@@ -132,7 +132,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 	protected String testObjectSeriesSuffix = "." + "14";
 	protected String testObjectSeries = null;
 	
-	
+	protected static boolean failOnMissingNodes = true;
 	
 	protected abstract String getTestDescription();
 	
@@ -252,7 +252,8 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 							log.info("*** Adding CN to list: " + currentNode.getName() + " [ " + currentNode.getBaseURL() +" ]");
 						}
 						catch (Exception e) {
-							handleFail(cn.getLatestRequestUrl(), "Could not reach node at " + currentNode.getIdentifier().getValue() + " for testing. Skipping further test cases.");
+							if (failOnMissingNodes)
+								handleFail(cn.getLatestRequestUrl(), "Could not reach node at " + currentNode.getIdentifier().getValue() + " for testing. Skipping further test cases.");
 							log.warn("*** Failed to add CN to list: " + currentNode.getName() + " [ " + currentNode.getBaseURL() + 
 									" ].  Could not reach the node:" + cn.getLatestRequestUrl());
 						}
@@ -264,8 +265,9 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 							log.info("*** Adding MN to list: " + currentNode.getName() + " [ " + currentNode.getBaseURL() +" ]");
 						}
 						catch (Exception e) {
-							handleFail(mn.getLatestRequestUrl(), "Could not reach node at " + currentNode.getIdentifier().getValue() + " for testing. Skipping further test cases.");
-							log.warn("*** Failed to add CN to list: " + currentNode.getName() + " [ " + currentNode.getBaseURL() + 
+							if (failOnMissingNodes)
+								handleFail(mn.getLatestRequestUrl(), "Could not reach node at " + currentNode.getIdentifier().getValue() + " for testing. Skipping further test cases.");
+							log.warn("*** Failed to add MN to list: " + currentNode.getName() + " [ " + currentNode.getBaseURL() + 
 									" ].  Could not reach the node:" + mn.getLatestRequestUrl());
 						}
 					} else if (currentNode.getType() == NodeType.MONITOR) {

@@ -37,7 +37,6 @@ import org.dataone.client.MNode;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.IdentifierNotUnique;
 import org.dataone.service.types.v1.Identifier;
-import org.dataone.service.types.v1.ObjectFormat;
 import org.dataone.service.types.v1.ObjectFormatIdentifier;
 import org.dataone.service.types.v1.Session;
 import org.dataone.service.types.v1.SystemMetadata;
@@ -167,7 +166,7 @@ public class PackageIT extends ContextAwareTestCaseDataone {
 //                String[] describedBy = {};
                 D1Object d1o = new D1Object(id, data, "text/csv", principal, TEST_MN_ID);
                 checkTrue(d1o != null);
-                D1Client.create(token, d1o);
+                D1Client.create(token,d1o);
                 d1o.setPublicAccess(token);
                 
                 // Now check if the object is on the MN
