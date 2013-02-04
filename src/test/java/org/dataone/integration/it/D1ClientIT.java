@@ -22,10 +22,6 @@
 
 package org.dataone.integration.it;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
 import java.util.Date;
 import java.util.Iterator;
 import java.util.Set;
@@ -42,10 +38,8 @@ import org.dataone.service.exceptions.ServiceFailure;
 import org.dataone.service.types.v1.Node;
 import org.dataone.service.types.v1.NodeList;
 import org.dataone.service.types.v1.NodeReference;
-import org.dataone.service.types.v1.NodeType;
 import org.dataone.service.types.v1.Subject;
 import org.dataone.service.types.v1.util.NodelistUtil;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -121,18 +115,20 @@ public class D1ClientIT extends ContextAwareTestCaseDataone {
 				System.out.println("    pid base: " + basePidVal);
 				
 				Date v4date = null;
+				D1Object d1o = null;
 				for (int v=1; v <= 5; v++) {
-					D1Object d = new D1Object(D1TypeBuilder.buildIdentifier(basePidVal + v),
+					d1o = new D1Object(D1TypeBuilder.buildIdentifier(basePidVal + v),
 							new ByteArrayDataSource("someData".getBytes(),null),
 							D1TypeBuilder.buildFormatIdentifier("text/plain"),
 							rightsHolder,
 							mnRef);
+					d1o.setPublicAccess(null);
 					if (v==1) {
-						D1Client.create(null,d);
+						D1Client.create(null,d1o);
 					} else {
 						// need to set the obsoletes field in the systemMetadata
-						d.getSystemMetadata().setObsoletes(D1TypeBuilder.buildIdentifier(basePidVal + (v-1)));
-						D1Client.update(null,d);
+						d1o.getSystemMetadata().setObsoletes(D1TypeBuilder.buildIdentifier(basePidVal + (v-1)));
+						D1Client.update(null,d1o);
 					}
 					if (v==4) {
 						v4date = new Date();
@@ -159,18 +155,27 @@ public class D1ClientIT extends ContextAwareTestCaseDataone {
 				checkEquals(mnRef.getValue(), "should get version 4 based on asOfDate",
 						oc.getVersionAsOf(v4date).getValue(),basePidVal + 4);
 				
+				checkFalse(mnRef.getValue(),"latest version should not be obsolete yet",
+						oc.isArchived(D1TypeBuilder.buildIdentifier(basePidVal + 5)) );
+				
+				D1Client.archive(null, d1o);
+				
+				checkFalse(mnRef.getValue(),"latest version should not be obsolete until new obsoletesChain",
+						oc.isArchived(D1TypeBuilder.buildIdentifier(basePidVal+ 5)) );
+				
+				System.out.println("Pausing again for synchronization :-) ...");
+				Thread.sleep(3*60*1000);
+				
+				oc = D1Client.listUpdateHistory(D1TypeBuilder.buildIdentifier(basePidVal + 1));
+				checkTrue(mnRef.getValue(),"latest version should now be obsolete",
+						oc.isArchived(D1TypeBuilder.buildIdentifier(basePidVal+ 5)) );
 				
 			} catch (Exception e) {
-				e.printStackTrace();
+				System.out.println("  >>>> ERROR: " + e.getMessage());
 				lastException = e;
 			}
 		}
 		if (lastException != null)
-			throw lastException;
-		
-		
+			throw lastException;	
 	}
-
-    
-    
 }						
