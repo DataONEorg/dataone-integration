@@ -22,12 +22,15 @@ package org.dataone.integration.it;
 
 import java.io.InputStream;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 
 import org.dataone.client.D1Client;
 import org.dataone.client.D1TypeBuilder;
 import org.dataone.client.MNode;
 import org.dataone.service.exceptions.BaseException;
+import org.dataone.service.exceptions.InvalidRequest;
 import org.dataone.service.exceptions.NotAuthorized;
 import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Node;
@@ -120,14 +123,24 @@ public class MNodeTier2IT extends AbstractAuthITDataoneIsAuthzd {
 	}
 
 	
-
+	/**
+	 * Test the call from CN to MN.  The MN is supposed to reply before scheduling
+	 * it's own call to the CN.  MNs should return 'true' (no excpetion) if the 
+	 * object is on their node.  Otherwise, an InvalidRequest may be thrown, but
+	 * no guarantees.
+	 * 
+	 * 
+	 */
 //	@Test
 	public void testSystemMetadataChanged() {
 		Iterator<Node> it = getMemberNodeIterator();
-
+		
+		setupClientSubject("testRightsHolder");
+		
+		String[] cNodeIds = new String[]{"urn:node:cnDevUNM1","urn:node:cnSandboxUNM1", "urn:node:cnStageUNM1"};
+		
 		while ( it.hasNext() ) {
-			setupClientSubject("urn:node:cnDev");
-
+				
 			currentUrl = it.next().getBaseURL();
 			MNode mn = D1Client.getMN(currentUrl);
 			currentUrl = mn.getNodeBaseServiceUrl();
@@ -138,13 +151,36 @@ public class MNodeTier2IT extends AbstractAuthITDataoneIsAuthzd {
 					 	createNodeAbbreviation(mn.getNodeBaseServiceUrl()) +
 					 	":Public_READ" + testObjectSeriesSuffix;
 				Identifier pid = procurePublicReadableTestObject(mn,D1TypeBuilder.buildIdentifier(objectIdentifier));
+				
 				SystemMetadata smd = mn.getSystemMetadata(null, pid);
 				if (smd.getDateSysMetadataModified().getTime() - 
 						smd.getDateUploaded().getTime() > 5000) {
 					// probably synced by now, assuming no changes until
 					// after sync are happening.
 					Date afterCreate = new Date();
-					mn.systemMetadataChanged(null, pid, 10, afterCreate);
+
+					int success = 0;
+					int invReq = 0;
+					int notAuth = 0;
+					int other = 0;
+					for (String cNodeId : cNodeIds) {
+						setupClientSubject(cNodeId);
+						try {
+							mn.systemMetadataChanged(null, pid, 10, afterCreate);
+							success++;
+						} catch (InvalidRequest e) {
+							invReq++;
+						} catch (NotAuthorized e) {
+							notAuth++;
+						} catch (Exception e) {
+							other++;
+							handleFail(mn.getLatestRequestUrl(), "unexpected exception: systemMetadataChanged should not throw " +
+									e.getClass() + " called with client subject " + cNodeId + ": " + e.getMessage());
+						}
+					}
+					if (notAuth + other < 2) {
+						handleFail(mn.getLatestRequestUrl(), "based on the client subjects, should get 2 NotAuthorized exceptions");
+					}
 				} else {
 					handleFail(mn.getLatestRequestUrl(),"systemMetadataChanged() will likely fail because" +
 							" the object is probably new and not synced, and not known to " +
@@ -169,7 +205,7 @@ public class MNodeTier2IT extends AbstractAuthITDataoneIsAuthzd {
 		Iterator<Node> it = getMemberNodeIterator();
 
 		while ( it.hasNext() ) {
-			setupClientSubject("urn:node:cnDev");
+			setupClientSubject("urn:node:cnDevUNM1");
 
 			currentUrl = it.next().getBaseURL();
 			MNode mn = D1Client.getMN(currentUrl);
@@ -244,7 +280,7 @@ public class MNodeTier2IT extends AbstractAuthITDataoneIsAuthzd {
 		Iterator<Node> it = getMemberNodeIterator();
 
 		while ( it.hasNext() ) {
-			setupClientSubject("urn:node:cnDev");
+			setupClientSubject("urn:node:cnDevUNM1");
 
 			currentUrl = it.next().getBaseURL();
 			MNode mn = D1Client.getMN(currentUrl);
