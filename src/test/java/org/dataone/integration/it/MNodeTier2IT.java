@@ -131,7 +131,7 @@ public class MNodeTier2IT extends AbstractAuthITDataoneIsAuthzd {
 	 * 
 	 * 
 	 */
-//	@Test
+	@Test
 	public void testSystemMetadataChanged() {
 		Iterator<Node> it = getMemberNodeIterator();
 		
@@ -153,8 +153,7 @@ public class MNodeTier2IT extends AbstractAuthITDataoneIsAuthzd {
 				Identifier pid = procurePublicReadableTestObject(mn,D1TypeBuilder.buildIdentifier(objectIdentifier));
 				
 				SystemMetadata smd = mn.getSystemMetadata(null, pid);
-				if (smd.getDateSysMetadataModified().getTime() - 
-						smd.getDateUploaded().getTime() > 5000) {
+				if (new Date().getTime() - smd.getDateUploaded().getTime() > 5000) {
 					// probably synced by now, assuming no changes until
 					// after sync are happening.
 					Date afterCreate = new Date();
@@ -178,9 +177,17 @@ public class MNodeTier2IT extends AbstractAuthITDataoneIsAuthzd {
 									e.getClass() + " called with client subject " + cNodeId + ": " + e.getMessage());
 						}
 					}
-					if (notAuth + other < 2) {
-						handleFail(mn.getLatestRequestUrl(), "based on the client subjects, should get 2 NotAuthorized exceptions");
-					}
+					checkTrue(mn.getLatestRequestUrl(),
+								"the test should return at least one success or InvalidRequest",
+								success + invReq > 0);
+					checkTrue(mn.getLatestRequestUrl(),
+							"the test should only return return success or InvalidRequest for one CN (environment)",
+							success + invReq == 1);
+					log.info("success = " + success);
+					log.info("InvalidRequest = " + invReq);
+					log.info("NotAuthorized = " + notAuth);
+					log.info("other = " + other);
+
 				} else {
 					handleFail(mn.getLatestRequestUrl(),"systemMetadataChanged() will likely fail because" +
 							" the object is probably new and not synced, and not known to " +
