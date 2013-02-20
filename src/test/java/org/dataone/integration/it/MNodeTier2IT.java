@@ -129,6 +129,8 @@ public class MNodeTier2IT extends AbstractAuthITDataoneIsAuthzd {
 	 * object is on their node.  Otherwise, an InvalidRequest may be thrown, but
 	 * no guarantees.
 	 * 
+	 * This test poses as CNs from 3 different environments - only one should not
+	 * return a NotAuthorized
 	 * 
 	 */
 	@Test

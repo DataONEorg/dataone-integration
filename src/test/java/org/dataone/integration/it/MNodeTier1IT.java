@@ -21,17 +21,22 @@
 package org.dataone.integration.it;
 
 import java.io.InputStream;
+import java.math.BigInteger;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Scanner;
 import java.util.Vector;
 
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.input.CountingInputStream;
 import org.dataone.client.D1Client;
 import org.dataone.client.D1TypeBuilder;
+import org.dataone.client.DataPackage;
 import org.dataone.client.MNode;
 import org.dataone.client.auth.CertificateManager;
 import org.dataone.configuration.Settings;
+import org.dataone.ore.ResourceMapFactory;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.InvalidToken;
 import org.dataone.service.exceptions.NotAuthorized;
@@ -51,6 +56,7 @@ import org.dataone.service.types.v1.ObjectInfo;
 import org.dataone.service.types.v1.ObjectList;
 import org.dataone.service.types.v1.Subject;
 import org.dataone.service.types.v1.SystemMetadata;
+import org.dataone.service.types.v1.util.ChecksumUtil;
 import org.dataone.service.util.DateTimeMarshaller;
 
 import org.junit.Before;
@@ -1452,6 +1458,99 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     		}
     		catch (NotFound nf) {
     			;  // expected outcome
+    		}
+    		catch (BaseException e) {
+    			handleFail(mn.getLatestRequestUrl(), e.getClass().getSimpleName() + ": " + 
+    					e.getDetail_code() + ":: " + e.getDescription());
+    		}
+    		catch(Exception e) {
+    			e.printStackTrace();
+    			handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+    		}
+    	}
+    }
+    
+    /**
+     * Test to compare the checksum and size in the ObjectInfo match what is in
+     * systemMetadata, and matches what is recalculated when retrieving the object.
+     */
+    @Test
+    public void testContent_Checksum_Size_Consistency() {
+    	setupClientSubject_NoCert();
+       	Iterator<Node> it = getMemberNodeIterator();
+    	while (it.hasNext()) {
+    		currentUrl = it.next().getBaseURL();
+    		MNode mn = D1Client.getMN(currentUrl);
+    		currentUrl = mn.getNodeBaseServiceUrl();
+    		printTestHeader("testGetChecksum() vs. node: " + currentUrl);
+
+    		try {
+    			ObjectList ol = mn.listObjects(null, null, 
+    				D1TypeBuilder.buildFormatIdentifier("http://www.openarchives.org/ore/terms"),
+    					null, null, null);
+    			ObjectInfo oiResMap = ol.getObjectInfoList().get(0);
+    			SystemMetadata smd = mn.getSystemMetadata(oiResMap.getIdentifier());
+    			checkEquals(mn.getLatestRequestUrl(),"objectInfo checksum should equal that of sysMeta",
+    					oiResMap.getChecksum().getAlgorithm() + " : " + oiResMap.getChecksum().getValue(),
+    					smd.getChecksum().getAlgorithm() + " : " + smd.getChecksum().getValue());
+    			checkEquals(mn.getLatestRequestUrl(),"objectInfo size should equal that of sysMeta",
+    					oiResMap.getSize().toString(),
+    					smd.getSize().toString());
+
+
+    			InputStream is = mn.get(oiResMap.getIdentifier());
+    			//calculate the checksum and length
+            	CountingInputStream cis = new CountingInputStream(is);
+            	Checksum calcCS = ChecksumUtil.checksum(cis,oiResMap.getChecksum().getAlgorithm());
+            	long calcSize = cis.getByteCount();
+    			
+            	checkEquals(mn.getLatestRequestUrl(),"calculated checksum should equal that of sysMeta",
+    					calcCS.getValue(),
+    					smd.getChecksum().getValue());
+    			checkEquals(mn.getLatestRequestUrl(),"calculated size should equal that of sysMeta",
+    					String.valueOf(calcSize),
+    					smd.getSize().toString());
+    			
+    			is = mn.get(oiResMap.getIdentifier());
+    			DataPackage.deserializePackage(IOUtils.toString(is));
+    		}
+    		catch (BaseException e) {
+    			handleFail(mn.getLatestRequestUrl(), e.getClass().getSimpleName() + ": " + 
+    					e.getDetail_code() + ":: " + e.getDescription());
+    		}
+    		catch(Exception e) {
+    			e.printStackTrace();
+    			handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+    		}
+    	}
+    }
+    
+    /**
+     * Tests that a resource map can be parsed by the ResourceMapFactory.
+     */
+    @Test
+    public void testResourceMap_Parsing() {
+    	setupClientSubject_NoCert();
+       	Iterator<Node> it = getMemberNodeIterator();
+    	while (it.hasNext()) {
+    		currentUrl = it.next().getBaseURL();
+    		MNode mn = D1Client.getMN(currentUrl);
+    		currentUrl = mn.getNodeBaseServiceUrl();
+    		printTestHeader("testGetChecksum() vs. node: " + currentUrl);
+
+    		try {
+    			ObjectList ol = mn.listObjects(null, null, 
+    				D1TypeBuilder.buildFormatIdentifier("http://www.openarchives.org/ore/terms"),
+    					null, null, null);
+    			ObjectInfo oiResMap = ol.getObjectInfoList().get(0);
+    			
+    			InputStream is = mn.get(oiResMap.getIdentifier());
+    			String resMapContent = IOUtils.toString(is);
+    			try {
+    				ResourceMapFactory.getInstance().parseResourceMap(resMapContent);
+    			} catch (Exception e) {
+    				handleFail(mn.getLatestRequestUrl(), "should be able to parse the serialized resourceMap");
+    			}
     		}
     		catch (BaseException e) {
     			handleFail(mn.getLatestRequestUrl(), e.getClass().getSimpleName() + ": " + 
