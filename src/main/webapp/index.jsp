@@ -5,9 +5,9 @@
   <head>
     <title>DataONE Member Node Web Service Test</title>
     <style type="text/css">
-      div { padding-left: 10px; padding-right: 10px; }
+      div { padding-left: 30px; padding-right: 50px; }
       body { font-family: serif; margin: 0px; }
-      div.padded { margin-top: 20px; }
+      div.padded { margin-top: 30px; }
       </style>
     </head>
   <body>
@@ -39,17 +39,22 @@
 	  </tr>
 	</table>
       </div>
-    <div class="padded">This service runs basic tests to check the correctness of a DataONE
-      Member Node Web Services interface. Tier 4 methods work properly in the context of a
-      multi-node environment, so the Tier 4 tests included here are mostly testing proper
-      exceptions are thrown when given bad input.  Contact the DataONE developers team
-      for instructions on how to fully test this tier.
-      </div>
-    <div class="padded">In this test service, we provide one or more test for each method
-          to cover common expected situations, and a summary result by Tier is given (pass / fail).
-          Each test case attempts to provide a descriptive exception message, but not every
-          circumstance can be anticipated, so the stack trace is provided for further inspection. 
-        </div>
+    <div class="padded">This service was designed to offer member node developers
+      an independent way to test their Member Node API implementations prior 
+      to the more focused and thorough testing done in partnership with DataONE 
+      team members in order to register the member node into the DataONE network.
+      Accordingly, the scope of tests is limited to those that can be run without 
+      interaction with other member or coordinating nodes, mostly looking to check 
+      the correctness of responses for all of the given API call.  
+    </div>
+    <div class="padded"> Tests are organized by API Tier level, and further organized
+      to run slower tests last within each tier.  For each API method, one or more 
+      test is run to cover common expected situations, even checking for proper 
+      exceptions as appropriate. Foreach Tier, a summary result is given (pass / fail).
+      Each test case also attempts to provide a descriptive exception message, but 
+      not every circumstance can be anticipated, so the stack trace is provided 
+      for further inspection. 
+    </div>
     <form action="./mntester_" method="get">
       <div class="padded" style="font-weight: bold;">
 	<table>
@@ -60,7 +65,7 @@
 	    </td>
 	  </tr>
 	  <tr>
-        <td align="right">Test Object series suffix override** <em>(optional)</em>:</td>
+        <td align="right">Tier-2 Node Test Object series suffix override** <em>(optional)</em>:</td>
         <td>
           <input title="Test Object Series Suffix" size="5" name="testObjectSeries" type="text" />
         </td>
@@ -88,15 +93,16 @@
       <div class="padded" style="font-size:smaller;">* <i>not including version path segment.  
 	      (e.g. </i> <b>"http://my.server.org/mn"</b> <i> rather than </i> <b>"http://my.server.org/mn/v1"</b> <i>)</i> 
 	</div>
-	<div class="padded" style="font-size:smaller;">** <i>The series designator is
-	the number or letter added as a suffix to the end of the testObject base name.
-	Tier 1 & 2 MemberNode testers will always want to set this to the series designator
-	used when creating the test objects.  For example, if you created 
-	'TierTesting:testObject:Public_Read.1', you need to set the value in the input
-	 field to "1" so the tester looks for that object and its cohort. 
-	 Tier 3 and higher MemberNodes can leave blank to use the default set internally.
-	 Internally, that series designator will change only if a prior series of 
-	 objects are discovered to be defective.
+	<div class="padded" style="font-size:smaller;">** <i>Tier 2 Member Nodes need
+	to have content owned by specific test subjects pre-loaded in order to pass 
+	Tier 2 tests. The series designator is the number or letter added as a suffix
+	to the end of the testObject base name, put there to allow the set of test
+	objects to evolve over time, or to supplant defective testObjects.  
+	For example, if you created a 'TierTesting:testObject:Public_Read.1', you 
+	need to set the value in the input field to "1" so the tester looks for that 
+	object and its cohort. 
+	Tier 3 and higher nodes do not need to specify a suffix, as the WebTester will 
+	create the test objects it needs for Tier 2 tests.
 	</div>
       </form>
     </body>
