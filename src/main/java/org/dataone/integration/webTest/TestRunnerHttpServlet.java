@@ -26,6 +26,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.Enumeration;
@@ -53,7 +54,7 @@ import org.dataone.configuration.TestSettings;
 import org.junit.runner.JUnitCore;
 import org.junit.runner.Result;
 
-import edu.emory.mathcs.backport.java.util.Collections;
+
 
 public class TestRunnerHttpServlet extends HttpServlet
 {

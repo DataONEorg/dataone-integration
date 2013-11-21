@@ -300,6 +300,7 @@ public class MNodeTier1SlowIT extends ContextAwareTestCaseDataone  {
     				sb.append(++i + ". should be able to limit the number of returned LogEntry objects using 'count' parameter.");
     				    			
     			// TODO:  test that 'start' parameter does what it says
+    			// the start parameter is optional, btw
 
     			// TODO: paging test
     			

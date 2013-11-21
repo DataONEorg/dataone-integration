@@ -1,0 +1,78 @@
+package org.dataone.integration.it;
+
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.security.NoSuchAlgorithmException;
+
+import javax.mail.util.ByteArrayDataSource;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.apache.poi.util.IOUtils;
+import org.dataone.client.D1Client;
+import org.dataone.client.D1Object;
+import org.dataone.client.D1TypeBuilder;
+import org.dataone.client.MNode;
+import org.dataone.client.auth.CertificateManager;
+import org.dataone.configuration.Settings;
+import org.dataone.service.exceptions.BaseException;
+import org.dataone.service.types.v1.Identifier;
+import org.dataone.service.types.v1.SystemMetadata;
+import org.dataone.service.util.TypeMarshaller;
+import org.jibx.runtime.JiBXException;
+import org.junit.Test;
+
+public class MNCreateTest { // extends ContextAwareTestCaseDataone {
+
+	public String getTestDescription() {
+		return "try creating under a different name";
+	}
+	
+	@Test
+	public void testMetadataCreate() {
+        Log log = LogFactory.getLog(MNCreateTest.class);
+        
+        
+        
+        MNode mnSource = new MNode("http://dev.datadryad.org/mn");
+        MNode mnTarget = D1Client.getMN("https://mn-demo-5.test.dataone.org/knb/d1/mn");
+
+        SystemMetadata sysmeta;
+        
+		try {
+			Identifier origPid = D1TypeBuilder.buildIdentifier("http://dx.doi.org/10.5061/dryad.12?ver=2011-08-02T16:00:05.530-0400");
+			log.warn("Original PID: " + origPid.getValue());
+			InputStream is = mnSource.get(origPid);
+			byte[] ba = IOUtils.toByteArray(is);
+			System.out.println(new String(ba));
+			
+			SystemMetadata smd = mnSource.getSystemMetadata(origPid);
+			Identifier newPid = D1TypeBuilder.buildIdentifier("testDryadMD_newSchema");
+			smd.setIdentifier(newPid);
+			smd.setAuthoritativeMemberNode(D1TypeBuilder.buildNodeReference("urn:node:mnDemo5"));
+			log.warn("formatId: " + smd.getFormatId().getValue());
+			
+			
+			
+	        Identifier identifier = mnTarget.create(smd.getIdentifier(),
+	        		new ByteArrayInputStream(ba), smd);
+
+	        log.debug("Created identifier " + identifier.getValue());
+	        
+		} catch (IOException e) {
+			e.printStackTrace();
+			
+		} catch (BaseException e) {
+			e.printStackTrace();
+			
+//		} catch (NoSuchAlgorithmException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+		}
+        
+	}
+
+}
