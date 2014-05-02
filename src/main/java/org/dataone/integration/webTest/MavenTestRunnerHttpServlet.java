@@ -22,7 +22,6 @@
 
 package org.dataone.integration.webTest;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Writer;
@@ -30,12 +29,12 @@ import java.util.ArrayList;
 import java.util.Map;
 
 import javax.servlet.ServletException;
-import javax.servlet.http.*;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.io.IOUtils;
 import org.junit.runner.Description;
-import org.junit.runner.JUnitCore;
-import org.junit.runner.Result;
 import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunListener;
 

@@ -2,7 +2,6 @@ package org.dataone.integration.it;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -12,12 +11,10 @@ import org.dataone.client.CNode;
 import org.dataone.client.D1Node;
 import org.dataone.client.MNode;
 import org.dataone.service.exceptions.BaseException;
-import org.dataone.service.exceptions.InsufficientResources;
 import org.dataone.service.exceptions.NotImplemented;
 import org.dataone.service.exceptions.ServiceFailure;
 import org.dataone.service.types.v1.Node;
 import org.dataone.service.types.v1.NodeList;
-import org.dataone.service.types.v1.NodeReference;
 import org.dataone.service.types.v1.NodeType;
 import org.junit.Ignore;
 import org.junit.Rule;

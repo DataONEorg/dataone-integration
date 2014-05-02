@@ -36,12 +36,10 @@ import java.util.TreeSet;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.dataone.client.CNode;
-import org.dataone.client.D1Client;
 import org.dataone.integration.it.APITestUtils;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.NotImplemented;
 import org.dataone.service.exceptions.ServiceFailure;
-import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Node;
 import org.dataone.service.types.v1.NodeType;
 import org.dataone.service.types.v1.ObjectInfo;

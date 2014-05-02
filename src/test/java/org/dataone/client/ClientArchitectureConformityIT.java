@@ -64,7 +64,6 @@ import org.dataone.service.types.v1.Permission;
 import org.dataone.service.types.v1.Person;
 import org.dataone.service.types.v1.Replica;
 import org.dataone.service.types.v1.ReplicationStatus;
-import org.dataone.service.types.v1.Session;
 import org.dataone.service.types.v1.Subject;
 import org.junit.BeforeClass;
 import org.junit.Rule;

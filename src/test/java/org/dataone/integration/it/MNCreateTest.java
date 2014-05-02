@@ -1,28 +1,18 @@
 package org.dataone.integration.it;
 
 import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.security.NoSuchAlgorithmException;
-
-import javax.mail.util.ByteArrayDataSource;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.poi.util.IOUtils;
 import org.dataone.client.D1Client;
-import org.dataone.client.D1Object;
 import org.dataone.client.D1TypeBuilder;
 import org.dataone.client.MNode;
-import org.dataone.client.auth.CertificateManager;
-import org.dataone.configuration.Settings;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.SystemMetadata;
-import org.dataone.service.util.TypeMarshaller;
-import org.jibx.runtime.JiBXException;
 import org.junit.Test;
 
 public class MNCreateTest { // extends ContextAwareTestCaseDataone {

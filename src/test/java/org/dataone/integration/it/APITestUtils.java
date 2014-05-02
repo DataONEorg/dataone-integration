@@ -51,7 +51,6 @@ import org.dataone.service.types.v1.ObjectLocationList;
 import org.dataone.service.types.v1.Permission;
 import org.dataone.service.types.v1.Person;
 import org.dataone.service.types.v1.Service;
-import org.dataone.service.types.v1.Session;
 import org.dataone.service.types.v1.Subject;
 
 

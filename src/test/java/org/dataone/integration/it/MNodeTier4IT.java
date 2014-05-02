@@ -22,17 +22,13 @@ package org.dataone.integration.it;
 
 import static org.junit.Assert.assertTrue;
 
-import java.io.InputStream;
 import java.util.Iterator;
 
 import org.dataone.client.D1Client;
-import org.dataone.client.D1TypeBuilder;
 import org.dataone.client.MNode;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.InvalidRequest;
-import org.dataone.service.exceptions.InvalidToken;
 import org.dataone.service.exceptions.NotAuthorized;
-import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Node;
 import org.dataone.service.types.v1.NodeReference;
 import org.dataone.service.types.v1.SystemMetadata;

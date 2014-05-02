@@ -44,7 +44,6 @@ import nu.xom.Element;
 import nu.xom.ParsingException;
 import nu.xom.ValidityException;
 
-import org.apache.commons.configuration.Configuration;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;

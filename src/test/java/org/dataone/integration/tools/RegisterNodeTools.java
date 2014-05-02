@@ -6,14 +6,12 @@ import static org.junit.Assert.fail;
 import org.dataone.client.CNode;
 import org.dataone.client.D1TypeBuilder;
 import org.dataone.client.MNode;
-import org.dataone.client.auth.CertificateManager;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.types.v1.Node;
 import org.dataone.service.types.v1.NodeList;
 import org.dataone.service.types.v1.NodeReference;
 import org.dataone.service.types.v1.ObjectList;
 import org.dataone.service.types.v1.Subject;
-import org.dataone.service.types.v1.util.NodelistUtil;
 import org.junit.Test;
 
 

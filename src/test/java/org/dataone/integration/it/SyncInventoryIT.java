@@ -1,15 +1,11 @@
 package org.dataone.integration.it;
 
-import static org.junit.Assert.*;
-
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.dataone.client.CNode;
 import org.dataone.client.MNode;
@@ -20,12 +16,17 @@ import org.dataone.service.exceptions.NotAuthorized;
 import org.dataone.service.exceptions.NotFound;
 import org.dataone.service.exceptions.NotImplemented;
 import org.dataone.service.exceptions.ServiceFailure;
-import org.dataone.service.types.v1.*;
+import org.dataone.service.types.v1.Identifier;
+import org.dataone.service.types.v1.Node;
+import org.dataone.service.types.v1.NodeList;
+import org.dataone.service.types.v1.NodeType;
+import org.dataone.service.types.v1.ObjectInfo;
+import org.dataone.service.types.v1.ObjectList;
+import org.dataone.service.types.v1.SystemMetadata;
 import org.dataone.service.types.v1.util.NodelistUtil;
 import org.dataone.service.util.D1Url;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Test;
 
 public class SyncInventoryIT extends ContextAwareTestCaseDataone {
 

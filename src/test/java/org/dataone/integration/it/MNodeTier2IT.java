@@ -22,9 +22,7 @@ package org.dataone.integration.it;
 
 import java.io.InputStream;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Map;
 
 import org.dataone.client.D1Client;
 import org.dataone.client.D1TypeBuilder;
@@ -36,7 +34,6 @@ import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Node;
 import org.dataone.service.types.v1.Permission;
 import org.dataone.service.types.v1.SystemMetadata;
-import org.junit.Ignore;
 import org.junit.Test;
 
 

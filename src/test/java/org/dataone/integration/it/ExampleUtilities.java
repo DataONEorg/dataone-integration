@@ -27,7 +27,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigInteger;
-import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
@@ -35,15 +34,10 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
-import java.util.Set;
 import java.util.SimpleTimeZone;
 import java.util.TimeZone;
-import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import javax.mail.internet.AddressException;
-import javax.mail.internet.InternetAddress;
 
 import org.apache.commons.io.IOUtils;
 import org.dataone.client.CNode;
@@ -83,7 +77,6 @@ import org.dataone.service.types.v1.SubjectList;
 import org.dataone.service.types.v1.SystemMetadata;
 import org.dataone.service.types.v1.util.AccessUtil;
 import org.dataone.service.types.v1.util.ChecksumUtil;
-import org.dataone.service.types.v1.util.NodelistUtil;
 import org.dataone.service.util.Constants;
 
 

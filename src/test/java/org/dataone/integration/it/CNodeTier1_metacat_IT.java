@@ -27,42 +27,25 @@ import java.util.Scanner;
 import java.util.Vector;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.solr.client.solrj.util.ClientUtils;
 import org.dataone.client.CNode;
-import org.dataone.client.D1Client;
 import org.dataone.client.D1TypeBuilder;
-import org.dataone.client.MNode;
-import org.dataone.client.auth.ClientIdentityManager;
 import org.dataone.configuration.Settings;
 import org.dataone.service.exceptions.BaseException;
-import org.dataone.service.exceptions.IdentifierNotUnique;
-import org.dataone.service.exceptions.InvalidRequest;
-import org.dataone.service.exceptions.NotAuthorized;
 import org.dataone.service.exceptions.NotFound;
-import org.dataone.service.exceptions.ServiceFailure;
 import org.dataone.service.types.v1.Checksum;
 import org.dataone.service.types.v1.ChecksumAlgorithmList;
 import org.dataone.service.types.v1.DescribeResponse;
 import org.dataone.service.types.v1.Identifier;
-import org.dataone.service.types.v1.Log;
-import org.dataone.service.types.v1.LogEntry;
 import org.dataone.service.types.v1.Node;
-import org.dataone.service.types.v1.NodeList;
 import org.dataone.service.types.v1.ObjectFormat;
 import org.dataone.service.types.v1.ObjectFormatIdentifier;
 import org.dataone.service.types.v1.ObjectFormatList;
 import org.dataone.service.types.v1.ObjectInfo;
 import org.dataone.service.types.v1.ObjectList;
-import org.dataone.service.types.v1.ObjectLocation;
-import org.dataone.service.types.v1.ObjectLocationList;
-import org.dataone.service.types.v1.Session;
-import org.dataone.service.types.v1.Subject;
 import org.dataone.service.types.v1.SystemMetadata;
-import org.dataone.service.util.D1Url;
 import org.dataone.service.util.DateTimeMarshaller;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.springframework.util.StringUtils;
 
 /**
  * Test the DataONE Java client methods that focus on CN services.
