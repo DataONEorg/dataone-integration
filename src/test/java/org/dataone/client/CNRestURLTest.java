@@ -33,10 +33,15 @@ import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.dataone.client.rest.RestClient;
+import org.dataone.client.utils.HttpUtils;
 import org.dataone.configuration.Settings;
 import org.dataone.service.util.Constants;
 import org.dataone.service.util.D1Url;
 import org.dataone.service.util.EncodingUtilities;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.Ignore;
 import org.w3c.dom.Document;
@@ -46,7 +51,12 @@ import org.w3c.dom.Element;
 
 public class CNRestURLTest {
 	private static final String cnUrl = Settings.getConfiguration().getString("context.cn.baseurl");
-
+	private static final HttpClient hc = HttpClients.createDefault();
+	
+	@Before
+	public void setup() {
+		
+	}
 	@Test
 	public void testTrue() {
 		
@@ -172,12 +182,12 @@ public class CNRestURLTest {
 	@Test
 	public void testResolve_errorForwarding_unknownQueryParams() throws IOException {
 
-		RestClient rc = new RestClient();
+		RestClient rc = new RestClient(hc);
 		D1Url url = new D1Url(cnUrl);
 		url.addNextPathElement(Constants.RESOURCE_OBJECTS);
 		url.addPreEncodedNonEmptyQueryParams("qt=path&count=1");
 		
-		HttpResponse response = rc.doGetRequest(url.getUrl());
+		HttpResponse response = rc.doGetRequest(url.getUrl(),null);
 		
 		String ol = IOUtils.toString(response.getEntity().getContent());
 		String someID = null;
@@ -194,12 +204,12 @@ public class CNRestURLTest {
 	private void testRunner(int expectedCode, String resourcePath, String param) throws IOException {
 		System.out.println("===================================================================");
 		
-		RestClient rc = new RestClient();
+		RestClient rc = new RestClient(hc);
 		D1Url url = new D1Url(cnUrl);
 		url.addNextPathElement(resourcePath);
 		url.addPreEncodedNonEmptyQueryParams(param);
 		
-		HttpResponse response = rc.doGetRequest(url.getUrl());
+		HttpResponse response = rc.doGetRequest(url.getUrl(),null);
 		int status = response.getStatusLine().getStatusCode();
 		
 		System.out.println("*** expected  = " + expectedCode);
@@ -214,7 +224,7 @@ public class CNRestURLTest {
 			System.out.println("*** contentStream = " + content);
 
 
-		HttpResponse response2 = rc.doGetRequest(url.getUrl());	
+		HttpResponse response2 = rc.doGetRequest(url.getUrl(),null);	
 		InputStream is2 = response2.getEntity().getContent();
 		Integer errorCode = readErrorStreamForErrorCode(is2);	
 

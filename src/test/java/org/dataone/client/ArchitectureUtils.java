@@ -41,10 +41,12 @@ public class ArchitectureUtils {
 	
 	protected static Log log = LogFactory.getLog(ArchitectureUtils.class);
 	
-	private static String methodRefDoc = 
+	private static final String METHOD_REFERENCE_DOC = 
+		"https://repository.dataone.org/software/cicore/tags/API-DOCUMENTATION-v1.1.0/" +
+		"MethodCrossReference.xls";
+	private static final String V1_METHOD_REFERENCE_DOC =
 			"https://repository.dataone.org/documents/Projects/cicore/" +
-			"architecture/api-documentation/MethodCrossReference.xls";
-//	"file:/Users/rnahf/software/workspace/d1-architecture/MethodCrossReference.xls";
+			"architecture/api-documentation/MethodCrossReference.xls"; 
 
 	
 	public static boolean checkDocTypeEqualsJavaType(String docParamType, String implParamType)
@@ -79,7 +81,7 @@ public class ArchitectureUtils {
 	public static HashMap<String,HashMap<String,List<String>>>setUpMethodDocumentationMap() throws IOException  
 	{
 		// get and parse architecture document
-		URL url = new URL(methodRefDoc);
+		URL url = new URL(METHOD_REFERENCE_DOC);
 		InputStream is = url.openStream();
 		HSSFWorkbook wb = new HSSFWorkbook(is);
 //		System.out.println("Data dump:\n");

@@ -34,6 +34,7 @@ import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -49,6 +50,13 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.dataone.client.exception.ClientSideException;
+import org.dataone.client.rest.DefaultHttpMultipartRestClient;
+import org.dataone.client.rest.MultipartRestClient;
+import org.dataone.client.v1.impl.D1NodeFactory;
+import org.dataone.client.v1.itk.D1Object;
+import org.dataone.client.v2.CNode;
+import org.dataone.client.v2.MNode;
 import org.dataone.configuration.Settings;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.NotImplemented;
@@ -56,7 +64,7 @@ import org.dataone.service.exceptions.ServiceFailure;
 import org.dataone.service.exceptions.SynchronizationFailed;
 import org.dataone.service.types.v1.Group;
 import org.dataone.service.types.v1.Identifier;
-import org.dataone.service.types.v1.Node;
+import org.dataone.service.types.v2.Node;
 import org.dataone.service.types.v1.NodeReference;
 import org.dataone.service.types.v1.NodeState;
 import org.dataone.service.types.v1.NodeType;
@@ -122,6 +130,8 @@ public class ClientArchitectureConformityIT {
 	protected static final String ECHO_MMP = "/echomm";
 	protected static final String EXCEPTION_SERVICE = "/exception";
 	protected static String pathInfoBase;
+	
+	private static final MultipartRestClient MRC = new DefaultHttpMultipartRestClient();
 	
 	protected static Log log = LogFactory.getLog(ClientArchitectureConformityIT.class);
 
@@ -276,6 +286,7 @@ public class ClientArchitectureConformityIT {
 			Method[] methods = MNode.class.getMethods();  // gets only public methods
 			HashMap<String,Method> clientInterfaceMethods = new HashMap<String,Method>();
 			for (Method method : methods) {
+				log.debug("    Method from classes: " + method.getName());
 				String methodKey = buildMethodListKey(method);
 				if (interfaceMethodList.contains(methodKey)) {
 					String methodMapKey = "MN." + method.getName();
@@ -676,14 +687,14 @@ public class ClientArchitectureConformityIT {
 
 
 
-	private String getEchoResponse(String testResource) {
+	private String getEchoResponse(String testResource) throws ClientSideException {
 		String echoResponse = null;
 		D1Node d1node = null;
 		if (nodeType.equals(NodeType.CN)) {
-			d1node = new CNode(TEST_SERVICE_BASE + testResource);
+			d1node = D1NodeFactory.buildCNode(MRC,URI.create(TEST_SERVICE_BASE + testResource));
 			echoResponse = getEchoResponse(d1node,getCNInterfaceMethods().get(currentMethodKey));
 		} else {
-			d1node = new MNode(TEST_SERVICE_BASE + testResource);
+			d1node = D1NodeFactory.buildMNode(MRC,URI.create(TEST_SERVICE_BASE + testResource));
 			echoResponse = getEchoResponse(d1node,getMNInterfaceMethods().get(currentMethodKey));
 		}
 		
@@ -739,12 +750,12 @@ public class ClientArchitectureConformityIT {
 		log.debug("  - - - -  calling " + TEST_SERVICE_BASE + EXCEPTION_SERVICE +
 				"/" + exception);
 		if (nodeType.equals(NodeType.CN)) {
-			d1node = new CNode(TEST_SERVICE_BASE + EXCEPTION_SERVICE +
-					"/" + exception); // + "/v1/object");
+			d1node = D1NodeFactory.buildCNode(MRC,URI.create(TEST_SERVICE_BASE + EXCEPTION_SERVICE +
+					"/" + exception)); // + "/v1/object");
 			method = getCNInterfaceMethods().get(currentMethodKey);
 		} else {
-			d1node = new MNode(TEST_SERVICE_BASE + EXCEPTION_SERVICE +
-					"/" + exception); // + "/v1/object");
+			d1node = D1NodeFactory.buildMNode(MRC,URI.create(TEST_SERVICE_BASE + EXCEPTION_SERVICE +
+					"/" + exception)); // + "/v1/object");
 			method = getMNInterfaceMethods().get(currentMethodKey);
 		}
 		try {
