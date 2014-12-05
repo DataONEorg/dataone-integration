@@ -23,7 +23,7 @@ package org.dataone.integration.it;
 import java.util.Date;
 import java.util.Iterator;
 
-import org.dataone.client.CNode;
+import org.dataone.client.v1.CNode;
 import org.dataone.configuration.Settings;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.NotAuthorized;

@@ -30,10 +30,10 @@ import java.util.Vector;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.input.CountingInputStream;
 import org.dataone.client.D1Client;
-import org.dataone.client.D1TypeBuilder;
-import org.dataone.client.DataPackage;
-import org.dataone.client.MNode;
-import org.dataone.client.ObjectFormatCache;
+import org.dataone.client.v1.types.D1TypeBuilder;
+import org.dataone.client.v1.itk.DataPackage;
+import org.dataone.client.v1.MNode;
+import org.dataone.client.v2.formats.ObjectFormatCache;
 import org.dataone.client.auth.CertificateManager;
 import org.dataone.configuration.Settings;
 import org.dataone.ore.ResourceMapFactory;
@@ -53,7 +53,7 @@ import org.dataone.service.types.v1.Node;
 import org.dataone.service.types.v1.NodeReference;
 import org.dataone.service.types.v1.ObjectFormat;
 import org.dataone.service.types.v1.ObjectFormatIdentifier;
-import org.dataone.service.types.v1.ObjectFormatList;
+import org.dataone.service.types.v2.ObjectFormatList;
 import org.dataone.service.types.v1.ObjectInfo;
 import org.dataone.service.types.v1.ObjectList;
 import org.dataone.service.types.v1.Subject;
@@ -783,7 +783,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     		currentUrl = mn.getNodeBaseServiceUrl();
 
     		try {
-    			ObjectList ol = mn.listObjects();
+    			ObjectList ol = mn.listObjects(null, null, null, null, null, null);
     			// make sure the count is accurate
     			StringBuffer sb = new StringBuffer();
     			int i = 0;

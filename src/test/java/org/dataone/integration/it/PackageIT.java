@@ -30,12 +30,13 @@ import java.util.Set;
 import java.util.concurrent.Callable;
 
 import org.apache.commons.io.IOUtils;
-import org.dataone.client.D1Client;
-import org.dataone.client.D1Object;
-import org.dataone.client.DataPackage;
-import org.dataone.client.MNode;
+import org.dataone.client.v1.itk.D1Client;
+import org.dataone.client.v1.itk.D1Object;
+import org.dataone.client.v1.itk.DataPackage;
+import org.dataone.client.v1.MNode;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.IdentifierNotUnique;
+import org.dataone.service.exceptions.ServiceFailure;
 import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.ObjectFormatIdentifier;
 import org.dataone.service.types.v1.Session;
@@ -91,7 +92,7 @@ public class PackageIT extends ContextAwareTestCaseDataone {
     
 	@Ignore("test not adapted for v0.6.x")
     @Test
-    public void testDataPackage() throws IOException {
+    public void testDataPackage() throws IOException, ServiceFailure {
         for (int i = 0; i < memberNodeList.size(); i++) {
             currentUrl = memberNodeList.get(i).getBaseURL();
             MNode mn = D1Client.getMN(currentUrl);
@@ -143,10 +144,11 @@ public class PackageIT extends ContextAwareTestCaseDataone {
      * and cn's do not create!
      *
      * test creation of a D1Object and its call to create()
+     * @throws ServiceFailure 
      */
 	@Ignore("test not adapted for v0.6.x - and see comment for method")
 	@Test
-    public void testD1ObjectManualCreate() {
+    public void testD1ObjectManualCreate() throws ServiceFailure {
         for (int i = 0; i < memberNodeList.size(); i++) {
             currentUrl = memberNodeList.get(i).getBaseURL();
             MNode mn = D1Client.getMN(currentUrl);

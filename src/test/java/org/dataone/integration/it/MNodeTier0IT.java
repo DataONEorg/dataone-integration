@@ -24,8 +24,9 @@ import java.io.InputStream;
 import java.util.Iterator;
 
 import org.dataone.client.D1Client;
-import org.dataone.client.D1RestClient;
-import org.dataone.client.MNode;
+import org.dataone.client.rest.DefaultHttpMultipartRestClient;
+import org.dataone.client.rest.MultipartRestClient;
+import org.dataone.client.v1.MNode;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.types.v1.Node;
 import org.dataone.service.util.D1Url;
@@ -60,10 +61,10 @@ public class MNodeTier0IT extends ContextAwareTestCaseDataone  {
 			printTestHeader("testBaseUrlResponse() vs. node: " + currentUrl);
 		
 			D1Url url = new D1Url(mn.getNodeBaseServiceUrl());
-            D1RestClient rc = new D1RestClient();
+            MultipartRestClient rc = new DefaultHttpMultipartRestClient();
 
 			try {
-				InputStream is = rc.doGetRequest(url.getUrl());
+				InputStream is = rc.doGetRequest(url.getUrl(), null);
 				log.info("called GET to " + url.getUrl());
 				Node node = TypeMarshaller.unmarshalTypeFromStream(Node.class, is);
 			} 

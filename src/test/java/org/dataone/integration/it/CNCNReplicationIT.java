@@ -28,7 +28,7 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.Vector;
 
-import org.dataone.client.CNode;
+import org.dataone.client.v1.CNode;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.types.v1.Node;
 import org.dataone.service.types.v1.ObjectInfo;

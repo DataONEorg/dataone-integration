@@ -29,7 +29,9 @@ import java.util.Iterator;
 
 import org.apache.http.HttpException;
 import org.apache.http.client.ClientProtocolException;
-import org.dataone.client.D1RestClient;
+import org.dataone.client.exception.ClientSideException;
+import org.dataone.client.rest.DefaultHttpMultipartRestClient;
+import org.dataone.client.rest.MultipartRestClient;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.ServiceFailure;
 import org.dataone.service.types.v1.Node;
@@ -59,23 +61,23 @@ public class ClientAuthIT extends ContextAwareTestCaseDataone {
 
 	@Test
 	public void testNoCertificate_ReferenceServer() 
-	throws BaseException, IllegalStateException, ClientProtocolException, IOException, HttpException
+	throws BaseException, ClientSideException
 	{	
 		String url = "https://repository.dataone.org/";
 		
-		D1RestClient rc = new D1RestClient();
-		InputStream is = rc.doGetRequest(url);
+		MultipartRestClient rc = new DefaultHttpMultipartRestClient();
+		InputStream is = rc.doGetRequest(url,null);
 	}
 
 	@Ignore("ignore until we configure tests with certificates")
 	@Test
 	public void testCertificate_ReferenceServer() 
-	throws BaseException, IllegalStateException, ClientProtocolException, IOException, HttpException
+	throws BaseException, ClientSideException
 	{	
 		String url = "https://repository.dataone.org/";
 		
-		D1RestClient rc = new D1RestClient();
-		InputStream is = rc.doGetRequest(url);
+		MultipartRestClient rc = new DefaultHttpMultipartRestClient();
+		InputStream is = rc.doGetRequest(url,null);
 	}
 	
 	
@@ -87,9 +89,9 @@ public class ClientAuthIT extends ContextAwareTestCaseDataone {
 		while (it.hasNext()) {
 			try {
 				currentUrl = it.next().getBaseURL();
-				D1RestClient rc = new D1RestClient();
+				MultipartRestClient rc = new DefaultHttpMultipartRestClient();
 				log.info("CurrentURL = " + currentUrl);
-				InputStream is = rc.doGetRequest(currentUrl);
+				InputStream is = rc.doGetRequest(currentUrl,null);
 			} 
 			catch (ServiceFailure e) {
 				handleFail(currentUrl,e.getClass().getSimpleName() + ":: " + e.getDescription());
@@ -116,9 +118,9 @@ public class ClientAuthIT extends ContextAwareTestCaseDataone {
 		while (it.hasNext()) {
 			try {
 				currentUrl = it.next().getBaseURL();
-				D1RestClient rc = new D1RestClient();
+				MultipartRestClient rc = new DefaultHttpMultipartRestClient();
 				log.info("CurrentURL = " + currentUrl);
-				InputStream is = rc.doGetRequest(currentUrl);
+				InputStream is = rc.doGetRequest(currentUrl,null);
 			} 
 			catch (BaseException e) {
 				handleFail(currentUrl,e.getClass().getSimpleName() + ":: " + e.getDescription());

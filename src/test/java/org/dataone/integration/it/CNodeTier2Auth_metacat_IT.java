@@ -25,8 +25,8 @@ import java.io.InputStream;
 import java.util.Iterator;
 
 import org.apache.commons.io.IOUtils;
-import org.dataone.client.CNode;
-import org.dataone.client.D1TypeBuilder;
+import org.dataone.client.v1.CNode;
+import org.dataone.client.v1.types.D1TypeBuilder;
 import org.dataone.configuration.Settings;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.NotAuthorized;

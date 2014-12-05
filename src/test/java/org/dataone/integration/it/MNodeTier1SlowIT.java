@@ -28,8 +28,8 @@ import java.util.Scanner;
 import java.util.Vector;
 
 import org.dataone.client.D1Client;
-import org.dataone.client.D1TypeBuilder;
-import org.dataone.client.MNode;
+import org.dataone.client.v1.types.D1TypeBuilder;
+import org.dataone.client.v1.MNode;
 import org.dataone.client.auth.CertificateManager;
 import org.dataone.configuration.Settings;
 import org.dataone.service.exceptions.BaseException;

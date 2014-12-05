@@ -27,9 +27,9 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import org.dataone.client.CNode;
+import org.dataone.client.v1.CNode;
 import org.dataone.client.D1Node;
-import org.dataone.client.MNode;
+import org.dataone.client.v1.MNode;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.IdentifierNotUnique;
 import org.dataone.service.exceptions.InsufficientResources;
@@ -83,6 +83,12 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 	String subjectLabel, Permission permission, String expectedOutcome) 
 	{
 //		log.debug("in: " + new Date().getTime());
+		try {
+			Thread.sleep(500);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		String testResult = null;
 		if (runTest(permission)) {
 			testResult = String.format("assert client subject: %-30s is allowed to %-6s", 

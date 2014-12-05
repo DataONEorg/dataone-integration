@@ -28,7 +28,7 @@ import java.util.Vector;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.solr.client.solrj.util.ClientUtils;
-import org.dataone.client.CNode;
+import org.dataone.client.v1.CNode;
 import org.dataone.client.D1Node;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.types.v1.Identifier;

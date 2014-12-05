@@ -26,7 +26,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import org.dataone.client.CNode;
+import org.dataone.client.v1.CNode;
 import org.dataone.client.D1Client;
 import org.dataone.client.auth.ClientIdentityManager;
 import org.dataone.service.exceptions.BaseException;

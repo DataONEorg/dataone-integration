@@ -35,7 +35,7 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import org.apache.commons.collections.CollectionUtils;
-import org.dataone.client.CNode;
+import org.dataone.client.v1.CNode;
 import org.dataone.integration.it.APITestUtils;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.NotImplemented;

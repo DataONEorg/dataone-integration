@@ -45,12 +45,12 @@ import java.util.concurrent.Callable;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.dataone.client.CNode;
+import org.dataone.client.v1.CNode;
 import org.dataone.client.D1Client;
 import org.dataone.client.D1Node;
-import org.dataone.client.D1Object;
-import org.dataone.client.D1TypeBuilder;
-import org.dataone.client.MNode;
+import org.dataone.client.v1.itk.D1Object;
+import org.dataone.client.v1.types.D1TypeBuilder;
+import org.dataone.client.v1.MNode;
 import org.dataone.client.auth.CertificateManager;
 import org.dataone.client.auth.ClientIdentityManager;
 import org.dataone.configuration.Settings;

@@ -40,10 +40,10 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.io.IOUtils;
-import org.dataone.client.CNode;
+import org.dataone.client.v1.CNode;
 import org.dataone.client.D1Node;
-import org.dataone.client.D1Object;
-import org.dataone.client.MNode;
+import org.dataone.client.v1.itk.D1Object;
+import org.dataone.client.v1.MNode;
 import org.dataone.client.auth.CertificateManager;
 import org.dataone.service.exceptions.IdentifierNotUnique;
 import org.dataone.service.exceptions.InsufficientResources;

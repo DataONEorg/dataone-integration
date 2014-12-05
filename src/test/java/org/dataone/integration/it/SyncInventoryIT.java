@@ -7,9 +7,9 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
-import org.dataone.client.CNode;
-import org.dataone.client.MNode;
-import org.dataone.client.ObjectFormatCache;
+import org.dataone.client.v1.CNode;
+import org.dataone.client.v1.MNode;
+import org.dataone.client.v2.formats.ObjectFormatCache;
 import org.dataone.service.exceptions.InvalidRequest;
 import org.dataone.service.exceptions.InvalidToken;
 import org.dataone.service.exceptions.NotAuthorized;

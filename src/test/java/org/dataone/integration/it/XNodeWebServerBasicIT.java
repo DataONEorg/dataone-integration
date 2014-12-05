@@ -36,9 +36,10 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
-import org.dataone.client.CNode;
-import org.dataone.client.MNode;
-import org.dataone.client.RestClient;
+import org.dataone.client.v1.CNode;
+import org.dataone.client.v1.MNode;
+import org.dataone.client.rest.DefaultHttpMultipartRestClient;
+import org.dataone.client.rest.RestClient;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.InvalidRequest;
 import org.dataone.service.exceptions.ServiceFailure;
@@ -65,14 +66,15 @@ public class XNodeWebServerBasicIT extends ContextAwareTestCaseDataone {
 	
 	private HttpResponse executeGetRequest(String baseUrl, String resource, String queryString) 
 	throws ClientProtocolException, IOException {
+		DefaultHttpMultipartRestClient mrc = new DefaultHttpMultipartRestClient();
+		RestClient rc = new RestClient(mrc.getHttpClient());
 		
-		RestClient rc = new RestClient();
 		D1Url url = new D1Url(baseUrl,resource);
 		String urlString = url.getUrl();
 		if (queryString != null) {
 			urlString += "?" + queryString;
 		}
-		return rc.doGetRequest(urlString);
+		return rc.doGetRequest(urlString, null);
 	}
 	
 	

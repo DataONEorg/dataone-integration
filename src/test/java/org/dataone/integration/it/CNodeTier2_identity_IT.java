@@ -22,8 +22,8 @@ package org.dataone.integration.it;
 
 import java.util.Iterator;
 
-import org.dataone.client.CNode;
-import org.dataone.client.D1TypeBuilder;
+import org.dataone.client.v1.CNode;
+import org.dataone.client.v1.types.D1TypeBuilder;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.NotAuthorized;
 import org.dataone.service.exceptions.NotFound;

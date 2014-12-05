@@ -31,7 +31,7 @@ import java.util.concurrent.Callable;
 
 import org.apache.commons.io.IOUtils;
 import org.dataone.client.D1Client;
-import org.dataone.client.MNode;
+import org.dataone.client.v1.MNode;
 import org.dataone.service.types.v1.Checksum;
 import org.dataone.service.types.v1.DescribeResponse;
 import org.dataone.service.types.v1.Identifier;

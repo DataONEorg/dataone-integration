@@ -28,9 +28,9 @@ import java.util.Set;
 
 import javax.mail.util.ByteArrayDataSource;
 
-import org.dataone.client.D1Client;
-import org.dataone.client.D1Object;
-import org.dataone.client.D1TypeBuilder;
+import org.dataone.client.v1.itk.D1Client;
+import org.dataone.client.v1.itk.D1Object;
+import org.dataone.client.v1.types.D1TypeBuilder;
 import org.dataone.client.auth.ClientIdentityManager;
 import org.dataone.client.types.ObsoletesChain;
 import org.dataone.service.exceptions.NotImplemented;
