@@ -39,6 +39,7 @@ import javax.security.auth.x500.X500Principal;
 
 import org.dataone.client.auth.CertificateManager;
 import org.dataone.configuration.Settings;
+import org.dataone.integration.ContextAwareTestCaseDataone;
 import org.dataone.service.types.v1.Person;
 import org.dataone.service.types.v1.Subject;
 import org.dataone.service.types.v1.SubjectInfo;

@@ -32,18 +32,13 @@ import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.dataone.integration.IntegrationTestContextParameters;
 
-public class TestSettings {
+public class TestSettings implements IntegrationTestContextParameters {
 	private static Log log = LogFactory.getLog(TestSettings.class);
 	
-    public static String STD_CONFIG_PATH      = Settings.STD_CONFIG_PATH;   
-	public static String CONTEXT_OVERRIDE_URI = "context.override.settings.uri";
-	public static String CONTEXT_LABEL        = "context.label";
-	public static String CONTEXT_NODELIST_URI = "context.nodelist.uri";
-	public static String CONTEXT_MN_URL       = "context.mn.baseurl";
-	public static String CONTEXT_CN_URL       = "context.cn.baseurl";
-	public static String REFERENCE_CN_URL       = "reference.cn.baseurl";
-	public static String REFERENCE_CONTEXT_LABEL       = "reference.context.label";
+    public static final String STD_CONFIG_PATH      = Settings.STD_CONFIG_PATH;   
+	public static final String CONTEXT_OVERRIDE_URI = "context.override.settings.uri";
 	
 
 	/**
@@ -84,8 +79,8 @@ public class TestSettings {
 				System.getProperty(CONTEXT_CN_URL,System.getenv(CONTEXT_CN_URL)));
 		configuration.setProperty(CONTEXT_NODELIST_URI,
 				System.getProperty(CONTEXT_NODELIST_URI,System.getenv(CONTEXT_NODELIST_URI)));
-		configuration.setProperty(REFERENCE_CN_URL,
-				System.getProperty(REFERENCE_CN_URL,System.getenv(REFERENCE_CN_URL)));
+		configuration.setProperty(REFERENCE_CONTEXT_CN_URL,
+				System.getProperty(REFERENCE_CONTEXT_CN_URL,System.getenv(REFERENCE_CONTEXT_CN_URL)));
 		configuration.setProperty(REFERENCE_CONTEXT_LABEL,
 				System.getProperty(REFERENCE_CONTEXT_LABEL,System.getenv(REFERENCE_CONTEXT_LABEL)));
 				

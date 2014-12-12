@@ -22,8 +22,7 @@
 
 package org.dataone.integration.webTest;
 
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 
 import java.io.IOException;
 
@@ -53,6 +52,7 @@ public class TestingTestRunnerServlet {
 	}
 	
 	@Test
+	
 	public void callServletTest() throws IOException
 	{
 		String mNodeUrl = "http://demo.test.dataone.org/knb/d1/mn";
@@ -65,12 +65,14 @@ public class TestingTestRunnerServlet {
 
 		request.setParameter("mNodeUrl",mNodeUrl);
 		request.setParameter("maxTier","Tier 4");
+		request.setParameter("selectedTiers", "Tier 0,Tier 2");
 		request.addHeader("accept", (Object) "text/xml");
 		request.setMethod("GET");
 		
 		// call the servlet
-		TestRunnerHttpServlet servlet = new TestRunnerHttpServlet(true);
 		try {
+			TestRunnerHttpServlet servlet = new TestRunnerHttpServlet(true);
+		
 			servlet.doGet(request, response);
 		} catch (ServletException se) {
 			fail("servlet exception at servlet.doGet(): " + se);
@@ -85,4 +87,53 @@ public class TestingTestRunnerServlet {
 		assertTrue("response should contain final summary line",responseString.contains("RunCount"));
 	}
 
+	@Test
+	public void testDeriveSelectedTierLevels() {
+		Integer[] levels = TestRunnerHttpServlet.deriveSelectedTierLevels(new String[]{"Tier 1","Tier 3","Tier4"});
+		assertTrue("the number of levels should be 3", levels.length == 3);
+		assertEquals("the first level is 1", new Integer(1), levels[0]);
+		assertEquals("the second level is 3", new Integer(3), levels[1]);
+		assertEquals("the third level is 4", new Integer(4), levels[2]);
+	}
+	
+	@Test
+	public void callServletTest_ITtestSelector() throws IOException
+	{
+		String mNodeUrl = "http://demo.test.dataone.org/knb/d1/mn";
+		
+		// set up mock objects
+		ServletContext sc = new MockServletContext("src/main/webapp", null);
+		MockHttpServletRequest request = new MockHttpServletRequest(sc, null,
+				"/some/path?mNodeUrl=NodeFromMockClient");
+		MockHttpServletResponse response = new MockHttpServletResponse();
+
+		request.setParameter("mNodeUrl",mNodeUrl);
+//		request.setParameter("maxTier","Tier 4");
+		request.setParameter("selectedTiers", new String[]{"Tier 0","Tier 2"});
+		request.addHeader("accept", (Object) "text/xml");
+		request.setMethod("GET");
+		
+		// call the servlet
+		try {
+			TestRunnerHttpServlet servlet = new TestRunnerHttpServlet();
+		
+			servlet.doGet(request, response);
+		} catch (ServletException se) {
+			fail("servlet exception at servlet.doGet(): " + se);
+		} catch (IOException ioe) {
+			fail("IO exception at servlet.goGet(): " + ioe);
+		}
+		
+		// process the response - did it return anything meaningful?
+		String responseString = response.getContentAsString();
+		System.out.println(responseString);
+		assertTrue("Url should be successfully passed to servlet",responseString.contains(mNodeUrl));
+		assertTrue("response should contain final summary line",responseString.contains("RunCount"));
+		assertTrue("response should contain 'Tier0'", responseString.contains("at org.dataone.integration.it.MNodeTier0"));
+		assertTrue("response should contain 'Tier2'", responseString.contains("at org.dataone.integration.it.MNodeTier2"));
+		assertFalse("response should NOT contain 'Tier1'", responseString.contains("at org.dataone.integration.it.MNodeTier1"));
+		assertFalse("response should NOT contain 'Tier3'", responseString.contains("at org.dataone.integration.it.MNodeTier3"));
+		assertFalse("response should NOT contain 'Tier4'", responseString.contains("at org.dataone.integration.it.MNodeTier4"));
+	}
+	
 }

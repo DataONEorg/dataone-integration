@@ -20,7 +20,7 @@
  * $Id$
  */
 
-package org.dataone.integration.it;
+package org.dataone.integration;
 
 /**
  * Defines the parameter names used by dataone integration to configure tests 
@@ -51,16 +51,16 @@ public interface IntegrationTestContextParameters {
 	 * Also used by the TestRunners contained in org.dataone.integration.webTest package
 	 */
 	
-	public final static String PARAM_TEST_CONTEXT = "context.label";  // the string that signals the context to run against
+	public final static String CONTEXT_LABEL = "context.label";  // the string that signals the context to run against
 	public final static String DEFAULT_CONTEXT = "LOCAL";  // the default value for PARAM_TEST_CONTEXT
 	
-	public final static String PARAM_CN_URL = "context.cn.baseurl";    // the base url for the cn within the environment 
-	public final static String PARAM_MN_URL = "context.mn.baseurl";    // the base url for the MN being tested
-	public final static String PARAM_NODELIST_URI = "context.nodelist.uri";  // a uri (file or url) of the nodelist to use to set the environment
+	public final static String CONTEXT_CN_URL = "context.cn.baseurl";    // the base url for the cn within the environment 
+	public final static String CONTEXT_MN_URL = "context.mn.baseurl";    // the base url for the MN being tested
+	public final static String CONTEXT_NODELIST_URI = "context.nodelist.uri";  // a uri (file or url) of the nodelist to use to set the environment
 
-	public final static String PARAM_REFERENCE_CONTEXT = "reference.context.label"; 
-	public final static String PARAM_REFERENCE_CN_URL = "reference.cn.baseurl"; 
+	public final static String REFERENCE_CONTEXT_LABEL = "reference.context.label"; 
+	public final static String REFERENCE_CONTEXT_CN_URL = "reference.cn.baseurl"; 
 	
-	public final static String PARAM_TEST_SETTINGS_URI = "opt.overriding.properties.filename";
+	public final static String CONTEXT_TEST_SETTINGS_URI = "opt.overriding.properties.filename";
 	
 }

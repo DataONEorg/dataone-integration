@@ -54,7 +54,7 @@ public class TestSettingsTest {
 		System.clearProperty(TestSettings.CONTEXT_CN_URL);
 		System.clearProperty(TestSettings.CONTEXT_NODELIST_URI);
 		System.clearProperty(TestSettings.CONTEXT_OVERRIDE_URI);
-		System.clearProperty(TestSettings.REFERENCE_CN_URL);
+		System.clearProperty(TestSettings.REFERENCE_CONTEXT_CN_URL);
 		System.clearProperty(TestSettings.REFERENCE_CONTEXT_LABEL);
 	}
 	

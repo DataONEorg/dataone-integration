@@ -30,6 +30,8 @@ import java.util.Vector;
 import org.apache.commons.io.IOUtils;
 import org.dataone.client.D1Client;
 import org.dataone.client.v1.MNode;
+import org.dataone.integration.ContextAwareTestCaseDataone;
+import org.dataone.integration.ExampleUtilities;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.InvalidSystemMetadata;
 import org.dataone.service.exceptions.InvalidToken;
@@ -548,8 +550,9 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 				}
 					
 				SystemMetadata orig = mn.getSystemMetadata(originalPid);
+				String obsoletedByValue = orig.getObsoletedBy() == null ? "" : orig.getObsoletedBy().getValue();
 				checkTrue(mn.getLatestRequestUrl(), "Original object should not be obsoleted, but was obsoleted by " 
-							+ orig.getObsoletedBy().getValue(),
+							+ obsoletedByValue,
 							orig.getObsoletedBy() == null); 				 
 			}
 			catch (BaseException e) {

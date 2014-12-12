@@ -23,6 +23,7 @@ package org.dataone.integration.it;
 import java.util.Iterator;
 
 import org.dataone.client.v1.CNode;
+import org.dataone.integration.ContextAwareTestCaseDataone;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.types.v1.Node;
 import org.dataone.service.types.v1.NodeList;

@@ -30,8 +30,10 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.Enumeration;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.servlet.ServletException;
 import javax.servlet.ServletOutputStream;
@@ -44,16 +46,30 @@ import nu.xom.Element;
 import nu.xom.ParsingException;
 import nu.xom.ValidityException;
 
+
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.Transformer;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.lucene.util.ArrayUtil;
 import org.dataone.configuration.Settings;
 import org.dataone.configuration.TestSettings;
 import org.junit.runner.JUnitCore;
-import org.junit.runner.Result;
 
 
+/**
+ * This class is for running the d1_integration junit integration tests through the WebTester,
+ * and so the scope of possible tests run may be limited programatically or by system properties.
+ * 
+ * mnwebetester.testCase.pattern=*MNodeTier*
+ * mnwebtester.junitcore.sleep.seconds 
+ * 
+ * @author rnahf
+ *
+ */
 
 public class TestRunnerHttpServlet extends HttpServlet
 {
@@ -63,33 +79,37 @@ public class TestRunnerHttpServlet extends HttpServlet
 	private static final String RESULTS_FILE_HEAD = "/results_head.html";
 //	private static final String RESULTS_FILE_DIV = "/results_div.html";
 	
-	private static String TEST_SELECTOR_PATTERN = Settings.getConfiguration()
+	private String testSelectorClassNamePattern = Settings.getConfiguration()
 		.getString("mnwebtester.testCase.pattern","*MNodeTier*");
-	private static final String TEST_PACKAGE = "org.dataone.integration";
+	private static final String TEST_PACKAGE_DOMAIN = "org.dataone.integration";
 //	private static String TEST_SELECTOR_PATTERN = "*MNodeTier*";
 	
 	private boolean debug = true;
 	
 	private int junitSleepSeconds = 0;
 	
+	private static Class<?>[] testClasses;
+	
 	/**
 	 * a constructor to be used for unit testings
 	 * @param isUnitTest
+	 * @throws IOException 
+	 * @throws ClassNotFoundException 
 	 */
-	public TestRunnerHttpServlet(boolean isUnitTest)
+	public TestRunnerHttpServlet(boolean isUnitTest) throws IOException
 	{
-		super();
-		junitSleepSeconds = Settings.getConfiguration()
-			.getInt("mnwebtester.junitcore.sleep.seconds",junitSleepSeconds);
+		this();		
 		if (isUnitTest)
-			TEST_SELECTOR_PATTERN = "*MockITCase";
+			testSelectorClassNamePattern = "*MockITCase";
 	}
 	
-	public TestRunnerHttpServlet()
+	public TestRunnerHttpServlet() throws IOException
 	{
 		super();
+		testClasses = getClasses(TEST_PACKAGE_DOMAIN);
 		junitSleepSeconds = Settings.getConfiguration()
 			.getInt("mnwebtester.junitcore.sleep.seconds",junitSleepSeconds);
+		
 	}
 	
 	
@@ -133,13 +153,15 @@ public class TestRunnerHttpServlet extends HttpServlet
 	{	
 		String mNodeBaseUrl = req.getParameter("mNodeUrl");
 		String testObjectSeries = req.getParameter("testObjectSeries");	
-		String maxTier = req.getParameter("maxTier"); 
+		String[] selectedTiers = req.getParameterValues("selectedTiers");
 		
+		Integer[] selectedTierLevels = deriveSelectedTierLevels(selectedTiers);
+				
 		if (log.isDebugEnabled() ) {
-			Map params = req.getParameterMap();
+			Map<String, String[]> params = req.getParameterMap();
 			log.debug(":::::::request parameters::::::");
-			for (Object key: params.keySet()) {
-				log.debug(String.format("param: %s = %s", key.toString(), params.get(key).toString()));
+			for (Entry<String,String[]> e: params.entrySet()) {
+				log.debug(String.format("param: %s = %s", e.getKey(), StringUtils.join(e.getValue(),",")));
 			}
 		}
 
@@ -174,22 +196,18 @@ public class TestRunnerHttpServlet extends HttpServlet
 		
 		Settings.getResetConfiguration();
 		
-		
 		// to test that system properties are being received
 		if (debug) 
 			System.setProperty("testSysProp", "setFromServlet");
 
-	
 		// setup and run through the junit tests
 		
 		JUnitCore junit = new JUnitCore();
 		StreamingWebTestListener listener = new StreamingWebTestListener(out);
 		junit.addListener(listener);
 
-		
-		Result result = null;
-		for (Class testCase : getIntegrationTestClasses(TEST_SELECTOR_PATTERN)) {
-			if (junitSleepSeconds == 0) {
+		for (@SuppressWarnings("rawtypes") Class testCase : getIntegrationTestClasses(testSelectorClassNamePattern)) {
+			if (junitSleepSeconds != 0) {
 				try {
 					log.info("sleeping between test cases for " + junitSleepSeconds + " seconds...");
 					Thread.sleep(junitSleepSeconds * 1000);
@@ -197,9 +215,9 @@ public class TestRunnerHttpServlet extends HttpServlet
 					log.warn("sleep interrupted: " + e.getMessage());
 				}
 			}
-			if (isWithinTierLevelCutoff(maxTier, testCase)) {
+			if (isASelectedTier(selectedTierLevels, testCase)) {
 				log.debug("running tests on: " + testCase.getSimpleName());
-				result = junit.run(testCase);
+				junit.run(testCase);
 			}
 		}
 		
@@ -211,29 +229,41 @@ public class TestRunnerHttpServlet extends HttpServlet
 		out.flush();
 	}
 
-	
+	public static Integer[] deriveSelectedTierLevels(String[] selectedTiers) {
+
+		Integer[] selectedTierLevels = null;
+		if (selectedTiers != null) {
+			selectedTierLevels = new Integer[selectedTiers.length];
+			for (int i = 0; i< selectedTiers.length; i++) {
+				selectedTierLevels[i] = Integer.valueOf(selectedTiers[i].replaceAll("\\D+", ""));
+				log.debug("Selected Tier: [" + i + "]:" + selectedTierLevels[i]);
+			}
+		}
+		return selectedTierLevels;
+	}
 	
 	/** 
 	 * if not working within the context of MNodeTier tests, will return true
-	 * otherwise, compare number in the test to the maxTier number.
+	 * otherwise, compare number in the test to the number(s) in selectedTiers.
 	 */
-	public boolean isWithinTierLevelCutoff(String maxTier, Class testCase) 
+	public boolean isASelectedTier(Integer[] selectedTiers, Class<?> testCase) 
 	{
-		if (maxTier == null) 
+		if (selectedTiers == null) 
 			return true;
 		
 		String testName = testCase.getSimpleName();
+		log.debug("testCase name: " + testName);
 		if (testName.contains("MNodeTier")) {
 			int index = testName.indexOf("Tier") + 4;
 			Integer tcTier = Integer.valueOf(testName.substring(index,index+1));
 			
-			Integer tierMaxNum = Integer.valueOf(maxTier.replaceAll("\\D+",""));
-
-			if (tcTier <= tierMaxNum) {
-				return true;
-			} else {
-				return false;
+			for (Integer selectedTier : selectedTiers) {
+				if (tcTier == selectedTier) {
+					log.debug("   is Selected : " + testName);
+					return true;
+				}
 			}
+			return false;
 		} else {
 			return true;
 		}
@@ -263,15 +293,13 @@ public class TestRunnerHttpServlet extends HttpServlet
 
 	
 	@SuppressWarnings("rawtypes")
-	private static Class[] getIntegrationTestClasses(String pattern) 
-	throws ClassNotFoundException, IOException 
+	private Class[] getIntegrationTestClasses(String pattern) 
 	{
 		log.debug("Java class Path: " + System.getProperty("java.class.path") );
 		
 		ArrayList<Class> matchingClasses = new ArrayList<Class>();
 		
-		Class[] testClasses = getClasses(TEST_PACKAGE);  // gets classes in subpackages, too
-		log.debug("find classes in package: " + TEST_PACKAGE);
+		log.debug("find classes in package: " + TEST_PACKAGE_DOMAIN);
 		log.debug("testClass.pattern = " + pattern);
 		for(Class testClass : testClasses) {
 			String className = testClass.getName();
@@ -286,9 +314,10 @@ public class TestRunnerHttpServlet extends HttpServlet
 			}
 		}
 		Collections.sort(matchingClasses, new NameComparator());
-		return matchingClasses.toArray(new Class[matchingClasses.size()]);
+		return matchingClasses.toArray(new Class<?>[matchingClasses.size()]);
 	}
 	
+	@SuppressWarnings("rawtypes")
 	static class NameComparator implements Comparator<Class> {
 	    @Override
 	    public int compare(Class c1, Class c2) {
@@ -304,8 +333,8 @@ public class TestRunnerHttpServlet extends HttpServlet
      * @throws ClassNotFoundException
      * @throws IOException
      */
-    private static Class[] getClasses(String packageName)
-            throws ClassNotFoundException, IOException {
+    private static Class<?>[] getClasses(String packageName) throws IOException 
+    {
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
     	
         assert classLoader != null;
@@ -316,7 +345,7 @@ public class TestRunnerHttpServlet extends HttpServlet
             URL resource = resources.nextElement();
             dirs.add(new File(resource.getFile()));
         }
-        ArrayList<Class> classes = new ArrayList<Class>();
+        ArrayList<Class<?>> classes = new ArrayList<Class<?>>();
         for (File directory : dirs) {
             classes.addAll(findClasses(directory, packageName));
         }
@@ -331,19 +360,29 @@ public class TestRunnerHttpServlet extends HttpServlet
      * @return The classes
      * @throws ClassNotFoundException
      */
-    private static List<Class> findClasses(File directory, String packageName) throws ClassNotFoundException {
-        List<Class> classes = new ArrayList<Class>();
+    private static List<Class<?>> findClasses(File directory, String packageName) {
+        List<Class<?>> classes = new ArrayList<Class<?>>();
         if (!directory.exists()) {
             return classes;
         }
         File[] files = directory.listFiles();
+        log.debug("findClasses [D]: " + directory.getName());
         for (File file : files) {
+
+        	String filename = file.getName();
             if (file.isDirectory()) {
-                assert !file.getName().contains(".");
-                classes.addAll(findClasses(file, packageName + "." + file.getName()));
-            } else if (file.getName().endsWith(".class")) {
-            	if (!file.getName().contains("$"))
-            		classes.add(Class.forName(packageName + '.' + file.getName().substring(0, file.getName().length() - 6)));
+                assert !filename.contains(".");
+                classes.addAll(findClasses(file, packageName + "." + filename));
+            } else if (filename.endsWith("IT.class") || filename.endsWith("MockITCase.class")) {
+            	log.debug("findClasses    :    " + filename);
+            	if (!filename.contains("$")) {
+            		String fullFileName = packageName + '.' + filename.substring(0, filename.length() - 6);
+            		try {
+						classes.add(Class.forName(fullFileName));
+					} catch (Throwable t) {
+						log.warn("Could not add class for " + fullFileName, t);
+					}
+            	}
             }
         }
         return classes;

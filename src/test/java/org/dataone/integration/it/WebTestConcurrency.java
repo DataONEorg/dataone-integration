@@ -25,6 +25,7 @@ package org.dataone.integration.it;
 import java.util.Iterator;
 import java.util.UUID;
 
+import org.dataone.integration.ContextAwareTestCaseDataone;
 import org.dataone.service.types.v1.Node;
 import org.junit.Test;
 

@@ -18,7 +18,7 @@
  * limitations under the License.
  */
 
-package org.dataone.integration.it;
+package org.dataone.integration;
 
 import java.util.Vector;
 

@@ -20,10 +20,14 @@
 
 package org.dataone.integration.it;
 
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
+import java.net.URISyntaxException;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
 import java.util.Vector;
 
@@ -37,10 +41,16 @@ import org.dataone.client.v2.formats.ObjectFormatCache;
 import org.dataone.client.auth.CertificateManager;
 import org.dataone.configuration.Settings;
 import org.dataone.ore.ResourceMapFactory;
+import org.dataone.integration.APITestUtils;
+import org.dataone.integration.ContextAwareTestCaseDataone;
+import org.dataone.integration.ExampleUtilities;
+import org.dataone.ore.ResourceMapFactory;
 import org.dataone.service.exceptions.BaseException;
+import org.dataone.service.exceptions.InsufficientResources;
 import org.dataone.service.exceptions.InvalidToken;
 import org.dataone.service.exceptions.NotAuthorized;
 import org.dataone.service.exceptions.NotFound;
+import org.dataone.service.exceptions.NotImplemented;
 import org.dataone.service.exceptions.ServiceFailure;
 import org.dataone.service.exceptions.SynchronizationFailed;
 import org.dataone.service.types.v1.Checksum;
@@ -54,12 +64,17 @@ import org.dataone.service.types.v1.NodeReference;
 import org.dataone.service.types.v1.ObjectFormat;
 import org.dataone.service.types.v1.ObjectFormatIdentifier;
 import org.dataone.service.types.v2.ObjectFormatList;
+import org.dataone.service.types.v1.ObjectFormatList;
 import org.dataone.service.types.v1.ObjectInfo;
 import org.dataone.service.types.v1.ObjectList;
 import org.dataone.service.types.v1.Subject;
 import org.dataone.service.types.v1.SystemMetadata;
 import org.dataone.service.types.v1.util.ChecksumUtil;
 import org.dataone.service.util.DateTimeMarshaller;
+
+import org.dspace.foresite.OREException;
+import org.dspace.foresite.OREParserException;
+import org.dspace.foresite.ResourceMap;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -442,7 +457,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     		try {
     			Date t0 = new Date();
     			Date toDate = t0;
-    			Date fromDate = t0;
+//    			Date fromDate = t0;
 
     			Log entries = APITestUtils.pagedGetLogRecords(mn, null, toDate, null, null, null, null);
 
@@ -669,7 +684,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     			if (contacts != null) {
     				for (Subject s : contacts) {
     					try {
-    						String standardizedName = CertificateManager.getInstance().standardizeDN(s.getValue());
+    						CertificateManager.getInstance().standardizeDN(s.getValue());
     						found = true;
     					} catch (IllegalArgumentException e) {
     						; // this can happen legally, but means that it is not actionable
@@ -769,7 +784,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     
     /**
      * Tests that count and start parameters are functioning, and getCount() and getTotal()
-     * are reasonable values.
+     * are the correct values.
      */
     @Test
     public void testListObjects_Slicing()
@@ -788,13 +803,16 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     			StringBuffer sb = new StringBuffer();
     			int i = 0;
     			if (ol.getCount() != ol.sizeObjectInfoList())
-    				sb.append(++i + ". 'count' attribute should equal the number of ObjectInfos returned.  \n");
+    				sb.append(++i + ". 'count' attribute should equal the number of ObjectInfos returned. [" + 
+    						mn.getLatestRequestUrl() + "]  \n");
     		
     			if (ol.getTotal() < ol.getCount())
-    				sb.append(++i + ". 'total' attribute should be >= the 'count' attribute in the returned ObjectList.  \n");
+    				sb.append(++i + ". 'total' attribute should be >= the 'count' attribute in the returned ObjectList. [" + 
+    						mn.getLatestRequestUrl() + "]  \n");
 
     			if (ol.getTotal() < ol.sizeObjectInfoList())
-    				sb.append(++i + "'total' attribute should be >= the number of ObjectInfos returned.  \n");
+    				sb.append(++i + "'total' attribute should be >= the number of ObjectInfos returned. [" + 
+    						mn.getLatestRequestUrl() + "]  \n");
 
 
     			// test that one can limit the count
@@ -802,7 +820,8 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     			ol = mn.listObjects(null, null, null, null, null, 0, halfCount);
 
     			if (ol.sizeObjectInfoList() != halfCount)
-    				sb.append(++i + ". should be able to limit the number of returned ObjectInfos using 'count' parameter.");
+    				sb.append(++i + ". should be able to limit the number of returned ObjectInfos using " +
+    						"'count' parameter. [" + mn.getLatestRequestUrl() + "]  \n");
     				    			
     			// TODO:  test that 'start' parameter does what it says
 
@@ -810,7 +829,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     			
     			
     			if (i > 0) {
-    				handleFail(mn.getLatestRequestUrl(),"Slicing errors:\n" + sb.toString());
+    				handleFail(currentUrl,"Slicing errors:\n" + sb.toString());
     			}
     			
     		}
@@ -899,10 +918,44 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     	}
     }
     
+    /**
+     * Tests that the formatID parameter rightly returns no records
+     * when a fake format is given
+     */
+    @Test
+    public void testListObjects_FormatIdFilteringTestFakeFormat() {
+    	setupClientSubject_NoCert();
+       	Iterator<Node> it = getMemberNodeIterator();
+    	while (it.hasNext()) {
+    		currentUrl = it.next().getBaseURL();
+    		MNode mn = D1Client.getMN(currentUrl);
+    		currentUrl = mn.getNodeBaseServiceUrl();
+    		printTestHeader("testListObjects_FormatIdFilteringFakeFormat() vs. node: " + currentUrl);
+    		try {
+    			// call listObjects with a fake format
+   				ObjectList ol = mn.listObjects(null, null, null, D1TypeBuilder.buildFormatIdentifier("fake_format"),
+   						null, null, null);
+   				if (ol.getTotal() != 0) {
+   					handleFail(mn.getLatestRequestUrl(),"filtering the object list by a fake " +
+   							"format should return zero objects");
+   				}
+    		} 
+    		catch (BaseException e) {
+    			handleFail(mn.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
+    					e.getDetail_code() + ":: " + e.getDescription());
+    		}
+    		catch(Exception e) {
+    			e.printStackTrace();
+    			handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+    		}
+    	}
+    }
+    
     
     /**
      * Tests that the formatID parameter successfully filters records by
-     * the given formatId
+     * the given formatId.  It is an indirect test of the totals returned
+     * by list objects with and without a formatId filter.
      */
     @Test
     public void testListObjects_FormatIdFilteringTest() {
@@ -915,41 +968,36 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     		printTestHeader("testListObjects_FormatIdFiltering() vs. node: " + currentUrl);
 
     		try {
-    			ObjectList ol = mn.listObjects(null, null, null, null, null, 0, 0);
-    			if (ol.getTotal() == 0) {
-    				// procure also creates!
-    				ol = procureObjectList(mn);
-    			} else {
-    				ol = APITestUtils.pagedListObjects(mn, null, null, null, null, 0, ol.getTotal());
-    			}
+    			ObjectList ol = mn.listObjects();
     			checkTrue(mn.getLatestRequestUrl(),"listObjects() should return an ObjectList", ol != null);
     			if (ol.getTotal() == 0)
     				throw new TestIterationEndingException("no objects found in listObjects");
-    			ObjectFormatIdentifier excludedFormat = ol.getObjectInfo(0).getFormatId();
-    			for (ObjectInfo oi : ol.getObjectInfoList()) {
-    				if (!oi.getFormatId().equals(excludedFormat)) {
-    					ObjectList ol2 = mn.listObjects(null, null, null, oi.getFormatId(),
-    	   						null, null, null);
-    	   				checkTrue(mn.getLatestRequestUrl(),"objectList filtered by " + oi.getFormatId().getValue() +
-    	   				      " should contain fewer objects than unfiltered", 
-    	   				      ol2.getTotal() <  ol.getTotal()
-    	   				      );
-    	   				break;
-    				}
-    			}
     			
-   				// call listObjects with a fake format
-   				ol = mn.listObjects(null, null, null, D1TypeBuilder.buildFormatIdentifier("fake_format"),
-   						null, null, null);
-   				if (ol.getTotal() != 0) {
-   					handleFail(mn.getLatestRequestUrl(),"filtering the object list by a fake " +
-   							"format should return zero objects");
-   				}
-   				
-   				
-   				
-   				
-   				
+    			int allTotal = ol.getTotal();
+    			
+    			ObjectFormatIdentifier formatA = ol.getObjectInfo(0).getFormatId();
+
+    			
+    			boolean foundAnother = false;
+    			int increment = 200;
+    			findAnotherFormat:
+    				for (int i=0; i<allTotal; i += increment) {
+    					ol = mn.listObjects(null, null, null, null, null, i, increment);
+    					for (ObjectInfo oi : ol.getObjectInfoList()) {
+    						if (!oi.getFormatId().equals(formatA)) {
+    							foundAnother = true;
+    							break findAnotherFormat;
+    						}
+    					}
+    				}
+    			if (!foundAnother) {
+    				throw new TestIterationEndingException("only one object format was found.  Can't test format filtering");
+    			}
+    			ol = mn.listObjects(null, null, null, formatA, null, null, null);
+    			checkTrue(mn.getLatestRequestUrl(),"objectList filtered by " + 
+    			     formatA.getValue() + " should contain fewer objects than unfiltered", 
+    				ol.getTotal() <  allTotal);
+    			
     		} 
     		catch (BaseException e) {
     			handleFail(mn.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
@@ -1160,8 +1208,8 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
 
     		try {
     			String fakeID = "TestingNotFound:" + ExampleUtilities.generateIdentifier(); 
-    			SystemMetadata smd = mn.getSystemMetadata(null,D1TypeBuilder.buildIdentifier(fakeID));
-    			handleFail(mn.getLatestRequestUrl(),"getSystemMetadata(fakeID) should not throw dataone NotFound.");
+    			mn.getSystemMetadata(null,D1TypeBuilder.buildIdentifier(fakeID));
+    			handleFail(mn.getLatestRequestUrl(),"getSystemMetadata(fakeID) should throw dataone NotFound.");
     		}
     		catch (NotFound nf) {
     			;  // expected outcome
@@ -1599,6 +1647,360 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     		}
     	}
     }
+    /**
+     * Iterates known resource map formats to find an exemplar for testing that 
+     * the checksum and size in the ObjectInfo match what is in
+     * systemMetadata, and matches what is recalculated when retrieving the object.
+     * 
+     */
+    @Test
+    public void testResourceMap_Checksum_Size_Consistency() {
+    	testContent_Checksum_Size_Consistency("RESOURCE");
+    }
+
+    /**
+     * Iterates known metadata formats to find an exemplar for testing that 
+     * the checksum and size in the ObjectInfo match what is in
+     * systemMetadata, and matches what is recalculated when retrieving the object.
+     * 
+     */
+    @Test
+    public void testMetadata_Checksum_Size_Consistency() {
+    	testContent_Checksum_Size_Consistency("METADATA");
+    }
+
+    /**
+     * Test to compare the checksum and size in the ObjectInfo match what is in
+     * systemMetadata, and matches what is recalculated when retrieving the object.
+     */
+    protected void testContent_Checksum_Size_Consistency(String formatType) {
+    	
+    	setupClientSubject_NoCert();
+       	Iterator<Node> it = getMemberNodeIterator();
+       	
+       	StringBuffer formatsChecked = new StringBuffer("Formats Checked:");
+       	
+    	while (it.hasNext()) {
+    		currentUrl = it.next().getBaseURL();
+    		MNode mn = D1Client.getMN(currentUrl);
+    		currentUrl = mn.getNodeBaseServiceUrl();
+    		printTestHeader("testContent_Checksum_Size_Consistency(" + formatType + 
+    				") vs. node: " + currentUrl);
+    		boolean foundOne = false;
+    		try {
+    			ObjectFormatList ofl = ObjectFormatCache.getInstance().listFormats();
+    			for(ObjectFormat of : ofl.getObjectFormatList()) {
+    				if (of.getFormatType().equals(formatType)) {
+    					formatsChecked.append("\n" + of.getFormatId().getValue());
+    					log.info("   looking for objects with format: " + of.getFormatId().getValue());
+    				
+    					ObjectList ol = mn.listObjects(null, null, 
+    							of.getFormatId(), null, null, null);
+
+    					//TODO: listObjects returns ids for things that are not readable...
+    					if (ol.sizeObjectInfoList() > 0) {
+        					foundOne = true;
+    						
+
+    						log.info(ol.sizeObjectInfoList() + " items found of type " +
+    						  of.getFormatId().getValue());
+
+    						ObjectInfo oi = ol.getObjectInfoList().get(0);
+    						SystemMetadata smd = mn.getSystemMetadata(oi.getIdentifier());
+    						checkEquals(mn.getLatestRequestUrl(),"objectInfo checksum should equal that of sysMeta",
+    								oi.getChecksum().getAlgorithm() + " : " + oi.getChecksum().getValue(),
+    								smd.getChecksum().getAlgorithm() + " : " + smd.getChecksum().getValue());
+    						checkEquals(mn.getLatestRequestUrl(),"objectInfo size should equal that of sysMeta",
+    								oi.getSize().toString(),
+    								smd.getSize().toString());
+
+
+    						InputStream is = mn.get(oi.getIdentifier());
+    						//calculate the checksum and length
+    						CountingInputStream cis = new CountingInputStream(is);
+    						Checksum calcCS = ChecksumUtil.checksum(cis,oi.getChecksum().getAlgorithm());
+    						long calcSize = cis.getByteCount();
+
+    						checkEquals(mn.getLatestRequestUrl(),"calculated checksum should equal that of sysMeta",
+    								calcCS.getValue(),
+    								smd.getChecksum().getValue());
+    						checkEquals(mn.getLatestRequestUrl(),"calculated size should equal that of sysMeta",
+    								String.valueOf(calcSize),
+    								smd.getSize().toString());
+
+//    						break;
+    					}  // found at least one of that type
+    				}  // formatType matches 
+    			} // for each type
+    		}
+    		catch (BaseException e) {
+    			handleFail(mn.getLatestRequestUrl(), e.getClass().getSimpleName() + ": " + 
+    					e.getDetail_code() + ":: " + e.getDescription());
+    		}
+    		catch(Exception e) {
+    			e.printStackTrace();
+    			handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+    		}
+
+    		if (!foundOne)
+    			handleFail(mn.getLatestRequestUrl(),"No objects of formatType " +
+    					formatType + "returned from listObjects.  Cannot test.\n" +
+    					formatsChecked.toString());
+    	} // while member node
+    }    
+
+    
+    
+    /**
+     * Tests that a resource map can be parsed by the ResourceMapFactory.
+     * Method: for every formatID of type resource, pull an objectList of just that
+     * type (maximum of 20), and try to parse each one.
+     */
+    @Test
+    public void testResourceMapParsing() {
+    	setupClientSubject_NoCert();
+       	Iterator<Node> it = getMemberNodeIterator();
+    	while (it.hasNext()) {
+    		currentUrl = it.next().getBaseURL();
+    		MNode mn = D1Client.getMN(currentUrl);
+    		currentUrl = mn.getNodeBaseServiceUrl();
+    		printTestHeader("testResourceMapParsing() vs. node: " + currentUrl);
+
+    		StringBuffer formatsChecked = new StringBuffer("Formats Checked:");
+    		
+    		try {
+    			boolean foundOne = false;
+    			ObjectFormatList ofl = ObjectFormatCache.getInstance().listFormats();
+    			for(ObjectFormat of : ofl.getObjectFormatList()) 
+    			{
+    				if (of.getFormatType().equals("RESOURCE")) {
+    					formatsChecked.append("\n" + of.getFormatId().getValue());
+    					
+    					ObjectList ol = mn.listObjects(null, null, of.getFormatId(),null, null, 20);
+    					if (ol.sizeObjectInfoList() > 0) {
+    						log.info(ol.sizeObjectInfoList() + " items found of type " +
+    	    						  of.getFormatId().getValue());
+    						for (ObjectInfo oi : ol.getObjectInfoList()) {
+    							String resMapContent;
+    							try {
+    								InputStream is = mn.get(oi.getIdentifier());
+    								foundOne = true;
+    								log.info("Found public resource map: " + oi.getIdentifier().getValue());
+    								resMapContent = IOUtils.toString(is);
+    								if (resMapContent != null) {
+    									ResourceMapFactory.getInstance().parseResourceMap(resMapContent);
+    								} else {
+    									handleFail(mn.getLatestRequestUrl(),"got null content from the get request");
+    								}
+    							} catch (NotAuthorized e) {
+    								; // comes from the mn.get(), will keep trying...	
+    							} catch (NullPointerException npe) {
+    								handleFail(mn.getLatestRequestUrl(), 
+    										"Got NPE exception from the parsing library, which means that the " +
+    										"content could not be parsed into a ResourceMap.  One known cause " +
+    										"is relative resource URIs used for the resource map object, the aggregated resources," +
+    										" or the aggregation itself." );
+    							} catch (Exception e) {
+    								handleFail(mn.getLatestRequestUrl(), 
+    										"Should be able to parse the serialized resourceMap.  Got exception: " +
+    											e.getClass().getSimpleName() + ": " + 
+    											e.getMessage() + 
+    											"at line number " + e.getStackTrace()[0].getLineNumber());
+    							}
+    						}
+    					} 
+    				}
+    			}
+    			if (!foundOne) {
+    				handleFail(mn.getLatestRequestUrl(),"No public resource maps " +
+							"returned from listObjects.  Cannot test.\n" +
+    					formatsChecked.toString());
+    			}
+    		}
+    		catch (BaseException e) {
+    			handleFail(mn.getLatestRequestUrl(), e.getClass().getSimpleName() + ": " + 
+    					e.getDetail_code() + ":: " + e.getDescription());
+    		}
+    		catch(Exception e) {
+    			e.printStackTrace();
+    			handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage() +
+    					"at line number " + e.getStackTrace()[0].getLineNumber());
+    		}
+    	}
+    }
+    
+    
+    /**
+     * Tests that the resource map's URLs point to cn/v1/resolve.
+     */
+    @Test
+    public void testResourceMap_ResolveURL() {
+    	setupClientSubject_NoCert();
+       	Iterator<Node> it = getMemberNodeIterator();
+    	while (it.hasNext()) {
+    		currentUrl = it.next().getBaseURL();
+    		MNode mn = D1Client.getMN(currentUrl);
+    		currentUrl = mn.getNodeBaseServiceUrl();
+    		printTestHeader("testResourceMapParsing_ResolveURL() vs. node: " + currentUrl);
+
+    		StringBuffer formatsChecked = new StringBuffer("Formats Checked:");
+    		
+    		try {
+    			boolean foundOne = false;
+    			ObjectFormatList ofl = ObjectFormatCache.getInstance().listFormats();
+    			for(ObjectFormat of : ofl.getObjectFormatList()) 
+    			{
+    				if (of.getFormatType().equals("RESOURCE")) {
+    					formatsChecked.append("\n" + of.getFormatId().getValue());
+    					
+    					ObjectList ol = mn.listObjects(null, null, of.getFormatId(),null, null, 20);
+    					if (ol.sizeObjectInfoList() > 0) {
+    						log.info(ol.sizeObjectInfoList() + " items found of type " +
+    	    						  of.getFormatId().getValue());
+    						for (ObjectInfo oi : ol.getObjectInfoList()) {
+    							String resMapContent;
+    							try {
+    								InputStream is = mn.get(oi.getIdentifier());
+    								foundOne = true;
+    								log.info("Found public resource map: " + oi.getIdentifier().getValue());
+    								resMapContent = IOUtils.toString(is);
+    								resourceMapChecker(mn, oi.getIdentifier(), resMapContent);
+    								
+    								
+    							} catch (NotAuthorized e) {
+    								; // comes from the mn.get(), will keep trying...	
+    							} catch (NullPointerException npe) {
+    								handleFail(mn.getLatestRequestUrl(), 
+    										"Got NPE exception from the parsing library, which means that the " +
+    										"content could not be parsed into a ResourceMap.  One known cause " +
+    										"is relative resource URIs used for the resource map object, the aggregated resources," +
+    										" or the aggregation itself." );} catch (Exception e) {
+    								handleFail(mn.getLatestRequestUrl(), 
+    										"Should be able to parse the serialized resourceMap.  Got exception: " +
+    											e.getClass().getSimpleName() + ": " + 
+    											e.getMessage());
+    							}
+    						}
+    					} 
+    				}
+    			}
+    			if (!foundOne) {
+    				handleFail(mn.getLatestRequestUrl(),"No public resource maps " +
+							"returned from listObjects.  Cannot test.\n" +
+    					formatsChecked.toString());
+    			}
+    		}
+    		catch (BaseException e) {
+    			handleFail(mn.getLatestRequestUrl(), e.getClass().getSimpleName() + ": " + 
+    					e.getDetail_code() + ":: " + e.getDescription());
+    		}
+    		catch(Exception e) {
+    			e.printStackTrace();
+    			handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+    		}
+    	}
+    }
+    
+    
+//    @Test
+    public void foo() throws InvalidToken, NotAuthorized, NotImplemented, 
+    ServiceFailure, NotFound, InsufficientResources, IOException, 
+    OREException, URISyntaxException, OREParserException 
+    {
+    	MNode mn = D1Client.getMN("https://mn-demo-5.test.dataone.org/knb/d1/mn");
+    	Identifier p = D1TypeBuilder.buildIdentifier("resourceMap_doi:10.5072/FK28K7J92");
+    	InputStream is = mn.get(p);
+    	String resMapContent = IOUtils.toString(is);
+    	resMapContent = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><rdf:RDF" 
++ "   xmlns:cito=\"http://purl.org/spar/cito/\""
++ "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\""
++ "   xmlns:dcterms=\"http://purl.org/dc/terms/\""
++ "   xmlns:foaf=\"http://xmlns.com/foaf/0.1/\""
++ "   xmlns:ore=\"http://www.openarchives.org/ore/terms/\""
++ "   xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\""
++ "   xmlns:rdfs1=\"http://www.w3.org/2001/01/rdf-schema#\">"
++ "  <rdf:Description rdf:about=\"http://foresite-toolkit.googlecode.com/#pythonAgent\">"
++ "    <foaf:mbox>foresite@googlegroups.com</foaf:mbox>"
++ "    <foaf:name>Foresite Toolkit (Python)</foaf:name>"
++ "  </rdf:Description>"
++ "  <rdf:Description rdf:about=\"https://cn.dataone.org/cn/v1/resolve/scimeta_id\">"
++ "    <cito:documents rdf:resource=\"https://cn-dev.test.dataone.org/cn/v1/resolve/scidata_id\"/>"
++ "    <dcterms:identifier>scimeta_id</dcterms:identifier>"
++ "    <dcterms:description>A reference to a science metadata document using a DataONE identifier.</dcterms:description>"
++ "  </rdf:Description>"
++ "  <rdf:Description rdf:about=\"http://www.openarchives.org/ore/terms/ResourceMap\">"
++ "    <rdfs1:isDefinedBy rdf:resource=\"http://www.openarchives.org/ore/terms/\"/>"
++ "    <rdfs1:label>ResourceMap</rdfs1:label>"
++ "  </rdf:Description>"
++ "  <rdf:Description rdf:about=\"https://cn.dataone.org/cn/v1/resolve/resource_map_id\">"
++ "    <dcterms:identifier>resource_map_id</dcterms:identifier>"
++ "    <dcterms:modified>2011-08-12T12:55:16Z</dcterms:modified>"
++ "    <rdf:type rdf:resource=\"http://www.openarchives.org/ore/terms/ResourceMap\"/>"
++ "    <dc:format>application/rdf+xml</dc:format>"
++ "    <ore:describes rdf:resource=\"https://cn-dev.test.dataone.org/cn/v1/resolve/aggregation_id\"/>"
++ "    <dcterms:created>2011-08-12T12:55:16Z</dcterms:created>"
++ "    <dcterms:creator rdf:resource=\"http://foresite-toolkit.googlecode.com/#pythonAgent\"/>"
++ "  </rdf:Description>"
++ "  <rdf:Description rdf:about=\"http://www.openarchives.org/ore/terms/Aggregation\">"
++ "    <rdfs1:isDefinedBy rdf:resource=\"http://www.openarchives.org/ore/terms/\"/>"
++ "    <rdfs1:label>Aggregation</rdfs1:label>"
++ "  </rdf:Description>"
++ "  <rdf:Description rdf:about=\"https://cn-dev.test.dataone.org/cn/v1/resolve/aggregation_id\">"
++ "    <rdf:type rdf:resource=\"http://www.openarchives.org/ore/terms/Aggregation\"/>"
++ "    <dcterms:title>Simple aggregation of science metadata and data</dcterms:title>"
++ "    <ore:aggregates rdf:resource=\"https://cn-dev.test.dataone.org/cn/v1/resolve/scidata_id\"/>"
++ "    <ore:aggregates rdf:resource=\"https://cn.dataone.org/cn/v1/resolve/scimeta_id\"/>"
++ "  </rdf:Description>"
++ "  <rdf:Description rdf:about=\"https://cn-dev.test.dataone.org/cn/v1/resolve/scidata_id\">"
++ "    <cito:isDocumentedBy rdf:resource=\"https://cn.dataone.org/cn/v1/resolve/scimeta_id\"/>"
++ "    <dcterms:identifier>scidata_id</dcterms:identifier>"
++ "    <dcterms:description>A reference to a science data object using a DataONE identifier</dcterms:description>"
++ "  </rdf:Description>"
++ "</rdf:RDF>";
+    	resMapContent = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><rdf:RDF xmlns:cito=\"http://purl.org/spar/cito/\" xmlns:dc=\"http://purl.org/dc/elements/1.1/\" xmlns:dcterms=\"http://purl.org/dc/terms/\" xmlns:foaf=\"http://xmlns.com/foaf/0.1/\" xmlns:ore=\"http://www.openarchives.org/ore/terms/\" xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\" xmlns:rdfs1=\"http://www.w3.org/2001/01/rdf-schema#\" ><rdf:Description rdf:about=\"http://129.24.63.115/apps/dataone/v1/object/7f115193-ea2b-4486-ba72-afe51008dc71\"><dcterms:identifier>7f115193-ea2b-4486-ba72-afe51008dc71</dcterms:identifier><cito:isDocumentedBy>http://129.24.63.115/apps/dataone/v1/object/5760e5ef-efef-4c97-b393-79850d1b67b3</cito:isDocumentedBy><dcterms:description>Data object (7f115193-ea2b-4486-ba72-afe51008dc71)</dcterms:description><dc:title>Dataset: 5760e5ef-efef-4c97-b393-79850d1b67b3</dc:title></rdf:Description><rdf:Description rdf:about=\"http://www.openarchives.org/ore/terms/Aggregation\"><rdfs1:isDefinedBy rdf:resource=\"http://www.openarchives.org/ore/terms/\"/><rdfs1:label>Aggregation</rdfs1:label></rdf:Description><rdf:Description rdf:about=\"http://129.24.63.115/apps/dataone/v1/object/5760e5ef-efef-4c97-b393-79850d1b67b3\"><dcterms:identifier>5760e5ef-efef-4c97-b393-79850d1b67b3</dcterms:identifier><dc:title>Metadata: 5760e5ef-efef-4c97-b393-79850d1b67b3</dc:title><dcterms:description>Science metadata object (5760e5ef-efef-4c97-b393-79850d1b67b3) for Data object (7f115193-ea2b-4486-ba72-afe51008dc71)</dcterms:description><cito:documents>http://129.24.63.115/apps/dataone/v1/object/7f115193-ea2b-4486-ba72-afe51008dc71</cito:documents></rdf:Description><rdf:Description rdf:about=\"http://www.openarchives.org/ore/terms/ResourceMap\"><rdfs1:isDefinedBy rdf:resource=\"http://www.openarchives.org/ore/terms/\"/><rdfs1:label>ResourceMap</rdfs1:label></rdf:Description><rdf:Description rdf:about=\"http://129.24.63.115/apps/dataone/v1/object/28335b70-8d10-49f7-910f-9a84a14703d4\"><dcterms:creator rdf:resource=\"http://foresite-toolkit.googlecode.com/#pythonAgent\"/><dcterms:modified>2012-10-25T16:51:47Z</dcterms:modified><dc:format>application/rdf+xml</dc:format>" +
+    			"<ore:describes rdf:resource=\"https://cn.dataone.org/cn/v1/resolve/aggregate_id\"/><rdf:type rdf:resource=\"http://www.openarchives.org/ore/terms/ResourceMap\"/><dcterms:created>2012-10-25T16:51:47Z</dcterms:created></rdf:Description><rdf:Description rdf:about=\"http://foresite-toolkit.googlecode.com/#pythonAgent\"><foaf:mbox>foresite@googlegroups.com</foaf:mbox><foaf:name>Foresite Toolkit (Python)</foaf:name></rdf:Description>" +
+    			"<rdf:Description rdf:about=\"https://cn.dataone.org/cn/v1/resolve/aggregate_id\"><rdf:type rdf:resource=\"http://www.openarchives.org/ore/terms/Aggregation\"/><ore:aggregates rdf:resource=\"http://129.24.63.115/apps/dataone/v1/object/5760e5ef-efef-4c97-b393-79850d1b67b3\"/><ore:aggregates rdf:resource=\"http://129.24.63.115/apps/dataone/v1/object/7f115193-ea2b-4486-ba72-afe51008dc71\"/></rdf:Description></rdf:RDF>";
+    	resMapContent = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><rdf:RDF xmlns:cito=\"http://purl.org/spar/cito/\" xmlns:dc=\"http://purl.org/dc/elements/1.1/\" xmlns:dcterms=\"http://purl.org/dc/terms/\" xmlns:foaf=\"http://xmlns.com/foaf/0.1/\" xmlns:ore=\"http://www.openarchives.org/ore/terms/\" xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\" xmlns:rdfs1=\"http://www.w3.org/2001/01/rdf-schema#\" ><rdf:Description rdf:about=\"http://129.24.63.115/apps/dataone/v1/object/7f115193-ea2b-4486-ba72-afe51008dc71\"><dcterms:identifier>7f115193-ea2b-4486-ba72-afe51008dc71</dcterms:identifier><cito:isDocumentedBy>http://129.24.63.115/apps/dataone/v1/object/5760e5ef-efef-4c97-b393-79850d1b67b3</cito:isDocumentedBy><dcterms:description>Data object (7f115193-ea2b-4486-ba72-afe51008dc71)</dcterms:description></rdf:Description><rdf:Description rdf:about=\"http://www.openarchives.org/ore/terms/Aggregation\"><rdfs1:isDefinedBy rdf:resource=\"http://www.openarchives.org/ore/terms/\"/><rdfs1:label>Aggregation</rdfs1:label></rdf:Description><rdf:Description rdf:about=\"http://129.24.63.115/apps/dataone/v1/object/5760e5ef-efef-4c97-b393-79850d1b67b3\"><dcterms:identifier>5760e5ef-efef-4c97-b393-79850d1b67b3</dcterms:identifier><dcterms:description>Science metadata object (5760e5ef-efef-4c97-b393-79850d1b67b3) for Data object (7f115193-ea2b-4486-ba72-afe51008dc71)</dcterms:description><cito:documents>http://129.24.63.115/apps/dataone/v1/object/7f115193-ea2b-4486-ba72-afe51008dc71</cito:documents></rdf:Description><rdf:Description rdf:about=\"http://www.openarchives.org/ore/terms/ResourceMap\"><rdfs1:isDefinedBy rdf:resource=\"http://www.openarchives.org/ore/terms/\"/><rdfs1:label>ResourceMap</rdfs1:label></rdf:Description><rdf:Description rdf:about=\"http://129.24.63.115/apps/dataone/v1/object/28335b70-8d10-49f7-910f-9a84a14703d4\"><dcterms:creator rdf:resource=\"http://foresite-toolkit.googlecode.com/#pythonAgent\"/><dcterms:modified>2012-10-25T16:51:47Z</dcterms:modified><dc:format>application/rdf+xml</dc:format>" +
+    			"<ore:describes rdf:resource=\"https://cn.dataone.org/cn/v1/resolve/aggregate_id\"/><rdf:type rdf:resource=\"http://www.openarchives.org/ore/terms/ResourceMap\"/><dcterms:created>2012-10-25T16:51:47Z</dcterms:created></rdf:Description><rdf:Description rdf:about=\"http://foresite-toolkit.googlecode.com/#pythonAgent\"><foaf:mbox>foresite@googlegroups.com</foaf:mbox><foaf:name>Foresite Toolkit (Python)</foaf:name></rdf:Description>" +
+    			"<rdf:Description rdf:about=\"https://cn.dataone.org/cn/v1/resolve/aggregate_id\"><rdf:type rdf:resource=\"http://www.openarchives.org/ore/terms/Aggregation\"/><ore:aggregates rdf:resource=\"http://129.24.63.115/apps/dataone/v1/object/5760e5ef-efef-4c97-b393-79850d1b67b3\"/><ore:aggregates rdf:resource=\"http://129.24.63.115/apps/dataone/v1/object/7f115193-ea2b-4486-ba72-afe51008dc71\"/></rdf:Description></rdf:RDF>";
+    	
+    	System.out.println(resMapContent);
+    	resourceMapChecker(mn,p,resMapContent);
+    }
+    
+    private void resourceMapChecker(MNode mn, Identifier packageId, String resMapContent) 
+    throws UnsupportedEncodingException, OREException, URISyntaxException, OREParserException 
+    {
+    	Map<Identifier, Map<Identifier, List<Identifier>>> rm = 
+		ResourceMapFactory.getInstance().parseResourceMap(resMapContent);
+    	
+ //   	checkTrue(mn.getLatestRequestUrl(),  
+ //   	    "packageId matches packageId used to call", rm.containsKey(packageId));
+    	
+    	if (rm != null) {
+    		Iterator<Identifier> it = rm.keySet().iterator();
+    	
+    		while (it.hasNext()) {
+    			Identifier pp = it.next();
+    			System.out.println("package: " + pp.getValue());
+    		}
+
+    		Map<Identifier, List<Identifier>> agg = rm.get(rm.keySet().iterator().next());
+    		Iterator<Identifier> itt  = agg.keySet().iterator();
+    		while (itt.hasNext()) {
+    			Identifier docs = itt.next();
+    			System.out.println("md: " + docs.getValue());
+    			//checkTrue("the identifier should start with https://cn.dataone.org/cn/v1/resolve","",true);
+    			List<Identifier> docd = agg.get(docs);
+    			for (Identifier id: docd) {
+    				System.out.println("data: " + id.getValue());
+    			}
+    		}
+    	} else {
+    		handleFail("","parseResourceMap returned null");
+    	}
+    	
+    }
     
     
 	@Test
@@ -1726,14 +2128,20 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
     
     
 	/**
-	 *  Test MNReplication.getReplica() functionality.  This tests the normal usage
-	 *  where the caller is a MemberNode. Other callers should fail.
+	 *  Test MNReplication.getReplica() functionality using a public object.  
+	 *  Tier2 and higher member nodes are required to check that the caller is 
+	 *  authorized to read the object by checking with the CN that it is a qualified
+	 *  member node.  Requests for public objects do not need to perform this
+	 *  check, because they are public.  
+	 *  
+	 *  Some member nodes may choose to qualify the client subject anyway, to make
+	 *  sure it is a member node.
 	 */
-//	@Ignore("cannot test a passing situation in standalone mode")
-//	@Test
-	public void testGetReplica() {
+	@Test
+	public void testGetReplica_PublicObject() {
 
-		setupClientSubject("testMN");
+		String clientSubject = "urn:node:cnStageUNM1";
+		setupClientSubject(clientSubject);
 
 		Iterator<Node> it = getMemberNodeIterator();  	
 
@@ -1747,16 +2155,26 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
 				String objectIdentifier = "TierTesting:" + 
 					 	createNodeAbbreviation(mn.getNodeBaseServiceUrl()) +
 					 	":Public_READ" + testObjectSeriesSuffix;
-				Identifier pid = procurePublicReadableTestObject(mn,D1TypeBuilder.buildIdentifier(objectIdentifier));
+				Identifier pid = procurePublicReadableTestObject(mn,
+						D1TypeBuilder.buildIdentifier(objectIdentifier));
+			
 				InputStream is = mn.getReplica(null, pid);
-				checkTrue(mn.getLatestRequestUrl(),"get() returns an objectStream", is != null);
+				checkTrue(mn.getLatestRequestUrl(), "Successful getReplica() call" +
+						"should yield a non-null inputStream.",
+						is != null);
 			}
 			catch (IndexOutOfBoundsException e) {
     			handleFail(mn.getLatestRequestUrl(),"No Objects available to test against");
     		}
     		catch (BaseException e) {
-    			handleFail(mn.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
-    					e.getDetail_code() + ":: " + e.getDescription());
+    			handleFail(mn.getLatestRequestUrl(),  "Should be able to retrieve " +
+						"a public object (as subject " + clientSubject + 
+						").  If the node is checking the client subject against the " +
+						"CN for all getReplica requests, and the node is not " +
+						"registered to an environment, this failure can be ignored.  Got:" +
+						e.getClass().getSimpleName() + ": " + 
+    					e.getDetail_code() + ":: " + e.getDescription()
+    					);
     		}
     		catch(Exception e) {
     			e.printStackTrace();
@@ -1790,7 +2208,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
 					 	createNodeAbbreviation(mn.getNodeBaseServiceUrl()) +
 					 	":Public_READ" + testObjectSeriesSuffix;
 				Identifier pid = procurePublicReadableTestObject(mn,D1TypeBuilder.buildIdentifier(objectIdentifier));
-				InputStream is = mn.getReplica(null, pid);
+				mn.getReplica(null, pid);
 				handleFail(mn.getLatestRequestUrl(),"with non-Node client certificate, getReplica() should throw exception");
 			}
 			catch (IndexOutOfBoundsException e) {
@@ -1833,7 +2251,7 @@ public class MNodeTier1IT extends ContextAwareTestCaseDataone  {
 					 	createNodeAbbreviation(mn.getNodeBaseServiceUrl()) +
 					 	":Public_READ" + testObjectSeriesSuffix;
 				Identifier pid = procurePublicReadableTestObject(mn,D1TypeBuilder.buildIdentifier(objectIdentifier));
-				InputStream is = mn.getReplica(null, pid);
+				mn.getReplica(null, pid);
 				handleFail(mn.getLatestRequestUrl(),"with no client certificate, getReplica() should throw exception");
 			}
 			catch (IndexOutOfBoundsException e) {

@@ -152,7 +152,8 @@ class StreamingWebTestListener extends RunListener
 //	}
 	
 	public void finishReport() {
-		report(this.currentTest);
+		if (this.currentTest != null)
+			report(this.currentTest);
 	}
 	
 	
@@ -193,7 +194,10 @@ class StreamingWebTestListener extends RunListener
 		Element description = new Element("td");
 
 		// set color based on status
-		if (testResult.getStatus().equals("Success")) {
+		if (testResult == null) {
+			div.addAttribute(new Attribute("class", "greyDescr"));
+		}
+		else if (testResult.getStatus().equals("Success")) {
 			div.addAttribute(new Attribute("class", "green"));
 		} 
 		else if (testResult.getStatus().equals("Ignored")) {

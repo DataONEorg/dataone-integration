@@ -25,6 +25,7 @@ import java.util.Iterator;
 
 import org.dataone.client.v1.CNode;
 import org.dataone.configuration.Settings;
+import org.dataone.integration.ContextAwareTestCaseDataone;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.NotAuthorized;
 import org.dataone.service.types.v1.Log;

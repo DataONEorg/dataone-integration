@@ -27,6 +27,7 @@ import java.util.List;
 
 import org.dataone.client.v1.CNode;
 import org.dataone.configuration.Settings;
+import org.dataone.integration.ContextAwareTestCaseDataone;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.IdentifierNotUnique;
 import org.dataone.service.exceptions.InvalidRequest;

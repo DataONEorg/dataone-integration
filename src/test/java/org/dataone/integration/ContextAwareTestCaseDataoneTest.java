@@ -20,7 +20,7 @@
  * $Id$
  */
 
-package org.dataone.integration.it;
+package org.dataone.integration;
 
 
 import static org.junit.Assert.assertEquals;
@@ -43,7 +43,7 @@ public class ContextAwareTestCaseDataoneTest {
 	public void tearDown() throws Exception
 	{
 		System.clearProperty(TestSettings.REFERENCE_CONTEXT_LABEL);
-		System.clearProperty(TestSettings.REFERENCE_CN_URL);
+		System.clearProperty(TestSettings.REFERENCE_CONTEXT_CN_URL);
 		System.clearProperty(TestSettings.CONTEXT_MN_URL);
 		System.clearProperty(TestSettings.CONTEXT_LABEL);
 	}
@@ -66,7 +66,14 @@ public class ContextAwareTestCaseDataoneTest {
 		Settings.getResetConfiguration();
 		Settings.getConfiguration().setProperty("certificate.truststore.useDefault", false);
 		
-		ContextAwareTestCaseDataone tc = new MNodeTier0IT();
+		ContextAwareTestCaseDataone tc = new ContextAwareTestCaseDataone() {
+
+			@Override
+			protected String getTestDescription() {
+				// TODO Auto-generated method stub
+				return null;
+			}			
+		};
 		
 		tc.setUpContext();
 		String refCNbaseUrl = tc.getReferenceContextCnUrl();
@@ -83,7 +90,14 @@ public class ContextAwareTestCaseDataoneTest {
 		System.setProperty(TestSettings.REFERENCE_CONTEXT_LABEL, "DEV");
 		System.setProperty(TestSettings.CONTEXT_MN_URL, "https://mn-x.dataone.org/mn");
 		Settings.getResetConfiguration();
-		ContextAwareTestCaseDataone tc = new MNodeTier0IT();
+		ContextAwareTestCaseDataone tc = new ContextAwareTestCaseDataone() {
+
+			@Override
+			protected String getTestDescription() {
+				// TODO Auto-generated method stub
+				return null;
+			}			
+		};
 		
 		tc.setUpContext();
 		String refCNbaseUrl = tc.getReferenceContextCnUrl();

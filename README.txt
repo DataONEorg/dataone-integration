@@ -22,18 +22,19 @@
 
 DataONE Java Integration Testing
 --------------------------------
-The d1_integration package is the home for all integration tests for DataONE, as well
-as deployable testing apparatus for running certain integration test from the web. As a 
-result, both unit tests for the testing apparatus and integration tests are part of 
-this maven project.  
+The d1_integration package is the default home for all integration tests for DataONE, 
+as well as deployable testing apparatus for running certain integration test from the web
+(the WebTester).  As a result, both unit tests for the testing apparatus and integration 
+tests are part of this maven project.  
 
-This package supports test execution from 4 main environments:
+This package supports test execution from 5 main environments:
     a) Eclipse
     b) the commandline (via mvn)
-    c) from our continuous integration server, Hudson
+    c) from our continuous integration server, Jenkins
     d) from a web browser (via deployment of the MNWebTester .war)
          - the default configuration for web tests only runs a subset 
            of tests ("MNodeTier" tests), but theoretically can run others.
+    e) running the WebTester locally using an embedded Jetty server.
 
 It currently supports execution of java-based tests and plans to support running
 the python tests in the future.  Except when running via Eclipse, the surefire maven 
@@ -84,23 +85,46 @@ currently work on Hudson.
 
 Running the Web Tests Locally
 -----------------------------
-If you are a member node, are ambitious, and want to run the same tests found in 
-the web tester locally, you would checkout the d1_integration package and run it 
-either through Eclipse, or from the command line.   
+In addition to running the WebTester from mncheck.test.dataone.org, those who want
+more control over testing have a few options on running the tests locally, depending
+on your readiness with Java development tools.
 
-The member node tier tests (MNodeTier*IT) are 'context aware', and require the
-context to passed into the tests at runtime.  Specifically, the system property 
-'context.mn.basurl' needs to be set.  This would then be combined with the built-in
-maven control for running specific tests, as described above.
+1. No Maven: The WebTester webapp can be downloaded and run from the commandline,
+setting up a jetty web server that you point your browser to instead of mncheck.test.dataone.org.
+This option lets you start and stop the server and cancel jobs, but gives you the
+same functionality and UI as the WebTester DataONE maintains.  You will also have access
+to log messages the webapp produces.
+
+To do this download the MNWebTester.war and run from the commandline:
+   
+  1.   java -jar MNWebTester.war
+  2.   point your browser to localhost:6680
+ 
+You can stop the server with ^C or through a telnet command to a listener on the adjacent port:
+
+  3.   telnet localhost 6681
+  4.   tap return key
+
+2. Maven, no Java:  The d1_integration project can be checked out and run locally from
+the command line.  For example:
 
 For example: 
-   mvn -Dcontext.mn.baseurl=https://dryad.foo.org/mn -Dit.test=MNodeTier1IT verify
-   mvn -Dcontext.mn.baseurl=https://dryad.foo.org/mn -Dit.test=MNodeTier* verify
+   mvn -Dcontext.mn.baseurl=https://mn.foo.org/mn -Dit.test=MNodeTier1IT verify
+   mvn -Dcontext.mn.baseurl=https://mn.foo.org/mn -Dit.test=MNodeTier* verify
+   
+In the examples above, the baseurl and test sets are specified with -D options,
+and both are necessary.  The verify is the life-cycle goal maven is given that
+will initiate building, unit testing, packaging, and lastly run the integration 
+tests matching the pattern you specify.
+
+All of the WebTester tests are organized in the project under:
+  
+  src/test/java/org/dataone/integration/it/MNodeTier*
 
 
-Additionally, these tests make use of a set of client certificates when making 
+Additionally, Tier2 and above tests make use of a set of client certificates when making 
 api calls.  These need to be downloaded separately and installed on the machine
-from where the tests are being run.  Please contact coredev@dataone.org to request
+from where the tests are being run.  Please contact support@dataone.org to request
 the certificates.
 
 the property and default that controls where the libclient will look for these is:
@@ -118,10 +142,9 @@ is secured by removing any permissions for group or other.  (chmod 700 .)
  0 drwxr-xr-x  12 me  staff    408 May 18 23:09 testClientCerts-20120518
 48 -rw-r--r--   1 me  staff  23360 May 21 11:48 testClientCerts-20120518.tgz
 
-
-
 For more advanced local setups, please contact the dataone core team for advice
 and additional context properties.
+
 
 
 Notes for further development:

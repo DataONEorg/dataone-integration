@@ -25,6 +25,7 @@ package org.dataone.integration.it;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -34,6 +35,9 @@ import java.util.Set;
 import org.dataone.client.v1.CNode;
 import org.dataone.client.D1Client;
 import org.dataone.client.v1.MNode;
+import org.dataone.integration.APITestUtils;
+import org.dataone.integration.ContextAwareTestCaseDataone;
+import org.dataone.integration.ExampleUtilities;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.IdentifierNotUnique;
 import org.dataone.service.exceptions.InsufficientResources;
@@ -192,6 +196,212 @@ public class SynchronizationIT extends ContextAwareTestCaseDataone {
 		}
 	}
 
+	/**
+	 * This tests that both obsoletedBy and isArchived can be set in the same
+	 * harvesting, and neither is missed.
+	 * The process will create and object, update it, and then archive the original.
+	 * Then check that both fields are properly set on the CN.
+	 * @throws ServiceFailure
+	 * @throws NotImplemented
+	 * @throws InterruptedException
+	 * @throws InvalidToken
+	 * @throws NotAuthorized
+	 * @throws InvalidRequest
+	 * @throws IOException
+	 * @throws IdentifierNotUnique
+	 * @throws UnsupportedType
+	 * @throws InsufficientResources
+	 * @throws InvalidSystemMetadata
+	 * @throws NotFound
+	 */
+	@Test
+	public void testSynchronizeNewData_ObsoletedByAndArchive() throws ServiceFailure, NotImplemented, InterruptedException, 
+	InvalidToken, NotAuthorized, InvalidRequest, IOException, IdentifierNotUnique, UnsupportedType,
+	InsufficientResources, InvalidSystemMetadata, NotFound 
+	{
+		setupClientSubject("testRightsHolder");
+		
+		// gets it from the context.label field
+		CNode cn = D1Client.getCN();
+		log.info("CN is " + cn.getNodeId());
+		// determine the MN to use
+		Iterator<Node> it = getMemberNodeIterator();
+		MNode mn = null;
+		while (it.hasNext()) {
+			Node n = it.next();
+			if (n.getIdentifier().getValue().equals("urn:node:mnDemo1")) {
+				currentUrl = n.getBaseURL();
+				mn = new MNode(currentUrl);  
+				currentUrl = mn.getNodeBaseServiceUrl();
+				printTestHeader("testing synchronization for node: " + currentUrl);
+			}
+		}
+		log.info("current time is: " + new Date());
+		Date fromDate = new Date(System.currentTimeMillis() - 7 * 24 * 60 * 60 * 1000);
+		log.info("fromDate is: " + fromDate);
+		
+		try {
+			Object[] dataPackage = ExampleUtilities.generateTestSciDataPackage("syncTesting_Obs_n_Archvd:",true);
+			mn.setDefaultSoTimeout(60000);
+			Identifier originalPid = mn.create(null,(Identifier) dataPackage[0],
+					(InputStream) dataPackage[1], (SystemMetadata) dataPackage[2]);
+
+			
+			log.info("Created object " + originalPid.getValue() + " on node " + mn.getNodeId());
+			// create the new data package to update with (just prep for now...)
+			dataPackage = ExampleUtilities.generateTestSciDataPackage("syncTesting_Obs_n_Archvd:",true);
+			Identifier newPid = (Identifier) dataPackage[0];
+			
+			SystemMetadata origObjectSysmeta = mn.getSystemMetadata(null, originalPid);
+			log.debug("pre-update, pre-archive sysMeta orig - MN: " + 
+					 origObjectSysmeta.getDateSysMetadataModified() + " : " +
+					 origObjectSysmeta.getArchived() + " : " + 
+					 origObjectSysmeta.getObsoletedBy() + " : " +
+					 origObjectSysmeta.getSerialVersion().toString());
+			
+			// poll to get sysMeta from the CN.
+			// once we get it, we can be reasonably sure that we will perform
+			// the update and archive in the same inter-sync period
+			SystemMetadata cnSysMetaOrig = null;
+			Date postCreateDate = new Date();
+			Date now = new Date();
+			while (cnSysMetaOrig == null && 
+					(postCreateDate.getTime() + (5 * 60 * 1000) > now.getTime())) 
+			{
+				log.info("trying to get sysMeta...");
+				try {
+					cnSysMetaOrig = cn.getSystemMetadata(originalPid);
+					log.debug("SysMeta-CN-Orig: " +
+							cnSysMetaOrig.getDateSysMetadataModified() + " : " +
+							cnSysMetaOrig.getArchived() + " : " + 
+							cnSysMetaOrig.getObsoletedBy() + " : " +
+							cnSysMetaOrig.getSerialVersion().toString());
+				}
+				catch (NotFound nf) {
+					; // not found is ok
+				}
+				if (cnSysMetaOrig != null) { 
+					break;
+				} else {
+					log.info("...sleeping...");
+					Thread.sleep(10000);
+					now = new Date();
+					
+				}
+			}
+			checkTrue("--","Did not synchronize original sysMeta within the set time period",  
+					cnSysMetaOrig != null);
+			
+			// do the object update on the MN
+			Date preUpdateTimeStamp = new Date();
+			log.debug("updating...");
+			Identifier updatedPid = mn.update(null,
+					originalPid,
+					(InputStream) dataPackage[1],    // new data
+					newPid,
+					(SystemMetadata) dataPackage[2]  // new sysmeta
+					);
+			
+			// sleep between operations for sanity
+			Thread.sleep(100);	
+			Date preArchiveTimeStamp = new Date();
+			Thread.sleep(5000);
+			
+			// archive the original object
+			log.debug("archiving...");
+			Identifier archivedPid = mn.archive(originalPid);
+			
+			checkEquals(mn.getLatestRequestUrl(),"pid returned from update should match that given",
+					newPid.getValue(), updatedPid.getValue());
+
+			// check obsoletes and obsoletedBy field consistency on the MN
+			 SystemMetadata updatedSysmeta = mn.getSystemMetadata(null, updatedPid);
+			 checkEquals(mn.getLatestRequestUrl(),"sysmeta of updatePid should have the originalPid in obsoletes field",
+					 updatedSysmeta.getObsoletes().getValue(),originalPid.getValue());
+			 
+			 checkTrue(mn.getLatestRequestUrl(), "MN should be setting the dateSystemMetadataModified property",
+					 updatedSysmeta.getDateSysMetadataModified() != null);
+			 
+			 origObjectSysmeta = mn.getSystemMetadata(null, originalPid);
+			 checkEquals(mn.getLatestRequestUrl(),"sysmeta of original Pid should have new pid in obsoletedBy field",
+					 origObjectSysmeta.getObsoletedBy().getValue(),updatedPid.getValue());
+			 	
+			 log.debug("post-update, post-archive sysMeta orig - MN: " + 
+					 origObjectSysmeta.getDateSysMetadataModified() + " : " +
+					 origObjectSysmeta.getArchived() + " : " + 
+					 origObjectSysmeta.getObsoletedBy() + " : " +
+					 origObjectSysmeta.getSerialVersion().toString());
+			 Thread.sleep(20000);
+			 // the old pid needs to be in a timebound listObject response
+			 // to indicate that the update changed the systemMetadata of the original
+			 ObjectList ol = mn.listObjects(null, preArchiveTimeStamp, null, null, null, null, null);
+			 log.info(mn.getLatestRequestUrl());
+			 boolean foundUpdatedSysmeta = false;
+			 for (ObjectInfo oi : ol.getObjectInfoList()) {
+				 if (oi.getIdentifier().getValue().equals(originalPid.getValue())) {
+					 foundUpdatedSysmeta = true;
+				 }
+			 }
+			 checkTrue(mn.getLatestRequestUrl(),"should find original pid in time-bound listObject " +
+			 		"where start time is after update and before archive methods",foundUpdatedSysmeta);
+			 
+			 checkTrue(mn.getLatestRequestUrl(),"Archived should be 'true'",
+					 origObjectSysmeta.getArchived());
+			 
+			 // wait for re-sync with CN
+			 boolean success = false;
+			 Date startSyncWait = new Date();
+			 now = new Date();
+			 while (startSyncWait.getTime() + (5 * 60 * 1000) > now.getTime()) {
+				 
+				 SystemMetadata cnSysMeta = cn.getSystemMetadata(originalPid);
+				 log.info("...calling cn/v1/meta on target pid");
+				 
+				 log.debug("post-update, post-archive sysMeta orig - CN: " + 
+						 cnSysMeta.getDateSysMetadataModified() + " : " +
+						 cnSysMeta.getArchived() + " : " + 
+						 cnSysMeta.getObsoletedBy() + " : " +
+						 cnSysMeta.getSerialVersion().toString());
+				 
+				 if (!cnSysMeta.getDateSysMetadataModified().equals(cnSysMetaOrig.getDateSysMetadataModified())) {
+				 
+			 
+					 // check that both values changed
+					 if (cnSysMeta.getArchived() && cnSysMeta.getObsoletedBy() == null) {
+						 log.warn("Archived but not ObsoletedBy");
+						 break;
+					 }
+					 if (!cnSysMeta.getArchived() && cnSysMeta.getObsoletedBy() != null) {
+						 log.warn("ObsoletedBy but not archived");
+						 break;
+					 }
+					 if (cnSysMeta.getArchived() && cnSysMeta.getObsoletedBy() != null) {
+						 // yes!
+						 success = true;
+						 log.info("Success: Found both archived and obsoletedBy set on the CN");
+						 break;
+					 }
+				 } else {
+					 // neither has been changed, so still in 
+					 Thread.sleep(15000);
+					 log.info("...waiting for a sync to get the updates.");
+					 now = new Date();
+				 }
+			 }
+			 if (!success) {
+				 handleFail(mn.getNodeBaseServiceUrl(),
+						 "The CN did not properly set archived and obsoletedBy");
+			 }
+		}
+		catch (BaseException e) {
+			handleFail(mn.getLatestRequestUrl(),e.getClass().getSimpleName() + 
+					": " + e.getDetail_code() + ": " + e.getDescription());
+		}
+		catch(Exception e) {
+			e.printStackTrace();
+			handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+		}	
+	}
 	
 	
 	/**

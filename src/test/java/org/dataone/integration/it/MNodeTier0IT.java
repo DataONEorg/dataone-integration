@@ -27,6 +27,7 @@ import org.dataone.client.D1Client;
 import org.dataone.client.rest.DefaultHttpMultipartRestClient;
 import org.dataone.client.rest.MultipartRestClient;
 import org.dataone.client.v1.MNode;
+import org.dataone.integration.ContextAwareTestCaseDataone;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.types.v1.Node;
 import org.dataone.service.util.D1Url;
