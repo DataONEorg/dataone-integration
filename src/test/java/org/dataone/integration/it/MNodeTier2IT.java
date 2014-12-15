@@ -176,37 +176,6 @@ public class MNodeTier2IT extends AbstractAuthITDataoneIsAuthzd {
 							notAuth++;
 						} catch (Exception e) {
 							other++;
-							handleFail(mn.getLatestRequestUrl(), "unexpected exception: systemMetadataChanged should not throw " +
-									e.getClass() + " called with client subject " + cNodeId + ": " + e.getMessage());
-						}
-					}
-					checkTrue(mn.getLatestRequestUrl(),
-								"the test should return at least one success or InvalidRequest",
-								success + invReq > 0);
-					checkTrue(mn.getLatestRequestUrl(),
-							"the test should only return return success or InvalidRequest for one CN (environment)",
-							success + invReq == 1);
-					log.info("success = " + success);
-					log.info("InvalidRequest = " + invReq);
-					log.info("NotAuthorized = " + notAuth);
-					log.info("other = " + other);
-
-
-					int success = 0;
-					int invReq = 0;
-					int notAuth = 0;
-					int other = 0;
-					for (String cNodeId : cNodeIds) {
-						setupClientSubject(cNodeId);
-						try {
-							mn.systemMetadataChanged(null, pid, 10, afterCreate);
-							success++;
-						} catch (InvalidRequest e) {
-							invReq++;
-						} catch (NotAuthorized e) {
-							notAuth++;
-						} catch (Exception e) {
-							other++;
 							handleFail(mn.getLatestRequestUrl(), "unexpected exception: " +
 									"systemMetadataChanged should only throw InvalidRequest" +
 									"or NotAuthorized exceptions if the service is not failing.  Got: " +
