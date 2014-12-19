@@ -1,6 +1,8 @@
 package org.dataone.integration.it;
 
+
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
 import java.util.Date;
@@ -14,14 +16,23 @@ import org.dataone.service.exceptions.InsufficientResources;
 import org.dataone.service.exceptions.InvalidRequest;
 import org.dataone.service.exceptions.InvalidToken;
 import org.dataone.service.exceptions.NotAuthorized;
+import org.dataone.service.exceptions.NotFound;
 import org.dataone.service.exceptions.NotImplemented;
 import org.dataone.service.exceptions.ServiceFailure;
 import org.dataone.service.mn.tier1.v1.MNCore;
+import org.dataone.service.types.v1.Checksum;
+import org.dataone.service.types.v1.DescribeResponse;
 import org.dataone.service.types.v1.Event;
+import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Node;
+import org.dataone.service.types.v1.NodeList;
 import org.dataone.service.types.v1.NodeReference;
 import org.dataone.service.types.v1.NodeType;
+import org.dataone.service.types.v1.ObjectFormatIdentifier;
+import org.dataone.service.types.v1.ObjectList;
+import org.dataone.service.types.v1.Permission;
 import org.dataone.service.types.v1.Session;
+import org.dataone.service.types.v1.SystemMetadata;
 import org.dataone.service.types.v2.Log;
 import org.dataone.service.util.TypeMarshaller;
 import org.jibx.runtime.JiBXException;
@@ -132,4 +143,65 @@ public class CommonCallAdapter implements D1Node {
         return mrc.getLatestRequestUrl();
     }
 
+
+	public DescribeResponse describe(Session session, Identifier arg1)
+			throws InvalidToken, NotAuthorized, NotImplemented, ServiceFailure,
+			NotFound {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+
+	public InputStream get(Session session, Identifier arg1) throws InvalidToken,
+			NotAuthorized, NotImplemented, ServiceFailure, NotFound,
+			InsufficientResources {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+
+	public Checksum getChecksum(Session session, Identifier arg1, String arg2)
+			throws InvalidRequest, InvalidToken, NotAuthorized, NotImplemented,
+			ServiceFailure, NotFound {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public InputStream getReplica(Session session, Identifier arg1)
+			throws InvalidToken, NotAuthorized, NotImplemented, ServiceFailure,
+			NotFound, InsufficientResources {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+
+	public SystemMetadata getSystemMetadata(Session session, Identifier arg1)
+			throws InvalidToken, NotAuthorized, NotImplemented, ServiceFailure,
+			NotFound {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+
+	public ObjectList listObjects(Session session, Date arg1, Date arg2,
+			ObjectFormatIdentifier arg3, Boolean arg4, Integer arg5,
+			Integer arg6) throws InvalidRequest, InvalidToken, NotAuthorized,
+			NotImplemented, ServiceFailure {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
+	public Boolean isAuthorized(Session session, Identifier id, Permission permissionLevel) 
+	throws NotAuthorized, NotFound, ServiceFailure, NotImplemented, InvalidRequest
+	{
+		// TODO Auto-generated method stub  (check the thrown exceptions - I guessed on those)
+		return null;
+	}
+	
+	public NodeList CNlistNodes() 
+		throws ServiceFailure, NotImplemented
+	{
+		// TODO auto-generated method stub
+		return null;
+	}
 }
