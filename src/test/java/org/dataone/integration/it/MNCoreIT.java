@@ -7,6 +7,7 @@ import java.util.Date;
 
 import org.dataone.client.rest.DefaultHttpMultipartRestClient;
 import org.dataone.client.rest.MultipartRestClient;
+import org.dataone.integration.CommonCallAdapter;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.types.v1.Node;
 import org.dataone.service.types.v1.NodeType;
