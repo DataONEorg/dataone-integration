@@ -53,7 +53,6 @@ import org.apache.commons.logging.LogFactory;
 import org.dataone.client.exception.ClientSideException;
 import org.dataone.client.rest.DefaultHttpMultipartRestClient;
 import org.dataone.client.rest.MultipartRestClient;
-import org.dataone.client.v1.impl.D1NodeFactory;
 import org.dataone.client.v1.itk.D1Object;
 import org.dataone.client.v2.CNode;
 import org.dataone.client.v2.MNode;
@@ -691,10 +690,12 @@ public class ClientArchitectureConformityIT {
 		String echoResponse = null;
 		D1Node d1node = null;
 		if (nodeType.equals(NodeType.CN)) {
-			d1node = D1NodeFactory.buildCNode(MRC,URI.create(TEST_SERVICE_BASE + testResource));
+			d1node = D1NodeFactory.buildNode(org.dataone.client.v1.CNode.class,
+					MRC,URI.create(TEST_SERVICE_BASE + testResource));
 			echoResponse = getEchoResponse(d1node,getCNInterfaceMethods().get(currentMethodKey));
 		} else {
-			d1node = D1NodeFactory.buildMNode(MRC,URI.create(TEST_SERVICE_BASE + testResource));
+			d1node = D1NodeFactory.buildNode(org.dataone.client.v1.MNode.class,
+					MRC,URI.create(TEST_SERVICE_BASE + testResource));
 			echoResponse = getEchoResponse(d1node,getMNInterfaceMethods().get(currentMethodKey));
 		}
 		
@@ -750,11 +751,13 @@ public class ClientArchitectureConformityIT {
 		log.debug("  - - - -  calling " + TEST_SERVICE_BASE + EXCEPTION_SERVICE +
 				"/" + exception);
 		if (nodeType.equals(NodeType.CN)) {
-			d1node = D1NodeFactory.buildCNode(MRC,URI.create(TEST_SERVICE_BASE + EXCEPTION_SERVICE +
+			d1node = D1NodeFactory.buildNode(org.dataone.client.v1.CNode.class, 
+					MRC,URI.create(TEST_SERVICE_BASE + EXCEPTION_SERVICE +
 					"/" + exception)); // + "/v1/object");
 			method = getCNInterfaceMethods().get(currentMethodKey);
 		} else {
-			d1node = D1NodeFactory.buildMNode(MRC,URI.create(TEST_SERVICE_BASE + EXCEPTION_SERVICE +
+			d1node = D1NodeFactory.buildNode(org.dataone.client.v1.MNode.class, 
+					MRC,URI.create(TEST_SERVICE_BASE + EXCEPTION_SERVICE +
 					"/" + exception)); // + "/v1/object");
 			method = getMNInterfaceMethods().get(currentMethodKey);
 		}

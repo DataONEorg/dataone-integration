@@ -72,38 +72,42 @@ public class CommonCallAdapter implements D1Node {
 
     public Log getLogRecords(Session session, Date fromDate, Date toDate, String event, String pidFilter,
             Integer start, Integer count) throws InvalidRequest, InvalidToken, NotAuthorized, NotImplemented,
-            ServiceFailure, ClientSideException, InstantiationException, IllegalAccessException,
-            InvocationTargetException, JiBXException, IOException, InsufficientResources {
+            ServiceFailure, ClientSideException, InsufficientResources {
 
-        if (this.node.getType().equals(NodeType.MN)) {
-            if (this.version.toLowerCase().equals("v1")) {
-                MNCore mnCore = D1NodeFactory.buildNode(org.dataone.service.mn.tier1.v1.MNCore.class, this.mrc,
-                        URI.create(this.node.getBaseURL()));
-                // TODO use deprecated call with Session? or no?
-                org.dataone.service.types.v1.Log log = mnCore.getLogRecords(session, fromDate, toDate,
-                        Event.convert(event), pidFilter, start, count);
-                return TypeMarshaller.convertTypeFromType(log, Log.class);
-            } else if (this.version.toLowerCase().equals("v2")) {
-                org.dataone.service.mn.tier1.v2.MNCore mnCore = D1NodeFactory.buildNode(
-                        org.dataone.service.mn.tier1.v2.MNCore.class, this.mrc, URI.create(this.node.getBaseURL()));
-                Log log = mnCore.getLogRecords(session, fromDate, toDate, event, pidFilter, start, count);
-                return log;
+        try {
+            if (this.node.getType().equals(NodeType.MN)) {
+                if (this.version.toLowerCase().equals("v1")) {
+                    MNCore mnCore = D1NodeFactory.buildNode(org.dataone.service.mn.tier1.v1.MNCore.class, this.mrc,
+                            URI.create(this.node.getBaseURL()));
+                    // TODO use deprecated call with Session? or no?
+                    org.dataone.service.types.v1.Log log = mnCore.getLogRecords(session, fromDate, toDate,
+                            Event.convert(event), pidFilter, start, count);
+                    return TypeMarshaller.convertTypeFromType(log, Log.class);
+                } else if (this.version.toLowerCase().equals("v2")) {
+                    org.dataone.service.mn.tier1.v2.MNCore mnCore = D1NodeFactory.buildNode(
+                            org.dataone.service.mn.tier1.v2.MNCore.class, this.mrc, URI.create(this.node.getBaseURL()));
+                    Log log = mnCore.getLogRecords(session, fromDate, toDate, event, pidFilter, start, count);
+                    return log;
+                }
+            } else if (this.node.getType().equals(NodeType.CN)) {
+                if (this.version.toLowerCase().equals("v1")) {
+                    CNCore mnCore = D1NodeFactory.buildNode(org.dataone.service.cn.v1.CNCore.class, this.mrc,
+                            URI.create(this.node.getBaseURL()));
+                    org.dataone.service.types.v1.Log log = mnCore.getLogRecords(session, fromDate, toDate,
+                            Event.convert(event), pidFilter, start, count);
+                    return TypeMarshaller.convertTypeFromType(log, Log.class);
+                } else if (this.version.toLowerCase().equals("v2")) {
+                    org.dataone.service.mn.tier1.v2.MNCore mnCore = D1NodeFactory.buildNode(
+                            org.dataone.service.mn.tier1.v2.MNCore.class, this.mrc, URI.create(this.node.getBaseURL()));
+                    Log log = mnCore.getLogRecords(session, fromDate, toDate, event, pidFilter, start, count);
+                    return log;
+                }
             }
-        } else if (this.node.getType().equals(NodeType.CN)) {
-            if (this.version.toLowerCase().equals("v1")) {
-                CNCore mnCore = D1NodeFactory.buildNode(org.dataone.service.cn.v1.CNCore.class, this.mrc,
-                        URI.create(this.node.getBaseURL()));
-                org.dataone.service.types.v1.Log log = mnCore.getLogRecords(session, fromDate, toDate,
-                        Event.convert(event), pidFilter, start, count);
-                return TypeMarshaller.convertTypeFromType(log, Log.class);
-            } else if (this.version.toLowerCase().equals("v2")) {
-                org.dataone.service.mn.tier1.v2.MNCore mnCore = D1NodeFactory.buildNode(
-                        org.dataone.service.mn.tier1.v2.MNCore.class, this.mrc, URI.create(this.node.getBaseURL()));
-                Log log = mnCore.getLogRecords(session, fromDate, toDate, event, pidFilter, start, count);
-                return log;
-            }
-        }
-        throw new ClientSideException("Unable to create node of type " + node.getType() + " of version " + version);
+            throw new ClientSideException("Unable to create node of type " + node.getType() + " of version " + version);
+        } catch (InstantiationException | IllegalAccessException
+                | InvocationTargetException | JiBXException | IOException e) {
+            throw new ClientSideException("Unable to convert v1.Log type to v2.Log type", e);
+        } finally {}
     }
 
     public Node getCapabilities() throws NotImplemented, ServiceFailure {
@@ -144,64 +148,64 @@ public class CommonCallAdapter implements D1Node {
     }
 
 
-	public DescribeResponse describe(Session session, Identifier arg1)
-			throws InvalidToken, NotAuthorized, NotImplemented, ServiceFailure,
-			NotFound {
-		// TODO Auto-generated method stub
-		return null;
-	}
+    public DescribeResponse describe(Session session, Identifier arg1)
+            throws InvalidToken, NotAuthorized, NotImplemented, ServiceFailure,
+            NotFound {
+        // TODO Auto-generated method stub
+        return null;
+    }
 
 
-	public InputStream get(Session session, Identifier arg1) throws InvalidToken,
-			NotAuthorized, NotImplemented, ServiceFailure, NotFound,
-			InsufficientResources {
-		// TODO Auto-generated method stub
-		return null;
-	}
+    public InputStream get(Session session, Identifier arg1) throws InvalidToken,
+            NotAuthorized, NotImplemented, ServiceFailure, NotFound,
+            InsufficientResources {
+        // TODO Auto-generated method stub
+        return null;
+    }
 
 
-	public Checksum getChecksum(Session session, Identifier arg1, String arg2)
-			throws InvalidRequest, InvalidToken, NotAuthorized, NotImplemented,
-			ServiceFailure, NotFound {
-		// TODO Auto-generated method stub
-		return null;
-	}
+    public Checksum getChecksum(Session session, Identifier arg1, String arg2)
+            throws InvalidRequest, InvalidToken, NotAuthorized, NotImplemented,
+            ServiceFailure, NotFound {
+        // TODO Auto-generated method stub
+        return null;
+    }
 
-	public InputStream getReplica(Session session, Identifier arg1)
-			throws InvalidToken, NotAuthorized, NotImplemented, ServiceFailure,
-			NotFound, InsufficientResources {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-
-	public SystemMetadata getSystemMetadata(Session session, Identifier arg1)
-			throws InvalidToken, NotAuthorized, NotImplemented, ServiceFailure,
-			NotFound {
-		// TODO Auto-generated method stub
-		return null;
-	}
+    public InputStream getReplica(Session session, Identifier arg1)
+            throws InvalidToken, NotAuthorized, NotImplemented, ServiceFailure,
+            NotFound, InsufficientResources {
+        // TODO Auto-generated method stub
+        return null;
+    }
 
 
-	public ObjectList listObjects(Session session, Date arg1, Date arg2,
-			ObjectFormatIdentifier arg3, Boolean arg4, Integer arg5,
-			Integer arg6) throws InvalidRequest, InvalidToken, NotAuthorized,
-			NotImplemented, ServiceFailure {
-		// TODO Auto-generated method stub
-		return null;
-	}
-	
-	public Boolean isAuthorized(Session session, Identifier id, Permission permissionLevel) 
-	throws NotAuthorized, NotFound, ServiceFailure, NotImplemented, InvalidRequest
-	{
-		// TODO Auto-generated method stub  (check the thrown exceptions - I guessed on those)
-		return null;
-	}
-	
-	public NodeList CNlistNodes() 
-		throws ServiceFailure, NotImplemented
-	{
-		// TODO auto-generated method stub
-		return null;
-	}
+    public SystemMetadata getSystemMetadata(Session session, Identifier arg1)
+            throws InvalidToken, NotAuthorized, NotImplemented, ServiceFailure,
+            NotFound {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+
+    public ObjectList listObjects(Session session, Date arg1, Date arg2,
+            ObjectFormatIdentifier arg3, Boolean arg4, Integer arg5,
+            Integer arg6) throws InvalidRequest, InvalidToken, NotAuthorized,
+            NotImplemented, ServiceFailure {
+        // TODO Auto-generated method stub
+        return null;
+    }
+    
+    public Boolean isAuthorized(Session session, Identifier id, Permission permissionLevel) 
+    throws NotAuthorized, NotFound, ServiceFailure, NotImplemented, InvalidRequest
+    {
+        // TODO Auto-generated method stub  (check the thrown exceptions - I guessed on those)
+        return null;
+    }
+    
+    public NodeList CNlistNodes() 
+        throws ServiceFailure, NotImplemented
+    {
+        // TODO auto-generated method stub
+        return null;
+    }
 }

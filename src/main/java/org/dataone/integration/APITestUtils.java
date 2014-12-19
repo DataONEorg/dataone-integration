@@ -26,9 +26,10 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
-import org.dataone.client.CNode;
+import org.dataone.client.exception.ClientSideException;
+import org.dataone.client.v1.CNode;
 import org.dataone.client.D1Node;
-import org.dataone.client.MNode;
+import org.dataone.client.v1.MNode;
 import org.dataone.service.exceptions.InsufficientResources;
 import org.dataone.service.exceptions.InvalidRequest;
 import org.dataone.service.exceptions.InvalidToken;
@@ -39,7 +40,7 @@ import org.dataone.service.exceptions.ServiceFailure;
 import org.dataone.service.types.v1.AccessRule;
 import org.dataone.service.types.v1.Event;
 import org.dataone.service.types.v1.Identifier;
-import org.dataone.service.types.v1.Log;
+import org.dataone.service.types.v2.Log;
 import org.dataone.service.types.v1.Node;
 import org.dataone.service.types.v1.NodeList;
 import org.dataone.service.types.v1.NodeReference;
@@ -51,7 +52,6 @@ import org.dataone.service.types.v1.ObjectLocationList;
 import org.dataone.service.types.v1.Permission;
 import org.dataone.service.types.v1.Person;
 import org.dataone.service.types.v1.Service;
-import org.dataone.service.types.v1.Session;
 import org.dataone.service.types.v1.Subject;
 
 
@@ -299,7 +299,7 @@ public class APITestUtils {
 	/**
 	 * Calls list objects iteratively using the paging mechanism in order to
 	 * respect any server-imposed paging limits
-	 * @param d1Node
+	 * @param cca
 	 * @param fromDate
 	 * @param toDate
 	 * @param formatid
@@ -313,15 +313,15 @@ public class APITestUtils {
 	 * @throws NotImplemented
 	 * @throws ServiceFailure
 	 */
-	public static ObjectList pagedListObjects(D1Node d1Node, Date fromDate, Date toDate, 
+	public static ObjectList pagedListObjects(CommonCallAdapter cca, Date fromDate, Date toDate, 
       ObjectFormatIdentifier formatid, Boolean replicaStatus, Integer start, Integer count) 
     throws InvalidRequest, InvalidToken, NotAuthorized, NotImplemented, ServiceFailure
     {
 
 		if (count != null && count <= 0) {
-			return d1Node.listObjects(null, fromDate, toDate, formatid, replicaStatus, start, 0);
+			return cca.listObjects(null, fromDate, toDate, formatid, replicaStatus, start, 0);
 		} 
-		ObjectList ol = d1Node.listObjects(null, fromDate, toDate, formatid, replicaStatus, start, null);
+		ObjectList ol = cca.listObjects(null, fromDate, toDate, formatid, replicaStatus, start, null);
 		if (ol.getTotal() == ol.sizeObjectInfoList()) {
 			// don't need to ask for more
 			if (count != null && ol.sizeObjectInfoList() > count) {
@@ -339,7 +339,7 @@ public class APITestUtils {
 		while (remaining > 0) {
 			int pageSize = remaining < serverPageSize ? remaining : serverPageSize;
 			start = retrieved;
-			ObjectList nextList = d1Node.listObjects(null, fromDate, toDate, formatid, replicaStatus, start, pageSize);
+			ObjectList nextList = cca.listObjects(null, fromDate, toDate, formatid, replicaStatus, start, pageSize);
 			retrieved += nextList.sizeObjectInfoList();
 			remaining = totalNeeded - retrieved;
 			ol.getObjectInfoList().addAll(nextList.getObjectInfoList());
@@ -352,7 +352,7 @@ public class APITestUtils {
 	/**
 	 * Calls list objects iteratively using the paging mechanism in order to
 	 * respect any server-imposed paging limits
-	 * @param d1Node
+	 * @param cca
 	 * @param fromDate
 	 * @param toDate
 	 * @param formatid
@@ -366,17 +366,19 @@ public class APITestUtils {
 	 * @throws NotImplemented
 	 * @throws ServiceFailure
 	 * @throws InsufficientResources 
+	 * @throws ClientSideException 
 	 */
-	public static Log pagedGetLogRecords(D1Node d1Node, Date fromDate, Date toDate, 
-      Event event, String pidFilter, Integer start, Integer count) 
-      throws InvalidToken, InvalidRequest, ServiceFailure, NotAuthorized, NotImplemented, InsufficientResources 
+	public static Log pagedGetLogRecords(CommonCallAdapter cca, Date fromDate, Date toDate, 
+      String event, String pidFilter, Integer start, Integer count) 
+      throws InvalidToken, InvalidRequest, ServiceFailure, NotAuthorized, NotImplemented, 
+      InsufficientResources, ClientSideException 
     {
 
 		if (count != null && count <= 0) {
-			return d1Node.getLogRecords(null, fromDate, toDate, event, pidFilter, start, 0);
+			return cca.getLogRecords(null, fromDate, toDate, event, pidFilter, start, 0);
 		} 
 		
-		Log entries = d1Node.getLogRecords(null, fromDate, toDate, event, pidFilter, start, null);
+		Log entries = cca.getLogRecords(null, fromDate, toDate, event, pidFilter, start, null);
 		if (entries.getTotal() == entries.sizeLogEntryList()) {
 			// don't need to ask for more
 			if (count != null && entries.sizeLogEntryList() > count) {
@@ -394,7 +396,7 @@ public class APITestUtils {
 		while (remaining > 0) {
 			int pageSize = remaining < serverPageSize ? remaining : serverPageSize;
 			start = retrieved;
-			Log nextList = d1Node.getLogRecords(null, fromDate, toDate, event, pidFilter, start, pageSize);
+			Log nextList = cca.getLogRecords(null, fromDate, toDate, event, pidFilter, start, pageSize);
 			retrieved += nextList.sizeLogEntryList();
 			remaining = totalNeeded - retrieved;
 			entries.getLogEntryList().addAll(nextList.getLogEntryList());

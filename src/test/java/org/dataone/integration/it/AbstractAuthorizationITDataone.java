@@ -31,6 +31,7 @@ import org.dataone.client.v1.CNode;
 import org.dataone.client.D1Node;
 import org.dataone.client.v1.MNode;
 import org.dataone.integration.APITestUtils;
+import org.dataone.integration.CommonCallAdapter;
 import org.dataone.integration.ContextAwareTestCaseDataone;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.IdentifierNotUnique;
@@ -70,7 +71,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 	 */
 	protected abstract Iterator<Node> getNodeIterator();
 
-	protected abstract D1Node instantiateD1Node(String baseUrl);
+	protected abstract CommonCallAdapter instantiateD1Node(String baseUrl);
 	
 	/**
 	 * used to determine which tests to run, based on Permission
@@ -81,7 +82,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 	protected abstract boolean runTest(Permission p);
 	
 	
-	protected String checkExpectedIsAuthorizedOutcome(D1Node d1Node, Identifier pid, 
+	protected String checkExpectedIsAuthorizedOutcome(CommonCallAdapter d1Node, Identifier pid, 
 	String subjectLabel, Permission permission, String expectedOutcome) 
 	{
 //		log.debug("in: " + new Date().getTime());
@@ -111,7 +112,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 	}
 
 	
-	protected abstract String runAuthTest(D1Node d1Node, Identifier pid, Permission permission);
+	protected abstract String runAuthTest(CommonCallAdapter d1Node, Identifier pid, Permission permission);
 
 
 	
@@ -191,7 +192,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 		 Iterator<Node> it = getNodeIterator();
 		 while (it.hasNext()) {
 			 currentUrl = it.next().getBaseURL();
-			 D1Node d1Node = instantiateD1Node(currentUrl);
+			 CommonCallAdapter d1Node = instantiateD1Node(currentUrl);
 			 
 			 try {
 //				 d1Node.ping();
@@ -229,7 +230,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 		 Iterator<Node> it = getNodeIterator();
 		 while (it.hasNext()) {
 			 currentUrl = it.next().getBaseURL();
-			 D1Node d1Node = instantiateD1Node(currentUrl);
+			 CommonCallAdapter d1Node = instantiateD1Node(currentUrl);
 			 
 			 try {
 				 d1Node.ping();
@@ -256,7 +257,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 		 Iterator<Node> it = getNodeIterator();
 		 while (it.hasNext()) {
 			 currentUrl = it.next().getBaseURL();
-			 D1Node d1Node = instantiateD1Node(currentUrl);
+			 CommonCallAdapter d1Node = instantiateD1Node(currentUrl);
 			 
 			 try {
 				 d1Node.ping();
@@ -290,7 +291,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 		 Iterator<Node> it = getNodeIterator();
 		 while (it.hasNext()) {
 			 currentUrl = it.next().getBaseURL();
-			 D1Node d1Node = instantiateD1Node(currentUrl);
+			 CommonCallAdapter d1Node = instantiateD1Node(currentUrl);
 			 
 			 try {
 
@@ -426,7 +427,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 		 Iterator<Node> it = getNodeIterator();
 		 while (it.hasNext()) {
 			 currentUrl = it.next().getBaseURL();
-			 D1Node d1Node = instantiateD1Node(currentUrl);
+			 CommonCallAdapter d1Node = instantiateD1Node(currentUrl);
 			 
 			 try {
 				 String objectIdentifier = "TierTesting:" + 
@@ -569,7 +570,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 		 Iterator<Node> it = getNodeIterator();
 		 while (it.hasNext()) {
 			 currentUrl = it.next().getBaseURL();
-			 D1Node d1Node = instantiateD1Node(currentUrl);
+			 CommonCallAdapter d1Node = instantiateD1Node(currentUrl);
 			 
 			 try {
 				 String objectIdentifier = "TierTesting:" + 
@@ -702,7 +703,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 		 Iterator<Node> it = getNodeIterator();
 		 while (it.hasNext()) {
 			 currentUrl = it.next().getBaseURL();
-			 D1Node d1Node = instantiateD1Node(currentUrl);
+			 CommonCallAdapter d1Node = instantiateD1Node(currentUrl);
 			 
 			 try {
 				 String objectIdentifier = "TierTesting:" + 
@@ -836,7 +837,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 		 Iterator<Node> it = getNodeIterator();
 		 while (it.hasNext()) {
 			 currentUrl = it.next().getBaseURL();
-			 D1Node d1Node = instantiateD1Node(currentUrl);
+			 CommonCallAdapter d1Node = instantiateD1Node(currentUrl);
 			 
 			 try {
 				 String objectIdentifier = "TierTesting:" + 
@@ -980,7 +981,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 		 Iterator<Node> it = getNodeIterator();
 		 while (it.hasNext()) {
 			 currentUrl = it.next().getBaseURL();
-			 D1Node d1Node = instantiateD1Node(currentUrl);
+			 CommonCallAdapter d1Node = instantiateD1Node(currentUrl);
 			 
 			 try { 
 				 // get or create the test object
@@ -1120,7 +1121,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 		 Iterator<Node> it = getNodeIterator();
 		 while (it.hasNext()) {
 			 currentUrl = it.next().getBaseURL();
-			 D1Node d1Node = instantiateD1Node(currentUrl);
+			 CommonCallAdapter d1Node = instantiateD1Node(currentUrl);
 			 
 			 try {
 				 String objectIdentifier = "TierTesting:" + 
@@ -1256,7 +1257,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 		 Iterator<Node> it = getNodeIterator();
 		 while (it.hasNext()) {
 			 currentUrl = it.next().getBaseURL();
-			 D1Node d1Node = instantiateD1Node(currentUrl);
+			 CommonCallAdapter d1Node = instantiateD1Node(currentUrl);
 			 
 			 try {
 				 String objectIdentifier = "TierTesting:" + 
@@ -1391,7 +1392,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 		 Iterator<Node> it = getNodeIterator();
 		 while (it.hasNext()) {
 			 currentUrl = it.next().getBaseURL();
-			 D1Node d1Node = instantiateD1Node(currentUrl);
+			 CommonCallAdapter d1Node = instantiateD1Node(currentUrl);
 			 
 			 try {
 				 // get or create the test object
@@ -1536,7 +1537,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 		 Iterator<Node> it = getNodeIterator();
 		 while (it.hasNext()) {
 			 currentUrl = it.next().getBaseURL();
-			 D1Node d1Node = instantiateD1Node(currentUrl);
+			 CommonCallAdapter d1Node = instantiateD1Node(currentUrl);
 			 
 			 try {
 				 // get or create the test object
@@ -1680,7 +1681,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 		 Iterator<Node> it = getNodeIterator();
 		 while (it.hasNext()) {
 			 currentUrl = it.next().getBaseURL();
-			 D1Node d1Node = instantiateD1Node(currentUrl);
+			 CommonCallAdapter d1Node = instantiateD1Node(currentUrl);
 			 
 			 try {
 				 // get or create the test object
@@ -1821,7 +1822,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 		 Iterator<Node> it = getNodeIterator();
 		 while (it.hasNext()) {
 			 currentUrl = it.next().getBaseURL();
-			 D1Node d1Node = instantiateD1Node(currentUrl);
+			 CommonCallAdapter d1Node = instantiateD1Node(currentUrl);
 			 
 			 try {
 				 // get or create the test object
@@ -1983,7 +1984,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 		 Iterator<Node> it = getNodeIterator();
 		 while (it.hasNext()) {
 			 currentUrl = it.next().getBaseURL();
-			 D1Node d1Node = instantiateD1Node(currentUrl);
+			 CommonCallAdapter d1Node = instantiateD1Node(currentUrl);
 			 
 			 try {
 				 String objectIdentifier = "TierTesting:" + 
@@ -2083,7 +2084,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 	 }
 	 
 	 
-	 private Identifier procureSpecialTestObject(D1Node d1Node, AccessPolicy accessPolicy, Identifier pid, boolean exactPolicy) 
+	 private Identifier procureSpecialTestObject(CommonCallAdapter d1Node, AccessPolicy accessPolicy, Identifier pid, boolean exactPolicy) 
 	 throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique, UnsupportedType, 
 	 InsufficientResources, InvalidSystemMetadata, NotImplemented, InvalidRequest, 
 	 UnsupportedEncodingException, NotFound, TestIterationEndingException 
@@ -2162,7 +2163,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 	 
 	 
 	 
-	 private  Identifier procureSpecialTestObject(D1Node d1Node, AccessRule accessRule, Identifier pid, String rightsHolderSubjectString) 
+	 private  Identifier procureSpecialTestObject(CommonCallAdapter d1Node, AccessRule accessRule, Identifier pid, String rightsHolderSubjectString) 
 	 throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique, UnsupportedType, 
 	 InsufficientResources, InvalidSystemMetadata, NotImplemented, InvalidRequest, 
 	 UnsupportedEncodingException, NotFound, TestIterationEndingException 

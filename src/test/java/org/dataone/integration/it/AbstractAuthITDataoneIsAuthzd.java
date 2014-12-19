@@ -23,6 +23,7 @@
 package org.dataone.integration.it;
 
 import org.dataone.client.D1Node;
+import org.dataone.integration.CommonCallAdapter;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Permission;
@@ -40,11 +41,11 @@ public abstract class AbstractAuthITDataoneIsAuthzd extends AbstractAuthorizatio
 	}
 	
 	@Override
-	protected String runAuthTest(D1Node d1Node, Identifier pid, Permission permission) 
+	protected String runAuthTest(CommonCallAdapter cca, Identifier pid, Permission permission) 
 	{
 		String outcome = null;
 		try {
-			boolean booleanOutcome = d1Node.isAuthorized(null, pid, permission);
+			boolean booleanOutcome = cca.isAuthorized(null, pid, permission);
 			outcome = booleanOutcome ? "true" : "false";
 		}
 		catch (BaseException e) {
