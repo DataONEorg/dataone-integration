@@ -1,4 +1,4 @@
-package org.dataone.integration.it;
+package org.dataone.integration.tools;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.*;
@@ -11,10 +11,10 @@ import java.util.concurrent.Callable;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.dataone.client.CNode;
+import org.dataone.client.v1.CNode;
 import org.dataone.client.D1Client;
-import org.dataone.client.MNode;
-import org.dataone.client.ObjectFormatCache;
+import org.dataone.client.v1.MNode;
+import org.dataone.client.v2.formats.ObjectFormatCache;
 import org.dataone.ore.ResourceMapFactory;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.NotAuthorized;
@@ -33,9 +33,9 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ErrorCollector;
 
-public class ProductionResourceMapParsingIT {
+public class ProductionResourceMapParsingChecks {
 
-	protected static Log log = LogFactory.getLog(ProductionResourceMapParsingIT.class);
+	protected static Log log = LogFactory.getLog(ProductionResourceMapParsingChecks.class);
 
 	@Test
 	public void test() {
@@ -72,12 +72,13 @@ public class ProductionResourceMapParsingIT {
 //       				ObjectFormatList ofl = ObjectFormatCache.getInstance().listFormats();
        				for(ObjectFormat of : ofl.getObjectFormatList()) 
        				{
-       					if (of.getFormatType().equals("RESOURCE")) {      				
+       					if (of.getFormatType().equals("RESOURCE")) {
+       						System.out.println("...checking Format: " + of.getFormatId().getValue());
        						try {
        							ObjectList ol = mn.listObjects(null, null, of.getFormatId(),null, null, 20);
-       							System.out.println("...checking Format: " + of.getFormatId().getValue() +
-       								" (" + ol.getTotal() + " items)");
        							if (ol.sizeObjectInfoList() > 0) {
+       								log.info(ol.sizeObjectInfoList() + " items found of type " +
+       										of.getFormatId().getValue());
        								for (ObjectInfo oi : ol.getObjectInfoList()) {
        									String result = "ok";
        									String resMapContent;
@@ -98,93 +99,6 @@ public class ProductionResourceMapParsingIT {
        									}
 
        									System.out.println("   " + of.getFormatId().getValue() + ": " + 
-       											oi.getIdentifier().getValue() + ": "+ 
-       											result);
-
-       								}
-       							}
-       						} catch (Exception e) {
-       							System.out.println(e.getClass().getSimpleName() + ": " + 
-       									e.getMessage() + 
-       									"at line number " + e.getStackTrace()[0].getLineNumber());     
-       						}
-       					}
-       				}
-       				if (!foundOne) {
-       					System.out.println("No public resource maps " +
-       							"returned from listObjects.  Cannot test.\n");
-       				}
-       			}
-//       			catch (BaseException e) {
-//       				handleFail(mn.getLatestRequestUrl(), e.getClass().getSimpleName() + ": " + 
-//       						e.getDetail_code() + ":: " + e.getDescription());
-//       			}
-       			catch(Exception e) {
-       				e.printStackTrace();
-       				handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage() +
-       						"at line number " + e.getStackTrace()[0].getLineNumber());
-       			}
-       			catch(Throwable th) {
-       				th.printStackTrace();
-       				handleFail(currentUrl,th.getClass().getName() + ": " + th.getMessage() +
-       						"at line number " + th.getStackTrace()[0].getLineNumber());
-       			}
-       		}
-       	}
-    }
-    
-    
-    
-    @Test
-    public void testResourceMapParsingThorough() throws NotImplemented, ServiceFailure {
-    	
-    	System.out.println("testResourceMapParsing\n\n");
-//    	setupClientSubject_NoCert();
-    	CNode cn = new CNode("https://cn.dataone.org/cn");
-    	String currentUrl = null;
-    	Iterator<Node> it = cn.listNodes().getNodeList().iterator();
-    	ObjectFormatList ofl = cn.listFormats();
-       	while (it.hasNext()) {
-       		Node node = it.next();
-       		if (node.getType() == NodeType.MN && node.getBaseURL().equals("https://merritt.cdlib.org:8084/knb/d1/mn")) {
-       			currentUrl = node.getBaseURL();
-       			MNode mn = new MNode(currentUrl);	
-       			currentUrl = mn.getNodeBaseServiceUrl();
-       			System.out.println("\nMember Node: " + currentUrl);
-
-       			try {
-       				boolean foundOne = false;
-//       				ObjectFormatList ofl = ObjectFormatCache.getInstance().listFormats();
-       				for(ObjectFormat of : ofl.getObjectFormatList()) 
-       				{
-       					if (of.getFormatType().equals("RESOURCE")) {      				
-       						try {
-       							ObjectList ol = mn.listObjects(null, null, of.getFormatId(),null, null, 20000);
-       							System.out.println("...checking Format: " + of.getFormatId().getValue() +
-       								" (" + ol.getTotal() + " items)");
-       							if (ol.sizeObjectInfoList() > 0) {
-       								for (int i = 0; i< 20000; i +=5) {
-       									ObjectInfo oi = ol.getObjectInfo(i);
-
-       									String result = "ok";
-       									String resMapContent;
-       									try {
-       										InputStream is = mn.get(oi.getIdentifier());
-       										foundOne = true;
-       										log.info("Found public resource map: " + oi.getIdentifier().getValue());
-       										resMapContent = IOUtils.toString(is);
-       										if (resMapContent != null) {
-       											ResourceMapFactory.getInstance().parseResourceMap(resMapContent);
-       										} else {
-       											handleFail(mn.getLatestRequestUrl(),"got null content from the get request");
-       										}
-       									} catch (Exception e) {
-       										result = e.getClass().getSimpleName() + ": " + 
-       												e.getMessage() + 
-       												"at line number " + e.getStackTrace()[0].getLineNumber();       													
-       									}
-
-       									System.out.println("   " + i + ". " + of.getFormatId().getValue() + ": " + 
        											oi.getIdentifier().getValue() + ": "+ 
        											result);
 
