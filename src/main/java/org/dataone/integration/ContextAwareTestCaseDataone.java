@@ -32,13 +32,16 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.InvocationTargetException;
 import java.math.BigInteger;
+import java.net.URI;
 import java.net.URL;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.Vector;
@@ -46,16 +49,22 @@ import java.util.concurrent.Callable;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.dataone.client.CNode;
-import org.dataone.client.D1Client;
+import org.dataone.client.rest.DefaultHttpMultipartRestClient;
+import org.dataone.client.rest.MultipartRestClient;
+import org.dataone.client.v1.CNode;
+import org.dataone.client.v1.impl.MultipartCNode;
+import org.dataone.client.v1.itk.D1Client;
 import org.dataone.client.D1Node;
-import org.dataone.client.D1Object;
-import org.dataone.client.D1TypeBuilder;
-import org.dataone.client.MNode;
+import org.dataone.client.D1NodeFactory;
+import org.dataone.client.v1.itk.D1Object;
+import org.dataone.client.v1.types.D1TypeBuilder;
+import org.dataone.client.v1.MNode;
 import org.dataone.client.auth.CertificateManager;
 import org.dataone.client.auth.ClientIdentityManager;
+import org.dataone.client.exception.ClientSideException;
 import org.dataone.configuration.Settings;
 import org.dataone.configuration.TestSettings;
+import org.dataone.integration.it.CommonCallAdapter;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.IdentifierNotUnique;
 import org.dataone.service.exceptions.InsufficientResources;
@@ -108,7 +117,8 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 	
 
 	protected static String cnSubmitter = Settings.getConfiguration().getString("dataone.it.cnode.submitter.cn", /* default */ "urn:node:cnDevUNM1");
-	
+
+	protected static final MultipartRestClient MULTIPART_REST_CLIENT = new DefaultHttpMultipartRestClient(); 
 	
 	// context-related instance variables
 	private boolean alreadySetup = false;
@@ -175,14 +185,11 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 
 			log.info("****************************************************");
 			log.info("***  context label:   " + testContext);
-
 			
-			// overlay and supplement context properties from MNWebTester
-			// When running under servlet context (MNWebTester), the TestRunnerHttpServlet 
-			// copies the PARAM_MN_URL to a property containing the thread ID 
-			// to avoid any concurrency issues (settings getting changed by another client).
-			// Other parameters are also passed in
-
+			// for running under servlet context (MNWebTester), the TestRunnerHttpServlet will copy the 
+			// PARAM_MN_URL to a property containing the thread ID, to avoid any concurrency
+			// issues (settings getting changed by another client).
+			
 			String urlThrIdUrl = System.getProperty("mnwebtester.thread." 
 					+ Thread.currentThread().getId() + ".mn.baseurl");
 
@@ -215,11 +222,10 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 				memberNodeList.add(n);
 				log.info("*** Adding MN to list: [" + n.getBaseURL() +"]");
 			} else if (cnBaseUrl != null) {
-				CNode cn = new CNode(cnBaseUrl);
-				System.out.println("~~~ Context is solo CoordinatingNode: " + cn.getNodeBaseServiceUrl());
-				memberNodeList = new Vector<Node>();
+				System.out.println("~~~ Context is solo CoordinatingNode: " + cnBaseUrl);
 				Node n = new Node();
 				n.setBaseURL(cnBaseUrl);
+				coordinatingNodeList = new Vector<Node>();
 				coordinatingNodeList.add(n);	
 			} else {
 				setupMultipleNodes();
@@ -233,7 +239,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 				referenceContext = Settings.getConfiguration().getString(REFERENCE_CONTEXT_LABEL,null);
 				referenceCnBaseUrl = TestSettings.getReferenceCnBaseUrl(referenceContext);
 			}
-
+			
 			log.info("****************************************************");
 		}  // settings already set up
 	}
@@ -247,7 +253,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 	 */
 	private void setupMultipleNodes() 
 	throws IOException, InstantiationException, IllegalAccessException, 
-	JiBXException, ServiceFailure, NotImplemented 
+	JiBXException, ServiceFailure, NotImplemented, ClientSideException 
 	{
 		// we will be testing multiple member nodes
 		List<Node> allNodesList = new Vector<Node>();
@@ -266,49 +272,48 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 			NodeList nl = TypeMarshaller.unmarshalTypeFromStream(NodeList.class, is);
 			allNodesList = nl.getNodeList();
 		} else {
-			// use the context specified by D1Client
-			CNode cn = D1Client.getCN();
-			System.out.println("~~~ Context is from D1Client: " + cn.getNodeBaseServiceUrl());
-			allNodesList = cn.listNodes().getNodeList();
+			// use the context specified by D1Client.properties
+			String cnBaseUrl = Settings.getConfiguration().getString("D1Client.CN_URL");
+			System.out.println("~~~ Context is from d1client.properties: " + cnBaseUrl);
+			allNodesList = getNodeList(cnBaseUrl);
 		} 
 		// divide into separate lists
 		for(int i=0; i < allNodesList.size(); i++) {
 			Node currentNode = allNodesList.get(i);
 			if (currentNode.getType() == NodeType.CN) {
-				CNode cn = new CNode(currentNode.getBaseURL());
+				// test the baseUrl
 				try {
-					cn.listNodes();
+					getCapabilities(currentNode.getBaseURL());
 					coordinatingNodeList.add(currentNode);
 					log.info("*** Adding CN to list: " + currentNode.getName() + 
 							" [ " + currentNode.getBaseURL() +" ]");
 				}
 				catch (Exception e) {
 					if (failOnMissingNodes)
-						handleFail(cn.getLatestRequestUrl(), "Could not reach node at " + 
+						handleFail(MULTIPART_REST_CLIENT.getLatestRequestUrl(), "Could not reach node at " + 
 								currentNode.getIdentifier().getValue() + 
 								" for testing. Skipping further test cases for this node");
 					log.warn("*** Failed to add CN to list: " + currentNode.getName() + 
 							" [ " + currentNode.getBaseURL() + 
-							" ].  Could not reach the node:" + cn.getLatestRequestUrl()
+							" ].  Could not reach the node:" + MULTIPART_REST_CLIENT.getLatestRequestUrl()
 							);
 				}
 			} else if (currentNode.getType() == NodeType.MN) {
-				MNode mn = new MNode(currentNode.getBaseURL());
 				try {
-					mn.getCapabilities();
+					getCapabilities(currentNode.getBaseURL());
 					memberNodeList.add(currentNode);
 					log.info("*** Adding MN to list: " + currentNode.getName() + 
 							" [ " + currentNode.getBaseURL() +" ]");
 				}
 				catch (Exception e) {
 					if (failOnMissingNodes)
-						handleFail(mn.getLatestRequestUrl(), "Could not reach node at " + 
+						handleFail(MULTIPART_REST_CLIENT.getLatestRequestUrl(), "Could not reach node at " + 
 								currentNode.getIdentifier().getValue() + 
 								" for testing. Skipping further test cases for this node");
 
 					log.warn("*** Failed to add MN to list: " + currentNode.getName() + 
 							" [ " + currentNode.getBaseURL() + 
-							" ].  Could not reach the node:" + mn.getLatestRequestUrl()
+							" ].  Could not reach the node:" + MULTIPART_REST_CLIENT.getLatestRequestUrl()
 							);
 				}
 			} else if (currentNode.getType() == NodeType.MONITOR) {
@@ -322,7 +327,69 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 			}
 		}
 	}
+
+	private Node getCapabilities(String baseURL) 
+	throws ServiceFailure, NotImplemented, ClientSideException
+	{
+		try {
+			org.dataone.client.v1.MNode mnv1 = 
+					D1NodeFactory.buildNode(org.dataone.client.v1.MNode.class, 
+							MULTIPART_REST_CLIENT, URI.create(baseURL));
+			return mnv1.getCapabilities();
+		}
+		catch (Exception e) {	
+			org.dataone.client.v2.MNode mnv2 = 
+					D1NodeFactory.buildNode(org.dataone.client.v2.MNode.class, 
+							MULTIPART_REST_CLIENT, URI.create(baseURL));
+			return mnv2.getCapabilities();
+		
+		}
+	}
 	
+	
+	private List<Node> getNodeList(String baseURL) 
+	throws ClientSideException, NotImplemented, ServiceFailure {
+		try {
+			org.dataone.client.v1.CNode cnv1 = 
+					D1NodeFactory.buildNode(org.dataone.client.v1.CNode.class, 
+							MULTIPART_REST_CLIENT, URI.create(baseURL));
+			return cnv1.listNodes().getNodeList();
+		}
+		catch (Exception e) {	
+			try {
+				org.dataone.client.v2.CNode cnv2 = 
+					D1NodeFactory.buildNode(org.dataone.client.v2.CNode.class, 
+							MULTIPART_REST_CLIENT, URI.create(baseURL));
+				List<org.dataone.service.types.v2.Node> v2nodes  = cnv2.listNodes().getNodeList();
+				List<Node> v1Nodes = new LinkedList<Node>();
+			
+				for (Node n: v2nodes) {
+					v1Nodes.add(TypeMarshaller.convertTypeFromType(n,Node.class));
+				}
+				return v1Nodes;
+			} catch (InstantiationException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+				throw new ClientSideException("Error converting v2.Node to v1.Node",e1);
+			} catch (IllegalAccessException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+				throw new ClientSideException("Error converting v2.Node to v1.Node",e1);
+			} catch (InvocationTargetException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+				throw new ClientSideException("Error converting v2.Node to v1.Node",e1);
+			} catch (JiBXException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+				throw new ClientSideException("Error converting v2.Node to v1.Node",e1);
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+				throw new ClientSideException("Error converting v2.Node to v1.Node",e1);
+			} 	
+		}		
+	}
 	
 	
 	@Before
@@ -420,38 +487,38 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 	}
 	
 
-	protected ObjectList procureObjectList(D1Node d1Node) 
+	protected ObjectList procureObjectList(CommonCallAdapter cca) 
 	throws TestIterationEndingException 
 	{
-		return procureObjectList(d1Node,false);
+		return procureObjectList(cca,false);
 	}
 
     /**
      * get an ObjectList from listObjects as the current user, and if empty, 
      * try to create a public readable object.
-     * @param d1Node
+     * @param cca
      * @param getAll - sets the start and count parameter to get the entire list.
      * @return
      * @throws TestIterationEndingException
      */
-    protected ObjectList procureObjectList(D1Node d1Node, boolean getAll) 
+    protected ObjectList procureObjectList(CommonCallAdapter cca, boolean getAll) 
     throws TestIterationEndingException 
     {
     	ObjectList objectList = null;
     	try {
     		if (getAll) {
-    			objectList = d1Node.listObjects(null, null, null, null, null, 0, 0);
-    			objectList = d1Node.listObjects(null, null, null, null, null, 0, objectList.getTotal());
+    			objectList = cca.listObjects(null, null, null, null, null, 0, 0);
+    			objectList = cca.listObjects(null, null, null, null, null, 0, objectList.getTotal());
     		} else {
-    			objectList = d1Node.listObjects(null);
+    			objectList = cca.listObjects(null, null, null, null, null, null, null);
     		}
     	} catch (BaseException e) {
 			throw new TestIterationEndingException("unexpected error thrown by listObjects(): " + e.getMessage(), e);
 		}
     	if (objectList.getTotal() == 0) {
     		try {
-				createPublicTestObject(d1Node,"");
-				objectList = d1Node.listObjects(null);
+				createPublicTestObject(cca,"");
+				objectList = cca.listObjects(null, null, null, null, null, null, null);
 				if (objectList.getTotal() == 0) {
 					throw new TestIterationEndingException("could not find or create an object for use by listObjects().");
 				}
@@ -488,17 +555,17 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
      * then failing that, does a listObjects(), and subsequent getSysMeta to see
      * if there is any object that satisfies the criteria (PublicReadable)
      *    
-     * @param d1Node
+     * @param cca
      * @return Identifier for object to be used for testing
      * @throws TestIterationEndingException 
      */
-	protected Identifier procurePublicReadableTestObject(D1Node d1Node, Identifier firstTry) 
+	protected Identifier procurePublicReadableTestObject(CommonCallAdapter cca, Identifier firstTry) 
 	throws TestIterationEndingException
 	{
 		Identifier identifier = null;
 		try {
 			identifier  = procureTestObject(
-					d1Node,
+					cca,
 					D1TypeBuilder.buildAccessRule(
 							Constants.SUBJECT_PUBLIC,
 							Permission.READ),
@@ -515,7 +582,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 		BaseException latestException = null;
 		if (identifier == null) {
 			try {
-				ObjectList ol = d1Node.listObjects(null);
+				ObjectList ol = cca.listObjects(null, null, null, null, null, null, null);
 				if (ol != null && ol.getCount() > 0) {
 					
 					// start time of this search-loop
@@ -527,12 +594,12 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 					BigInteger objectSize = new BigInteger("999888777666");
 					
 					for (ObjectInfo oi: ol.getObjectInfoList()) {
-						if (d1Node instanceof CNode) {
+						if (cca instanceof CNode) {
 							if (!oi.getFormatId().getValue().startsWith("eml:"))
 								continue;
 						}
 						try {
-							SystemMetadata smd = d1Node.getSystemMetadata(null,oi.getIdentifier());
+							SystemMetadata smd = cca.getSystemMetadata(null,oi.getIdentifier());
 							if (AccessUtil.getPermissionMap(smd.getAccessPolicy())
 									.containsKey(D1TypeBuilder.buildSubject(Constants.SUBJECT_PUBLIC))) 
 							{
@@ -549,7 +616,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 									log.debug(String.format(
 											"Size-limit exceeded: pid = %s, node = %s, size = %s, limit=%s",
 											oi.getIdentifier().getValue(),
-											d1Node.getNodeId(),
+											cca.getNodeId(),
 											oi.getSize().toString(),
 											sizeGoodEnoughLimit.toString())
 											);
@@ -596,7 +663,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
     
 	/**
 	 * get an existing object for testing, and failing that attempt to create one (not all nodes will allow this).
-	 * @param  d1Node - the MNode or CNode object from where to procure the object Identifier
+	 * @param  cca - the MNode or CNode object from where to procure the object Identifier
 	 * @param  accessRule - specifies the AccessPolicy's AccessRule contained by 
 	 *                      the object returned by the pid parameter.  (it makes it so on create, 
 	 *                      and checks for it on get).  If null, requires a null or empty
@@ -618,7 +685,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 	 * @throws InvalidToken 
 	 * @throws TestIterationEndingException - - when can't procure an object Identifier  
 	 */
-	protected Identifier procureTestObject(D1Node d1Node, AccessRule accessRule, Identifier pid) 
+	protected Identifier procureTestObject(CommonCallAdapter cca, AccessRule accessRule, Identifier pid) 
 	throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique, UnsupportedType, 
 	InsufficientResources, InvalidSystemMetadata, NotImplemented, InvalidRequest, 
 	UnsupportedEncodingException, NotFound, TestIterationEndingException 
@@ -626,7 +693,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 		Identifier identifier = null;
 		try {
 			log.debug("procureTestObject: checking system metadata of requested object");
-			SystemMetadata smd = d1Node.getSystemMetadata(null, pid);
+			SystemMetadata smd = cca.getSystemMetadata(null, pid);
 			if (accessRule == null) {
 				// need the accessPolicy to be null, or contain no accessrules
 				if (smd.getAccessPolicy() == null || smd.getAccessPolicy().sizeAllowList() == 0) {
@@ -657,15 +724,15 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 //			// give it a go...
 //		}
 		catch (NotFound e) {
-			if (d1Node instanceof MNode) {
-				Node node = ((MNode) d1Node).getCapabilities();
+			if (cca instanceof MNode) {
+				Node node = ((MNode) cca).getCapabilities();
 				if (APITestUtils.isServiceAvailable(node, "MNStorage")) {
 					log.debug("procureTestObject: calling createTestObject");
-					identifier = createTestObject(d1Node, pid, accessRule);
+					identifier = createTestObject(cca, pid, accessRule);
 				}
 			} else {
 				log.debug("procureTestObject: calling createTestObject");
-				identifier = createTestObject(d1Node, pid, accessRule);
+				identifier = createTestObject(cca, pid, accessRule);
 			}
 		}
 		log.info(" ====>>>>> pid of procured test Object: " + identifier.getValue());
@@ -694,7 +761,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 	
 	/**
 	 * gets a test object from the specified node.
-	 * @param  d1Node - the MNode or CNode object from where to procure the object Identifier
+	 * @param  cca - the MNode or CNode object from where to procure the object Identifier
 	 * @param  permissionLevel - the permission-level of the object retrieved needed
 	 * @param  subjectFilter - if not null, means the permissions specified have to be 
 	 * 						   explicitly assigned in the systemmetadata accessPolicy
@@ -704,12 +771,12 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 	 * @return - Identifier for the readable object, if found, otherwise null
 	 */	
 	@Deprecated
-	protected Identifier getTestObject(D1Node d1Node, Subject subjectFilter, 
+	protected Identifier getTestObject(CommonCallAdapter cca, Subject subjectFilter, 
 			Permission permissionLevel, boolean checkUsingIsAuthorized) 	
 	{
 		Identifier id = null;		
 		try {
-			ObjectList ol = d1Node.listObjects(null);
+			ObjectList ol = cca.listObjects(null, null, null, null, null, null, null);
 			if (ol.getTotal() > 0) {
 				if (subjectFilter != null || (permissionLevel != Permission.READ && checkUsingIsAuthorized == false)) {  
 					// will need to pull sysmeta and examine the accessPolicy for both situations
@@ -721,7 +788,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 					for(int i=0; i< ol.sizeObjectInfoList(); i++) {
 						id = ol.getObjectInfo(i).getIdentifier();
 						try {
-							SystemMetadata smd = d1Node.getSystemMetadata(null, id);
+							SystemMetadata smd = cca.getSystemMetadata(null, id);
 
 							HashMap<Subject,Set<Permission>> permMap = AccessUtil.getPermissionMap(smd.getAccessPolicy());
 							if (permMap.containsKey(subjectFilter)) {
@@ -751,7 +818,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 					for(int i=0; i< ol.sizeObjectInfoList(); i++) {
 						id = ol.getObjectInfo(i).getIdentifier();
 						try {
-							d1Node.isAuthorized(null,id, permissionLevel);
+							cca.isAuthorized(null,id, permissionLevel);
 							break;  // found one!!
 						} catch (NotAuthorized na) {
 							// it's ok to fail here
@@ -765,7 +832,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 			}
 		} 
 		catch (BaseException e) {
-			handleFail(d1Node.getNodeBaseServiceUrl(),e.getClass().getSimpleName() + ":: " + e.getDescription());
+			handleFail(cca.getNodeBaseServiceUrl(),e.getClass().getSimpleName() + ":: " + e.getDescription());
 		}
 		catch(Exception e) {
 			log.warn(e.getClass().getName() + ": " + e.getMessage());
