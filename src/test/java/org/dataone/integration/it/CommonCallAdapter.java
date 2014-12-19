@@ -1,5 +1,7 @@
 package org.dataone.integration.it;
 
+import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
 import java.util.Date;
 
@@ -7,23 +9,28 @@ import org.dataone.client.D1Node;
 import org.dataone.client.D1NodeFactory;
 import org.dataone.client.exception.ClientSideException;
 import org.dataone.client.rest.MultipartRestClient;
+import org.dataone.service.cn.v1.CNCore;
 import org.dataone.service.exceptions.InsufficientResources;
 import org.dataone.service.exceptions.InvalidRequest;
 import org.dataone.service.exceptions.InvalidToken;
 import org.dataone.service.exceptions.NotAuthorized;
 import org.dataone.service.exceptions.NotImplemented;
 import org.dataone.service.exceptions.ServiceFailure;
+import org.dataone.service.mn.tier1.v1.MNCore;
+import org.dataone.service.types.v1.Event;
 import org.dataone.service.types.v1.Node;
 import org.dataone.service.types.v1.NodeReference;
 import org.dataone.service.types.v1.NodeType;
 import org.dataone.service.types.v1.Session;
 import org.dataone.service.types.v2.Log;
+import org.dataone.service.util.TypeMarshaller;
+import org.jibx.runtime.JiBXException;
 
 public class CommonCallAdapter implements D1Node {
 
-    Node node;
-    String version;
-    MultipartRestClient mrc;
+    private Node node;
+    private String version;
+    private MultipartRestClient mrc;
 
     public CommonCallAdapter(MultipartRestClient mrc, Node node, String version) {
         this.mrc = mrc;
@@ -54,9 +61,38 @@ public class CommonCallAdapter implements D1Node {
 
     public Log getLogRecords(Session session, Date fromDate, Date toDate, String event, String pidFilter,
             Integer start, Integer count) throws InvalidRequest, InvalidToken, NotAuthorized, NotImplemented,
-            ServiceFailure {
-        // TODO Auto-generated
-        return null;
+            ServiceFailure, ClientSideException, InstantiationException, IllegalAccessException,
+            InvocationTargetException, JiBXException, IOException, InsufficientResources {
+
+        if (this.node.getType().equals(NodeType.MN)) {
+            if (this.version.toLowerCase().equals("v1")) {
+                MNCore mnCore = D1NodeFactory.buildNode(org.dataone.service.mn.tier1.v1.MNCore.class, this.mrc,
+                        URI.create(this.node.getBaseURL()));
+                // TODO use deprecated call with Session? or no?
+                org.dataone.service.types.v1.Log log = mnCore.getLogRecords(session, fromDate, toDate,
+                        Event.convert(event), pidFilter, start, count);
+                return TypeMarshaller.convertTypeFromType(log, Log.class);
+            } else if (this.version.toLowerCase().equals("v2")) {
+                org.dataone.service.mn.tier1.v2.MNCore mnCore = D1NodeFactory.buildNode(
+                        org.dataone.service.mn.tier1.v2.MNCore.class, this.mrc, URI.create(this.node.getBaseURL()));
+                Log log = mnCore.getLogRecords(session, fromDate, toDate, event, pidFilter, start, count);
+                return log;
+            }
+        } else if (this.node.getType().equals(NodeType.CN)) {
+            if (this.version.toLowerCase().equals("v1")) {
+                CNCore mnCore = D1NodeFactory.buildNode(org.dataone.service.cn.v1.CNCore.class, this.mrc,
+                        URI.create(this.node.getBaseURL()));
+                org.dataone.service.types.v1.Log log = mnCore.getLogRecords(session, fromDate, toDate,
+                        Event.convert(event), pidFilter, start, count);
+                return TypeMarshaller.convertTypeFromType(log, Log.class);
+            } else if (this.version.toLowerCase().equals("v2")) {
+                org.dataone.service.mn.tier1.v2.MNCore mnCore = D1NodeFactory.buildNode(
+                        org.dataone.service.mn.tier1.v2.MNCore.class, this.mrc, URI.create(this.node.getBaseURL()));
+                Log log = mnCore.getLogRecords(session, fromDate, toDate, event, pidFilter, start, count);
+                return log;
+            }
+        }
+        throw new ClientSideException("Unable to create node of type " + node.getType() + " of version " + version);
     }
 
     public Node getCapabilities() throws NotImplemented, ServiceFailure {
