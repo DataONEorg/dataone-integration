@@ -84,55 +84,55 @@ import org.dataone.service.util.Constants;
  * Utilities that are useful for generating test data.
  */
 public class ExampleUtilities {
-	
-	public static final String CHECKSUM_ALGORITHM = "MD5";
-	
-	// common object formats to test
-	public static final String FORMAT_TEXT_PLAIN  = "text/plain";
-	public static final String FORMAT_TEXT_CSV    = "text/csv";
-	public static final String FORMAT_EML_2_0_0   = "eml://ecoinformatics.org/eml-2.0.0";
-	public static final String FORMAT_EML_2_0_1   = "eml://ecoinformatics.org/eml-2.0.1";
-	public static final String FORMAT_EML_2_1_0   = "eml://ecoinformatics.org/eml-2.1.0";
-	public static final String FORMAT_EML_2_1_1   = "eml://ecoinformatics.org/eml-2.1.1";
 
-	// paths to common science data and metadata examples for the above formats
-	protected static final String SCIDATA_TEXT_PLAIN = "/d1_testdocs/eml200/IPCC.200802107062739.1"; 
-	protected static final String SCIDATA_TEXT_CSV   = "/d1_testdocs/eml201/TPT001_018MHP2000R00_20110121.40.1.csv"; 
-	protected static final String SCIMETA_EML_2_0_0  = "/d1_testdocs/eml200/dpennington.195.2"; 
-	protected static final String SCIMETA_EML_2_0_1  = "/d1_testdocs/eml201/TPT001_018MHP2000R00_20110121.50.1.xml"; 
-	protected static final String SCIMETA_EML_2_1_0  = "/d1_testdocs/eml210/peggym.130.4"; 
-	// TODO: protected static final String SCIMETA_EML_2_1_1  = "need to get a 2.1.1 test doc"; 
-	
-	
-	protected final static String preferredMNId = "c3p0";
+    public static final String CHECKSUM_ALGORITHM = "MD5";
 
-	
+    // common object formats to test
+    public static final String FORMAT_TEXT_PLAIN  = "text/plain";
+    public static final String FORMAT_TEXT_CSV    = "text/csv";
+    public static final String FORMAT_EML_2_0_0   = "eml://ecoinformatics.org/eml-2.0.0";
+    public static final String FORMAT_EML_2_0_1   = "eml://ecoinformatics.org/eml-2.0.1";
+    public static final String FORMAT_EML_2_1_0   = "eml://ecoinformatics.org/eml-2.1.0";
+    public static final String FORMAT_EML_2_1_1   = "eml://ecoinformatics.org/eml-2.1.1";
 
-	/**
-	 * creates the identifier, data inputstream, and sysmetadata for testing purposes
-	 * the rightsHolder is set to the subject of the current certificate (user)
-	 * 
-	 * uses a default text/plain data source
-	 */
+    // paths to common science data and metadata examples for the above formats
+    protected static final String SCIDATA_TEXT_PLAIN = "/d1_testdocs/eml200/IPCC.200802107062739.1";
+    protected static final String SCIDATA_TEXT_CSV   = "/d1_testdocs/eml201/TPT001_018MHP2000R00_20110121.40.1.csv";
+    protected static final String SCIMETA_EML_2_0_0  = "/d1_testdocs/eml200/dpennington.195.2";
+    protected static final String SCIMETA_EML_2_0_1  = "/d1_testdocs/eml201/TPT001_018MHP2000R00_20110121.50.1.xml";
+    protected static final String SCIMETA_EML_2_1_0  = "/d1_testdocs/eml210/peggym.130.4";
+    // TODO: protected static final String SCIMETA_EML_2_1_1  = "need to get a 2.1.1 test doc";
+
+
+    protected final static String preferredMNId = "c3p0";
+
+
+
+    /**
+     * creates the identifier, data inputstream, and sysmetadata for testing purposes
+     * the rightsHolder is set to the subject of the current certificate (user)
+     *
+     * uses a default text/plain data source
+     */
     public static Object[] generateTestSciDataPackage(String idString, boolean isPrefix)
         throws NoSuchAlgorithmException, NotFound, InvalidRequest, IOException {
-        
+
         return generateTestDataPackage(idString, isPrefix, FORMAT_TEXT_PLAIN);
     }
-    
-	/**
-	 * creates the identifier, data inputstream, and sysmetadata for testing purposes
-	 * the rightsHolder is set to the subject of the current certificate (user)
-	 * 
-	 * uses a default text/plain data source
-	 */
+
+    /**
+     * creates the identifier, data inputstream, and sysmetadata for testing purposes
+     * the rightsHolder is set to the subject of the current certificate (user)
+     *
+     * uses a default text/plain data source
+     */
     public static Object[] generateTestSciMetaDataPackage(String idString, boolean isPrefix)
         throws NoSuchAlgorithmException, NotFound, InvalidRequest, IOException {
-        
+
         return generateTestDataPackage(idString, isPrefix, FORMAT_EML_2_1_0);
     }
-  
-    
+
+
     /**
      * Provides a byte array representation of the object for the specified format
      * Accepts any of the types defined as constants in ExampleUtilities.  eg:
@@ -141,15 +141,15 @@ public class ExampleUtilities {
      * @return
      * @throws IOException
      */
-    public static byte[] getExampleObjectOfType(String formatIDString) throws IOException 
+    public static byte[] getExampleObjectOfType(String formatIDString) throws IOException
     {
         byte[] contentBytes = null;
         InputStream fileStream = null;
-        
+
         // choose a test object file based on the object format passed in
         if ( formatIDString == FORMAT_TEXT_PLAIN ) {
             fileStream = ExampleUtilities.class.getResourceAsStream(SCIDATA_TEXT_PLAIN);
-            
+
         } else if ( formatIDString == FORMAT_EML_2_0_0 ) {
             fileStream = ExampleUtilities.class.getResourceAsStream(SCIMETA_EML_2_0_0);
 
@@ -158,17 +158,17 @@ public class ExampleUtilities {
 
         } else if ( formatIDString == FORMAT_EML_2_1_0 ) {
             fileStream = ExampleUtilities.class.getResourceAsStream(SCIMETA_EML_2_1_0);
-        
+
         //TODO: get an EML 2.1.1 test doc in place
         //} else if ( formatIDString == FORMAT_EML_2_1_1 ) {
         //    fileStream = ExampleUtilities.class.getResourceAsStream(SCIMETA_EML_2_1_1);
-        }   
-        
-        contentBytes = IOUtils.toByteArray(fileStream); 
+        }
+
+        contentBytes = IOUtils.toByteArray(fileStream);
         return contentBytes;
     }
-    
-	
+
+
   /**
    * creates the identifier, data inputstream, and sysmetadata for testing purposes
    * the rightsHolder is set to the subject of the current certificate (user)
@@ -176,16 +176,16 @@ public class ExampleUtilities {
     public static Object[] generateTestDataPackage(String idString,
         boolean isPrefix, String formatString)
         throws NoSuchAlgorithmException, NotFound, InvalidRequest, IOException {
-        
+
         if (isPrefix) {
             idString += generateIdentifier();
         }
         Identifier guid = new Identifier();
         guid.setValue(idString);
 
-      
-        byte[] contentBytes = getExampleObjectOfType(formatString);        
-        
+
+        byte[] contentBytes = getExampleObjectOfType(formatString);
+
         // figure out who we are
         String ownerX500 = idString + "_unknownCert";
         try {
@@ -213,21 +213,21 @@ public class ExampleUtilities {
 
         ByteArrayInputStream bis = new ByteArrayInputStream(contentBytes);
         return new Object[] { guid, bis, sysMeta };
-    }  
-	
-	
-	
-	
+    }
 
-	/**
-	 * Create a unique identifier for testing insert and update.
-	 * 
-	 * @return a String identifier based on the current date and time
-	 */
-	public static String generateIdentifier() {
-		return ExampleUtilities.generateTimeString();
-	}
-	
+
+
+
+
+    /**
+     * Create a unique identifier for testing insert and update.
+     *
+     * @return a String identifier based on the current date and time
+     */
+    public static String generateIdentifier() {
+        return ExampleUtilities.generateTimeString();
+    }
+
     /** Generate a timestamp for use in IDs. */
     private static String generateTimeString()
     {
@@ -259,27 +259,27 @@ public class ExampleUtilities {
      * @return the potential replica list of MNs
      */
     protected static List<NodeReference> generatePotentialReplicaNodeList(CNode cn, Node authNode) {
-        
+
         // get the full node list from the cn
         NodeList nodeList = null;
         List<Node> nodes = null;
-        
+
         // get the node list from the CN
         try {
             nodeList = cn.listNodes();
             nodes = nodeList.getNodeList();
-            
+
         } catch (NotImplemented e) {
             e.printStackTrace();
-            
+
         } catch (ServiceFailure e) {
             e.printStackTrace();
-            
+
         }
-        
-        //create the list of potential target nodes 
+
+        //create the list of potential target nodes
         List<NodeReference> potentialNodeList = new ArrayList<NodeReference>();
-        
+
         // verify the versions of replication the authNode supports
         List<String> implementedVersions = new ArrayList<String>();
         List<Service> origServices = authNode.getServices().getServiceList();
@@ -287,42 +287,42 @@ public class ExampleUtilities {
             if(service.getName().equals("MNReplication") &&
                service.getAvailable()) {
                 implementedVersions.add(service.getVersion());
-                
+
             }
         }
 
         // build the potential list of target nodes
         for(Node node : nodes) {
-          
+
             // only add MNs as targets, excluding the authoritative MN and MNs that are not tagged to replicate
             if ( (node.getType() == NodeType.MN) && node.isReplicate() &&
                 !node.getIdentifier().getValue().equals(authNode.getIdentifier().getValue())) {
-                
+
                 for (Service service : node.getServices().getServiceList()) {
                     if(service.getName().equals("MNReplication") &&
                        implementedVersions.contains(service.getVersion()) &&
                        service.getAvailable()) {
                         potentialNodeList.add(node.getIdentifier());
                     }
-                }             
+                }
             }
         }
         return potentialNodeList;
     }
-    
+
     /** Generate a SystemMetadata object with bogus data. */
     @Deprecated
     public static SystemMetadata generateSystemMetadata(
             Identifier pid, String objectFormatIdString, InputStream source, String mnIdentifier) {
 
-    	ObjectFormatIdentifier ofid = new ObjectFormatIdentifier();
-    	ofid.setValue(objectFormatIdString);
-    	if (mnIdentifier == null)
-    		return generateSystemMetadata(pid, ofid, source, preferredMNId);
-    	else
-    		return generateSystemMetadata(pid, ofid, source, mnIdentifier);
+        ObjectFormatIdentifier ofid = new ObjectFormatIdentifier();
+        ofid.setValue(objectFormatIdString);
+        if (mnIdentifier == null)
+            return generateSystemMetadata(pid, ofid, source, preferredMNId);
+        else
+            return generateSystemMetadata(pid, ofid, source, mnIdentifier);
     }
-    
+
     /** Generate a SystemMetadata object with bogus data. */
     @Deprecated
     protected static SystemMetadata generateSystemMetadata(
@@ -330,13 +330,13 @@ public class ExampleUtilities {
 
         return generateSystemMetadata(pid, fmtid, source, preferredMNId);
     }
-    
+
     /** Generate a SystemMetadata object with bogus data. */
     @Deprecated
     protected static SystemMetadata generateSystemMetadata(
-            Identifier pid, ObjectFormatIdentifier fmtid, InputStream source, String mnIdentifier) 
+            Identifier pid, ObjectFormatIdentifier fmtid, InputStream source, String mnIdentifier)
     {
-    	
+
         SystemMetadata sysmeta = new SystemMetadata();
         sysmeta.setIdentifier(pid);
         sysmeta.setFormatId(fmtid);
@@ -378,137 +378,137 @@ public class ExampleUtilities {
         sysmeta.setChecksum(checksum);
         return sysmeta;
     }
- 
-    
-    protected static String extractObjectListTotalAttribute(String ol) {
-    	Pattern pat = Pattern.compile("total=\"\\d+\"");
 
-		Matcher mat = pat.matcher(ol);
-		String totalPattern = null;
-		if (mat.find())
-			totalPattern = mat.group();
-		return totalPattern;
-    }    
-    
+
+    protected static String extractObjectListTotalAttribute(String ol) {
+        Pattern pat = Pattern.compile("total=\"\\d+\"");
+
+        Matcher mat = pat.matcher(ol);
+        String totalPattern = null;
+        if (mat.find())
+            totalPattern = mat.group();
+        return totalPattern;
+    }
+
     protected static SubjectList buildSubjectList(Object persons) {
-    	SubjectList sl = new SubjectList();
-    	for(String pString: (String[])persons) {
-    		Person p = new Person();
-    		Subject s = new Subject();
-    		s.setValue(pString);
-    		p.setSubject(s);
-    		
-    		sl.addSubject(p.getSubject());
-    	}
-    	return sl;
+        SubjectList sl = new SubjectList();
+        for(String pString: (String[])persons) {
+            Person p = new Person();
+            Subject s = new Subject();
+            s.setValue(pString);
+            p.setSubject(s);
+
+            sl.addSubject(p.getSubject());
+        }
+        return sl;
     }
-    
+
     protected static Subject buildSubject(String subjectValue) {
-    	Subject s = new Subject();
-    	s.setValue(subjectValue);
-    	return s;
+        Subject s = new Subject();
+        s.setValue(subjectValue);
+        return s;
     }
-    
-	public static Identifier doCreateNewObject(D1Node d1Node, String idPrefix) throws ServiceFailure,
-	NotImplemented, InvalidToken, NotAuthorized, IdentifierNotUnique, UnsupportedType,
-	InsufficientResources, InvalidSystemMetadata, NotFound, InvalidRequest
-	{
+
+    public static Identifier doCreateNewObject(D1Node d1Node, String idPrefix) throws ServiceFailure,
+    NotImplemented, InvalidToken, NotAuthorized, IdentifierNotUnique, UnsupportedType,
+    InsufficientResources, InvalidSystemMetadata, NotFound, InvalidRequest
+    {
 //		String principal = "uid%3Dkepler,o%3Dunaffiliated,dc%3Decoinformatics,dc%3Dorg";
-		Session token = null; // mn.login(principal, "kepler");
-		String idString = idPrefix + ExampleUtilities.generateIdentifier();
-		Identifier pid = new Identifier();
-		pid.setValue(idString);
-		InputStream objectStream = 
-			new Throwable().getStackTrace()[2].getClass().getResourceAsStream("/d1_testdocs/knb-lter-cdr.329066.1.data");
+        Session token = null; // mn.login(principal, "kepler");
+        String idString = idPrefix + ExampleUtilities.generateIdentifier();
+        Identifier pid = new Identifier();
+        pid.setValue(idString);
+        InputStream objectStream =
+            new Throwable().getStackTrace()[2].getClass().getResourceAsStream("/d1_testdocs/knb-lter-cdr.329066.1.data");
 //		InputStream objectStream = Caller.getClass().getResourceAsStream(
 //				"/d1_testdocs/knb-lter-cdr.329066.1.data");
-		SystemMetadata sysmeta = ExampleUtilities.generateSystemMetadata(pid, "text/csv", objectStream,null);
-		Identifier rpid = null;
-		objectStream = 
+        SystemMetadata sysmeta = ExampleUtilities.generateSystemMetadata(pid, "text/csv", objectStream,null);
+        Identifier rpid = null;
+        objectStream =
             new Throwable().getStackTrace()[2].getClass().getResourceAsStream("/d1_testdocs/knb-lter-cdr.329066.1.data");
 
-		if (d1Node instanceof MNode) {
-			rpid = ((MNode) d1Node).create(token, pid, objectStream, sysmeta);
-		} else {
-			rpid = ((CNode) d1Node).create(token, pid, objectStream, sysmeta);
-		}
-		assertThat("checking that returned pid matches given ", pid.getValue(), is(rpid.getValue()));
+        if (d1Node instanceof MNode) {
+            rpid = ((MNode) d1Node).create(token, pid, objectStream, sysmeta);
+        } else {
+            rpid = ((CNode) d1Node).create(token, pid, objectStream, sysmeta);
+        }
+        assertThat("checking that returned pid matches given ", pid.getValue(), is(rpid.getValue()));
 //		mn.setAccessPolicy(token, rpid, ContextAwareTestCaseDataone.buildPublicReadAccessPolicy());
-		System.out.println("new document created on " + d1Node.getNodeBaseServiceUrl() + 
-		        " with pid " + rpid.getValue());
-		if (d1Node instanceof MNode) {
-			((MNode) d1Node).get(null,pid);
-		} else {
-			((CNode) d1Node).get(null,pid);
-		}
-		return rpid;
-	}
-  
-	/**
-	 * Utility method for getting a mock session object
-	 * 
-	 * @return session - the session object with a Subject set and 
-	 */
+        System.out.println("new document created on " + d1Node.getNodeBaseServiceUrl() +
+                " with pid " + rpid.getValue());
+        if (d1Node instanceof MNode) {
+            ((MNode) d1Node).get(null,pid);
+        } else {
+            ((CNode) d1Node).get(null,pid);
+        }
+        return rpid;
+    }
+
+    /**
+     * Utility method for getting a mock session object
+     *
+     * @return session - the session object with a Subject set and
+     */
   protected static Session getTestSession() {
-		
-  	Session session = new Session();
-  	String subjectStr  = "uid=kepler,o=unaffiliated,dc=ecoinformatics,dc=org";
-  	List<Group> groupList= new ArrayList<Group>();
-  	Group group1 = new Group();
-  	group1.setGroupName("cn=test-group,dc=ecoinformatics,dc=org");
-  	groupList.add(group1);
-  	Group group2 = new Group();
-  	group1.setGroupName("cn=test-group2,dc=ecoinformatics,dc=org");
-  	groupList.add(group2);
-  	
-  	Subject subject = new Subject();
-  	subject.setValue(subjectStr);
-  	SubjectInfo subjectInfo = new SubjectInfo();
-  	subjectInfo.setGroupList(groupList);
-  	
-  	session.setSubject(subject);
-  	session.setSubjectInfo(subjectInfo);
-  	
-  	return session;
-  	
+
+      Session session = new Session();
+      String subjectStr  = "uid=kepler,o=unaffiliated,dc=ecoinformatics,dc=org";
+      List<Group> groupList= new ArrayList<Group>();
+      Group group1 = new Group();
+      group1.setGroupName("cn=test-group,dc=ecoinformatics,dc=org");
+      groupList.add(group1);
+      Group group2 = new Group();
+      group1.setGroupName("cn=test-group2,dc=ecoinformatics,dc=org");
+      groupList.add(group2);
+
+      Subject subject = new Subject();
+      subject.setValue(subjectStr);
+      SubjectInfo subjectInfo = new SubjectInfo();
+      subjectInfo.setGroupList(groupList);
+
+      session.setSubject(subject);
+      session.setSubjectInfo(subjectInfo);
+
+      return session;
+
   }
-  
-  public Person buildPerson(Subject subject, String familyName, 
-		  String givenName, String emailString) 
+
+  public Person buildPerson(Subject subject, String familyName,
+          String givenName, String emailString)
   {
-	  String[] badParam = new String[]{};
-	  Person person = new Person();
+      String[] badParam = new String[]{};
+      Person person = new Person();
 //	  try {
 //		InternetAddress ia = new InternetAddress(emailString, true);
-		if (emailString == null || emailString.trim().equals(""))
-			badParam[badParam.length] = "emailString";
-		if (familyName == null || familyName.trim().equals(""))
-			badParam[badParam.length] = "familyName";
-		if (givenName == null || givenName.trim().equals(""))
-			badParam[badParam.length] = "givenName";
-		if (subject == null || subject.getValue().equals(""))
-			badParam[badParam.length] = "subject";
-		
-		if (badParam.length > 0)
-			throw new IllegalArgumentException("null or empty string values for parameters: " + badParam);
-		
+        if (emailString == null || emailString.trim().equals(""))
+            badParam[badParam.length] = "emailString";
+        if (familyName == null || familyName.trim().equals(""))
+            badParam[badParam.length] = "familyName";
+        if (givenName == null || givenName.trim().equals(""))
+            badParam[badParam.length] = "givenName";
+        if (subject == null || subject.getValue().equals(""))
+            badParam[badParam.length] = "subject";
+
+        if (badParam.length > 0)
+            throw new IllegalArgumentException("null or empty string values for parameters: " + badParam);
+
 //	} catch (AddressException e) {
 //		// thrown by IndernetAddress constructor
 //	}
-	  
-	  person.addEmail(emailString);
-	  person.addGivenName(givenName);
-	  person.setFamilyName(familyName);
-	  person.setSubject(subject);
-	  return person;
+
+      person.addEmail(emailString);
+      person.addGivenName(givenName);
+      person.setFamilyName(familyName);
+      person.setSubject(subject);
+      return person;
   }
 
-  
-	public static int countLocationsWithResolve(CNode cn, Identifier pid) throws InvalidToken, ServiceFailure,
-	NotAuthorized, NotFound, InvalidRequest, NotImplemented {
 
-		ObjectLocationList oll = cn.resolve(null, pid);
-		List<ObjectLocation> locs = oll.getObjectLocationList();
-		return locs.toArray().length;
-	}
+    public static int countLocationsWithResolve(CNode cn, Identifier pid) throws InvalidToken, ServiceFailure,
+    NotAuthorized, NotFound, InvalidRequest, NotImplemented {
+
+        ObjectLocationList oll = cn.resolve(null, pid);
+        List<ObjectLocation> locs = oll.getObjectLocationList();
+        return locs.toArray().length;
+    }
 }

@@ -52,7 +52,7 @@ public class CommonCallAdapter implements D1Node {
     public Date ping() throws NotImplemented, ServiceFailure, InsufficientResources, ClientSideException {
         if (this.node.getType().equals(NodeType.MN)) {
             if (this.version.toLowerCase().equals("v1")) {
-                return D1NodeFactory.buildNode(org.dataone.service.mn.tier1.v1.MNCore.class, 
+                return D1NodeFactory.buildNode(org.dataone.service.mn.tier1.v1.MNCore.class,
                     this.mrc, URI.create(this.node.getBaseURL())).ping();
             } else if (this.version.toLowerCase().equals("v2")) {
                 return D1NodeFactory.buildNode(org.dataone.service.mn.tier1.v2.MNCore.class, this.mrc,
@@ -116,7 +116,7 @@ public class CommonCallAdapter implements D1Node {
 
     @Override
     public String getNodeBaseServiceUrl() {
-        //  MNodes and CNodes usually override this 
+        //  MNodes and CNodes usually override this
         // method by adding the verion path segment, so we will too.
         return node.getBaseURL() + "/" + this.version.toLowerCase();
     }
@@ -194,15 +194,15 @@ public class CommonCallAdapter implements D1Node {
         // TODO Auto-generated method stub
         return null;
     }
-    
-    public Boolean isAuthorized(Session session, Identifier id, Permission permissionLevel) 
+
+    public Boolean isAuthorized(Session session, Identifier id, Permission permissionLevel)
     throws NotAuthorized, NotFound, ServiceFailure, NotImplemented, InvalidRequest
     {
         // TODO Auto-generated method stub  (check the thrown exceptions - I guessed on those)
         return null;
     }
-    
-    public NodeList CNlistNodes() 
+
+    public NodeList CNlistNodes()
         throws ServiceFailure, NotImplemented
     {
         // TODO auto-generated method stub
