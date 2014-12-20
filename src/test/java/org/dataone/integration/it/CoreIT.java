@@ -76,10 +76,9 @@ public abstract class CoreIT extends ContextAwareTestCaseDataone {
      */
     private void pingImpl(Node node, String version) {
 
-        String currentUrl = "";
         CommonCallAdapter callAdapter = new CommonCallAdapter(MULTIPART_REST_CLIENT, node, version);
 
-        currentUrl = callAdapter.getNodeBaseServiceUrl();
+        String currentUrl = callAdapter.getNodeBaseServiceUrl();
 
         try {
             //          Assume.assumeTrue(APITestUtils.isTierImplemented(mn, "Tier5"));
@@ -104,11 +103,21 @@ public abstract class CoreIT extends ContextAwareTestCaseDataone {
 
     }
 
+    /**
+     * Tests that getLogRecords() implements access restricitons properly, testing
+     * the negative case - where client is not a CN and is public.
+     * Runs tests across all nodes in the given nodeIterator.
+     * 
+     * @param nodeIterator 
+     *      an {@link Iterator} accross MN or CN {@link Node}s
+     * @param version 
+     *      either "v1" or "v2", to match the API version being tested
+     */
     protected void testGetLogRecords_AccessRestriction(Iterator<Node> nodeIterator, String version) {
         Settings.getConfiguration().setProperty("D1Client.D1Node.getLogRecords.timeout", "60000");
         setupClientSubject_NoCert();
         while (nodeIterator.hasNext()) {
-            pingImpl(nodeIterator.next(), version);
+            testGetLogRecords_AccessRestriction(nodeIterator.next(), version);
         }
     }
 
@@ -116,7 +125,7 @@ public abstract class CoreIT extends ContextAwareTestCaseDataone {
      * Tests that getLogRecords() implements access restriction properly, testing
      * the negative case - where client is not a CN and is public.
      */
-    public void testGetLogRecords_AccessRestriction(Node node, String version)
+    private void testGetLogRecords_AccessRestriction(Node node, String version)
     {
         CommonCallAdapter callAdapter = new CommonCallAdapter(MULTIPART_REST_CLIENT, node, version);
         String currentUrl = node.getBaseURL();
@@ -148,13 +157,10 @@ public abstract class CoreIT extends ContextAwareTestCaseDataone {
                                     + "are not publicly available.  Got entry %s for identifier %s",
                                     currentEntry.getEntryId(), currentEntry.getIdentifier().getValue()));
                 }
-
             }
-
         } catch (NotAuthorized e) {
             ; // a valid response, where access is restricted to CNs
         }
-
         catch (BaseException e) {
             handleFail(callAdapter.getLatestRequestUrl(), e.getClass().getSimpleName() + ": " + e.getDetail_code()
                     + ": " + e.getDescription());
@@ -164,14 +170,23 @@ public abstract class CoreIT extends ContextAwareTestCaseDataone {
         }
     }
 
+    /**
+     * Tests that getLogRecords() returns Log object, using the simplest case: no parameters.
+     * Also tests with all parameters are set.  Passes the tests by returning a Log object.
+     * Runs tests across all nodes in the given nodeIterator.
+     * 
+     * @param nodeIterator 
+     *      an {@link Iterator} accross MN or CN {@link Node}s
+     * @param version 
+     *      either "v1" or "v2", to match the API version being tested
+     */
     protected void testGetLogRecords(Iterator<Node> nodeIterator, String version) {
         Settings.getConfiguration().setProperty("D1Client.D1Node.getLogRecords.timeout", "60000");
         String cnSubject = Settings.getConfiguration().getString("dataone.it.cnode.submitter.cn",
                 "urn:node:cnStageUNM1");
         setupClientSubject(cnSubject);
-
         while (nodeIterator.hasNext()) {
-            pingImpl(nodeIterator.next(), version);
+            testGetLogRecords(nodeIterator.next(), version);
         }
     }
 
@@ -179,8 +194,7 @@ public abstract class CoreIT extends ContextAwareTestCaseDataone {
      * Tests that getLogRecords() returns Log object, using the simplest case: no parameters.
      * Also tests with all parameters are set.  Passes the tests by returning a Log object.
      */
-    //    @Test
-    public void testGetLogRecords(Node node, String version) {
+    private void testGetLogRecords(Node node, String version) {
 
         //TODO: change to use a testCNAdmin certificate
 
