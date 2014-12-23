@@ -6,6 +6,11 @@ package org.dataone.integration.it;
 public class CNCoreV2IT extends CoreIT {
 
     @Override
+    protected String getTestDescription() {
+        return "Test Case that runs through the CN version 2 of core API methods";
+    }
+    
+    @Override
     public void testPing() {
         testPing(getCoordinatingNodeIterator(), "v2");
     }
@@ -22,31 +27,36 @@ public class CNCoreV2IT extends CoreIT {
 
     @Override
     public void testGetLogRecords_Slicing() {
-        // TODO Auto-generated method stub
-
+        testGetLogRecords_Slicing(getCoordinatingNodeIterator(), "v2");
     }
 
     @Override
     public void testGetLogRecords_eventFiltering() {
-        // TODO Auto-generated method stub
-
+        testGetLogRecords_eventFiltering(getCoordinatingNodeIterator(), "v2");
     }
 
     @Override
     public void testGetLogRecords_pidFiltering() {
-        // TODO Auto-generated method stub
-
+        testGetLogRecords_pidFiltering(getCoordinatingNodeIterator(), "v2");
     }
 
     @Override
     public void testGetLogRecords_dateFiltering() {
-        // TODO Auto-generated method stub
-
+        testGetLogRecords_dateFiltering(getCoordinatingNodeIterator(), "v2");
     }
 
     @Override
-    protected String getTestDescription() {
-        // TODO Auto-generated method stub
-        return null;
+    public void testGetCapabilities() {
+        // CN nodes don't need to support getCapabilities, test passes TODO:   rethink how this is done...
+    }
+
+    @Override
+    public void testGetCapabilities_HasCompatibleNodeContact() {
+        // CN nodes don't need to support getCapabilities, test passes
+    }
+
+    @Override
+    public void testGetCapabilities_NodeIdentityValidFormat() {
+        // CN nodes don't need to support getCapabilities, test passes
     }
 }

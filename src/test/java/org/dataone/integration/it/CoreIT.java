@@ -3,53 +3,106 @@ package org.dataone.integration.it;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.io.InputStream;
 import java.util.Date;
 import java.util.Iterator;
+import java.util.List;
 
+import org.dataone.client.auth.CertificateManager;
+import org.dataone.client.v1.types.D1TypeBuilder;
 import org.dataone.configuration.Settings;
+import org.dataone.integration.APITestUtils;
 import org.dataone.integration.CommonCallAdapter;
 import org.dataone.integration.ContextAwareTestCaseDataone;
+import org.dataone.integration.ExampleUtilities;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.NotAuthorized;
 import org.dataone.service.exceptions.NotFound;
 import org.dataone.service.types.v1.Event;
+import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Node;
+import org.dataone.service.types.v1.NodeReference;
+import org.dataone.service.types.v1.Session;
+import org.dataone.service.types.v1.Subject;
 import org.dataone.service.types.v2.Log;
 import org.dataone.service.types.v2.LogEntry;
 import org.junit.Test;
 
 /**
- * Base class for testing the core API functionality, maning MNCore and CNCore
+ * Base class for testing the core API functionality, meaning MNCore and CNCore
  * across API versions.
  */
 public abstract class CoreIT extends ContextAwareTestCaseDataone {
 
-    // Test methods that need to be implemented:
+    // Tests that need to be implemented by subclasses:
 
     /**
-     * Implementers can make use of the {@link CoreIT#testPing(Iterator, String)} method.
+     * Implementers should make use of the {@link CoreIT#testPing(Iterator, String)} method.
      */
     @Test
     public abstract void testPing();
 
+    /**
+     * Implementers should make use of the {@link CoreIT#testGetLogRecords_AccessRestriction(Iterator, String)} method.
+     */
     @Test
     public abstract void testGetLogRecords_AccessRestriction();
-    
+
+    /**
+     * Implementers should make use of the {@link CoreIT#testGetLogRecords(Iterator, String)} method.
+     */
     @Test
     public abstract void testGetLogRecords();
 
+    /**
+     * Implementers should make use of the {@link CoreIT#testGetLogRecords_Slicing(Iterator, String)} method.
+     */
     @Test
     public abstract void testGetLogRecords_Slicing();
 
+    /**
+     * Implementers should make use of the {@link CoreIT#testGetLogRecords_eventFiltering(Iterator, String)} method.
+     */
     @Test
     public abstract void testGetLogRecords_eventFiltering();
 
+    /**
+     * Implementers should make use of the {@link CoreIT#testGetLogRecords_pidFiltering(Iterator, String)} method.
+     */
     @Test
     public abstract void testGetLogRecords_pidFiltering();
 
+    /**
+     * Implementers should make use of the {@link CoreIT#testGetLogRecords_dateFiltering(Iterator, String)} method.
+     */
     @Test
     public abstract void testGetLogRecords_dateFiltering();
 
+    
+        // TODO: capabilities testing methods don't apply to CNs
+        //       these should probably not be a common test
+        //       but shouldn't duplicate code in CN IT subclasses either...
+    
+    
+    /**
+     * Implementers should make use of the {@link CoreIT#testGetCapabilities(Iterator, String)} method.
+     */
+    @Test
+    public abstract void testGetCapabilities();
+
+    /**
+     * Implementers should make use of the {@link CoreIT#testGetCapabilities_HasCompatibleNodeContact(Iterator, String)} method.
+     */
+    @Test
+    public abstract void testGetCapabilities_HasCompatibleNodeContact();
+
+    /**
+     * Implementers should make use of the {@link CoreIT#testGetCapabilities_NodeIdentityValidFormat(Iterator, String)} method.
+     */
+    @Test
+    public abstract void testGetCapabilities_NodeIdentityValidFormat();
+    
+    
     /**
      * Will test the ping call for all nodes. Requires an iterator to go through
      * all the nodes (this may iterate across either MN or CN nodes). Also requires
@@ -77,7 +130,6 @@ public abstract class CoreIT extends ContextAwareTestCaseDataone {
     private void pingImpl(Node node, String version) {
 
         CommonCallAdapter callAdapter = new CommonCallAdapter(MULTIPART_REST_CLIENT, node, version);
-
         String currentUrl = callAdapter.getNodeBaseServiceUrl();
 
         try {
@@ -114,6 +166,7 @@ public abstract class CoreIT extends ContextAwareTestCaseDataone {
      *      either "v1" or "v2", to match the API version being tested
      */
     protected void testGetLogRecords_AccessRestriction(Iterator<Node> nodeIterator, String version) {
+        
         Settings.getConfiguration().setProperty("D1Client.D1Node.getLogRecords.timeout", "60000");
         setupClientSubject_NoCert();
         while (nodeIterator.hasNext()) {
@@ -125,8 +178,8 @@ public abstract class CoreIT extends ContextAwareTestCaseDataone {
      * Tests that getLogRecords() implements access restriction properly, testing
      * the negative case - where client is not a CN and is public.
      */
-    private void testGetLogRecords_AccessRestriction(Node node, String version)
-    {
+    private void testGetLogRecords_AccessRestriction(Node node, String version) {
+        
         CommonCallAdapter callAdapter = new CommonCallAdapter(MULTIPART_REST_CLIENT, node, version);
         String currentUrl = node.getBaseURL();
         printTestHeader("testGetLogRecords_AccessRestriction(...) vs. node: " + currentUrl);
@@ -144,8 +197,7 @@ public abstract class CoreIT extends ContextAwareTestCaseDataone {
                     for (LogEntry le : eventLog.getLogEntryList()) {
                         currentEntry = le;
                         try {
-                            // TODO where does the session come from?
-                            callAdapter.describe(null, le.getIdentifier());
+                            callAdapter.describe(createTestSession(), le.getIdentifier());
                         } catch (NotFound e) {
                             ; // a semi-valid repsonse.  Sometimes logged objects have been deleted.
                         }
@@ -181,6 +233,7 @@ public abstract class CoreIT extends ContextAwareTestCaseDataone {
      *      either "v1" or "v2", to match the API version being tested
      */
     protected void testGetLogRecords(Iterator<Node> nodeIterator, String version) {
+        
         Settings.getConfiguration().setProperty("D1Client.D1Node.getLogRecords.timeout", "60000");
         String cnSubject = Settings.getConfiguration().getString("dataone.it.cnode.submitter.cn",
                 "urn:node:cnStageUNM1");
@@ -197,7 +250,6 @@ public abstract class CoreIT extends ContextAwareTestCaseDataone {
     private void testGetLogRecords(Node node, String version) {
 
         //TODO: change to use a testCNAdmin certificate
-
         CommonCallAdapter callAdapter = new CommonCallAdapter(MULTIPART_REST_CLIENT, node, version);
         String currentUrl = node.getBaseURL();
         printTestHeader("testGetLogRecords(...) vs. node: " + currentUrl);
@@ -210,8 +262,8 @@ public abstract class CoreIT extends ContextAwareTestCaseDataone {
             Date fromDate = new Date();
             Thread.sleep(1000);
             Date toDate = new Date();
-            // TODO need a Session...
-            eventLog = callAdapter.getLogRecords(null, fromDate, toDate, Event.READ.toString(), "pidFilter", 0, 10);
+            
+            eventLog = callAdapter.getLogRecords(createTestSession(), fromDate, toDate, Event.READ.toString(), "pidFilter", 0, 10);
             checkTrue(callAdapter.getLatestRequestUrl(), "getLogRecords(<parameters>) returns a Log", eventLog != null);
         } catch (NotAuthorized e) {
             handleFail(
@@ -228,359 +280,481 @@ public abstract class CoreIT extends ContextAwareTestCaseDataone {
         }
     }
 
-    //    /**
-    //     * Tests that count and start parameters are functioning, and getCount() and getTotal()
-    //     * are reasonable values.
-    //     */
-    //    //    @Test
-    //    public void testGetLogRecords_Slicing()
-    //    {
-    //        Settings.getConfiguration().setProperty("D1Client.D1Node.getLogRecords.timeout", "60000");
-    //        // TODO: change to testCnAdmin subject when obtained
-    //        String cnSubject = Settings.getConfiguration().getString("dataone.it.cnode.submitter.cn", "urn:node:cnStageUNM1");
-    //        setupClientSubject(cnSubject);
-    ////      setupClientSubject_NoCert();
-    //        Iterator<Node> it = getMemberNodeIterator();
-    //        while (it.hasNext()) {
-    //            currentUrl = it.next().getBaseURL();
-    //            MNode mn = new MNode(currentUrl);
-    //            printTestHeader("testGetLogRecords_Slicing(...) vs. node: " + currentUrl);  
-    //            currentUrl = mn.getNodeBaseServiceUrl();
-    //
-    //            try {
-    //                Log eventLog = mn.getLogRecords(null, null, null, null, null, null);            
-    //                
-    //                StringBuffer sb = new StringBuffer();
-    //                int i = 0;
-    //                if (eventLog.getCount() != eventLog.sizeLogEntryList())
-    //                    sb.append(++i + ". 'count' attribute should equal the number of LogEntry objects returned.  \n");
-    //            
-    //                if (eventLog.getTotal() < eventLog.getCount())
-    //                    sb.append(++i + ". 'total' attribute should be >= the 'count' attribute in the returned Log.  \n");
-    //
-    //                if (eventLog.getTotal() < eventLog.sizeLogEntryList())
-    //                    sb.append(++i + "'total' attribute should be >= the number of LogEntry objects returned.  \n");
-    //
-    //
-    //                // test that one can limit the count
-    //                int halfCount = eventLog.sizeLogEntryList() / 2; // rounds down
-    //                eventLog = mn.getLogRecords(null, null, null, null, 0, halfCount);
-    //
-    //                if (eventLog.sizeLogEntryList() != halfCount)
-    //                    sb.append(++i + ". should be able to limit the number of returned LogEntry objects using 'count' parameter.");
-    //                                    
-    //                // TODO:  test that 'start' parameter does what it says
-    //
-    //                // TODO: paging test
-    //                
-    //                
-    //                if (i > 0) {
-    //                    handleFail(mn.getLatestRequestUrl(),"Slicing errors:\n" + sb.toString());
-    //                }               
-    //                
-    //            }
-    //            catch (NotAuthorized e) {
-    //                handleFail(mn.getLatestRequestUrl(),"Should not get a NotAuthorized when connecting" +
-    //                        "with a cn admin subject . Check NodeList and MN configuration.  Msg details:" +
-    //                        e.getDetail_code() + ": " + e.getDescription());
-    //            }
-    //            catch (BaseException e) {
-    //                handleFail(mn.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
-    //                        e.getDetail_code() + ": " + e.getDescription());
-    //            }
-    //            catch(Exception e) {
-    //                e.printStackTrace();
-    //                handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
-    //            }              
-    //        }
-    //    }
-    //    
-    //    
-    //    /**
-    //     * Tier 1 MNs might only have READ events, so will get the log records from
-    //     * a given period and if only one type, filter for a different one an expect 
-    //     * zero returned.  If 2 types, just expect fewer records.
-    //     * Must be careful to check that all the records requested are returned.
-    //     */
-    ////    @Test
-    //    public void testGetLogRecords_eventFiltering()
-    //    {
-    //        Settings.getConfiguration().setProperty("D1Client.D1Node.getLogRecords.timeout", "60000");
-    //        // TODO: change to testCnAdmin subject when obtained
-    //        String cnSubject = Settings.getConfiguration().getString("dataone.it.cnode.submitter.cn", "urn:node:cnStageUNM1");
-    //        setupClientSubject(cnSubject);
-    ////      setupClientSubject_NoCert();
-    //        Iterator<Node> it = getMemberNodeIterator();
-    //        while (it.hasNext()) {
-    //            currentUrl = it.next().getBaseURL();
-    //            MNode mn = D1Client.getMN(currentUrl);  
-    //            currentUrl = mn.getNodeBaseServiceUrl();
-    //            printTestHeader("testGetLogRecords_eventFiltering() vs. node: " + currentUrl);
-    //
-    //            try {
-    //                Date toDate = new Date();
-    //
-    //                // using the paged-implementation to make sure we get them all.
-    //                Log entries = APITestUtils.pagedGetLogRecords(mn, null, toDate, null, null, null, null);
-    //
-    //                if (entries.getCount() == 0) {
-    //                    // try to create a log event
-    //                    // if it can't it will throw a TestIterationEndingException
-    //                    Identifier pid = procurePublicReadableTestObject(mn,null);
-    //                    mn.get(pid);
-    //                    toDate = new Date();
-    //                    entries = APITestUtils.pagedGetLogRecords(mn, null, toDate, null, null, null, null);
-    //                }
-    //
-    //                Event targetType = entries.getLogEntry(0).getEvent();
-    //                Event otherType = null;
-    //
-    //                for (LogEntry le : entries.getLogEntryList()) {
-    //                    if ( ! le.getEvent().equals(targetType) ) {
-    //                        otherType = le.getEvent();
-    //                        break;
-    //                    }
-    //                }
-    //
-    //                if (otherType == null) {
-    //                    if (targetType.equals(Event.READ)) {
-    //                        entries = mn.getLogRecords(null, null, toDate, Event.CREATE, null, 0, 0);
-    //                        checkEquals(mn.getLatestRequestUrl(),"Log contains only READ events, " +
-    //                                "so should get 0 CREATE events", String.valueOf(entries.getTotal()),"0");
-    //                    } else {
-    //                        entries = mn.getLogRecords(null, null, toDate, Event.READ, null, 0, 0);
-    //                        checkEquals(mn.getLatestRequestUrl(),"Log contains only " + targetType + " events, " +
-    //                                "so should get 0 READ events",String.valueOf(entries.getTotal()),"0");
-    //                    }
-    //                } else {
-    //                    entries = APITestUtils.pagedGetLogRecords(mn, null, toDate ,targetType, null, null, null);
-    //                    boolean oneTypeOnly = true;
-    //                    Event unfilteredType = null;
-    //                    for (LogEntry le: entries.getLogEntryList()) {
-    //                        if (!le.getEvent().equals(targetType)) {
-    //                            oneTypeOnly = false;
-    //                            unfilteredType = le.getEvent();
-    //                            break;
-    //                        }
-    //                    }
-    //                    checkTrue(mn.getLatestRequestUrl(), "Filtered log for the time period should contain only " +
-    //                            "logs of type " + targetType.xmlValue() + ". Got " + unfilteredType, oneTypeOnly);
-    //                }
-    //            }
-    //            catch (NotAuthorized e) {
-    //                handleFail(mn.getLatestRequestUrl(),"Should not get a NotAuthorized when connecting" +
-    //                        "with a cn admin subject . Check NodeList and MN configuration.  Msg details:" +
-    //                        e.getDetail_code() + ": " + e.getDescription());
-    //            }
-    //            catch (BaseException e) {
-    //                handleFail(mn.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
-    //                        e.getDetail_code() + ": " + e.getDescription());
-    //            }
-    //            catch(Exception e) {
-    //                e.printStackTrace();
-    //                handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
-    //            }
-    //        }
-    //    }
-    //    
-    //    /**
-    //     * Test that pidFilter only returns objects starting with the given string
-    //     * Want to find a negative case and to make sure it is filtered out when the
-    //     * filter is applied.
-    //     */
-    ////    @Test
-    //    public void testGetLogRecords_pidFiltering()
-    //    {
-    //        Settings.getConfiguration().setProperty("D1Client.D1Node.getLogRecords.timeout", "60000");
-    //        // TODO: change to testCnAdmin subject when obtained
-    //        String cnSubject = Settings.getConfiguration().getString("dataone.it.cnode.submitter.cn", "urn:node:cnStageUNM1");
-    //        setupClientSubject(cnSubject);
-    ////      setupClientSubject_NoCert();
-    //        Iterator<Node> it = getMemberNodeIterator();
-    //        while (it.hasNext()) {
-    //            currentUrl = it.next().getBaseURL();
-    //            MNode mn = D1Client.getMN(currentUrl);  
-    //            currentUrl = mn.getNodeBaseServiceUrl();
-    //            printTestHeader("testGetLogRecords_pidFiltering() vs. node: " + currentUrl);
-    //
-    //            try {
-    //                Date t0 = new Date();
-    //                Date toDate = t0;
-    ////              Date fromDate = t0;
-    //
-    //                Log entries = APITestUtils.pagedGetLogRecords(mn, null, toDate, null, null, null, null);
-    //
-    //                if (entries.getTotal() == 0) {
-    //                    // try to create a log event
-    //                    // if it can't it will throw a TestIterationEndingException
-    //                    Identifier pid = procurePublicReadableTestObject(mn,null);
-    //                    mn.get(pid);
-    //                    toDate = new Date();
-    //                    entries = APITestUtils.pagedGetLogRecords(mn, null, toDate, null, null, null, null);
-    //                }
-    //
-    //                // should have at least one log entry at this point
-    //                if (entries.sizeLogEntryList() > 0) {
-    //                    Identifier targetIdentifier = entries.getLogEntry(0).getIdentifier();
-    //                    Identifier otherIdentifier = null;
-    //
-    //                    for (LogEntry le : entries.getLogEntryList()) {
-    //                        if (! le.getIdentifier().equals(targetIdentifier) ) {
-    //                            otherIdentifier = le.getIdentifier();
-    //                            break;
-    //                        }
-    //                    }
-    //
-    //                    if (otherIdentifier == null) {
-    //                        // create a new target that is non existent
-    //                        otherIdentifier = targetIdentifier;
-    //                        targetIdentifier = D1TypeBuilder.buildIdentifier(targetIdentifier.getValue()
-    //                                + new Date().getTime());
-    //
-    //                        entries = mn.getLogRecords(null, null, t0, 
-    //                                null, targetIdentifier.getValue(), 0, 0);
-    //                        checkEquals(mn.getLatestRequestUrl(),"Log should be empty for the derived identifier pattern " +
-    //                                targetIdentifier.getValue(),String.valueOf(entries.getTotal()),"0");
-    //
-    //                    } 
-    //                    else {
-    //                        entries = mn.getLogRecords(null, null, toDate, 
-    //                                null, targetIdentifier.getValue(), null, null);
-    //                        boolean oneTypeOnly = true;
-    //                        if (entries.sizeLogEntryList() > 0) {
-    //                            for (LogEntry le: entries.getLogEntryList()) {
-    //                                if (!le.getIdentifier().equals(targetIdentifier)) {
-    //                                    oneTypeOnly = false;
-    //                                    break;
-    //                                }
-    //                            }
-    ////                          checkTrue(mn.getLatestRequestUrl(), "Filtered log for the time period should " +
-    //                            //                          "contain only entries for the target identifier: " + targetIdentifier.getValue(),
-    //                            //                          oneTypeOnly);
-    //                            checkTrue(mn.getLatestRequestUrl(), "The optional pidFilter parameter is not filtering log records. " +
-    //                                    "The log would otherwise contain only entries for the target identifier: " + targetIdentifier.getValue(),
-    //                                    oneTypeOnly);
-    //                        } else {
-    //                            handleFail(mn.getLatestRequestUrl(), "should still get a LogEntry when applying 'pidFilter' parameter");
-    //                        }
-    //                    }
-    //                }
-    //                else {
-    //                    handleFail(mn.getLatestRequestUrl(), "After successfully reading an object, should " +
-    //                            "have at least one log record.  Got zero");
-    //                }
-    //            }
-    //            catch (NotAuthorized e) {
-    //                handleFail(mn.getLatestRequestUrl(),"Should not get a NotAuthorized when connecting" +
-    //                        "with a cn admin subject . Check NodeList and MN configuration.  Msg details:" +
-    //                        e.getDetail_code() + ": " + e.getDescription());
-    //            }
-    //            catch (BaseException e) {
-    //                handleFail(mn.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
-    //                        e.getDetail_code() + ": " + e.getDescription());
-    //            }
-    //            catch(Exception e) {
-    //                e.printStackTrace();
-    //                handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
-    //            }              
-    //        }
-    //    }
-    //
-    //
-    //
-    ////    @Test
-    //    public void testGetLogRecords_DateFiltering()
-    //    {
-    //        Settings.getConfiguration().setProperty("D1Client.D1Node.getLogRecords.timeout", "60000");
-    //        // TODO: change to testCnAdmin subject when obtained
-    //        String cnSubject = Settings.getConfiguration().getString("dataone.it.cnode.submitter.cn", "urn:node:cnStageUNM1");
-    //        setupClientSubject(cnSubject);
-    ////      setupClientSubject_NoCert();
-    //        Iterator<Node> it = getMemberNodeIterator();
-    //        while (it.hasNext()) {
-    //            currentUrl = it.next().getBaseURL();
-    //            MNode mn = new MNode(currentUrl);
-    //            printTestHeader("testGetLogRecords_DateFiltering(...) vs. node: " + currentUrl);  
-    //            currentUrl = mn.getNodeBaseServiceUrl();
-    //
-    //            try {
-    //                Log eventLog = mn.getLogRecords(null, null, null, null, null, null);
-    //                
-    //                if (eventLog.getLogEntryList().size() == 0) {
-    //                    
-    //                    // read an existing object
-    //                    try {
-    //                        String objectIdentifier = "TierTesting:" + 
-    //                            createNodeAbbreviation(mn.getNodeBaseServiceUrl()) +
-    //                            ":Public_READ" + testObjectSeriesSuffix;
-    //                        Identifier id = procurePublicReadableTestObject(mn,D1TypeBuilder.buildIdentifier(objectIdentifier));
-    //                        InputStream is = mn.get(null, id);
-    //                        is.close();
-    //                        Thread.sleep(1000); // just in case...
-    //                        eventLog = mn.getLogRecords(null, null, null, null, null, null);
-    //                    }
-    //                    catch (TestIterationEndingException e) {
-    //                        ;  // 
-    //                    }
-    //                }
-    //                    
-    //                if (eventLog.getLogEntryList().size() == 0) {
-    //                    // still zero?  something's probably wrong
-    //                    handleFail(mn.getLatestRequestUrl(),"the event log contains no entries after trying to read an object");
-    //                    
-    //                } else {
-    //                    // try to find log entries with different dates, should be quick...
-    //                    LogEntry entry0 = eventLog.getLogEntry(0);
-    //                    Date fromDate = null;
-    //                    LogEntry excludedEntry = null;
-    //                    for (LogEntry le: eventLog.getLogEntryList()) {
-    //                        if (!le.getDateLogged().equals(entry0.getDateLogged())) {
-    //                            // which is earlier?  can't assume chronological order of the list
-    //                            if (le.getDateLogged().after(entry0.getDateLogged())) {
-    //                                fromDate = le.getDateLogged();
-    //                                excludedEntry = entry0;
-    //                            } else {
-    //                                fromDate = entry0.getDateLogged();
-    //                                excludedEntry = le;
-    //                            }
-    //                            break;
-    //                        }
-    //                    }
-    //                    
-    //                    
-    //                    if (excludedEntry == null) {
-    //                        handleFail(mn.getLatestRequestUrl(),"could not find 2 objects with different dateLogged times");
-    //                    } 
-    //                    else {
-    //
-    //                        // call with a fromDate
-    //                        eventLog = mn.getLogRecords(fromDate, null, null, null, null, null);
-    //
-    //                        for (LogEntry le : eventLog.getLogEntryList()) {
-    //                            if (le.getEntryId().equals(excludedEntry.getEntryId())) {
-    //                                handleFail(mn.getLatestRequestUrl(),"entryID " + excludedEntry.getEntryId() +
-    //                                        " at " + excludedEntry.getDateLogged() + 
-    //                                        " should not be in the event log where fromDate set to " + fromDate);
-    //                                break;
-    //                            }
-    //                        }
-    //                    }
-    //                } 
-    //            } 
-    //            catch (NotAuthorized e) {
-    //                handleFail(mn.getLatestRequestUrl(),"Should not get a NotAuthorized when connecting" +
-    //                        "with a cn admin subject . Check NodeList and MN configuration.  Msg details:" +
-    //                        e.getDetail_code() + ": " + e.getDescription());
-    //            }
-    //            catch (BaseException e) {
-    //                handleFail(mn.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
-    //                        e.getDetail_code() + ": " + e.getDescription());
-    //            }
-    //            catch(Exception e) {
-    //                e.printStackTrace();
-    //                handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
-    //            }              
-    //        }
-    //    }
+    protected void testGetLogRecords_Slicing(Iterator<Node> nodeIterator, String version) {
+        
+        Settings.getConfiguration().setProperty("D1Client.D1Node.getLogRecords.timeout", "60000");
+        // TODO: change to testCnAdmin subject when obtained
+        String cnSubject = Settings.getConfiguration().getString("dataone.it.cnode.submitter.cn",
+                "urn:node:cnStageUNM1");
+        setupClientSubject(cnSubject);
+        while (nodeIterator.hasNext()) {
+            testGetLogRecords_Slicing(nodeIterator.next(), version);
+        }
+    }
     
+    /**
+     * Tests that count and start parameters are functioning, and getCount() and getTotal()
+     * are reasonable values.
+     */
+    private void testGetLogRecords_Slicing(Node node, String version) {
+        
+        CommonCallAdapter callAdapter = new CommonCallAdapter(MULTIPART_REST_CLIENT, node, version);
+        String currentUrl = node.getBaseURL();
+        printTestHeader("testGetLogRecords_Slicing(...) vs. node: " + currentUrl);
+        currentUrl = callAdapter.getNodeBaseServiceUrl();
+
+        try {
+            Log eventLog = callAdapter.getLogRecords(null, null, null, null, null, null, null);
+
+            StringBuffer sb = new StringBuffer();
+            int i = 0;
+            if (eventLog.getCount() != eventLog.sizeLogEntryList())
+                sb.append(++i + ". 'count' attribute should equal the number of LogEntry objects returned.  \n");
+
+            if (eventLog.getTotal() < eventLog.getCount())
+                sb.append(++i + ". 'total' attribute should be >= the 'count' attribute in the returned Log.  \n");
+
+            if (eventLog.getTotal() < eventLog.sizeLogEntryList())
+                sb.append(++i + "'total' attribute should be >= the number of LogEntry objects returned.  \n");
+
+            // test that one can limit the count
+            int halfCount = eventLog.sizeLogEntryList() / 2; // rounds down
+            eventLog = callAdapter.getLogRecords(null, null, null, null, null, 0, halfCount);
+
+            if (eventLog.sizeLogEntryList() != halfCount)
+                sb.append(++i
+                        + ". should be able to limit the number of returned LogEntry objects using 'count' parameter.");
+
+            // TODO:  test that 'start' parameter does what it says
+
+            // TODO: paging test
+
+            if (i > 0) {
+                handleFail(callAdapter.getLatestRequestUrl(), "Slicing errors:\n" + sb.toString());
+            }
+
+        } catch (NotAuthorized e) {
+            handleFail(
+                    callAdapter.getLatestRequestUrl(),
+                    "Should not get a NotAuthorized when connecting"
+                            + "with a cn admin subject . Check NodeList and MN configuration.  Msg details:"
+                            + e.getDetail_code() + ": " + e.getDescription());
+        } catch (BaseException e) {
+            handleFail(callAdapter.getLatestRequestUrl(),
+                    e.getClass().getSimpleName() + ": " + e.getDetail_code() + ": " + e.getDescription());
+        } catch (Exception e) {
+            e.printStackTrace();
+            handleFail(currentUrl, e.getClass().getName() + ": " + e.getMessage());
+        }
+
+    }
+
+    protected void testGetLogRecords_eventFiltering(Iterator<Node> nodeIterator, String version) {
+        
+        Settings.getConfiguration().setProperty("D1Client.D1Node.getLogRecords.timeout", "60000");
+        // TODO: change to testCnAdmin subject when obtained
+        String cnSubject = Settings.getConfiguration().getString("dataone.it.cnode.submitter.cn",
+                "urn:node:cnStageUNM1");
+        setupClientSubject(cnSubject);
+        while (nodeIterator.hasNext()) {
+            testGetLogRecords_eventFiltering(nodeIterator.next(), version);
+        }
+    }
+    
+    /**
+     * Tier 1 MNs might only have READ events, so will get the log records from
+     * a given period and if only one type, filter for a different one an expect 
+     * zero returned.  If 2 types, just expect fewer records.
+     * Must be careful to check that all the records requested are returned.
+     */
+    private void testGetLogRecords_eventFiltering(Node node, String version) {
+        
+        CommonCallAdapter callAdapter = new CommonCallAdapter(MULTIPART_REST_CLIENT, node, version);
+        String currentUrl = node.getBaseURL();
+        printTestHeader("testGetLogRecords_eventFiltering() vs. node: " + currentUrl);
+        currentUrl = callAdapter.getNodeBaseServiceUrl();
+        Session session = createTestSession();
+        
+        try {
+            Date toDate = new Date();
+
+            // using the paged-implementation to make sure we get them all.
+            Log entries = APITestUtils.pagedGetLogRecords(callAdapter, null, toDate, null, null, null, null);
+            
+            if (entries.getCount() == 0) {
+                // try to create a log event
+                // if it can't it will throw a TestIterationEndingException
+                Identifier pid = procurePublicReadableTestObject(callAdapter, null);
+                
+                callAdapter.get(session, pid);
+                toDate = new Date();
+                entries = APITestUtils.pagedGetLogRecords(callAdapter, null, toDate, null, null, null, null);
+            }
+
+            String targetType = entries.getLogEntry(0).getEvent();
+            String otherType = null;
+
+            for (LogEntry le : entries.getLogEntryList()) {
+                if (!le.getEvent().equals(targetType)) {
+                    otherType = le.getEvent();
+                    break;
+                }
+            }
+
+            if (otherType == null) {
+                if (targetType.equals(Event.READ)) {
+                    entries = callAdapter.getLogRecords(session, null, toDate, Event.CREATE.xmlValue(), null, 0, 0);
+                    checkEquals(callAdapter.getLatestRequestUrl(), "Log contains only READ events, "
+                            + "so should get 0 CREATE events", String.valueOf(entries.getTotal()), "0");
+                } else {
+                    entries = callAdapter.getLogRecords(session, null, toDate, Event.READ.xmlValue(), null, 0, 0);
+                    checkEquals(callAdapter.getLatestRequestUrl(), "Log contains only " + targetType + " events, "
+                            + "so should get 0 READ events", String.valueOf(entries.getTotal()), "0");
+                }
+            } else {
+                entries = APITestUtils.pagedGetLogRecords(callAdapter, null, toDate, targetType, null, null, null);
+                boolean oneTypeOnly = true;
+                String unfilteredType = null;
+                for (LogEntry le : entries.getLogEntryList()) {
+                    if (!le.getEvent().equals(targetType)) {
+                        oneTypeOnly = false;
+                        unfilteredType = le.getEvent();
+                        break;
+                    }
+                }
+                checkTrue(callAdapter.getLatestRequestUrl(), "Filtered log for the time period should contain only "
+                        + "logs of type " + targetType + ". Got " + unfilteredType, oneTypeOnly);
+            }
+        } catch (NotAuthorized e) {
+            handleFail(
+                    callAdapter.getLatestRequestUrl(),
+                    "Should not get a NotAuthorized when connecting"
+                            + "with a cn admin subject . Check NodeList and MN configuration.  Msg details:"
+                            + e.getDetail_code() + ": " + e.getDescription());
+        } catch (BaseException e) {
+            handleFail(callAdapter.getLatestRequestUrl(),
+                    e.getClass().getSimpleName() + ": " + e.getDetail_code() + ": " + e.getDescription());
+        } catch (Exception e) {
+            e.printStackTrace();
+            handleFail(currentUrl, e.getClass().getName() + ": " + e.getMessage());
+        }
+
+    }
+
+    
+    protected void testGetLogRecords_pidFiltering(Iterator<Node> nodeIterator, String version){
+        Settings.getConfiguration().setProperty("D1Client.D1Node.getLogRecords.timeout", "60000");
+        // TODO: change to testCnAdmin subject when obtained
+        String cnSubject = Settings.getConfiguration().getString("dataone.it.cnode.submitter.cn",
+                "urn:node:cnStageUNM1");
+        setupClientSubject(cnSubject);
+        while (nodeIterator.hasNext()) {
+            testGetLogRecords_pidFiltering(nodeIterator.next(), version);
+        }
+    }
+    
+    /**
+     * Test that pidFilter only returns objects starting with the given string
+     * Want to find a negative case and to make sure it is filtered out when the
+     * filter is applied.
+     */
+    private void testGetLogRecords_pidFiltering(Node node, String version) {
+            
+        CommonCallAdapter callAdapter = new CommonCallAdapter(MULTIPART_REST_CLIENT, node, version);
+        String currentUrl = node.getBaseURL();
+        currentUrl = callAdapter.getNodeBaseServiceUrl();
+        printTestHeader("testGetLogRecords_pidFiltering() vs. node: " + currentUrl);
+        Session session = createTestSession();
+        
+        try {
+            Date t0 = new Date();
+            Date toDate = t0;
+            //              Date fromDate = t0;
+
+            Log entries = APITestUtils.pagedGetLogRecords(callAdapter, null, toDate, null, null, null, null);
+
+            if (entries.getTotal() == 0) {
+                // try to create a log event
+                // if it can't it will throw a TestIterationEndingException
+                Identifier pid = procurePublicReadableTestObject(callAdapter, null);
+                callAdapter.get(session, pid);
+                toDate = new Date();
+                entries = APITestUtils.pagedGetLogRecords(callAdapter, null, toDate, null, null, null, null);
+            }
+
+            // should have at least one log entry at this point
+            if (entries.sizeLogEntryList() > 0) {
+                Identifier targetIdentifier = entries.getLogEntry(0).getIdentifier();
+                Identifier otherIdentifier = null;
+
+                for (LogEntry le : entries.getLogEntryList()) {
+                    if (!le.getIdentifier().equals(targetIdentifier)) {
+                        otherIdentifier = le.getIdentifier();
+                        break;
+                    }
+                }
+
+                if (otherIdentifier == null) {
+                    // create a new target that is non existent
+                    otherIdentifier = targetIdentifier;
+                    targetIdentifier = D1TypeBuilder
+                            .buildIdentifier(targetIdentifier.getValue() + new Date().getTime());
+
+                    entries = callAdapter.getLogRecords(null, null, t0, null, targetIdentifier.getValue(), 0, 0);
+                    checkEquals(callAdapter.getLatestRequestUrl(), "Log should be empty for the derived identifier pattern "
+                            + targetIdentifier.getValue(), String.valueOf(entries.getTotal()), "0");
+
+                } else {
+                    entries = callAdapter.getLogRecords(null, null, toDate, null, targetIdentifier.getValue(), null, null);
+                    boolean oneTypeOnly = true;
+                    if (entries.sizeLogEntryList() > 0) {
+                        for (LogEntry le : entries.getLogEntryList()) {
+                            if (!le.getIdentifier().equals(targetIdentifier)) {
+                                oneTypeOnly = false;
+                                break;
+                            }
+                        }
+                        //                          checkTrue(mn.getLatestRequestUrl(), "Filtered log for the time period should " +
+                        //                          "contain only entries for the target identifier: " + targetIdentifier.getValue(),
+                        //                          oneTypeOnly);
+                        checkTrue(callAdapter.getLatestRequestUrl(),
+                                "The optional pidFilter parameter is not filtering log records. "
+                                        + "The log would otherwise contain only entries for the target identifier: "
+                                        + targetIdentifier.getValue(), oneTypeOnly);
+                    } else {
+                        handleFail(callAdapter.getLatestRequestUrl(),
+                                "should still get a LogEntry when applying 'pidFilter' parameter");
+                    }
+                }
+            } else {
+                handleFail(callAdapter.getLatestRequestUrl(), "After successfully reading an object, should "
+                        + "have at least one log record.  Got zero");
+            }
+        } catch (NotAuthorized e) {
+            handleFail(
+                    callAdapter.getLatestRequestUrl(),
+                    "Should not get a NotAuthorized when connecting"
+                            + "with a cn admin subject . Check NodeList and MN configuration.  Msg details:"
+                            + e.getDetail_code() + ": " + e.getDescription());
+        } catch (BaseException e) {
+            handleFail(callAdapter.getLatestRequestUrl(),
+                    e.getClass().getSimpleName() + ": " + e.getDetail_code() + ": " + e.getDescription());
+        } catch (Exception e) {
+            e.printStackTrace();
+            handleFail(currentUrl, e.getClass().getName() + ": " + e.getMessage());
+        }
+    }
+
+    public void testGetLogRecords_dateFiltering(Iterator<Node> nodeIterator, String version) {
+        
+        Settings.getConfiguration().setProperty("D1Client.D1Node.getLogRecords.timeout", "60000");
+        // TODO: change to testCnAdmin subject when obtained
+        String cnSubject = Settings.getConfiguration().getString("dataone.it.cnode.submitter.cn",
+                "urn:node:cnStageUNM1");
+        setupClientSubject(cnSubject);
+        //      setupClientSubject_NoCert();
+        while (nodeIterator.hasNext()) {
+            testGetLogRecords_dateFiltering(nodeIterator.next(), version);
+        }
+    }
+    
+    public void testGetLogRecords_dateFiltering(Node node, String version) {
+        
+        CommonCallAdapter callAdapter = new CommonCallAdapter(MULTIPART_REST_CLIENT, node, version);
+        String currentUrl = node.getBaseURL();
+        printTestHeader("testGetLogRecords_DateFiltering(...) vs. node: " + currentUrl);
+        currentUrl = callAdapter.getNodeBaseServiceUrl();
+        Session session = createTestSession();
+        
+        try {
+            Log eventLog = callAdapter.getLogRecords(null, null, null, null, null, null, null);
+
+            if (eventLog.getLogEntryList().size() == 0) {
+
+                // read an existing object
+                try {
+                    String objectIdentifier = "TierTesting:" + createNodeAbbreviation(callAdapter.getNodeBaseServiceUrl())
+                            + ":Public_READ" + testObjectSeriesSuffix;
+                    Identifier id = procurePublicReadableTestObject(callAdapter, D1TypeBuilder.buildIdentifier(objectIdentifier));
+                    InputStream is = callAdapter.get(null, id);
+                    is.close();
+                    Thread.sleep(1000); // just in case...
+                    eventLog = callAdapter.getLogRecords(null, null, null, null, null, null, null);
+                } catch (TestIterationEndingException e) {
+                    ; // 
+                }
+            }
+
+            if (eventLog.getLogEntryList().size() == 0) {
+                // still zero?  something's probably wrong
+                handleFail(callAdapter.getLatestRequestUrl(), "the event log contains no entries after trying to read an object");
+
+            } else {
+                // try to find log entries with different dates, should be quick...
+                LogEntry entry0 = eventLog.getLogEntry(0);
+                Date fromDate = null;
+                LogEntry excludedEntry = null;
+                for (LogEntry le : eventLog.getLogEntryList()) {
+                    if (!le.getDateLogged().equals(entry0.getDateLogged())) {
+                        // which is earlier?  can't assume chronological order of the list
+                        if (le.getDateLogged().after(entry0.getDateLogged())) {
+                            fromDate = le.getDateLogged();
+                            excludedEntry = entry0;
+                        } else {
+                            fromDate = entry0.getDateLogged();
+                            excludedEntry = le;
+                        }
+                        break;
+                    }
+                }
+
+                if (excludedEntry == null) {
+                    handleFail(callAdapter.getLatestRequestUrl(), "could not find 2 objects with different dateLogged times");
+                } else {
+
+                    // call with a fromDate
+                    eventLog = callAdapter.getLogRecords(session, fromDate, null, null, null, null, null);
+
+                    for (LogEntry le : eventLog.getLogEntryList()) {
+                        if (le.getEntryId().equals(excludedEntry.getEntryId())) {
+                            handleFail(callAdapter.getLatestRequestUrl(), "entryID " + excludedEntry.getEntryId() + " at "
+                                    + excludedEntry.getDateLogged()
+                                    + " should not be in the event log where fromDate set to " + fromDate);
+                            break;
+                        }
+                    }
+                }
+            }
+        } catch (NotAuthorized e) {
+            handleFail(
+                    callAdapter.getLatestRequestUrl(),
+                    "Should not get a NotAuthorized when connecting"
+                            + "with a cn admin subject . Check NodeList and MN configuration.  Msg details:"
+                            + e.getDetail_code() + ": " + e.getDescription());
+        } catch (BaseException e) {
+            handleFail(callAdapter.getLatestRequestUrl(),
+                    e.getClass().getSimpleName() + ": " + e.getDetail_code() + ": " + e.getDescription());
+        } catch (Exception e) {
+            e.printStackTrace();
+            handleFail(currentUrl, e.getClass().getName() + ": " + e.getMessage());
+        }
+    }
+
+    protected void testGetCapabilities(Iterator<Node> nodeIterator, String version) {
+        setupClientSubject_NoCert();
+        while (nodeIterator.hasNext()) {
+            testGetCapabilities(nodeIterator.next(), version);
+        }
+    }
+
+    private void testGetCapabilities(Node node, String version) {
+
+        CommonCallAdapter callAdapter = new CommonCallAdapter(MULTIPART_REST_CLIENT, node, version);
+        String currentUrl = node.getBaseURL();
+        printTestHeader("testGetCapabilities() vs. node: " + currentUrl);
+        currentUrl = callAdapter.getNodeBaseServiceUrl();
+
+        try {
+            Node capabilitiesNode = callAdapter.getCapabilities();
+            checkTrue(callAdapter.getLatestRequestUrl(), "getCapabilities returns a Node", capabilitiesNode != null);
+        } catch (BaseException e) {
+            handleFail(callAdapter.getLatestRequestUrl(),
+                    e.getClass().getSimpleName() + ": " + e.getDetail_code() + ":: " + e.getDescription());
+        } catch (Exception e) {
+            e.printStackTrace();
+            handleFail(currentUrl, e.getClass().getName() + ": " + e.getMessage());
+        }
+
+    }
+    
+    public void testGetCapabilities_HasCompatibleNodeContact(Iterator<Node> nodeIterator, String version) {
+        
+        setupClientSubject_NoCert();
+        while (nodeIterator.hasNext()) {
+            testGetCapabilities_HasCompatibleNodeContact(nodeIterator.next(), version);
+        }
+    }
+    
+    /**
+     * Tests that at least one of the node contacts is RFC2253 compatible, 
+     * meaning that it could be represented by a CILogon issued certificate
+     */
+    public void testGetCapabilities_HasCompatibleNodeContact(Node node, String version) {
+
+        CommonCallAdapter callAdapter = new CommonCallAdapter(MULTIPART_REST_CLIENT, node, version);
+        String currentUrl = node.getBaseURL();
+        currentUrl = callAdapter.getNodeBaseServiceUrl();
+        printTestHeader("testGetCapabilities() vs. node: " + currentUrl);
+
+        try {
+            Node capabilitiesNode = callAdapter.getCapabilities();
+            checkTrue(callAdapter.getLatestRequestUrl(), "getCapabilities returns a Node", capabilitiesNode != null);
+
+            List<Subject> contacts = capabilitiesNode.getContactSubjectList();
+            boolean found = false;
+            if (contacts != null) {
+                for (Subject s : contacts) {
+                    try {
+                        CertificateManager.getInstance().standardizeDN(s.getValue());
+                        found = true;
+                    } catch (IllegalArgumentException e) {
+                        ; // this can happen legally, but means that it is not actionable
+                    }
+                }
+            }
+            checkTrue(callAdapter.getLatestRequestUrl(),
+                    "the node should have at least one contactSubject that conforms to RFC2253.", found);
+
+        } catch (BaseException e) {
+            handleFail(callAdapter.getLatestRequestUrl(),
+                    e.getClass().getSimpleName() + ": " + e.getDetail_code() + ":: " + e.getDescription());
+        } catch (Exception e) {
+            e.printStackTrace();
+            handleFail(currentUrl, e.getClass().getName() + ": " + e.getMessage());
+        }
+    }
+    
+    protected void testGetCapabilities_NodeIdentityValidFormat(Iterator<Node> nodeIterator, String version) {
+        
+        setupClientSubject_NoCert();
+        while (nodeIterator.hasNext()) {
+            testGetCapabilities_NodeIdentityValidFormat(nodeIterator.next(), version);
+        }
+    }
+    
+    /**
+     * Tests that the nodeReference of the node is in the proper urn format.
+     */
+    private void testGetCapabilities_NodeIdentityValidFormat(Node node, String version) {
+
+        CommonCallAdapter callAdapter = new CommonCallAdapter(MULTIPART_REST_CLIENT, node, version);
+        String currentUrl = node.getBaseURL();
+        printTestHeader("testGetCapabilities() vs. node: " + currentUrl);
+        currentUrl = callAdapter.getNodeBaseServiceUrl();
+
+        try {
+            Node capabilitiesNode = callAdapter.getCapabilities();
+            checkTrue(callAdapter.getLatestRequestUrl(), "getCapabilities returns a Node", capabilitiesNode != null);
+
+            NodeReference nodeRef = capabilitiesNode.getIdentifier();
+            checkTrue(callAdapter.getLatestRequestUrl(),
+                    "the node identifier should conform to specification 'urn:node:[\\w_]{2,23}'", nodeRef.getValue()
+                            .matches("^urn:node:[\\w_]{2,23}"));
+
+        } catch (BaseException e) {
+            handleFail(callAdapter.getLatestRequestUrl(),
+                    e.getClass().getSimpleName() + ": " + e.getDetail_code() + ":: " + e.getDescription());
+        } catch (Exception e) {
+            e.printStackTrace();
+            handleFail(currentUrl, e.getClass().getName() + ": " + e.getMessage());
+        }
+
+    }
+    
+    /**
+     * Creates a dummy {@link Session} for testing. See {@link ExampleUtilities#getTestSession()} for details.
+     */
+    private Session createTestSession(){
+        return ExampleUtilities.getTestSession();
+    }
 }

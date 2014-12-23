@@ -6,6 +6,11 @@ package org.dataone.integration.it;
 public class MNCoreV1IT extends CoreIT {
 
     @Override
+    protected String getTestDescription() {
+        return "Test Case that runs through the MN version 1 of core API methods";
+    }
+    
+    @Override
     public void testPing() {
         testPing(getMemberNodeIterator(), "v1");
     }
@@ -22,31 +27,36 @@ public class MNCoreV1IT extends CoreIT {
 
     @Override
     public void testGetLogRecords_Slicing() {
-        // TODO Auto-generated method stub
-
+        testGetLogRecords_Slicing(getMemberNodeIterator(), "v1");
     }
 
     @Override
     public void testGetLogRecords_eventFiltering() {
-        // TODO Auto-generated method stub
-
+        testGetLogRecords_eventFiltering(getMemberNodeIterator(), "v1");
     }
 
     @Override
     public void testGetLogRecords_pidFiltering() {
-        // TODO Auto-generated method stub
-
+        testGetLogRecords_pidFiltering(getMemberNodeIterator(), "v1");
     }
 
     @Override
     public void testGetLogRecords_dateFiltering() {
-        // TODO Auto-generated method stub
-
+        testGetLogRecords_dateFiltering(getMemberNodeIterator(), "v1");
     }
 
     @Override
-    protected String getTestDescription() {
-        // TODO Auto-generated method stub
-        return null;
+    public void testGetCapabilities() {
+        testGetCapabilities(getMemberNodeIterator(), "v1");
+    }
+
+    @Override
+    public void testGetCapabilities_HasCompatibleNodeContact() {
+        testGetCapabilities_HasCompatibleNodeContact(getMemberNodeIterator(), "v1");
+    }
+
+    @Override
+    public void testGetCapabilities_NodeIdentityValidFormat() {
+        testGetCapabilities_NodeIdentityValidFormat(getMemberNodeIterator(), "v1");
     }
 }

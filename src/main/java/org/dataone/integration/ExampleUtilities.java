@@ -449,7 +449,7 @@ public class ExampleUtilities {
      *
      * @return session - the session object with a Subject set and
      */
-  protected static Session getTestSession() {
+  public static Session getTestSession() {
 
       Session session = new Session();
       String subjectStr  = "uid=kepler,o=unaffiliated,dc=ecoinformatics,dc=org";

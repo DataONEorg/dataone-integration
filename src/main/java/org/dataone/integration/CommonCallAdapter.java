@@ -91,15 +91,15 @@ public class CommonCallAdapter implements D1Node {
                 }
             } else if (this.node.getType().equals(NodeType.CN)) {
                 if (this.version.toLowerCase().equals("v1")) {
-                    CNCore mnCore = D1NodeFactory.buildNode(org.dataone.service.cn.v1.CNCore.class, this.mrc,
+                    CNCore cnCore = D1NodeFactory.buildNode(org.dataone.service.cn.v1.CNCore.class, this.mrc,
                             URI.create(this.node.getBaseURL()));
-                    org.dataone.service.types.v1.Log log = mnCore.getLogRecords(session, fromDate, toDate,
+                    org.dataone.service.types.v1.Log log = cnCore.getLogRecords(session, fromDate, toDate,
                             Event.convert(event), pidFilter, start, count);
                     return TypeMarshaller.convertTypeFromType(log, Log.class);
                 } else if (this.version.toLowerCase().equals("v2")) {
-                    org.dataone.service.mn.tier1.v2.MNCore mnCore = D1NodeFactory.buildNode(
+                    org.dataone.service.mn.tier1.v2.MNCore cnCore = D1NodeFactory.buildNode(
                             org.dataone.service.mn.tier1.v2.MNCore.class, this.mrc, URI.create(this.node.getBaseURL()));
-                    Log log = mnCore.getLogRecords(session, fromDate, toDate, event, pidFilter, start, count);
+                    Log log = cnCore.getLogRecords(session, fromDate, toDate, event, pidFilter, start, count);
                     return log;
                 }
             }
@@ -110,8 +110,22 @@ public class CommonCallAdapter implements D1Node {
         } finally {}
     }
 
-    public Node getCapabilities() throws NotImplemented, ServiceFailure {
-        return null;
+    public Node getCapabilities() throws NotImplemented, ServiceFailure, ClientSideException {
+        if (this.node.getType().equals(NodeType.MN)) {
+            if (this.version.toLowerCase().equals("v1")) {
+                MNCore mnCore = D1NodeFactory.buildNode(org.dataone.service.mn.tier1.v1.MNCore.class,
+                        this.mrc, URI.create(this.node.getBaseURL()));
+                return mnCore.getCapabilities();
+            } else if (this.version.toLowerCase().equals("v2")) {
+                org.dataone.service.mn.tier1.v2.MNCore mnCore = D1NodeFactory.buildNode(org.dataone.service.mn.tier1.v2.MNCore.class, this.mrc,
+                        URI.create(this.node.getBaseURL()));
+                return mnCore.getCapabilities();
+            }
+        } else if (this.node.getType().equals(NodeType.CN)) {
+            throw new UnsupportedOperationException("CN nodes to not support a getCapabilities call.");
+        }
+        throw new ClientSideException("Unable to create node of type " + node.getType() + " of version " + version);
+    
     }
 
     @Override
