@@ -117,7 +117,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 
     protected static String cnSubmitter = Settings.getConfiguration().getString("dataone.it.cnode.submitter.cn", /* default */ "urn:node:cnDevUNM1");
 
-    protected static final MultipartRestClient MULTIPART_REST_CLIENT = new DefaultHttpMultipartRestClient();
+    public static final MultipartRestClient MULTIPART_REST_CLIENT = new DefaultHttpMultipartRestClient();
 
     // context-related instance variables
     private boolean alreadySetup = false;
@@ -161,7 +161,14 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
         }
     }
 
+    public String getTestObjectSeriesSuffix() {
+        return this.testObjectSeriesSuffix;
+    }
 
+    public String getTestObjectSeries() {
+        return this.testObjectSeries;
+    }
+    
     /**
      * sets static variables based on properties returned from org.dataone.configuration.Settings object
      * assigns only once (the first test)
@@ -486,7 +493,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
     }
 
 
-    protected ObjectList procureObjectList(CommonCallAdapter cca)
+    public ObjectList procureObjectList(CommonCallAdapter cca)
     throws TestIterationEndingException
     {
         return procureObjectList(cca,false);
@@ -500,30 +507,34 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
      * @return
      * @throws TestIterationEndingException
      */
-    protected ObjectList procureObjectList(CommonCallAdapter cca, boolean getAll)
+    public ObjectList procureObjectList(CommonCallAdapter cca, boolean getAll)
     throws TestIterationEndingException
     {
         ObjectList objectList = null;
         try {
             if (getAll) {
-                objectList = cca.listObjects(null, null, null, null, null, 0, 0);
-                objectList = cca.listObjects(null, null, null, null, null, 0, objectList.getTotal());
+                objectList = cca.listObjects(null, null, null, null, null, null, 0, 0);
+                objectList = cca.listObjects(null, null, null, null, null, null, 0, objectList.getTotal());
             } else {
-                objectList = cca.listObjects(null, null, null, null, null, null, null);
+                objectList = cca.listObjects(null, null, null, null, null, null, null, null);
             }
         } catch (BaseException e) {
+            throw new TestIterationEndingException("unexpected error thrown by listObjects(): " + e.getMessage(), e);
+        } catch (ClientSideException e) {
             throw new TestIterationEndingException("unexpected error thrown by listObjects(): " + e.getMessage(), e);
         }
         if (objectList.getTotal() == 0) {
             try {
                 createPublicTestObject(cca,"");
-                objectList = cca.listObjects(null, null, null, null, null, null, null);
+                objectList = cca.listObjects(null, null, null, null, null, null, null, null);
                 if (objectList.getTotal() == 0) {
                     throw new TestIterationEndingException("could not find or create an object for use by listObjects().");
                 }
             } catch (BaseException e) {
                 throw new TestIterationEndingException("could not find or create an object for use by listObjects(): " + e.getMessage(), e);
             } catch (UnsupportedEncodingException e) {
+                throw new TestIterationEndingException("could not find or create an object for use by listObjects(): " + e.getMessage(), e);
+            } catch (ClientSideException e) {
                 throw new TestIterationEndingException("could not find or create an object for use by listObjects(): " + e.getMessage(), e);
             }
         }
@@ -558,7 +569,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
      * @return Identifier for object to be used for testing
      * @throws TestIterationEndingException
      */
-    protected Identifier procurePublicReadableTestObject(CommonCallAdapter cca, Identifier firstTry)
+    public Identifier procurePublicReadableTestObject(CommonCallAdapter cca, Identifier firstTry)
     throws TestIterationEndingException
     {
         Identifier identifier = null;
@@ -581,7 +592,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
         BaseException latestException = null;
         if (identifier == null) {
             try {
-                ObjectList ol = cca.listObjects(null, null, null, null, null, null, null);
+                ObjectList ol = cca.listObjects(null, null, null, null, null, null, null, null);
                 if (ol != null && ol.getCount() > 0) {
 
                     // start time of this search-loop
@@ -639,6 +650,10 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
                 throw new TestIterationEndingException("could not create a test object " +
                         "and listObjects() threw exception:: " + be.getClass().getSimpleName() +
                         " :: " + be.getDescription(),be);
+            } catch (ClientSideException e1) {
+                throw new TestIterationEndingException("could not create a test object " +
+                        "and listObjects() threw exception:: " + e1.getClass().getSimpleName() +
+                        " :: " + e1.getMessage(),e1);
             }
         }
 
@@ -684,7 +699,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
      * @throws InvalidToken
      * @throws TestIterationEndingException - - when can't procure an object Identifier
      */
-    protected Identifier procureTestObject(CommonCallAdapter cca, AccessRule accessRule, Identifier pid)
+    public Identifier procureTestObject(CommonCallAdapter cca, AccessRule accessRule, Identifier pid)
     throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique, UnsupportedType,
     InsufficientResources, InvalidSystemMetadata, NotImplemented, InvalidRequest,
     UnsupportedEncodingException, NotFound, TestIterationEndingException
@@ -733,6 +748,8 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
                 log.debug("procureTestObject: calling createTestObject");
                 identifier = createTestObject(cca, pid, accessRule);
             }
+        } catch (ClientSideException e) {
+            throw new TestIterationEndingException("unexpected client-side exception encountered when trying to procure a test object");
         }
         log.info(" ====>>>>> pid of procured test Object: " + identifier.getValue());
         return identifier;
@@ -770,12 +787,12 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
      * @return - Identifier for the readable object, if found, otherwise null
      */
     @Deprecated
-    protected Identifier getTestObject(CommonCallAdapter cca, Subject subjectFilter,
+    public Identifier getTestObject(CommonCallAdapter cca, Subject subjectFilter,
             Permission permissionLevel, boolean checkUsingIsAuthorized)
     {
         Identifier id = null;
         try {
-            ObjectList ol = cca.listObjects(null, null, null, null, null, null, null);
+            ObjectList ol = cca.listObjects(null, null, null, null, null, null, null, null);
             if (ol.getTotal() > 0) {
                 if (subjectFilter != null || (permissionLevel != Permission.READ && checkUsingIsAuthorized == false)) {
                     // will need to pull sysmeta and examine the accessPolicy for both situations
@@ -859,7 +876,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
      * @throws UnsupportedEncodingException
      * @throws NotFound
      */
-    protected Identifier createPublicTestObject(D1Node d1Node, String idSuffix)
+    public Identifier createPublicTestObject(D1Node d1Node, String idSuffix)
     throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique,
     UnsupportedType, InsufficientResources, InvalidSystemMetadata, NotImplemented,
     InvalidRequest, UnsupportedEncodingException, NotFound
@@ -909,7 +926,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 //		return createTestObject(d1Node, pid, accessRule);
 //	}
 
-    protected Identifier createTestObject(D1Node d1Node, String idSuffix, AccessRule accessRule)
+    public Identifier createTestObject(D1Node d1Node, String idSuffix, AccessRule accessRule)
     throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique,
     UnsupportedType, InsufficientResources, InvalidSystemMetadata, NotImplemented,
     InvalidRequest, UnsupportedEncodingException, NotFound
@@ -931,7 +948,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
     }
 
 
-    protected String createNodeAbbreviation(String baseUrl) {
+    public String createNodeAbbreviation(String baseUrl) {
         String nodeAbbrev = baseUrl.replaceFirst("https{0,1}://", "").replaceFirst("\\..+", "");
         return nodeAbbrev;
     }
@@ -955,7 +972,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
      * @throws UnsupportedEncodingException
      * @throws NotFound
      */
-    protected Identifier createTestObject(D1Node d1Node, Identifier pid, AccessRule accessRule)
+    public Identifier createTestObject(D1Node d1Node, Identifier pid, AccessRule accessRule)
     throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique, UnsupportedType,
     InsufficientResources, InvalidSystemMetadata, NotImplemented, InvalidRequest,
     UnsupportedEncodingException, NotFound
@@ -970,7 +987,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
     }
 
 
-    protected Identifier createTestObject(D1Node d1Node, Identifier pid,
+    public Identifier createTestObject(D1Node d1Node, Identifier pid,
             AccessRule accessRule, String submitterSubjectLabel, String rightsHolderSubjectName)
     throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique, UnsupportedType,
     InsufficientResources, InvalidSystemMetadata, NotImplemented, InvalidRequest,
@@ -1010,7 +1027,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
      * @throws UnsupportedEncodingException
      * @throws NotFound
      */
-    protected Identifier createTestObject(D1Node d1Node, Identifier pid,
+    public Identifier createTestObject(D1Node d1Node, Identifier pid,
             AccessPolicy policy, String submitterSubjectLabel, String rightsHolderSubjectName)
     throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique, UnsupportedType,
     InsufficientResources, InvalidSystemMetadata, NotImplemented, InvalidRequest,

@@ -14,6 +14,7 @@ import org.dataone.configuration.Settings;
 import org.dataone.integration.APITestUtils;
 import org.dataone.integration.CommonCallAdapter;
 import org.dataone.integration.ContextAwareTestCaseDataone;
+import org.dataone.integration.ContextAwareTestCaseDataone.TestIterationEndingException;
 import org.dataone.integration.ExampleUtilities;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.NotAuthorized;
@@ -28,81 +29,13 @@ import org.dataone.service.types.v2.Log;
 import org.dataone.service.types.v2.LogEntry;
 import org.junit.Test;
 
-/**
- * Base class for testing the core API functionality, meaning MNCore and CNCore
- * across API versions.
- */
-public abstract class CoreTests extends ContextAwareTestCaseDataone {
 
-    // Tests that need to be implemented by subclasses:
-
-    /**
-     * Implementers should make use of the {@link CoreTests#testPing(Iterator, String)} method.
-     */
-    @Test
-    public abstract void testPing();
-
-    /**
-     * Implementers should make use of the {@link CoreTests#testGetLogRecords_AccessRestriction(Iterator, String)} method.
-     */
-    @Test
-    public abstract void testGetLogRecords_AccessRestriction();
-
-    /**
-     * Implementers should make use of the {@link CoreTests#testGetLogRecords(Iterator, String)} method.
-     */
-    @Test
-    public abstract void testGetLogRecords();
-
-    /**
-     * Implementers should make use of the {@link CoreTests#testGetLogRecords_Slicing(Iterator, String)} method.
-     */
-    @Test
-    public abstract void testGetLogRecords_Slicing();
-
-    /**
-     * Implementers should make use of the {@link CoreTests#testGetLogRecords_eventFiltering(Iterator, String)} method.
-     */
-    @Test
-    public abstract void testGetLogRecords_eventFiltering();
-
-    /**
-     * Implementers should make use of the {@link CoreTests#testGetLogRecords_pidFiltering(Iterator, String)} method.
-     */
-    @Test
-    public abstract void testGetLogRecords_pidFiltering();
-
-    /**
-     * Implementers should make use of the {@link CoreTests#testGetLogRecords_dateFiltering(Iterator, String)} method.
-     */
-    @Test
-    public abstract void testGetLogRecords_dateFiltering();
-
-    
-        // TODO: capabilities testing methods don't apply to CNs
-        //       these should probably not be a common test
-        //       but shouldn't duplicate code in CN IT subclasses either...
+public class CoreTestImplementations extends ContextAwareAdapter { 
     
     
-    /**
-     * Implementers should make use of the {@link CoreTests#testGetCapabilities(Iterator, String)} method.
-     */
-    @Test
-    public abstract void testGetCapabilities();
-
-    /**
-     * Implementers should make use of the {@link CoreTests#testGetCapabilities_HasCompatibleNodeContact(Iterator, String)} method.
-     */
-    @Test
-    public abstract void testGetCapabilities_HasCompatibleNodeContact();
-
-    /**
-     * Implementers should make use of the {@link CoreTests#testGetCapabilities_NodeIdentityValidFormat(Iterator, String)} method.
-     */
-    @Test
-    public abstract void testGetCapabilities_NodeIdentityValidFormat();
-    
-    
+    public CoreTestImplementations(ContextAwareTestCaseDataone catc) {
+        super(catc);
+    }
     /**
      * Will test the ping call for all nodes. Requires an iterator to go through
      * all the nodes (this may iterate across either MN or CN nodes). Also requires
@@ -114,7 +47,7 @@ public abstract class CoreTests extends ContextAwareTestCaseDataone {
      *      either "v1" or "v2", to match the API version being tested
      */
     protected void testPing(Iterator<Node> nodeIterator, String version) {
-        setupClientSubject_NoCert();
+        this.catc.setupClientSubject_NoCert();
         while (nodeIterator.hasNext()) {
             pingImpl(nodeIterator.next(), version);
         }
@@ -168,7 +101,7 @@ public abstract class CoreTests extends ContextAwareTestCaseDataone {
     protected void testGetLogRecords_AccessRestriction(Iterator<Node> nodeIterator, String version) {
         
         Settings.getConfiguration().setProperty("D1Client.D1Node.getLogRecords.timeout", "60000");
-        setupClientSubject_NoCert();
+        this.catc.setupClientSubject_NoCert();
         while (nodeIterator.hasNext()) {
             testGetLogRecords_AccessRestriction(nodeIterator.next(), version);
         }
@@ -237,7 +170,7 @@ public abstract class CoreTests extends ContextAwareTestCaseDataone {
         Settings.getConfiguration().setProperty("D1Client.D1Node.getLogRecords.timeout", "60000");
         String cnSubject = Settings.getConfiguration().getString("dataone.it.cnode.submitter.cn",
                 "urn:node:cnStageUNM1");
-        setupClientSubject(cnSubject);
+        this.catc.setupClientSubject(cnSubject);
         while (nodeIterator.hasNext()) {
             testGetLogRecords(nodeIterator.next(), version);
         }
@@ -286,7 +219,7 @@ public abstract class CoreTests extends ContextAwareTestCaseDataone {
         // TODO: change to testCnAdmin subject when obtained
         String cnSubject = Settings.getConfiguration().getString("dataone.it.cnode.submitter.cn",
                 "urn:node:cnStageUNM1");
-        setupClientSubject(cnSubject);
+        this.catc.setupClientSubject(cnSubject);
         while (nodeIterator.hasNext()) {
             testGetLogRecords_Slicing(nodeIterator.next(), version);
         }
@@ -355,7 +288,7 @@ public abstract class CoreTests extends ContextAwareTestCaseDataone {
         // TODO: change to testCnAdmin subject when obtained
         String cnSubject = Settings.getConfiguration().getString("dataone.it.cnode.submitter.cn",
                 "urn:node:cnStageUNM1");
-        setupClientSubject(cnSubject);
+        this.catc.setupClientSubject(cnSubject);
         while (nodeIterator.hasNext()) {
             testGetLogRecords_eventFiltering(nodeIterator.next(), version);
         }
@@ -384,7 +317,7 @@ public abstract class CoreTests extends ContextAwareTestCaseDataone {
             if (entries.getCount() == 0) {
                 // try to create a log event
                 // if it can't it will throw a TestIterationEndingException
-                Identifier pid = procurePublicReadableTestObject(callAdapter, null);
+                Identifier pid = this.catc.procurePublicReadableTestObject(callAdapter, null);
                 
                 callAdapter.get(session, pid);
                 toDate = new Date();
@@ -447,7 +380,7 @@ public abstract class CoreTests extends ContextAwareTestCaseDataone {
         // TODO: change to testCnAdmin subject when obtained
         String cnSubject = Settings.getConfiguration().getString("dataone.it.cnode.submitter.cn",
                 "urn:node:cnStageUNM1");
-        setupClientSubject(cnSubject);
+        this.catc.setupClientSubject(cnSubject);
         while (nodeIterator.hasNext()) {
             testGetLogRecords_pidFiltering(nodeIterator.next(), version);
         }
@@ -476,7 +409,7 @@ public abstract class CoreTests extends ContextAwareTestCaseDataone {
             if (entries.getTotal() == 0) {
                 // try to create a log event
                 // if it can't it will throw a TestIterationEndingException
-                Identifier pid = procurePublicReadableTestObject(callAdapter, null);
+                Identifier pid = this.catc.procurePublicReadableTestObject(callAdapter, null);
                 callAdapter.get(session, pid);
                 toDate = new Date();
                 entries = APITestUtils.pagedGetLogRecords(callAdapter, null, toDate, null, null, null, null);
@@ -551,8 +484,8 @@ public abstract class CoreTests extends ContextAwareTestCaseDataone {
         // TODO: change to testCnAdmin subject when obtained
         String cnSubject = Settings.getConfiguration().getString("dataone.it.cnode.submitter.cn",
                 "urn:node:cnStageUNM1");
-        setupClientSubject(cnSubject);
-        //      setupClientSubject_NoCert();
+        this.catc.setupClientSubject(cnSubject);
+        //      this.catc.setupClientSubject_NoCert();
         while (nodeIterator.hasNext()) {
             testGetLogRecords_dateFiltering(nodeIterator.next(), version);
         }
@@ -573,9 +506,9 @@ public abstract class CoreTests extends ContextAwareTestCaseDataone {
 
                 // read an existing object
                 try {
-                    String objectIdentifier = "TierTesting:" + createNodeAbbreviation(callAdapter.getNodeBaseServiceUrl())
-                            + ":Public_READ" + testObjectSeriesSuffix;
-                    Identifier id = procurePublicReadableTestObject(callAdapter, D1TypeBuilder.buildIdentifier(objectIdentifier));
+                    String objectIdentifier = "TierTesting:" + this.catc.createNodeAbbreviation(callAdapter.getNodeBaseServiceUrl())
+                            + ":Public_READ" + this.catc.getTestObjectSeriesSuffix();
+                    Identifier id = this.catc.procurePublicReadableTestObject(callAdapter, D1TypeBuilder.buildIdentifier(objectIdentifier));
                     InputStream is = callAdapter.get(null, id);
                     is.close();
                     Thread.sleep(1000); // just in case...
@@ -641,7 +574,7 @@ public abstract class CoreTests extends ContextAwareTestCaseDataone {
     }
 
     protected void testGetCapabilities(Iterator<Node> nodeIterator, String version) {
-        setupClientSubject_NoCert();
+        this.catc.setupClientSubject_NoCert();
         while (nodeIterator.hasNext()) {
             testGetCapabilities(nodeIterator.next(), version);
         }
@@ -669,7 +602,7 @@ public abstract class CoreTests extends ContextAwareTestCaseDataone {
     
     public void testGetCapabilities_HasCompatibleNodeContact(Iterator<Node> nodeIterator, String version) {
         
-        setupClientSubject_NoCert();
+        this.catc.setupClientSubject_NoCert();
         while (nodeIterator.hasNext()) {
             testGetCapabilities_HasCompatibleNodeContact(nodeIterator.next(), version);
         }
@@ -716,7 +649,7 @@ public abstract class CoreTests extends ContextAwareTestCaseDataone {
     
     protected void testGetCapabilities_NodeIdentityValidFormat(Iterator<Node> nodeIterator, String version) {
         
-        setupClientSubject_NoCert();
+        this.catc.setupClientSubject_NoCert();
         while (nodeIterator.hasNext()) {
             testGetCapabilities_NodeIdentityValidFormat(nodeIterator.next(), version);
         }

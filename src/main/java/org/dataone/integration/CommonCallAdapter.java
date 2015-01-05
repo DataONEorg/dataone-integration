@@ -31,6 +31,7 @@ import org.dataone.service.types.v1.NodeReference;
 import org.dataone.service.types.v1.NodeType;
 import org.dataone.service.types.v1.ObjectFormatIdentifier;
 import org.dataone.service.types.v1.ObjectList;
+import org.dataone.service.types.v1.Permission;
 import org.dataone.service.types.v1.Session;
 import org.dataone.service.types.v1.SystemMetadata;
 import org.dataone.service.types.v2.Log;
@@ -281,6 +282,15 @@ public class CommonCallAdapter implements D1Node {
             }
         }
         throw new ClientSideException("Unable to create node of type " + node.getType() + " of version " + version);
+    }
+    
+    
+    // TODO: check that it is indeed common vs the api docs.
+    public boolean isAuthorized(Session session, Identifier id, Permission permission) 
+    throws NotAuthorized, ServiceFailure, NotImplemented, InvalidToken, NotFound, 
+    InvalidRequest {
+        // TODO:  real implementation;
+        return true;
     }
     
 
