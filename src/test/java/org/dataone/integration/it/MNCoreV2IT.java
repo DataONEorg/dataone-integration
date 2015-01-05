@@ -3,7 +3,7 @@ package org.dataone.integration.it;
 /**
  * Tests MNCore functionality for v2 of the API 
  */
-public class MNCoreV2IT extends CoreIT {
+public class MNCoreV2IT extends CoreTests {
 
     @Override
     protected String getTestDescription() {

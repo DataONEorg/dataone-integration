@@ -12,6 +12,7 @@ import org.dataone.client.D1NodeFactory;
 import org.dataone.client.exception.ClientSideException;
 import org.dataone.client.rest.MultipartRestClient;
 import org.dataone.service.cn.v1.CNCore;
+import org.dataone.service.cn.v2.CNRead;
 import org.dataone.service.exceptions.InsufficientResources;
 import org.dataone.service.exceptions.InvalidRequest;
 import org.dataone.service.exceptions.InvalidToken;
@@ -20,17 +21,16 @@ import org.dataone.service.exceptions.NotFound;
 import org.dataone.service.exceptions.NotImplemented;
 import org.dataone.service.exceptions.ServiceFailure;
 import org.dataone.service.mn.tier1.v1.MNCore;
+import org.dataone.service.mn.tier1.v1.MNRead;
 import org.dataone.service.types.v1.Checksum;
 import org.dataone.service.types.v1.DescribeResponse;
 import org.dataone.service.types.v1.Event;
 import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Node;
-import org.dataone.service.types.v1.NodeList;
 import org.dataone.service.types.v1.NodeReference;
 import org.dataone.service.types.v1.NodeType;
 import org.dataone.service.types.v1.ObjectFormatIdentifier;
 import org.dataone.service.types.v1.ObjectList;
-import org.dataone.service.types.v1.Permission;
 import org.dataone.service.types.v1.Session;
 import org.dataone.service.types.v1.SystemMetadata;
 import org.dataone.service.types.v2.Log;
@@ -67,65 +67,59 @@ public class CommonCallAdapter implements D1Node {
                         this.mrc, URI.create(this.node.getBaseURL())).ping();
             }
         }
-        throw new ClientSideException("Unable to create node of type " + node.getType() + " of version " + version);
+        throw new ClientSideException("Ping failed. " + node.getType() + " of version " + version);
     }
 
     public Log getLogRecords(Session session, Date fromDate, Date toDate, String event, String pidFilter,
-            Integer start, Integer count) throws InvalidRequest, InvalidToken, NotAuthorized, NotImplemented,
-            ServiceFailure, ClientSideException, InsufficientResources {
-
-        try {
-            if (this.node.getType().equals(NodeType.MN)) {
-                if (this.version.toLowerCase().equals("v1")) {
-                    MNCore mnCore = D1NodeFactory.buildNode(org.dataone.service.mn.tier1.v1.MNCore.class, this.mrc,
-                            URI.create(this.node.getBaseURL()));
-                    // TODO use deprecated call with Session? or no?
-                    org.dataone.service.types.v1.Log log = mnCore.getLogRecords(session, fromDate, toDate,
-                            Event.convert(event), pidFilter, start, count);
-                    return TypeMarshaller.convertTypeFromType(log, Log.class);
-                } else if (this.version.toLowerCase().equals("v2")) {
-                    org.dataone.service.mn.tier1.v2.MNCore mnCore = D1NodeFactory.buildNode(
-                            org.dataone.service.mn.tier1.v2.MNCore.class, this.mrc, URI.create(this.node.getBaseURL()));
-                    Log log = mnCore.getLogRecords(session, fromDate, toDate, event, pidFilter, start, count);
-                    return log;
-                }
-            } else if (this.node.getType().equals(NodeType.CN)) {
-                if (this.version.toLowerCase().equals("v1")) {
-                    CNCore cnCore = D1NodeFactory.buildNode(org.dataone.service.cn.v1.CNCore.class, this.mrc,
-                            URI.create(this.node.getBaseURL()));
-                    org.dataone.service.types.v1.Log log = cnCore.getLogRecords(session, fromDate, toDate,
-                            Event.convert(event), pidFilter, start, count);
-                    return TypeMarshaller.convertTypeFromType(log, Log.class);
-                } else if (this.version.toLowerCase().equals("v2")) {
-                    org.dataone.service.mn.tier1.v2.MNCore cnCore = D1NodeFactory.buildNode(
-                            org.dataone.service.mn.tier1.v2.MNCore.class, this.mrc, URI.create(this.node.getBaseURL()));
-                    Log log = cnCore.getLogRecords(session, fromDate, toDate, event, pidFilter, start, count);
-                    return log;
-                }
-            }
-            throw new ClientSideException("Unable to create node of type " + node.getType() + " of version " + version);
-        } catch (InstantiationException | IllegalAccessException
-                | InvocationTargetException | JiBXException | IOException e) {
-            throw new ClientSideException("Unable to convert v1.Log type to v2.Log type", e);
-        } finally {}
-    }
-
-    public Node getCapabilities() throws NotImplemented, ServiceFailure, ClientSideException {
+            Integer start, Integer count) throws ClientSideException, InvalidRequest, InvalidToken, NotAuthorized,
+            NotImplemented, ServiceFailure, InstantiationException, IllegalAccessException, InvocationTargetException,
+            JiBXException, IOException, InsufficientResources {
         if (this.node.getType().equals(NodeType.MN)) {
             if (this.version.toLowerCase().equals("v1")) {
-                MNCore mnCore = D1NodeFactory.buildNode(org.dataone.service.mn.tier1.v1.MNCore.class,
-                        this.mrc, URI.create(this.node.getBaseURL()));
+                MNCore mnCore = D1NodeFactory.buildNode(org.dataone.service.mn.tier1.v1.MNCore.class, this.mrc,
+                        URI.create(this.node.getBaseURL()));
+                // TODO use deprecated call with Session? or no?
+                org.dataone.service.types.v1.Log log = mnCore.getLogRecords(session, fromDate, toDate,
+                        Event.convert(event), pidFilter, start, count);
+                return TypeMarshaller.convertTypeFromType(log, Log.class);
+            } else if (this.version.toLowerCase().equals("v2")) {
+                org.dataone.service.mn.tier1.v2.MNCore mnCore = D1NodeFactory.buildNode(
+                        org.dataone.service.mn.tier1.v2.MNCore.class, this.mrc, URI.create(this.node.getBaseURL()));
+                Log log = mnCore.getLogRecords(session, fromDate, toDate, event, pidFilter, start, count);
+                return log;
+            }
+        } else if (this.node.getType().equals(NodeType.CN)) {
+            if (this.version.toLowerCase().equals("v1")) {
+                CNCore cnCore = D1NodeFactory.buildNode(org.dataone.service.cn.v1.CNCore.class, this.mrc,
+                        URI.create(this.node.getBaseURL()));
+                org.dataone.service.types.v1.Log log = cnCore.getLogRecords(session, fromDate, toDate,
+                        Event.convert(event), pidFilter, start, count);
+                return TypeMarshaller.convertTypeFromType(log, Log.class);
+            } else if (this.version.toLowerCase().equals("v2")) {
+                org.dataone.service.mn.tier1.v2.MNCore cnCore = D1NodeFactory.buildNode(
+                        org.dataone.service.mn.tier1.v2.MNCore.class, this.mrc, URI.create(this.node.getBaseURL()));
+                Log log = cnCore.getLogRecords(session, fromDate, toDate, event, pidFilter, start, count);
+                return log;
+            }
+        }
+        throw new ClientSideException("Unable to create node of type " + node.getType() + " of version " + version);
+    }
+
+    public Node getCapabilities() throws ClientSideException, NotImplemented, ServiceFailure {
+        if (this.node.getType().equals(NodeType.MN)) {
+            if (this.version.toLowerCase().equals("v1")) {
+                MNCore mnCore = D1NodeFactory.buildNode(org.dataone.service.mn.tier1.v1.MNCore.class, this.mrc,
+                        URI.create(this.node.getBaseURL()));
                 return mnCore.getCapabilities();
             } else if (this.version.toLowerCase().equals("v2")) {
-                org.dataone.service.mn.tier1.v2.MNCore mnCore = D1NodeFactory.buildNode(org.dataone.service.mn.tier1.v2.MNCore.class, this.mrc,
-                        URI.create(this.node.getBaseURL()));
+                org.dataone.service.mn.tier1.v2.MNCore mnCore = D1NodeFactory.buildNode(
+                        org.dataone.service.mn.tier1.v2.MNCore.class, this.mrc, URI.create(this.node.getBaseURL()));
                 return mnCore.getCapabilities();
             }
         } else if (this.node.getType().equals(NodeType.CN)) {
             throw new UnsupportedOperationException("CN nodes to not support a getCapabilities call.");
         }
         throw new ClientSideException("Unable to create node of type " + node.getType() + " of version " + version);
-    
     }
 
     @Override
@@ -161,65 +155,187 @@ public class CommonCallAdapter implements D1Node {
         return mrc.getLatestRequestUrl();
     }
 
+    public InputStream get(Session session, Identifier pid) throws ClientSideException, InvalidToken, NotAuthorized,
+            NotImplemented, ServiceFailure, NotFound, InsufficientResources {
+        if (this.node.getType().equals(NodeType.MN)) {
+            if (this.version.toLowerCase().equals("v1")) {
+                MNRead mnRead = D1NodeFactory.buildNode(org.dataone.service.mn.tier1.v1.MNRead.class, this.mrc,
+                        URI.create(this.node.getBaseURL()));
+                return mnRead.get(session, pid);
+            } else if (this.version.toLowerCase().equals("v2")) {
+                org.dataone.service.mn.tier1.v2.MNRead mnRead = D1NodeFactory.buildNode(
+                        org.dataone.service.mn.tier1.v2.MNRead.class, this.mrc, URI.create(this.node.getBaseURL()));
+                return mnRead.get(session, pid);
+            }
+        } else if (this.node.getType().equals(NodeType.CN)) {
+            if (this.version.toLowerCase().equals("v1")) {
+                org.dataone.service.cn.v1.CNRead cnRead = D1NodeFactory.buildNode(
+                        org.dataone.service.cn.v1.CNRead.class, this.mrc, URI.create(this.node.getBaseURL()));
+                return cnRead.get(session, pid);
+            } else if (this.version.toLowerCase().equals("v2")) {
+                CNRead cnRead = D1NodeFactory.buildNode(CNRead.class, this.mrc, URI.create(this.node.getBaseURL()));
+                return cnRead.get(session, pid);
+            }
+        }
+        throw new ClientSideException("Unable to create node of type " + node.getType() + " of version " + version);
+    }
 
-    public DescribeResponse describe(Session session, Identifier arg1)
+    public SystemMetadata getSystemMetadata(Session session, Identifier pid) throws ClientSideException, InvalidToken,
+            NotAuthorized, NotImplemented, ServiceFailure, NotFound {
+        if (this.node.getType().equals(NodeType.MN)) {
+            if (this.version.toLowerCase().equals("v1")) {
+                MNRead mnRead = D1NodeFactory.buildNode(org.dataone.service.mn.tier1.v1.MNRead.class, this.mrc,
+                        URI.create(this.node.getBaseURL()));
+                return mnRead.getSystemMetadata(session, pid);
+            } else if (this.version.toLowerCase().equals("v2")) {
+                org.dataone.service.mn.tier1.v2.MNRead mnRead = D1NodeFactory.buildNode(
+                        org.dataone.service.mn.tier1.v2.MNRead.class, this.mrc, URI.create(this.node.getBaseURL()));
+                return mnRead.getSystemMetadata(session, pid);
+            }
+        } else if (this.node.getType().equals(NodeType.CN)) {
+            if (this.version.toLowerCase().equals("v1")) {
+                org.dataone.service.cn.v1.CNRead cnRead = D1NodeFactory.buildNode(
+                        org.dataone.service.cn.v1.CNRead.class, this.mrc, URI.create(this.node.getBaseURL()));
+                return cnRead.getSystemMetadata(session, pid);
+            } else if (this.version.toLowerCase().equals("v2")) {
+                CNRead cnRead = D1NodeFactory.buildNode(CNRead.class, this.mrc, URI.create(this.node.getBaseURL()));
+                return cnRead.getSystemMetadata(session, pid);
+            }
+        }
+        throw new ClientSideException("Unable to create node of type " + node.getType() + " of version " + version);
+    }
+    
+    public DescribeResponse describe(Session session, Identifier pid)
             throws InvalidToken, NotAuthorized, NotImplemented, ServiceFailure,
-            NotFound {
-        // TODO Auto-generated method stub
-        return null;
+            NotFound, ClientSideException {
+        if (this.node.getType().equals(NodeType.MN)) {
+            if (this.version.toLowerCase().equals("v1")) {
+                MNRead mnRead = D1NodeFactory.buildNode(org.dataone.service.mn.tier1.v1.MNRead.class, this.mrc,
+                        URI.create(this.node.getBaseURL()));
+                return mnRead.describe(session, pid);
+            } else if (this.version.toLowerCase().equals("v2")) {
+                org.dataone.service.mn.tier1.v2.MNRead mnRead = D1NodeFactory.buildNode(
+                        org.dataone.service.mn.tier1.v2.MNRead.class, this.mrc, URI.create(this.node.getBaseURL()));
+                return mnRead.describe(session, pid);
+            }
+        } else if (this.node.getType().equals(NodeType.CN)) {
+            if (this.version.toLowerCase().equals("v1")) {
+                org.dataone.service.cn.v1.CNRead cnRead = D1NodeFactory.buildNode(
+                        org.dataone.service.cn.v1.CNRead.class, this.mrc, URI.create(this.node.getBaseURL()));
+                return cnRead.describe(session, pid);
+            } else if (this.version.toLowerCase().equals("v2")) {
+                CNRead cnRead = D1NodeFactory.buildNode(CNRead.class, this.mrc, URI.create(this.node.getBaseURL()));
+                return cnRead.describe(session, pid);
+            }
+        }
+        throw new ClientSideException("Unable to create node of type " + node.getType() + " of version " + version);
     }
-
-
-    public InputStream get(Session session, Identifier arg1) throws InvalidToken,
-            NotAuthorized, NotImplemented, ServiceFailure, NotFound,
-            InsufficientResources {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-
-    public Checksum getChecksum(Session session, Identifier arg1, String arg2)
+    
+    public Checksum getChecksum(Session session, Identifier pid, String checksumAlgorithm)
             throws InvalidRequest, InvalidToken, NotAuthorized, NotImplemented,
-            ServiceFailure, NotFound {
-        // TODO Auto-generated method stub
-        return null;
+            ServiceFailure, NotFound, ClientSideException {
+        if (this.node.getType().equals(NodeType.MN)) {
+            if (this.version.toLowerCase().equals("v1")) {
+                MNRead mnRead = D1NodeFactory.buildNode(org.dataone.service.mn.tier1.v1.MNRead.class, this.mrc,
+                        URI.create(this.node.getBaseURL()));
+                return mnRead.getChecksum(session, pid, checksumAlgorithm);
+            } else if (this.version.toLowerCase().equals("v2")) {
+                org.dataone.service.mn.tier1.v2.MNRead mnRead = D1NodeFactory.buildNode(
+                        org.dataone.service.mn.tier1.v2.MNRead.class, this.mrc, URI.create(this.node.getBaseURL()));
+                return mnRead.getChecksum(session, pid, checksumAlgorithm);
+            }
+        } else if (this.node.getType().equals(NodeType.CN)) {
+            if (this.version.toLowerCase().equals("v1")) {
+                org.dataone.service.cn.v1.CNRead cnRead = D1NodeFactory.buildNode(
+                        org.dataone.service.cn.v1.CNRead.class, this.mrc, URI.create(this.node.getBaseURL()));
+                return cnRead.getChecksum(session, pid);
+            } else if (this.version.toLowerCase().equals("v2")) {
+                CNRead cnRead = D1NodeFactory.buildNode(CNRead.class, this.mrc, URI.create(this.node.getBaseURL()));
+                return cnRead.getChecksum(session, pid);
+            }
+        }
+        throw new ClientSideException("Unable to create node of type " + node.getType() + " of version " + version);
     }
 
-    public InputStream getReplica(Session session, Identifier arg1)
-            throws InvalidToken, NotAuthorized, NotImplemented, ServiceFailure,
-            NotFound, InsufficientResources {
-        // TODO Auto-generated method stub
-        return null;
+    public ObjectList listObjects(Session session, Date fromDate, Date toDate, ObjectFormatIdentifier formatID,
+            Identifier identifier, Boolean replicaStatus, Integer start, Integer count) throws InvalidRequest,
+            InvalidToken, NotAuthorized, NotImplemented, ServiceFailure, ClientSideException {
+        if (this.node.getType().equals(NodeType.MN)) {
+            if (this.version.toLowerCase().equals("v1")) {
+                MNRead mnRead = D1NodeFactory.buildNode(org.dataone.service.mn.tier1.v1.MNRead.class, this.mrc,
+                        URI.create(this.node.getBaseURL()));
+                return mnRead.listObjects(session, fromDate, toDate, formatID, replicaStatus, start, count);
+            } else if (this.version.toLowerCase().equals("v2")) {
+                org.dataone.service.mn.tier1.v2.MNRead mnRead = D1NodeFactory.buildNode(
+                        org.dataone.service.mn.tier1.v2.MNRead.class, this.mrc, URI.create(this.node.getBaseURL()));
+                return mnRead.listObjects(session, fromDate, toDate, formatID, identifier, replicaStatus, start, count);
+            }
+        } else if (this.node.getType().equals(NodeType.CN)) {
+            if (this.version.toLowerCase().equals("v1")) {
+                org.dataone.service.cn.v1.CNRead cnRead = D1NodeFactory.buildNode(
+                        org.dataone.service.cn.v1.CNRead.class, this.mrc, URI.create(this.node.getBaseURL()));
+                return cnRead.listObjects(session, fromDate, toDate, formatID, replicaStatus, start, count);
+            } else if (this.version.toLowerCase().equals("v2")) {
+                CNRead cnRead = D1NodeFactory.buildNode(CNRead.class, this.mrc, URI.create(this.node.getBaseURL()));
+                return cnRead.listObjects(session, fromDate, toDate, formatID, identifier, replicaStatus, start, count);
+            }
+        }
+        throw new ClientSideException("Unable to create node of type " + node.getType() + " of version " + version);
     }
+    
 
+//    // MN (non-common) ------------------------------
+//    
+//    public boolean systemMetadataChanged(Session session, Identifier id, long serialVersion,
+//            Date dateSystemMetadataLastModified) throws InvalidToken, ServiceFailure, NotAuthorized, NotFound,
+//            NotImplemented, InvalidRequest {
+//        // TODO Auto-generated method stub
+//        return false;
+//    }
+//    
+//    public boolean synchronizationFailed(Session session, SynchronizationFailed message) throws InvalidToken,
+//        NotAuthorized, NotImplemented, ServiceFailure {
+//    // TODO Auto-generated method stub
+//    return false;
+//    }
+//    
+//    public InputStream getReplica(Session session, Identifier arg1)
+//            throws InvalidToken, NotAuthorized, NotImplemented, ServiceFailure,
+//            NotFound, InsufficientResources {
+//        // TODO Auto-generated method stub
+//        return null;
+//    }
+    
+//    // CN (non-common) ------------------------------
+//    
+//    public ObjectLocationList resolve(Session session, Identifier id) throws InvalidToken, ServiceFailure,
+//            NotAuthorized, NotFound, NotImplemented {
+//        // TODO Auto-generated method stub
+//        return null;
+//    }
+//
+//    public ObjectList search(Session session, String queryType, String query) throws InvalidToken, ServiceFailure,
+//            NotAuthorized, InvalidRequest, NotImplemented {
+//        // TODO Auto-generated method stub
+//        return null;
+//    }
+//
+//    public InputStream query(Session session, String queryEngine, String query) throws InvalidToken, ServiceFailure,
+//            NotAuthorized, InvalidRequest, NotImplemented, NotFound {
+//        // TODO Auto-generated method stub
+//        return null;
+//    }
+//
+//    public QueryEngineDescription getQueryEngineDescription(Session session, String queryEngine) throws InvalidToken,
+//            ServiceFailure, NotAuthorized, NotImplemented, NotFound {
+//        // TODO Auto-generated method stub
+//        return null;
+//    }
+//
+//    public QueryEngineList listQueryEngines(Session session) throws InvalidToken, ServiceFailure, NotAuthorized,
+//            NotImplemented {
+//        // TODO Auto-generated method stub
+//        return null;
+//    }
 
-    public SystemMetadata getSystemMetadata(Session session, Identifier arg1)
-            throws InvalidToken, NotAuthorized, NotImplemented, ServiceFailure,
-            NotFound {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-
-    public ObjectList listObjects(Session session, Date arg1, Date arg2,
-            ObjectFormatIdentifier arg3, Boolean arg4, Integer arg5,
-            Integer arg6) throws InvalidRequest, InvalidToken, NotAuthorized,
-            NotImplemented, ServiceFailure {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    public Boolean isAuthorized(Session session, Identifier id, Permission permissionLevel)
-    throws NotAuthorized, NotFound, ServiceFailure, NotImplemented, InvalidRequest
-    {
-        // TODO Auto-generated method stub  (check the thrown exceptions - I guessed on those)
-        return null;
-    }
-
-    public NodeList CNlistNodes()
-        throws ServiceFailure, NotImplemented
-    {
-        // TODO auto-generated method stub
-        return null;
-    }
 }

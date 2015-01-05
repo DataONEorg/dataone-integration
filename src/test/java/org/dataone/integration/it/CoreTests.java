@@ -32,48 +32,48 @@ import org.junit.Test;
  * Base class for testing the core API functionality, meaning MNCore and CNCore
  * across API versions.
  */
-public abstract class CoreIT extends ContextAwareTestCaseDataone {
+public abstract class CoreTests extends ContextAwareTestCaseDataone {
 
     // Tests that need to be implemented by subclasses:
 
     /**
-     * Implementers should make use of the {@link CoreIT#testPing(Iterator, String)} method.
+     * Implementers should make use of the {@link CoreTests#testPing(Iterator, String)} method.
      */
     @Test
     public abstract void testPing();
 
     /**
-     * Implementers should make use of the {@link CoreIT#testGetLogRecords_AccessRestriction(Iterator, String)} method.
+     * Implementers should make use of the {@link CoreTests#testGetLogRecords_AccessRestriction(Iterator, String)} method.
      */
     @Test
     public abstract void testGetLogRecords_AccessRestriction();
 
     /**
-     * Implementers should make use of the {@link CoreIT#testGetLogRecords(Iterator, String)} method.
+     * Implementers should make use of the {@link CoreTests#testGetLogRecords(Iterator, String)} method.
      */
     @Test
     public abstract void testGetLogRecords();
 
     /**
-     * Implementers should make use of the {@link CoreIT#testGetLogRecords_Slicing(Iterator, String)} method.
+     * Implementers should make use of the {@link CoreTests#testGetLogRecords_Slicing(Iterator, String)} method.
      */
     @Test
     public abstract void testGetLogRecords_Slicing();
 
     /**
-     * Implementers should make use of the {@link CoreIT#testGetLogRecords_eventFiltering(Iterator, String)} method.
+     * Implementers should make use of the {@link CoreTests#testGetLogRecords_eventFiltering(Iterator, String)} method.
      */
     @Test
     public abstract void testGetLogRecords_eventFiltering();
 
     /**
-     * Implementers should make use of the {@link CoreIT#testGetLogRecords_pidFiltering(Iterator, String)} method.
+     * Implementers should make use of the {@link CoreTests#testGetLogRecords_pidFiltering(Iterator, String)} method.
      */
     @Test
     public abstract void testGetLogRecords_pidFiltering();
 
     /**
-     * Implementers should make use of the {@link CoreIT#testGetLogRecords_dateFiltering(Iterator, String)} method.
+     * Implementers should make use of the {@link CoreTests#testGetLogRecords_dateFiltering(Iterator, String)} method.
      */
     @Test
     public abstract void testGetLogRecords_dateFiltering();
@@ -85,19 +85,19 @@ public abstract class CoreIT extends ContextAwareTestCaseDataone {
     
     
     /**
-     * Implementers should make use of the {@link CoreIT#testGetCapabilities(Iterator, String)} method.
+     * Implementers should make use of the {@link CoreTests#testGetCapabilities(Iterator, String)} method.
      */
     @Test
     public abstract void testGetCapabilities();
 
     /**
-     * Implementers should make use of the {@link CoreIT#testGetCapabilities_HasCompatibleNodeContact(Iterator, String)} method.
+     * Implementers should make use of the {@link CoreTests#testGetCapabilities_HasCompatibleNodeContact(Iterator, String)} method.
      */
     @Test
     public abstract void testGetCapabilities_HasCompatibleNodeContact();
 
     /**
-     * Implementers should make use of the {@link CoreIT#testGetCapabilities_NodeIdentityValidFormat(Iterator, String)} method.
+     * Implementers should make use of the {@link CoreTests#testGetCapabilities_NodeIdentityValidFormat(Iterator, String)} method.
      */
     @Test
     public abstract void testGetCapabilities_NodeIdentityValidFormat();
@@ -754,7 +754,7 @@ public abstract class CoreIT extends ContextAwareTestCaseDataone {
     /**
      * Creates a dummy {@link Session} for testing. See {@link ExampleUtilities#getTestSession()} for details.
      */
-    private Session createTestSession(){
+    private static Session createTestSession(){
         return ExampleUtilities.getTestSession();
     }
 }
