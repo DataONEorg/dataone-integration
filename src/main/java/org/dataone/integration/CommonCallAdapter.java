@@ -11,6 +11,7 @@ import org.dataone.client.D1Node;
 import org.dataone.client.D1NodeFactory;
 import org.dataone.client.exception.ClientSideException;
 import org.dataone.client.rest.MultipartRestClient;
+import org.dataone.service.cn.v1.CNAuthorization;
 import org.dataone.service.cn.v1.CNCore;
 import org.dataone.service.cn.v2.CNRead;
 import org.dataone.service.exceptions.InsufficientResources;
@@ -22,6 +23,7 @@ import org.dataone.service.exceptions.NotImplemented;
 import org.dataone.service.exceptions.ServiceFailure;
 import org.dataone.service.mn.tier1.v1.MNCore;
 import org.dataone.service.mn.tier1.v1.MNRead;
+import org.dataone.service.mn.tier2.v1.MNAuthorization;
 import org.dataone.service.types.v1.Checksum;
 import org.dataone.service.types.v1.DescribeResponse;
 import org.dataone.service.types.v1.Event;
@@ -328,13 +330,31 @@ public class CommonCallAdapter implements D1Node {
         throw new ClientSideException("Unable to create node of type " + node.getType() + " of version " + version);
     }
     
-    
-    // TODO: check that it is indeed common vs the api docs.
     public boolean isAuthorized(Session session, Identifier id, Permission permission) 
     throws NotAuthorized, ServiceFailure, NotImplemented, InvalidToken, NotFound, 
-    InvalidRequest {
-        // TODO:  real implementation;
-        return true;
+    InvalidRequest, ClientSideException {
+        if (this.node.getType().equals(NodeType.MN)) {
+            if (this.version.toLowerCase().equals("v1")) {
+                MNAuthorization mNode = D1NodeFactory.buildNode(MNAuthorization.class, this.mrc,
+                        URI.create(this.node.getBaseURL()));
+                return mNode.isAuthorized(session, id, permission);
+            } else if (this.version.toLowerCase().equals("v2")) {
+                org.dataone.service.mn.tier2.v2.MNAuthorization mnAuth = D1NodeFactory.buildNode(
+                        org.dataone.service.mn.tier2.v2.MNAuthorization.class, this.mrc, URI.create(this.node.getBaseURL()));
+                return mnAuth.isAuthorized(session, id, permission);
+            }
+        } else if (this.node.getType().equals(NodeType.CN)) {
+            if (this.version.toLowerCase().equals("v1")) {
+                CNAuthorization cnAuth = D1NodeFactory.buildNode(
+                        CNAuthorization.class, this.mrc, URI.create(this.node.getBaseURL()));
+                return cnAuth.isAuthorized(session, id, permission);
+            } else if (this.version.toLowerCase().equals("v2")) {
+                org.dataone.service.cn.v2.CNAuthorization cnAuth = D1NodeFactory.buildNode(org.dataone.service.cn.v2.CNAuthorization.class, this.mrc, URI.create(this.node.getBaseURL()));
+                return cnAuth.isAuthorized(session, id, permission);
+            }
+        }
+        throw new ClientSideException("Unable to create node of type " + node.getType() + " of version " + version);
+    
     }
     
 

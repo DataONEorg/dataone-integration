@@ -36,6 +36,7 @@ public class CoreTestImplementations extends ContextAwareAdapter {
     public CoreTestImplementations(ContextAwareTestCaseDataone catc) {
         super(catc);
     }
+    
     /**
      * Will test the ping call for all nodes. Requires an iterator to go through
      * all the nodes (this may iterate across either MN or CN nodes). Also requires
@@ -46,10 +47,10 @@ public class CoreTestImplementations extends ContextAwareAdapter {
      * @param version 
      *      either "v1" or "v2", to match the API version being tested
      */
-    protected void testPing(Iterator<Node> nodeIterator, String version) {
+    public void testPing(Iterator<Node> nodeIterator, String version) {
         this.catc.setupClientSubject_NoCert();
         while (nodeIterator.hasNext()) {
-            pingImpl(nodeIterator.next(), version);
+            ping(nodeIterator.next(), version);
         }
     }
 
@@ -60,7 +61,7 @@ public class CoreTestImplementations extends ContextAwareAdapter {
      * @param node 
      * @param version
      */
-    private void pingImpl(Node node, String version) {
+    public void ping(Node node, String version) {
 
         CommonCallAdapter callAdapter = new CommonCallAdapter(MULTIPART_REST_CLIENT, node, version);
         String currentUrl = callAdapter.getNodeBaseServiceUrl();
@@ -98,7 +99,7 @@ public class CoreTestImplementations extends ContextAwareAdapter {
      * @param version 
      *      either "v1" or "v2", to match the API version being tested
      */
-    protected void testGetLogRecords_AccessRestriction(Iterator<Node> nodeIterator, String version) {
+    public void testGetLogRecords_AccessRestriction(Iterator<Node> nodeIterator, String version) {
         
         Settings.getConfiguration().setProperty("D1Client.D1Node.getLogRecords.timeout", "60000");
         this.catc.setupClientSubject_NoCert();
@@ -111,7 +112,7 @@ public class CoreTestImplementations extends ContextAwareAdapter {
      * Tests that getLogRecords() implements access restriction properly, testing
      * the negative case - where client is not a CN and is public.
      */
-    private void testGetLogRecords_AccessRestriction(Node node, String version) {
+    public void testGetLogRecords_AccessRestriction(Node node, String version) {
         
         CommonCallAdapter callAdapter = new CommonCallAdapter(MULTIPART_REST_CLIENT, node, version);
         String currentUrl = node.getBaseURL();
@@ -165,7 +166,7 @@ public class CoreTestImplementations extends ContextAwareAdapter {
      * @param version 
      *      either "v1" or "v2", to match the API version being tested
      */
-    protected void testGetLogRecords(Iterator<Node> nodeIterator, String version) {
+    public void testGetLogRecords(Iterator<Node> nodeIterator, String version) {
         
         Settings.getConfiguration().setProperty("D1Client.D1Node.getLogRecords.timeout", "60000");
         String cnSubject = Settings.getConfiguration().getString("dataone.it.cnode.submitter.cn",
@@ -180,7 +181,7 @@ public class CoreTestImplementations extends ContextAwareAdapter {
      * Tests that getLogRecords() returns Log object, using the simplest case: no parameters.
      * Also tests with all parameters are set.  Passes the tests by returning a Log object.
      */
-    private void testGetLogRecords(Node node, String version) {
+    public void testGetLogRecords(Node node, String version) {
 
         //TODO: change to use a testCNAdmin certificate
         CommonCallAdapter callAdapter = new CommonCallAdapter(MULTIPART_REST_CLIENT, node, version);
@@ -213,7 +214,7 @@ public class CoreTestImplementations extends ContextAwareAdapter {
         }
     }
 
-    protected void testGetLogRecords_Slicing(Iterator<Node> nodeIterator, String version) {
+    public void testGetLogRecords_Slicing(Iterator<Node> nodeIterator, String version) {
         
         Settings.getConfiguration().setProperty("D1Client.D1Node.getLogRecords.timeout", "60000");
         // TODO: change to testCnAdmin subject when obtained
@@ -229,7 +230,7 @@ public class CoreTestImplementations extends ContextAwareAdapter {
      * Tests that count and start parameters are functioning, and getCount() and getTotal()
      * are reasonable values.
      */
-    private void testGetLogRecords_Slicing(Node node, String version) {
+    public void testGetLogRecords_Slicing(Node node, String version) {
         
         CommonCallAdapter callAdapter = new CommonCallAdapter(MULTIPART_REST_CLIENT, node, version);
         String currentUrl = node.getBaseURL();
@@ -282,7 +283,7 @@ public class CoreTestImplementations extends ContextAwareAdapter {
 
     }
 
-    protected void testGetLogRecords_eventFiltering(Iterator<Node> nodeIterator, String version) {
+    public void testGetLogRecords_eventFiltering(Iterator<Node> nodeIterator, String version) {
         
         Settings.getConfiguration().setProperty("D1Client.D1Node.getLogRecords.timeout", "60000");
         // TODO: change to testCnAdmin subject when obtained
@@ -300,7 +301,7 @@ public class CoreTestImplementations extends ContextAwareAdapter {
      * zero returned.  If 2 types, just expect fewer records.
      * Must be careful to check that all the records requested are returned.
      */
-    private void testGetLogRecords_eventFiltering(Node node, String version) {
+    public void testGetLogRecords_eventFiltering(Node node, String version) {
         
         CommonCallAdapter callAdapter = new CommonCallAdapter(MULTIPART_REST_CLIENT, node, version);
         String currentUrl = node.getBaseURL();
@@ -375,7 +376,7 @@ public class CoreTestImplementations extends ContextAwareAdapter {
     }
 
     
-    protected void testGetLogRecords_pidFiltering(Iterator<Node> nodeIterator, String version){
+    public void testGetLogRecords_pidFiltering(Iterator<Node> nodeIterator, String version){
         Settings.getConfiguration().setProperty("D1Client.D1Node.getLogRecords.timeout", "60000");
         // TODO: change to testCnAdmin subject when obtained
         String cnSubject = Settings.getConfiguration().getString("dataone.it.cnode.submitter.cn",
@@ -391,7 +392,7 @@ public class CoreTestImplementations extends ContextAwareAdapter {
      * Want to find a negative case and to make sure it is filtered out when the
      * filter is applied.
      */
-    private void testGetLogRecords_pidFiltering(Node node, String version) {
+    public void testGetLogRecords_pidFiltering(Node node, String version) {
             
         CommonCallAdapter callAdapter = new CommonCallAdapter(MULTIPART_REST_CLIENT, node, version);
         String currentUrl = node.getBaseURL();
@@ -573,14 +574,14 @@ public class CoreTestImplementations extends ContextAwareAdapter {
         }
     }
 
-    protected void testGetCapabilities(Iterator<Node> nodeIterator, String version) {
+    public void testGetCapabilities(Iterator<Node> nodeIterator, String version) {
         this.catc.setupClientSubject_NoCert();
         while (nodeIterator.hasNext()) {
             testGetCapabilities(nodeIterator.next(), version);
         }
     }
 
-    private void testGetCapabilities(Node node, String version) {
+    public void testGetCapabilities(Node node, String version) {
 
         CommonCallAdapter callAdapter = new CommonCallAdapter(MULTIPART_REST_CLIENT, node, version);
         String currentUrl = node.getBaseURL();
@@ -647,7 +648,7 @@ public class CoreTestImplementations extends ContextAwareAdapter {
         }
     }
     
-    protected void testGetCapabilities_NodeIdentityValidFormat(Iterator<Node> nodeIterator, String version) {
+    public void testGetCapabilities_NodeIdentityValidFormat(Iterator<Node> nodeIterator, String version) {
         
         this.catc.setupClientSubject_NoCert();
         while (nodeIterator.hasNext()) {
@@ -658,7 +659,7 @@ public class CoreTestImplementations extends ContextAwareAdapter {
     /**
      * Tests that the nodeReference of the node is in the proper urn format.
      */
-    private void testGetCapabilities_NodeIdentityValidFormat(Node node, String version) {
+    public void testGetCapabilities_NodeIdentityValidFormat(Node node, String version) {
 
         CommonCallAdapter callAdapter = new CommonCallAdapter(MULTIPART_REST_CLIENT, node, version);
         String currentUrl = node.getBaseURL();

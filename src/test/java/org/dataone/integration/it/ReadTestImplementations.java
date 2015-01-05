@@ -6,7 +6,8 @@ import java.util.Iterator;
 import java.util.Scanner;
 import java.util.Vector;
 
-import org.dataone.client.v1.MNode;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.dataone.client.v1.types.D1TypeBuilder;
 import org.dataone.integration.CommonCallAdapter;
 import org.dataone.integration.ContextAwareTestCaseDataone;
@@ -27,68 +28,21 @@ import org.dataone.service.util.DateTimeMarshaller;
 import org.junit.Before;
 import org.junit.Test;
 
-public abstract class ReadTests extends ContextAwareTestCaseDataone {
+public class ReadTestImplementations extends ContextAwareAdapter {
 
+    protected static Log log = LogFactory.getLog(ReadTestImplementations.class);
+    
     private static final String format_text_csv = "text/csv";
     private static Vector<String> unicodeStringV;
     private static Vector<String> escapedStringV;
-
-    // common methods:
-
-    @Test
-    public abstract void testGet();
-
-    @Test
-    public abstract void testGet_NotFound();
-
-    @Test
-    public abstract void testGet_IdentifierEncoding();
-
-    @Test
-    public abstract void testGetSystemMetadata();
-
-    @Test
-    public abstract void testGetSystemMetadata_NotFound();
-
-    @Test
-    public abstract void testGetSystemMetadata_IdentifierEncoding();
-
-    @Test
-    public abstract void testDescribe();
-
-    @Test
-    public abstract void testDescribe_NotFound();
-
-    @Test
-    public abstract void testDescribe_IdentifierEncoding();
-
-    @Test
-    public abstract void testGetChecksum();
-
-    @Test
-    public abstract void testGetChecksum_NotFound();
-
-    @Test
-    public abstract void testGetChecksum_IdentifierEncoding();
-
-    // CN-only methods:
-
-    //    public ObjectLocationList resolve(Session session, Identifier id) ;
-    //    public ObjectList search(Session session, String queryType, String query) ;
-    //    public InputStream query(Session session, String queryEngine, String query) ;
-    //    public QueryEngineDescription getQueryEngineDescription(Session session, String queryEngine);
-    //    public QueryEngineList listQueryEngines(Session session);
-
-    // MN-only methods:
-
-    //    public boolean systemMetadataChanged(Session session, Identifier id, long serialVersion,
-    //            Date dateSystemMetadataLastModified) ;
-    //    public boolean synchronizationFailed(Session session, SynchronizationFailed message) ;
-    //    public InputStream getReplica(Session session, Identifier pid);
-
+    
+    public ReadTestImplementations(ContextAwareTestCaseDataone catc) {
+        super(catc);
+    }
+    
     protected void testGet(Iterator<Node> nodeIterator, String version) {
 
-        setupClientSubject_NoCert();
+        catc.setupClientSubject_NoCert();
         while (nodeIterator.hasNext()) {
             testGet(nodeIterator.next(), version);
         }
@@ -102,11 +56,11 @@ public abstract class ReadTests extends ContextAwareTestCaseDataone {
         printTestHeader("testGet() vs. node: " + currentUrl);
 
         try {
-            String objectIdentifier = "TierTesting:" + createNodeAbbreviation(callAdapter.getNodeBaseServiceUrl())
-                    + ":Public_READ" + testObjectSeriesSuffix;
-            Identifier id = procurePublicReadableTestObject(callAdapter,
+            String objectIdentifier = "TierTesting:" + catc.createNodeAbbreviation(callAdapter.getNodeBaseServiceUrl())
+                    + ":Public_READ" + catc.getTestObjectSeriesSuffix();
+            Identifier id = catc.procurePublicReadableTestObject(callAdapter,
                     D1TypeBuilder.buildIdentifier(objectIdentifier));
-            //             Identifier id = procurePublicReadableTestObject(mn);
+            //             Identifier id =catc.procurePublicReadableTestObject(mn);
             InputStream is = callAdapter.get(null, id);
             checkTrue(callAdapter.getLatestRequestUrl(), "get() returns an objectStream", is != null);
         } catch (TestIterationEndingException e) {
@@ -122,8 +76,7 @@ public abstract class ReadTests extends ContextAwareTestCaseDataone {
 
     protected void testGet_NotFound(Iterator<Node> nodeIterator, String version) {
 
-        setupClientSubject_NoCert();
-        Iterator<Node> it = getMemberNodeIterator();
+        catc.setupClientSubject_NoCert();
         while (nodeIterator.hasNext()) {
             testGet_NotFound(nodeIterator.next(), version);
         }
@@ -158,8 +111,7 @@ public abstract class ReadTests extends ContextAwareTestCaseDataone {
      */
     protected void testGet_IdentifierEncoding(Iterator<Node> nodeIterator, String version) {
 
-        setupClientSubject_NoCert();
-        Iterator<Node> it = getMemberNodeIterator();
+        catc.setupClientSubject_NoCert();
         while (nodeIterator.hasNext()) {
             testGet_IdentifierEncoding(nodeIterator.next(), version);
         }
@@ -230,7 +182,7 @@ public abstract class ReadTests extends ContextAwareTestCaseDataone {
 
     protected void testGetSystemMetadata(Iterator<Node> nodeIterator, String version) {
 
-        setupClientSubject_NoCert();
+        catc.setupClientSubject_NoCert();
         while (nodeIterator.hasNext()) {
             testGetSystemMetadata(nodeIterator.next(), version);
         }
@@ -244,11 +196,11 @@ public abstract class ReadTests extends ContextAwareTestCaseDataone {
         printTestHeader("testGetSystemMetadata() vs. node: " + currentUrl);
 
         try {
-            String objectIdentifier = "TierTesting:" + createNodeAbbreviation(callAdapter.getNodeBaseServiceUrl())
-                    + ":Public_READ" + testObjectSeriesSuffix;
-            Identifier id = procurePublicReadableTestObject(callAdapter,
+            String objectIdentifier = "TierTesting:" + catc.createNodeAbbreviation(callAdapter.getNodeBaseServiceUrl())
+                    + ":Public_READ" + catc.getTestObjectSeriesSuffix();
+            Identifier id = catc.procurePublicReadableTestObject(callAdapter,
                     D1TypeBuilder.buildIdentifier(objectIdentifier));
-            //              Identifier id = procurePublicReadableTestObject(callAdapter);
+            //              Identifier id =catc.procurePublicReadableTestObject(callAdapter);
             SystemMetadata smd = callAdapter.getSystemMetadata(null, id);
             checkTrue(callAdapter.getLatestRequestUrl(), "getSystemMetadata() returns a SystemMetadata object",
                     smd != null);
@@ -265,7 +217,7 @@ public abstract class ReadTests extends ContextAwareTestCaseDataone {
 
     protected void testGetSystemMetadata_NotFound(Iterator<Node> nodeIterator, String version) {
 
-        setupClientSubject_NoCert();
+        catc.setupClientSubject_NoCert();
         while (nodeIterator.hasNext()) {
             testGetSystemMetadata_NotFound(nodeIterator.next(), version);
         }
@@ -295,7 +247,7 @@ public abstract class ReadTests extends ContextAwareTestCaseDataone {
 
     protected void testGetSystemMetadata_IdentifierEncoding(Iterator<Node> nodeIterator, String version) {
 
-        setupClientSubject_NoCert();
+        catc.setupClientSubject_NoCert();
         while (nodeIterator.hasNext()) {
             testGetSystemMetadata_IdentifierEncoding(nodeIterator.next(), version);
         }
@@ -361,7 +313,7 @@ public abstract class ReadTests extends ContextAwareTestCaseDataone {
 
     protected void testDescribe(Iterator<Node> nodeIterator, String version) {
 
-        setupClientSubject_NoCert();
+        catc.setupClientSubject_NoCert();
         while (nodeIterator.hasNext()) {
             testDescribe(nodeIterator.next(), version);
         }
@@ -376,11 +328,11 @@ public abstract class ReadTests extends ContextAwareTestCaseDataone {
         printTestHeader("testDescribe() vs. node: " + currentUrl);
 
         try {
-            String objectIdentifier = "TierTesting:" + createNodeAbbreviation(callAdapter.getNodeBaseServiceUrl())
-                    + ":Public_READ" + testObjectSeriesSuffix;
-            Identifier id = procurePublicReadableTestObject(callAdapter,
+            String objectIdentifier = "TierTesting:" + catc.createNodeAbbreviation(callAdapter.getNodeBaseServiceUrl())
+                    + ":Public_READ" + catc.getTestObjectSeriesSuffix();
+            Identifier id = catc.procurePublicReadableTestObject(callAdapter,
                     D1TypeBuilder.buildIdentifier(objectIdentifier));
-            //              Identifier id = procurePublicReadableTestObject(callAdapter);
+            //              Identifier id =catc.procurePublicReadableTestObject(callAdapter);
             DescribeResponse dr = callAdapter.describe(null, id);
             checkTrue(callAdapter.getLatestRequestUrl(), "describe() returns a DescribeResponse object", dr != null);
         } catch (IndexOutOfBoundsException e) {
@@ -396,7 +348,7 @@ public abstract class ReadTests extends ContextAwareTestCaseDataone {
 
     protected void testDescribe_NotFound(Iterator<Node> nodeIterator, String version) {
 
-        setupClientSubject_NoCert();
+        catc.setupClientSubject_NoCert();
         while (nodeIterator.hasNext()) {
             testDescribe_NotFound(nodeIterator.next(), version);
         }
@@ -428,7 +380,7 @@ public abstract class ReadTests extends ContextAwareTestCaseDataone {
 
     protected void testDescribe_IdentifierEncoding(Iterator<Node> nodeIterator, String version) {
 
-        setupClientSubject_NoCert();
+        catc.setupClientSubject_NoCert();
         printTestHeader("Testing IdentifierEncoding - setting up identifiers to check");
         while (nodeIterator.hasNext()) {
             testDescribe_IdentifierEncoding(nodeIterator.next(), version);
@@ -496,7 +448,7 @@ public abstract class ReadTests extends ContextAwareTestCaseDataone {
 
     protected void testGetChecksum(Iterator<Node> nodeIterator, String version) {
 
-        setupClientSubject_NoCert();
+        catc.setupClientSubject_NoCert();
         while (nodeIterator.hasNext()) {
             testGetChecksum(nodeIterator.next(), version);
         }
@@ -511,12 +463,12 @@ public abstract class ReadTests extends ContextAwareTestCaseDataone {
         printTestHeader("testGetChecksum() vs. node: " + currentUrl);
 
         try {
-            String objectIdentifier = "TierTesting:" + createNodeAbbreviation(callAdapter.getNodeBaseServiceUrl())
-                    + ":Public_READ" + testObjectSeriesSuffix;
-            Identifier id = procurePublicReadableTestObject(callAdapter,
+            String objectIdentifier = "TierTesting:" +catc.createNodeAbbreviation(callAdapter.getNodeBaseServiceUrl())
+                    + ":Public_READ" +catc.getTestObjectSeriesSuffix();
+            Identifier id =catc.procurePublicReadableTestObject(callAdapter,
                     D1TypeBuilder.buildIdentifier(objectIdentifier));
-            //              Identifier id = procurePublicReadableTestObject(callAdapter);
-            Checksum cs = callAdapter.getChecksum(null, id, CHECKSUM_ALGORITHM);
+            //              Identifier id =catc.procurePublicReadableTestObject(callAdapter);
+            Checksum cs = callAdapter.getChecksum(null, id, ContextAwareTestCaseDataone.CHECKSUM_ALGORITHM);
             checkTrue(callAdapter.getLatestRequestUrl(), "getChecksum() returns a Checksum object", cs != null);
         } catch (IndexOutOfBoundsException e) {
             handleFail(callAdapter.getLatestRequestUrl(), "No Objects available to test against");
@@ -531,7 +483,7 @@ public abstract class ReadTests extends ContextAwareTestCaseDataone {
 
     protected void testGetChecksum_NotFound(Iterator<Node> nodeIterator, String version) {
 
-        setupClientSubject_NoCert();
+        catc.setupClientSubject_NoCert();
         while (nodeIterator.hasNext()) {
             testGetChecksum_NotFound(nodeIterator.next(), version);
         }
@@ -562,7 +514,7 @@ public abstract class ReadTests extends ContextAwareTestCaseDataone {
 
     protected void testGetChecksum_IdentifierEncoding(Iterator<Node> nodeIterator, String version) {
 
-        setupClientSubject_NoCert();
+        catc.setupClientSubject_NoCert();
         printTestHeader("Testing IdentifierEncoding - setting up identifiers to check");
         while (nodeIterator.hasNext()) {
             testGetChecksum_IdentifierEncoding(nodeIterator.next(), version);
@@ -630,15 +582,12 @@ public abstract class ReadTests extends ContextAwareTestCaseDataone {
         }
     }
 
-    @Test
-    public abstract void testListObjects();
-
     /**
      * Tests the parameterless and parameterized listObject methods for proper returns.
      */
     protected void testListObjects(Iterator<Node> nodeIterator, String version) {
 
-        setupClientSubject_NoCert();
+        catc.setupClientSubject_NoCert();
         while (nodeIterator.hasNext()) {
             testListObjects(nodeIterator.next(), version);
         }
@@ -656,7 +605,7 @@ public abstract class ReadTests extends ContextAwareTestCaseDataone {
         printTestHeader("testListObjects() vs. node: " + currentUrl);
 
         try {
-            ObjectList ol = procureObjectList(callAdapter);
+            ObjectList ol = catc.procureObjectList(callAdapter);
             checkTrue(callAdapter.getLatestRequestUrl(), "listObjects() should return an ObjectList", ol != null);
 
             Date fromDate = new Date(System.currentTimeMillis() - 10 * 60 * 1000);
@@ -679,16 +628,13 @@ public abstract class ReadTests extends ContextAwareTestCaseDataone {
         }
     }
 
-    @Test
-    public abstract void testListObjects_Slicing();
-
     /**
      * Tests that count and start parameters are functioning, and getCount() and getTotal()
      * are the correct values.
      */
     protected void testListObjects_Slicing(Iterator<Node> nodeIterator, String version) {
 
-        setupClientSubject_NoCert();
+        catc.setupClientSubject_NoCert();
         while (nodeIterator.hasNext()) {
             testListObjects_Slicing(nodeIterator.next(), version);
         }
@@ -748,16 +694,13 @@ public abstract class ReadTests extends ContextAwareTestCaseDataone {
         }
     }
 
-    @Test
-    public abstract void testListObjects_FromDateTest();
-
     /**
      * Tests that the fromDate parameter successfully filters out records where
      * the systemMetadataModified date/time is earler than fromDate.
      */
     protected void testListObjects_FromDateTest(Iterator<Node> nodeIterator, String version) {
 
-        setupClientSubject_NoCert();
+        catc.setupClientSubject_NoCert();
         while (nodeIterator.hasNext()) {
             testListObjects_FromDateTest(nodeIterator.next(), version);
         }
@@ -776,10 +719,10 @@ public abstract class ReadTests extends ContextAwareTestCaseDataone {
         printTestHeader("testListObjects_FromDateTest() vs. node: " + currentUrl);
 
         try {
-            ObjectList ol = procureObjectList(callAdapter);
+            ObjectList ol = catc.procureObjectList(callAdapter);
             checkTrue(callAdapter.getLatestRequestUrl(), "listObjects() should return an ObjectList", ol != null);
             if (ol.getTotal() == 0)
-                throw new TestIterationEndingException("no objects found in listObjects");
+                throw catc.new TestIterationEndingException("no objects found in listObjects");
             ObjectInfo oi0 = ol.getObjectInfo(0);
             Date fromDate = null;
             ObjectInfo excludedObjectInfo = null;
@@ -830,16 +773,13 @@ public abstract class ReadTests extends ContextAwareTestCaseDataone {
         }
     }
 
-    @Test
-    public abstract void testListObjects_FormatIdFilteringTestFakeFormat();
-
     /**
      * Tests that the formatID parameter rightly returns no records
      * when a fake format is given
      */
     protected void testListObjects_FormatIdFilteringTestFakeFormat(Iterator<Node> nodeIterator, String version) {
 
-        setupClientSubject_NoCert();
+        catc.setupClientSubject_NoCert();
         while (nodeIterator.hasNext()) {
             testListObjects_FormatIdFilteringTestFakeFormat(nodeIterator.next(), version);
         }
@@ -874,9 +814,6 @@ public abstract class ReadTests extends ContextAwareTestCaseDataone {
         }
     }
 
-    @Test
-    public abstract void testListObjects_FormatIdFilteringTest();
-
     /**
      * Tests that the formatID parameter successfully filters records by
      * the given formatId.  It is an indirect test of the totals returned
@@ -884,7 +821,7 @@ public abstract class ReadTests extends ContextAwareTestCaseDataone {
      */
     protected void testListObjects_FormatIdFilteringTest(Iterator<Node> nodeIterator, String version) {
 
-        setupClientSubject_NoCert();
+        catc.setupClientSubject_NoCert();
         while (nodeIterator.hasNext()) {
             testListObjects_FormatIdFilteringTest(nodeIterator.next(), version);
         }
@@ -907,7 +844,7 @@ public abstract class ReadTests extends ContextAwareTestCaseDataone {
             ObjectList ol = callAdapter.listObjects(null, null, null, null, null, null, null, null);
             checkTrue(callAdapter.getLatestRequestUrl(), "listObjects() should return an ObjectList", ol != null);
             if (ol == null || ol.getTotal() == 0)
-                throw new TestIterationEndingException("no objects found in listObjects");
+                throw catc.new TestIterationEndingException("no objects found in listObjects");
 
             int allTotal = ol.getTotal();
 
@@ -925,7 +862,7 @@ public abstract class ReadTests extends ContextAwareTestCaseDataone {
                 }
             }
             if (!foundAnother) {
-                throw new TestIterationEndingException("only one object format was found.  Can't test format filtering");
+                throw catc.new TestIterationEndingException("only one object format was found.  Can't test format filtering");
             }
             ol = callAdapter.listObjects(null, null, null, formatA, null, null, null, null);
             checkTrue(callAdapter.getLatestRequestUrl(), "objectList filtered by " + formatA.getValue()

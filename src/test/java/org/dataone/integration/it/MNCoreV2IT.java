@@ -7,9 +7,9 @@ import org.junit.Before;
  * Tests MNCore functionality for v2 of the API 
  */
 public class MNCoreV2IT extends ContextAwareTestCaseDataone 
-implements CoreTestDefinitions
+implements CoreTestDefinitions, MNCoreTestDefinitions
 {
-protected CoreTestImplementations coreTestImpl;
+    protected CoreTestImplementations coreTestImpl;
     
     @Before 
     public void setup() {

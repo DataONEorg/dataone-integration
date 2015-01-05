@@ -1,10 +1,21 @@
 package org.dataone.integration.it;
 
+import org.dataone.integration.ContextAwareTestCaseDataone;
+import org.junit.Before;
+
 /**
  * Tests CNCore functionality for v1 of the API 
  */
-public class CNCoreV1IT extends CoreTests {
-
+public class CNCoreV1IT extends ContextAwareTestCaseDataone 
+implements CoreTestDefinitions{
+    
+    protected CoreTestImplementations coreTestImpl;
+    
+    @Before 
+    public void setup() {
+        this.coreTestImpl = new CoreTestImplementations(this);
+    }
+    
     @Override
     protected String getTestDescription() {
         return "Test Case that runs through the CN version 1 of core API methods";
@@ -12,51 +23,36 @@ public class CNCoreV1IT extends CoreTests {
     
     @Override
     public void testPing() {
-        testPing(getCoordinatingNodeIterator(), "v1");
+        this.coreTestImpl.testPing(getMemberNodeIterator(), "v2");
     }
 
     @Override
     public void testGetLogRecords_AccessRestriction() {
-        testGetLogRecords_AccessRestriction(getCoordinatingNodeIterator(), "v1");
+        this.coreTestImpl.testGetLogRecords_AccessRestriction(getMemberNodeIterator(), "v2");
     }
 
     @Override
     public void testGetLogRecords() {
-        testGetLogRecords(getCoordinatingNodeIterator(), "v1");
+        this.coreTestImpl.testGetLogRecords(getMemberNodeIterator(), "v2");
     }
 
     @Override
     public void testGetLogRecords_Slicing() {
-        testGetLogRecords_Slicing(getCoordinatingNodeIterator(), "v1");
+        this.coreTestImpl.testGetLogRecords_Slicing(getMemberNodeIterator(), "v2");
     }
 
     @Override
     public void testGetLogRecords_eventFiltering() {
-        testGetLogRecords_eventFiltering(getCoordinatingNodeIterator(), "v1");
+        this.coreTestImpl.testGetLogRecords_eventFiltering(getMemberNodeIterator(), "v2");
     }
 
     @Override
     public void testGetLogRecords_pidFiltering() {
-        testGetLogRecords_pidFiltering(getCoordinatingNodeIterator(), "v1");
+        this.coreTestImpl.testGetLogRecords_pidFiltering(getMemberNodeIterator(), "v2");
     }
 
     @Override
     public void testGetLogRecords_dateFiltering() {
-        testGetLogRecords_dateFiltering(getCoordinatingNodeIterator(), "v1");
-    }
-
-    @Override
-    public void testGetCapabilities() {
-        // CN nodes don't need to support getCapabilities, test passes TODO:   rethink how this is done...
-    }
-
-    @Override
-    public void testGetCapabilities_HasCompatibleNodeContact() {
-        // CN nodes don't need to support getCapabilities, test passes
-    }
-
-    @Override
-    public void testGetCapabilities_NodeIdentityValidFormat() {
-        // CN nodes don't need to support getCapabilities, test passes
+        this.coreTestImpl.testGetLogRecords_dateFiltering(getMemberNodeIterator(), "v2");
     }
 }
