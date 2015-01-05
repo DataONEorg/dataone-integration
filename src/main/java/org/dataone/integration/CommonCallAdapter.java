@@ -71,10 +71,13 @@ public class CommonCallAdapter implements D1Node {
         throw new ClientSideException("Ping failed. " + node.getType() + " of version " + version);
     }
 
+    
+    // TODO: test that TypeMarshaller.convertTypeFromType works for Log class(es)
     public Log getLogRecords(Session session, Date fromDate, Date toDate, String event, String pidFilter,
             Integer start, Integer count) throws ClientSideException, InvalidRequest, InvalidToken, NotAuthorized,
-            NotImplemented, ServiceFailure, InstantiationException, IllegalAccessException, InvocationTargetException,
-            JiBXException, IOException, InsufficientResources {
+            NotImplemented, ServiceFailure, InsufficientResources {
+        
+        try {
         if (this.node.getType().equals(NodeType.MN)) {
             if (this.version.toLowerCase().equals("v1")) {
                 MNCore mnCore = D1NodeFactory.buildNode(org.dataone.service.mn.tier1.v1.MNCore.class, this.mrc,
@@ -103,6 +106,13 @@ public class CommonCallAdapter implements D1Node {
                 return log;
             }
         }
+        } catch (InstantiationException | IllegalAccessException
+                | InvocationTargetException | JiBXException | IOException e) {
+            
+            throw new ClientSideException("Unable to convert a v1.Log to a v2.Log", e);
+        }
+        finally {}
+        
         throw new ClientSideException("Unable to create node of type " + node.getType() + " of version " + version);
     }
 
@@ -258,14 +268,44 @@ public class CommonCallAdapter implements D1Node {
         throw new ClientSideException("Unable to create node of type " + node.getType() + " of version " + version);
     }
 
+    /**
+     * This method is compatible with v1 and v2 listObjects, but does not have
+     * the Identifier parameter that is added to the v2 method.
+     * @param session
+     * @param fromDate
+     * @param toDate
+     * @param formatID
+     * @param replicaStatus
+     * @param start
+     * @param count
+     * @return
+     * @throws InvalidRequest
+     * @throws InvalidToken
+     * @throws NotAuthorized
+     * @throws NotImplemented
+     * @throws ServiceFailure
+     * @throws ClientSideException
+     */
+    public ObjectList listObjects(Session session, Date fromDate, Date toDate, ObjectFormatIdentifier formatID,
+            Boolean replicaStatus, Integer start, Integer count) throws InvalidRequest,
+            InvalidToken, NotAuthorized, NotImplemented, ServiceFailure, ClientSideException {
+        return listObjects(session, fromDate, toDate, formatID, null /* identifier */, 
+                replicaStatus, start, count);
+    }
+    
+    
     public ObjectList listObjects(Session session, Date fromDate, Date toDate, ObjectFormatIdentifier formatID,
             Identifier identifier, Boolean replicaStatus, Integer start, Integer count) throws InvalidRequest,
             InvalidToken, NotAuthorized, NotImplemented, ServiceFailure, ClientSideException {
         if (this.node.getType().equals(NodeType.MN)) {
             if (this.version.toLowerCase().equals("v1")) {
-                MNRead mnRead = D1NodeFactory.buildNode(org.dataone.service.mn.tier1.v1.MNRead.class, this.mrc,
+                if (identifier == null) {
+                    MNRead mnRead = D1NodeFactory.buildNode(org.dataone.service.mn.tier1.v1.MNRead.class, this.mrc,
                         URI.create(this.node.getBaseURL()));
-                return mnRead.listObjects(session, fromDate, toDate, formatID, replicaStatus, start, count);
+                    return mnRead.listObjects(session, fromDate, toDate, formatID, replicaStatus, start, count);
+                } else {
+                    throw new InvalidRequest("0000", "The identifier field can only be null for v1.listObject calls");
+                }
             } else if (this.version.toLowerCase().equals("v2")) {
                 org.dataone.service.mn.tier1.v2.MNRead mnRead = D1NodeFactory.buildNode(
                         org.dataone.service.mn.tier1.v2.MNRead.class, this.mrc, URI.create(this.node.getBaseURL()));
@@ -273,9 +313,13 @@ public class CommonCallAdapter implements D1Node {
             }
         } else if (this.node.getType().equals(NodeType.CN)) {
             if (this.version.toLowerCase().equals("v1")) {
-                org.dataone.service.cn.v1.CNRead cnRead = D1NodeFactory.buildNode(
+                if (identifier == null) {
+                    org.dataone.service.cn.v1.CNRead cnRead = D1NodeFactory.buildNode(
                         org.dataone.service.cn.v1.CNRead.class, this.mrc, URI.create(this.node.getBaseURL()));
-                return cnRead.listObjects(session, fromDate, toDate, formatID, replicaStatus, start, count);
+                    return cnRead.listObjects(session, fromDate, toDate, formatID, replicaStatus, start, count);
+                } else {
+                    throw new InvalidRequest("0000", "The identifier field can only be null for v1.listObjects calls");
+                }
             } else if (this.version.toLowerCase().equals("v2")) {
                 CNRead cnRead = D1NodeFactory.buildNode(CNRead.class, this.mrc, URI.create(this.node.getBaseURL()));
                 return cnRead.listObjects(session, fromDate, toDate, formatID, identifier, replicaStatus, start, count);

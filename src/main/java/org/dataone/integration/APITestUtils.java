@@ -312,10 +312,11 @@ public class APITestUtils {
      * @throws NotAuthorized
      * @throws NotImplemented
      * @throws ServiceFailure
+     * @throws ClientSideException  - thrown when cannot build the appropriate calling class (MNode, CNode, etc.)
      */
     public static ObjectList pagedListObjects(CommonCallAdapter cca, Date fromDate, Date toDate,
       ObjectFormatIdentifier formatid, Boolean replicaStatus, Integer start, Integer count)
-    throws InvalidRequest, InvalidToken, NotAuthorized, NotImplemented, ServiceFailure
+    throws InvalidRequest, InvalidToken, NotAuthorized, NotImplemented, ServiceFailure, ClientSideException
     {
 
         if (count != null && count <= 0) {
