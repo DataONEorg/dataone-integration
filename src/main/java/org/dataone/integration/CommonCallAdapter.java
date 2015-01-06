@@ -40,6 +40,20 @@ import org.dataone.service.types.v2.Log;
 import org.dataone.service.util.TypeMarshaller;
 import org.jibx.runtime.JiBXException;
 
+
+/**
+ *  CommonCallAdapter is a class built to allow certain API tests to be reused 
+ *  for API methods that have the same structure and behavior between CN and MN
+ *  and V1 and V2 implementations.  Instead of instantiating a v1.MNode, the test
+ *  instantiates an instance of this class, and calls the corresponding method.
+ *  
+ *  The version and NodeType are specified during instantiation.  
+ *  
+ *  Methods from these classes differ from methods from the MNode or CNode in 
+ *  that they also throw a ClientSideException.
+ * @author rnahf
+ *
+ */
 public class CommonCallAdapter implements D1Node {
 
     private Node node;

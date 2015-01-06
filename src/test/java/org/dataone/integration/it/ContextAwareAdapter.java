@@ -1,14 +1,16 @@
 package org.dataone.integration.it;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
-
-import java.util.concurrent.Callable;
-
 import org.dataone.client.rest.MultipartRestClient;
 import org.dataone.integration.ContextAwareTestCaseDataone;
 
+/**
+ * ContextAwareAdapter is used as a base class for test implementation classes
+ * that are subclasses of ContextAwareTestCaseDataone, providing wrapper methods
+ * for some of the latter's methods used by test implementations.
+ * 
+ * @author rnahf
+ *
+ */
 public class ContextAwareAdapter {
 
     protected ContextAwareTestCaseDataone catc;
