@@ -1,6 +1,5 @@
 package org.dataone.integration.it;
 
-
 public interface ReadTestDefinitions {
 
     public void testGet();
@@ -26,5 +25,15 @@ public interface ReadTestDefinitions {
     public void testGetChecksum_NotFound();
 
     public void testGetChecksum_IdentifierEncoding();
-    
+
+    public void testListObjects();
+
+    public void testListObjects_Slicing();
+
+    public void testListObjects_FromDateTest();
+
+    public void testListObjects_FormatIdFilteringTest();
+
+    public void testListObjects_FormatIdFilteringTestFakeFormat();
+
 }

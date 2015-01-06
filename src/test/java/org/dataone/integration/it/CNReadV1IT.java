@@ -21,6 +21,48 @@ public class CNReadV1IT extends ContextAwareTestCaseDataone implements ReadTestD
     }
 
     @Override
+    public void testResolve() {
+        // TODO Auto-generated method stub
+        
+    }
+
+    @Override
+    public void testSearch() {
+        // TODO Auto-generated method stub
+        
+    }
+
+    @Override
+    public void testSearch_Solr_unicodeTests() {
+        // TODO Auto-generated method stub
+        
+    }
+
+    @Override
+    public void testQuery() {
+        // TODO Auto-generated method stub
+        
+    }
+
+    @Override
+    public void testQuery_Authentication() {
+        // TODO Auto-generated method stub
+        
+    }
+
+    @Override
+    public void testListQueryEngines() {
+        // TODO Auto-generated method stub
+        
+    }
+
+    @Override
+    public void testGetQueryEngineDescription() {
+        // TODO Auto-generated method stub
+        
+    }
+
+    @Override
     public void testGet() {
         // TODO Auto-generated method stub
         
@@ -91,6 +133,35 @@ public class CNReadV1IT extends ContextAwareTestCaseDataone implements ReadTestD
         // TODO Auto-generated method stub
         
     }
-    
+
+    @Override
+    public void testListObjects() {
+        // TODO Auto-generated method stub
+        
+    }
+
+    @Override
+    public void testListObjects_Slicing() {
+        // TODO Auto-generated method stub
+        
+    }
+
+    @Override
+    public void testListObjects_FromDateTest() {
+        // TODO Auto-generated method stub
+        
+    }
+
+    @Override
+    public void testListObjects_FormatIdFilteringTest() {
+        // TODO Auto-generated method stub
+        
+    }
+
+    @Override
+    public void testListObjects_FormatIdFilteringTestFakeFormat() {
+        // TODO Auto-generated method stub
+        
+    }
 
 }

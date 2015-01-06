@@ -36,31 +36,37 @@ public class MNReadV1IT extends ContextAwareTestCaseDataone implements ReadTestD
     }
 
     @Override
-    public void testListObjects() {
+    public void testSynchronizationFailed_NoCert() {
         // TODO Auto-generated method stub
         
     }
 
     @Override
-    public void testListObjects_Slicing() {
+    public void testGetReplica_PublicObject() {
         // TODO Auto-generated method stub
         
     }
 
     @Override
-    public void testListObjects_FromDateTest() {
+    public void testGetReplica_ValidCertificate_NotMN() {
         // TODO Auto-generated method stub
         
     }
 
     @Override
-    public void testListObjects_FormatIdFilteringTest() {
+    public void testGetReplica_NoCertificate() {
         // TODO Auto-generated method stub
         
     }
 
     @Override
-    public void testListObjects_FormatIdFilteringTestFakeFormat() {
+    public void testGetReplica_NotFound() {
+        // TODO Auto-generated method stub
+        
+    }
+
+    @Override
+    public void testGetReplica_IdentifierEncoding() {
         // TODO Auto-generated method stub
         
     }
@@ -136,5 +142,35 @@ public class MNReadV1IT extends ContextAwareTestCaseDataone implements ReadTestD
         // TODO Auto-generated method stub
         
     }
-    
+
+    @Override
+    public void testListObjects() {
+        // TODO Auto-generated method stub
+        
+    }
+
+    @Override
+    public void testListObjects_Slicing() {
+        // TODO Auto-generated method stub
+        
+    }
+
+    @Override
+    public void testListObjects_FromDateTest() {
+        // TODO Auto-generated method stub
+        
+    }
+
+    @Override
+    public void testListObjects_FormatIdFilteringTest() {
+        // TODO Auto-generated method stub
+        
+    }
+
+    @Override
+    public void testListObjects_FormatIdFilteringTestFakeFormat() {
+        // TODO Auto-generated method stub
+        
+    }
+
 }

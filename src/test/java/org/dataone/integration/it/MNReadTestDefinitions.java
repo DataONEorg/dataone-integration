@@ -1,22 +1,24 @@
 package org.dataone.integration.it;
 
-
 public interface MNReadTestDefinitions {
 
-    public void testSystemMetadataChanged_EarlierDate();
+    // see MNodeTier1*.java classes
     
+    public void testSystemMetadataChanged_EarlierDate();
+
     public void testSystemMetadataChanged_authenticatedITKuser();
 
     public void testSystemMetadataChanged_withCreate();
-    
-    // TODO double-check if listObject methods belong here...
-    public void testListObjects();
-    
-    public void testListObjects_Slicing();
 
-    public void testListObjects_FromDateTest();
+    public void testSynchronizationFailed_NoCert();
 
-    public void testListObjects_FormatIdFilteringTest();
-    
-    public void testListObjects_FormatIdFilteringTestFakeFormat();
+    public void testGetReplica_PublicObject();
+
+    public void testGetReplica_ValidCertificate_NotMN();
+
+    public void testGetReplica_NoCertificate();
+
+    public void testGetReplica_NotFound();
+
+    public void testGetReplica_IdentifierEncoding();
 }

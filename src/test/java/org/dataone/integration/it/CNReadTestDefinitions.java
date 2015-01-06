@@ -2,10 +2,20 @@ package org.dataone.integration.it;
 
 public interface CNReadTestDefinitions {
 
-//  public ObjectLocationList resolve(Session session, Identifier id) ;
-  //    public ObjectList search(Session session, String queryType, String query) ;
-  //    public InputStream query(Session session, String queryEngine, String query) ;
-  //    public QueryEngineDescription getQueryEngineDescription(Session session, String queryEngine);
-  //    public QueryEngineList listQueryEngines(Session session);
-    
+    // see CNodeTier1_*.java classes 
+
+    public void testResolve();
+
+    public void testSearch();
+
+    public void testSearch_Solr_unicodeTests();
+
+    public void testQuery();
+
+    public void testQuery_Authentication();
+
+    public void testListQueryEngines();
+
+    public void testGetQueryEngineDescription();
+
 }
