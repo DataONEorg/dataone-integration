@@ -40,7 +40,7 @@ public class ReadTestImplementations extends ContextAwareAdapter {
         super(catc);
     }
     
-    protected void testGet(Iterator<Node> nodeIterator, String version) {
+    public void testGet(Iterator<Node> nodeIterator, String version) {
 
         catc.setupClientSubject_NoCert();
         while (nodeIterator.hasNext()) {
@@ -48,7 +48,7 @@ public class ReadTestImplementations extends ContextAwareAdapter {
         }
     }
 
-    private void testGet(Node node, String version) {
+    public void testGet(Node node, String version) {
 
         CommonCallAdapter callAdapter = new CommonCallAdapter(MULTIPART_REST_CLIENT, node, version);
         String currentUrl = node.getBaseURL();
@@ -74,7 +74,7 @@ public class ReadTestImplementations extends ContextAwareAdapter {
         }
     }
 
-    protected void testGet_NotFound(Iterator<Node> nodeIterator, String version) {
+    public void testGet_NotFound(Iterator<Node> nodeIterator, String version) {
 
         catc.setupClientSubject_NoCert();
         while (nodeIterator.hasNext()) {
@@ -82,7 +82,7 @@ public class ReadTestImplementations extends ContextAwareAdapter {
         }
     }
 
-    private void testGet_NotFound(Node node, String version) {
+    public void testGet_NotFound(Node node, String version) {
 
         CommonCallAdapter callAdapter = new CommonCallAdapter(MULTIPART_REST_CLIENT, node, version);
         String currentUrl = node.getBaseURL();
@@ -109,7 +109,7 @@ public class ReadTestImplementations extends ContextAwareAdapter {
      * test getting data with challenging unicode identifiers.  Will try to 
      * differentiate between NotFound and ServiceFailure
      */
-    protected void testGet_IdentifierEncoding(Iterator<Node> nodeIterator, String version) {
+    public void testGet_IdentifierEncoding(Iterator<Node> nodeIterator, String version) {
 
         catc.setupClientSubject_NoCert();
         while (nodeIterator.hasNext()) {
@@ -121,7 +121,7 @@ public class ReadTestImplementations extends ContextAwareAdapter {
      * test getting data with challenging unicode identifiers.  Will try to 
      * differentiate between NotFound and ServiceFailure
      */
-    private void testGet_IdentifierEncoding(Node node, String version) {
+    public void testGet_IdentifierEncoding(Node node, String version) {
 
         CommonCallAdapter callAdapter = new CommonCallAdapter(MULTIPART_REST_CLIENT, node, version);
         String currentUrl = node.getBaseURL();
@@ -180,7 +180,7 @@ public class ReadTestImplementations extends ContextAwareAdapter {
         }
     }
 
-    protected void testGetSystemMetadata(Iterator<Node> nodeIterator, String version) {
+    public void testGetSystemMetadata(Iterator<Node> nodeIterator, String version) {
 
         catc.setupClientSubject_NoCert();
         while (nodeIterator.hasNext()) {
@@ -188,7 +188,7 @@ public class ReadTestImplementations extends ContextAwareAdapter {
         }
     }
 
-    private void testGetSystemMetadata(Node node, String version) {
+    public void testGetSystemMetadata(Node node, String version) {
 
         CommonCallAdapter callAdapter = new CommonCallAdapter(MULTIPART_REST_CLIENT, node, version);
         String currentUrl = node.getBaseURL();
@@ -215,7 +215,7 @@ public class ReadTestImplementations extends ContextAwareAdapter {
         }
     }
 
-    protected void testGetSystemMetadata_NotFound(Iterator<Node> nodeIterator, String version) {
+    public void testGetSystemMetadata_NotFound(Iterator<Node> nodeIterator, String version) {
 
         catc.setupClientSubject_NoCert();
         while (nodeIterator.hasNext()) {
@@ -223,7 +223,7 @@ public class ReadTestImplementations extends ContextAwareAdapter {
         }
     }
 
-    private void testGetSystemMetadata_NotFound(Node node, String version) {
+    public void testGetSystemMetadata_NotFound(Node node, String version) {
 
         CommonCallAdapter callAdapter = new CommonCallAdapter(MULTIPART_REST_CLIENT, node, version);
         String currentUrl = node.getBaseURL();
@@ -245,7 +245,7 @@ public class ReadTestImplementations extends ContextAwareAdapter {
         }
     }
 
-    protected void testGetSystemMetadata_IdentifierEncoding(Iterator<Node> nodeIterator, String version) {
+    public void testGetSystemMetadata_IdentifierEncoding(Iterator<Node> nodeIterator, String version) {
 
         catc.setupClientSubject_NoCert();
         while (nodeIterator.hasNext()) {
@@ -253,7 +253,7 @@ public class ReadTestImplementations extends ContextAwareAdapter {
         }
     }
 
-    private void testGetSystemMetadata_IdentifierEncoding(Node node, String version) {
+    public void testGetSystemMetadata_IdentifierEncoding(Node node, String version) {
 
         CommonCallAdapter callAdapter = new CommonCallAdapter(MULTIPART_REST_CLIENT, node, version);
         String currentUrl = node.getBaseURL();
@@ -311,7 +311,7 @@ public class ReadTestImplementations extends ContextAwareAdapter {
         }
     }
 
-    protected void testDescribe(Iterator<Node> nodeIterator, String version) {
+    public void testDescribe(Iterator<Node> nodeIterator, String version) {
 
         catc.setupClientSubject_NoCert();
         while (nodeIterator.hasNext()) {
@@ -319,7 +319,7 @@ public class ReadTestImplementations extends ContextAwareAdapter {
         }
     }
 
-    private void testDescribe(Node node, String version) {
+    public void testDescribe(Node node, String version) {
 
         CommonCallAdapter callAdapter = new CommonCallAdapter(MULTIPART_REST_CLIENT, node, version);
 
@@ -346,7 +346,7 @@ public class ReadTestImplementations extends ContextAwareAdapter {
         }
     }
 
-    protected void testDescribe_NotFound(Iterator<Node> nodeIterator, String version) {
+    public void testDescribe_NotFound(Iterator<Node> nodeIterator, String version) {
 
         catc.setupClientSubject_NoCert();
         while (nodeIterator.hasNext()) {
@@ -354,7 +354,7 @@ public class ReadTestImplementations extends ContextAwareAdapter {
         }
     }
 
-    private void testDescribe_NotFound(Node node, String version) {
+    public void testDescribe_NotFound(Node node, String version) {
 
         CommonCallAdapter callAdapter = new CommonCallAdapter(MULTIPART_REST_CLIENT, node, version);
 
@@ -378,7 +378,7 @@ public class ReadTestImplementations extends ContextAwareAdapter {
         }
     }
 
-    protected void testDescribe_IdentifierEncoding(Iterator<Node> nodeIterator, String version) {
+    public void testDescribe_IdentifierEncoding(Iterator<Node> nodeIterator, String version) {
 
         catc.setupClientSubject_NoCert();
         printTestHeader("Testing IdentifierEncoding - setting up identifiers to check");
@@ -387,7 +387,7 @@ public class ReadTestImplementations extends ContextAwareAdapter {
         }
     }
 
-    private void testDescribe_IdentifierEncoding(Node node, String version) {
+    public void testDescribe_IdentifierEncoding(Node node, String version) {
 
         CommonCallAdapter callAdapter = new CommonCallAdapter(MULTIPART_REST_CLIENT, node, version);
 
@@ -446,7 +446,7 @@ public class ReadTestImplementations extends ContextAwareAdapter {
         }
     }
 
-    protected void testGetChecksum(Iterator<Node> nodeIterator, String version) {
+    public void testGetChecksum(Iterator<Node> nodeIterator, String version) {
 
         catc.setupClientSubject_NoCert();
         while (nodeIterator.hasNext()) {
@@ -454,7 +454,7 @@ public class ReadTestImplementations extends ContextAwareAdapter {
         }
     }
 
-    private void testGetChecksum(Node node, String version) {
+    public void testGetChecksum(Node node, String version) {
 
         CommonCallAdapter callAdapter = new CommonCallAdapter(MULTIPART_REST_CLIENT, node, version);
 
@@ -481,7 +481,7 @@ public class ReadTestImplementations extends ContextAwareAdapter {
         }
     }
 
-    protected void testGetChecksum_NotFound(Iterator<Node> nodeIterator, String version) {
+    public void testGetChecksum_NotFound(Iterator<Node> nodeIterator, String version) {
 
         catc.setupClientSubject_NoCert();
         while (nodeIterator.hasNext()) {
@@ -489,7 +489,7 @@ public class ReadTestImplementations extends ContextAwareAdapter {
         }
     }
 
-    private void testGetChecksum_NotFound(Node node, String version) {
+    public void testGetChecksum_NotFound(Node node, String version) {
 
         CommonCallAdapter callAdapter = new CommonCallAdapter(MULTIPART_REST_CLIENT, node, version);
 
@@ -512,7 +512,7 @@ public class ReadTestImplementations extends ContextAwareAdapter {
         }
     }
 
-    protected void testGetChecksum_IdentifierEncoding(Iterator<Node> nodeIterator, String version) {
+    public void testGetChecksum_IdentifierEncoding(Iterator<Node> nodeIterator, String version) {
 
         catc.setupClientSubject_NoCert();
         printTestHeader("Testing IdentifierEncoding - setting up identifiers to check");
@@ -521,63 +521,60 @@ public class ReadTestImplementations extends ContextAwareAdapter {
         }
     }
 
-    private void testGetChecksum_IdentifierEncoding(Node node, String version) {
-        {
-            CommonCallAdapter callAdapter = new CommonCallAdapter(MULTIPART_REST_CLIENT, node, version);
+    public void testGetChecksum_IdentifierEncoding(Node node, String version) {
+        CommonCallAdapter callAdapter = new CommonCallAdapter(MULTIPART_REST_CLIENT, node, version);
 
-            String currentUrl = node.getBaseURL();
-            currentUrl = callAdapter.getNodeBaseServiceUrl();
-            printTestHeader("testGetChecksum_IdentifierEncoding() vs. node: " + currentUrl);
+        String currentUrl = node.getBaseURL();
+        currentUrl = callAdapter.getNodeBaseServiceUrl();
+        printTestHeader("testGetChecksum_IdentifierEncoding() vs. node: " + currentUrl);
 
-            Vector<String> nodeSummary = new Vector<String>();
-            nodeSummary.add("Node Test Summary for node: " + currentUrl);
+        Vector<String> nodeSummary = new Vector<String>();
+        nodeSummary.add("Node Test Summary for node: " + currentUrl);
 
-            printTestHeader("  Node:: " + currentUrl);
+        printTestHeader("  Node:: " + currentUrl);
 
-            for (int j = 0; j < unicodeStringV.size(); j++) {
-                String status = "OK   ";
+        for (int j = 0; j < unicodeStringV.size(); j++) {
+            String status = "OK   ";
 
-                log.info("");
-                log.info(j + "    unicode String:: " + unicodeStringV.get(j));
-                String idString = "Test" + ExampleUtilities.generateIdentifier() + "_" + unicodeStringV.get(j);
-                String idStringEscaped = "Test" + ExampleUtilities.generateIdentifier() + "_" + escapedStringV.get(j);
+            log.info("");
+            log.info(j + "    unicode String:: " + unicodeStringV.get(j));
+            String idString = "Test" + ExampleUtilities.generateIdentifier() + "_" + unicodeStringV.get(j);
+            String idStringEscaped = "Test" + ExampleUtilities.generateIdentifier() + "_" + escapedStringV.get(j);
 
-                try {
-                    callAdapter.getChecksum(null, D1TypeBuilder.buildIdentifier(idString), null);
-                    handleFail(callAdapter.getLatestRequestUrl(), "getSystemMetadata() against the fake identifier ("
-                            + idStringEscaped + ") should throw NotFound");
+            try {
+                callAdapter.getChecksum(null, D1TypeBuilder.buildIdentifier(idString), null);
+                handleFail(callAdapter.getLatestRequestUrl(), "getSystemMetadata() against the fake identifier ("
+                        + idStringEscaped + ") should throw NotFound");
 
-                    status = "Error";
-                } catch (NotFound nf) {
-                    ;
-                } catch (ServiceFailure e) {
-                    if (e.getDescription().contains("Providing message body")) {
-                        if (e.getDescription().contains("404: NotFound:")) {
-                            // acceptable result
-                            ;
-                        }
-                    } else {
-                        status = String.format("Error:: %s: %s: %s", e.getClass().getSimpleName(), e.getDetail_code(),
-                                first100Characters(e.getDescription()));
+                status = "Error";
+            } catch (NotFound nf) {
+                ;
+            } catch (ServiceFailure e) {
+                if (e.getDescription().contains("Providing message body")) {
+                    if (e.getDescription().contains("404: NotFound:")) {
+                        // acceptable result
+                        ;
                     }
-                } catch (BaseException e) {
+                } else {
                     status = String.format("Error:: %s: %s: %s", e.getClass().getSimpleName(), e.getDetail_code(),
                             first100Characters(e.getDescription()));
-                } catch (Exception e) {
-                    status = "Error";
-                    e.printStackTrace();
-                    status = String
-                            .format("Error:: %s: %s", e.getClass().getName(), first100Characters(e.getMessage()));
                 }
-
-                nodeSummary.add("Test " + j + ": " + status + ": " + unicodeStringV.get(j));
+            } catch (BaseException e) {
+                status = String.format("Error:: %s: %s: %s", e.getClass().getSimpleName(), e.getDetail_code(),
+                        first100Characters(e.getDescription()));
+            } catch (Exception e) {
+                status = "Error";
+                e.printStackTrace();
+                status = String.format("Error:: %s: %s", e.getClass().getName(), first100Characters(e.getMessage()));
             }
 
-            for (String result : nodeSummary) {
-                if (result.contains("Error")) {
-                    handleFail(null, currentUrl + " " + tablifyResults(nodeSummary));
-                    break;
-                }
+            nodeSummary.add("Test " + j + ": " + status + ": " + unicodeStringV.get(j));
+        }
+
+        for (String result : nodeSummary) {
+            if (result.contains("Error")) {
+                handleFail(null, currentUrl + " " + tablifyResults(nodeSummary));
+                break;
             }
         }
     }
@@ -585,7 +582,7 @@ public class ReadTestImplementations extends ContextAwareAdapter {
     /**
      * Tests the parameterless and parameterized listObject methods for proper returns.
      */
-    protected void testListObjects(Iterator<Node> nodeIterator, String version) {
+    public void testListObjects(Iterator<Node> nodeIterator, String version) {
 
         catc.setupClientSubject_NoCert();
         while (nodeIterator.hasNext()) {
@@ -596,7 +593,7 @@ public class ReadTestImplementations extends ContextAwareAdapter {
     /**
      * Tests the parameterless and parameterized listObject methods for proper returns.
      */
-    private void testListObjects(Node node, String version) {
+    public void testListObjects(Node node, String version) {
 
         CommonCallAdapter callAdapter = new CommonCallAdapter(MULTIPART_REST_CLIENT, node, version);
 
@@ -632,7 +629,7 @@ public class ReadTestImplementations extends ContextAwareAdapter {
      * Tests that count and start parameters are functioning, and getCount() and getTotal()
      * are the correct values.
      */
-    protected void testListObjects_Slicing(Iterator<Node> nodeIterator, String version) {
+    public void testListObjects_Slicing(Iterator<Node> nodeIterator, String version) {
 
         catc.setupClientSubject_NoCert();
         while (nodeIterator.hasNext()) {
@@ -644,7 +641,7 @@ public class ReadTestImplementations extends ContextAwareAdapter {
      * Tests that count and start parameters are functioning, and getCount() and getTotal()
      * are the correct values.
      */
-    private void testListObjects_Slicing(Node node, String version) {
+    public void testListObjects_Slicing(Node node, String version) {
 
         CommonCallAdapter callAdapter = new CommonCallAdapter(MULTIPART_REST_CLIENT, node, version);
 
@@ -698,7 +695,7 @@ public class ReadTestImplementations extends ContextAwareAdapter {
      * Tests that the fromDate parameter successfully filters out records where
      * the systemMetadataModified date/time is earler than fromDate.
      */
-    protected void testListObjects_FromDateTest(Iterator<Node> nodeIterator, String version) {
+    public void testListObjects_FromDateTest(Iterator<Node> nodeIterator, String version) {
 
         catc.setupClientSubject_NoCert();
         while (nodeIterator.hasNext()) {
@@ -710,7 +707,7 @@ public class ReadTestImplementations extends ContextAwareAdapter {
      * Tests that the fromDate parameter successfully filters out records where
      * the systemMetadataModified date/time is earler than fromDate.
      */
-    private void testListObjects_FromDateTest(Node node, String version) {
+    public void testListObjects_FromDateTest(Node node, String version) {
 
         CommonCallAdapter callAdapter = new CommonCallAdapter(MULTIPART_REST_CLIENT, node, version);
 
@@ -777,7 +774,7 @@ public class ReadTestImplementations extends ContextAwareAdapter {
      * Tests that the formatID parameter rightly returns no records
      * when a fake format is given
      */
-    protected void testListObjects_FormatIdFilteringTestFakeFormat(Iterator<Node> nodeIterator, String version) {
+    public void testListObjects_FormatIdFilteringTestFakeFormat(Iterator<Node> nodeIterator, String version) {
 
         catc.setupClientSubject_NoCert();
         while (nodeIterator.hasNext()) {
@@ -789,7 +786,7 @@ public class ReadTestImplementations extends ContextAwareAdapter {
      * Tests that the formatID parameter rightly returns no records
      * when a fake format is given
      */
-    private void testListObjects_FormatIdFilteringTestFakeFormat(Node node, String version) {
+    public void testListObjects_FormatIdFilteringTestFakeFormat(Node node, String version) {
 
         CommonCallAdapter callAdapter = new CommonCallAdapter(MULTIPART_REST_CLIENT, node, version);
 
@@ -819,7 +816,7 @@ public class ReadTestImplementations extends ContextAwareAdapter {
      * the given formatId.  It is an indirect test of the totals returned
      * by list objects with and without a formatId filter.
      */
-    protected void testListObjects_FormatIdFilteringTest(Iterator<Node> nodeIterator, String version) {
+    public void testListObjects_FormatIdFilteringTest(Iterator<Node> nodeIterator, String version) {
 
         catc.setupClientSubject_NoCert();
         while (nodeIterator.hasNext()) {
@@ -832,7 +829,7 @@ public class ReadTestImplementations extends ContextAwareAdapter {
      * the given formatId.  It is an indirect test of the totals returned
      * by list objects with and without a formatId filter.
      */
-    private void testListObjects_FormatIdFilteringTest(Node node, String version) {
+    public void testListObjects_FormatIdFilteringTest(Node node, String version) {
 
         CommonCallAdapter callAdapter = new CommonCallAdapter(MULTIPART_REST_CLIENT, node, version);
 
