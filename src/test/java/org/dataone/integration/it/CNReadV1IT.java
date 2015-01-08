@@ -14,11 +14,12 @@ public class CNReadV1IT extends ContextAwareTestCaseDataone implements ReadTestD
     }
     
     protected ReadTestImplementations readTestImpl;
+    protected CNReadTestImplementations cnReadTestImpl;
     
-    @Before 
+    @Before
     public void setup() {
-        this.readTestImpl = new ReadTestImplementations(this);
-        // TODO a CN Read implementation
+        readTestImpl = new ReadTestImplementations(this);
+        cnReadTestImpl = new CNReadTestImplementations(this);
     }
 
     @Override
@@ -108,43 +109,36 @@ public class CNReadV1IT extends ContextAwareTestCaseDataone implements ReadTestD
 
     @Override
     public void testResolve() {
-        // TODO Auto-generated method stub
-        
+        cnReadTestImpl.testResolve(getCoordinatingNodeIterator(), "v1");
     }
 
     @Override
     public void testSearch() {
-        // TODO Auto-generated method stub
-        
+        cnReadTestImpl.testSearch(getCoordinatingNodeIterator(), "v1");
     }
 
     @Override
     public void testSearch_Solr_unicodeTests() {
-        // TODO Auto-generated method stub
-        
+        cnReadTestImpl.testSearch_Solr_unicodeTests(getCoordinatingNodeIterator(), "v1");
     }
 
     @Override
     public void testQuery() {
-        // TODO Auto-generated method stub
-        
+        cnReadTestImpl.testQuery(getCoordinatingNodeIterator(), "v1");
     }
 
     @Override
     public void testQuery_Authentication() {
-        // TODO Auto-generated method stub
-        
+        cnReadTestImpl.testQuery_Authentication(getCoordinatingNodeIterator(), "v1");
     }
 
     @Override
     public void testListQueryEngines() {
-        // TODO Auto-generated method stub
-        
+        cnReadTestImpl.testListQueryEngines(getCoordinatingNodeIterator(), "v1");
     }
 
     @Override
     public void testGetQueryEngineDescription() {
-        // TODO Auto-generated method stub
-        
+        cnReadTestImpl.testGetQueryEngineDescription(getCoordinatingNodeIterator(), "v1");
     }
 }

@@ -48,10 +48,8 @@ public class CoreTestImplementations extends ContextAwareAdapter {
      *      either "v1" or "v2", to match the API version being tested
      */
     public void testPing(Iterator<Node> nodeIterator, String version) {
-        this.catc.setupClientSubject_NoCert();
-        while (nodeIterator.hasNext()) {
-            ping(nodeIterator.next(), version);
-        }
+        while (nodeIterator.hasNext())
+            testPing(nodeIterator.next(), version);
     }
 
     /**
@@ -61,8 +59,9 @@ public class CoreTestImplementations extends ContextAwareAdapter {
      * @param node 
      * @param version
      */
-    public void ping(Node node, String version) {
+    public void testPing(Node node, String version) {
 
+    	ContextAwareTestCaseDataone.setupClientSubject_NoCert();
         CommonCallAdapter callAdapter = new CommonCallAdapter(MULTIPART_REST_CLIENT, node, version);
         String currentUrl = callAdapter.getNodeBaseServiceUrl();
 
@@ -100,12 +99,8 @@ public class CoreTestImplementations extends ContextAwareAdapter {
      *      either "v1" or "v2", to match the API version being tested
      */
     public void testGetLogRecords_AccessRestriction(Iterator<Node> nodeIterator, String version) {
-        
-        Settings.getConfiguration().setProperty("D1Client.D1Node.getLogRecords.timeout", "60000");
-        this.catc.setupClientSubject_NoCert();
-        while (nodeIterator.hasNext()) {
+       while (nodeIterator.hasNext())
             testGetLogRecords_AccessRestriction(nodeIterator.next(), version);
-        }
     }
 
     /**
@@ -114,6 +109,8 @@ public class CoreTestImplementations extends ContextAwareAdapter {
      */
     public void testGetLogRecords_AccessRestriction(Node node, String version) {
         
+    	Settings.getConfiguration().setProperty("D1Client.D1Node.getLogRecords.timeout", "60000");
+        ContextAwareTestCaseDataone.setupClientSubject_NoCert();
         CommonCallAdapter callAdapter = new CommonCallAdapter(MULTIPART_REST_CLIENT, node, version);
         String currentUrl = node.getBaseURL();
         printTestHeader("testGetLogRecords_AccessRestriction(...) vs. node: " + currentUrl);
@@ -131,7 +128,7 @@ public class CoreTestImplementations extends ContextAwareAdapter {
                     for (LogEntry le : eventLog.getLogEntryList()) {
                         currentEntry = le;
                         try {
-                            callAdapter.describe(createTestSession(), le.getIdentifier());
+                            callAdapter.describe(ExampleUtilities.getTestSession(), le.getIdentifier());
                         } catch (NotFound e) {
                             ; // a semi-valid repsonse.  Sometimes logged objects have been deleted.
                         }
@@ -167,14 +164,8 @@ public class CoreTestImplementations extends ContextAwareAdapter {
      *      either "v1" or "v2", to match the API version being tested
      */
     public void testGetLogRecords(Iterator<Node> nodeIterator, String version) {
-        
-        Settings.getConfiguration().setProperty("D1Client.D1Node.getLogRecords.timeout", "60000");
-        String cnSubject = Settings.getConfiguration().getString("dataone.it.cnode.submitter.cn",
-                "urn:node:cnStageUNM1");
-        this.catc.setupClientSubject(cnSubject);
-        while (nodeIterator.hasNext()) {
+        while (nodeIterator.hasNext())
             testGetLogRecords(nodeIterator.next(), version);
-        }
     }
 
     /**
@@ -183,7 +174,11 @@ public class CoreTestImplementations extends ContextAwareAdapter {
      */
     public void testGetLogRecords(Node node, String version) {
 
-        //TODO: change to use a testCNAdmin certificate
+    	//TODO: change to use a testCNAdmin certificate
+    	Settings.getConfiguration().setProperty("D1Client.D1Node.getLogRecords.timeout", "60000");
+        String cnSubject = Settings.getConfiguration().getString("dataone.it.cnode.submitter.cn",
+                "urn:node:cnStageUNM1");
+        ContextAwareTestCaseDataone.setupClientSubject(cnSubject);
         CommonCallAdapter callAdapter = new CommonCallAdapter(MULTIPART_REST_CLIENT, node, version);
         String currentUrl = node.getBaseURL();
         printTestHeader("testGetLogRecords(...) vs. node: " + currentUrl);
@@ -197,7 +192,7 @@ public class CoreTestImplementations extends ContextAwareAdapter {
             Thread.sleep(1000);
             Date toDate = new Date();
             
-            eventLog = callAdapter.getLogRecords(createTestSession(), fromDate, toDate, Event.READ.toString(), "pidFilter", 0, 10);
+            eventLog = callAdapter.getLogRecords(ExampleUtilities.getTestSession(), fromDate, toDate, Event.READ.toString(), "pidFilter", 0, 10);
             checkTrue(callAdapter.getLatestRequestUrl(), "getLogRecords(<parameters>) returns a Log", eventLog != null);
         } catch (NotAuthorized e) {
             handleFail(
@@ -215,15 +210,8 @@ public class CoreTestImplementations extends ContextAwareAdapter {
     }
 
     public void testGetLogRecords_Slicing(Iterator<Node> nodeIterator, String version) {
-        
-        Settings.getConfiguration().setProperty("D1Client.D1Node.getLogRecords.timeout", "60000");
-        // TODO: change to testCnAdmin subject when obtained
-        String cnSubject = Settings.getConfiguration().getString("dataone.it.cnode.submitter.cn",
-                "urn:node:cnStageUNM1");
-        this.catc.setupClientSubject(cnSubject);
-        while (nodeIterator.hasNext()) {
+        while (nodeIterator.hasNext())
             testGetLogRecords_Slicing(nodeIterator.next(), version);
-        }
     }
     
     /**
@@ -232,6 +220,11 @@ public class CoreTestImplementations extends ContextAwareAdapter {
      */
     public void testGetLogRecords_Slicing(Node node, String version) {
         
+    	Settings.getConfiguration().setProperty("D1Client.D1Node.getLogRecords.timeout", "60000");
+        // TODO: change to testCnAdmin subject when obtained
+        String cnSubject = Settings.getConfiguration().getString("dataone.it.cnode.submitter.cn",
+                "urn:node:cnStageUNM1");
+        ContextAwareTestCaseDataone.setupClientSubject(cnSubject);
         CommonCallAdapter callAdapter = new CommonCallAdapter(MULTIPART_REST_CLIENT, node, version);
         String currentUrl = node.getBaseURL();
         printTestHeader("testGetLogRecords_Slicing(...) vs. node: " + currentUrl);
@@ -284,15 +277,8 @@ public class CoreTestImplementations extends ContextAwareAdapter {
     }
 
     public void testGetLogRecords_eventFiltering(Iterator<Node> nodeIterator, String version) {
-        
-        Settings.getConfiguration().setProperty("D1Client.D1Node.getLogRecords.timeout", "60000");
-        // TODO: change to testCnAdmin subject when obtained
-        String cnSubject = Settings.getConfiguration().getString("dataone.it.cnode.submitter.cn",
-                "urn:node:cnStageUNM1");
-        this.catc.setupClientSubject(cnSubject);
-        while (nodeIterator.hasNext()) {
+       while (nodeIterator.hasNext())
             testGetLogRecords_eventFiltering(nodeIterator.next(), version);
-        }
     }
     
     /**
@@ -302,12 +288,17 @@ public class CoreTestImplementations extends ContextAwareAdapter {
      * Must be careful to check that all the records requested are returned.
      */
     public void testGetLogRecords_eventFiltering(Node node, String version) {
-        
+
+    	Settings.getConfiguration().setProperty("D1Client.D1Node.getLogRecords.timeout", "60000");
+        // TODO: change to testCnAdmin subject when obtained
+        String cnSubject = Settings.getConfiguration().getString("dataone.it.cnode.submitter.cn",
+                 "urn:node:cnStageUNM1");
+        ContextAwareTestCaseDataone.setupClientSubject(cnSubject);
         CommonCallAdapter callAdapter = new CommonCallAdapter(MULTIPART_REST_CLIENT, node, version);
         String currentUrl = node.getBaseURL();
         printTestHeader("testGetLogRecords_eventFiltering() vs. node: " + currentUrl);
         currentUrl = callAdapter.getNodeBaseServiceUrl();
-        Session session = createTestSession();
+        Session session = ExampleUtilities.getTestSession();
         
         try {
             Date toDate = new Date();
@@ -377,14 +368,8 @@ public class CoreTestImplementations extends ContextAwareAdapter {
 
     
     public void testGetLogRecords_pidFiltering(Iterator<Node> nodeIterator, String version){
-        Settings.getConfiguration().setProperty("D1Client.D1Node.getLogRecords.timeout", "60000");
-        // TODO: change to testCnAdmin subject when obtained
-        String cnSubject = Settings.getConfiguration().getString("dataone.it.cnode.submitter.cn",
-                "urn:node:cnStageUNM1");
-        this.catc.setupClientSubject(cnSubject);
-        while (nodeIterator.hasNext()) {
+        while (nodeIterator.hasNext())
             testGetLogRecords_pidFiltering(nodeIterator.next(), version);
-        }
     }
     
     /**
@@ -394,11 +379,16 @@ public class CoreTestImplementations extends ContextAwareAdapter {
      */
     public void testGetLogRecords_pidFiltering(Node node, String version) {
             
+    	Settings.getConfiguration().setProperty("D1Client.D1Node.getLogRecords.timeout", "60000");
+        // TODO: change to testCnAdmin subject when obtained
+        String cnSubject = Settings.getConfiguration().getString("dataone.it.cnode.submitter.cn",
+                "urn:node:cnStageUNM1");
+        ContextAwareTestCaseDataone.setupClientSubject(cnSubject);
         CommonCallAdapter callAdapter = new CommonCallAdapter(MULTIPART_REST_CLIENT, node, version);
         String currentUrl = node.getBaseURL();
         currentUrl = callAdapter.getNodeBaseServiceUrl();
         printTestHeader("testGetLogRecords_pidFiltering() vs. node: " + currentUrl);
-        Session session = createTestSession();
+        Session session = ExampleUtilities.getTestSession();
         
         try {
             Date t0 = new Date();
@@ -480,25 +470,22 @@ public class CoreTestImplementations extends ContextAwareAdapter {
     }
 
     public void testGetLogRecords_dateFiltering(Iterator<Node> nodeIterator, String version) {
-        
-        Settings.getConfiguration().setProperty("D1Client.D1Node.getLogRecords.timeout", "60000");
-        // TODO: change to testCnAdmin subject when obtained
-        String cnSubject = Settings.getConfiguration().getString("dataone.it.cnode.submitter.cn",
-                "urn:node:cnStageUNM1");
-        this.catc.setupClientSubject(cnSubject);
-        //      this.catc.setupClientSubject_NoCert();
-        while (nodeIterator.hasNext()) {
+        while (nodeIterator.hasNext())
             testGetLogRecords_dateFiltering(nodeIterator.next(), version);
-        }
     }
     
     public void testGetLogRecords_dateFiltering(Node node, String version) {
         
+    	Settings.getConfiguration().setProperty("D1Client.D1Node.getLogRecords.timeout", "60000");
+        // TODO: change to testCnAdmin subject when obtained
+        String cnSubject = Settings.getConfiguration().getString("dataone.it.cnode.submitter.cn",
+                "urn:node:cnStageUNM1");
+        ContextAwareTestCaseDataone.setupClientSubject(cnSubject);
         CommonCallAdapter callAdapter = new CommonCallAdapter(MULTIPART_REST_CLIENT, node, version);
         String currentUrl = node.getBaseURL();
         printTestHeader("testGetLogRecords_DateFiltering(...) vs. node: " + currentUrl);
         currentUrl = callAdapter.getNodeBaseServiceUrl();
-        Session session = createTestSession();
+        Session session = ExampleUtilities.getTestSession();
         
         try {
             Log eventLog = callAdapter.getLogRecords(null, null, null, null, null, null, null);
@@ -575,14 +562,13 @@ public class CoreTestImplementations extends ContextAwareAdapter {
     }
 
     public void testGetCapabilities(Iterator<Node> nodeIterator, String version) {
-        this.catc.setupClientSubject_NoCert();
-        while (nodeIterator.hasNext()) {
+        while (nodeIterator.hasNext())
             testGetCapabilities(nodeIterator.next(), version);
-        }
     }
 
     public void testGetCapabilities(Node node, String version) {
 
+    	ContextAwareTestCaseDataone.setupClientSubject_NoCert();
         CommonCallAdapter callAdapter = new CommonCallAdapter(MULTIPART_REST_CLIENT, node, version);
         String currentUrl = node.getBaseURL();
         printTestHeader("testGetCapabilities() vs. node: " + currentUrl);
@@ -602,11 +588,8 @@ public class CoreTestImplementations extends ContextAwareAdapter {
     }
     
     public void testGetCapabilities_HasCompatibleNodeContact(Iterator<Node> nodeIterator, String version) {
-        
-        this.catc.setupClientSubject_NoCert();
-        while (nodeIterator.hasNext()) {
+        while (nodeIterator.hasNext())
             testGetCapabilities_HasCompatibleNodeContact(nodeIterator.next(), version);
-        }
     }
     
     /**
@@ -615,6 +598,7 @@ public class CoreTestImplementations extends ContextAwareAdapter {
      */
     public void testGetCapabilities_HasCompatibleNodeContact(Node node, String version) {
 
+    	ContextAwareTestCaseDataone.setupClientSubject_NoCert();
         CommonCallAdapter callAdapter = new CommonCallAdapter(MULTIPART_REST_CLIENT, node, version);
         String currentUrl = node.getBaseURL();
         currentUrl = callAdapter.getNodeBaseServiceUrl();
@@ -649,11 +633,8 @@ public class CoreTestImplementations extends ContextAwareAdapter {
     }
     
     public void testGetCapabilities_NodeIdentityValidFormat(Iterator<Node> nodeIterator, String version) {
-        
-        this.catc.setupClientSubject_NoCert();
-        while (nodeIterator.hasNext()) {
+        while (nodeIterator.hasNext())
             testGetCapabilities_NodeIdentityValidFormat(nodeIterator.next(), version);
-        }
     }
     
     /**
@@ -661,6 +642,7 @@ public class CoreTestImplementations extends ContextAwareAdapter {
      */
     public void testGetCapabilities_NodeIdentityValidFormat(Node node, String version) {
 
+    	ContextAwareTestCaseDataone.setupClientSubject_NoCert();
         CommonCallAdapter callAdapter = new CommonCallAdapter(MULTIPART_REST_CLIENT, node, version);
         String currentUrl = node.getBaseURL();
         printTestHeader("testGetCapabilities() vs. node: " + currentUrl);
@@ -682,13 +664,5 @@ public class CoreTestImplementations extends ContextAwareAdapter {
             e.printStackTrace();
             handleFail(currentUrl, e.getClass().getName() + ": " + e.getMessage());
         }
-
-    }
-    
-    /**
-     * Creates a dummy {@link Session} for testing. See {@link ExampleUtilities#getTestSession()} for details.
-     */
-    private static Session createTestSession(){
-        return ExampleUtilities.getTestSession();
     }
 }

@@ -56,9 +56,9 @@ import org.jibx.runtime.JiBXException;
  */
 public class CommonCallAdapter implements D1Node {
 
-    private Node node;
-    private String version;
-    private MultipartRestClient mrc;
+    protected Node node;
+    protected String version;
+    protected MultipartRestClient mrc;
 
     public CommonCallAdapter(MultipartRestClient mrc, Node node, String version) {
         this.mrc = mrc;
@@ -370,60 +370,5 @@ public class CommonCallAdapter implements D1Node {
         throw new ClientSideException("Unable to create node of type " + node.getType() + " of version " + version);
     
     }
-    
-
-//    // MN (non-common) ------------------------------
-//    
-//    public boolean systemMetadataChanged(Session session, Identifier id, long serialVersion,
-//            Date dateSystemMetadataLastModified) throws InvalidToken, ServiceFailure, NotAuthorized, NotFound,
-//            NotImplemented, InvalidRequest {
-//        // TODO Auto-generated method stub
-//        return false;
-//    }
-//    
-//    public boolean synchronizationFailed(Session session, SynchronizationFailed message) throws InvalidToken,
-//        NotAuthorized, NotImplemented, ServiceFailure {
-//    // TODO Auto-generated method stub
-//    return false;
-//    }
-//    
-//    public InputStream getReplica(Session session, Identifier arg1)
-//            throws InvalidToken, NotAuthorized, NotImplemented, ServiceFailure,
-//            NotFound, InsufficientResources {
-//        // TODO Auto-generated method stub
-//        return null;
-//    }
-    
-//    // CN (non-common) ------------------------------
-//    
-//    public ObjectLocationList resolve(Session session, Identifier id) throws InvalidToken, ServiceFailure,
-//            NotAuthorized, NotFound, NotImplemented {
-//        // TODO Auto-generated method stub
-//        return null;
-//    }
-//
-//    public ObjectList search(Session session, String queryType, String query) throws InvalidToken, ServiceFailure,
-//            NotAuthorized, InvalidRequest, NotImplemented {
-//        // TODO Auto-generated method stub
-//        return null;
-//    }
-//
-//    public InputStream query(Session session, String queryEngine, String query) throws InvalidToken, ServiceFailure,
-//            NotAuthorized, InvalidRequest, NotImplemented, NotFound {
-//        // TODO Auto-generated method stub
-//        return null;
-//    }
-//
-//    public QueryEngineDescription getQueryEngineDescription(Session session, String queryEngine) throws InvalidToken,
-//            ServiceFailure, NotAuthorized, NotImplemented, NotFound {
-//        // TODO Auto-generated method stub
-//        return null;
-//    }
-//
-//    public QueryEngineList listQueryEngines(Session session) throws InvalidToken, ServiceFailure, NotAuthorized,
-//            NotImplemented {
-//        // TODO Auto-generated method stub
-//        return null;
-//    }
 
 }

@@ -5,17 +5,19 @@ import org.junit.Before;
 
 public class MNReadV1IT extends ContextAwareTestCaseDataone implements ReadTestDefinitions, MNReadTestDefinitions{
 
+    protected ReadTestImplementations readTestImpl;
+    protected MNReadTestImplementations mnReadTestImpl;
+    
+    
     @Override
     protected String getTestDescription() {
         return "Test Case that runs through the MN version 1 of read API methods";
     }
     
-    protected ReadTestImplementations readTestImpl;
-    
     @Before 
     public void setup() {
-        this.readTestImpl = new ReadTestImplementations(this);
-        // TODO an MN Read implementation
+        readTestImpl = new ReadTestImplementations(this);
+        mnReadTestImpl = new MNReadTestImplementations(this);
     }
 
     @Override
@@ -105,56 +107,46 @@ public class MNReadV1IT extends ContextAwareTestCaseDataone implements ReadTestD
 
     @Override
     public void testSystemMetadataChanged_EarlierDate() {
-        // TODO Auto-generated method stub
-        
+        mnReadTestImpl.testSystemMetadataChanged_EarlierDate(getCoordinatingNodeIterator(), "v1");
     }
 
     @Override
     public void testSystemMetadataChanged_authenticatedITKuser() {
-        // TODO Auto-generated method stub
-        
+        mnReadTestImpl.testSystemMetadataChanged_authenticatedITKuser(getCoordinatingNodeIterator(), "v1");
     }
 
     @Override
     public void testSystemMetadataChanged_withCreate() {
-        // TODO Auto-generated method stub
-        
+        mnReadTestImpl.testSystemMetadataChanged_withCreate(getCoordinatingNodeIterator(), "v1");
     }
 
     @Override
     public void testSynchronizationFailed_NoCert() {
-        // TODO Auto-generated method stub
-        
+        mnReadTestImpl.testSynchronizationFailed_NoCert(getCoordinatingNodeIterator(), "v1");
     }
 
     @Override
     public void testGetReplica_PublicObject() {
-        // TODO Auto-generated method stub
-        
+        mnReadTestImpl.testGetReplica_PublicObject(getCoordinatingNodeIterator(), "v1");
     }
 
     @Override
     public void testGetReplica_ValidCertificate_NotMN() {
-        // TODO Auto-generated method stub
-        
+        mnReadTestImpl.testGetReplica_ValidCertificate_NotMN(getCoordinatingNodeIterator(), "v1");
     }
 
     @Override
     public void testGetReplica_NoCertificate() {
-        // TODO Auto-generated method stub
-        
+        mnReadTestImpl.testGetReplica_NoCertificate(getCoordinatingNodeIterator(), "v1");
     }
 
     @Override
     public void testGetReplica_NotFound() {
-        // TODO Auto-generated method stub
-        
+        mnReadTestImpl.testGetReplica_NotFound(getCoordinatingNodeIterator(), "v1");
     }
 
     @Override
     public void testGetReplica_IdentifierEncoding() {
-        // TODO Auto-generated method stub
-        
+        mnReadTestImpl.testGetReplica_IdentifierEncoding(getCoordinatingNodeIterator(), "v1");
     }
-
 }
