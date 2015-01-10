@@ -1,4 +1,4 @@
-package org.dataone.integration;
+package org.dataone.integration.adapters;
 
 
 import java.io.IOException;
@@ -207,29 +207,40 @@ public class CommonCallAdapter implements D1Node {
         throw new ClientSideException("Unable to create node of type " + node.getType() + " of version " + version);
     }
 
-    public SystemMetadata getSystemMetadata(Session session, Identifier pid) throws ClientSideException, InvalidToken,
-            NotAuthorized, NotImplemented, ServiceFailure, NotFound {
+    public org.dataone.service.types.v2.SystemMetadata getSystemMetadata(Session session,
+            Identifier pid) throws ClientSideException, InvalidToken, NotAuthorized,
+            NotImplemented, ServiceFailure, NotFound, InstantiationException,
+            IllegalAccessException, InvocationTargetException, JiBXException, IOException {
         if (this.node.getType().equals(NodeType.MN)) {
             if (this.version.toLowerCase().equals("v1")) {
-                MNRead mnRead = D1NodeFactory.buildNode(org.dataone.service.mn.tier1.v1.MNRead.class, this.mrc,
+                MNRead mnRead = D1NodeFactory.buildNode(
+                        org.dataone.service.mn.tier1.v1.MNRead.class, this.mrc,
                         URI.create(this.node.getBaseURL()));
-                return mnRead.getSystemMetadata(session, pid);
+                SystemMetadata systemMetadata = mnRead.getSystemMetadata(session, pid);
+                return TypeMarshaller.convertTypeFromType(systemMetadata,
+                        org.dataone.service.types.v2.SystemMetadata.class);
             } else if (this.version.toLowerCase().equals("v2")) {
                 org.dataone.service.mn.tier1.v2.MNRead mnRead = D1NodeFactory.buildNode(
-                        org.dataone.service.mn.tier1.v2.MNRead.class, this.mrc, URI.create(this.node.getBaseURL()));
+                        org.dataone.service.mn.tier1.v2.MNRead.class, this.mrc,
+                        URI.create(this.node.getBaseURL()));
                 return mnRead.getSystemMetadata(session, pid);
             }
         } else if (this.node.getType().equals(NodeType.CN)) {
             if (this.version.toLowerCase().equals("v1")) {
                 org.dataone.service.cn.v1.CNRead cnRead = D1NodeFactory.buildNode(
-                        org.dataone.service.cn.v1.CNRead.class, this.mrc, URI.create(this.node.getBaseURL()));
-                return cnRead.getSystemMetadata(session, pid);
+                        org.dataone.service.cn.v1.CNRead.class, this.mrc,
+                        URI.create(this.node.getBaseURL()));
+                SystemMetadata systemMetadata = cnRead.getSystemMetadata(session, pid);
+                return TypeMarshaller.convertTypeFromType(systemMetadata,
+                        org.dataone.service.types.v2.SystemMetadata.class);
             } else if (this.version.toLowerCase().equals("v2")) {
-                CNRead cnRead = D1NodeFactory.buildNode(CNRead.class, this.mrc, URI.create(this.node.getBaseURL()));
+                CNRead cnRead = D1NodeFactory.buildNode(CNRead.class, this.mrc,
+                        URI.create(this.node.getBaseURL()));
                 return cnRead.getSystemMetadata(session, pid);
             }
         }
-        throw new ClientSideException("Unable to create node of type " + node.getType() + " of version " + version);
+        throw new ClientSideException("Unable to create node of type " + node.getType()
+                + " of version " + version);
     }
     
     public DescribeResponse describe(Session session, Identifier pid)

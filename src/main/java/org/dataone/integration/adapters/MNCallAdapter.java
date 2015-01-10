@@ -1,4 +1,4 @@
-package org.dataone.integration;
+package org.dataone.integration.adapters;
 
 import java.io.InputStream;
 import java.net.URI;

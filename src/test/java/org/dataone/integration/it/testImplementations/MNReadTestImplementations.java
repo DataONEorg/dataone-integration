@@ -1,4 +1,4 @@
-package org.dataone.integration.it;
+package org.dataone.integration.it.testImplementations;
 
 import java.io.InputStream;
 import java.util.Date;
@@ -11,7 +11,8 @@ import org.apache.commons.logging.LogFactory;
 import org.dataone.client.v1.types.D1TypeBuilder;
 import org.dataone.integration.ContextAwareTestCaseDataone;
 import org.dataone.integration.ExampleUtilities;
-import org.dataone.integration.MNCallAdapter;
+import org.dataone.integration.adapters.MNCallAdapter;
+import org.dataone.integration.it.ContextAwareAdapter;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.InvalidToken;
 import org.dataone.service.exceptions.NotAuthorized;

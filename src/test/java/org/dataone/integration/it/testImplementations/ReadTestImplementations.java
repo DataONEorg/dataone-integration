@@ -1,4 +1,4 @@
-package org.dataone.integration.it;
+package org.dataone.integration.it.testImplementations;
 
 import java.io.InputStream;
 import java.util.Date;
@@ -9,10 +9,11 @@ import java.util.Vector;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.dataone.client.v1.types.D1TypeBuilder;
-import org.dataone.integration.CommonCallAdapter;
 import org.dataone.integration.ContextAwareTestCaseDataone;
 import org.dataone.integration.ExampleUtilities;
 import org.dataone.integration.ContextAwareTestCaseDataone.TestIterationEndingException;
+import org.dataone.integration.adapters.CommonCallAdapter;
+import org.dataone.integration.it.ContextAwareAdapter;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.NotFound;
 import org.dataone.service.exceptions.ServiceFailure;
@@ -30,7 +31,7 @@ import org.junit.Test;
 
 public class ReadTestImplementations extends ContextAwareAdapter {
 
-    protected static Log log = LogFactory.getLog(ReadTestImplementations.class);
+    private static Log log = LogFactory.getLog(ReadTestImplementations.class);
     
     private static final String format_text_csv = "text/csv";
     private static Vector<String> unicodeStringV;
@@ -126,7 +127,8 @@ public class ReadTestImplementations extends ContextAwareAdapter {
         nodeSummary.add("Node Test Summary for node: " + currentUrl);
 
         printTestHeader("  Node:: " + currentUrl);
-
+        setupIdentifierVectors();
+        
         for (int j = 0; j < unicodeStringV.size(); j++) {
             String status = "OK   ";
 
@@ -252,7 +254,8 @@ public class ReadTestImplementations extends ContextAwareAdapter {
         nodeSummary.add("Node Test Summary for node: " + currentUrl);
 
         printTestHeader("  Node:: " + currentUrl);
-
+        setupIdentifierVectors();
+        
         for (int j = 0; j < unicodeStringV.size(); j++) {
             String status = "OK   ";
 
@@ -378,7 +381,8 @@ public class ReadTestImplementations extends ContextAwareAdapter {
         nodeSummary.add("Node Test Summary for node: " + currentUrl);
 
         printTestHeader("  Node:: " + currentUrl);
-
+        setupIdentifierVectors();
+        
         for (int j = 0; j < unicodeStringV.size(); j++) {
             String status = "OK   ";
 
@@ -503,7 +507,8 @@ public class ReadTestImplementations extends ContextAwareAdapter {
         nodeSummary.add("Node Test Summary for node: " + currentUrl);
 
         printTestHeader("  Node:: " + currentUrl);
-
+        setupIdentifierVectors();
+        
         for (int j = 0; j < unicodeStringV.size(); j++) {
             String status = "OK   ";
 
@@ -830,41 +835,42 @@ public class ReadTestImplementations extends ContextAwareAdapter {
         }
     }
 
-    @Before
-    public void setupIdentifierVectors() {
-        if (unicodeStringV == null) {
-            // get identifiers to check with
-            unicodeStringV = new Vector<String>();
-            escapedStringV = new Vector<String>();
-            //   TODO: test against Unicode characters when metacat supports unicode        
-            InputStream is = this.getClass().getResourceAsStream(
-                    "/d1_testdocs/encodingTestSet/testUnicodeStrings.utf8.txt");
-            //InputStream is = this.getClass().getResourceAsStream("/d1_testdocs/encodingTestSet/testAsciiStrings.utf8.txt");
-            Scanner s = new Scanner(is, "UTF-8");
-            String[] temp;
-            int c = 0;
-            try {
-                while (s.hasNextLine()) {
-                    String line = s.nextLine();
-                    if (line.startsWith("common-") || line.startsWith("path-")) {
-                        if (line.contains("supplementary"))
-                            continue;
+    private void setupIdentifierVectors() {
+        if (unicodeStringV != null && escapedStringV != null)
+            return;
+        
+        // get identifiers to check with
+        unicodeStringV = new Vector<String>();
+        escapedStringV = new Vector<String>();
+        //   TODO: test against Unicode characters when metacat supports unicode        
+        InputStream is = this.getClass().getResourceAsStream(
+                "/d1_testdocs/encodingTestSet/testUnicodeStrings.utf8.txt");
+        //InputStream is = this.getClass().getResourceAsStream("/d1_testdocs/encodingTestSet/testAsciiStrings.utf8.txt");
+        Scanner s = new Scanner(is, "UTF-8");
+        String[] temp;
+        int c = 0;
+        try {
+            while (s.hasNextLine()) {
+                String line = s.nextLine();
+                if (line.startsWith("common-") || line.startsWith("path-")) {
+                    if (line.contains("supplementary"))
+                        continue;
 
-                        temp = line.split("\t");
+                    temp = line.split("\t");
 
-                        // identifiers can't contain spaces by default
-                        if (temp[0].contains(" "))
-                            continue;
+                    // identifiers can't contain spaces by default
+                    if (temp[0].contains(" "))
+                        continue;
 
-                        log.info(c++ + "   " + line);
-                        unicodeStringV.add(temp[0]);
-                        escapedStringV.add(temp[1]);
-                    }
+                    log.info(c++ + "   " + line);
+                    unicodeStringV.add(temp[0]);
+                    escapedStringV.add(temp[1]);
                 }
-            } finally {
-                s.close();
             }
+        } finally {
+            s.close();
         }
+        
     }
 
     private String first100Characters(String s) {

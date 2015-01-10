@@ -1,4 +1,4 @@
-package org.dataone.integration.it;
+package org.dataone.integration.it.testImplementations;
 
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -12,9 +12,10 @@ import org.dataone.client.auth.CertificateManager;
 import org.dataone.client.v1.types.D1TypeBuilder;
 import org.dataone.configuration.Settings;
 import org.dataone.integration.APITestUtils;
-import org.dataone.integration.CommonCallAdapter;
 import org.dataone.integration.ContextAwareTestCaseDataone;
 import org.dataone.integration.ContextAwareTestCaseDataone.TestIterationEndingException;
+import org.dataone.integration.adapters.CommonCallAdapter;
+import org.dataone.integration.it.ContextAwareAdapter;
 import org.dataone.integration.ExampleUtilities;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.NotAuthorized;

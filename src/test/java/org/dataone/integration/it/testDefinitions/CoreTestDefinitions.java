@@ -1,4 +1,6 @@
-package org.dataone.integration.it;
+package org.dataone.integration.it.testDefinitions;
+
+import org.dataone.integration.it.testImplementations.CoreTestImplementations;
 
 
 

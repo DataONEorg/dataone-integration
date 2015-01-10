@@ -64,6 +64,7 @@ import org.dataone.client.auth.ClientIdentityManager;
 import org.dataone.client.exception.ClientSideException;
 import org.dataone.configuration.Settings;
 import org.dataone.configuration.TestSettings;
+import org.dataone.integration.adapters.CommonCallAdapter;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.IdentifierNotUnique;
 import org.dataone.service.exceptions.InsufficientResources;

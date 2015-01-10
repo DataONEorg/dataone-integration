@@ -30,6 +30,7 @@ import org.dataone.client.exception.ClientSideException;
 import org.dataone.client.v1.CNode;
 import org.dataone.client.D1Node;
 import org.dataone.client.v1.MNode;
+import org.dataone.integration.adapters.CommonCallAdapter;
 import org.dataone.service.exceptions.InsufficientResources;
 import org.dataone.service.exceptions.InvalidRequest;
 import org.dataone.service.exceptions.InvalidToken;

@@ -1,4 +1,4 @@
-package org.dataone.integration.it;
+package org.dataone.integration.it.testImplementations;
 
 import java.io.InputStream;
 import java.util.Iterator;
@@ -8,9 +8,11 @@ import java.util.Vector;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.solr.client.solrj.util.ClientUtils;
-import org.dataone.integration.CNCallAdapter;
 import org.dataone.integration.ContextAwareTestCaseDataone;
 import org.dataone.integration.ExampleUtilities;
+import org.dataone.integration.adapters.CNCallAdapter;
+import org.dataone.integration.it.ContextAwareAdapter;
+import org.dataone.integration.it.testDefinitions.CNReadTestDefinitions;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Node;

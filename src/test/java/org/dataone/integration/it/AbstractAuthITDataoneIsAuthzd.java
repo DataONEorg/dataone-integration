@@ -23,7 +23,7 @@
 package org.dataone.integration.it;
 
 import org.dataone.client.D1Node;
-import org.dataone.integration.CommonCallAdapter;
+import org.dataone.integration.adapters.CommonCallAdapter;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Permission;
