@@ -1,22 +1,22 @@
 package org.dataone.integration.it;
 
 import org.dataone.integration.ContextAwareTestCaseDataone;
-import org.dataone.integration.it.testDefinitions.AuthTestDefinitions;
+import org.dataone.integration.it.testDefinitions.AuthAPITestDefinitions;
 import org.dataone.integration.it.testDefinitions.CNAuthTestDefinitions;
-import org.dataone.integration.it.testImplementations.AuthTestImplementations;
+import org.dataone.integration.it.testImplementations.AuthAPITestImplementations;
 import org.dataone.integration.it.testImplementations.CNAuthTestImplementations;
 import org.junit.Before;
 import org.junit.Test;
 
 public class CNAuthV1IT extends ContextAwareTestCaseDataone 
-        implements AuthTestDefinitions, CNAuthTestDefinitions {
+        implements AuthAPITestDefinitions, CNAuthTestDefinitions {
     
-    private AuthTestImplementations authTestImpl;
+    private AuthAPITestImplementations authTestImpl;
     private CNAuthTestImplementations cnAuthTestImpl;
     
     @Before
     public void setup() {
-        authTestImpl = new AuthTestImplementations(this);
+        authTestImpl = new AuthAPITestImplementations(this);
         cnAuthTestImpl = new CNAuthTestImplementations(this);
     }
     

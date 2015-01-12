@@ -30,6 +30,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.solr.client.solrj.util.ClientUtils;
 import org.dataone.client.v1.CNode;
 import org.dataone.client.D1Node;
+import org.dataone.integration.it.testImplementations.AbstractAuthorizationTestImplementations;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Node;
@@ -45,7 +46,7 @@ import org.junit.Test;
  * Test the DataONE Java client methods that focus on CN services.
  * @author Rob Nahf
  */
-public class CNodeTier1_search_IT extends AbstractAuthorizationITDataone {
+public class CNodeTier1_search_IT extends AbstractAuthorizationTestImplementations {
 
 
 	private static String unicodeIdPrefix = "testCNodeTier1";

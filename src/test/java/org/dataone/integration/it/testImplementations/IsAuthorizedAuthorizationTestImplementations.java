@@ -20,15 +20,20 @@
  * $Id$
  */
 
-package org.dataone.integration.it;
+package org.dataone.integration.it.testImplementations;
 
-import org.dataone.client.D1Node;
+import org.dataone.client.exception.ClientSideException;
+import org.dataone.integration.ContextAwareTestCaseDataone;
 import org.dataone.integration.adapters.CommonCallAdapter;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Permission;
 
-public abstract class AbstractAuthITDataoneIsAuthzd extends AbstractAuthorizationITDataone {
+public abstract class IsAuthorizedAuthorizationTestImplementations extends AbstractAuthorizationTestImplementations {
+
+    public IsAuthorizedAuthorizationTestImplementations(ContextAwareTestCaseDataone catc) {
+        super(catc);
+    }
 
     @Override
     protected  boolean runTest(Permission p) {
@@ -49,6 +54,8 @@ public abstract class AbstractAuthITDataoneIsAuthzd extends AbstractAuthorizatio
             outcome = booleanOutcome ? "true" : "false";
         }
         catch (BaseException e) {
+            outcome = e.getClass().getSimpleName();
+        } catch (ClientSideException e) {
             outcome = e.getClass().getSimpleName();
         }
         return outcome;

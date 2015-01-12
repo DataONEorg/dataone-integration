@@ -1,6 +1,6 @@
 package org.dataone.integration.it.testDefinitions;
 
-public interface MNv1AuthTestDefinitions {
+public interface MNv1AuthAPITestDefinitions {
 
     public void testSystemMetadataChanged_EarlierDate();
 

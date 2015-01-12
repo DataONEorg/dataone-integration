@@ -209,8 +209,8 @@ public class CommonCallAdapter implements D1Node {
 
     public org.dataone.service.types.v2.SystemMetadata getSystemMetadata(Session session,
             Identifier pid) throws ClientSideException, InvalidToken, NotAuthorized,
-            NotImplemented, ServiceFailure, NotFound, InstantiationException,
-            IllegalAccessException, InvocationTargetException, JiBXException, IOException {
+            NotImplemented, ServiceFailure, NotFound {
+        try {
         if (this.node.getType().equals(NodeType.MN)) {
             if (this.version.toLowerCase().equals("v1")) {
                 MNRead mnRead = D1NodeFactory.buildNode(
@@ -238,6 +238,11 @@ public class CommonCallAdapter implements D1Node {
                         URI.create(this.node.getBaseURL()));
                 return cnRead.getSystemMetadata(session, pid);
             }
+        }
+        } catch (InstantiationException | IllegalAccessException
+                | InvocationTargetException | JiBXException | IOException e) 
+        {
+            throw new ClientSideException("Unable to convert SystemMetadata from type to type");
         }
         throw new ClientSideException("Unable to create node of type " + node.getType()
                 + " of version " + version);

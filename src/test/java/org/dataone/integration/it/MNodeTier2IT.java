@@ -26,10 +26,11 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-import org.dataone.client.D1Client;
 import org.dataone.client.v1.types.D1TypeBuilder;
 import org.dataone.client.v1.MNode;
 import org.dataone.integration.ExampleUtilities;
+import org.dataone.integration.adapters.CommonCallAdapter;
+import org.dataone.integration.it.testImplementations.AbstractAuthITDataoneIsAuthzd;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.InvalidRequest;
 import org.dataone.service.exceptions.NotAuthorized;
@@ -61,7 +62,9 @@ import org.junit.Test;
  *  
  * @author Rob Nahf
  */
-public class MNodeTier2IT extends AbstractAuthITDataoneIsAuthzd {
+public class MNodeTier2IT extends AbstractAuthITDataoneIsAuthzd
+implements AuthAPITestDefinitions
+{
 
     private static String currentUrl;
         
@@ -79,9 +82,9 @@ public class MNodeTier2IT extends AbstractAuthITDataoneIsAuthzd {
 	}
 	
 	@Override
-	protected MNode instantiateD1Node(String baseUrl) 
+	protected CommonCallAdapter(String baseUrl) 
 	{ 
-		return new MNode(baseUrl);
+		return new CommonCallAdapter(MULTIPART_REST_CLIENT,node,"v2");
 	}
 	
 	
@@ -98,8 +101,10 @@ public class MNodeTier2IT extends AbstractAuthITDataoneIsAuthzd {
 		
 		Iterator<Node> it = getMemberNodeIterator();
 		while (it.hasNext()) {
-			currentUrl = it.next().getBaseURL();
-			MNode mn = D1Client.getMN(currentUrl);
+		    Node node = it.next();
+			currentUrl = node.getBaseURL();
+			//TODO: parameterize "v2"
+			CommonCallAdapter mn = new CommonCallAdapter(MULTIPART_REST_CLIENT,node,"v2");
 			currentUrl = mn.getNodeBaseServiceUrl();
 			printTestHeader("testIsAuthorized() vs. node: " + currentUrl);
 				
@@ -319,6 +324,12 @@ public class MNodeTier2IT extends AbstractAuthITDataoneIsAuthzd {
 			}	
 		}
 	}
+
+
+    @Override
+    protected CommonCallAdapter instantiateD1Node(String baseUrl) {
+        return new CommonCallAdapter(MULTIPART_REST_CLIENT, "v2");
+    }
 	
 	/**
 	 * the bulk of tests are in the AbstractAuthorizationITDataone base class

@@ -30,6 +30,7 @@ import org.dataone.client.v1.types.D1TypeBuilder;
 import org.dataone.configuration.Settings;
 import org.dataone.integration.APITestUtils;
 import org.dataone.integration.ExampleUtilities;
+import org.dataone.integration.it.testImplementations.AbstractAuthITDataoneIsAuthzd;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.NotAuthorized;
 import org.dataone.service.exceptions.NotFound;

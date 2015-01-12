@@ -20,19 +20,21 @@
  * $Id$
  */
 
-package org.dataone.integration.it;
+package org.dataone.integration.it.testImplementations;
 
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import org.dataone.client.exception.ClientSideException;
 import org.dataone.client.v1.CNode;
-import org.dataone.client.D1Node;
 import org.dataone.client.v1.MNode;
 import org.dataone.integration.APITestUtils;
 import org.dataone.integration.ContextAwareTestCaseDataone;
+import org.dataone.integration.TestIterationEndingException;
 import org.dataone.integration.adapters.CommonCallAdapter;
+import org.dataone.integration.it.ContextAwareAdapter;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.IdentifierNotUnique;
 import org.dataone.service.exceptions.InsufficientResources;
@@ -53,16 +55,21 @@ import org.dataone.service.types.v1.Subject;
 import org.dataone.service.types.v1.SystemMetadata;
 import org.dataone.service.types.v1.util.AccessUtil;
 import org.dataone.service.util.Constants;
-import org.junit.Ignore;
 import org.junit.Test;
 
-public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCaseDataone {
+/**
+ * This abstract class is the locus for the thorough set of authorization tests.
+ * It has been generalized to work with any READ-only method that follows Dataone's 
+ * authorization rules. 
+ * 
+ * Originally written for isAuthorized, it also works for the search and query 
+ * API's
+ */
+public abstract class AbstractAuthorizationTestImplementations extends ContextAwareAdapter {
 
-//	// this here defines the default
-//	// can be overwritten by property passed into base class
-    // default is now in ContextAwareTestCaseDataone
-//	protected String testObjectSeriesSuffix = "." + "12";
-
+    public AbstractAuthorizationTestImplementations(ContextAwareTestCaseDataone catc) {
+        super(catc);
+    }
 
     private static String currentUrl;
 
@@ -89,7 +96,6 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
         try {
             Thread.sleep(500);
         } catch (InterruptedException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
         String testResult = null;
@@ -177,102 +183,6 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
          return id;
      }
 
-
-     /**
-      * Client behavior is funky for self-signed certs - for this client it gets
-      * through as public, but other clients are rejected.
-      * This test will test the downgraded permissions to make sure it only has
-      * access to public data, not it's own.
-      */
-     @Ignore("testing with the other tests against the various test objects")
-     @Test
-     public void testConnectionLayer_SelfSignedCert()
-     {
-
-         Iterator<Node> it = getNodeIterator();
-         while (it.hasNext()) {
-             currentUrl = it.next().getBaseURL();
-             CommonCallAdapter d1Node = instantiateD1Node(currentUrl);
-
-             try {
-//				 d1Node.ping();
-//				 d1Node.listObjects(null);
-//				 d1Node.getLogRecords(null);
-                 setupClientSubject("testPerson_SelfSigned");
-
-                 String objectIdentifier = "TierTesting:" +
-                             createNodeAbbreviation(d1Node.getNodeBaseServiceUrl()) +
-                             ":Public_READ" + testObjectSeriesSuffix;
-                 Identifier pid = procurePublicReadableTestObject(d1Node,buildIdentifier(objectIdentifier));
-
-                 d1Node.isAuthorized(null, pid, Permission.READ);
-                 handleFail(d1Node.getLatestRequestUrl(), "ssl connection should not succeed with a self-signed certificate (untrusted CA): testPerson READ vs. " + pid.getValue());
-             } catch (BaseException be) {
-                 if (!(be instanceof ServiceFailure)) {
-                 handleFail(d1Node.getLatestRequestUrl(),"a self-signed certificate should not be trusted and should throw a ServiceFailure. Got: "
-                         + be.getClass().getSimpleName() + ": " +
-                         be.getDetail_code() + ":: " + be.getDescription());
-                 }
-             }
-             catch(Exception e) {
-                 e.printStackTrace();
-                 handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
-             }
-         }
-     }
-
-
-
-     @Test
-     public void testConnectionLayer_ExpiredCertificate()
-     {
-         setupClientSubject("testPerson_Expired");
-         Iterator<Node> it = getNodeIterator();
-         while (it.hasNext()) {
-             currentUrl = it.next().getBaseURL();
-             CommonCallAdapter d1Node = instantiateD1Node(currentUrl);
-
-             try {
-                 d1Node.ping();
-             } catch (BaseException be) {
-                 if (!(be instanceof ServiceFailure)) {
-                 handleFail(d1Node.getLatestRequestUrl(),"an Expired Certificate should throw a ServiceFailure. Got: "
-                         + be.getClass().getSimpleName() + ": " +
-                         be.getDetail_code() + ":: " + be.getDescription());
-                 }
-             }
-             catch(Exception e) {
-                 e.printStackTrace();
-                 handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
-             }
-         }
-         setupClientSubject_NoCert();
-     }
-
-
-     @Test
-     public void testConnectionLayer_dataoneCAtrusted()
-     {
-         setupClientSubject("testSubmitter");
-         Iterator<Node> it = getNodeIterator();
-         while (it.hasNext()) {
-             currentUrl = it.next().getBaseURL();
-             CommonCallAdapter d1Node = instantiateD1Node(currentUrl);
-
-             try {
-                 d1Node.ping();
-             } catch (BaseException e) {
-                 handleFail(d1Node.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " +
-                         e.getDetail_code() + ":: " + e.getDescription());
-             }
-             catch(Exception e) {
-                 e.printStackTrace();
-                 handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
-             }
-         }
-     }
-
-
      /*
       * The authorization tests...................................
       */
@@ -286,7 +196,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
          String procuringSubjectString = "testPerson";
          String objectSubjectString = null;
          Permission objectPermission = null;
-//		 String objectIdentifier = "TierTesting:testObject:RightsHolder_testPerson" + testObjectSeriesSuffix;
+//		 String objectIdentifier = "TierTesting:testObject:RightsHolder_testPerson" + getTestObjectSeriesSuffix();
 
          Iterator<Node> it = getNodeIterator();
          while (it.hasNext()) {
@@ -297,7 +207,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 
                  String objectIdentifier = "TierTesting:" +
                      createNodeAbbreviation(d1Node.getNodeBaseServiceUrl()) +
-                     ":RightsHolder_testPerson" + testObjectSeriesSuffix;
+                     ":RightsHolder_testPerson" + getTestObjectSeriesSuffix();
 
                  // get or create the test object
                  setupClientSubject(procuringSubjectString);
@@ -432,7 +342,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
              try {
                  String objectIdentifier = "TierTesting:" +
                      createNodeAbbreviation(d1Node.getNodeBaseServiceUrl()) +
-                     ":RightsHolder_testGroup" + testObjectSeriesSuffix;
+                     ":RightsHolder_testGroup" + getTestObjectSeriesSuffix();
 
                  // get or create the test object
                  setupClientSubject(procuringSubjectString);
@@ -565,7 +475,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
          String procuringSubjectString = "testRightsHolder";
          String objectSubjectString = Constants.SUBJECT_PUBLIC;
          Permission objectPermission = Permission.READ;
-//		 String objectIdentifier = "TierTesting:testObject:Public_READ" + testObjectSeriesSuffix;
+//		 String objectIdentifier = "TierTesting:testObject:Public_READ" + getTestObjectSeriesSuffix();
 
          Iterator<Node> it = getNodeIterator();
          while (it.hasNext()) {
@@ -575,11 +485,11 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
              try {
                  String objectIdentifier = "TierTesting:" +
                      createNodeAbbreviation(d1Node.getNodeBaseServiceUrl()) +
-                     ":Public_READ" + testObjectSeriesSuffix;
+                     ":Public_READ" + getTestObjectSeriesSuffix();
 
                  // get or create the test object
                  setupClientSubject(procuringSubjectString);
-                 Identifier testObject = procureTestObject(d1Node,
+                 Identifier testObject = this.catc.procureTestObject(d1Node,
                          buildAccessRule(objectSubjectString,objectPermission),
                          buildIdentifier(objectIdentifier));
 
@@ -698,7 +608,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
          String procuringSubjectString = "testRightsHolder";
          String objectSubjectString = Constants.SUBJECT_AUTHENTICATED_USER;
          Permission objectPermission = Permission.READ;
-//		 String objectIdentifier = "TierTesting:testObject:Authenticated_READ" + testObjectSeriesSuffix;
+//		 String objectIdentifier = "TierTesting:testObject:Authenticated_READ" + getTestObjectSeriesSuffix();
 
          Iterator<Node> it = getNodeIterator();
          while (it.hasNext()) {
@@ -708,10 +618,10 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
              try {
                  String objectIdentifier = "TierTesting:" +
                      createNodeAbbreviation(d1Node.getNodeBaseServiceUrl()) +
-                     ":Authenticated_READ" + testObjectSeriesSuffix;
+                     ":Authenticated_READ" + getTestObjectSeriesSuffix();
 
                  setupClientSubject(procuringSubjectString);
-                 Identifier testObject = procureTestObject(d1Node,
+                 Identifier testObject = this.catc.procureTestObject(d1Node,
                          buildAccessRule(objectSubjectString,objectPermission),
                          buildIdentifier(objectIdentifier));
 
@@ -832,7 +742,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
          String procuringSubjectString = "testRightsHolder";
          String objectSubjectString = Constants.SUBJECT_VERIFIED_USER;
          Permission objectPermission = Permission.READ;
-//		 String objectIdentifier = "TierTesting:testObject:Verified_READ" + testObjectSeriesSuffix;
+//		 String objectIdentifier = "TierTesting:testObject:Verified_READ" + getTestObjectSeriesSuffix();
 
          Iterator<Node> it = getNodeIterator();
          while (it.hasNext()) {
@@ -842,11 +752,11 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
              try {
                  String objectIdentifier = "TierTesting:" +
                      createNodeAbbreviation(d1Node.getNodeBaseServiceUrl()) +
-                     ":Verified_READ" + testObjectSeriesSuffix;
+                     ":Verified_READ" + getTestObjectSeriesSuffix();
 
                  // get or create the test object
                  setupClientSubject(procuringSubjectString);
-                 Identifier testObject = procureTestObject(d1Node,
+                 Identifier testObject = this.catc.procureTestObject(d1Node,
                          buildAccessRule(objectSubjectString,objectPermission),
                          buildIdentifier(objectIdentifier));
 
@@ -976,7 +886,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
          String procuringSubjectString = "testRightsHolder";
          String objectSubjectString = "CN=testPerson,DC=dataone,DC=org";
          Permission objectPermission = Permission.READ;
-//		 String objectIdentifier = "TierTesting:testObject:testPerson_READ" + testObjectSeriesSuffix;
+//		 String objectIdentifier = "TierTesting:testObject:testPerson_READ" + getTestObjectSeriesSuffix();
 
          Iterator<Node> it = getNodeIterator();
          while (it.hasNext()) {
@@ -988,10 +898,10 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 
                  String objectIdentifier = "TierTesting:" +
                      createNodeAbbreviation(d1Node.getNodeBaseServiceUrl()) +
-                     ":testPerson_READ" + testObjectSeriesSuffix;
+                     ":testPerson_READ" + getTestObjectSeriesSuffix();
 
                  setupClientSubject(procuringSubjectString);
-                 Identifier testObject = procureTestObject(d1Node,
+                 Identifier testObject = this.catc.procureTestObject(d1Node,
                          buildAccessRule(objectSubjectString,objectPermission),
                          buildIdentifier(objectIdentifier));
 
@@ -1116,7 +1026,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
          String procuringSubjectString = "testRightsHolder";
          String objectSubjectString = "CN=testPerson,DC=dataone,DC=org";
          Permission objectPermission = Permission.WRITE;
-//		 String objectIdentifier = "TierTesting:testObject:testPerson_WRITE" + testObjectSeriesSuffix;
+//		 String objectIdentifier = "TierTesting:testObject:testPerson_WRITE" + getTestObjectSeriesSuffix();
 
          Iterator<Node> it = getNodeIterator();
          while (it.hasNext()) {
@@ -1126,11 +1036,11 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
              try {
                  String objectIdentifier = "TierTesting:" +
                      createNodeAbbreviation(d1Node.getNodeBaseServiceUrl()) +
-                     ":testPerson_WRITE" + testObjectSeriesSuffix;
+                     ":testPerson_WRITE" + getTestObjectSeriesSuffix();
 
                  // get or create the test object
                  setupClientSubject(procuringSubjectString);
-                 Identifier testObject = procureTestObject(d1Node,
+                 Identifier testObject = this.catc.procureTestObject(d1Node,
                          buildAccessRule(objectSubjectString,objectPermission),
                          buildIdentifier(objectIdentifier));
 
@@ -1252,7 +1162,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
          String procuringSubjectString = "testRightsHolder";
          String objectSubjectString = "CN=testPerson,DC=dataone,DC=org";
          Permission objectPermission = Permission.CHANGE_PERMISSION;
-//		 String objectIdentifier = "TierTesting:testObject:testPerson_CHANGE" + testObjectSeriesSuffix;
+//		 String objectIdentifier = "TierTesting:testObject:testPerson_CHANGE" + getTestObjectSeriesSuffix();
 
          Iterator<Node> it = getNodeIterator();
          while (it.hasNext()) {
@@ -1262,11 +1172,11 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
              try {
                  String objectIdentifier = "TierTesting:" +
                      createNodeAbbreviation(d1Node.getNodeBaseServiceUrl()) +
-                     ":testPerson_CHANGE" + testObjectSeriesSuffix;
+                     ":testPerson_CHANGE" + getTestObjectSeriesSuffix();
 
                  // get or create the test object
                  setupClientSubject(procuringSubjectString);
-                 Identifier testObject = procureTestObject(d1Node,
+                 Identifier testObject = this.catc.procureTestObject(d1Node,
                          buildAccessRule(objectSubjectString,objectPermission),
                          buildIdentifier(objectIdentifier));
 
@@ -1387,7 +1297,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
          String procuringSubjectString = "testRightsHolder";
          String objectSubjectString = "CN=testGroup,DC=dataone,DC=org";
          Permission objectPermission = Permission.READ;
-//		 String objectIdentifier = "TierTesting:testObject:testGroup_READ" + testObjectSeriesSuffix;
+//		 String objectIdentifier = "TierTesting:testObject:testGroup_READ" + getTestObjectSeriesSuffix();
 
          Iterator<Node> it = getNodeIterator();
          while (it.hasNext()) {
@@ -1399,10 +1309,10 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
 
                  String objectIdentifier = "TierTesting:" +
                      createNodeAbbreviation(d1Node.getNodeBaseServiceUrl()) +
-                     ":testGroup_READ" + testObjectSeriesSuffix;
+                     ":testGroup_READ" + getTestObjectSeriesSuffix();
 
                  setupClientSubject(procuringSubjectString);
-                 Identifier testObject = procureTestObject(d1Node,
+                 Identifier testObject = this.catc.procureTestObject(d1Node,
                          buildAccessRule(objectSubjectString,objectPermission),
                          buildIdentifier(objectIdentifier));
 
@@ -1532,7 +1442,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
          String procuringSubjectString = "testRightsHolder";
          String objectSubjectString = "CN=testGroup,DC=dataone,DC=org";
          Permission objectPermission = Permission.WRITE;
-//		 String objectIdentifier = "TierTesting:testObject:testGroup_WRITE" + testObjectSeriesSuffix;
+//		 String objectIdentifier = "TierTesting:testObject:testGroup_WRITE" + getTestObjectSeriesSuffix();
 
          Iterator<Node> it = getNodeIterator();
          while (it.hasNext()) {
@@ -1543,10 +1453,10 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
                  // get or create the test object
                  String objectIdentifier = "TierTesting:" +
                      createNodeAbbreviation(d1Node.getNodeBaseServiceUrl()) +
-                     ":testGroup_WRITE" + testObjectSeriesSuffix;
+                     ":testGroup_WRITE" + getTestObjectSeriesSuffix();
 
                  setupClientSubject(procuringSubjectString);
-                 Identifier testObject = procureTestObject(d1Node,
+                 Identifier testObject = this.catc.procureTestObject(d1Node,
                          buildAccessRule(objectSubjectString,objectPermission),
                          buildIdentifier(objectIdentifier));
 
@@ -1676,7 +1586,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
          String procuringSubjectString = "testRightsHolder";
          String objectSubjectString = "CN=testGroup,DC=dataone,DC=org";
          Permission objectPermission = Permission.CHANGE_PERMISSION;
-//		 String objectIdentifier = "TierTesting:testObject:testGroup_CHANGE" + testObjectSeriesSuffix;
+//		 String objectIdentifier = "TierTesting:testObject:testGroup_CHANGE" + getTestObjectSeriesSuffix();
 
          Iterator<Node> it = getNodeIterator();
          while (it.hasNext()) {
@@ -1687,10 +1597,10 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
                  // get or create the test object
                  String objectIdentifier = "TierTesting:" +
                      createNodeAbbreviation(d1Node.getNodeBaseServiceUrl()) +
-                     ":testGroup_CHANGE" + testObjectSeriesSuffix;
+                     ":testGroup_CHANGE" + getTestObjectSeriesSuffix();
 
                  setupClientSubject(procuringSubjectString);
-                 Identifier testObject = procureTestObject(d1Node,
+                 Identifier testObject = this.catc.procureTestObject(d1Node,
                          buildAccessRule(objectSubjectString,objectPermission),
                          buildIdentifier(objectIdentifier));
 
@@ -1828,10 +1738,10 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
                  // get or create the test object
                  String objectIdentifier = "TierTesting:" +
                      createNodeAbbreviation(d1Node.getNodeBaseServiceUrl()) +
-                     ":legacyAcct_WRITE" + testObjectSeriesSuffix;
+                     ":legacyAcct_WRITE" + getTestObjectSeriesSuffix();
 
                  setupClientSubject(procuringSubjectString);
-                 Identifier testObject = procureTestObject(d1Node,
+                 Identifier testObject = this.catc.procureTestObject(d1Node,
                          buildAccessRule(objectSubjectString,objectPermission),
                          buildIdentifier(objectIdentifier));
 
@@ -1989,7 +1899,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
              try {
                  String objectIdentifier = "TierTesting:" +
                      createNodeAbbreviation(d1Node.getNodeBaseServiceUrl()) +
-                     ":ComplicatedPolicy" + testObjectSeriesSuffix;
+                     ":ComplicatedPolicy" + getTestObjectSeriesSuffix();
 
                  setupClientSubject(procuringSubjectString);
                  Identifier testObject = procureSpecialTestObject(d1Node,
@@ -2087,7 +1997,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
      private Identifier procureSpecialTestObject(CommonCallAdapter d1Node, AccessPolicy accessPolicy, Identifier pid, boolean exactPolicy)
      throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique, UnsupportedType,
      InsufficientResources, InvalidSystemMetadata, NotImplemented, InvalidRequest,
-     UnsupportedEncodingException, NotFound, TestIterationEndingException
+     UnsupportedEncodingException, NotFound, TestIterationEndingException, ClientSideException
      {
          Identifier identifier = null;
          try {
@@ -2151,10 +2061,10 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
                  Node node = ((MNode) d1Node).getCapabilities();
                  if (APITestUtils.isServiceAvailable(node, "MNStorage")) {
                      log.debug("procureTestObject: calling createTestObject");
-                     identifier = createTestObject(d1Node, pid, accessPolicy, "testSubmitter","CN=testRightsHolder,DC=dataone,DC=org");
+                     identifier = this.catc.createTestObject(d1Node, pid, accessPolicy, "testSubmitter","CN=testRightsHolder,DC=dataone,DC=org");
                  }
              } else {
-                 identifier = createTestObject(d1Node, pid, accessPolicy, cnSubmitter, "CN=testRightsHolder,DC=dataone,DC=org");
+                 identifier = this.catc.createTestObject(d1Node, pid, accessPolicy, cnSubmitter, "CN=testRightsHolder,DC=dataone,DC=org");
                 // throw e;
              }
          }
@@ -2166,7 +2076,7 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
      private  Identifier procureSpecialTestObject(CommonCallAdapter d1Node, AccessRule accessRule, Identifier pid, String rightsHolderSubjectString)
      throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique, UnsupportedType,
      InsufficientResources, InvalidSystemMetadata, NotImplemented, InvalidRequest,
-     UnsupportedEncodingException, NotFound, TestIterationEndingException
+     UnsupportedEncodingException, NotFound, TestIterationEndingException, ClientSideException
      {
 
          Identifier identifier = null;
@@ -2198,10 +2108,10 @@ public abstract class AbstractAuthorizationITDataone extends ContextAwareTestCas
                  Node node = ((MNode) d1Node).getCapabilities();
                  if (APITestUtils.isServiceAvailable(node, "MNStorage")) {
                      log.debug("procureTestObject: calling createTestObject");
-                     identifier = createTestObject(d1Node, pid, accessRule, "testSubmitter",rightsHolderSubjectString);
+                     identifier = this.catc.createTestObject(d1Node, pid, accessRule, "testSubmitter",rightsHolderSubjectString);
                  }
              } else {
-                 identifier = createTestObject(d1Node,pid,accessRule,cnSubmitter,rightsHolderSubjectString);
+                 identifier = this.catc.createTestObject(d1Node,pid,accessRule,cnSubmitter,rightsHolderSubjectString);
                 // throw e;
              }
          }
