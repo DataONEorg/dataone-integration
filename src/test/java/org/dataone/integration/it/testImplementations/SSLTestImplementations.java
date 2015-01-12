@@ -2,8 +2,8 @@ package org.dataone.integration.it.testImplementations;
 
 import java.util.Iterator;
 
-import org.dataone.integration.CommonCallAdapter;
 import org.dataone.integration.ContextAwareTestCaseDataone;
+import org.dataone.integration.adapters.CommonCallAdapter;
 import org.dataone.integration.it.ContextAwareAdapter;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.ServiceFailure;
