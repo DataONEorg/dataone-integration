@@ -11,7 +11,7 @@ import org.apache.commons.logging.LogFactory;
 import org.dataone.client.v1.types.D1TypeBuilder;
 import org.dataone.integration.ContextAwareTestCaseDataone;
 import org.dataone.integration.ExampleUtilities;
-import org.dataone.integration.ContextAwareTestCaseDataone.TestIterationEndingException;
+import org.dataone.integration.TestIterationEndingException;
 import org.dataone.integration.adapters.CommonCallAdapter;
 import org.dataone.integration.it.ContextAwareAdapter;
 import org.dataone.service.exceptions.BaseException;
@@ -686,7 +686,7 @@ public class ReadTestImplementations extends ContextAwareAdapter {
             ObjectList ol = catc.procureObjectList(callAdapter);
             checkTrue(callAdapter.getLatestRequestUrl(), "listObjects() should return an ObjectList", ol != null);
             if (ol.getTotal() == 0)
-                throw catc.new TestIterationEndingException("no objects found in listObjects");
+                throw new TestIterationEndingException("no objects found in listObjects");
             ObjectInfo oi0 = ol.getObjectInfo(0);
             Date fromDate = null;
             ObjectInfo excludedObjectInfo = null;
@@ -802,7 +802,7 @@ public class ReadTestImplementations extends ContextAwareAdapter {
             ObjectList ol = callAdapter.listObjects(null, null, null, null, null, null, null, null);
             checkTrue(callAdapter.getLatestRequestUrl(), "listObjects() should return an ObjectList", ol != null);
             if (ol == null || ol.getTotal() == 0)
-                throw catc.new TestIterationEndingException("no objects found in listObjects");
+                throw new TestIterationEndingException("no objects found in listObjects");
 
             int allTotal = ol.getTotal();
 
@@ -820,7 +820,7 @@ public class ReadTestImplementations extends ContextAwareAdapter {
                 }
             }
             if (!foundAnother) {
-                throw catc.new TestIterationEndingException("only one object format was found.  Can't test format filtering");
+                throw new TestIterationEndingException("only one object format was found.  Can't test format filtering");
             }
             ol = callAdapter.listObjects(null, null, null, formatA, null, null, null, null);
             checkTrue(callAdapter.getLatestRequestUrl(), "objectList filtered by " + formatA.getValue()

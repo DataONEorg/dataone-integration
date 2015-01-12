@@ -11,8 +11,8 @@ import org.dataone.client.v1.types.D1TypeBuilder;
 import org.dataone.configuration.Settings;
 import org.dataone.integration.APITestUtils;
 import org.dataone.integration.ContextAwareTestCaseDataone;
-import org.dataone.integration.ContextAwareTestCaseDataone.TestIterationEndingException;
 import org.dataone.integration.ExampleUtilities;
+import org.dataone.integration.TestIterationEndingException;
 import org.dataone.integration.adapters.CNCallAdapter;
 import org.dataone.integration.it.ContextAwareAdapter;
 import org.dataone.service.exceptions.BaseException;
@@ -149,7 +149,7 @@ public class CNAuthTestImplementations extends ContextAwareAdapter {
             try {
                 smd = callAdapter.getSystemMetadata(null,changeableObject);
                 if (!smd.getRightsHolder().equals(ownerSubject)) 
-                    throw catc.new TestIterationEndingException("the test object should be owned by "
+                    throw new TestIterationEndingException("the test object should be owned by "
                             + "the client subject");
             } 
             catch (NotFound e) {
