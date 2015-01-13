@@ -6,7 +6,7 @@ package org.dataone.integration.it.testDefinitions;
  */
 public interface MNv2StorageTestDefinitions extends MNStorageTestDefinitions {
 
+    // TODO no tests exist for this method yet:
     public void testUpdateSystemMetadata();
 
-    // TODO find actual method implementations and modify/add accordingly
 }

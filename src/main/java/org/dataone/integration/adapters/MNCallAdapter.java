@@ -19,10 +19,16 @@ import org.dataone.service.exceptions.ServiceFailure;
 import org.dataone.service.exceptions.SynchronizationFailed;
 import org.dataone.service.exceptions.UnsupportedType;
 import org.dataone.service.mn.tier1.v2.MNRead;
+import org.dataone.service.mn.tier3.v2.MNStorage;
+import org.dataone.service.mn.tier4.v2.MNReplication;
+import org.dataone.service.mn.v2.MNQuery;
 import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Node;
+import org.dataone.service.types.v1.NodeReference;
 import org.dataone.service.types.v1.NodeType;
 import org.dataone.service.types.v1.Session;
+import org.dataone.service.types.v1_1.QueryEngineDescription;
+import org.dataone.service.types.v1_1.QueryEngineList;
 import org.dataone.service.types.v2.SystemMetadata;
 
 /**
@@ -99,9 +105,182 @@ public class MNCallAdapter extends CommonCallAdapter {
     public Identifier create(Session session, Identifier pid, InputStream object, 
             SystemMetadata sysmeta) 
         throws IdentifierNotUnique, InsufficientResources, InvalidRequest, InvalidSystemMetadata, 
-            InvalidToken, NotAuthorized, NotImplemented, ServiceFailure, UnsupportedType {
-        
-        return null;
+            InvalidToken, NotAuthorized, NotImplemented, ServiceFailure, UnsupportedType, ClientSideException {
+        if (this.node.getType().equals(NodeType.CN)) {
+            if (this.version.toLowerCase().equals("v1")) {
+                org.dataone.service.mn.tier3.v1.MNStorage mnStorage = D1NodeFactory.buildNode(
+                        org.dataone.service.mn.tier3.v1.MNStorage.class, this.mrc,
+                        URI.create(this.node.getBaseURL()));
+                return mnStorage.create(session, pid, object, sysmeta);
+            } else if (this.version.toLowerCase().equals("v2")) {
+                MNStorage mnStorage = D1NodeFactory.buildNode(MNStorage.class, this.mrc,
+                        URI.create(this.node.getBaseURL()));
+                return mnStorage.create(session, pid, object, sysmeta);
+            }
+        }
+        throw new ClientSideException("Call to create failed. " + node.getType()
+                + " of version " + version);
     }
 
+    public Identifier update(Session session, Identifier pid, InputStream object,
+            Identifier newPid, SystemMetadata sysmeta) throws IdentifierNotUnique,
+            InsufficientResources, InvalidRequest, InvalidSystemMetadata, InvalidToken,
+            NotAuthorized, NotImplemented, ServiceFailure, UnsupportedType, NotFound, ClientSideException {
+        if (this.node.getType().equals(NodeType.CN)) {
+            if (this.version.toLowerCase().equals("v1")) {
+                org.dataone.service.mn.tier3.v1.MNStorage mnStorage = D1NodeFactory.buildNode(
+                        org.dataone.service.mn.tier3.v1.MNStorage.class, this.mrc,
+                        URI.create(this.node.getBaseURL()));
+                return mnStorage.update(session, pid, object, newPid, sysmeta);
+            } else if (this.version.toLowerCase().equals("v2")) {
+                MNStorage mnStorage = D1NodeFactory.buildNode(MNStorage.class, this.mrc,
+                        URI.create(this.node.getBaseURL()));
+                return mnStorage.update(session, pid, object, newPid, sysmeta);
+            }
+        }
+        throw new ClientSideException("Call to update failed. " + node.getType()
+                + " of version " + version);
+    }
+
+    public boolean updateSystemMetadata(Session session, Identifier pid, SystemMetadata sysmeta)
+            throws NotImplemented, NotAuthorized, NotFound, ServiceFailure, InvalidRequest,
+            InvalidSystemMetadata, InvalidToken, ClientSideException {
+        if (this.node.getType().equals(NodeType.CN)
+                && this.version.toLowerCase().equals("v2")) {
+                MNStorage mnStorage = D1NodeFactory.buildNode(MNStorage.class, this.mrc,
+                        URI.create(this.node.getBaseURL()));
+                return mnStorage.updateSystemMetadata(session, pid, sysmeta);
+        }
+        throw new ClientSideException("Call to updateSystemMetadata failed. " + node.getType()
+                + " of version " + version);
+    }
+
+    public Identifier delete(Session session, Identifier id) throws InvalidToken, ServiceFailure,
+            NotAuthorized, NotFound, NotImplemented, ClientSideException {
+        if (this.node.getType().equals(NodeType.CN)) {
+            if (this.version.toLowerCase().equals("v1")) {
+                org.dataone.service.mn.tier3.v1.MNStorage mnStorage = D1NodeFactory.buildNode(
+                        org.dataone.service.mn.tier3.v1.MNStorage.class, this.mrc,
+                        URI.create(this.node.getBaseURL()));
+                return mnStorage.delete(session, id);
+            } else if (this.version.toLowerCase().equals("v2")) {
+                MNStorage mnStorage = D1NodeFactory.buildNode(MNStorage.class, this.mrc,
+                        URI.create(this.node.getBaseURL()));
+                return mnStorage.delete(session, id);
+            }
+        }
+        throw new ClientSideException("Call to delete failed. " + node.getType()
+                + " of version " + version);
+    }
+
+    public Identifier archive(Session session, Identifier id) throws InvalidToken, ServiceFailure,
+            NotAuthorized, NotFound, NotImplemented, ClientSideException {
+        if (this.node.getType().equals(NodeType.CN)) {
+            if (this.version.toLowerCase().equals("v1")) {
+                org.dataone.service.mn.tier3.v1.MNStorage mnStorage = D1NodeFactory.buildNode(
+                        org.dataone.service.mn.tier3.v1.MNStorage.class, this.mrc,
+                        URI.create(this.node.getBaseURL()));
+                return mnStorage.archive(session, id);
+            } else if (this.version.toLowerCase().equals("v2")) {
+                MNStorage mnStorage = D1NodeFactory.buildNode(MNStorage.class, this.mrc,
+                        URI.create(this.node.getBaseURL()));
+                return mnStorage.archive(session, id);
+            }
+        }
+        throw new ClientSideException("Call to archive failed. " + node.getType()
+                + " of version " + version);
+    }
+
+    public Identifier generateIdentifier(Session session, String scheme, String fragment)
+            throws InvalidToken, ServiceFailure, NotAuthorized, NotImplemented, InvalidRequest, ClientSideException {
+        if (this.node.getType().equals(NodeType.CN)) {
+            if (this.version.toLowerCase().equals("v1")) {
+                org.dataone.service.mn.tier3.v1.MNStorage mnStorage = D1NodeFactory.buildNode(
+                        org.dataone.service.mn.tier3.v1.MNStorage.class, this.mrc,
+                        URI.create(this.node.getBaseURL()));
+                return mnStorage.generateIdentifier(session, scheme, fragment);
+            } else if (this.version.toLowerCase().equals("v2")) {
+                MNStorage mnStorage = D1NodeFactory.buildNode(MNStorage.class, this.mrc,
+                        URI.create(this.node.getBaseURL()));
+                return mnStorage.generateIdentifier(session, scheme, fragment);
+            }
+        }
+        throw new ClientSideException("Call to create failed. " + node.getType()
+                + " of version " + version);
+    }
+
+    public boolean replicate(Session session, SystemMetadata sysmeta, NodeReference sourceNode)
+            throws NotImplemented, ServiceFailure, NotAuthorized, InvalidRequest, InvalidToken,
+            InsufficientResources, UnsupportedType, ClientSideException {
+        if (this.node.getType().equals(NodeType.CN)) {
+            if (this.version.toLowerCase().equals("v1")) {
+                org.dataone.service.mn.tier4.v1.MNReplication mnReplication = D1NodeFactory.buildNode(
+                        org.dataone.service.mn.tier4.v1.MNReplication.class, this.mrc,
+                        URI.create(this.node.getBaseURL()));
+                return mnReplication.replicate(session, sysmeta, sourceNode);
+            } else if (this.version.toLowerCase().equals("v2")) {
+                MNReplication mnReplication = D1NodeFactory.buildNode(MNReplication.class, this.mrc,
+                        URI.create(this.node.getBaseURL()));
+                return mnReplication.replicate(session, sysmeta, sourceNode);
+            }
+        }
+        throw new ClientSideException("Call to replicate failed. " + node.getType()
+                + " of version " + version);
+    }
+
+    public InputStream query(Session session, String queryEngine, String query)
+            throws InvalidToken, ServiceFailure, NotAuthorized, InvalidRequest, NotImplemented,
+            NotFound, ClientSideException {
+        if (this.node.getType().equals(NodeType.CN)) {
+            if (this.version.toLowerCase().equals("v1")) {
+                org.dataone.service.mn.v1.MNQuery mnQuery = D1NodeFactory.buildNode(
+                        org.dataone.service.mn.v1.MNQuery.class, this.mrc,
+                        URI.create(this.node.getBaseURL()));
+                return mnQuery.query(queryEngine, query);
+            } else if (this.version.toLowerCase().equals("v2")) {
+                MNQuery mnQuery = D1NodeFactory.buildNode(MNQuery.class, this.mrc,
+                        URI.create(this.node.getBaseURL()));
+                return mnQuery.query(session, queryEngine, query);
+            }
+        }
+        throw new ClientSideException("Call to query failed. " + node.getType()
+                + " of version " + version);
+    }
+    
+    public QueryEngineDescription getQueryEngineDescription(Session session, String queryEngine)
+            throws InvalidToken, ServiceFailure, NotAuthorized, NotImplemented, NotFound, ClientSideException {
+        if (this.node.getType().equals(NodeType.CN)) {
+            if (this.version.toLowerCase().equals("v1")) {
+                org.dataone.service.mn.v1.MNQuery mnQuery = D1NodeFactory.buildNode(
+                        org.dataone.service.mn.v1.MNQuery.class, this.mrc,
+                        URI.create(this.node.getBaseURL()));
+                return mnQuery.getQueryEngineDescription(queryEngine);
+            } else if (this.version.toLowerCase().equals("v2")) {
+                MNQuery mnQuery = D1NodeFactory.buildNode(MNQuery.class, this.mrc,
+                        URI.create(this.node.getBaseURL()));
+                return mnQuery.getQueryEngineDescription(session, queryEngine);
+            }
+        }
+        throw new ClientSideException("Call to getQueryEngineDescription failed. " + node.getType()
+                + " of version " + version);
+    }
+
+
+    public QueryEngineList listQueryEngines(Session session) throws InvalidToken, ServiceFailure,
+            NotAuthorized, NotImplemented, ClientSideException {
+        if (this.node.getType().equals(NodeType.CN)) {
+            if (this.version.toLowerCase().equals("v1")) {
+                org.dataone.service.mn.v1.MNQuery mnQuery = D1NodeFactory.buildNode(
+                        org.dataone.service.mn.v1.MNQuery.class, this.mrc,
+                        URI.create(this.node.getBaseURL()));
+                return mnQuery.listQueryEngines();
+            } else if (this.version.toLowerCase().equals("v2")) {
+                MNQuery mnQuery = D1NodeFactory.buildNode(MNQuery.class, this.mrc,
+                        URI.create(this.node.getBaseURL()));
+                return mnQuery.listQueryEngines(session);
+            }
+        }
+        throw new ClientSideException("Call to listQueryEngines failed. " + node.getType()
+                + " of version " + version);
+    }
 }

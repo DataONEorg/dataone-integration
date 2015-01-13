@@ -49,19 +49,17 @@ import java.util.concurrent.Callable;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.dataone.client.rest.DefaultHttpMultipartRestClient;
-import org.dataone.client.rest.MultipartRestClient;
-import org.dataone.client.v1.CNode;
-import org.dataone.client.v1.impl.MultipartCNode;
-import org.dataone.client.v1.itk.D1Client;
 import org.dataone.client.D1Node;
 import org.dataone.client.D1NodeFactory;
-import org.dataone.client.v1.itk.D1Object;
-import org.dataone.client.v1.types.D1TypeBuilder;
-import org.dataone.client.v1.MNode;
 import org.dataone.client.auth.CertificateManager;
 import org.dataone.client.auth.ClientIdentityManager;
 import org.dataone.client.exception.ClientSideException;
+import org.dataone.client.rest.DefaultHttpMultipartRestClient;
+import org.dataone.client.rest.MultipartRestClient;
+import org.dataone.client.v1.CNode;
+import org.dataone.client.v1.MNode;
+import org.dataone.client.v1.itk.D1Object;
+import org.dataone.client.v1.types.D1TypeBuilder;
 import org.dataone.configuration.Settings;
 import org.dataone.configuration.TestSettings;
 import org.dataone.integration.adapters.CommonCallAdapter;
@@ -86,8 +84,8 @@ import org.dataone.service.types.v1.ObjectInfo;
 import org.dataone.service.types.v1.ObjectList;
 import org.dataone.service.types.v1.Permission;
 import org.dataone.service.types.v1.Subject;
-import org.dataone.service.types.v1.SystemMetadata;
 import org.dataone.service.types.v1.util.AccessUtil;
+import org.dataone.service.types.v2.SystemMetadata;
 import org.dataone.service.util.Constants;
 import org.dataone.service.util.TypeMarshaller;
 import org.jibx.runtime.JiBXException;
@@ -594,7 +592,9 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
                                 continue;
                         }
                         try {
-                            SystemMetadata smd = cca.getSystemMetadata(null,oi.getIdentifier());
+                            SystemMetadata smd = null;
+                            smd = cca.getSystemMetadata(null,oi.getIdentifier());
+                            
                             if (AccessUtil.getPermissionMap(smd.getAccessPolicy())
                                     .containsKey(D1TypeBuilder.buildSubject(Constants.SUBJECT_PUBLIC)))
                             {
@@ -693,6 +693,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
         try {
             log.debug("procureTestObject: checking system metadata of requested object");
             SystemMetadata smd = cca.getSystemMetadata(null, pid);
+            
             if (accessRule == null) {
                 // need the accessPolicy to be null, or contain no accessrules
                 if (smd.getAccessPolicy() == null || smd.getAccessPolicy().sizeAllowList() == 0) {
@@ -1051,7 +1052,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
                         D1TypeBuilder.buildSubject(submitterX500),
                         D1TypeBuilder.buildNodeReference("bogusAuthoritativeNode"));
                 //			}
-                sysMeta = d1o.getSystemMetadata();
+                sysMeta = TypeMarshaller.convertTypeFromType(d1o.getSystemMetadata(), SystemMetadata.class);
             } catch (NoSuchAlgorithmException e) {
                 e.printStackTrace();
                 throw new ServiceFailure("0000","client misconfiguration related to checksum algorithms");
@@ -1062,6 +1063,10 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
             } catch (IOException e) {
                 e.printStackTrace();
                 throw new ServiceFailure("0000","client misconfiguration related to reading of content byte[]");
+            } catch (InstantiationException | IllegalAccessException | 
+                    InvocationTargetException | JiBXException e) {
+                log.error("Unable to convert v1 SystemMetadata to v2 SystemMetadata.");
+                e.printStackTrace();
             }
 
             // set the rightsHolder property

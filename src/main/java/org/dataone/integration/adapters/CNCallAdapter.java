@@ -2,21 +2,21 @@ package org.dataone.integration.adapters;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
 import java.net.URI;
-import java.util.HashMap;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.dataone.client.D1NodeFactory;
 import org.dataone.client.exception.ClientSideException;
 import org.dataone.client.rest.MultipartRestClient;
-import org.dataone.service.cn.v2.CNIdentity;
 import org.dataone.service.cn.v2.CNAuthorization;
 import org.dataone.service.cn.v2.CNCore;
+import org.dataone.service.cn.v2.CNIdentity;
 import org.dataone.service.cn.v2.CNRead;
 import org.dataone.service.cn.v2.CNRegister;
+import org.dataone.service.cn.v2.CNReplication;
+import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.IdentifierNotUnique;
 import org.dataone.service.exceptions.InsufficientResources;
 import org.dataone.service.exceptions.InvalidCredentials;
@@ -41,6 +41,9 @@ import org.dataone.service.types.v1.ObjectFormatIdentifier;
 import org.dataone.service.types.v1.ObjectList;
 import org.dataone.service.types.v1.ObjectLocationList;
 import org.dataone.service.types.v1.Person;
+import org.dataone.service.types.v1.Replica;
+import org.dataone.service.types.v1.ReplicationPolicy;
+import org.dataone.service.types.v1.ReplicationStatus;
 import org.dataone.service.types.v1.Session;
 import org.dataone.service.types.v1.Subject;
 import org.dataone.service.types.v1.SubjectInfo;
@@ -61,6 +64,9 @@ import org.jibx.runtime.JiBXException;
  */
 public class CNCallAdapter extends CommonCallAdapter {
 
+    private static Log log = LogFactory.getLog(CNCallAdapter.class);
+    
+    
     public CNCallAdapter(MultipartRestClient mrc, Node node, String version) {
         super(mrc, node, version);
     }
@@ -767,88 +773,99 @@ public class CNCallAdapter extends CommonCallAdapter {
                 + " of version " + version);
     }
 
-    // attempting to get rid of the copy pasta that is the adapter class code
-    // shortens adapter calls a ton, 
-    // but only works for methods that with same parameters
-    // and it's not too neat :[
+    public boolean setReplicationStatus(Session session, Identifier pid, NodeReference nodeRef,
+            ReplicationStatus status, BaseException failure) throws ServiceFailure, NotImplemented,
+            InvalidToken, NotAuthorized, InvalidRequest, NotFound, ClientSideException {
+        if (this.node.getType().equals(NodeType.CN)) {
+            if (this.version.toLowerCase().equals("v1")) {
+                org.dataone.service.cn.v1.CNReplication cnReplication = D1NodeFactory.buildNode(
+                        org.dataone.service.cn.v1.CNReplication.class, this.mrc,
+                        URI.create(this.node.getBaseURL()));
+                return cnReplication.setReplicationStatus(session, pid, nodeRef, status, failure);
+            } else if (this.version.toLowerCase().equals("v2")) {
+                CNReplication cnReplication = D1NodeFactory.buildNode(CNReplication.class, this.mrc,
+                        URI.create(this.node.getBaseURL()));
+                return cnReplication.setReplicationStatus(session, pid, nodeRef, status, failure);
+            }
+        }
+        throw new ClientSideException("Call to setReplicationStatus failed. " + node.getType() + " of version "
+                + version);
+    }
 
-    //    private static final Class<?> CN_V1_IDENTITY = org.dataone.service.cn.v1.CNIdentity.class;
-    //    private static final Class<?> CN_V2_IDENTITY = org.dataone.service.cn.v2.CNIdentity.class;
-    //    
-    //    private static HashMap<String, Class<?>> nodeInterfaceMap = new HashMap<String, Class<?>>();
-    //    
-    //    static{
-    //        nodeInterfaceMap.put(getInterfaceKey(NodeType.CN, "v1", CN_V1_IDENTITY.getSimpleName()), CN_V1_IDENTITY);
-    //        nodeInterfaceMap.put(getInterfaceKey(NodeType.CN, "v2", CN_V2_IDENTITY.getSimpleName()), CN_V2_IDENTITY);
-    //        // ...
-    //    }
-    //
-    //    private static String getInterfaceKey(NodeType nodeType, String version, String interfaceClassName) {
-    //        return "" + nodeType + "v1" + interfaceClassName;
-    //    }
-    //    
-    //    private <T> T runMethod(String interfaceClassName, String methodName, Class<T> returnClass, Object... params) throws ClientSideException, NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
-    //
-    //        String interfaceKey = getInterfaceKey(node.getType(), methodName, interfaceClassName);
-    //        Class<?> interfaceClass = nodeInterfaceMap.get(interfaceKey);
-    //        
-    //        Object interfaceInstance = D1NodeFactory.buildNode(
-    //                interfaceClass, this.mrc,
-    //                URI.create(this.node.getBaseURL()));
-    //        
-    //        Class<?>[] paramClasses = new Class<?>[params.length];
-    //        for (int i=0; i<params.length; i++)
-    //            paramClasses[i] = params[i].getClass();
-    //        
-    //        Method method = interfaceClass.getClass().getMethod(methodName, paramClasses);
-    //        Object result = method.invoke(interfaceInstance, params);
-    //        
-    //        if(returnClass.isAssignableFrom(result.getClass()))
-    //            return returnClass.cast(result);
-    //        return null;
-    //    }
-    //    
-    //    
-    //    public boolean verifyAccount(Subject subject) throws ServiceFailure, NotAuthorized,
-    //            NotImplemented, InvalidToken, InvalidRequest, NotFound, ClientSideException, NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
-    //        return runMethod("CNIdentity", "verifyAccount", boolean.class, subject);
-    //    }
-    //    
-    // idea 2
-    //    private static class AdapterInvocationHandler implements InvocationHandler {
-    //
-    //        private Object target;
-    //        private Class<?> targetClass;
-    //
-    //        public AdapterInvocationHandler(Object target) {
-    //            this.target = target;
-    //            targetClass = target.getClass();
-    //        }
-    //
-    //        public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-    //            try {
-    //                Method targetMethod = targetClass.getMethod(method.getName(), method.getParameterTypes());
-    //                if (!method.getReturnType().isAssignableFrom(targetMethod.getReturnType()))
-    //                    throw new UnsupportedOperationException("Target (" + target.getClass().getName() + ") does not support: " + method.toGenericString());
-    //                return targetMethod.invoke(target, args);
-    //            } catch (NoSuchMethodException ex) {
-    //                throw new UnsupportedOperationException("Target (" + target.getClass().getName() + ") does not support: " + method.toGenericString());
-    //            } catch (IllegalAccessException ex) {
-    //                throw new UnsupportedOperationException("Target (" + target.getClass().getName() + ") does not declare method to be public: " + method.toGenericString());
-    //            } catch (InvocationTargetException ex) {
-    //                // May throw a NullPointerException if there is no target exception
-    //                throw ex.getTargetException();
-    //            }
-    //        }
-    //    }
-    //    
-    //    private static class AdapterFactory {
-    //
-    //        public static <T> T createAdapter(Object target, Class<T> interfaceClass) {
-    //            if (!interfaceClass.isInterface())
-    //                throw new IllegalArgumentException("Must be an interface: " + interfaceClass.getName());
-    //            return (T) Proxy.newProxyInstance(null, new Class<?>[] { interfaceClass }, new AdapterInvocationHandler(target));
-    //        }
-    //    }
+    public boolean setReplicationPolicy(Session session, Identifier pid, ReplicationPolicy policy,
+            long serialVersion) throws NotImplemented, NotFound, NotAuthorized, ServiceFailure,
+            InvalidRequest, InvalidToken, VersionMismatch, ClientSideException {
+        if (this.node.getType().equals(NodeType.CN)) {
+            if (this.version.toLowerCase().equals("v1")) {
+                org.dataone.service.cn.v1.CNReplication cnReplication = D1NodeFactory.buildNode(
+                        org.dataone.service.cn.v1.CNReplication.class, this.mrc,
+                        URI.create(this.node.getBaseURL()));
+                return cnReplication.setReplicationPolicy(session, pid, policy, serialVersion);
+            } else if (this.version.toLowerCase().equals("v2")) {
+                CNReplication cnReplication = D1NodeFactory.buildNode(CNReplication.class, this.mrc,
+                        URI.create(this.node.getBaseURL()));
+                return cnReplication.setReplicationPolicy(session, pid, policy, serialVersion);
+            }
+        }
+        throw new ClientSideException("Call to setReplicationPolicy failed. " + node.getType() + " of version "
+                + version);
+    }
+
+    public boolean isNodeAuthorized(Session session, Subject targetNodeSubject, Identifier pid)
+            throws NotImplemented, NotAuthorized, InvalidToken, ServiceFailure, NotFound,
+            InvalidRequest, ClientSideException {
+        if (this.node.getType().equals(NodeType.CN)) {
+            if (this.version.toLowerCase().equals("v1")) {
+                org.dataone.service.cn.v1.CNReplication cnReplication = D1NodeFactory.buildNode(
+                        org.dataone.service.cn.v1.CNReplication.class, this.mrc,
+                        URI.create(this.node.getBaseURL()));
+                return cnReplication.isNodeAuthorized(session, targetNodeSubject, pid);
+            } else if (this.version.toLowerCase().equals("v2")) {
+                CNReplication cnReplication = D1NodeFactory.buildNode(CNReplication.class, this.mrc,
+                        URI.create(this.node.getBaseURL()));
+                return cnReplication.isNodeAuthorized(session, targetNodeSubject, pid);
+            }
+        }
+        throw new ClientSideException("Call to isNodeAuthorized failed. " + node.getType() + " of version "
+                + version);
+    }
+
+    public boolean updateReplicationMetadata(Session session, Identifier pid,
+            Replica replicaMetadata, long serialVersion) throws NotImplemented, NotAuthorized,
+            ServiceFailure, NotFound, InvalidRequest, InvalidToken, VersionMismatch, ClientSideException {
+        if (this.node.getType().equals(NodeType.CN)) {
+            if (this.version.toLowerCase().equals("v1")) {
+                org.dataone.service.cn.v1.CNReplication cnReplication = D1NodeFactory.buildNode(
+                        org.dataone.service.cn.v1.CNReplication.class, this.mrc,
+                        URI.create(this.node.getBaseURL()));
+                return cnReplication.updateReplicationMetadata(session, pid, replicaMetadata, serialVersion);
+            } else if (this.version.toLowerCase().equals("v2")) {
+                CNReplication cnReplication = D1NodeFactory.buildNode(CNReplication.class, this.mrc,
+                        URI.create(this.node.getBaseURL()));
+                return cnReplication.updateReplicationMetadata(session, pid, replicaMetadata, serialVersion);
+            }
+        }
+        throw new ClientSideException("Call to updateReplicationMetadata failed. " + node.getType() + " of version "
+                + version);
+    }
+
+    public boolean deleteReplicationMetadata(Session session, Identifier pid, NodeReference nodeId,
+            long serialVersion) throws InvalidToken, InvalidRequest, ServiceFailure, NotAuthorized,
+            NotFound, NotImplemented, VersionMismatch, ClientSideException {
+        if (this.node.getType().equals(NodeType.CN)) {
+            if (this.version.toLowerCase().equals("v1")) {
+                org.dataone.service.cn.v1.CNReplication cnReplication = D1NodeFactory.buildNode(
+                        org.dataone.service.cn.v1.CNReplication.class, this.mrc,
+                        URI.create(this.node.getBaseURL()));
+                return cnReplication.deleteReplicationMetadata(session, pid, nodeId, serialVersion);
+            } else if (this.version.toLowerCase().equals("v2")) {
+                CNReplication cnReplication = D1NodeFactory.buildNode(CNReplication.class, this.mrc,
+                        URI.create(this.node.getBaseURL()));
+                return cnReplication.deleteReplicationMetadata(session, pid, nodeId, serialVersion);
+            }
+        }
+        throw new ClientSideException("Call to deleteReplicationMetadata failed. " + node.getType() + " of version "
+                + version);
+    }
 
 }

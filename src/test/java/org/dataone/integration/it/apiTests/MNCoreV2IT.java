@@ -1,18 +1,18 @@
-package org.dataone.integration.it;
+package org.dataone.integration.it.apiTests;
 
 import org.dataone.integration.ContextAwareTestCaseDataone;
-import org.dataone.integration.it.testDefinitions.CNCoreTestDefinitions;
 import org.dataone.integration.it.testDefinitions.CoreTestDefinitions;
+import org.dataone.integration.it.testDefinitions.MNCoreTestDefinitions;
 import org.dataone.integration.it.testImplementations.CoreTestImplementations;
 import org.junit.Before;
 import org.junit.Test;
 
 /**
- * Tests CNCore functionality for v1 of the API 
+ * Tests MNCore functionality for v2 of the API 
  */
-public class CNCoreV1IT extends ContextAwareTestCaseDataone 
-implements CoreTestDefinitions, CNCoreTestDefinitions {
-    
+public class MNCoreV2IT extends ContextAwareTestCaseDataone 
+implements CoreTestDefinitions, MNCoreTestDefinitions
+{
     private CoreTestImplementations coreTestImpl;
     
     @Before 
@@ -22,7 +22,7 @@ implements CoreTestDefinitions, CNCoreTestDefinitions {
     
     @Override
     protected String getTestDescription() {
-        return "Test Case that runs through the CN version 1 of core API methods";
+        return "Test Case that runs through the MN version 2 or core API methods";
     }
     
     @Override
@@ -65,5 +65,23 @@ implements CoreTestDefinitions, CNCoreTestDefinitions {
     @Test
     public void testGetLogRecords_dateFiltering() {
         this.coreTestImpl.testGetLogRecords_dateFiltering(getMemberNodeIterator(), "v2");
+    }
+
+    @Override
+    @Test
+    public void testGetCapabilities() {
+        this.coreTestImpl.testGetCapabilities(getMemberNodeIterator(), "v2");
+    }
+
+    @Override
+    @Test
+    public void testGetCapabilities_HasCompatibleNodeContact() {
+        this.coreTestImpl.testGetCapabilities_HasCompatibleNodeContact(getMemberNodeIterator(), "v2");
+    }
+
+    @Override
+    @Test
+    public void testGetCapabilities_NodeIdentityValidFormat() {
+        this.coreTestImpl.testGetCapabilities_NodeIdentityValidFormat(getMemberNodeIterator(), "v2");
     }
 }

@@ -5,11 +5,12 @@ package org.dataone.integration.it.testDefinitions;
  */
 public interface MNQueryTestDefinitions {
 
+    // TODO no tests exist yet for MN versions of the following methods:
+    
     public void testListQueryEngines();
 
     public void testQuery();
 
     public void testGetQueryEngineDescription();
 
-    // TODO find actual method implementations and modify/add accordingly
 }

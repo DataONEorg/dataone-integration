@@ -7,5 +7,18 @@ public interface MNReplicationTestDefinitions {
 
     public void testReplicate();
 
-    // TODO find actual method implementations and modify/add accordingly
+    public void testReplicate_NoCertificate();
+
+    public void testReplicate_ValidCertificate_NotCN();
+
+    public void testReplicate_FaultyNodeReference();
+
+    public void testReplicateOnCreateWithoutPreferredList();
+
+    public void testReplicateOnCreateWithPreferredList();
+
+    public void testReplicateOnCreateWithBlockedList();
+
+    public void testReplicateOnCreateNoPolicy();
+
 }

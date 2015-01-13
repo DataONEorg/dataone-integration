@@ -1,4 +1,4 @@
-package org.dataone.integration.it;
+package org.dataone.integration.it.apiTests;
 
 import org.dataone.integration.ContextAwareTestCaseDataone;
 import org.dataone.integration.it.testDefinitions.AuthAPITestDefinitions;
@@ -8,7 +8,7 @@ import org.dataone.integration.it.testImplementations.CNAuthTestImplementations;
 import org.junit.Before;
 import org.junit.Test;
 
-public class CNAuthV1IT extends ContextAwareTestCaseDataone 
+public class CNAuthV2IT extends ContextAwareTestCaseDataone 
         implements AuthAPITestDefinitions, CNAuthTestDefinitions {
     
     private AuthAPITestImplementations authTestImpl;
@@ -22,24 +22,24 @@ public class CNAuthV1IT extends ContextAwareTestCaseDataone
     
     @Override
     protected String getTestDescription() {
-        return "Test Case that runs through the CN version 1 of authentication API methods";
+        return "Test Case that runs through the CN version 2 of authentication API methods";
     }
     
     @Override
     @Test
     public void testIsAuthorized() {
-        authTestImpl.testIsAuthorized(getCoordinatingNodeIterator(), "v1");
+        authTestImpl.testIsAuthorized(getCoordinatingNodeIterator(), "v2");
     }
     
     @Override
     @Test
     public void testSetRightsHolder() {
-        cnAuthTestImpl.testSetRightsHolder(getCoordinatingNodeIterator(), "v1");
+        cnAuthTestImpl.testSetRightsHolder(getCoordinatingNodeIterator(), "v2");
     }
 
     @Override
     @Test
     public void testSetAccessPolicy() {
-        cnAuthTestImpl.testSetAccessPolicy(getCoordinatingNodeIterator(), "v1");
+        cnAuthTestImpl.testSetAccessPolicy(getCoordinatingNodeIterator(), "v2");
     }
 }

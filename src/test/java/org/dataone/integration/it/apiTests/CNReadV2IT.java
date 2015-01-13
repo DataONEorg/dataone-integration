@@ -1,30 +1,32 @@
-package org.dataone.integration.it;
+package org.dataone.integration.it.apiTests;
 
 import org.dataone.integration.ContextAwareTestCaseDataone;
-import org.dataone.integration.it.testDefinitions.MNReadTestDefinitions;
-import org.dataone.integration.it.testDefinitions.MNv2ReadTestDefinitions;
+import org.dataone.integration.it.testDefinitions.CNReadTestDefinitions;
 import org.dataone.integration.it.testDefinitions.ReadTestDefinitions;
-import org.dataone.integration.it.testImplementations.MNReadTestImplementations;
+import org.dataone.integration.it.testImplementations.CNReadTestImplementations;
 import org.dataone.integration.it.testImplementations.ReadTestImplementations;
 import org.junit.Before;
 import org.junit.Test;
 
-public class MNReadV2IT extends ContextAwareTestCaseDataone 
-        implements ReadTestDefinitions, MNReadTestDefinitions, MNv2ReadTestDefinitions{
+/**
+ * Tests CNCore functionality for v1 of the API 
+ */
+public class CNReadV2IT extends ContextAwareTestCaseDataone 
+        implements ReadTestDefinitions, CNReadTestDefinitions {
 
     private ReadTestImplementations readTestImpl;
-    private MNReadTestImplementations mnReadTestImpl;
+    private CNReadTestImplementations cnReadTestImpl;
     
     
     @Override
     protected String getTestDescription() {
-        return "Test Case that runs through the MN version 2 of read API methods";
+        return "Test Case that runs through the CN version 1 of read API methods";
     }
     
-    @Before 
+    @Before
     public void setup() {
         readTestImpl = new ReadTestImplementations(this);
-        mnReadTestImpl = new MNReadTestImplementations(this);
+        cnReadTestImpl = new CNReadTestImplementations(this);
     }
 
     @Override
@@ -131,55 +133,43 @@ public class MNReadV2IT extends ContextAwareTestCaseDataone
 
     @Override
     @Test
-    public void testSystemMetadataChanged_EarlierDate() {
-        mnReadTestImpl.testSystemMetadataChanged_EarlierDate(getCoordinatingNodeIterator(), "v2");
+    public void testResolve() {
+        cnReadTestImpl.testResolve(getCoordinatingNodeIterator(), "v2");
     }
 
     @Override
     @Test
-    public void testSystemMetadataChanged_authenticatedITKuser() {
-        mnReadTestImpl.testSystemMetadataChanged_authenticatedITKuser(getCoordinatingNodeIterator(), "v2");
+    public void testSearch() {
+        cnReadTestImpl.testSearch(getCoordinatingNodeIterator(), "v2");
     }
 
     @Override
     @Test
-    public void testSystemMetadataChanged_withCreate() {
-        mnReadTestImpl.testSystemMetadataChanged_withCreate(getCoordinatingNodeIterator(), "v2");
+    public void testSearch_Solr_unicodeTests() {
+        cnReadTestImpl.testSearch_Solr_unicodeTests(getCoordinatingNodeIterator(), "v2");
     }
 
     @Override
     @Test
-    public void testSynchronizationFailed_NoCert() {
-        mnReadTestImpl.testSynchronizationFailed_NoCert(getCoordinatingNodeIterator(), "v2");
+    public void testQuery() {
+        cnReadTestImpl.testQuery(getCoordinatingNodeIterator(), "v2");
     }
 
     @Override
     @Test
-    public void testGetReplica_PublicObject() {
-        mnReadTestImpl.testGetReplica_PublicObject(getCoordinatingNodeIterator(), "v2");
+    public void testQuery_Authentication() {
+        cnReadTestImpl.testQuery_Authentication(getCoordinatingNodeIterator(), "v2");
     }
 
     @Override
     @Test
-    public void testGetReplica_ValidCertificate_NotMN() {
-        mnReadTestImpl.testGetReplica_ValidCertificate_NotMN(getCoordinatingNodeIterator(), "v2");
+    public void testListQueryEngines() {
+        cnReadTestImpl.testListQueryEngines(getCoordinatingNodeIterator(), "v2");
     }
 
     @Override
     @Test
-    public void testGetReplica_NoCertificate() {
-        mnReadTestImpl.testGetReplica_NoCertificate(getCoordinatingNodeIterator(), "v2");
-    }
-
-    @Override
-    @Test
-    public void testGetReplica_NotFound() {
-        mnReadTestImpl.testGetReplica_NotFound(getCoordinatingNodeIterator(), "v2");
-    }
-
-    @Override
-    @Test
-    public void testGetReplica_IdentifierEncoding() {
-        mnReadTestImpl.testGetReplica_IdentifierEncoding(getCoordinatingNodeIterator(), "v2");
+    public void testGetQueryEngineDescription() {
+        cnReadTestImpl.testGetQueryEngineDescription(getCoordinatingNodeIterator(), "v2");
     }
 }

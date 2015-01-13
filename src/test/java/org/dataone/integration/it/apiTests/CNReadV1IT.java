@@ -1,4 +1,4 @@
-package org.dataone.integration.it;
+package org.dataone.integration.it.apiTests;
 
 import org.dataone.integration.ContextAwareTestCaseDataone;
 import org.dataone.integration.it.testDefinitions.CNReadTestDefinitions;
