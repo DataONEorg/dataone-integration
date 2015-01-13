@@ -59,17 +59,14 @@ import org.junit.Test;
 
 /**
  * This abstract class is the locus for the thorough set of authorization tests.
- * It has been generalized to work with any READ-only method that follows Dataone's 
- * authorization rules. 
- * 
- * Originally written for isAuthorized, it also works for the search and query 
+ * It has been generalized to work with any READ-only method that follows Dataone's
+ * authorization rules.
+ *
+ * Originally written for isAuthorized, it also works for the search and query
  * API's
  */
-public abstract class AbstractAuthorizationTestImplementations extends ContextAwareAdapter {
+public abstract class AbstractAuthorizationTestImplementations extends ContextAwareTestCaseDataone {
 
-    public AbstractAuthorizationTestImplementations(ContextAwareTestCaseDataone catc) {
-        super(catc);
-    }
 
     private static String currentUrl;
 
@@ -78,7 +75,7 @@ public abstract class AbstractAuthorizationTestImplementations extends ContextAw
      */
     protected abstract Iterator<Node> getNodeIterator();
 
-    protected abstract CommonCallAdapter instantiateD1Node(String baseUrl);
+    protected abstract CommonCallAdapter instantiateD1Node(Node node);
 
     /**
      * used to determine which tests to run, based on Permission
@@ -489,7 +486,7 @@ public abstract class AbstractAuthorizationTestImplementations extends ContextAw
 
                  // get or create the test object
                  setupClientSubject(procuringSubjectString);
-                 Identifier testObject = this.catc.procureTestObject(d1Node,
+                 Identifier testObject = procureTestObject(d1Node,
                          buildAccessRule(objectSubjectString,objectPermission),
                          buildIdentifier(objectIdentifier));
 
@@ -621,7 +618,7 @@ public abstract class AbstractAuthorizationTestImplementations extends ContextAw
                      ":Authenticated_READ" + getTestObjectSeriesSuffix();
 
                  setupClientSubject(procuringSubjectString);
-                 Identifier testObject = this.catc.procureTestObject(d1Node,
+                 Identifier testObject = procureTestObject(d1Node,
                          buildAccessRule(objectSubjectString,objectPermission),
                          buildIdentifier(objectIdentifier));
 
@@ -756,7 +753,7 @@ public abstract class AbstractAuthorizationTestImplementations extends ContextAw
 
                  // get or create the test object
                  setupClientSubject(procuringSubjectString);
-                 Identifier testObject = this.catc.procureTestObject(d1Node,
+                 Identifier testObject = procureTestObject(d1Node,
                          buildAccessRule(objectSubjectString,objectPermission),
                          buildIdentifier(objectIdentifier));
 
@@ -901,7 +898,7 @@ public abstract class AbstractAuthorizationTestImplementations extends ContextAw
                      ":testPerson_READ" + getTestObjectSeriesSuffix();
 
                  setupClientSubject(procuringSubjectString);
-                 Identifier testObject = this.catc.procureTestObject(d1Node,
+                 Identifier testObject = procureTestObject(d1Node,
                          buildAccessRule(objectSubjectString,objectPermission),
                          buildIdentifier(objectIdentifier));
 
@@ -1040,7 +1037,7 @@ public abstract class AbstractAuthorizationTestImplementations extends ContextAw
 
                  // get or create the test object
                  setupClientSubject(procuringSubjectString);
-                 Identifier testObject = this.catc.procureTestObject(d1Node,
+                 Identifier testObject = procureTestObject(d1Node,
                          buildAccessRule(objectSubjectString,objectPermission),
                          buildIdentifier(objectIdentifier));
 
@@ -1176,7 +1173,7 @@ public abstract class AbstractAuthorizationTestImplementations extends ContextAw
 
                  // get or create the test object
                  setupClientSubject(procuringSubjectString);
-                 Identifier testObject = this.catc.procureTestObject(d1Node,
+                 Identifier testObject = procureTestObject(d1Node,
                          buildAccessRule(objectSubjectString,objectPermission),
                          buildIdentifier(objectIdentifier));
 
@@ -1312,7 +1309,7 @@ public abstract class AbstractAuthorizationTestImplementations extends ContextAw
                      ":testGroup_READ" + getTestObjectSeriesSuffix();
 
                  setupClientSubject(procuringSubjectString);
-                 Identifier testObject = this.catc.procureTestObject(d1Node,
+                 Identifier testObject = procureTestObject(d1Node,
                          buildAccessRule(objectSubjectString,objectPermission),
                          buildIdentifier(objectIdentifier));
 
@@ -1456,7 +1453,7 @@ public abstract class AbstractAuthorizationTestImplementations extends ContextAw
                      ":testGroup_WRITE" + getTestObjectSeriesSuffix();
 
                  setupClientSubject(procuringSubjectString);
-                 Identifier testObject = this.catc.procureTestObject(d1Node,
+                 Identifier testObject = procureTestObject(d1Node,
                          buildAccessRule(objectSubjectString,objectPermission),
                          buildIdentifier(objectIdentifier));
 
@@ -1600,7 +1597,7 @@ public abstract class AbstractAuthorizationTestImplementations extends ContextAw
                      ":testGroup_CHANGE" + getTestObjectSeriesSuffix();
 
                  setupClientSubject(procuringSubjectString);
-                 Identifier testObject = this.catc.procureTestObject(d1Node,
+                 Identifier testObject = procureTestObject(d1Node,
                          buildAccessRule(objectSubjectString,objectPermission),
                          buildIdentifier(objectIdentifier));
 
@@ -1741,7 +1738,7 @@ public abstract class AbstractAuthorizationTestImplementations extends ContextAw
                      ":legacyAcct_WRITE" + getTestObjectSeriesSuffix();
 
                  setupClientSubject(procuringSubjectString);
-                 Identifier testObject = this.catc.procureTestObject(d1Node,
+                 Identifier testObject = procureTestObject(d1Node,
                          buildAccessRule(objectSubjectString,objectPermission),
                          buildIdentifier(objectIdentifier));
 
@@ -2061,10 +2058,10 @@ public abstract class AbstractAuthorizationTestImplementations extends ContextAw
                  Node node = ((MNode) d1Node).getCapabilities();
                  if (APITestUtils.isServiceAvailable(node, "MNStorage")) {
                      log.debug("procureTestObject: calling createTestObject");
-                     identifier = this.catc.createTestObject(d1Node, pid, accessPolicy, "testSubmitter","CN=testRightsHolder,DC=dataone,DC=org");
+                     identifier = createTestObject(d1Node, pid, accessPolicy, "testSubmitter","CN=testRightsHolder,DC=dataone,DC=org");
                  }
              } else {
-                 identifier = this.catc.createTestObject(d1Node, pid, accessPolicy, cnSubmitter, "CN=testRightsHolder,DC=dataone,DC=org");
+                 identifier = createTestObject(d1Node, pid, accessPolicy, cnSubmitter, "CN=testRightsHolder,DC=dataone,DC=org");
                 // throw e;
              }
          }
@@ -2108,10 +2105,10 @@ public abstract class AbstractAuthorizationTestImplementations extends ContextAw
                  Node node = ((MNode) d1Node).getCapabilities();
                  if (APITestUtils.isServiceAvailable(node, "MNStorage")) {
                      log.debug("procureTestObject: calling createTestObject");
-                     identifier = this.catc.createTestObject(d1Node, pid, accessRule, "testSubmitter",rightsHolderSubjectString);
+                     identifier = createTestObject(d1Node, pid, accessRule, "testSubmitter",rightsHolderSubjectString);
                  }
              } else {
-                 identifier = this.catc.createTestObject(d1Node,pid,accessRule,cnSubmitter,rightsHolderSubjectString);
+                 identifier = createTestObject(d1Node,pid,accessRule,cnSubmitter,rightsHolderSubjectString);
                 // throw e;
              }
          }

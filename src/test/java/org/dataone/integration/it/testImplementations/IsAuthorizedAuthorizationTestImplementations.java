@@ -31,9 +31,6 @@ import org.dataone.service.types.v1.Permission;
 
 public abstract class IsAuthorizedAuthorizationTestImplementations extends AbstractAuthorizationTestImplementations {
 
-    public IsAuthorizedAuthorizationTestImplementations(ContextAwareTestCaseDataone catc) {
-        super(catc);
-    }
 
     @Override
     protected  boolean runTest(Permission p) {

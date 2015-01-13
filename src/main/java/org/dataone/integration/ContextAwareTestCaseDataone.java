@@ -150,8 +150,8 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
     public String getTestObjectSeries() {
         return this.testObjectSeries;
     }
-   
-    
+
+
     /**
      * sets static variables based on properties returned from org.dataone.configuration.Settings object
      * assigns only once (the first test)
@@ -207,6 +207,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
                 System.out.println("~~~ Context is solo MemberNode: " + mnBaseUrl);
                 Node n = new Node();
                 n.setBaseURL(mnBaseUrl);
+                n.setType(NodeType.MN);
                 memberNodeList = new Vector<Node>();
                 memberNodeList.add(n);
                 log.info("*** Adding MN to list: [" + n.getBaseURL() +"]");
@@ -214,6 +215,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
                 System.out.println("~~~ Context is solo CoordinatingNode: " + cnBaseUrl);
                 Node n = new Node();
                 n.setBaseURL(cnBaseUrl);
+                n.setType(NodeType.CN);
                 coordinatingNodeList = new Vector<Node>();
                 coordinatingNodeList.add(n);
             } else {
@@ -594,7 +596,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
                         try {
                             SystemMetadata smd = null;
                             smd = cca.getSystemMetadata(null,oi.getIdentifier());
-                            
+
                             if (AccessUtil.getPermissionMap(smd.getAccessPolicy())
                                     .containsKey(D1TypeBuilder.buildSubject(Constants.SUBJECT_PUBLIC)))
                             {
@@ -693,7 +695,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
         try {
             log.debug("procureTestObject: checking system metadata of requested object");
             SystemMetadata smd = cca.getSystemMetadata(null, pid);
-            
+
             if (accessRule == null) {
                 // need the accessPolicy to be null, or contain no accessrules
                 if (smd.getAccessPolicy() == null || smd.getAccessPolicy().sizeAllowList() == 0) {
@@ -1063,7 +1065,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
             } catch (IOException e) {
                 e.printStackTrace();
                 throw new ServiceFailure("0000","client misconfiguration related to reading of content byte[]");
-            } catch (InstantiationException | IllegalAccessException | 
+            } catch (InstantiationException | IllegalAccessException |
                     InvocationTargetException | JiBXException e) {
                 log.error("Unable to convert v1 SystemMetadata to v2 SystemMetadata.");
                 e.printStackTrace();
