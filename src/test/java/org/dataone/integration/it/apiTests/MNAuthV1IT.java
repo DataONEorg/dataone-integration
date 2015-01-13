@@ -2,22 +2,23 @@ package org.dataone.integration.it.apiTests;
 
 import org.dataone.integration.ContextAwareTestCaseDataone;
 import org.dataone.integration.it.testDefinitions.AuthTestDefinitions;
-import org.dataone.integration.it.testDefinitions.MNv1AuthAPITestDefinitions;
+import org.dataone.integration.it.testDefinitions.MNSystemMetadataChangedTestDefinitions;
 import org.dataone.integration.it.testImplementations.AuthTestImplementations;
 import org.dataone.integration.it.testImplementations.MNReadTestImplementations;
+import org.dataone.integration.it.testImplementations.MNReplicationTestImplementations;
 import org.junit.Before;
 import org.junit.Test;
 
 public class MNAuthV1IT extends ContextAwareTestCaseDataone 
-        implements AuthTestDefinitions, MNv1AuthAPITestDefinitions {
+        implements AuthTestDefinitions, MNSystemMetadataChangedTestDefinitions {
 
     private AuthTestImplementations authTestImpl;
-    private MNReadTestImplementations mnReadTestImpl;
+    private MNReplicationTestImplementations mnReplicationTestImpl;
     
     @Before
     public void setup() {
         authTestImpl = new AuthTestImplementations(this);
-        mnReadTestImpl = new MNReadTestImplementations(this);
+        mnReplicationTestImpl = new MNReplicationTestImplementations(this);
     }
     
     @Override
@@ -34,19 +35,19 @@ public class MNAuthV1IT extends ContextAwareTestCaseDataone
     @Override
     @Test
     public void testSystemMetadataChanged_EarlierDate() {
-        mnReadTestImpl.testSystemMetadataChanged_EarlierDate(getMemberNodeIterator(), "v1");
+        mnReplicationTestImpl.testSystemMetadataChanged_EarlierDate(getMemberNodeIterator(), "v1");
     }
 
     @Override
     @Test
     public void testSystemMetadataChanged_authenticatedITKuser() {
-        mnReadTestImpl.testSystemMetadataChanged_authenticatedITKuser(getMemberNodeIterator(), "v1");
+        mnReplicationTestImpl.testSystemMetadataChanged_authenticatedITKuser(getMemberNodeIterator(), "v1");
     }
 
     @Override
     @Test
     public void testSystemMetadataChanged_withCreate() {
-        mnReadTestImpl.testSystemMetadataChanged_withCreate(getMemberNodeIterator(), "v1");
+        mnReplicationTestImpl.testSystemMetadataChanged_withCreate(getMemberNodeIterator(), "v1");
     }
     
 }

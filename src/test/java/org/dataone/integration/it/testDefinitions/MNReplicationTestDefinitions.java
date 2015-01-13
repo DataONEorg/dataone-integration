@@ -13,12 +13,4 @@ public interface MNReplicationTestDefinitions {
 
     public void testReplicate_FaultyNodeReference();
 
-    public void testReplicateOnCreateWithoutPreferredList();
-
-    public void testReplicateOnCreateWithPreferredList();
-
-    public void testReplicateOnCreateWithBlockedList();
-
-    public void testReplicateOnCreateNoPolicy();
-
 }

@@ -34,42 +34,6 @@ implements CoreTestDefinitions, MNCoreTestDefinitions
 
     @Override
     @Test
-    public void testGetLogRecords_AccessRestriction() {
-        this.coreTestImpl.testGetLogRecords_AccessRestriction(getMemberNodeIterator(), "v1");
-    }
-
-    @Override
-    @Test
-    public void testGetLogRecords() {
-        this.coreTestImpl.testGetLogRecords(getMemberNodeIterator(), "v1");
-    }
-
-    @Override
-    @Test
-    public void testGetLogRecords_Slicing() {
-        this.coreTestImpl.testGetLogRecords_Slicing(getMemberNodeIterator(), "v1");
-    }
-
-    @Override
-    @Test
-    public void testGetLogRecords_eventFiltering() {
-        this.coreTestImpl.testGetLogRecords_eventFiltering(getMemberNodeIterator(), "v1");
-    }
-
-    @Override
-    @Test
-    public void testGetLogRecords_pidFiltering() {
-        this.coreTestImpl.testGetLogRecords_pidFiltering(getMemberNodeIterator(), "v1");
-    }
-
-    @Override
-    @Test
-    public void testGetLogRecords_dateFiltering() {
-        this.coreTestImpl.testGetLogRecords_dateFiltering(getMemberNodeIterator(), "v1");
-    }
-
-    @Override
-    @Test
     public void testGetCapabilities() {
         this.coreTestImpl.testGetCapabilities(getMemberNodeIterator(), "v1");
     }

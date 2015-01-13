@@ -1,5 +1,6 @@
 package org.dataone.integration.it.testDefinitions;
 
+
 public interface CNCoreTestDefinitions {
 
     public void testCreate();
@@ -30,6 +31,18 @@ public interface CNCoreTestDefinitions {
     public void testHasReservation();
 
     public void testHasReservation_noReservation();
+    
+    public void testGetLogRecords_AccessRestriction();
+
+    public void testGetLogRecords();
+
+    public void testGetLogRecords_Slicing();
+
+    public void testGetLogRecords_eventFiltering();
+
+    public void testGetLogRecords_pidFiltering();
+
+    public void testGetLogRecords_dateFiltering();
     
     // TODO found no CN archive test anywhere... (only MN one in MNodeTier3IT)
     // public void testArchive();

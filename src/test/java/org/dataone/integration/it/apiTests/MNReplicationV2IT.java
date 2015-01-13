@@ -2,13 +2,14 @@ package org.dataone.integration.it.apiTests;
 
 import org.dataone.integration.ContextAwareTestCaseDataone;
 import org.dataone.integration.it.testDefinitions.MNReplicationTestDefinitions;
+import org.dataone.integration.it.testDefinitions.MNSystemMetadataChangedTestDefinitions;
 import org.dataone.integration.it.testImplementations.MNReplicationTestImplementations;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
 public class MNReplicationV2IT extends ContextAwareTestCaseDataone 
-        implements MNReplicationTestDefinitions {
+        implements MNReplicationTestDefinitions, MNSystemMetadataChangedTestDefinitions {
 
     private MNReplicationTestImplementations mnReplicationTestImpl;
 
@@ -50,26 +51,19 @@ public class MNReplicationV2IT extends ContextAwareTestCaseDataone
 
     @Override
     @Test
-    public void testReplicateOnCreateWithoutPreferredList() {
-        mnReplicationTestImpl.testReplicateOnCreateWithoutPreferredList(getMemberNodeIterator());
+    public void testSystemMetadataChanged_EarlierDate() {
+        mnReplicationTestImpl.testSystemMetadataChanged_EarlierDate(getMemberNodeIterator(), "v2");
     }
 
     @Override
     @Test
-    public void testReplicateOnCreateWithPreferredList() {
-        mnReplicationTestImpl.testReplicateOnCreateWithPreferredList(getMemberNodeIterator());
+    public void testSystemMetadataChanged_authenticatedITKuser() {
+        mnReplicationTestImpl.testSystemMetadataChanged_authenticatedITKuser(getMemberNodeIterator(), "v2");
     }
 
     @Override
     @Test
-    public void testReplicateOnCreateWithBlockedList() {
-        mnReplicationTestImpl.testReplicateOnCreateWithBlockedList(getMemberNodeIterator());
+    public void testSystemMetadataChanged_withCreate() {
+        mnReplicationTestImpl.testSystemMetadataChanged_withCreate(getMemberNodeIterator(), "v2");
     }
-
-    @Override
-    @Test
-    public void testReplicateOnCreateNoPolicy() {
-        mnReplicationTestImpl.testReplicateOnCreateNoPolicy(getMemberNodeIterator());
-    }
-
 }

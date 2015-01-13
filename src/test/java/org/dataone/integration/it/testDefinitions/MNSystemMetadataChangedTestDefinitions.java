@@ -1,12 +1,10 @@
 package org.dataone.integration.it.testDefinitions;
 
 /**
- * Defines the v2 additions to the MNRead functionality.
- * This consists of <code>testSystemMetadataChanged*</code> methods 
- * (which used to be in MNAuthorization in v1).
- * Base MNRead functionality is defined by {@link MNReadTestDefinitions}.
+ * Defines the <code>systemMetadataChanged*</code> test methods 
+ * (they're in the MNAuthorization API in v1 but in MNReplication in v2).
  */
-public interface MNv2ReadTestDefinitions {
+public interface MNSystemMetadataChangedTestDefinitions {
     
     // see MNodeTier1*.java classes
     

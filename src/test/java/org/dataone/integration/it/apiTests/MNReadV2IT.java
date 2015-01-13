@@ -2,7 +2,7 @@ package org.dataone.integration.it.apiTests;
 
 import org.dataone.integration.ContextAwareTestCaseDataone;
 import org.dataone.integration.it.testDefinitions.MNReadTestDefinitions;
-import org.dataone.integration.it.testDefinitions.MNv2ReadTestDefinitions;
+import org.dataone.integration.it.testDefinitions.MNSystemMetadataChangedTestDefinitions;
 import org.dataone.integration.it.testDefinitions.ReadTestDefinitions;
 import org.dataone.integration.it.testImplementations.MNReadTestImplementations;
 import org.dataone.integration.it.testImplementations.ReadTestImplementations;
@@ -10,7 +10,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 public class MNReadV2IT extends ContextAwareTestCaseDataone 
-        implements ReadTestDefinitions, MNReadTestDefinitions, MNv2ReadTestDefinitions{
+        implements ReadTestDefinitions, MNReadTestDefinitions {
 
     private ReadTestImplementations readTestImpl;
     private MNReadTestImplementations mnReadTestImpl;
@@ -127,24 +127,6 @@ public class MNReadV2IT extends ContextAwareTestCaseDataone
     @Test
     public void testListObjects_FormatIdFilteringTestFakeFormat() {
         readTestImpl.testListObjects_FormatIdFilteringTestFakeFormat(getMemberNodeIterator(), "v2");
-    }
-
-    @Override
-    @Test
-    public void testSystemMetadataChanged_EarlierDate() {
-        mnReadTestImpl.testSystemMetadataChanged_EarlierDate(getMemberNodeIterator(), "v2");
-    }
-
-    @Override
-    @Test
-    public void testSystemMetadataChanged_authenticatedITKuser() {
-        mnReadTestImpl.testSystemMetadataChanged_authenticatedITKuser(getMemberNodeIterator(), "v2");
-    }
-
-    @Override
-    @Test
-    public void testSystemMetadataChanged_withCreate() {
-        mnReadTestImpl.testSystemMetadataChanged_withCreate(getMemberNodeIterator(), "v2");
     }
 
     @Override

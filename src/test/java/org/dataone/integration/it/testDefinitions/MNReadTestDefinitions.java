@@ -5,7 +5,7 @@ package org.dataone.integration.it.testDefinitions;
  * between v1 and v2. There is a difference between v1 and v2 APIs, and
  * that is the <code>testSystemMetadataChanted*</code> methods, which were moved
  * from MNAuthorization into MNRead from v1 to v2. 
- * Those are sitting in {@link MNv2ReadTestDefinitions}
+ * Those are sitting in {@link MNSystemMetadataChangedTestDefinitions}
  */
 public interface MNReadTestDefinitions {
 
