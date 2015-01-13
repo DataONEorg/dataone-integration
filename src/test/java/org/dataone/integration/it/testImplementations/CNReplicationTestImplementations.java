@@ -79,6 +79,11 @@ public class CNReplicationTestImplementations extends ContextAwareAdapter {
         }
     }
 
+    public void testSetReplicationStatus_NotAuthorized(Iterator<Node> nodeIterator, String version) {
+        while (nodeIterator.hasNext())
+            testSetReplicationStatus_NotAuthorized(nodeIterator.next(), version);
+    }
+    
     /**
      * Test the that the membernode can set the replication status for on an object
      */
@@ -117,6 +122,11 @@ public class CNReplicationTestImplementations extends ContextAwareAdapter {
         }
     }
     
+    public void testSetReplicationStatus_InvalidRequest(Iterator<Node> nodeIterator, String version) {
+        while (nodeIterator.hasNext())
+            testSetReplicationStatus_InvalidRequest(nodeIterator.next(), version);
+    }
+    
     /**
      * Test the that the membernode can set the replication status for on an object
      */
@@ -153,7 +163,12 @@ public class CNReplicationTestImplementations extends ContextAwareAdapter {
             e.printStackTrace();
             handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
         }
-}
+    }
+    
+    public void testSetReplicationStatus_NotFound(Iterator<Node> nodeIterator, String version) {
+        while (nodeIterator.hasNext())
+            testSetReplicationStatus_NotFound(nodeIterator.next(), version);
+    }
     
     /**
      * Test the that the membernode can set the replication status for on an object
@@ -190,6 +205,11 @@ public class CNReplicationTestImplementations extends ContextAwareAdapter {
         }
     }
     
+    public void testSetReplicationPolicy(Iterator<Node> nodeIterator, String version) {
+        while (nodeIterator.hasNext())
+            testSetReplicationPolicy(nodeIterator.next(), version);
+    }
+    
 //    @Ignore("test not implemented") 
     public void testSetReplicationPolicy(Node node, String version) {
         
@@ -222,6 +242,11 @@ public class CNReplicationTestImplementations extends ContextAwareAdapter {
             e.printStackTrace();
             handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
         }
+    }
+    
+    public void testSetReplicationPolicy_NotAuthorized(Iterator<Node> nodeIterator, String version) {
+        while (nodeIterator.hasNext())
+            testSetReplicationPolicy_NotAuthorized(nodeIterator.next(), version);
     }
     
 //    @Ignore("test not implemented") 
@@ -262,6 +287,11 @@ public class CNReplicationTestImplementations extends ContextAwareAdapter {
         }
     }
     
+    public void testSetReplicationPolicy_NotFound(Iterator<Node> nodeIterator, String version) {
+        while (nodeIterator.hasNext())
+            testSetReplicationPolicy_NotFound(nodeIterator.next(), version);
+    }
+    
 //    @Ignore("test not implemented") 
     public void testSetReplicationPolicy_NotFound(Node node, String version) {
         
@@ -294,6 +324,11 @@ public class CNReplicationTestImplementations extends ContextAwareAdapter {
             e.printStackTrace();
             handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
         }
+    }
+    
+    public void testSetReplicationPolicy_VersionMismatch(Iterator<Node> nodeIterator, String version) {
+        while (nodeIterator.hasNext())
+            testSetReplicationPolicy_VersionMismatch(nodeIterator.next(), version);
     }
     
 //    @Ignore("test not implemented") 
@@ -334,6 +369,11 @@ public class CNReplicationTestImplementations extends ContextAwareAdapter {
         }
     }
     
+    public void testSetReplicationPolicy_InvalidRequest(Iterator<Node> nodeIterator, String version) {
+        while (nodeIterator.hasNext())
+            testSetReplicationPolicy_InvalidRequest(nodeIterator.next(), version);
+    }
+    
 //    @Ignore("test not implemented") 
     public void testSetReplicationPolicy_InvalidRequest(Node node, String version) {
         
@@ -372,7 +412,11 @@ public class CNReplicationTestImplementations extends ContextAwareAdapter {
         }
     }
     
-
+    public void testIsNodeAuthorized_InvalidToken(Iterator<Node> nodeIterator, String version) {
+        while (nodeIterator.hasNext())
+            testIsNodeAuthorized_InvalidToken(nodeIterator.next(), version);
+    }
+    
 //    @Ignore("test not implemented")
     public void testIsNodeAuthorized_InvalidToken(Node node, String version) {
         
@@ -410,6 +454,11 @@ public class CNReplicationTestImplementations extends ContextAwareAdapter {
         }
     }
 
+    public void testIsNodeAuthorized_NotAuthorized(Iterator<Node> nodeIterator, String version) {
+        while (nodeIterator.hasNext())
+            testIsNodeAuthorized_NotAuthorized(nodeIterator.next(), version);
+    }
+    
 //    @Ignore("test not implemented")
     public void testIsNodeAuthorized_NotAuthorized(Node node, String version) {
         
@@ -448,6 +497,11 @@ public class CNReplicationTestImplementations extends ContextAwareAdapter {
         }
     }
     
+    public void testIsNodeAuthorized_InvalidRequest(Iterator<Node> nodeIterator, String version) {
+        while (nodeIterator.hasNext())
+            testIsNodeAuthorized_InvalidRequest(nodeIterator.next(), version);
+    }
+    
 //    @Ignore("test not implemented")
     public void testIsNodeAuthorized_InvalidRequest(Node node, String version) {
         // TODO: 
@@ -481,6 +535,11 @@ public class CNReplicationTestImplementations extends ContextAwareAdapter {
             e.printStackTrace();
             handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
         }
+    }
+    
+    public void testIsNodeAuthorized_NotFound(Iterator<Node> nodeIterator, String version) {
+        while (nodeIterator.hasNext())
+            testIsNodeAuthorized_NotFound(nodeIterator.next(), version);
     }
     
 //    @Ignore("test not implemented") 
@@ -517,6 +576,11 @@ public class CNReplicationTestImplementations extends ContextAwareAdapter {
         }
     }
 
+    public void testUpdateReplicationMetadata(Iterator<Node> nodeIterator, String version) {
+        while (nodeIterator.hasNext())
+            testUpdateReplicationMetadata(nodeIterator.next(), version);
+    }
+    
 //    @Ignore("test not implemented")
     public void testUpdateReplicationMetadata(Node node, String version) {
         //TODO:
@@ -557,6 +621,11 @@ public class CNReplicationTestImplementations extends ContextAwareAdapter {
             e.printStackTrace();
             handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
         }
+    }
+    
+    public void testUpdateReplicationMetadata_NotAuthorized(Iterator<Node> nodeIterator, String version) {
+        while (nodeIterator.hasNext())
+            testUpdateReplicationMetadata_NotAuthorized(nodeIterator.next(), version);
     }
     
 //    @Ignore("test not implemented") 
@@ -603,8 +672,12 @@ public class CNReplicationTestImplementations extends ContextAwareAdapter {
         }
     }
     
-    @Ignore("test not implemented") 
-    @Test
+    public void testUpdateReplicationMetadata_NotFound(Iterator<Node> nodeIterator, String version) {
+        while (nodeIterator.hasNext())
+            testUpdateReplicationMetadata_NotFound(nodeIterator.next(), version);
+    }
+    
+//    @Ignore("test not implemented") 
     public void testUpdateReplicationMetadata_NotFound(Node node, String version) {
         //TODO:
 //      ContextAwareTestCaseDataone.setupClientSubject("testMemberNode");
@@ -652,7 +725,12 @@ public class CNReplicationTestImplementations extends ContextAwareAdapter {
         }
     }
     
-    @Ignore("test not implemented") 
+    public void testUpdateReplicationMetadata_InvalidRequest(Iterator<Node> nodeIterator, String version) {
+        while (nodeIterator.hasNext())
+            testUpdateReplicationMetadata_InvalidRequest(nodeIterator.next(), version);
+    }
+    
+//    @Ignore("test not implemented") 
     public void testUpdateReplicationMetadata_InvalidRequest(Node node, String version) {
         //TODO:
 //      ContextAwareTestCaseDataone.setupClientSubject("testMemberNode");
@@ -695,6 +773,11 @@ public class CNReplicationTestImplementations extends ContextAwareAdapter {
             e.printStackTrace();
             handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
         }
+    }
+    
+    public void testUpdateReplicationMetadata_VersionMismatch(Iterator<Node> nodeIterator, String version) {
+        while (nodeIterator.hasNext())
+            testUpdateReplicationMetadata_VersionMismatch(nodeIterator.next(), version);
     }
     
 //    @Ignore("test not implemented")

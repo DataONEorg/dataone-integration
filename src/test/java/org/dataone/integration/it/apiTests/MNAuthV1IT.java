@@ -9,7 +9,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 public class MNAuthV1IT extends ContextAwareTestCaseDataone 
-        implements AuthTestDefinitions, MNv1AuthAPITestDefinitions{
+        implements AuthTestDefinitions, MNv1AuthAPITestDefinitions {
 
     private AuthTestImplementations authTestImpl;
     private MNReadTestImplementations mnReadTestImpl;

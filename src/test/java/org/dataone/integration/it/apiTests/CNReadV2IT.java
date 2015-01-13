@@ -20,7 +20,7 @@ public class CNReadV2IT extends ContextAwareTestCaseDataone
     
     @Override
     protected String getTestDescription() {
-        return "Test Case that runs through the CN version 1 of read API methods";
+        return "Test Case that runs through the CN version 2 of read API methods";
     }
     
     @Before

@@ -29,138 +29,138 @@ public class MNReadV1IT extends ContextAwareTestCaseDataone
     @Override
     @Test
     public void testGet() {
-        readTestImpl.testGet(getCoordinatingNodeIterator(), "v1");
+        readTestImpl.testGet(getMemberNodeIterator(), "v1");
     }
 
     @Override
     @Test
     public void testGet_NotFound() {
-        readTestImpl.testGet_NotFound(getCoordinatingNodeIterator(), "v1");
+        readTestImpl.testGet_NotFound(getMemberNodeIterator(), "v1");
     }
 
     @Override
     @Test
     public void testGet_IdentifierEncoding() {
-        readTestImpl.testGet_IdentifierEncoding(getCoordinatingNodeIterator(), "v1");
+        readTestImpl.testGet_IdentifierEncoding(getMemberNodeIterator(), "v1");
     }
 
     @Override
     @Test
     public void testGetSystemMetadata() {
-        readTestImpl.testGetSystemMetadata(getCoordinatingNodeIterator(), "v1");
+        readTestImpl.testGetSystemMetadata(getMemberNodeIterator(), "v1");
     }
 
     @Override
     @Test
     public void testGetSystemMetadata_NotFound() {
-        readTestImpl.testGetSystemMetadata_NotFound(getCoordinatingNodeIterator(), "v1");
+        readTestImpl.testGetSystemMetadata_NotFound(getMemberNodeIterator(), "v1");
     }
 
     @Override
     @Test
     public void testGetSystemMetadata_IdentifierEncoding() {
-        readTestImpl.testGetSystemMetadata_IdentifierEncoding(getCoordinatingNodeIterator(), "v1");
+        readTestImpl.testGetSystemMetadata_IdentifierEncoding(getMemberNodeIterator(), "v1");
     }
 
     @Override
     @Test
     public void testDescribe() {
-        readTestImpl.testDescribe(getCoordinatingNodeIterator(), "v1");
+        readTestImpl.testDescribe(getMemberNodeIterator(), "v1");
     }
 
     @Override
     @Test
     public void testDescribe_NotFound() {
-        readTestImpl.testDescribe_NotFound(getCoordinatingNodeIterator(), "v1");
+        readTestImpl.testDescribe_NotFound(getMemberNodeIterator(), "v1");
     }
 
     @Override
     @Test
     public void testDescribe_IdentifierEncoding() {
-        readTestImpl.testDescribe_IdentifierEncoding(getCoordinatingNodeIterator(), "v1");
+        readTestImpl.testDescribe_IdentifierEncoding(getMemberNodeIterator(), "v1");
     }
 
     @Override
     @Test
     public void testGetChecksum() {
-        readTestImpl.testGetChecksum(getCoordinatingNodeIterator(), "v1");
+        readTestImpl.testGetChecksum(getMemberNodeIterator(), "v1");
     }
 
     @Override
     @Test
     public void testGetChecksum_NotFound() {
-        readTestImpl.testGetChecksum_NotFound(getCoordinatingNodeIterator(), "v1");
+        readTestImpl.testGetChecksum_NotFound(getMemberNodeIterator(), "v1");
     }
 
     @Override
     @Test
     public void testGetChecksum_IdentifierEncoding() {
-        readTestImpl.testGetChecksum_IdentifierEncoding(getCoordinatingNodeIterator(), "v1");
+        readTestImpl.testGetChecksum_IdentifierEncoding(getMemberNodeIterator(), "v1");
     }
 
     @Override
     @Test
     public void testListObjects() {
-        readTestImpl.testListObjects(getCoordinatingNodeIterator(), "v1");
+        readTestImpl.testListObjects(getMemberNodeIterator(), "v1");
     }
 
     @Override
     @Test
     public void testListObjects_Slicing() {
-        readTestImpl.testListObjects_Slicing(getCoordinatingNodeIterator(), "v1");
+        readTestImpl.testListObjects_Slicing(getMemberNodeIterator(), "v1");
     }
 
     @Override
     @Test
     public void testListObjects_FromDateTest() {
-        readTestImpl.testListObjects_FromDateTest(getCoordinatingNodeIterator(), "v1");
+        readTestImpl.testListObjects_FromDateTest(getMemberNodeIterator(), "v1");
     }
 
     @Override
     @Test
     public void testListObjects_FormatIdFilteringTest() {
-        readTestImpl.testListObjects(getCoordinatingNodeIterator(), "v1");
+        readTestImpl.testListObjects(getMemberNodeIterator(), "v1");
     }
 
     @Override
     @Test
     public void testListObjects_FormatIdFilteringTestFakeFormat() {
-        readTestImpl.testListObjects_FormatIdFilteringTestFakeFormat(getCoordinatingNodeIterator(), "v1");
+        readTestImpl.testListObjects_FormatIdFilteringTestFakeFormat(getMemberNodeIterator(), "v1");
     }
 
     @Override
     @Test
     public void testSynchronizationFailed_NoCert() {
-        mnReadTestImpl.testSynchronizationFailed_NoCert(getCoordinatingNodeIterator(), "v1");
+        mnReadTestImpl.testSynchronizationFailed_NoCert(getMemberNodeIterator(), "v1");
     }
 
     @Override
     @Test
     public void testGetReplica_PublicObject() {
-        mnReadTestImpl.testGetReplica_PublicObject(getCoordinatingNodeIterator(), "v1");
+        mnReadTestImpl.testGetReplica_PublicObject(getMemberNodeIterator(), "v1");
     }
 
     @Override
     @Test
     public void testGetReplica_ValidCertificate_NotMN() {
-        mnReadTestImpl.testGetReplica_ValidCertificate_NotMN(getCoordinatingNodeIterator(), "v1");
+        mnReadTestImpl.testGetReplica_ValidCertificate_NotMN(getMemberNodeIterator(), "v1");
     }
 
     @Override
     @Test
     public void testGetReplica_NoCertificate() {
-        mnReadTestImpl.testGetReplica_NoCertificate(getCoordinatingNodeIterator(), "v1");
+        mnReadTestImpl.testGetReplica_NoCertificate(getMemberNodeIterator(), "v1");
     }
 
     @Override
     @Test
     public void testGetReplica_NotFound() {
-        mnReadTestImpl.testGetReplica_NotFound(getCoordinatingNodeIterator(), "v1");
+        mnReadTestImpl.testGetReplica_NotFound(getMemberNodeIterator(), "v1");
     }
 
     @Override
     @Test
     public void testGetReplica_IdentifierEncoding() {
-        mnReadTestImpl.testGetReplica_IdentifierEncoding(getCoordinatingNodeIterator(), "v1");
+        mnReadTestImpl.testGetReplica_IdentifierEncoding(getMemberNodeIterator(), "v1");
     }
 }
