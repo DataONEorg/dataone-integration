@@ -1,5 +1,9 @@
 package org.dataone.integration.it.testDefinitions;
 
+/**
+ * Defines the test methods required to test CNIdentity API functionality
+ * across v1/v2.
+ */
 public interface CNIdentityTestDefinitions {
 
     public void testRegisterAccount();

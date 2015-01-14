@@ -6,6 +6,9 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
+/**
+ * Tests MNQuery functionality for v2 of the API 
+ */
 public class MNQueryV2IT extends ContextAwareTestCaseDataone 
         implements MNQueryTestDefinitions {
 

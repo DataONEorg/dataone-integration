@@ -9,6 +9,9 @@ import org.dataone.integration.it.testImplementations.ReadTestImplementations;
 import org.junit.Before;
 import org.junit.Test;
 
+/**
+ * Tests MNRead functionality for v2 of the API 
+ */
 public class MNReadV2IT extends ContextAwareTestCaseDataone 
         implements ReadTestDefinitions, MNReadTestDefinitions {
 

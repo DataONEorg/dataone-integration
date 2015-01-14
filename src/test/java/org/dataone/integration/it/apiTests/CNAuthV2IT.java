@@ -8,6 +8,9 @@ import org.dataone.integration.it.testImplementations.CNAuthTestImplementations;
 import org.junit.Before;
 import org.junit.Test;
 
+/**
+ * Tests CNAuthorization functionality for v2 of the API 
+ */
 public class CNAuthV2IT extends ContextAwareTestCaseDataone 
         implements AuthAPITestDefinitions, CNAuthTestDefinitions {
     

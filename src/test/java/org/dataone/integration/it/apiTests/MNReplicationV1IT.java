@@ -7,6 +7,9 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
+/**
+ * Tests MNReplication functionality for v1 of the API 
+ */
 public class MNReplicationV1IT extends ContextAwareTestCaseDataone 
     implements MNReplicationTestDefinitions {
 

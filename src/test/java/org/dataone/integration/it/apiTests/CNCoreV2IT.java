@@ -13,7 +13,7 @@ import org.junit.Test;
 /**
  * Tests CNCore functionality for v2 of the API 
  */
-public class CNCoreV2IT extends ContextAwareTestCaseDataone 
+public class CNCoreV2IT extends ContextAwareTestCaseDataone
 implements CoreTestDefinitions, CNCoreTestDefinitions, CNv2CoreTestDefinitions{
 
     private CoreTestImplementations coreTestImpl;

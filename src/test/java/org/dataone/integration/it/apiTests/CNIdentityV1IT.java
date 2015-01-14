@@ -6,6 +6,9 @@ import org.dataone.integration.it.testImplementations.CNIdentityTestImplementati
 import org.junit.Before;
 import org.junit.Test;
 
+/**
+ * Tests CNIdentity functionality for v1 of the API 
+ */
 public class CNIdentityV1IT extends ContextAwareTestCaseDataone 
         implements CNIdentityTestDefinitions {
 

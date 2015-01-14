@@ -7,6 +7,9 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
+/**
+ * Tests CNReplication functionality for v1 of the API 
+ */
 public class CNReplicationV1IT extends ContextAwareTestCaseDataone implements
         CNReplicationTestDefinitions {
 

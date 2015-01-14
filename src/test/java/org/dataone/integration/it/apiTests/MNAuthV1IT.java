@@ -9,6 +9,9 @@ import org.dataone.integration.it.testImplementations.MNReplicationTestImplement
 import org.junit.Before;
 import org.junit.Test;
 
+/**
+ * Tests MNAuthentication functionality for v1 of the API 
+ */
 public class MNAuthV1IT extends ContextAwareTestCaseDataone 
         implements AuthTestDefinitions, MNSystemMetadataChangedTestDefinitions {
 

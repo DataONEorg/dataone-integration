@@ -9,7 +9,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 /**
- * Tests CNCore functionality for v1 of the API 
+ * Tests CNRead functionality for v2 of the API 
  */
 public class CNReadV2IT extends ContextAwareTestCaseDataone 
         implements ReadTestDefinitions, CNReadTestDefinitions {

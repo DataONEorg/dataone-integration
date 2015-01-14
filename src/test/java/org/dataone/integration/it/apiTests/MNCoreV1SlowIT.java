@@ -8,6 +8,10 @@ import org.dataone.integration.it.testImplementations.CoreTestImplementations;
 import org.junit.Before;
 import org.junit.Test;
 
+/**
+ * Tests some of the slower MNCore functionality for v1 of the API.
+ * The other MNCore v1 methods are in {@link MNCoreV1IT}.
+ */
 public class MNCoreV1SlowIT extends ContextAwareTestCaseDataone 
         implements MNCoreSlowTestDefinitions {
     

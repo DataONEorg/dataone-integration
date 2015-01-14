@@ -7,6 +7,9 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
+/**
+ * Tests CNRegister functionality for v2 of the API 
+ */
 public class CNRegisterV2IT extends ContextAwareTestCaseDataone
         implements CNRegisterTestDefinitions {
 

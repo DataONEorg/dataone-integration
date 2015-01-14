@@ -2,6 +2,10 @@ package org.dataone.integration.it.testDefinitions;
 
 import org.dataone.integration.it.testImplementations.CoreTestImplementations;
 
+/**
+ * Defines the test methods required to test MNCore API functionality
+ * across v1/v2.
+ */
 public interface MNCoreTestDefinitions {
 
     /**

@@ -1,5 +1,9 @@
 package org.dataone.integration.it.testDefinitions;
 
+/**
+ * Defines the test methods required to test CNRead API functionality
+ * between CNs/MNs and v1/v2.
+ */
 public interface CNReadTestDefinitions {
 
     // see CNodeTier1_*.java classes 
