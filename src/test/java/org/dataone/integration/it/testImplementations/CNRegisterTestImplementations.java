@@ -20,6 +20,7 @@ import org.dataone.service.types.v1.Ping;
 import org.dataone.service.types.v1.Subject;
 import org.dataone.service.types.v1.Node;
 import org.dataone.service.types.v2.NodeList;
+import org.dataone.service.util.Constants;
 import org.dataone.service.util.TypeMarshaller;
 
 public class CNRegisterTestImplementations extends ContextAwareAdapter {
@@ -39,10 +40,9 @@ public class CNRegisterTestImplementations extends ContextAwareAdapter {
     //    @Ignore("confirm the change to the Node record")
     public void testUpdateNodeCapabilities(Node node, String version) {
 
-        CNCallAdapter callAdapter = new CNCallAdapter(MULTIPART_REST_CLIENT, node, version);
+        CNCallAdapter callAdapter = new CNCallAdapter(getSession(cnSubmitter), node, version);
         // TODO: set the appropriate subject - will need a subject that can
-        // update it's node record on the CN.  either an MN or CN subject.
-        ContextAwareTestCaseDataone.setupClientSubject(cnSubmitter);
+        // update its node record on the CN.  either an MN or CN subject.
         String currentUrl = node.getBaseURL();
         printTestHeader("testUpdateNodeCapabilities(...) vs. node: " + currentUrl);
 
@@ -84,7 +84,7 @@ public class CNRegisterTestImplementations extends ContextAwareAdapter {
 
     public void testUpdateNodeCapabilities_NotFound(Node node, String version) {
 
-        CNCallAdapter callAdapter = new CNCallAdapter(MULTIPART_REST_CLIENT, node, version);
+        CNCallAdapter callAdapter = new CNCallAdapter(getSession(cnSubmitter), node, version);
         Subject clientSubject = ContextAwareTestCaseDataone.setupClientSubject(cnSubmitter);
         String currentUrl = node.getBaseURL();
         printTestHeader("testUpdateNodeCapabilities(...) vs. node: " + currentUrl);
@@ -134,8 +134,7 @@ public class CNRegisterTestImplementations extends ContextAwareAdapter {
 
         //TODO ensure that the current subject is not able to update the node record
         // do this by looking at the node record?
-        CNCallAdapter callAdapter = new CNCallAdapter(MULTIPART_REST_CLIENT, node, version);
-        ContextAwareTestCaseDataone.setupClientSubject("testSubmitter");
+        CNCallAdapter callAdapter = new CNCallAdapter(getSession(cnSubmitter), node, version);
         String currentUrl = node.getBaseURL();
         printTestHeader("testUpdateNodeCapabilities(...) vs. node: " + currentUrl);
 
@@ -184,7 +183,7 @@ public class CNRegisterTestImplementations extends ContextAwareAdapter {
     public void testUpdateNodeCapabilities_updatingOtherField(Node node, String version) {
         // TODO: set the appropriate subject - will need a subject that can
         // update it's node record on the CN.  either an MN or CN subject.
-        CNCallAdapter callAdapter = new CNCallAdapter(MULTIPART_REST_CLIENT, node, version);
+        CNCallAdapter callAdapter = new CNCallAdapter(getSession(cnSubmitter), node, version);
         String currentUrl = node.getBaseURL();
         printTestHeader("testUpdateNodeCapabilities(...) vs. node: " + currentUrl);
 
@@ -223,42 +222,42 @@ public class CNRegisterTestImplementations extends ContextAwareAdapter {
         }
     }
 
-    public void testRegister(Iterator<Node> nodeIterator, String version) {
-        while (nodeIterator.hasNext())
-            testRegister(nodeIterator.next(), version);
-    }
+//    public void testRegister(Iterator<Node> nodeIterator, String version) {
+//        while (nodeIterator.hasNext())
+//            testRegister(nodeIterator.next(), version);
+//    }
 
     //    @Ignore("don't want to keep creating new phantom nodes")
-    public void testRegister(Node node, String version) {
-        // TODO: set the appropriate subject - will need a subject that can
-        // create a node record.  
-        CNCallAdapter callAdapter = new CNCallAdapter(MULTIPART_REST_CLIENT, node, version);
-        String currentUrl = node.getBaseURL();
-        printTestHeader("testRegister(...) vs. node: " + currentUrl);
-
-        try {
-            List<Node> mNodeList = selectNodes(callAdapter.listNodes(), NodeType.MN);
-            if (mNodeList.isEmpty()) {
-                handleFail(callAdapter.getLatestRequestUrl(),
-                        "Cannot test cn.register() unless there is a Member Node in the NodeList");
-            } else {
-                String nr = node.getIdentifier().getValue();
-                NodeReference newRef = new NodeReference();
-                newRef.setValue(nr + "abcdefghij");
-                node.setIdentifier(newRef);
-                node.setBaseURL(node.getBaseURL() + "/fakeBaseUrlThatIsDifferent");
-                org.dataone.service.types.v2.Node nodeV2 = TypeMarshaller.convertTypeFromType(node, org.dataone.service.types.v2.Node.class);
-                NodeReference response = callAdapter.register(null, nodeV2);
-                checkTrue(callAdapter.getLatestRequestUrl(),
-                        "register(...) returns a NodeReference object", response != null);
-            }
-        } catch (BaseException e) {
-            handleFail(callAdapter.getLatestRequestUrl(), e.getDescription());
-        } catch (Exception e) {
-            e.printStackTrace();
-            handleFail(currentUrl, e.getClass().getName() + ": " + e.getMessage());
-        }
-    }
+//    public void testRegister(Node node, String version) {
+//        // TODO: set the appropriate subject - will need a subject that can
+//        // create a node record.  
+//        CNCallAdapter callAdapter = new CNCallAdapter(MULTIPART_REST_CLIENT, node, version);
+//        String currentUrl = node.getBaseURL();
+//        printTestHeader("testRegister(...) vs. node: " + currentUrl);
+//
+//        try {
+//            List<Node> mNodeList = selectNodes(callAdapter.listNodes(), NodeType.MN);
+//            if (mNodeList.isEmpty()) {
+//                handleFail(callAdapter.getLatestRequestUrl(),
+//                        "Cannot test cn.register() unless there is a Member Node in the NodeList");
+//            } else {
+//                String nr = node.getIdentifier().getValue();
+//                NodeReference newRef = new NodeReference();
+//                newRef.setValue(nr + "abcdefghij");
+//                node.setIdentifier(newRef);
+//                node.setBaseURL(node.getBaseURL() + "/fakeBaseUrlThatIsDifferent");
+//                org.dataone.service.types.v2.Node nodeV2 = TypeMarshaller.convertTypeFromType(node, org.dataone.service.types.v2.Node.class);
+//                NodeReference response = callAdapter.register(null, nodeV2);
+//                checkTrue(callAdapter.getLatestRequestUrl(),
+//                        "register(...) returns a NodeReference object", response != null);
+//            }
+//        } catch (BaseException e) {
+//            handleFail(callAdapter.getLatestRequestUrl(), e.getDescription());
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            handleFail(currentUrl, e.getClass().getName() + ": " + e.getMessage());
+//        }
+//    }
 
     public void testRegister_IdentifierNotUnique(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
@@ -268,7 +267,7 @@ public class CNRegisterTestImplementations extends ContextAwareAdapter {
     public void testRegister_IdentifierNotUnique(Node node, String version) {
         // TODO: set the appropriate subject - will need a subject that can
         // create a node record.  
-        CNCallAdapter callAdapter = new CNCallAdapter(MULTIPART_REST_CLIENT, node, version);
+        CNCallAdapter callAdapter = new CNCallAdapter(getSession(cnSubmitter), node, version);
         String currentUrl = node.getBaseURL();
         printTestHeader("testRegister(...) vs. node: " + currentUrl);
 

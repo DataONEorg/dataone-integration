@@ -21,6 +21,7 @@ import org.dataone.service.types.v1.ObjectLocationList;
 import org.dataone.service.types.v1.Session;
 import org.dataone.service.types.v1_1.QueryEngineDescription;
 import org.dataone.service.types.v1_1.QueryEngineList;
+import org.dataone.service.util.Constants;
 import org.dataone.service.util.D1Url;
 
 /**
@@ -46,8 +47,7 @@ public class CNReadTestImplementations extends ContextAwareAdapter {
 
     public void testResolve(Node node, String version) {
 
-        ContextAwareTestCaseDataone.setupClientSubject_NoCert();
-        CNCallAdapter callAdapter = new CNCallAdapter(MULTIPART_REST_CLIENT, node, version);
+        CNCallAdapter callAdapter = new CNCallAdapter(getSession(Constants.SUBJECT_PUBLIC), node, version);
         String currentUrl = node.getBaseURL();
         printTestHeader("testResolve(...) vs. node: " + currentUrl);
         Session session = ExampleUtilities.getTestSession();
@@ -88,7 +88,7 @@ public class CNReadTestImplementations extends ContextAwareAdapter {
 
     public void testSearch(Node node, String version) {
 
-        CNCallAdapter callAdapter = new CNCallAdapter(MULTIPART_REST_CLIENT, node, version);
+        CNCallAdapter callAdapter = new CNCallAdapter(getSession(Constants.SUBJECT_PUBLIC), node, version);
         String currentUrl = callAdapter.getNodeBaseServiceUrl();
         printTestHeader("testSearch(...) vs. node: " + currentUrl);
 
@@ -114,7 +114,7 @@ public class CNReadTestImplementations extends ContextAwareAdapter {
 
         // get identifiers to check with
         initializeUnicodeStrings();
-        CNCallAdapter callAdapter = new CNCallAdapter(MULTIPART_REST_CLIENT, node, version);
+        CNCallAdapter callAdapter = new CNCallAdapter(getSession(Constants.SUBJECT_PUBLIC), node, version);
         String currentUrl = callAdapter.getNodeBaseServiceUrl();
         printTestHeader("testSearch_Solr_unicodeTests(...) vs. node: " + currentUrl);
 
@@ -191,7 +191,7 @@ public class CNReadTestImplementations extends ContextAwareAdapter {
 
     public void testQuery(Node node, String version) {
 
-        CNCallAdapter callAdapter = new CNCallAdapter(MULTIPART_REST_CLIENT, node, version);
+        CNCallAdapter callAdapter = new CNCallAdapter(getSession(Constants.SUBJECT_PUBLIC), node, version);
         String currentUrl = callAdapter.getNodeBaseServiceUrl();
         printTestHeader("testQuery(...) vs. node: " + currentUrl);
         Session session = ExampleUtilities.getTestSession();
@@ -213,7 +213,7 @@ public class CNReadTestImplementations extends ContextAwareAdapter {
 
     public void testQuery_Authentication(Node node, String version) {
 
-        CNCallAdapter callAdapter = new CNCallAdapter(MULTIPART_REST_CLIENT, node, version);
+        CNCallAdapter callAdapter = new CNCallAdapter(getSession(Constants.SUBJECT_PUBLIC), node, version);
         String currentUrl = callAdapter.getNodeBaseServiceUrl();
         printTestHeader("testQuery(...) vs. node: " + currentUrl);
         Session session = ExampleUtilities.getTestSession();
@@ -236,7 +236,7 @@ public class CNReadTestImplementations extends ContextAwareAdapter {
 
     public void testListQueryEngines(Node node, String version) {
 
-        CNCallAdapter callAdapter = new CNCallAdapter(MULTIPART_REST_CLIENT, node, version);
+        CNCallAdapter callAdapter = new CNCallAdapter(getSession(Constants.SUBJECT_PUBLIC), node, version);
         String currentUrl = callAdapter.getNodeBaseServiceUrl();
         printTestHeader("testListQueryEngines(...) vs. node: " + currentUrl);
         Session session = ExampleUtilities.getTestSession();
@@ -265,7 +265,7 @@ public class CNReadTestImplementations extends ContextAwareAdapter {
 
     public void testGetQueryEngineDescription(Node node, String version) {
 
-        CNCallAdapter callAdapter = new CNCallAdapter(MULTIPART_REST_CLIENT, node, version);
+        CNCallAdapter callAdapter = new CNCallAdapter(getSession(Constants.SUBJECT_PUBLIC), node, version);
         String currentUrl = callAdapter.getNodeBaseServiceUrl();
         printTestHeader("testGetQueryEngineDescription(...) vs. node: " + currentUrl);
         Session session = ExampleUtilities.getTestSession();

@@ -9,6 +9,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.dataone.client.auth.ClientIdentityManager;
+import org.dataone.client.v1.types.D1TypeBuilder;
 import org.dataone.integration.ContextAwareTestCaseDataone;
 import org.dataone.integration.ExampleUtilities;
 import org.dataone.integration.adapters.CNCallAdapter;
@@ -26,6 +27,7 @@ import org.dataone.service.types.v2.NodeList;
 import org.dataone.service.types.v2.ObjectFormat;
 import org.dataone.service.types.v2.ObjectFormatList;
 import org.dataone.service.types.v2.SystemMetadata;
+import org.dataone.service.util.Constants;
 import org.dataone.service.util.TypeMarshaller;
 import org.springframework.util.StringUtils;
 
@@ -50,8 +52,7 @@ public class CNCoreTestImplementations extends ContextAwareAdapter {
 //    @Ignore("need a subject able to call cn.create()")
     public void testCreate(Node node, String version) {
 
-        ContextAwareTestCaseDataone.setupClientSubject("testRightsHolder");
-        CNCallAdapter callAdapter = new CNCallAdapter(MULTIPART_REST_CLIENT, node, version);
+        CNCallAdapter callAdapter = new CNCallAdapter(getSession("testRightsHolder"), node, version);
         String currentUrl = callAdapter.getNodeBaseServiceUrl();
         printTestHeader("testCreate() vs. node: " + currentUrl);
 
@@ -91,8 +92,7 @@ public class CNCoreTestImplementations extends ContextAwareAdapter {
 //    @Ignore("need a subject able to call cn.create()")
     public void testCreateData_IdentifierEncoding(Node node, String version) 
     {
-        ContextAwareTestCaseDataone.setupClientSubject("testRightsHolder");
-        CNCallAdapter callAdapter = new CNCallAdapter(MULTIPART_REST_CLIENT, node, version);
+        CNCallAdapter callAdapter = new CNCallAdapter(getSession("testRightsHolder"), node, version);
         printTestHeader("Testing IdentifierEncoding - setting up identifiers to check");
         String currentUrl = callAdapter.getNodeBaseServiceUrl();
         printTestHeader("testCreateData_IdentifierEncoding() vs. node: " + currentUrl);     
@@ -187,8 +187,7 @@ public class CNCoreTestImplementations extends ContextAwareAdapter {
     
     public void testListChecksumAlgorithms(Node node, String version) {
         
-        ContextAwareTestCaseDataone.setupClientSubject_NoCert();
-        CNCallAdapter callAdapter = new CNCallAdapter(MULTIPART_REST_CLIENT, node, version);
+        CNCallAdapter callAdapter = new CNCallAdapter(getSession(Constants.SUBJECT_PUBLIC), node, version);
         String currentUrl = node.getBaseURL();
         printTestHeader("testListChecksumAlgorithms(...) vs. node: " + currentUrl);
 
@@ -220,8 +219,7 @@ public class CNCoreTestImplementations extends ContextAwareAdapter {
      */
     public void testListFormats(Node node, String version) {
         
-        ContextAwareTestCaseDataone.setupClientSubject_NoCert();
-        CNCallAdapter callAdapter = new CNCallAdapter(MULTIPART_REST_CLIENT, node, version);
+        CNCallAdapter callAdapter = new CNCallAdapter(getSession(Constants.SUBJECT_PUBLIC), node, version);
         String currentUrl = node.getBaseURL();
         printTestHeader("testListFormats(...) vs. node: " + currentUrl);
 
@@ -254,8 +252,7 @@ public class CNCoreTestImplementations extends ContextAwareAdapter {
      */
     public void testGetFormat(Node node, String version) {
         
-        ContextAwareTestCaseDataone.setupClientSubject_NoCert();
-        CNCallAdapter callAdapter = new CNCallAdapter(MULTIPART_REST_CLIENT, node, version);
+        CNCallAdapter callAdapter = new CNCallAdapter(getSession(Constants.SUBJECT_PUBLIC), node, version);
         String currentUrl = node.getBaseURL();
         printTestHeader("testGetFormat(...) vs. node: " + currentUrl);
 
@@ -293,8 +290,7 @@ public class CNCoreTestImplementations extends ContextAwareAdapter {
      */
     public void testGetFormat_bogusFormat(Node node, String version) {
         
-        ContextAwareTestCaseDataone.setupClientSubject_NoCert();
-        CNCallAdapter callAdapter = new CNCallAdapter(MULTIPART_REST_CLIENT, node, version);
+        CNCallAdapter callAdapter = new CNCallAdapter(getSession(Constants.SUBJECT_PUBLIC), node, version);
         String currentUrl = node.getBaseURL();
         printTestHeader("testGetFormat(...) vs. node: " + currentUrl);
 
@@ -329,8 +325,7 @@ public class CNCoreTestImplementations extends ContextAwareAdapter {
     
     public void testListNodes(Node node, String version) {
 
-        ContextAwareTestCaseDataone.setupClientSubject_NoCert();
-        CNCallAdapter callAdapter = new CNCallAdapter(MULTIPART_REST_CLIENT, node, version);
+        CNCallAdapter callAdapter = new CNCallAdapter(getSession(Constants.SUBJECT_PUBLIC), node, version);
         String currentUrl = node.getBaseURL();
         printTestHeader("testListNodes(...) vs. node: " + currentUrl);
 
@@ -359,8 +354,7 @@ public class CNCoreTestImplementations extends ContextAwareAdapter {
     
     public void testGenerateIdentifier(Node node, String version) {
 
-        ContextAwareTestCaseDataone.setupClientSubject("testSubmitter");
-        CNCallAdapter callAdapter = new CNCallAdapter(MULTIPART_REST_CLIENT, node, version);
+        CNCallAdapter callAdapter = new CNCallAdapter(getSession("testSubmitter"), node, version);
         String currentUrl = node.getBaseURL();
         printTestHeader("testGenerateIdentifier(...) vs. node: " + currentUrl);
 
@@ -402,8 +396,7 @@ public class CNCoreTestImplementations extends ContextAwareAdapter {
      */
     public void testGenerateIdentifier_badScheme(Node node, String version) {
         
-        ContextAwareTestCaseDataone.setupClientSubject_NoCert();
-        CNCallAdapter callAdapter = new CNCallAdapter(MULTIPART_REST_CLIENT, node, version);
+        CNCallAdapter callAdapter = new CNCallAdapter(getSession(Constants.SUBJECT_PUBLIC), node, version);
         String currentUrl = node.getBaseURL();
         printTestHeader("testGenerateIdentifier(...) vs. node: " + currentUrl);
 
@@ -439,8 +432,7 @@ public class CNCoreTestImplementations extends ContextAwareAdapter {
      */
     public void testReserveIdentifier(Node node, String version) {
         
-        ContextAwareTestCaseDataone.setupClientSubject("testSubmitter");
-        CNCallAdapter callAdapter = new CNCallAdapter(MULTIPART_REST_CLIENT, node, version);
+        CNCallAdapter callAdapter = new CNCallAdapter(getSession("testSubmitter"), node, version);
         String currentUrl = node.getBaseURL();
         printTestHeader("testReserveIdentifier(...) vs. node: " + currentUrl);
 
@@ -483,8 +475,7 @@ public class CNCoreTestImplementations extends ContextAwareAdapter {
     
     public void testRegisterSystemMetadata(Node node, String version) {
         
-        ContextAwareTestCaseDataone.setupClientSubject("testRightsHolder");
-        CNCallAdapter callAdapter = new CNCallAdapter(MULTIPART_REST_CLIENT, node, version);
+        CNCallAdapter callAdapter = new CNCallAdapter(getSession("testRightsHolder"), node, version);
         String currentUrl = callAdapter.getNodeBaseServiceUrl();
         printTestHeader("testCreate() vs. node: " + currentUrl);
 
@@ -522,8 +513,7 @@ public class CNCoreTestImplementations extends ContextAwareAdapter {
      */
     public void testHasReservation(Node node, String version) {
         
-        ContextAwareTestCaseDataone.setupClientSubject("testSubmitter");
-        CNCallAdapter callAdapter = new CNCallAdapter(MULTIPART_REST_CLIENT, node, version);
+        CNCallAdapter callAdapter = new CNCallAdapter(getSession("testSubmitter"), node, version);
         String currentUrl = node.getBaseURL();
         Subject clientSubject = ClientIdentityManager.getCurrentIdentity();
         printTestHeader("testHasReservation(...) vs. node: " + currentUrl);
@@ -558,13 +548,13 @@ public class CNCoreTestImplementations extends ContextAwareAdapter {
     }
     
     /**
-     * Generates a new identifier, and tries hasReservation() without first reserving it.
+     * Generates a new identifier (locally), and tries hasReservation() without first reserving it.
      * Expect a NotFound exception.  
      */
     public void testHasReservation_noReservation(Node node, String version) {
         
-        Subject clientSubject = ClientIdentityManager.getCurrentIdentity();
-        CNCallAdapter callAdapter = new CNCallAdapter(MULTIPART_REST_CLIENT, node, version);
+
+        CNCallAdapter callAdapter = new CNCallAdapter(getSession(Constants.SUBJECT_PUBLIC), node, version);
         String currentUrl = node.getBaseURL();
         printTestHeader("testHasReservation(...) vs. node: " + currentUrl);
 
@@ -572,7 +562,7 @@ public class CNCoreTestImplementations extends ContextAwareAdapter {
             boolean response = false;
             Identifier pid = new Identifier();
             pid.setValue(ExampleUtilities.generateIdentifier());
-            response = callAdapter.hasReservation(null,clientSubject, pid);
+            response = callAdapter.hasReservation(null,D1TypeBuilder.buildSubject(Constants.SUBJECT_PUBLIC), pid);
 
             checkTrue(callAdapter.getLatestRequestUrl(),"response cannot be false. [Only true or exception].", 
                     response);

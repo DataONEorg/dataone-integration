@@ -32,8 +32,7 @@ public class CNIdentityTestImplementations extends ContextAwareAdapter {
      */
     public void testRegisterAccount(Node node, String version) {
         
-        ContextAwareTestCaseDataone.setupClientSubject("testPerson");
-        CNCallAdapter callAdapter = new CNCallAdapter(MULTIPART_REST_CLIENT, node, version);
+        CNCallAdapter callAdapter = new CNCallAdapter(getSession("testPerson"), node, version);
         String currentUrl = node.getBaseURL();
         printTestHeader("testRegisterAccount(...) vs. node: " + currentUrl);
 

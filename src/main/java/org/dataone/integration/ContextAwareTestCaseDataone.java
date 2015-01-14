@@ -43,6 +43,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
 import java.util.concurrent.Callable;
@@ -116,7 +117,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 
     public static String cnSubmitter = Settings.getConfiguration().getString("dataone.it.cnode.submitter.cn", /* default */ "urn:node:cnDevUNM1");
 
-    public static final MultipartRestClient MULTIPART_REST_CLIENT = new DefaultHttpMultipartRestClient();
+    private static final MultipartRestClient MULTIPART_REST_CLIENT = getSession(null);
 
     // context-related instance variables
     private boolean alreadySetup = false;
@@ -249,6 +250,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
         // we will be testing multiple member nodes
         List<Node> allNodesList = new Vector<Node>();
         memberNodeList = new Vector<Node>();
+        
         if (nodelistUri != null) {
             // the list of member nodes is in this NodeList.xml file
             System.out.println("~~~ Context is ad-hoc NodeList at: " + nodelistUri);
@@ -271,6 +273,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
         // divide into separate lists
         for(int i=0; i < allNodesList.size(); i++) {
             Node currentNode = allNodesList.get(i);
+            
             if (currentNode.getType() == NodeType.CN) {
                 // test the baseUrl
                 try {
@@ -477,6 +480,24 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
         return clientSubject;
     }
 
+    static Map<String,MultipartRestClient> sessionMap = new HashMap<String,MultipartRestClient>();
+    
+    public static MultipartRestClient getSession(String subjectName) {
+        if (subjectName == null) {
+            subjectName = Constants.SUBJECT_PUBLIC;
+        }
+        if ( ! sessionMap.containsKey(subjectName) ) {
+            if (subjectName.equals(Constants.SUBJECT_PUBLIC)) {
+                setupClientSubject_NoCert();
+            } else {
+                setupClientSubject(subjectName);
+            }
+            sessionMap.put(subjectName, new DefaultHttpMultipartRestClient());           
+        }       
+        return sessionMap.get(subjectName);
+    }
+    
+    
 
     public ObjectList procureObjectList(CommonCallAdapter cca)
     throws TestIterationEndingException

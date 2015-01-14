@@ -10,6 +10,7 @@ import org.dataone.service.exceptions.ServiceFailure;
 import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Node;
 import org.dataone.service.types.v1.Permission;
+import org.dataone.service.util.Constants;
 
 public class SSLTestImplementations extends ContextAwareAdapter {
 
@@ -26,10 +27,9 @@ public class SSLTestImplementations extends ContextAwareAdapter {
     public void testConnectionLayer_SelfSignedCert(Node node, String version)
     {
         String currentUrl = node.getBaseURL();
-        CommonCallAdapter d1Node = new CommonCallAdapter(MULTIPART_REST_CLIENT, node, version);
+        CommonCallAdapter d1Node = new CommonCallAdapter(getSession("testPerson_SelfSigned"), node, version);
 
         try {
-            this.catc.setupClientSubject("testPerson_SelfSigned");
             d1Node.getLogRecords(null, null, null, null, null, 0, 0);
             handleFail(d1Node.getLatestRequestUrl(), "ssl connection should not succeed with " +
             		"a self-signed certificate (untrusted CA): getLogRecords(...)");
@@ -49,20 +49,16 @@ public class SSLTestImplementations extends ContextAwareAdapter {
     
     
     public void testConnectionLayer_ExpiredCertificate(Iterator<Node> nodeIterator, String version) 
-    {   
-        this.catc.setupClientSubject("testPerson_Expired");
-        
+    {          
         while (nodeIterator.hasNext())
-            testConnectionLayer_ExpiredCertificate(nodeIterator.next(), version);
-        
-        this.catc.setupClientSubject_NoCert();
+            testConnectionLayer_ExpiredCertificate(nodeIterator.next(), version);       
     }
 
     
     public void testConnectionLayer_ExpiredCertificate(Node node, String version) 
     {    
         String currentUrl = node.getBaseURL();
-        CommonCallAdapter d1Node = new CommonCallAdapter(MULTIPART_REST_CLIENT, node, version);
+        CommonCallAdapter d1Node = new CommonCallAdapter(getSession("testPerson_Expired"), node, version);
 
         try {
             d1Node.ping();
@@ -82,7 +78,7 @@ public class SSLTestImplementations extends ContextAwareAdapter {
     
     
     public void testConnectionLayer_dataoneCAtrusted(Iterator<Node> nodeIterator, String version) {
-        this.catc.setupClientSubject("testSubmitter");
+
         while (nodeIterator.hasNext())
             testConnectionLayer_dataoneCAtrusted(nodeIterator.next(), version);
     }
@@ -91,7 +87,7 @@ public class SSLTestImplementations extends ContextAwareAdapter {
     public void testConnectionLayer_dataoneCAtrusted(Node node, String version) 
     {    
         String currentUrl = node.getBaseURL();
-        CommonCallAdapter d1Node = new CommonCallAdapter(MULTIPART_REST_CLIENT, node, version);
+        CommonCallAdapter d1Node = new CommonCallAdapter(getSession("testSubmitter"), node, version);
 
         try {
             d1Node.ping();

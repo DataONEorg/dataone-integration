@@ -29,8 +29,7 @@ public class AuthTestImplementations extends ContextAwareAdapter {
      */
     public void testIsAuthorized(Node node, String version) 
     {
-        ContextAwareTestCaseDataone.setupClientSubject("testPerson");
-        CommonCallAdapter callAdapter = new CommonCallAdapter(MULTIPART_REST_CLIENT, node, version);
+        CommonCallAdapter callAdapter = new CommonCallAdapter(getSession("testPerson"), node, version);
         String currentUrl = callAdapter.getNodeBaseServiceUrl();
         printTestHeader("testIsAuthorized() vs. node: " + currentUrl);
             

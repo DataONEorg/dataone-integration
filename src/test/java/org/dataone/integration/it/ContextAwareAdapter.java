@@ -20,21 +20,25 @@ public class ContextAwareAdapter {
 
     
     protected ContextAwareTestCaseDataone catc;
-    public static MultipartRestClient MULTIPART_REST_CLIENT;
+//    public static MultipartRestClient MULTIPART_REST_CLIENT;
     public String cnSubmitter;
     
     public ContextAwareAdapter(ContextAwareTestCaseDataone catc) {
         this.catc = catc;
         this.cnSubmitter = catc.cnSubmitter;
-        ContextAwareAdapter.MULTIPART_REST_CLIENT = this.catc.MULTIPART_REST_CLIENT;
+//        ContextAwareAdapter.MULTIPART_REST_CLIENT = this.catc.MULTIPART_REST_CLIENT;
     }
 
-    public Subject setupClientSubject(String clientSubjectName) {
-        return this.catc.setupClientSubject(clientSubjectName);
-    }
+//    public Subject setupClientSubject(String clientSubjectName) {
+//        return this.catc.setupClientSubject(clientSubjectName);
+//    }
+//    
+//    public void setupClientSubject_NoCert() {
+//        this.catc.setupClientSubject_NoCert();
+//    }
     
-    public void setupClientSubject_NoCert() {
-        this.catc.setupClientSubject_NoCert();
+    public MultipartRestClient getSession(String subjectString) {
+        return this.catc.getSession(subjectString);
     }
     
     

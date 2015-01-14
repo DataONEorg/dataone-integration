@@ -26,6 +26,7 @@ import org.dataone.service.types.v1.ObjectInfo;
 import org.dataone.service.types.v1.ObjectList;
 import org.dataone.service.types.v1.Session;
 import org.dataone.service.types.v2.SystemMetadata;
+import org.dataone.service.util.Constants;
 import org.dataone.service.util.TypeMarshaller;
 
 public class MNStorageTestImplementations extends ContextAwareAdapter {
@@ -50,8 +51,7 @@ public class MNStorageTestImplementations extends ContextAwareAdapter {
      */
     public void testCreate(Node node, String version) {
 
-        ContextAwareTestCaseDataone.setupClientSubject("testRightsHolder");
-        MNCallAdapter callAdapter = new MNCallAdapter(MULTIPART_REST_CLIENT, node, version);
+        MNCallAdapter callAdapter = new MNCallAdapter(getSession("testRightsHolder"), node, version);
 
         String currentUrl = node.getBaseURL();
         currentUrl = callAdapter.getNodeBaseServiceUrl();
@@ -97,9 +97,8 @@ public class MNStorageTestImplementations extends ContextAwareAdapter {
      */
     public void testCreate_NoCert(Node node, String version) {
 
-        ContextAwareTestCaseDataone.setupClientSubject_NoCert();
         String currentUrl = node.getBaseURL();
-        MNCallAdapter callAdapter = new MNCallAdapter(MULTIPART_REST_CLIENT, node, version);
+        MNCallAdapter callAdapter = new MNCallAdapter(getSession(Constants.SUBJECT_PUBLIC), node, version);
         currentUrl = callAdapter.getNodeBaseServiceUrl();
         printTestHeader("testCreate_NoCert() vs. node: " + currentUrl);
 
@@ -169,8 +168,7 @@ public class MNStorageTestImplementations extends ContextAwareAdapter {
     //    @Ignore("ignoring to save time for local testing")
     public void testCreateData_IdentifierEncoding(Node node, String version) {
         
-        ContextAwareTestCaseDataone.setupClientSubject("testRightsHolder");
-        MNCallAdapter callAdapter = new MNCallAdapter(MULTIPART_REST_CLIENT, node, version);
+        MNCallAdapter callAdapter = new MNCallAdapter(getSession("testRightsHolder"), node, version);
         printTestHeader("Testing IdentifierEncoding - setting up identifiers to check");
         
         // get identifiers to check with
@@ -258,8 +256,7 @@ public class MNStorageTestImplementations extends ContextAwareAdapter {
      */
     public void testUpdate(Node node, String version) {
 
-        ContextAwareTestCaseDataone.setupClientSubject("testRightsHolder");
-        MNCallAdapter callAdapter = new MNCallAdapter(MULTIPART_REST_CLIENT, node, version);
+        MNCallAdapter callAdapter = new MNCallAdapter(getSession("testRightsHolder"), node, version);
         String currentUrl = callAdapter.getNodeBaseServiceUrl();
         printTestHeader("testUpdate() vs. node: " + currentUrl);
 
@@ -338,8 +335,7 @@ public class MNStorageTestImplementations extends ContextAwareAdapter {
 
     public void testUpdate_badObsoletedByInfo(Node node, String version) {
 
-        ContextAwareTestCaseDataone.setupClientSubject("testRightsHolder");
-        MNCallAdapter callAdapter = new MNCallAdapter(MULTIPART_REST_CLIENT, node, version);
+        MNCallAdapter callAdapter = new MNCallAdapter(getSession("testRightsHolder"), node, version);
         String currentUrl = callAdapter.getNodeBaseServiceUrl();
         printTestHeader("testUpdate() vs. node: " + currentUrl);
 
@@ -391,8 +387,7 @@ public class MNStorageTestImplementations extends ContextAwareAdapter {
 
     public void testUpdate_badObsoletesInfo(Node node, String version) {
 
-        ContextAwareTestCaseDataone.setupClientSubject("testRightsHolder");
-        MNCallAdapter callAdapter = new MNCallAdapter(MULTIPART_REST_CLIENT, node, version);
+        MNCallAdapter callAdapter = new MNCallAdapter(getSession("testRightsHolder"), node, version);
         String currentUrl = callAdapter.getNodeBaseServiceUrl();
         printTestHeader("testUpdate() vs. node: " + currentUrl);
 
@@ -441,9 +436,8 @@ public class MNStorageTestImplementations extends ContextAwareAdapter {
     }
 
     public void testUpdate_NoCert(Node node, String version) {
-
-        ContextAwareTestCaseDataone.setupClientSubject("testRightsHolder");
-        MNCallAdapter callAdapter = new MNCallAdapter(MULTIPART_REST_CLIENT, node, version);
+        
+        MNCallAdapter callAdapter = new MNCallAdapter(getSession("testRightsHolder"), node, version);
         String currentUrl = callAdapter.getNodeBaseServiceUrl();
         printTestHeader("testUpdate_NoCert() vs. node: " + currentUrl);
 
@@ -470,7 +464,7 @@ public class MNStorageTestImplementations extends ContextAwareAdapter {
             // TODO: should the MN do this?
             sysMetaV2.setIdentifier((Identifier) dataPackage[0]);
 
-            ContextAwareTestCaseDataone.setupClientSubject_NoCert();
+            callAdapter = new MNCallAdapter(getSession(Constants.SUBJECT_PUBLIC), node, version);
             // do the update
             try {
                 Identifier updatedPid = callAdapter.update(null, pid, // old pid
@@ -510,8 +504,7 @@ public class MNStorageTestImplementations extends ContextAwareAdapter {
     }
 
     public void testUpdate_NoRightsOnObsoleted(Node node, String version) {
-        ContextAwareTestCaseDataone.setupClientSubject("testRightsHolder");
-        MNCallAdapter callAdapter = new MNCallAdapter(MULTIPART_REST_CLIENT, node, version);
+        MNCallAdapter callAdapter = new MNCallAdapter(getSession("testRightsHolder"), node, version);
         String currentUrl = callAdapter.getNodeBaseServiceUrl();
         printTestHeader("testUpdate_NoRightsOnObsoleted() vs. node: " + currentUrl);
         Session session = ExampleUtilities.getTestSession();
@@ -577,8 +570,7 @@ public class MNStorageTestImplementations extends ContextAwareAdapter {
      */
     public void testArchive(Node node, String version) {
         
-        ContextAwareTestCaseDataone.setupClientSubject("testRightsHolder");
-        MNCallAdapter callAdapter = new MNCallAdapter(MULTIPART_REST_CLIENT, node, version);
+        MNCallAdapter callAdapter = new MNCallAdapter(getSession("testRightsHolder"), node, version);
         String currentUrl = callAdapter.getNodeBaseServiceUrl();
         printTestHeader("testArchive() vs. node: " + currentUrl);
 
@@ -623,8 +615,7 @@ public class MNStorageTestImplementations extends ContextAwareAdapter {
      */
     public void testArchive_NotFound(Node node, String version) {
         
-        ContextAwareTestCaseDataone.setupClientSubject("testRightsHolder");
-        MNCallAdapter callAdapter = new MNCallAdapter(MULTIPART_REST_CLIENT, node, version);
+        MNCallAdapter callAdapter = new MNCallAdapter(getSession("testRightsHolder"), node, version);
         String currentUrl = callAdapter.getNodeBaseServiceUrl();
         printTestHeader("testArchive() vs. node: " + currentUrl);
 
@@ -658,8 +649,7 @@ public class MNStorageTestImplementations extends ContextAwareAdapter {
     public void testArchive_NoCert(Node node, String version) {
        
         // subject under which to create the object to be archived
-        ContextAwareTestCaseDataone.setupClientSubject("testRightsHolder");
-        MNCallAdapter callAdapter = new MNCallAdapter(MULTIPART_REST_CLIENT, node, version);
+        MNCallAdapter callAdapter = new MNCallAdapter(getSession("testRightsHolder"), node, version);
         String currentUrl = callAdapter.getNodeBaseServiceUrl();
         printTestHeader("testArchive_NoCert() vs. node: " + currentUrl);
 
@@ -733,9 +723,9 @@ public class MNStorageTestImplementations extends ContextAwareAdapter {
     public void testDelete_NoCert(Node node, String version) {
 
         // subject under which to create the object to be archived
-        ContextAwareTestCaseDataone.setupClientSubject("testRightsHolder");
-        MNCallAdapter callAdapter = new MNCallAdapter(MULTIPART_REST_CLIENT, node, version);
-        String currentUrl = callAdapter.getNodeBaseServiceUrl();
+        MNCallAdapter callAdapterRH = new MNCallAdapter(getSession("testRightsHolder"), node, version);
+        MNCallAdapter callAdapterPublic = new MNCallAdapter(getSession(Constants.SUBJECT_PUBLIC), node, version);
+        String currentUrl = callAdapterRH.getNodeBaseServiceUrl();
         printTestHeader("testDelete_NoCert() vs. node: " + currentUrl);
 
         Identifier pid = null;
@@ -744,55 +734,52 @@ public class MNStorageTestImplementations extends ContextAwareAdapter {
                     "mNodeTier3TestDelete", true);
             org.dataone.service.types.v1.SystemMetadata sysMetaV1 = (org.dataone.service.types.v1.SystemMetadata) dataPackage[2];
             SystemMetadata sysMetaV2 = TypeMarshaller.convertTypeFromType(sysMetaV1,SystemMetadata.class);
-            pid = callAdapter.create(null, (Identifier) dataPackage[0],
+            pid = callAdapterRH.create(null, (Identifier) dataPackage[0],
                     (InputStream) dataPackage[1], sysMetaV2);
 
-            ContextAwareTestCaseDataone.setupClientSubject_NoCert();
-            // try the archive
-            callAdapter.delete(null, pid);
-            handleFail(callAdapter.getLatestRequestUrl(),
+            // try the delete
+            callAdapterPublic.delete(null, pid);
+            handleFail(callAdapterPublic.getLatestRequestUrl(),
                     "should not be able to delete an object if no certificate");
         } catch (InvalidToken na) {
             try {
-                ContextAwareTestCaseDataone.setupClientSubject("testRightsHolder");
-                InputStream is = callAdapter.get(null, pid);
+                InputStream is = callAdapterRH.get(null, pid);
                 try {
                     is.close();
                 } catch (IOException e) {
                 }
             } catch (BaseException e) {
-                handleFail(callAdapter.getLatestRequestUrl(),
+                handleFail(callAdapterRH.getLatestRequestUrl(),
                         "Got InvalidToken, but couldn't perform subsequent get(). Instead: "
                                 + e.getClass().getSimpleName() + ": " + e.getDetail_code() + ": "
                                 + e.getDescription());
             }catch (ClientSideException e1) {
-                handleFail(callAdapter.getLatestRequestUrl(),
+                handleFail(callAdapterRH.getLatestRequestUrl(),
                         "Got InvalidToken, but couldn't perform subsequent get(). Instead: "
                                 + e1.getClass().getSimpleName() + ": " + e1.getMessage());
             }
 
         } catch (NotAuthorized na) {
             try {
-                ContextAwareTestCaseDataone.setupClientSubject("testRightsHolder");
-                InputStream is = callAdapter.get(null, pid);
+                InputStream is = callAdapterRH.get(null, pid);
                 try {
                     is.close();
                 } catch (IOException e) {
                 }
             } catch (BaseException e) {
-                handleFail(callAdapter.getLatestRequestUrl(),
+                handleFail(callAdapterRH.getLatestRequestUrl(),
                         "Got NotAuthorized, but couldn't perform subsequent get(). Instead: "
                                 + e.getClass().getSimpleName() + ": " + e.getDetail_code() + ": "
                                 + e.getDescription());
             }catch (ClientSideException e1) {
-                handleFail(callAdapter.getLatestRequestUrl(),
+                handleFail(callAdapterRH.getLatestRequestUrl(),
                         "Got NotAuthorized, but couldn't perform subsequent get(). Instead: "
                                 + e1.getClass().getSimpleName() + ": " + e1.getMessage());
             }
 
         } catch (BaseException e) {
             handleFail(
-                    callAdapter.getLatestRequestUrl(),
+                    callAdapterPublic.getLatestRequestUrl(),
                     "Expected InvalidToken, got: " + e.getClass().getSimpleName() + ": "
                             + e.getDetail_code() + ": " + e.getDescription());
         } catch (Exception e) {

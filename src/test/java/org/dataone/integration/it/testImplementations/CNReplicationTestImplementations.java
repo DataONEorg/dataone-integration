@@ -63,7 +63,7 @@ public class CNReplicationTestImplementations extends ContextAwareAdapter {
             while (cnIterator.hasNext()) {
                 Node node = cnIterator.next();
                 String currentUrl = node.getBaseURL();
-                CNCallAdapter callAdapter = new CNCallAdapter(MULTIPART_REST_CLIENT, node, version);
+                CNCallAdapter callAdapter = new CNCallAdapter(getSession("testSubmitter"), node, version);
                 
                 try {
                     ObjectList ol = callAdapter.search(null, ContextAwareTestCaseDataone.QUERYTYPE_SOLR, ""); 
@@ -90,8 +90,7 @@ public class CNReplicationTestImplementations extends ContextAwareAdapter {
 //    @Ignore("test not implemented")
     public void testSetReplicationStatus_NotAuthorized(Node node, String version) {
         
-        ContextAwareTestCaseDataone.setupClientSubject("testSubmitter");
-        CNCallAdapter callAdapter = new CNCallAdapter(MULTIPART_REST_CLIENT, node, version);
+        CNCallAdapter callAdapter = new CNCallAdapter(getSession("testSubmitter"), node, version);
         String currentUrl = node.getBaseURL();
         printTestHeader("testSetReplicationStatus(...) vs. node: " + currentUrl);
 
@@ -135,7 +134,7 @@ public class CNReplicationTestImplementations extends ContextAwareAdapter {
         
         //TODO: implement a memberNode test subject
 //      ContextAwareTestCaseDataone.setupClientSubject("testMemberNode");
-        CNCallAdapter callAdapter = new CNCallAdapter(MULTIPART_REST_CLIENT, node, version);
+        CNCallAdapter callAdapter = new CNCallAdapter(getSession("testMemberNode"), node, version);
         String currentUrl = node.getBaseURL();
         
         printTestHeader("testSetReplicationStatus(...) vs. node: " + currentUrl);
@@ -178,7 +177,7 @@ public class CNReplicationTestImplementations extends ContextAwareAdapter {
         
         //TODO: implement a memberNode test subject
 //      ContextAwareTestCaseDataone.setupClientSubject("testMemberNode");
-        CNCallAdapter callAdapter = new CNCallAdapter(MULTIPART_REST_CLIENT, node, version);
+        CNCallAdapter callAdapter = new CNCallAdapter(getSession("testMemberNode"), node, version);
         String currentUrl = node.getBaseURL();
         
         printTestHeader("testSetReplicationStatus(...) vs. node: " + currentUrl);
@@ -213,8 +212,7 @@ public class CNReplicationTestImplementations extends ContextAwareAdapter {
 //    @Ignore("test not implemented") 
     public void testSetReplicationPolicy(Node node, String version) {
         
-        ContextAwareTestCaseDataone.setupClientSubject("testAdmin");
-        CNCallAdapter callAdapter = new CNCallAdapter(MULTIPART_REST_CLIENT, node, version);
+        CNCallAdapter callAdapter = new CNCallAdapter(getSession("testAdmin"), node, version);
         String currentUrl = node.getBaseURL();
         
         printTestHeader("testSetReplicationPolicy(...) vs. node: " + currentUrl);
@@ -252,8 +250,7 @@ public class CNReplicationTestImplementations extends ContextAwareAdapter {
 //    @Ignore("test not implemented") 
     public void testSetReplicationPolicy_NotAuthorized(Node node, String version) {
         
-        ContextAwareTestCaseDataone.setupClientSubject("testSubmitter");
-        CNCallAdapter callAdapter = new CNCallAdapter(MULTIPART_REST_CLIENT, node, version);
+        CNCallAdapter callAdapter = new CNCallAdapter(getSession("testSubmitter"), node, version);
         String currentUrl = node.getBaseURL();
         
         printTestHeader("testSetReplicationPolicy(...) vs. node: " + currentUrl);
@@ -295,8 +292,7 @@ public class CNReplicationTestImplementations extends ContextAwareAdapter {
 //    @Ignore("test not implemented") 
     public void testSetReplicationPolicy_NotFound(Node node, String version) {
         
-        ContextAwareTestCaseDataone.setupClientSubject("testAdmin");
-        CNCallAdapter callAdapter = new CNCallAdapter(MULTIPART_REST_CLIENT, node, version);
+        CNCallAdapter callAdapter = new CNCallAdapter(getSession("testAdmin"), node, version);
         String currentUrl = node.getBaseURL();
         
         printTestHeader("testSetReplicationPolicy(...) vs. node: " + currentUrl);
@@ -334,8 +330,7 @@ public class CNReplicationTestImplementations extends ContextAwareAdapter {
 //    @Ignore("test not implemented") 
     public void testSetReplicationPolicy_VersionMismatch(Node node, String version) {
         
-        ContextAwareTestCaseDataone.setupClientSubject("testAdmin");
-        CNCallAdapter callAdapter = new CNCallAdapter(MULTIPART_REST_CLIENT, node, version);
+        CNCallAdapter callAdapter = new CNCallAdapter(getSession("testAdmin"), node, version);
         String currentUrl = node.getBaseURL();
         
         printTestHeader("testSetReplicationPolicy(...) vs. node: " + currentUrl);
@@ -377,8 +372,7 @@ public class CNReplicationTestImplementations extends ContextAwareAdapter {
 //    @Ignore("test not implemented") 
     public void testSetReplicationPolicy_InvalidRequest(Node node, String version) {
         
-        ContextAwareTestCaseDataone.setupClientSubject("testAdmin");
-        CNCallAdapter callAdapter = new CNCallAdapter(MULTIPART_REST_CLIENT, node, version);
+        CNCallAdapter callAdapter = new CNCallAdapter(getSession("testAdmin"), node, version);
         String currentUrl = node.getBaseURL();
         
         printTestHeader("testSetReplicationPolicy(...) vs. node: " + currentUrl);
@@ -420,8 +414,7 @@ public class CNReplicationTestImplementations extends ContextAwareAdapter {
 //    @Ignore("test not implemented")
     public void testIsNodeAuthorized_InvalidToken(Node node, String version) {
         
-        ContextAwareTestCaseDataone.setupClientSubject("testAdmin");
-        CNCallAdapter callAdapter = new CNCallAdapter(MULTIPART_REST_CLIENT, node, version);
+        CNCallAdapter callAdapter = new CNCallAdapter(getSession("testAdmin"), node, version);
         String currentUrl = node.getBaseURL();
         
         printTestHeader("testIsNodeAuthorized(...) vs. node: " + currentUrl);
@@ -467,7 +460,7 @@ public class CNReplicationTestImplementations extends ContextAwareAdapter {
         // TODO: 
 //      ContextAwareTestCaseDataone.setupClientSubject("testMemberNode");
         
-        CNCallAdapter callAdapter = new CNCallAdapter(MULTIPART_REST_CLIENT, node, version);
+        CNCallAdapter callAdapter = new CNCallAdapter(getSession("testSubmitter"), node, version);
         String currentUrl = node.getBaseURL();
         
         printTestHeader("testIsNodeAuthorized(...) vs. node: " + currentUrl);
@@ -505,9 +498,8 @@ public class CNReplicationTestImplementations extends ContextAwareAdapter {
 //    @Ignore("test not implemented")
     public void testIsNodeAuthorized_InvalidRequest(Node node, String version) {
         // TODO: 
-        ContextAwareTestCaseDataone.setupClientSubject("testMemberNode");
         
-        CNCallAdapter callAdapter = new CNCallAdapter(MULTIPART_REST_CLIENT, node, version);
+        CNCallAdapter callAdapter = new CNCallAdapter(getSession("testMemberNode"), node, version);
         String currentUrl = node.getBaseURL();
         
         printTestHeader("testIsNodeAuthorized(...) vs. node: " + currentUrl);
@@ -547,7 +539,7 @@ public class CNReplicationTestImplementations extends ContextAwareAdapter {
         // TODO: 
 //      ContextAwareTestCaseDataone.setupClientSubject("testMemberNode");
         
-        CNCallAdapter callAdapter = new CNCallAdapter(MULTIPART_REST_CLIENT, node, version);
+        CNCallAdapter callAdapter = new CNCallAdapter(getSession("testMemberNode"), node, version);
         String currentUrl = node.getBaseURL();
         
         printTestHeader("testIsNodeAuthorized(...) vs. node: " + currentUrl);
@@ -585,7 +577,7 @@ public class CNReplicationTestImplementations extends ContextAwareAdapter {
     public void testUpdateReplicationMetadata(Node node, String version) {
         //TODO:
 //      ContextAwareTestCaseDataone.setupClientSubject("testMemberNode");
-        CNCallAdapter callAdapter = new CNCallAdapter(MULTIPART_REST_CLIENT, node, version);
+        CNCallAdapter callAdapter = new CNCallAdapter(getSession("testMemberNode"), node, version);
         String currentUrl = node.getBaseURL();
         
         printTestHeader("testUpdateReplicationMetadata(...) vs. node: " + currentUrl);
@@ -630,8 +622,7 @@ public class CNReplicationTestImplementations extends ContextAwareAdapter {
     
 //    @Ignore("test not implemented") 
     public void testUpdateReplicationMetadata_NotAuthorized(Node node, String version) {
-        ContextAwareTestCaseDataone.setupClientSubject("testNoRights");
-        CNCallAdapter callAdapter = new CNCallAdapter(MULTIPART_REST_CLIENT, node, version);
+        CNCallAdapter callAdapter = new CNCallAdapter(getSession("testNoRights"), node, version);
         String currentUrl = node.getBaseURL();
         
         printTestHeader("testUpdateReplicationMetadata(...) vs. node: " + currentUrl);
@@ -680,8 +671,7 @@ public class CNReplicationTestImplementations extends ContextAwareAdapter {
 //    @Ignore("test not implemented") 
     public void testUpdateReplicationMetadata_NotFound(Node node, String version) {
         //TODO:
-//      ContextAwareTestCaseDataone.setupClientSubject("testMemberNode");
-        CNCallAdapter callAdapter = new CNCallAdapter(MULTIPART_REST_CLIENT, node, version);
+        CNCallAdapter callAdapter = new CNCallAdapter(getSession("testMemberNode"), node, version);
         String currentUrl = node.getBaseURL();
         
         printTestHeader("testUpdateReplicationMetadata(...) vs. node: " + currentUrl);
@@ -734,7 +724,7 @@ public class CNReplicationTestImplementations extends ContextAwareAdapter {
     public void testUpdateReplicationMetadata_InvalidRequest(Node node, String version) {
         //TODO:
 //      ContextAwareTestCaseDataone.setupClientSubject("testMemberNode");
-        CNCallAdapter callAdapter = new CNCallAdapter(MULTIPART_REST_CLIENT, node, version);
+        CNCallAdapter callAdapter = new CNCallAdapter(getSession("testMemberNode"), node, version);
         String currentUrl = node.getBaseURL();
         
         printTestHeader("testUpdateReplicationMetadata(...) vs. node: " + currentUrl);
@@ -784,7 +774,7 @@ public class CNReplicationTestImplementations extends ContextAwareAdapter {
     public void testUpdateReplicationMetadata_VersionMismatch(Node node, String version) {
         //TODO:
 //      ContextAwareTestCaseDataone.setupClientSubject("testMemberNode");
-        CNCallAdapter callAdapter = new CNCallAdapter(MULTIPART_REST_CLIENT, node, version);
+        CNCallAdapter callAdapter = new CNCallAdapter(getSession("testMemberNode"), node, version);
         String currentUrl = node.getBaseURL();
         
         printTestHeader("testUpdateReplicationMetadata(...) vs. node: " + currentUrl);

@@ -39,6 +39,7 @@ import org.dataone.service.types.v1.Replica;
 import org.dataone.service.types.v1.ReplicationPolicy;
 import org.dataone.service.types.v1.Subject;
 import org.dataone.service.types.v2.SystemMetadata;
+import org.dataone.service.util.Constants;
 import org.dataone.service.util.TypeMarshaller;
 import org.jibx.runtime.JiBXException;
 import org.junit.Ignore;
@@ -73,9 +74,8 @@ public class MNReplicationTestImplementations extends ContextAwareAdapter {
      */
     public void testReplicate_NoCertificate(Node node, String version) {
 
-        ContextAwareTestCaseDataone.setupClientSubject_NoCert();
         String currentUrl = node.getBaseURL();
-        MNCallAdapter callAdapter = new MNCallAdapter(MULTIPART_REST_CLIENT, node, version);
+        MNCallAdapter callAdapter = new MNCallAdapter(getSession(Constants.SUBJECT_PUBLIC), node, version);
         currentUrl = callAdapter.getNodeBaseServiceUrl();
         printTestHeader("testReplicate_NoCertificate vs. node: " + currentUrl);
 
@@ -111,9 +111,8 @@ public class MNReplicationTestImplementations extends ContextAwareAdapter {
      */
     public void testReplicate_ValidCertificate_NotCN(Node node, String version) {
 
-        ContextAwareTestCaseDataone.setupClientSubject("testPerson");
         String currentUrl = node.getBaseURL();
-        MNCallAdapter callAdapter = new MNCallAdapter(MULTIPART_REST_CLIENT, node, version);
+        MNCallAdapter callAdapter = new MNCallAdapter(getSession("testPerson"), node, version);
         currentUrl = callAdapter.getNodeBaseServiceUrl();
         printTestHeader("testReplicate_ValidCertificate_NotCN vs. node: " + currentUrl);
 
@@ -150,10 +149,8 @@ public class MNReplicationTestImplementations extends ContextAwareAdapter {
 //    @Ignore("need to create testCN certificate to run this subtest")
     public void testReplicate_FaultyNodeReference(Node node, String version) {
 
-        ContextAwareTestCaseDataone.setupClientSubject("testCN");
-
         String currentUrl = node.getBaseURL();
-        MNCallAdapter callAdapter = new MNCallAdapter(MULTIPART_REST_CLIENT, node, version);
+        MNCallAdapter callAdapter = new MNCallAdapter(getSession("testCN"), node, version);
         currentUrl = callAdapter.getNodeBaseServiceUrl();
         printTestHeader("testReplicate_NoCertificate vs. node: " + currentUrl);
 
@@ -186,8 +183,7 @@ public class MNReplicationTestImplementations extends ContextAwareAdapter {
 
     public void testSystemMetadataChanged_EarlierDate(Node node, String version){
         
-        ContextAwareTestCaseDataone.setupClientSubject("urn:node:cnDevUNM1");
-        MNCallAdapter callAdapter = new MNCallAdapter(MULTIPART_REST_CLIENT, node, version);
+        MNCallAdapter callAdapter = new MNCallAdapter(getSession("urn:node:cnDevUNM1"), node, version);
         String currentUrl = callAdapter.getNodeBaseServiceUrl();
         printTestHeader("testSystemMetadataChanged() vs. node: " + currentUrl);
     
@@ -218,8 +214,7 @@ public class MNReplicationTestImplementations extends ContextAwareAdapter {
     
     public void testSystemMetadataChanged_authenticatedITKuser(Node node, String version){
         
-        ContextAwareTestCaseDataone.setupClientSubject("testPerson");
-        MNCallAdapter callAdapter = new MNCallAdapter(MULTIPART_REST_CLIENT, node, version);
+        MNCallAdapter callAdapter = new MNCallAdapter(getSession("testPerson"), node, version);
         String currentUrl = callAdapter.getNodeBaseServiceUrl();
         printTestHeader("testSystemMetadataChanged_authITKuser() vs. node: " + currentUrl);
     
@@ -257,8 +252,7 @@ public class MNReplicationTestImplementations extends ContextAwareAdapter {
 
     public void testSystemMetadataChanged_withCreate(Node node, String version) {
 
-        ContextAwareTestCaseDataone.setupClientSubject("urn:node:cnDevUNM1");
-        MNCallAdapter callAdapter = new MNCallAdapter(MULTIPART_REST_CLIENT, node, version);
+        MNCallAdapter callAdapter = new MNCallAdapter(getSession("urn:node:cnDevUNM1"), node, version);
         String currentUrl = callAdapter.getNodeBaseServiceUrl();
         printTestHeader("testSystemMetadataChanged() vs. node: " + currentUrl);
 

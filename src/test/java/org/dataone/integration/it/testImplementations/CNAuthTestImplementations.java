@@ -7,6 +7,7 @@ import java.util.Iterator;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.dataone.client.rest.HttpMultipartRestClient;
 import org.dataone.client.v1.types.D1TypeBuilder;
 import org.dataone.configuration.Settings;
 import org.dataone.integration.APITestUtils;
@@ -25,6 +26,7 @@ import org.dataone.service.types.v1.Permission;
 import org.dataone.service.types.v1.Subject;
 import org.dataone.service.types.v1.SystemMetadata;
 import org.dataone.service.types.v1.util.AccessUtil;
+import org.dataone.service.util.Constants;
 import org.dataone.service.util.TypeMarshaller;
 
 public class CNAuthTestImplementations extends ContextAwareAdapter {
@@ -48,15 +50,16 @@ public class CNAuthTestImplementations extends ContextAwareAdapter {
      */
     public void testSetRightsHolder(Node node, String version) 
     {
-        CNCallAdapter callAdapter = new CNCallAdapter(MULTIPART_REST_CLIENT, node, version);
         Subject inheritorSubject = ContextAwareTestCaseDataone.setupClientSubject("testPerson");
         String currentUrl = node.getBaseURL();
         // TODO ^ this initialization is not like the others... is this ok?
         printTestHeader("testSetRightsHolder(...) vs. node: " + currentUrl);
 
+        CNCallAdapter callAdapter = null;
         try {
             Subject ownerSubject = ContextAwareTestCaseDataone.setupClientSubject("testRightsHolder");
-            
+            callAdapter = new CNCallAdapter(getSession("testRightsHolder"), node, version);
+
             // create a new identifier for testing, owned by current subject and with null AP
             Identifier changeableObject = APITestUtils.buildIdentifier(
                     "TierTesting:setRH:" + ExampleUtilities.generateIdentifier()); 
@@ -80,7 +83,7 @@ public class CNAuthTestImplementations extends ContextAwareAdapter {
                     ; // expected
                 }
                 
-                ContextAwareTestCaseDataone.setupClientSubject("testPerson");
+                callAdapter = new CNCallAdapter(getSession("testPerson"), node, version);
                 try {
                     callAdapter.isAuthorized(null, changeableObject, Permission.CHANGE_PERMISSION);
                 } catch (NotAuthorized na) {
@@ -130,8 +133,9 @@ public class CNAuthTestImplementations extends ContextAwareAdapter {
      */
     public void testSetAccessPolicy(Node node, String version) 
     {   
-        CNCallAdapter callAdapter = new CNCallAdapter(MULTIPART_REST_CLIENT, node, version);
         Subject ownerSubject = ContextAwareTestCaseDataone.setupClientSubject("testRightsHolder");               
+        CNCallAdapter callAdapter = new CNCallAdapter(getSession("testRightsHolder"), node, version);
+
         boolean origObjectCacheSetting = Settings.getConfiguration().getBoolean("D1Client.useLocalCache");
         Settings.getConfiguration().setProperty("D1Client.useLocalCache", false);
         String currentUrl = callAdapter.getNodeBaseServiceUrl();

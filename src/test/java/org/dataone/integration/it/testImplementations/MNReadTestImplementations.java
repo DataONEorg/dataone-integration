@@ -22,6 +22,7 @@ import org.dataone.service.exceptions.SynchronizationFailed;
 import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Node;
 import org.dataone.service.types.v2.SystemMetadata;
+import org.dataone.service.util.Constants;
 import org.dataone.service.util.TypeMarshaller;
 
 public class MNReadTestImplementations extends ContextAwareAdapter {
@@ -42,8 +43,7 @@ public class MNReadTestImplementations extends ContextAwareAdapter {
 
     public void testSynchronizationFailed_NoCert(Node node, String version) {
 
-        ContextAwareTestCaseDataone.setupClientSubject_NoCert();
-        MNCallAdapter callAdapter = new MNCallAdapter(MULTIPART_REST_CLIENT, node, version);
+        MNCallAdapter callAdapter = new MNCallAdapter(getSession(Constants.SUBJECT_PUBLIC), node, version);
         String currentUrl = callAdapter.getNodeBaseServiceUrl();
         printTestHeader("testSynchronizationFailed() vs. node: " + currentUrl);
 
@@ -83,8 +83,7 @@ public class MNReadTestImplementations extends ContextAwareAdapter {
     public void testGetReplica_PublicObject(Node node, String version) {
 
         String clientSubject = "urn:node:cnStageUNM1";
-        ContextAwareTestCaseDataone.setupClientSubject(clientSubject);
-        MNCallAdapter callAdapter = new MNCallAdapter(MULTIPART_REST_CLIENT, node, version);
+        MNCallAdapter callAdapter = new MNCallAdapter(getSession(clientSubject), node, version);
         String currentUrl = callAdapter.getNodeBaseServiceUrl();
         printTestHeader("testGetReplica() vs. node: " + currentUrl);
 
@@ -124,8 +123,7 @@ public class MNReadTestImplementations extends ContextAwareAdapter {
 
 	public void testGetReplica_ValidCertificate_NotMN(Node node, String version){
 		
-	    ContextAwareTestCaseDataone.setupClientSubject("testRightsHolder");
-        MNCallAdapter callAdapter = new MNCallAdapter(MULTIPART_REST_CLIENT, node, version);
+        MNCallAdapter callAdapter = new MNCallAdapter(getSession("testRightsHolder"), node, version);
         String currentUrl = callAdapter.getNodeBaseServiceUrl();
         printTestHeader("testGetReplica_AuthenticateITKUser() vs. node: " + currentUrl);
 
@@ -161,8 +159,7 @@ public class MNReadTestImplementations extends ContextAwareAdapter {
 
 	public void testGetReplica_NoCertificate(Node node, String version){
 		
-	    ContextAwareTestCaseDataone.setupClientSubject_NoCert();
-	    MNCallAdapter callAdapter = new MNCallAdapter(MULTIPART_REST_CLIENT, node, version);
+	    MNCallAdapter callAdapter = new MNCallAdapter(getSession(Constants.SUBJECT_PUBLIC), node, version);
         String currentUrl = callAdapter.getNodeBaseServiceUrl();
         printTestHeader("testGetReplica_NoCert() vs. node: " + currentUrl);
 
@@ -201,8 +198,7 @@ public class MNReadTestImplementations extends ContextAwareAdapter {
 
 	public void testGetReplica_NotFound(Node node, String version){
 		
-	    ContextAwareTestCaseDataone.setupClientSubject_NoCert();
-        MNCallAdapter callAdapter = new MNCallAdapter(MULTIPART_REST_CLIENT, node, version);
+        MNCallAdapter callAdapter = new MNCallAdapter(getSession(Constants.SUBJECT_PUBLIC), node, version);
         String currentUrl = callAdapter.getNodeBaseServiceUrl();
         printTestHeader("testGetReplica() vs. node: " + currentUrl);
 
@@ -233,8 +229,7 @@ public class MNReadTestImplementations extends ContextAwareAdapter {
 
 	public void testGetReplica_IdentifierEncoding(Node node, String version){
 	    
-	    ContextAwareTestCaseDataone.setupClientSubject_NoCert();
-        MNCallAdapter callAdapter = new MNCallAdapter(MULTIPART_REST_CLIENT, node, version);
+        MNCallAdapter callAdapter = new MNCallAdapter(getSession(Constants.SUBJECT_PUBLIC), node, version);
         String currentUrl = callAdapter.getNodeBaseServiceUrl();
         printTestHeader("testGetReplica_IdentifierEncoding() vs. node: " + currentUrl);
 
