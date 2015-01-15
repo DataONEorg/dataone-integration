@@ -117,6 +117,8 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 
     public static String cnSubmitter = Settings.getConfiguration().getString("dataone.it.cnode.submitter.cn", /* default */ "urn:node:cnDevUNM1");
 
+    private static Map<String,MultipartRestClient> sessionMap = new HashMap<String,MultipartRestClient>();
+    
     private static final MultipartRestClient MULTIPART_REST_CLIENT = getSession(null);
 
     // context-related instance variables
@@ -480,7 +482,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
         return clientSubject;
     }
 
-    static Map<String,MultipartRestClient> sessionMap = new HashMap<String,MultipartRestClient>();
+
     
     public static MultipartRestClient getSession(String subjectName) {
         if (subjectName == null) {
