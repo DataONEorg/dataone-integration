@@ -22,6 +22,7 @@ import org.dataone.service.types.v1.ChecksumAlgorithmList;
 import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Node;
 import org.dataone.service.types.v1.ObjectFormatIdentifier;
+import org.dataone.service.types.v1.Session;
 import org.dataone.service.types.v1.Subject;
 import org.dataone.service.types.v2.NodeList;
 import org.dataone.service.types.v2.ObjectFormat;
@@ -517,7 +518,8 @@ public class CNCoreTestImplementations extends ContextAwareAdapter {
         String currentUrl = node.getBaseURL();
         Subject clientSubject = ClientIdentityManager.getCurrentIdentity();
         printTestHeader("testHasReservation(...) vs. node: " + currentUrl);
-        
+        Session session = ExampleUtilities.getTestSession();
+
         try {
             boolean response = false;
 //              if (reservedIdentifier != null) {
@@ -526,7 +528,7 @@ public class CNCoreTestImplementations extends ContextAwareAdapter {
                 Identifier pid = new Identifier();
                 pid.setValue(ExampleUtilities.generateIdentifier());
                 callAdapter.reserveIdentifier(null, pid );
-                response = callAdapter.hasReservation(null,clientSubject,pid);
+                response = callAdapter.hasReservation(session, clientSubject, pid);
 //              }
             checkTrue(callAdapter.getLatestRequestUrl(),"response cannot be false. [Only true or exception].", response);
         } 

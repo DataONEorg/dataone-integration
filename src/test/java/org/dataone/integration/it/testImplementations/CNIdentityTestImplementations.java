@@ -260,10 +260,12 @@ public class CNIdentityTestImplementations extends ContextAwareAdapter {
             handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
         }              
     }
+    
     public void testMapIdentity(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testMapIdentity(nodeIterator.next(), version);
     }
+    
     public void testMapIdentity(Node node, String version) {
 //      Iterator<Node> it = getCoordinatingNodeIterator();
 //      while (it.hasNext()) {
