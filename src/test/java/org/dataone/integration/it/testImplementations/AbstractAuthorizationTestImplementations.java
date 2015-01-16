@@ -197,8 +197,9 @@ public abstract class AbstractAuthorizationTestImplementations extends ContextAw
 
          Iterator<Node> it = getNodeIterator();
          while (it.hasNext()) {
-             currentUrl = it.next().getBaseURL();
-             CommonCallAdapter d1Node = instantiateD1Node(currentUrl);
+             Node node = it.next();
+             currentUrl = node.getBaseURL();
+             CommonCallAdapter d1Node = instantiateD1Node(node);
 
              try {
 
@@ -333,8 +334,9 @@ public abstract class AbstractAuthorizationTestImplementations extends ContextAw
 
          Iterator<Node> it = getNodeIterator();
          while (it.hasNext()) {
-             currentUrl = it.next().getBaseURL();
-             CommonCallAdapter d1Node = instantiateD1Node(currentUrl);
+             Node node = it.next();
+             currentUrl = node.getBaseURL();
+             CommonCallAdapter d1Node = instantiateD1Node(node);
 
              try {
                  String objectIdentifier = "TierTesting:" +
@@ -476,8 +478,9 @@ public abstract class AbstractAuthorizationTestImplementations extends ContextAw
 
          Iterator<Node> it = getNodeIterator();
          while (it.hasNext()) {
-             currentUrl = it.next().getBaseURL();
-             CommonCallAdapter d1Node = instantiateD1Node(currentUrl);
+             Node node = it.next();
+             currentUrl = node.getBaseURL();
+             CommonCallAdapter d1Node = instantiateD1Node(node);
 
              try {
                  String objectIdentifier = "TierTesting:" +
@@ -609,8 +612,9 @@ public abstract class AbstractAuthorizationTestImplementations extends ContextAw
 
          Iterator<Node> it = getNodeIterator();
          while (it.hasNext()) {
-             currentUrl = it.next().getBaseURL();
-             CommonCallAdapter d1Node = instantiateD1Node(currentUrl);
+             Node node = it.next();
+             currentUrl = node.getBaseURL();
+             CommonCallAdapter d1Node = instantiateD1Node(node);
 
              try {
                  String objectIdentifier = "TierTesting:" +
@@ -743,8 +747,9 @@ public abstract class AbstractAuthorizationTestImplementations extends ContextAw
 
          Iterator<Node> it = getNodeIterator();
          while (it.hasNext()) {
-             currentUrl = it.next().getBaseURL();
-             CommonCallAdapter d1Node = instantiateD1Node(currentUrl);
+             Node node = it.next();
+             currentUrl = node.getBaseURL();
+             CommonCallAdapter d1Node = instantiateD1Node(node);
 
              try {
                  String objectIdentifier = "TierTesting:" +
@@ -887,8 +892,9 @@ public abstract class AbstractAuthorizationTestImplementations extends ContextAw
 
          Iterator<Node> it = getNodeIterator();
          while (it.hasNext()) {
-             currentUrl = it.next().getBaseURL();
-             CommonCallAdapter d1Node = instantiateD1Node(currentUrl);
+             Node node = it.next();
+             currentUrl = node.getBaseURL();
+             CommonCallAdapter d1Node = instantiateD1Node(node);
 
              try {
                  // get or create the test object
@@ -1027,8 +1033,9 @@ public abstract class AbstractAuthorizationTestImplementations extends ContextAw
 
          Iterator<Node> it = getNodeIterator();
          while (it.hasNext()) {
-             currentUrl = it.next().getBaseURL();
-             CommonCallAdapter d1Node = instantiateD1Node(currentUrl);
+             Node node = it.next();
+             currentUrl = node.getBaseURL();
+             CommonCallAdapter d1Node = instantiateD1Node(node);
 
              try {
                  String objectIdentifier = "TierTesting:" +
@@ -1163,8 +1170,9 @@ public abstract class AbstractAuthorizationTestImplementations extends ContextAw
 
          Iterator<Node> it = getNodeIterator();
          while (it.hasNext()) {
-             currentUrl = it.next().getBaseURL();
-             CommonCallAdapter d1Node = instantiateD1Node(currentUrl);
+             Node node = it.next();
+             currentUrl = node.getBaseURL();
+             CommonCallAdapter d1Node = instantiateD1Node(node);
 
              try {
                  String objectIdentifier = "TierTesting:" +
@@ -1298,8 +1306,9 @@ public abstract class AbstractAuthorizationTestImplementations extends ContextAw
 
          Iterator<Node> it = getNodeIterator();
          while (it.hasNext()) {
-             currentUrl = it.next().getBaseURL();
-             CommonCallAdapter d1Node = instantiateD1Node(currentUrl);
+             Node node = it.next();
+             currentUrl = node.getBaseURL();
+             CommonCallAdapter d1Node = instantiateD1Node(node);
 
              try {
                  // get or create the test object
@@ -1443,8 +1452,9 @@ public abstract class AbstractAuthorizationTestImplementations extends ContextAw
 
          Iterator<Node> it = getNodeIterator();
          while (it.hasNext()) {
-             currentUrl = it.next().getBaseURL();
-             CommonCallAdapter d1Node = instantiateD1Node(currentUrl);
+             Node node = it.next();
+             currentUrl = node.getBaseURL();
+             CommonCallAdapter d1Node = instantiateD1Node(node);
 
              try {
                  // get or create the test object
@@ -1587,8 +1597,9 @@ public abstract class AbstractAuthorizationTestImplementations extends ContextAw
 
          Iterator<Node> it = getNodeIterator();
          while (it.hasNext()) {
-             currentUrl = it.next().getBaseURL();
-             CommonCallAdapter d1Node = instantiateD1Node(currentUrl);
+             Node node = it.next();
+             currentUrl = node.getBaseURL();
+             CommonCallAdapter d1Node = instantiateD1Node(node);
 
              try {
                  // get or create the test object
@@ -1728,8 +1739,9 @@ public abstract class AbstractAuthorizationTestImplementations extends ContextAw
 
          Iterator<Node> it = getNodeIterator();
          while (it.hasNext()) {
-             currentUrl = it.next().getBaseURL();
-             CommonCallAdapter d1Node = instantiateD1Node(currentUrl);
+             Node node = it.next();
+             currentUrl = node.getBaseURL();
+             CommonCallAdapter d1Node = instantiateD1Node(node);
 
              try {
                  // get or create the test object
@@ -1890,8 +1902,9 @@ public abstract class AbstractAuthorizationTestImplementations extends ContextAw
 
          Iterator<Node> it = getNodeIterator();
          while (it.hasNext()) {
-             currentUrl = it.next().getBaseURL();
-             CommonCallAdapter d1Node = instantiateD1Node(currentUrl);
+             Node node = it.next();
+             currentUrl = node.getBaseURL();
+             CommonCallAdapter d1Node = instantiateD1Node(node);
 
              try {
                  String objectIdentifier = "TierTesting:" +
