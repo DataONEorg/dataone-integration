@@ -161,6 +161,8 @@
                     <testExcludes>
                         <exclude>**/it/MNodeTier*.java</exclude>
                         <exclude>**/it/CNodeTier*.java</exclude>
+                        <exclude>**/it/functional/*.java</exclude>
+                        <exclude>**/tools/*.java</exclude>
                     </testExcludes>
         </configuration>
       </plugin>
