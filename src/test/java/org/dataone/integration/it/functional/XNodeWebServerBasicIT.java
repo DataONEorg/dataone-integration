@@ -20,7 +20,7 @@
  * $Id$
  */
 
-package org.dataone.integration.it;
+package org.dataone.integration.it.functional;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;

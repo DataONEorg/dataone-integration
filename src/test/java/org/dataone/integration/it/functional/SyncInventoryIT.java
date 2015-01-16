@@ -1,4 +1,4 @@
-package org.dataone.integration.it;
+package org.dataone.integration.it.functional;
 
 import java.io.InputStream;
 import java.util.ArrayList;

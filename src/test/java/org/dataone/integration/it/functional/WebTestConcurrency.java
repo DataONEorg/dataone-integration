@@ -20,7 +20,7 @@
  * $Id$
  */
 
-package org.dataone.integration.it;
+package org.dataone.integration.it.functional;
 
 import java.util.Iterator;
 import java.util.UUID;

@@ -1,4 +1,4 @@
-package org.dataone.integration.it;
+package org.dataone.integration.it.functional;
 
 
 import static org.junit.Assert.assertFalse;

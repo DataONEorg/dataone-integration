@@ -18,7 +18,7 @@
  * limitations under the License.
  */
 
-package org.dataone.integration.it;
+package org.dataone.integration.it.functional;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
