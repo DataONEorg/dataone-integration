@@ -489,6 +489,10 @@ public class CoreTestImplementations extends ContextAwareAdapter {
         try {
             Log eventLog = callAdapter.getLogRecords(null, null, null, null, null, null, null);
 
+            if (eventLog.getLogEntryList() == null ) {
+                handleFail(callAdapter.getLatestRequestUrl(), "the event log list is null after trying to read an object");
+            }
+            
             if (eventLog.getLogEntryList().size() == 0) {
 
                 // read an existing object

@@ -59,8 +59,8 @@ public class CNCoreTestImplementations extends ContextAwareAdapter {
 
         try {
             Object[] dataPackage = ExampleUtilities.generateTestSciMetaDataPackage("cNodeTier1TestCreate",true);
-            SystemMetadata sysMetaV1 = (SystemMetadata) dataPackage[2];
-            org.dataone.service.types.v2.SystemMetadata sysMetaV2 = TypeMarshaller.convertTypeFromType(sysMetaV1, org.dataone.service.types.v2.SystemMetadata.class);
+            org.dataone.service.types.v1.SystemMetadata sysMetaV1 = (org.dataone.service.types.v1.SystemMetadata) dataPackage[2];
+            SystemMetadata sysMetaV2 = TypeMarshaller.convertTypeFromType(sysMetaV1, SystemMetadata.class);
             Identifier pid = callAdapter.create(null,(Identifier) dataPackage[0],
                     (InputStream) dataPackage[1], sysMetaV2 ); 
             
@@ -119,8 +119,8 @@ public class CNCoreTestImplementations extends ContextAwareAdapter {
                 // rGuid is either going to be the escaped ID or the non-escaped ID
                 Identifier rGuid = null;
 
-                SystemMetadata sysMetaV1 = (SystemMetadata) dataPackage[2];
-                org.dataone.service.types.v2.SystemMetadata sysMetaV2 = TypeMarshaller.convertTypeFromType(sysMetaV1, org.dataone.service.types.v2.SystemMetadata.class);
+                org.dataone.service.types.v1.SystemMetadata sysMetaV1 = (org.dataone.service.types.v1.SystemMetadata) dataPackage[2];
+                SystemMetadata sysMetaV2 = TypeMarshaller.convertTypeFromType(sysMetaV1, SystemMetadata.class);
                 rGuid = callAdapter.create(null, (Identifier) dataPackage[0], 
                         (InputStream)dataPackage[1], sysMetaV2);
                 
@@ -260,7 +260,8 @@ public class CNCoreTestImplementations extends ContextAwareAdapter {
         try {
             ObjectFormatList ofList = callAdapter.listFormats();
             if (ofList.getCount() > 0) {
-                ObjectFormatIdentifier formatId = ofList.getObjectFormat(0).getFormatId();
+                ObjectFormat firstObj = ofList.getObjectFormat(0);
+                ObjectFormatIdentifier formatId = firstObj.getFormatId();
                 ObjectFormat response = callAdapter.getFormat(formatId);
                 checkTrue(callAdapter.getLatestRequestUrl(),"getFormat(...) returns an ObjectFormat object", 
                         response instanceof ObjectFormat);
@@ -436,13 +437,14 @@ public class CNCoreTestImplementations extends ContextAwareAdapter {
         CNCallAdapter callAdapter = new CNCallAdapter(getSession("testSubmitter"), node, version);
         String currentUrl = node.getBaseURL();
         printTestHeader("testReserveIdentifier(...) vs. node: " + currentUrl);
-
+        Session session = ExampleUtilities.getTestSession();
+        
         boolean isReserved = false;
         try {
             Identifier pid = new Identifier();
             pid.setValue(ExampleUtilities.generateIdentifier());
 
-            Identifier response = callAdapter.reserveIdentifier(null,pid);
+            Identifier response = callAdapter.reserveIdentifier(session, pid);
             checkTrue(callAdapter.getLatestRequestUrl(),"reserveIdentifier(...) should return the given identifier",
                     response.equals(pid));
             isReserved = true;
@@ -482,8 +484,9 @@ public class CNCoreTestImplementations extends ContextAwareAdapter {
 
         try {
             Object[] dataPackage = ExampleUtilities.generateTestSciMetaDataPackage("cNodeTier1TestCreate",true);
-            SystemMetadata smd = (SystemMetadata) dataPackage[2];
-            Identifier pid = callAdapter.registerSystemMetadata(null,(Identifier) dataPackage[0], smd);  
+            org.dataone.service.types.v1.SystemMetadata smdV1 = (org.dataone.service.types.v1.SystemMetadata) dataPackage[2];
+            SystemMetadata smdV2 = TypeMarshaller.convertTypeFromType(smdV1, SystemMetadata.class);
+            Identifier pid = callAdapter.registerSystemMetadata(null,(Identifier) dataPackage[0], smdV2);  
             
             checkEquals(callAdapter.getLatestRequestUrl(),"pid of registered sysmetadata should equal that given",
                     ((Identifier)dataPackage[0]).getValue(), pid.getValue());
@@ -491,7 +494,7 @@ public class CNCoreTestImplementations extends ContextAwareAdapter {
             SystemMetadata smdReturned = callAdapter.getSystemMetadata(null,pid);
             checkEquals(callAdapter.getLatestRequestUrl(),"should be able to get registered sysmeta",
                     smdReturned.getIdentifier().getValue(),
-                    smd.getIdentifier().getValue());
+                    smdV2.getIdentifier().getValue());
         }
         catch (BaseException e) {
             handleFail(callAdapter.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " 
@@ -527,7 +530,7 @@ public class CNCoreTestImplementations extends ContextAwareAdapter {
 //              } else {
                 Identifier pid = new Identifier();
                 pid.setValue(ExampleUtilities.generateIdentifier());
-                callAdapter.reserveIdentifier(null, pid );
+                callAdapter.reserveIdentifier(session, pid );
                 response = callAdapter.hasReservation(session, clientSubject, pid);
 //              }
             checkTrue(callAdapter.getLatestRequestUrl(),"response cannot be false. [Only true or exception].", response);
