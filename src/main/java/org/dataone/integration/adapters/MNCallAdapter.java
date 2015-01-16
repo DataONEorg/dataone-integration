@@ -1,6 +1,8 @@
 package org.dataone.integration.adapters;
 
+import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
 import java.util.Date;
 
@@ -31,6 +33,8 @@ import org.dataone.service.types.v1.Session;
 import org.dataone.service.types.v1_1.QueryEngineDescription;
 import org.dataone.service.types.v1_1.QueryEngineList;
 import org.dataone.service.types.v2.SystemMetadata;
+import org.dataone.service.util.TypeMarshaller;
+import org.jibx.runtime.JiBXException;
 
 /**
  * Subclass of {@link CommonCallAdapter} that can be used to call MNode API methods that
@@ -111,13 +115,15 @@ public class MNCallAdapter extends CommonCallAdapter {
     public Identifier create(Session session, Identifier pid, InputStream object, 
             SystemMetadata sysmeta) 
         throws IdentifierNotUnique, InsufficientResources, InvalidRequest, InvalidSystemMetadata, 
-            InvalidToken, NotAuthorized, NotImplemented, ServiceFailure, UnsupportedType, ClientSideException {
+            InvalidToken, NotAuthorized, NotImplemented, ServiceFailure, UnsupportedType, ClientSideException, InstantiationException, IllegalAccessException, InvocationTargetException, JiBXException, IOException {
+        
         if (this.node.getType().equals(NodeType.MN)) {
             if (this.version.toLowerCase().equals("v1")) {
                 org.dataone.service.mn.tier3.v1.MNStorage mnStorage = D1NodeFactory.buildNode(
                         org.dataone.service.mn.tier3.v1.MNStorage.class, this.mrc,
                         URI.create(this.node.getBaseURL()));
-                return mnStorage.create(session, pid, object, sysmeta);
+                org.dataone.service.types.v1.SystemMetadata v1SysMeta = TypeMarshaller.convertTypeFromType(sysmeta, org.dataone.service.types.v1.SystemMetadata.class);
+                return mnStorage.create(session, pid, object, v1SysMeta);
             } else if (this.version.toLowerCase().equals("v2")) {
                 MNStorage mnStorage = D1NodeFactory.buildNode(MNStorage.class, this.mrc,
                         URI.create(this.node.getBaseURL()));
@@ -131,13 +137,14 @@ public class MNCallAdapter extends CommonCallAdapter {
     public Identifier update(Session session, Identifier pid, InputStream object,
             Identifier newPid, SystemMetadata sysmeta) throws IdentifierNotUnique,
             InsufficientResources, InvalidRequest, InvalidSystemMetadata, InvalidToken,
-            NotAuthorized, NotImplemented, ServiceFailure, UnsupportedType, NotFound, ClientSideException {
+            NotAuthorized, NotImplemented, ServiceFailure, UnsupportedType, NotFound, ClientSideException, InstantiationException, IllegalAccessException, InvocationTargetException, JiBXException, IOException {
         if (this.node.getType().equals(NodeType.MN)) {
             if (this.version.toLowerCase().equals("v1")) {
                 org.dataone.service.mn.tier3.v1.MNStorage mnStorage = D1NodeFactory.buildNode(
                         org.dataone.service.mn.tier3.v1.MNStorage.class, this.mrc,
                         URI.create(this.node.getBaseURL()));
-                return mnStorage.update(session, pid, object, newPid, sysmeta);
+                org.dataone.service.types.v1.SystemMetadata v1SysMeta = TypeMarshaller.convertTypeFromType(sysmeta, org.dataone.service.types.v1.SystemMetadata.class);
+                return mnStorage.update(session, pid, object, newPid, v1SysMeta);
             } else if (this.version.toLowerCase().equals("v2")) {
                 MNStorage mnStorage = D1NodeFactory.buildNode(MNStorage.class, this.mrc,
                         URI.create(this.node.getBaseURL()));
@@ -217,13 +224,14 @@ public class MNCallAdapter extends CommonCallAdapter {
 
     public boolean replicate(Session session, SystemMetadata sysmeta, NodeReference sourceNode)
             throws NotImplemented, ServiceFailure, NotAuthorized, InvalidRequest, InvalidToken,
-            InsufficientResources, UnsupportedType, ClientSideException {
+            InsufficientResources, UnsupportedType, ClientSideException, InstantiationException, IllegalAccessException, InvocationTargetException, JiBXException, IOException {
         if (this.node.getType().equals(NodeType.MN)) {
             if (this.version.toLowerCase().equals("v1")) {
                 org.dataone.service.mn.tier4.v1.MNReplication mnReplication = D1NodeFactory.buildNode(
                         org.dataone.service.mn.tier4.v1.MNReplication.class, this.mrc,
                         URI.create(this.node.getBaseURL()));
-                return mnReplication.replicate(session, sysmeta, sourceNode);
+                org.dataone.service.types.v1.SystemMetadata v1SysMeta = TypeMarshaller.convertTypeFromType(sysmeta, org.dataone.service.types.v1.SystemMetadata.class);
+                return mnReplication.replicate(session, v1SysMeta, sourceNode);
             } else if (this.version.toLowerCase().equals("v2")) {
                 MNReplication mnReplication = D1NodeFactory.buildNode(MNReplication.class, this.mrc,
                         URI.create(this.node.getBaseURL()));
