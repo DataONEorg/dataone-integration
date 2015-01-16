@@ -65,7 +65,7 @@ public class MNCallAdapter extends CommonCallAdapter {
     public boolean synchronizationFailed(Session session, SynchronizationFailed message)
             throws InvalidToken, NotAuthorized, NotImplemented, ServiceFailure, ClientSideException {
 
-        if (this.node.getType().equals(NodeType.CN)) {
+        if (this.node.getType().equals(NodeType.MN)) {
             if (this.version.toLowerCase().equals("v1")) {
                 org.dataone.service.mn.tier1.v1.MNRead mnRead = D1NodeFactory.buildNode(
                         org.dataone.service.mn.tier1.v1.MNRead.class, this.mrc,
@@ -84,7 +84,7 @@ public class MNCallAdapter extends CommonCallAdapter {
     public InputStream getReplica(Session session, Identifier pid) throws InvalidToken,
             NotAuthorized, NotImplemented, ServiceFailure, NotFound, InsufficientResources, ClientSideException {
 
-        if (this.node.getType().equals(NodeType.CN)) {
+        if (this.node.getType().equals(NodeType.MN)) {
             if (this.version.toLowerCase().equals("v1")) {
                 org.dataone.service.mn.tier1.v1.MNRead mnRead = D1NodeFactory.buildNode(
                         org.dataone.service.mn.tier1.v1.MNRead.class, this.mrc,
@@ -106,7 +106,7 @@ public class MNCallAdapter extends CommonCallAdapter {
             SystemMetadata sysmeta) 
         throws IdentifierNotUnique, InsufficientResources, InvalidRequest, InvalidSystemMetadata, 
             InvalidToken, NotAuthorized, NotImplemented, ServiceFailure, UnsupportedType, ClientSideException {
-        if (this.node.getType().equals(NodeType.CN)) {
+        if (this.node.getType().equals(NodeType.MN)) {
             if (this.version.toLowerCase().equals("v1")) {
                 org.dataone.service.mn.tier3.v1.MNStorage mnStorage = D1NodeFactory.buildNode(
                         org.dataone.service.mn.tier3.v1.MNStorage.class, this.mrc,
@@ -126,7 +126,7 @@ public class MNCallAdapter extends CommonCallAdapter {
             Identifier newPid, SystemMetadata sysmeta) throws IdentifierNotUnique,
             InsufficientResources, InvalidRequest, InvalidSystemMetadata, InvalidToken,
             NotAuthorized, NotImplemented, ServiceFailure, UnsupportedType, NotFound, ClientSideException {
-        if (this.node.getType().equals(NodeType.CN)) {
+        if (this.node.getType().equals(NodeType.MN)) {
             if (this.version.toLowerCase().equals("v1")) {
                 org.dataone.service.mn.tier3.v1.MNStorage mnStorage = D1NodeFactory.buildNode(
                         org.dataone.service.mn.tier3.v1.MNStorage.class, this.mrc,
@@ -145,7 +145,7 @@ public class MNCallAdapter extends CommonCallAdapter {
     public boolean updateSystemMetadata(Session session, Identifier pid, SystemMetadata sysmeta)
             throws NotImplemented, NotAuthorized, NotFound, ServiceFailure, InvalidRequest,
             InvalidSystemMetadata, InvalidToken, ClientSideException {
-        if (this.node.getType().equals(NodeType.CN)
+        if (this.node.getType().equals(NodeType.MN)
                 && this.version.toLowerCase().equals("v2")) {
                 MNStorage mnStorage = D1NodeFactory.buildNode(MNStorage.class, this.mrc,
                         URI.create(this.node.getBaseURL()));
@@ -157,7 +157,7 @@ public class MNCallAdapter extends CommonCallAdapter {
 
     public Identifier delete(Session session, Identifier id) throws InvalidToken, ServiceFailure,
             NotAuthorized, NotFound, NotImplemented, ClientSideException {
-        if (this.node.getType().equals(NodeType.CN)) {
+        if (this.node.getType().equals(NodeType.MN)) {
             if (this.version.toLowerCase().equals("v1")) {
                 org.dataone.service.mn.tier3.v1.MNStorage mnStorage = D1NodeFactory.buildNode(
                         org.dataone.service.mn.tier3.v1.MNStorage.class, this.mrc,
@@ -175,7 +175,7 @@ public class MNCallAdapter extends CommonCallAdapter {
 
     public Identifier archive(Session session, Identifier id) throws InvalidToken, ServiceFailure,
             NotAuthorized, NotFound, NotImplemented, ClientSideException {
-        if (this.node.getType().equals(NodeType.CN)) {
+        if (this.node.getType().equals(NodeType.MN)) {
             if (this.version.toLowerCase().equals("v1")) {
                 org.dataone.service.mn.tier3.v1.MNStorage mnStorage = D1NodeFactory.buildNode(
                         org.dataone.service.mn.tier3.v1.MNStorage.class, this.mrc,
@@ -193,7 +193,7 @@ public class MNCallAdapter extends CommonCallAdapter {
 
     public Identifier generateIdentifier(Session session, String scheme, String fragment)
             throws InvalidToken, ServiceFailure, NotAuthorized, NotImplemented, InvalidRequest, ClientSideException {
-        if (this.node.getType().equals(NodeType.CN)) {
+        if (this.node.getType().equals(NodeType.MN)) {
             if (this.version.toLowerCase().equals("v1")) {
                 org.dataone.service.mn.tier3.v1.MNStorage mnStorage = D1NodeFactory.buildNode(
                         org.dataone.service.mn.tier3.v1.MNStorage.class, this.mrc,
@@ -212,7 +212,7 @@ public class MNCallAdapter extends CommonCallAdapter {
     public boolean replicate(Session session, SystemMetadata sysmeta, NodeReference sourceNode)
             throws NotImplemented, ServiceFailure, NotAuthorized, InvalidRequest, InvalidToken,
             InsufficientResources, UnsupportedType, ClientSideException {
-        if (this.node.getType().equals(NodeType.CN)) {
+        if (this.node.getType().equals(NodeType.MN)) {
             if (this.version.toLowerCase().equals("v1")) {
                 org.dataone.service.mn.tier4.v1.MNReplication mnReplication = D1NodeFactory.buildNode(
                         org.dataone.service.mn.tier4.v1.MNReplication.class, this.mrc,
@@ -231,7 +231,7 @@ public class MNCallAdapter extends CommonCallAdapter {
     public InputStream query(Session session, String queryEngine, String query)
             throws InvalidToken, ServiceFailure, NotAuthorized, InvalidRequest, NotImplemented,
             NotFound, ClientSideException {
-        if (this.node.getType().equals(NodeType.CN)) {
+        if (this.node.getType().equals(NodeType.MN)) {
             if (this.version.toLowerCase().equals("v1")) {
                 org.dataone.service.mn.v1.MNQuery mnQuery = D1NodeFactory.buildNode(
                         org.dataone.service.mn.v1.MNQuery.class, this.mrc,
@@ -249,7 +249,7 @@ public class MNCallAdapter extends CommonCallAdapter {
     
     public QueryEngineDescription getQueryEngineDescription(Session session, String queryEngine)
             throws InvalidToken, ServiceFailure, NotAuthorized, NotImplemented, NotFound, ClientSideException {
-        if (this.node.getType().equals(NodeType.CN)) {
+        if (this.node.getType().equals(NodeType.MN)) {
             if (this.version.toLowerCase().equals("v1")) {
                 org.dataone.service.mn.v1.MNQuery mnQuery = D1NodeFactory.buildNode(
                         org.dataone.service.mn.v1.MNQuery.class, this.mrc,
@@ -268,7 +268,7 @@ public class MNCallAdapter extends CommonCallAdapter {
 
     public QueryEngineList listQueryEngines(Session session) throws InvalidToken, ServiceFailure,
             NotAuthorized, NotImplemented, ClientSideException {
-        if (this.node.getType().equals(NodeType.CN)) {
+        if (this.node.getType().equals(NodeType.MN)) {
             if (this.version.toLowerCase().equals("v1")) {
                 org.dataone.service.mn.v1.MNQuery mnQuery = D1NodeFactory.buildNode(
                         org.dataone.service.mn.v1.MNQuery.class, this.mrc,

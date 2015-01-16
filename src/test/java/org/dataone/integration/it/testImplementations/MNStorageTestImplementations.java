@@ -657,8 +657,10 @@ public class MNStorageTestImplementations extends ContextAwareAdapter {
         try {
             Object[] dataPackage = ExampleUtilities.generateTestSciDataPackage(
                     "mNodeTier3TestArchive", true);
+            org.dataone.service.types.v1.SystemMetadata sysMetaV1 = (org.dataone.service.types.v1.SystemMetadata) dataPackage[2];
+            SystemMetadata sysMetaV2 = TypeMarshaller.convertTypeFromType(sysMetaV1, SystemMetadata.class);
             pid = callAdapter.create(null, (Identifier) dataPackage[0],
-                    (InputStream) dataPackage[1], (SystemMetadata) dataPackage[2]);
+                    (InputStream) dataPackage[1], sysMetaV2);
 
             ContextAwareTestCaseDataone.setupClientSubject_NoCert();
             // try the archive
