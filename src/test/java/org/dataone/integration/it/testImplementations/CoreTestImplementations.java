@@ -131,7 +131,7 @@ public class CoreTestImplementations extends ContextAwareAdapter {
                     for (LogEntry le : eventLog.getLogEntryList()) {
                         currentEntry = le;
                         try {
-                            callAdapter.describe(ExampleUtilities.getTestSession(), le.getIdentifier());
+                            callAdapter.describe(null, le.getIdentifier());
                         } catch (NotFound e) {
                             ; // a semi-valid repsonse.  Sometimes logged objects have been deleted.
                         }
