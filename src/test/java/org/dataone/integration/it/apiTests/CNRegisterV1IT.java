@@ -27,6 +27,7 @@ public class CNRegisterV1IT extends ContextAwareTestCaseDataone
 
     @Override
     @Test
+    @Ignore("don't want to keep creating new phantom nodes")
     public void testRegister() {
         registerTestImpl.testRegister(getCoordinatingNodeIterator(), "v1");
     }
