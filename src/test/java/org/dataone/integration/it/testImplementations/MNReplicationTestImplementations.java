@@ -1,25 +1,12 @@
 package org.dataone.integration.it.testImplementations;
 
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.InvocationTargetException;
-import java.security.cert.X509Certificate;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
-import java.util.List;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.dataone.client.auth.CertificateManager;
-import org.dataone.client.v1.MNode;
 import org.dataone.client.v1.types.D1TypeBuilder;
-import org.dataone.client.v2.itk.D1Client;
 import org.dataone.integration.ContextAwareTestCaseDataone;
 import org.dataone.integration.ExampleUtilities;
 import org.dataone.integration.adapters.MNCallAdapter;
@@ -27,23 +14,12 @@ import org.dataone.integration.it.ContextAwareAdapter;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.InvalidRequest;
 import org.dataone.service.exceptions.NotAuthorized;
-import org.dataone.service.exceptions.NotFound;
-import org.dataone.service.exceptions.ServiceFailure;
-import org.dataone.service.types.v1.AccessPolicy;
-import org.dataone.service.types.v1.AccessRule;
 import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Node;
 import org.dataone.service.types.v1.NodeReference;
-import org.dataone.service.types.v1.Permission;
-import org.dataone.service.types.v1.Replica;
-import org.dataone.service.types.v1.ReplicationPolicy;
-import org.dataone.service.types.v1.Subject;
 import org.dataone.service.types.v2.SystemMetadata;
 import org.dataone.service.util.Constants;
 import org.dataone.service.util.TypeMarshaller;
-import org.jibx.runtime.JiBXException;
-import org.junit.Ignore;
-import org.junit.Test;
 
 public class MNReplicationTestImplementations extends ContextAwareAdapter {
 
@@ -260,8 +236,10 @@ public class MNReplicationTestImplementations extends ContextAwareAdapter {
             Object[] dataPackage = ExampleUtilities.generateTestSciDataPackage(
                     "mNodeTier3TestDelete", true);
 
+            org.dataone.service.types.v1.SystemMetadata sysMetaV1 = (org.dataone.service.types.v1.SystemMetadata) dataPackage[2];
+            SystemMetadata sysMetaV2 = TypeMarshaller.convertTypeFromType(sysMetaV1, SystemMetadata.class);
             Identifier pid = callAdapter.create(null, (Identifier) dataPackage[0],
-                    (InputStream) dataPackage[1], (SystemMetadata) dataPackage[2]);
+                    (InputStream) dataPackage[1], sysMetaV2);
 
             Date afterCreate = new Date();
             callAdapter.systemMetadataChanged(null, pid, 10, afterCreate);

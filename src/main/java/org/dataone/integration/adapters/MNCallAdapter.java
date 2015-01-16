@@ -19,6 +19,7 @@ import org.dataone.service.exceptions.ServiceFailure;
 import org.dataone.service.exceptions.SynchronizationFailed;
 import org.dataone.service.exceptions.UnsupportedType;
 import org.dataone.service.mn.tier1.v2.MNRead;
+import org.dataone.service.mn.tier2.v1.MNAuthorization;
 import org.dataone.service.mn.tier3.v2.MNStorage;
 import org.dataone.service.mn.tier4.v2.MNReplication;
 import org.dataone.service.mn.v2.MNQuery;
@@ -50,13 +51,18 @@ public class MNCallAdapter extends CommonCallAdapter {
             Date dateSystemMetadataLastModified) throws InvalidToken, ServiceFailure,
             NotAuthorized, NotFound, NotImplemented, InvalidRequest, ClientSideException {
         
-        if (this.node.getType().equals(NodeType.MN) 
-                && this.version.toLowerCase().equals("v2")) {
-            
-            MNRead mnRead = D1NodeFactory.buildNode(MNRead.class, this.mrc,
-                    URI.create(this.node.getBaseURL()));
-            return mnRead.systemMetadataChanged(session, id, serialVersion,
-                    dateSystemMetadataLastModified);
+        if (this.node.getType().equals(NodeType.MN)) {
+            if (this.version.toLowerCase().equals("v1")) {
+                MNAuthorization mnAuth = D1NodeFactory.buildNode(MNAuthorization.class, this.mrc,
+                        URI.create(this.node.getBaseURL()));
+                return mnAuth.systemMetadataChanged(session, id, serialVersion,
+                        dateSystemMetadataLastModified);
+            } else if(this.version.toLowerCase().equals("v2")) {
+                MNRead mnRead = D1NodeFactory.buildNode(MNRead.class, this.mrc,
+                        URI.create(this.node.getBaseURL()));
+                return mnRead.systemMetadataChanged(session, id, serialVersion,
+                        dateSystemMetadataLastModified);
+            }
         }
         throw new ClientSideException("Call to systemMetaDataChanged failed. " + node.getType()
                 + " of version " + version);
