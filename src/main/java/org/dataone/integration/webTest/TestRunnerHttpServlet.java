@@ -77,7 +77,7 @@ public class TestRunnerHttpServlet extends HttpServlet {
     // private static final String RESULTS_FILE_DIV = "/results_div.html";
 
     private String testSelectorClassNamePattern = Settings.getConfiguration()
-            .getString("mnwebtester.testCase.pattern", "*MNodeTier*");
+            .getString("mnwebtester.testCase.pattern", "*MN*");
     private static final String TEST_PACKAGE_DOMAIN = "org.dataone.integration";
     // private static String TEST_SELECTOR_PATTERN = "*MNodeTier*";
 
