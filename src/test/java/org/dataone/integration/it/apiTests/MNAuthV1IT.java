@@ -21,6 +21,7 @@ public class MNAuthV1IT extends ContextAwareTestCaseDataone
     @Before
     public void setup() {
         authTestImpl = new AuthTestImplementations(this);
+        /* systemMetadataChangedTest implementations are in MNReplicationTestImpls */
         mnReplicationTestImpl = new MNReplicationTestImplementations(this);
     }
     
@@ -33,6 +34,12 @@ public class MNAuthV1IT extends ContextAwareTestCaseDataone
     @Test
     public void testIsAuthorized() {
         authTestImpl.testIsAuthorized(getMemberNodeIterator(), "v1");
+    }
+    
+    @Override
+    @Test
+    public void testSystemMetadataChanged() {
+        mnReplicationTestImpl.testSystemMetadataChanged(getMemberNodeIterator(), "v1");
     }
     
     @Override

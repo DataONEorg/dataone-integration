@@ -8,6 +8,8 @@ public interface MNSystemMetadataChangedTestDefinitions {
     
     // see MNodeTier1*.java classes
     
+    public void testSystemMetadataChanged();
+    
     public void testSystemMetadataChanged_EarlierDate();
 
     public void testSystemMetadataChanged_authenticatedITKuser();

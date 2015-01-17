@@ -151,6 +151,95 @@ public class MNReplicationTestImplementations extends ContextAwareAdapter {
             handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
         }   
     }
+
+    
+    /**
+     * Test the call from CN to MN.  The MN is supposed to reply before scheduling
+     * it's own call to the CN.  MNs should return 'true' (no excpetion) if the 
+     * object is on their node.  Otherwise, an InvalidRequest may be thrown, but
+     * no guarantees.
+     * 
+     * This test poses as CNs from 3 different environments - only one should not
+     * return a NotAuthorized
+     * 
+     */
+    public void testSystemMetadataChanged(Iterator<Node> nodeIterator, String version) {
+        while (nodeIterator.hasNext())
+            testSystemMetadataChanged(nodeIterator.next(), version);
+    }
+    
+    public void testSystemMetadataChanged(Node node, String version) {
+
+        MNCallAdapter[] cNodeSessions = new MNCallAdapter[]{
+                new MNCallAdapter(getSession("urn:node:cnDevUNM1"), node, version),
+                new MNCallAdapter(getSession("urn:node:cnSandboxUNM1"), node, version),
+                new MNCallAdapter(getSession("urn:node:cnStageUNM1"), node, version)};
+
+        MNCallAdapter mn = new MNCallAdapter(getSession("testRightsHolder"), node, version);
+        String currentUrl = mn.getNodeBaseServiceUrl();
+        printTestHeader("testSystemMetadataChanged() vs. node: " + currentUrl);
+
+        try {
+            String objectIdentifier = "TierTesting:" + 
+                    createNodeAbbreviation(mn.getNodeBaseServiceUrl()) +
+                    ":Public_READ" + getTestObjectSeriesSuffix();
+            Identifier pid = this.catc.procurePublicReadableTestObject(mn,D1TypeBuilder.buildIdentifier(objectIdentifier));
+
+            SystemMetadata smd = mn.getSystemMetadata(null, pid);
+            if (new Date().getTime() - smd.getDateUploaded().getTime() > 5000) {
+                // probably synced by now, assuming no changes until
+                // after sync are happening.
+                Date afterCreate = new Date();
+
+                int success = 0;
+                int invReq = 0;
+                int notAuth = 0;
+                int other = 0;
+                for (MNCallAdapter cNodeSession : cNodeSessions) {
+                    try {
+                        cNodeSession.systemMetadataChanged(null, pid, 10, afterCreate);
+                        success++;
+                    } catch (InvalidRequest e) {
+                        invReq++;
+                    } catch (NotAuthorized e) {
+                        notAuth++;
+                    } catch (Exception e) {
+                        other++;
+                        handleFail(mn.getLatestRequestUrl(), "unexpected exception: " +
+                                "systemMetadataChanged should only throw InvalidRequest" +
+                                "or NotAuthorized exceptions if the service is not failing.  Got: " +
+                                e.getClass() + ": " + e.getMessage());
+                    }
+                }
+                checkTrue(mn.getLatestRequestUrl(),
+                        "the test should return at least one success or InvalidRequest",
+                        success + invReq > 0);
+                checkTrue(mn.getLatestRequestUrl(),
+                        "the test should only return return success or InvalidRequest for one CN (environment)",
+                        success + invReq == 1);
+                log.info("success = " + success);
+                log.info("InvalidRequest = " + invReq);
+                log.info("NotAuthorized = " + notAuth);
+                log.info("other = " + other);
+
+            } else {
+                handleFail(mn.getLatestRequestUrl(),"systemMetadataChanged() will likely fail because" +
+                        " the object is probably new and not synced, and not known to " +
+                        "the CN");
+            }
+
+        }   
+        catch (BaseException e) {
+            handleFail(mn.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " 
+                    + e.getDetail_code() + ": " + e.getDescription());
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+            handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+        }   
+    }
+    
+    
     
     public void testSystemMetadataChanged_EarlierDate(Iterator<Node> nodeIterator, String version){
         while (nodeIterator.hasNext())

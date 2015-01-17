@@ -54,6 +54,13 @@ public class MNReplicationV2IT extends ContextAwareTestCaseDataone
 
     @Override
     @Test
+    public void testSystemMetadataChanged() {
+        mnReplicationTestImpl.testSystemMetadataChanged(getMemberNodeIterator(), "v2");
+    }
+
+    
+    @Override
+    @Test
     public void testSystemMetadataChanged_EarlierDate() {
         mnReplicationTestImpl.testSystemMetadataChanged_EarlierDate(getMemberNodeIterator(), "v2");
     }
