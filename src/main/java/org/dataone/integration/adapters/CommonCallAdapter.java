@@ -37,6 +37,7 @@ import org.dataone.service.types.v1.Permission;
 import org.dataone.service.types.v1.Session;
 import org.dataone.service.types.v1.SystemMetadata;
 import org.dataone.service.types.v2.Log;
+import org.dataone.service.types.v2.LogEntry;
 import org.dataone.service.util.TypeMarshaller;
 import org.jibx.runtime.JiBXException;
 
@@ -101,7 +102,8 @@ public class CommonCallAdapter implements D1Node {
                 // TODO use deprecated call with Session? or no?
                 org.dataone.service.types.v1.Log log = mnCore.getLogRecords(session, fromDate, toDate,
                         Event.convert(event), pidFilter, start, count);
-                return TypeMarshaller.convertTypeFromType(log, Log.class);
+//                return TypeMarshaller.convertTypeFromType(log, Log.class);
+                return convertV1Log(log);
             } else if (this.version.toLowerCase().equals("v2")) {
                 org.dataone.service.mn.tier1.v2.MNCore mnCore = D1NodeFactory.buildNode(
                         org.dataone.service.mn.tier1.v2.MNCore.class, this.mrc, URI.create(this.node.getBaseURL()));
@@ -114,7 +116,8 @@ public class CommonCallAdapter implements D1Node {
                         URI.create(this.node.getBaseURL()));
                 org.dataone.service.types.v1.Log log = cnCore.getLogRecords(session, fromDate, toDate,
                         Event.convert(event), pidFilter, start, count);
-                return TypeMarshaller.convertTypeFromType(log, Log.class);
+//                return TypeMarshaller.convertTypeFromType(log, Log.class);
+                return convertV1Log(log);
             } else if (this.version.toLowerCase().equals("v2")) {
                 org.dataone.service.mn.tier1.v2.MNCore cnCore = D1NodeFactory.buildNode(
                         org.dataone.service.mn.tier1.v2.MNCore.class, this.mrc, URI.create(this.node.getBaseURL()));
@@ -385,6 +388,18 @@ public class CommonCallAdapter implements D1Node {
         }
         throw new ClientSideException("Unable to create node of type " + node.getType() + " of version " + version);
     
+    }
+    
+    private Log convertV1Log(org.dataone.service.types.v1.Log v1Log) 
+    throws InstantiationException, IllegalAccessException, InvocationTargetException, JiBXException, IOException 
+    {
+        Log v2log = new Log();
+        if (v1Log.getLogEntryList() != null && v1Log.getLogEntryList().size() > 0)
+            for(org.dataone.service.types.v1.LogEntry v1entry : v1Log.getLogEntryList()) {
+                LogEntry v2LogEntry = TypeMarshaller.convertTypeFromType(v1entry, LogEntry.class);
+                v2log.addLogEntry(v2LogEntry);
+            }
+        return v2log;
     }
 
 }

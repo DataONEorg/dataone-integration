@@ -9,8 +9,6 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.dataone.client.auth.CertificateManager;
-import org.dataone.client.rest.DefaultHttpMultipartRestClient;
-import org.dataone.client.rest.MultipartRestClient;
 import org.dataone.client.v1.types.D1TypeBuilder;
 import org.dataone.configuration.Settings;
 import org.dataone.integration.APITestUtils;
@@ -18,7 +16,6 @@ import org.dataone.integration.ContextAwareTestCaseDataone;
 import org.dataone.integration.TestIterationEndingException;
 import org.dataone.integration.adapters.CommonCallAdapter;
 import org.dataone.integration.it.ContextAwareAdapter;
-import org.dataone.integration.ExampleUtilities;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.NotAuthorized;
 import org.dataone.service.exceptions.NotFound;
@@ -26,12 +23,11 @@ import org.dataone.service.types.v1.Event;
 import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Node;
 import org.dataone.service.types.v1.NodeReference;
-import org.dataone.service.types.v1.Session;
 import org.dataone.service.types.v1.Subject;
 import org.dataone.service.types.v2.Log;
 import org.dataone.service.types.v2.LogEntry;
 import org.dataone.service.util.Constants;
-import org.junit.Test;
+//import org.dataone.integration.ExampleUtilities;
 
 
 public class CoreTestImplementations extends ContextAwareAdapter { 
@@ -195,7 +191,7 @@ public class CoreTestImplementations extends ContextAwareAdapter {
             Thread.sleep(1000);
             Date toDate = new Date();
             
-            eventLog = callAdapter.getLogRecords(ExampleUtilities.getTestSession(), fromDate, toDate, Event.READ.toString(), "pidFilter", 0, 10);
+            eventLog = callAdapter.getLogRecords(null, fromDate, toDate, Event.READ.toString(), "pidFilter", 0, 10);
             checkTrue(callAdapter.getLatestRequestUrl(), "getLogRecords(<parameters>) returns a Log", eventLog != null);
         } catch (NotAuthorized e) {
             handleFail(
@@ -299,7 +295,6 @@ public class CoreTestImplementations extends ContextAwareAdapter {
         String currentUrl = node.getBaseURL();
         printTestHeader("testGetLogRecords_eventFiltering() vs. node: " + currentUrl);
         currentUrl = callAdapter.getNodeBaseServiceUrl();
-        Session session = ExampleUtilities.getTestSession();
         
         try {
             Date toDate = new Date();
@@ -312,7 +307,7 @@ public class CoreTestImplementations extends ContextAwareAdapter {
                 // if it can't it will throw a TestIterationEndingException
                 Identifier pid = this.catc.procurePublicReadableTestObject(callAdapter, null);
                 
-                callAdapter.get(session, pid);
+                callAdapter.get(null, pid);
                 toDate = new Date();
                 entries = APITestUtils.pagedGetLogRecords(callAdapter, null, toDate, null, null, null, null);
             }
@@ -329,11 +324,11 @@ public class CoreTestImplementations extends ContextAwareAdapter {
 
             if (otherType == null) {
                 if (targetType.equals(Event.READ)) {
-                    entries = callAdapter.getLogRecords(session, null, toDate, Event.CREATE.xmlValue(), null, 0, 0);
+                    entries = callAdapter.getLogRecords(null, null, toDate, Event.CREATE.xmlValue(), null, 0, 0);
                     checkEquals(callAdapter.getLatestRequestUrl(), "Log contains only READ events, "
                             + "so should get 0 CREATE events", String.valueOf(entries.getTotal()), "0");
                 } else {
-                    entries = callAdapter.getLogRecords(session, null, toDate, Event.READ.xmlValue(), null, 0, 0);
+                    entries = callAdapter.getLogRecords(null, null, toDate, Event.READ.xmlValue(), null, 0, 0);
                     checkEquals(callAdapter.getLatestRequestUrl(), "Log contains only " + targetType + " events, "
                             + "so should get 0 READ events", String.valueOf(entries.getTotal()), "0");
                 }
@@ -388,7 +383,6 @@ public class CoreTestImplementations extends ContextAwareAdapter {
         String currentUrl = node.getBaseURL();
         currentUrl = callAdapter.getNodeBaseServiceUrl();
         printTestHeader("testGetLogRecords_pidFiltering() vs. node: " + currentUrl);
-        Session session = ExampleUtilities.getTestSession();
         
         try {
             Date t0 = new Date();
@@ -401,7 +395,7 @@ public class CoreTestImplementations extends ContextAwareAdapter {
                 // try to create a log event
                 // if it can't it will throw a TestIterationEndingException
                 Identifier pid = this.catc.procurePublicReadableTestObject(callAdapter, null);
-                callAdapter.get(session, pid);
+                callAdapter.get(null, pid);
                 toDate = new Date();
                 entries = APITestUtils.pagedGetLogRecords(callAdapter, null, toDate, null, null, null, null);
             }
@@ -484,7 +478,6 @@ public class CoreTestImplementations extends ContextAwareAdapter {
         String currentUrl = node.getBaseURL();
         printTestHeader("testGetLogRecords_DateFiltering(...) vs. node: " + currentUrl);
         currentUrl = callAdapter.getNodeBaseServiceUrl();
-        Session session = ExampleUtilities.getTestSession();
         
         try {
             Log eventLog = callAdapter.getLogRecords(null, null, null, null, null, null, null);
@@ -537,7 +530,7 @@ public class CoreTestImplementations extends ContextAwareAdapter {
                 } else {
 
                     // call with a fromDate
-                    eventLog = callAdapter.getLogRecords(session, fromDate, null, null, null, null, null);
+                    eventLog = callAdapter.getLogRecords(null, fromDate, null, null, null, null, null);
 
                     for (LogEntry le : eventLog.getLogEntryList()) {
                         if (le.getEntryId().equals(excludedEntry.getEntryId())) {
