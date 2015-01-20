@@ -570,8 +570,9 @@ public class MNStorageTestImplementations extends ContextAwareAdapter {
      */
     public void testArchive(Node node, String version) {
         
-        MNCallAdapter callAdapter = new MNCallAdapter(getSession("testRightsHolder"), node, version);
-        String currentUrl = callAdapter.getNodeBaseServiceUrl();
+        MNCallAdapter callAdapterRH = new MNCallAdapter(getSession("testRightsHolder"), node, version);
+        MNCallAdapter callAdapterPublic = new MNCallAdapter(getSession(Constants.SUBJECT_PUBLIC), node, version);
+        String currentUrl = callAdapterRH.getNodeBaseServiceUrl();
         printTestHeader("testArchive() vs. node: " + currentUrl);
 
         Identifier pid = null;
@@ -580,23 +581,23 @@ public class MNStorageTestImplementations extends ContextAwareAdapter {
                     "mNodeTier3TestDelete", true);
             org.dataone.service.types.v1.SystemMetadata sysMetaV1 = (org.dataone.service.types.v1.SystemMetadata) dataPackage[2];
             SystemMetadata sysMetaV2 = TypeMarshaller.convertTypeFromType(sysMetaV1,SystemMetadata.class);
-            pid = callAdapter.create(null, (Identifier) dataPackage[0],
+            pid = callAdapterRH.create(null, (Identifier) dataPackage[0],
                     (InputStream) dataPackage[1], sysMetaV2);
 
             // try the archive
-            Identifier archivedPid = callAdapter.archive(null, pid);
+            Identifier archivedPid = callAdapterPublic.archive(null, pid);
 
-            checkEquals(callAdapter.getLatestRequestUrl(),
+            checkEquals(callAdapterPublic.getLatestRequestUrl(),
                     "pid returned from archive should match that given",
                     ((Identifier) dataPackage[0]).getValue(), archivedPid.getValue());
 
-            SystemMetadata smd = callAdapter.getSystemMetadata(null, pid);
-            checkTrue(callAdapter.getLatestRequestUrl(),
+            SystemMetadata smd = callAdapterRH.getSystemMetadata(null, pid);
+            checkTrue(callAdapterRH.getLatestRequestUrl(),
                     "sysmeta for archived object should be has status of archived",
                     smd.getArchived());
         } catch (BaseException e) {
             handleFail(
-                    callAdapter.getLatestRequestUrl(),
+                    callAdapterRH.getLatestRequestUrl(),
                     e.getClass().getSimpleName() + ": " + e.getDetail_code() + ": "
                             + e.getDescription());
         } catch (Exception e) {
@@ -615,24 +616,24 @@ public class MNStorageTestImplementations extends ContextAwareAdapter {
      */
     public void testArchive_NotFound(Node node, String version) {
         
-        MNCallAdapter callAdapter = new MNCallAdapter(getSession("testRightsHolder"), node, version);
-        String currentUrl = callAdapter.getNodeBaseServiceUrl();
+        MNCallAdapter callAdapterRH = new MNCallAdapter(getSession("testRightsHolder"), node, version);
+        String currentUrl = callAdapterRH.getNodeBaseServiceUrl();
         printTestHeader("testArchive() vs. node: " + currentUrl);
 
         try {
             // try the archive
             Identifier fakePid = new Identifier();
             fakePid.setValue("fakeID." + ExampleUtilities.generateIdentifier());
-            Identifier archivedPid = callAdapter.archive(null, fakePid);
+            Identifier archivedPid = callAdapterRH.archive(null, fakePid);
 
-            handleFail(callAdapter.getLatestRequestUrl(),
+            handleFail(callAdapterRH.getLatestRequestUrl(),
                     "member node should return NotFound if pid"
                             + "to be archived does not exist there.  Pid: " + archivedPid);
         } catch (NotFound e) {
             // expected outcome
         } catch (BaseException e) {
             handleFail(
-                    callAdapter.getLatestRequestUrl(),
+                    callAdapterRH.getLatestRequestUrl(),
                     "Expected NotFound, got: " + e.getClass().getSimpleName() + ": "
                             + e.getDetail_code() + ": " + e.getDescription());
         } catch (Exception e) {
@@ -649,8 +650,9 @@ public class MNStorageTestImplementations extends ContextAwareAdapter {
     public void testArchive_NoCert(Node node, String version) {
        
         // subject under which to create the object to be archived
-        MNCallAdapter callAdapter = new MNCallAdapter(getSession("testRightsHolder"), node, version);
-        String currentUrl = callAdapter.getNodeBaseServiceUrl();
+        MNCallAdapter callAdapterRH = new MNCallAdapter(getSession("testRightsHolder"), node, version);
+        MNCallAdapter callAdapterPublic = new MNCallAdapter(getSession(Constants.SUBJECT_PUBLIC), node, version);
+        String currentUrl = callAdapterRH.getNodeBaseServiceUrl();
         printTestHeader("testArchive_NoCert() vs. node: " + currentUrl);
 
         Identifier pid = null;
@@ -659,54 +661,53 @@ public class MNStorageTestImplementations extends ContextAwareAdapter {
                     "mNodeTier3TestArchive", true);
             org.dataone.service.types.v1.SystemMetadata sysMetaV1 = (org.dataone.service.types.v1.SystemMetadata) dataPackage[2];
             SystemMetadata sysMetaV2 = TypeMarshaller.convertTypeFromType(sysMetaV1, SystemMetadata.class);
-            pid = callAdapter.create(null, (Identifier) dataPackage[0],
+            pid = callAdapterRH.create(null, (Identifier) dataPackage[0],
                     (InputStream) dataPackage[1], sysMetaV2);
 
             ContextAwareTestCaseDataone.setupClientSubject_NoCert();
             // try the archive
-            callAdapter.archive(null, pid);
-            handleFail(callAdapter.getLatestRequestUrl(),
+            callAdapterPublic.archive(null, pid);
+            handleFail(callAdapterPublic.getLatestRequestUrl(),
                     "should not be able to archive an object if no certificate");
         } catch (InvalidToken na) {
             try {
                 ContextAwareTestCaseDataone.setupClientSubject("testRightsHolder");
-                InputStream is = callAdapter.get(null, pid);
+                InputStream is = callAdapterRH.get(null, pid);
                 try {
                     is.close();
                 } catch (IOException e) {
                 }
             } catch (BaseException e) {
-                handleFail(callAdapter.getLatestRequestUrl(),
+                handleFail(callAdapterRH.getLatestRequestUrl(),
                         "Got InvalidToken, but couldn't perform subsequent get(). Instead: "
                                 + e.getClass().getSimpleName() + ": " + e.getDetail_code() + ": "
                                 + e.getDescription());
             } catch (ClientSideException e1) {
-                handleFail(callAdapter.getLatestRequestUrl(),
+                handleFail(callAdapterRH.getLatestRequestUrl(),
                         "Got InvalidToken, but couldn't perform subsequent get(). Instead: "
                                 + e1.getClass().getSimpleName() + ": " + e1.getMessage());
             }
 
         } catch (NotAuthorized na) {
             try {
-                ContextAwareTestCaseDataone.setupClientSubject("testRightsHolder");
-                InputStream is = callAdapter.get(null, pid);
+                InputStream is = callAdapterRH.get(null, pid);
                 try {
                     is.close();
                 } catch (IOException e) {
                 }
             } catch (BaseException e) {
-                handleFail(callAdapter.getLatestRequestUrl(),
+                handleFail(callAdapterRH.getLatestRequestUrl(),
                         "Got InvalidToken, but couldn't perform subsequent get(). Instead: "
                                 + e.getClass().getSimpleName() + ": " + e.getDetail_code() + ": "
                                 + e.getDescription());
             }catch (ClientSideException e1) {
-                handleFail(callAdapter.getLatestRequestUrl(),
+                handleFail(callAdapterRH.getLatestRequestUrl(),
                         "Got InvalidToken, but couldn't perform subsequent get(). Instead: "
                                 + e1.getClass().getSimpleName() + ": " + e1.getMessage());
             }
 
         } catch (BaseException e) {
-            handleFail(callAdapter.getLatestRequestUrl(),
+            handleFail(callAdapterRH.getLatestRequestUrl(),
                     "Expected InvalidToken or NotAuthorized, got: " + e.getClass().getSimpleName()
                             + ": " + e.getDetail_code() + ": " + e.getDescription());
         }
