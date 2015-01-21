@@ -664,14 +664,12 @@ public class MNStorageTestImplementations extends ContextAwareAdapter {
             pid = callAdapterRH.create(null, (Identifier) dataPackage[0],
                     (InputStream) dataPackage[1], sysMetaV2);
 
-            ContextAwareTestCaseDataone.setupClientSubject_NoCert();
             // try the archive
             callAdapterPublic.archive(null, pid);
             handleFail(callAdapterPublic.getLatestRequestUrl(),
                     "should not be able to archive an object if no certificate");
         } catch (InvalidToken na) {
             try {
-                ContextAwareTestCaseDataone.setupClientSubject("testRightsHolder");
                 InputStream is = callAdapterRH.get(null, pid);
                 try {
                     is.close();
