@@ -11,7 +11,7 @@ import org.junit.Test;
 /**
  * Tests CNAuthorization functionality for v2 of the API 
  */
-public class CNAuthV2IT extends ContextAwareTestCaseDataone 
+public class CNAuthorizationV2IT extends ContextAwareTestCaseDataone 
         implements AuthAPITestDefinitions, CNAuthTestDefinitions {
     
     private AuthAPITestImplementations authTestImpl;

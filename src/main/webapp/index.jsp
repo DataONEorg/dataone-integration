@@ -56,7 +56,7 @@
               <select multiple title="APIs to Test" size="6" name="selectedAPIs">
                 <option value="MNCore">Tier 1: MNCore</option>
                 <option value="MNRead">Tier 1: MNRead</option>
-                <option value="Authentication">Tier 1: Authentication</option>
+                <option value="MNAuthentication">Tier 1: Authentication</option>
                 <option value="MNAuthorization">Tier 2: MNAuthorization</option>
                 <option value="MNStorage">Tier 3: MNStorage</option>
                 <option value="MNReplication">Tier 4: MNRepliation</option>

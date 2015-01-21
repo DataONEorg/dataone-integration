@@ -9,7 +9,7 @@ import org.junit.Test;
 /**
  * Tests MNAuthentication functionality for v2 of the API 
  */
-public class MNAuthV2IT extends ContextAwareTestCaseDataone 
+public class MNAuthorizationV2IT extends ContextAwareTestCaseDataone 
         implements AuthTestDefinitions {
 
     private AuthTestImplementations authTestImpl;
