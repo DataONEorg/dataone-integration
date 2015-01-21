@@ -74,7 +74,7 @@
           <tr><td colspan=2><hr></hr></td></tr>
           <tr> 
             <td></td>
-            <td>
+            <td align="right">
               <input type="submit" alt="Submit" value="Submit"/>
             </td>
           </tr>
