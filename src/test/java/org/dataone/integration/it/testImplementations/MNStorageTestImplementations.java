@@ -409,8 +409,9 @@ public class MNStorageTestImplementations extends ContextAwareAdapter {
             Identifier phonyId = new Identifier();
             phonyId.setValue("phonyId");
             smd.setObsoletes(phonyId);
+            
             // do the update
-            SystemMetadata smdV2 = TypeMarshaller.convertTypeFromType(sysMetaV1, SystemMetadata.class);
+            SystemMetadata smdV2 = TypeMarshaller.convertTypeFromType(smd, SystemMetadata.class);
             Identifier updatedPid = callAdapter.update(null, originalPid,
                     (InputStream) dataPackage[1], // new data
                     newPid, smdV2);
@@ -504,8 +505,10 @@ public class MNStorageTestImplementations extends ContextAwareAdapter {
     }
 
     public void testUpdate_NoRightsOnObsoleted(Node node, String version) {
-        MNCallAdapter callAdapter = new MNCallAdapter(getSession("testRightsHolder"), node, version);
-        String currentUrl = callAdapter.getNodeBaseServiceUrl();
+        
+        MNCallAdapter callAdapterRH = new MNCallAdapter(getSession("testRightsHolder"), node, version);
+        MNCallAdapter callAdapterSubmitter = new MNCallAdapter(getSession("testSubmitter"), node, version);
+        String currentUrl = callAdapterRH.getNodeBaseServiceUrl();
         printTestHeader("testUpdate_NoRightsOnObsoleted() vs. node: " + currentUrl);
         Session session = ExampleUtilities.getTestSession();
         
@@ -515,7 +518,7 @@ public class MNStorageTestImplementations extends ContextAwareAdapter {
             
             org.dataone.service.types.v1.SystemMetadata sysMetaV1 = (org.dataone.service.types.v1.SystemMetadata) dataPackage[2];
             SystemMetadata sysMetaV2 = TypeMarshaller.convertTypeFromType(sysMetaV1,SystemMetadata.class);
-            Identifier originalPid = callAdapter.create(null, (Identifier) dataPackage[0],
+            Identifier originalPid = callAdapterRH.create(null, (Identifier) dataPackage[0],
                     (InputStream) dataPackage[1], sysMetaV2);
 
             // prep for checking update time. 
@@ -527,31 +530,28 @@ public class MNStorageTestImplementations extends ContextAwareAdapter {
             dataPackage = ExampleUtilities.generateTestSciDataPackage("mNodeTier3TestUpdate", true);
             Identifier newPid = (Identifier) dataPackage[0];
 
-            // change the client subject
-            ContextAwareTestCaseDataone.setupClientSubject("testSubmitter");
-
             try {
                 // do the update
                 SystemMetadata smdV2 = TypeMarshaller.convertTypeFromType((org.dataone.service.types.v1.SystemMetadata) dataPackage[2], SystemMetadata.class);
-                Identifier updatedPid = callAdapter.update(null, originalPid,
+                Identifier updatedPid = callAdapterSubmitter.update(null, originalPid,
                         (InputStream) dataPackage[1], // new data
                         newPid, smdV2 // new sysmeta
                         );
-                handleFail(callAdapter.getLatestRequestUrl(),
+                handleFail(callAdapterSubmitter.getLatestRequestUrl(),
                         "update from different subject should fail");
             } catch (NotAuthorized na) {
-                ;
+                // expected behavior, update() above should fail
             }
 
-            SystemMetadata orig = callAdapter.getSystemMetadata(session, originalPid);
+            SystemMetadata orig = callAdapterRH.getSystemMetadata(session, originalPid);
             String obsoletedByValue = orig.getObsoletedBy() == null ? "" : orig.getObsoletedBy()
                     .getValue();
-            checkTrue(callAdapter.getLatestRequestUrl(),
+            checkTrue(callAdapterRH.getLatestRequestUrl(),
                     "Original object should not be obsoleted, but was obsoleted by "
                             + obsoletedByValue, orig.getObsoletedBy() == null);
         } catch (BaseException e) {
             handleFail(
-                    callAdapter.getLatestRequestUrl(),
+                    callAdapterRH.getLatestRequestUrl(),
                     e.getClass().getSimpleName() + ": " + e.getDetail_code() + ": "
                             + e.getDescription());
         } catch (Exception e) {
@@ -571,7 +571,6 @@ public class MNStorageTestImplementations extends ContextAwareAdapter {
     public void testArchive(Node node, String version) {
         
         MNCallAdapter callAdapterRH = new MNCallAdapter(getSession("testRightsHolder"), node, version);
-        MNCallAdapter callAdapterPublic = new MNCallAdapter(getSession(Constants.SUBJECT_PUBLIC), node, version);
         String currentUrl = callAdapterRH.getNodeBaseServiceUrl();
         printTestHeader("testArchive() vs. node: " + currentUrl);
 
@@ -585,9 +584,9 @@ public class MNStorageTestImplementations extends ContextAwareAdapter {
                     (InputStream) dataPackage[1], sysMetaV2);
 
             // try the archive
-            Identifier archivedPid = callAdapterPublic.archive(null, pid);
+            Identifier archivedPid = callAdapterRH.archive(null, pid);
 
-            checkEquals(callAdapterPublic.getLatestRequestUrl(),
+            checkEquals(callAdapterRH.getLatestRequestUrl(),
                     "pid returned from archive should match that given",
                     ((Identifier) dataPackage[0]).getValue(), archivedPid.getValue());
 
