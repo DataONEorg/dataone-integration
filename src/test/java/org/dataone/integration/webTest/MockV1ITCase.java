@@ -29,7 +29,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 
-public class MockITCase { 
+public class MockV1ITCase { 
 	
 	
 	@Test

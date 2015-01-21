@@ -71,14 +71,24 @@
         </td>
       </tr>
 	  <tr>
-	    <td align="right">Tier(s) to test:</td>
+	    <td align="right">API Version:</td>
 	    <td>
-	      <select multiple title="Tier Levels to Test" size="5" name="selectedTiers">
-                <option selected value="Tier 0">Tier 0</option>
-                <option>Tier 1</option>
-                <option>Tier 2</option>
-                <option>Tier 3</option>
-                <option>Tier 4</option>
+	      <select multiple title="API Version" size="2" name="selectedVersion">
+                <option selected value="V1">v1</option>
+                <option value="V2">v2</option>
+              </select>
+	    </td>
+	  </tr>
+	  <tr>
+	    <td align="right">API(s) to test:</td>
+	    <td>
+	      <select multiple title="APIs to Test" size="6" name="selectedAPIs">    
+                <optionselected value="MNCore">Tier 1: MNCore</option>
+                <option value="MNRead">Tier 1: MNRead</option>
+                <option value="Authentication">Tier 1: Authentication</option>
+                <option value="MNAuthorization">Tier 2: MNAuthorization</option>
+                <option value="MNStorage">Tier 3: MNStorage</option>
+                <option value="MNReplication">Tier 4: MNRepliation</option>
               </select>
 	    </td>
 	  </tr>

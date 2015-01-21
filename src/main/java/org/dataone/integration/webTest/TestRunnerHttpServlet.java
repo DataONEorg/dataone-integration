@@ -30,7 +30,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.Enumeration;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -46,14 +45,10 @@ import nu.xom.Element;
 import nu.xom.ParsingException;
 import nu.xom.ValidityException;
 
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.Transformer;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.lucene.util.ArrayUtil;
 import org.dataone.configuration.Settings;
 import org.dataone.configuration.TestSettings;
 import org.junit.runner.JUnitCore;
@@ -77,7 +72,7 @@ public class TestRunnerHttpServlet extends HttpServlet {
     // private static final String RESULTS_FILE_DIV = "/results_div.html";
 
     private String testSelectorClassNamePattern = Settings.getConfiguration()
-            .getString("mnwebtester.testCase.pattern", "*MN*");
+            .getString("mnwebtester.testCase.pattern", "*apiTests*");
     private static final String TEST_PACKAGE_DOMAIN = "org.dataone.integration";
     // private static String TEST_SELECTOR_PATTERN = "*MNodeTier*";
 
@@ -96,7 +91,7 @@ public class TestRunnerHttpServlet extends HttpServlet {
      */
     public TestRunnerHttpServlet(boolean isUnitTest) throws IOException {
         this();
-        if ( isUnitTest ) testSelectorClassNamePattern = "*MockITCase";
+        if ( isUnitTest ) testSelectorClassNamePattern = "*MockV1ITCase";
     }
 
     public TestRunnerHttpServlet() throws IOException {
@@ -158,9 +153,9 @@ public class TestRunnerHttpServlet extends HttpServlet {
     {
         String mNodeBaseUrl = req.getParameter("mNodeUrl");
         String testObjectSeries = req.getParameter("testObjectSeries");
-        String[] selectedTiers = req.getParameterValues("selectedTiers");
+        String[] selectedAPIs = req.getParameterValues("selectedAPIs");
+        String selectedVersion = req.getParameter("selectedVersion");
 
-        Integer[] selectedTierLevels = deriveSelectedTierLevels(selectedTiers);
 
         if ( log.isDebugEnabled() ) {
             Map<String, String[]> params = req.getParameterMap();
@@ -224,8 +219,8 @@ public class TestRunnerHttpServlet extends HttpServlet {
                     log.warn("sleep interrupted: " + e.getMessage());
                 }
             }
-            if ( isASelectedTier(selectedTierLevels, testCase) ) {
-                log.debug("running tests on: " + testCase.getSimpleName());
+            if ( isASelectedAPI(selectedAPIs, selectedVersion, testCase) ) {
+                log.info("running tests on: " + testCase.getSimpleName());
                 junit.run(testCase);
             }
         }
@@ -237,47 +232,33 @@ public class TestRunnerHttpServlet extends HttpServlet {
         out.flush();
     }
 
-    public static Integer[] deriveSelectedTierLevels(String[] selectedTiers)
-    {
-
-        Integer[] selectedTierLevels = null;
-        if ( selectedTiers != null ) {
-            selectedTierLevels = new Integer[selectedTiers.length];
-            for (int i = 0; i < selectedTiers.length; i++) {
-                selectedTierLevels[i] = Integer.valueOf(selectedTiers[i]
-                        .replaceAll("\\D+", ""));
-                log.debug("Selected Tier: [" + i + "]:" + selectedTierLevels[i]);
-            }
-        }
-        return selectedTierLevels;
-    }
+ 
 
     /**
-     * if not working within the context of MNodeTier tests, will return true
-     * otherwise, compare number in the test to the number(s) in selectedTiers.
+     * if not working within the context of MN API tests (the selectedAPIs param
+     * is null), this routine will return true.
+     * Otherwise, compare the class name with the other parameters (API, version)
+     * and return true or false.
+     * Expecting testCase simple names of the format {API}{Version}{extra}IT
      */
-    public boolean isASelectedTier(Integer[] selectedTiers, Class<?> testCase)
+    public boolean isASelectedAPI(String[] selectedAPIs, String version,  Class<?> testCase)
     {
-        if ( selectedTiers == null ) return true;
+        /* handles the unit test case */
+        if ( selectedAPIs == null ) return true;
 
         String testName = testCase.getSimpleName();
         log.debug("testCase name: " + testName);
-        if ( testName.contains("MNodeTier") ) {
-            int index = testName.indexOf("Tier") + 4;
-            Integer tcTier = Integer.valueOf(testName.substring(index,
-                    index + 1));
 
-            for (Integer selectedTier : selectedTiers) {
-                if ( tcTier == selectedTier ) {
+        if ( testName.contains(version) ) {
+            for (String selectedAPI : selectedAPIs) {
+                if ( testName.startsWith(selectedAPI) ) {
                     log.debug("   is Selected : " + testName);
                     return true;
                 }
             }
             return false;
         }
-        else {
-            return true;
-        }
+        return false;
     }
 
     private void generateURLRow(Element div, String url)
@@ -392,7 +373,7 @@ public class TestRunnerHttpServlet extends HttpServlet {
                 classes.addAll(findClasses(file, packageName + "." + filename));
             }
             else if ( filename.endsWith("IT.class")
-                    || filename.endsWith("MockITCase.class") ) {
+                    || filename.endsWith("MockV1ITCase.class") ) {
                 log.debug("findClasses    :    " + filename);
                 if ( !filename.contains("$") ) {
                     String fullFileName = packageName + '.'
