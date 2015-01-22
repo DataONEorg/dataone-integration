@@ -54,12 +54,13 @@
             <td align="right">API(s) to test:</td>
             <td>
               <select multiple title="APIs to Test" size="6" name="selectedAPIs">
-                <option value="MNCore">Tier 1: MNCore</option>
-                <option value="MNRead">Tier 1: MNRead</option>
+                <option value="MNCore">Tier 1: MNCore API</option>
+                <option value="MNRead">Tier 1: MNRead API</option>
                 <option value="MNAuthentication">Tier 1: Authentication</option>
-                <option value="MNAuthorization">Tier 2: MNAuthorization</option>
-                <option value="MNStorage">Tier 3: MNStorage</option>
-                <option value="MNReplication">Tier 4: MNRepliation</option>
+                <option value="MNContentIntegrity">Tier 1: Content Integrity</option>
+                <option value="MNAuthorization">Tier 2: MNAuthorization API</option>
+                <option value="MNStorage">Tier 3: MNStorage API</option>
+                <option value="MNReplication">Tier 4: MNRepliation API</option>
               </select>
             </td>
           </tr>
@@ -67,12 +68,12 @@
           <tr>
             <td align="right">Advanced:</td>
             <td style="font-weight: normal; font-size: 90%">
-              Test-object series suffix** 
+              Test-object series suffix**
               <input title="Test Object Series Suffix" size="5" name="testObjectSeries" type="text" />
             </td>
           </tr>
           <tr><td colspan=2><hr></hr></td></tr>
-          <tr> 
+          <tr>
             <td></td>
             <td align="right">
               <input type="submit" alt="Submit" value="Submit"/>
@@ -122,22 +123,22 @@
 <!--       Each test case also attempts to provide a descriptive exception message, but  -->
 <!--       not every circumstance can be anticipated, so the stack trace is provided  -->
 <!--       for further inspection.  -->
- 
- 
- 
- 
+
+
+
+
 <!--       <div class="padded" style="font-size:smaller;">* <i>not including version path segment.   -->
 <!-- 	      (e.g. </i> <b>"http://my.server.org/mn"</b> <i> rather than </i> <b>"http://my.server.org/mn/v1"</b> <i>)</i>  -->
 <!-- 	</div> -->
     <div class="padded" style="font-size:90%;">** <i>Tier 2 Member Nodes need
-     to have content owned by specific test subjects pre-loaded in order to pass 
+     to have content owned by specific test subjects pre-loaded in order to pass
      some Tier 2 tests. The series designator is the number or letter added as a suffix
      to the end of the testObject base name, put there to allow the set of test
-     objects to evolve over time, or to supersede defective testObjects.  
-     For example, if you created a 'TierTesting:testObject:Public_Read.1', you 
-     need to set the value in the input field to "1" so the tester looks for that 
-     object and its cohort. 
-     Tier 3 and higher nodes do not need to specify a suffix, as the WebTester will 
+     objects to evolve over time, or to supersede defective testObjects.
+     For example, if you created a 'TierTesting:testObject:Public_Read.1', you
+     need to set the value in the input field to "1" so the tester looks for that
+     object and its cohort.
+     Tier 3 and higher nodes do not need to specify a suffix, as the WebTester will
      create the test objects it needs for Tier 2 tests.
     </div>
     <p></p>
