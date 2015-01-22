@@ -59,7 +59,7 @@ public class MNStorageTestImplementations extends ContextAwareAdapter {
 
         try {
             Object[] dataPackage = ExampleUtilities.generateTestSciDataPackage(
-                    "mNodeTier3TestCreate", true);
+                    "mNodeTier3TestCreate", true, "CN=testRightsHolder,DC=dataone,DC=org");
             org.dataone.service.types.v1.SystemMetadata sysMetaV1 = (org.dataone.service.types.v1.SystemMetadata) dataPackage[2];
             SystemMetadata sysMetaV2 = TypeMarshaller.convertTypeFromType(sysMetaV1, SystemMetadata.class);
             Identifier pid = callAdapter.create(null, (Identifier) dataPackage[0],
@@ -104,7 +104,7 @@ public class MNStorageTestImplementations extends ContextAwareAdapter {
 
         try {
             Object[] dataPackage = ExampleUtilities.generateTestSciDataPackage(
-                    "mNodeTier3TestCreate", true);
+                    "mNodeTier3TestCreate", true, Constants.SUBJECT_PUBLIC);
 
             org.dataone.service.types.v1.SystemMetadata sysMetaV1 = (org.dataone.service.types.v1.SystemMetadata) dataPackage[2];
             SystemMetadata sysMetaV2 = TypeMarshaller.convertTypeFromType(sysMetaV1, SystemMetadata.class);
@@ -196,7 +196,7 @@ public class MNStorageTestImplementations extends ContextAwareAdapter {
 
                 testLoc = "generate";
                 Object[] dataPackage = ExampleUtilities.generateTestSciDataPackage(idString,
-                        false);
+                        false, "CN=testRightsHolder,DC=dataone,DC=org");
 
                 checkEquals(callAdapter.getLatestRequestUrl(),
                         "ExampleUtilities.generateTestSciDataPackage() should produce"
@@ -265,7 +265,7 @@ public class MNStorageTestImplementations extends ContextAwareAdapter {
 
         try {
             Object[] dataPackage = ExampleUtilities.generateTestSciDataPackage(
-                    "mNodeTier3TestUpdate", true);
+                    "mNodeTier3TestUpdate", true, "CN=testRightsHolder,DC=dataone,DC=org");
 
             org.dataone.service.types.v1.SystemMetadata sysMetaV1 = (org.dataone.service.types.v1.SystemMetadata) dataPackage[2];
             SystemMetadata sysMetaV2 = TypeMarshaller.convertTypeFromType(sysMetaV1, SystemMetadata.class);
@@ -278,7 +278,7 @@ public class MNStorageTestImplementations extends ContextAwareAdapter {
             Thread.sleep(100);
 
             // create the new data package to update with. 
-            dataPackage = ExampleUtilities.generateTestSciDataPackage("mNodeTier3TestUpdate", true);
+            dataPackage = ExampleUtilities.generateTestSciDataPackage("mNodeTier3TestUpdate", true, "CN=testRightsHolder,DC=dataone,DC=org");
             Identifier newPid = (Identifier) dataPackage[0];
 
             // do the update
@@ -344,7 +344,7 @@ public class MNStorageTestImplementations extends ContextAwareAdapter {
 
         try {
             Object[] dataPackage = ExampleUtilities.generateTestSciDataPackage(
-                    "mNodeTier3TestUpdate", true);
+                    "mNodeTier3TestUpdate", true, "CN=testRightsHolder,DC=dataone,DC=org");
 
             org.dataone.service.types.v1.SystemMetadata sysMetaV1 = (org.dataone.service.types.v1.SystemMetadata) dataPackage[2];
             SystemMetadata sysMetaV2 = TypeMarshaller.convertTypeFromType(sysMetaV1, SystemMetadata.class);
@@ -352,7 +352,7 @@ public class MNStorageTestImplementations extends ContextAwareAdapter {
                     (InputStream) dataPackage[1], sysMetaV2);
 
             // create the new data package to update with. 
-            dataPackage = ExampleUtilities.generateTestSciDataPackage("mNodeTier3TestUpdate", true);
+            dataPackage = ExampleUtilities.generateTestSciDataPackage("mNodeTier3TestUpdate", true, "CN=testRightsHolder,DC=dataone,DC=org");
             Identifier newPid = (Identifier) dataPackage[0];
 
             //  incorrectly set the obsoletedBy property instead of obsoletes
@@ -396,7 +396,7 @@ public class MNStorageTestImplementations extends ContextAwareAdapter {
 
         try {
             Object[] dataPackage = ExampleUtilities.generateTestSciDataPackage(
-                    "mNodeTier3TestUpdate", true);
+                    "mNodeTier3TestUpdate", true, "CN=testRightsHolder,DC=dataone,DC=org");
 
             org.dataone.service.types.v1.SystemMetadata sysMetaV1 = (org.dataone.service.types.v1.SystemMetadata) dataPackage[2];
             SystemMetadata sysMetaV2 = TypeMarshaller.convertTypeFromType(sysMetaV1, SystemMetadata.class);
@@ -404,7 +404,7 @@ public class MNStorageTestImplementations extends ContextAwareAdapter {
                     (InputStream) dataPackage[1], sysMetaV2);
             
             // create the new data package to update with. 
-            dataPackage = ExampleUtilities.generateTestSciDataPackage("mNodeTier3TestUpdate", true);
+            dataPackage = ExampleUtilities.generateTestSciDataPackage("mNodeTier3TestUpdate", true, "CN=testRightsHolder,DC=dataone,DC=org");
             Identifier newPid = (Identifier) dataPackage[0];
 
             //  incorrectly set the obsoletedBy property instead of obsoletes
@@ -447,7 +447,7 @@ public class MNStorageTestImplementations extends ContextAwareAdapter {
 
         try {
             Object[] dataPackage = ExampleUtilities.generateTestSciDataPackage(
-                    "mNodeTier3TestUpdate", true);
+                    "mNodeTier3TestUpdate", true, "CN=testRightsHolder,DC=dataone,DC=org");
 
             org.dataone.service.types.v1.SystemMetadata sysMetaV1 = (org.dataone.service.types.v1.SystemMetadata) dataPackage[2];
             SystemMetadata sysMetaV2 = TypeMarshaller.convertTypeFromType(sysMetaV1, SystemMetadata.class);
@@ -455,7 +455,7 @@ public class MNStorageTestImplementations extends ContextAwareAdapter {
                     (InputStream) dataPackage[1], sysMetaV2);
 
             // create the new data package to update with
-            dataPackage = ExampleUtilities.generateTestSciDataPackage("mNodeTier3TestUpdate", true);
+            dataPackage = ExampleUtilities.generateTestSciDataPackage("mNodeTier3TestUpdate", true, "CN=testRightsHolder,DC=dataone,DC=org");
 
             // TODO: reinstated the checks when obsolete behavior refactored.
             // update the obsoletesList
@@ -513,11 +513,10 @@ public class MNStorageTestImplementations extends ContextAwareAdapter {
         MNCallAdapter callAdapterSubmitter = new MNCallAdapter(getSession("testSubmitter"), node, version);
         String currentUrl = callAdapterRH.getNodeBaseServiceUrl();
         printTestHeader("testUpdate_NoRightsOnObsoleted() vs. node: " + currentUrl);
-        Session session = ExampleUtilities.getTestSession();
         
         try {
             Object[] dataPackage = ExampleUtilities.generateTestSciDataPackage(
-                    "mNodeTier3TestUpdate", true);
+                    "mNodeTier3TestUpdate", true, "CN=testRightsHolder,DC=dataone,DC=org");
             
             org.dataone.service.types.v1.SystemMetadata sysMetaV1 = (org.dataone.service.types.v1.SystemMetadata) dataPackage[2];
             SystemMetadata sysMetaV2 = TypeMarshaller.convertTypeFromType(sysMetaV1,SystemMetadata.class);
@@ -530,7 +529,7 @@ public class MNStorageTestImplementations extends ContextAwareAdapter {
             Thread.sleep(100);
 
             // create the new data package to update with. 
-            dataPackage = ExampleUtilities.generateTestSciDataPackage("mNodeTier3TestUpdate", true);
+            dataPackage = ExampleUtilities.generateTestSciDataPackage("mNodeTier3TestUpdate", true, "CN=testSubmitter,DC=dataone,DC=org");
             Identifier newPid = (Identifier) dataPackage[0];
 
             try {
@@ -546,7 +545,7 @@ public class MNStorageTestImplementations extends ContextAwareAdapter {
                 // expected behavior, update() above should fail
             }
 
-            SystemMetadata orig = callAdapterRH.getSystemMetadata(session, originalPid);
+            SystemMetadata orig = callAdapterRH.getSystemMetadata(null, originalPid);
             String obsoletedByValue = orig.getObsoletedBy() == null ? "" : orig.getObsoletedBy()
                     .getValue();
             checkTrue(callAdapterRH.getLatestRequestUrl(),
@@ -580,7 +579,7 @@ public class MNStorageTestImplementations extends ContextAwareAdapter {
         Identifier pid = null;
         try {
             Object[] dataPackage = ExampleUtilities.generateTestSciDataPackage(
-                    "mNodeTier3TestDelete", true);
+                    "mNodeTier3TestDelete", true, "CN=testRightsHolder,DC=dataone,DC=org");
             org.dataone.service.types.v1.SystemMetadata sysMetaV1 = (org.dataone.service.types.v1.SystemMetadata) dataPackage[2];
             SystemMetadata sysMetaV2 = TypeMarshaller.convertTypeFromType(sysMetaV1,SystemMetadata.class);
             pid = callAdapterRH.create(null, (Identifier) dataPackage[0],
@@ -660,7 +659,7 @@ public class MNStorageTestImplementations extends ContextAwareAdapter {
         Identifier pid = null;
         try {
             Object[] dataPackage = ExampleUtilities.generateTestSciDataPackage(
-                    "mNodeTier3TestArchive", true);
+                    "mNodeTier3TestArchive", true, "CN=testRightsHolder,DC=dataone,DC=org");
             org.dataone.service.types.v1.SystemMetadata sysMetaV1 = (org.dataone.service.types.v1.SystemMetadata) dataPackage[2];
             SystemMetadata sysMetaV2 = TypeMarshaller.convertTypeFromType(sysMetaV1, SystemMetadata.class);
             pid = callAdapterRH.create(null, (Identifier) dataPackage[0],
@@ -734,7 +733,7 @@ public class MNStorageTestImplementations extends ContextAwareAdapter {
         Identifier pid = null;
         try {
             Object[] dataPackage = ExampleUtilities.generateTestSciDataPackage(
-                    "mNodeTier3TestDelete", true);
+                    "mNodeTier3TestDelete", true, "CN=testRightsHolder,DC=dataone,DC=org");
             org.dataone.service.types.v1.SystemMetadata sysMetaV1 = (org.dataone.service.types.v1.SystemMetadata) dataPackage[2];
             SystemMetadata sysMetaV2 = TypeMarshaller.convertTypeFromType(sysMetaV1,SystemMetadata.class);
             pid = callAdapterRH.create(null, (Identifier) dataPackage[0],

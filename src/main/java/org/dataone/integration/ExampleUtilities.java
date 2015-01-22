@@ -113,6 +113,9 @@ public class ExampleUtilities {
      * the rightsHolder is set to the subject of the current certificate (user)
      *
      * uses a default text/plain data source
+     * 
+     * @deprecated This method uses a submitter based on the CertificateManager's currently
+     * loaded certificate
      */
     public static Object[] generateTestSciDataPackage(String idString, boolean isPrefix)
         throws NoSuchAlgorithmException, NotFound, InvalidRequest, IOException {
@@ -125,6 +128,9 @@ public class ExampleUtilities {
      * the rightsHolder is set to the subject of the current certificate (user)
      *
      * uses a default text/plain data source
+     * 
+     * @deprecated This method uses a submitter based on the CertificateManager's currently
+     * loaded certificate
      */
     public static Object[] generateTestSciMetaDataPackage(String idString, boolean isPrefix)
         throws NoSuchAlgorithmException, NotFound, InvalidRequest, IOException {
@@ -132,6 +138,29 @@ public class ExampleUtilities {
         return generateTestDataPackage(idString, isPrefix, FORMAT_EML_2_1_0);
     }
 
+    /**
+     * creates the identifier, data inputstream, and sysmetadata for testing purposes
+     * the rightsHolder is set to the subject of the current certificate (user)
+     *
+     * uses a default text/plain data source
+     */
+    public static Object[] generateTestSciDataPackage(String idString, boolean isPrefix, String rightsHolderSubjectName)
+        throws NoSuchAlgorithmException, NotFound, InvalidRequest, IOException {
+
+        return generateTestDataPackage(idString, isPrefix, FORMAT_TEXT_PLAIN, rightsHolderSubjectName);
+    }
+
+    /**
+     * creates the identifier, data inputstream, and sysmetadata for testing purposes
+     * the rightsHolder is set to the subject of the current certificate (user)
+     *
+     * uses a default text/plain data source
+     */
+    public static Object[] generateTestSciMetaDataPackage(String idString, boolean isPrefix, String rightsHolderSubjectName)
+        throws NoSuchAlgorithmException, NotFound, InvalidRequest, IOException {
+
+        return generateTestDataPackage(idString, isPrefix, FORMAT_EML_2_1_0, rightsHolderSubjectName);
+    }
 
     /**
      * Provides a byte array representation of the object for the specified format
@@ -172,6 +201,9 @@ public class ExampleUtilities {
   /**
    * creates the identifier, data inputstream, and sysmetadata for testing purposes
    * the rightsHolder is set to the subject of the current certificate (user)
+   * 
+   * @deprecated This method uses a submitter based on the CertificateManager's currently
+   * loaded certificate
    */
     public static Object[] generateTestDataPackage(String idString,
         boolean isPrefix, String formatString)
@@ -215,9 +247,34 @@ public class ExampleUtilities {
         return new Object[] { guid, bis, sysMeta };
     }
 
+    public static Object[] generateTestDataPackage(String idString, boolean isPrefix,
+            String formatString, String rightsHolderSubjectName) throws NoSuchAlgorithmException,
+            NotFound, InvalidRequest, IOException {
 
+        if (isPrefix) {
+            idString += generateIdentifier();
+        }
+        Identifier guid = new Identifier();
+        guid.setValue(idString);
+        byte[] contentBytes = getExampleObjectOfType(formatString);
 
+        
+//        CertificateManager.getIn
+        D1Object d1o = new D1Object(guid, contentBytes, formatString, rightsHolderSubjectName,
+                "authNode");
+        SystemMetadata sysMeta = d1o.getSystemMetadata();
 
+        sysMeta.setAccessPolicy(AccessUtil.createSingleRuleAccessPolicy(
+                new String[] { Constants.SUBJECT_PUBLIC }, new Permission[] { Permission.READ }));
+
+        Subject rightsHolder = new Subject();
+        rightsHolder.setValue(rightsHolderSubjectName);
+        sysMeta.setRightsHolder(rightsHolder);
+        sysMeta.setSubmitter(rightsHolder);
+
+        ByteArrayInputStream bis = new ByteArrayInputStream(contentBytes);
+        return new Object[] { guid, bis, sysMeta };
+    }
 
     /**
      * Create a unique identifier for testing insert and update.
