@@ -253,6 +253,9 @@ public class MNStorageTestImplementations extends ContextAwareAdapter {
 
     /**
      *  Test MNStorage.update() functionality
+     *  
+     *  TODO: This test is sensitive to offsets between the tester and the MN's system time
+     *  (it currently uses the time to query for modified objects; should use get())
      */
     public void testUpdate(Node node, String version) {
 
@@ -361,8 +364,8 @@ public class MNStorageTestImplementations extends ContextAwareAdapter {
             Identifier updatedPid = callAdapter.update(null, originalPid,
                     (InputStream) dataPackage[1], // new data
                     newPid, sysMetaV2);
-            smd = callAdapter.getSystemMetadata(null, updatedPid);
-            if (smd.getObsoletedBy() != null) {
+            sysMetaV2 = callAdapter.getSystemMetadata(null, updatedPid);
+            if (sysMetaV2.getObsoletedBy() != null) {
                 handleFail(callAdapter.getLatestRequestUrl(),
                         "should not be able to update with obsoletedBy " + "field set (for pid = "
                                 + updatedPid.getValue() + ")");
@@ -399,7 +402,7 @@ public class MNStorageTestImplementations extends ContextAwareAdapter {
             SystemMetadata sysMetaV2 = TypeMarshaller.convertTypeFromType(sysMetaV1, SystemMetadata.class);
             Identifier originalPid = callAdapter.create(null, (Identifier) dataPackage[0],
                     (InputStream) dataPackage[1], sysMetaV2);
-
+            
             // create the new data package to update with. 
             dataPackage = ExampleUtilities.generateTestSciDataPackage("mNodeTier3TestUpdate", true);
             Identifier newPid = (Identifier) dataPackage[0];
