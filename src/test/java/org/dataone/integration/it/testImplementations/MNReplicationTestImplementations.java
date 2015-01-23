@@ -95,7 +95,7 @@ public class MNReplicationTestImplementations extends ContextAwareAdapter {
         NodeReference sourceNode = new NodeReference();
         sourceNode.setValue("bad");
         try {
-            Object[] dataPackage = ExampleUtilities.generateTestSciDataPackage("mNodeTier4", true);             
+            Object[] dataPackage = ExampleUtilities.generateTestSciDataPackage("mNodeTier4", true, "CN=testPerson,DC=dataone,DC=org");             
             SystemMetadata sysMetaV2 = TypeMarshaller.convertTypeFromType(dataPackage[2], SystemMetadata.class);
             callAdapter.replicate(null, sysMetaV2, sourceNode);    
             handleFail(callAdapter.getLatestRequestUrl(),"should not be able to initiate replication a certificate representing a CN");
@@ -284,7 +284,7 @@ public class MNReplicationTestImplementations extends ContextAwareAdapter {
         printTestHeader("testSystemMetadataChanged_authITKuser() vs. node: " + currentUrl);
     
         try {
-            Object[] dataPackage = ExampleUtilities.generateTestSciDataPackage("mNodeTier3",true);
+            Object[] dataPackage = ExampleUtilities.generateTestSciDataPackage("mNodeTier3",true, "CN=testPerson,DC=dataone,DC=org");
     
             org.dataone.service.types.v1.SystemMetadata sysMetaV1 = (org.dataone.service.types.v1.SystemMetadata) dataPackage[2];
             SystemMetadata sysMetaV2 = TypeMarshaller.convertTypeFromType(sysMetaV1, SystemMetadata.class);
@@ -323,7 +323,7 @@ public class MNReplicationTestImplementations extends ContextAwareAdapter {
 
         try {
             Object[] dataPackage = ExampleUtilities.generateTestSciDataPackage(
-                    "mNodeTier3TestDelete", true);
+                    "mNodeTier3TestDelete", true, "CN=urn:node:cnDevUNM1,DC=dataone,DC=org");
 
             org.dataone.service.types.v1.SystemMetadata sysMetaV1 = (org.dataone.service.types.v1.SystemMetadata) dataPackage[2];
             SystemMetadata sysMetaV2 = TypeMarshaller.convertTypeFromType(sysMetaV1, SystemMetadata.class);
