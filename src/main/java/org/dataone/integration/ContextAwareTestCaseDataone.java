@@ -118,6 +118,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
     public static String cnSubmitter = Settings.getConfiguration().getString("dataone.it.cnode.submitter.cn", /* default */ "urn:node:cnDevUNM1");
 
     private static Map<String,MultipartRestClient> sessionMap = new HashMap<String,MultipartRestClient>();
+    private static Map<String,Subject> subjectMap = new HashMap<String, Subject>();
     
     private static final MultipartRestClient MULTIPART_REST_CLIENT = getSession(null);
 
@@ -482,7 +483,24 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
         return clientSubject;
     }
 
-
+    /**
+     * Returns the cached {@link Subject} for the given {@code subjectName}.
+     * This corresponds with the {@code subjectName} used in the call to
+     * {@link ContextAwareTestCaseDataone#getSession(String)}. 
+     * Caches the {@link Subject} if it hasn't been cached yet, and won't return 
+     * null unless an invalid {@code subjectName} is given.
+     * 
+     * @param subjectName 
+     *          the simple name of the subject, matching the name of the certificate
+     *          file, without the extension, and matching the CN (common name) in the
+     *          {@link Subject}
+     * @return the {@link Subject} for the given {@code subjectName}
+     */
+    public static Subject getSubject(String subjectName) {
+        if(!subjectMap.containsKey(subjectName))
+            getSession(subjectName);
+        return subjectMap.get(subjectName);
+    }
     
     public static MultipartRestClient getSession(String subjectName) {
         if (subjectName == null) {
@@ -492,10 +510,11 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
             if (subjectName.equals(Constants.SUBJECT_PUBLIC)) {
                 setupClientSubject_NoCert();
             } else {
-                setupClientSubject(subjectName);
+                Subject subject = setupClientSubject(subjectName);
+                subjectMap.put(subjectName, subject);
             }
             sessionMap.put(subjectName, new DefaultHttpMultipartRestClient());           
-        }       
+        }
         return sessionMap.get(subjectName);
     }
     
