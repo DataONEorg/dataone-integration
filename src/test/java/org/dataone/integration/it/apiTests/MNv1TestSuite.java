@@ -12,7 +12,7 @@ import org.junit.runners.Suite;
     MNCoreV1IT.class,
     MNCoreV1SlowIT.class,
     MNReadV1IT.class, 
-    MNAuthV1IT.class, 
+    MNAuthorizationV1IT.class, 
     MNQueryV1IT.class,
     MNReplicationV1IT.class, 
     MNStorageV1IT.class })
