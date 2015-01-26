@@ -463,17 +463,17 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
     }
 
     /**
-     * uses the value of the property passed to setup the
+     * Uses the given {@code certificateFilename} to setup the
      * CertificateManager to use the certificate found at that path
-     * @return
+     * @return the {@link Subject} of the certificate loaded
      */
-    public static Subject setupClientSubject(String subjectName)
+    public static Subject setupClientSubject(String certificateFilename)
     {
         // 1. set up the client certificate
         String testCertDirectory = (String) Settings.getConfiguration().getProperty("d1.test.cert.location");
 
         CertificateManager cm = CertificateManager.getInstance();
-        cm.setCertificateLocation(testCertDirectory + subjectName + ".crt");
+        cm.setCertificateLocation(testCertDirectory + certificateFilename + ".crt");
         cm.loadCertificate();
 
         // 2. return the subject corresponding to the loaded certificate
@@ -485,37 +485,44 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 
     /**
      * Returns the cached {@link Subject} for the given {@code subjectName}.
-     * This corresponds with the {@code subjectName} used in the call to
+     * This corresponds with the {@code certificateFilename} used in the call to
      * {@link ContextAwareTestCaseDataone#getSession(String)}. 
-     * Caches the {@link Subject} if it hasn't been cached yet, and won't return 
-     * null unless an invalid {@code subjectName} is given.
+     * <b>WARNING:</b> Will return null if the {@link Subject} was not already
+     * cached. This method cannot call {@link #getSession(String)} to cache it
+     * because of the side effects of that call (loading the certificate into
+     * {@link CertificateManager}).
      * 
-     * @param subjectName 
-     *          the simple name of the subject, matching the name of the certificate
-     *          file, without the extension, and matching the CN (common name) in the
-     *          {@link Subject}
+     * @param certificateFilename 
+     *          the name of the certificate file, without the extension, 
+     *          (does not necessarily match the CN (common name) in the
+     *          {@link Subject} of the certificate)
      * @return the {@link Subject} for the given {@code subjectName}
      */
-    public static Subject getSubject(String subjectName) {
-        if(!subjectMap.containsKey(subjectName))
-            getSession(subjectName);
-        return subjectMap.get(subjectName);
+    public static Subject getSubject(String certificateFilename) {
+        return subjectMap.get(certificateFilename);
     }
     
-    public static MultipartRestClient getSession(String subjectName) {
-        if (subjectName == null) {
-            subjectName = Constants.SUBJECT_PUBLIC;
+    /**
+     * Returns a {@link MultipartRestClient} set up with a certificate
+     * from the given {@code certificateFilename}. 
+     * @param certificateFilename the name of the certificate file, without the extension
+     *          (does NOT always match the actual subject CN in the certificate)
+     * @return a {@link MultipartRestClient}
+     */
+    public static MultipartRestClient getSession(String certificateFilename) {
+        if (certificateFilename == null) {
+            certificateFilename = Constants.SUBJECT_PUBLIC;
         }
-        if ( ! sessionMap.containsKey(subjectName) ) {
-            if (subjectName.equals(Constants.SUBJECT_PUBLIC)) {
+        if ( ! sessionMap.containsKey(certificateFilename) ) {
+            if (certificateFilename.equals(Constants.SUBJECT_PUBLIC)) {
                 setupClientSubject_NoCert();
             } else {
-                Subject subject = setupClientSubject(subjectName);
-                subjectMap.put(subjectName, subject);
+                Subject subject = setupClientSubject(certificateFilename);
+                subjectMap.put(certificateFilename, subject);
             }
-            sessionMap.put(subjectName, new DefaultHttpMultipartRestClient());           
+            sessionMap.put(certificateFilename, new DefaultHttpMultipartRestClient());           
         }
-        return sessionMap.get(subjectName);
+        return sessionMap.get(certificateFilename);
     }
     
     
