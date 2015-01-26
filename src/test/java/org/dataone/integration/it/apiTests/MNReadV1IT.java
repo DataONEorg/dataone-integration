@@ -6,6 +6,7 @@ import org.dataone.integration.it.testDefinitions.ReadTestDefinitions;
 import org.dataone.integration.it.testImplementations.MNReadTestImplementations;
 import org.dataone.integration.it.testImplementations.ReadTestImplementations;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -145,6 +146,7 @@ public class MNReadV1IT extends ContextAwareTestCaseDataone
 
     @Override
     @Test
+    @Ignore("Skipped in original tier tests. Ignoring to match WebTester results for now.")
     public void testGetReplica_ValidCertificate_NotMN() {
         mnReadTestImpl.testGetReplica_ValidCertificate_NotMN(getMemberNodeIterator(), "v1");
     }
@@ -163,6 +165,7 @@ public class MNReadV1IT extends ContextAwareTestCaseDataone
 
     @Override
     @Test
+    @Ignore("Skipped in original tier tests. Ignoring to match WebTester results for now.")
     public void testGetReplica_IdentifierEncoding() {
         mnReadTestImpl.testGetReplica_IdentifierEncoding(getMemberNodeIterator(), "v1");
     }

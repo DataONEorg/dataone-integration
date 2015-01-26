@@ -4,9 +4,9 @@ import org.dataone.integration.ContextAwareTestCaseDataone;
 import org.dataone.integration.it.testDefinitions.AuthTestDefinitions;
 import org.dataone.integration.it.testDefinitions.MNSystemMetadataChangedTestDefinitions;
 import org.dataone.integration.it.testImplementations.AuthTestImplementations;
-import org.dataone.integration.it.testImplementations.MNReadTestImplementations;
 import org.dataone.integration.it.testImplementations.MNReplicationTestImplementations;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -44,6 +44,7 @@ public class MNAuthorizationV1IT extends ContextAwareTestCaseDataone
     
     @Override
     @Test
+    @Ignore("Skipped in original tier tests. Ignoring to match WebTester results for now.")
     public void testSystemMetadataChanged_EarlierDate() {
         mnReplicationTestImpl.testSystemMetadataChanged_EarlierDate(getMemberNodeIterator(), "v1");
     }
@@ -56,6 +57,7 @@ public class MNAuthorizationV1IT extends ContextAwareTestCaseDataone
 
     @Override
     @Test
+    @Ignore("Skipped in original tier tests. Ignoring to match WebTester results for now.")
     public void testSystemMetadataChanged_withCreate() {
         mnReplicationTestImpl.testSystemMetadataChanged_withCreate(getMemberNodeIterator(), "v1");
     }
