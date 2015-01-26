@@ -26,7 +26,7 @@ import org.dataone.service.util.TypeMarshaller;
 public class CNRegisterTestImplementations extends ContextAwareAdapter {
 
     private String cnSubmitter = Settings.getConfiguration().getString(
-            "dataone.it.cnode.submitter.cn", /* default */"urn:node:cnDevUNM1");
+            "dataone.it.cnode.submitter.cn", /* default */"cnDevUNM1");
 
     public CNRegisterTestImplementations(ContextAwareTestCaseDataone catc) {
         super(catc);

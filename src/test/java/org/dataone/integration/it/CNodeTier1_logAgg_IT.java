@@ -39,7 +39,7 @@ import org.junit.Test;
  */
 public class CNodeTier1_logAgg_IT extends ContextAwareTestCaseDataone {
 	
-	protected String cnSubmitter = Settings.getConfiguration().getString("dataone.it.cnode.submitter.cn", /* default */ "urn:node:cnDevUNM1");
+	protected String cnSubmitter = Settings.getConfiguration().getString("dataone.it.cnode.submitter.cn", /* default */ "cnDevUNM1");
 	
 	private static String currentUrl;
 

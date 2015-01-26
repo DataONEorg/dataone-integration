@@ -42,9 +42,9 @@ public class MNSystemMetadataChangedMethodTestImplementations extends ContextAwa
     public void testSystemMetadataChanged(Node node, String version) {
 
         MNCallAdapter[] cNodeSessions = new MNCallAdapter[]{
-                new MNCallAdapter(getSession("urn:node:cnDevUNM1"), node, version),
-                new MNCallAdapter(getSession("urn:node:cnSandboxUNM1"), node, version),
-                new MNCallAdapter(getSession("urn:node:cnStageUNM1"), node, version)};
+                new MNCallAdapter(getSession("cnDevUNM1"), node, version),
+                new MNCallAdapter(getSession("cnSandboxUNM1"), node, version),
+                new MNCallAdapter(getSession("cnStageUNM1"), node, version)};
 
         MNCallAdapter mn = new MNCallAdapter(getSession("testRightsHolder"), node, version);
         String currentUrl = mn.getNodeBaseServiceUrl();
@@ -118,7 +118,7 @@ public class MNSystemMetadataChangedMethodTestImplementations extends ContextAwa
     
     public void testSystemMetadataChanged_EarlierDate(Node node, String version) {
   
-        MNCallAdapter mn = new MNCallAdapter(getSession("urn:node:cnDevUNM1"), node, version);
+        MNCallAdapter mn = new MNCallAdapter(getSession("cnDevUNM1"), node, version);
         String currentUrl = mn.getNodeBaseServiceUrl();
         printTestHeader("testSystemMetadataChanged() vs. node: " + currentUrl);
 
@@ -190,7 +190,7 @@ public class MNSystemMetadataChangedMethodTestImplementations extends ContextAwa
     public void testSystemMetadataChanged_withCreate(Node node, String version) 
     {
         String currentUrl = node.getBaseURL();
-        MNCallAdapter cca = new MNCallAdapter(getSession("urn:node:cnDevUNM1"), node, version);
+        MNCallAdapter cca = new MNCallAdapter(getSession("cnDevUNM1"), node, version);
         currentUrl = cca.getNodeBaseServiceUrl();
         printTestHeader("testSystemMetadataChanged() vs. node: " + currentUrl);
 

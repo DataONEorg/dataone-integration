@@ -145,7 +145,7 @@ implements AuthAPITestDefinitions
 		
 		setupClientSubject("testRightsHolder");
 		
-		String[] cNodeIds = new String[]{"urn:node:cnDevUNM1","urn:node:cnSandboxUNM1", "urn:node:cnStageUNM1"};
+		String[] cNodeIds = new String[]{"cnDevUNM1","cnSandboxUNM1", "cnStageUNM1"};
 		
 		while ( it.hasNext() ) {
 				
@@ -222,7 +222,7 @@ implements AuthAPITestDefinitions
 		Iterator<Node> it = getMemberNodeIterator();
 
 		while ( it.hasNext() ) {
-			setupClientSubject("urn:node:cnDevUNM1");
+			setupClientSubject("cnDevUNM1");
 
 			currentUrl = it.next().getBaseURL();
 			MNode mn = D1Client.getMN(currentUrl);
@@ -297,7 +297,7 @@ implements AuthAPITestDefinitions
 		Iterator<Node> it = getMemberNodeIterator();
 
 		while ( it.hasNext() ) {
-			setupClientSubject("urn:node:cnDevUNM1");
+			setupClientSubject("cnDevUNM1");
 
 			currentUrl = it.next().getBaseURL();
 			MNode mn = D1Client.getMN(currentUrl);

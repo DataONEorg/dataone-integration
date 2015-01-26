@@ -82,7 +82,7 @@ public class MNReadTestImplementations extends ContextAwareAdapter {
 
     public void testGetReplica_PublicObject(Node node, String version) {
 
-        String clientSubject = "urn:node:cnStageUNM1";
+        String clientSubject = "cnStageUNM1";
         MNCallAdapter callAdapter = new MNCallAdapter(getSession(clientSubject), node, version);
         String currentUrl = callAdapter.getNodeBaseServiceUrl();
         printTestHeader("testGetReplica() vs. node: " + currentUrl);

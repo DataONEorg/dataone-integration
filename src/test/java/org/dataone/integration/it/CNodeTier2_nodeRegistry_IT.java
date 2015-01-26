@@ -54,7 +54,7 @@ public class CNodeTier2_nodeRegistry_IT extends ContextAwareTestCaseDataone {
 
 	private static String currentUrl;
 	
-	protected String cnSubmitter = Settings.getConfiguration().getString("dataone.it.cnode.submitter.cn", /* default */ "urn:node:cnDevUNM1");
+	protected String cnSubmitter = Settings.getConfiguration().getString("dataone.it.cnode.submitter.cn", /* default */ "cnDevUNM1");
 
 	
 

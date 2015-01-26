@@ -241,7 +241,7 @@ public class MNodeTier1IT { //extends ContextAwareTestCaseDataone  {
 //    {
 //    	Settings.getConfiguration().setProperty("D1Client.D1Node.getLogRecords.timeout", "60000");
 //    	//TODO: change to use a testCNAdmin certificate
-//    	String cnSubject = Settings.getConfiguration().getString("dataone.it.cnode.submitter.cn", "urn:node:cnStageUNM1");
+//    	String cnSubject = Settings.getConfiguration().getString("dataone.it.cnode.submitter.cn", "cnStageUNM1");
 //    	setupClientSubject(cnSubject);
 ////    	setupClientSubject_NoCert();
 //    	Iterator<Node> it = getMemberNodeIterator();
@@ -286,7 +286,7 @@ public class MNodeTier1IT { //extends ContextAwareTestCaseDataone  {
 //    {
 //    	Settings.getConfiguration().setProperty("D1Client.D1Node.getLogRecords.timeout", "60000");
 //    	// TODO: change to testCnAdmin subject when obtained
-//    	String cnSubject = Settings.getConfiguration().getString("dataone.it.cnode.submitter.cn", "urn:node:cnStageUNM1");
+//    	String cnSubject = Settings.getConfiguration().getString("dataone.it.cnode.submitter.cn", "cnStageUNM1");
 //    	setupClientSubject(cnSubject);
 ////    	setupClientSubject_NoCert();
 //    	Iterator<Node> it = getMemberNodeIterator();
@@ -356,7 +356,7 @@ public class MNodeTier1IT { //extends ContextAwareTestCaseDataone  {
 //    {
 //    	Settings.getConfiguration().setProperty("D1Client.D1Node.getLogRecords.timeout", "60000");
 //    	// TODO: change to testCnAdmin subject when obtained
-//    	String cnSubject = Settings.getConfiguration().getString("dataone.it.cnode.submitter.cn", "urn:node:cnStageUNM1");
+//    	String cnSubject = Settings.getConfiguration().getString("dataone.it.cnode.submitter.cn", "cnStageUNM1");
 //    	setupClientSubject(cnSubject);
 ////    	setupClientSubject_NoCert();
 //    	Iterator<Node> it = getMemberNodeIterator();
@@ -442,7 +442,7 @@ public class MNodeTier1IT { //extends ContextAwareTestCaseDataone  {
 //    {
 //    	Settings.getConfiguration().setProperty("D1Client.D1Node.getLogRecords.timeout", "60000");
 //    	// TODO: change to testCnAdmin subject when obtained
-//    	String cnSubject = Settings.getConfiguration().getString("dataone.it.cnode.submitter.cn", "urn:node:cnStageUNM1");
+//    	String cnSubject = Settings.getConfiguration().getString("dataone.it.cnode.submitter.cn", "cnStageUNM1");
 //    	setupClientSubject(cnSubject);
 ////    	setupClientSubject_NoCert();
 //    	Iterator<Node> it = getMemberNodeIterator();
@@ -542,7 +542,7 @@ public class MNodeTier1IT { //extends ContextAwareTestCaseDataone  {
 //    {
 //    	Settings.getConfiguration().setProperty("D1Client.D1Node.getLogRecords.timeout", "60000");
 //    	// TODO: change to testCnAdmin subject when obtained
-//    	String cnSubject = Settings.getConfiguration().getString("dataone.it.cnode.submitter.cn", "urn:node:cnStageUNM1");
+//    	String cnSubject = Settings.getConfiguration().getString("dataone.it.cnode.submitter.cn", "cnStageUNM1");
 //    	setupClientSubject(cnSubject);
 ////    	setupClientSubject_NoCert();
 //    	Iterator<Node> it = getMemberNodeIterator();
@@ -2053,7 +2053,7 @@ public class MNodeTier1IT { //extends ContextAwareTestCaseDataone  {
 //	@Test
 //	public void testGetReplica_PublicObject() {
 //
-//		String clientSubject = "urn:node:cnStageUNM1";
+//		String clientSubject = "cnStageUNM1";
 //		setupClientSubject(clientSubject);
 //
 //		Iterator<Node> it = getMemberNodeIterator();

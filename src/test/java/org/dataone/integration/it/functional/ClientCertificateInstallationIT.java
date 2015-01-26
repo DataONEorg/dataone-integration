@@ -115,19 +115,19 @@ public class ClientCertificateInstallationIT {
 	@Test
 	public void testSetupClientSubject_CN_sandbox() throws Exception
 	{
-		runTestSetupClient_Typical("urn:node:cnSandboxUNM1", false);
+		runTestSetupClient_Typical("cnSandboxUNM1", false);
 	}
 	
 	@Test
 	public void testSetupClientSubject_CN_stage() throws Exception
 	{
-		runTestSetupClient_Typical("urn:node:cnStageUNM1", false);
+		runTestSetupClient_Typical("cnStageUNM1", false);
 	}
 	
 	@Test
 	public void testSetupClientSubject_CN_dev() throws Exception
 	{
-		runTestSetupClient_Typical("urn:node:cnDevUNM1", false);
+		runTestSetupClient_Typical("cnDevUNM1", false);
 	}
 	
 	@Ignore("not yet implemented")

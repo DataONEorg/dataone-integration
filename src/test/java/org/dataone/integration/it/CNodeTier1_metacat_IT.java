@@ -62,7 +62,7 @@ public class CNodeTier1_metacat_IT extends ContextAwareTestCaseDataone {
 //	private static String unicodeIdPrefix = "testCNodeTier1:Unicode:";
 	private static String unicodeIdPrefix = "testCNodeTier1";
 	
-	protected String cnSubmitter = Settings.getConfiguration().getString("dataone.it.cnode.submitter.cn", /* default */ "urn:node:cnDevUNM1");
+	protected String cnSubmitter = Settings.getConfiguration().getString("dataone.it.cnode.submitter.cn", /* default */ "cnDevUNM1");
 
 	
 	private static String identifierEncodingTestFile = "/d1_testdocs/encodingTestSet/testUnicodeStrings.utf8.txt";
