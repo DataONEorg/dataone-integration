@@ -50,11 +50,11 @@ public class MNCallAdapter extends CommonCallAdapter {
 
 
     // MNRead:
-    
+
     public boolean systemMetadataChanged(Session session, Identifier id, long serialVersion,
             Date dateSystemMetadataLastModified) throws InvalidToken, ServiceFailure,
             NotAuthorized, NotFound, NotImplemented, InvalidRequest, ClientSideException {
-        
+
         if (this.node.getType().equals(NodeType.MN)) {
             if (this.version.toLowerCase().equals("v1")) {
                 MNAuthorization mnAuth = D1NodeFactory.buildNode(MNAuthorization.class, this.mrc,
@@ -111,18 +111,27 @@ public class MNCallAdapter extends CommonCallAdapter {
     }
 
     // MNStorage:
-    
-    public Identifier create(Session session, Identifier pid, InputStream object, 
-            SystemMetadata sysmeta) 
-        throws IdentifierNotUnique, InsufficientResources, InvalidRequest, InvalidSystemMetadata, 
-            InvalidToken, NotAuthorized, NotImplemented, ServiceFailure, UnsupportedType, ClientSideException, InstantiationException, IllegalAccessException, InvocationTargetException, JiBXException, IOException {
-        
+
+    public Identifier create(Session session, Identifier pid, InputStream object,
+            SystemMetadata sysmeta)
+        throws IdentifierNotUnique, InsufficientResources, InvalidRequest, InvalidSystemMetadata,
+            InvalidToken, NotAuthorized, NotImplemented, ServiceFailure, UnsupportedType, ClientSideException  {
+
         if (this.node.getType().equals(NodeType.MN)) {
             if (this.version.toLowerCase().equals("v1")) {
                 org.dataone.service.mn.tier3.v1.MNStorage mnStorage = D1NodeFactory.buildNode(
                         org.dataone.service.mn.tier3.v1.MNStorage.class, this.mrc,
                         URI.create(this.node.getBaseURL()));
-                org.dataone.service.types.v1.SystemMetadata v1SysMeta = TypeMarshaller.convertTypeFromType(sysmeta, org.dataone.service.types.v1.SystemMetadata.class);
+                org.dataone.service.types.v1.SystemMetadata v1SysMeta;
+                try {
+                    v1SysMeta = TypeMarshaller.convertTypeFromType(sysmeta, org.dataone.service.types.v1.SystemMetadata.class);
+                }
+                catch (InstantiationException | IllegalAccessException
+                        | InvocationTargetException | JiBXException
+                        | IOException e) {
+                    e.printStackTrace();
+                    throw new ClientSideException("Failed to convert SystemMetadata from v1 to v2 prior to the create call", e);
+                }
                 return mnStorage.create(session, pid, object, v1SysMeta);
             } else if (this.version.toLowerCase().equals("v2")) {
                 MNStorage mnStorage = D1NodeFactory.buildNode(MNStorage.class, this.mrc,
@@ -260,7 +269,7 @@ public class MNCallAdapter extends CommonCallAdapter {
         throw new ClientSideException("Call to query failed. " + node.getType()
                 + " of version " + version);
     }
-    
+
     public QueryEngineDescription getQueryEngineDescription(Session session, String queryEngine)
             throws InvalidToken, ServiceFailure, NotAuthorized, NotImplemented, NotFound, ClientSideException {
         if (this.node.getType().equals(NodeType.MN)) {

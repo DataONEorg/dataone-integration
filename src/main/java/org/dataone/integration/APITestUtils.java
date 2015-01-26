@@ -22,6 +22,7 @@ package org.dataone.integration;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
@@ -270,7 +271,7 @@ public class APITestUtils {
      */
     public static Set<Node> selectNodesByService(NodeList nodeList, String serviceName, String version, boolean isAvailable)
     {
-        Set<Node> nodeSet = new TreeSet<Node>();
+        Set<Node> nodeSet = new HashSet<Node>();
         for(int i=0; i < nodeList.sizeNodeList(); i++)
         {
             Node node = nodeList.getNode(i);

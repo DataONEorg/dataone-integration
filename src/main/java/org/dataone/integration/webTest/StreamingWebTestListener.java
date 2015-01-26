@@ -33,6 +33,7 @@ import nu.xom.Element;
 import nu.xom.ParsingException;
 import nu.xom.ValidityException;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.runner.Description;
@@ -86,6 +87,7 @@ class StreamingWebTestListener extends RunListener
 		if (newRun) {
 			currentTest = new AtomicTest(testCaseName);
 			currentTest.setStatus("Header");
+			currentTest.setMessage("SOURCE");
 			report(currentTest);
 //			testList.add(currentTest);
 			newRun = false;
@@ -224,6 +226,19 @@ class StreamingWebTestListener extends RunListener
 			Element formattedText = new Element("pre");
 			formattedText.appendChild(testResult.getMessage().replace("\n","\r\n"));
 			description.appendChild(formattedText);
+		} else if (testResult.getMessage() == "SOURCE") {
+			Element testCaseLink = new Element("a");
+			String bareTestCaseName = StringUtils.substringAfterLast(testResult.getTestName(), ".");
+			testCaseLink.addAttribute(new Attribute("href","webTesterSources/"+ bareTestCaseName + ".java"));
+			testCaseLink.appendChild("test case source");
+			Element allSourceLink = new Element("a");
+			allSourceLink.addAttribute(new Attribute("href","webTesterSources"));
+			allSourceLink.appendChild("all sources");
+
+			description.appendChild(testCaseLink);
+			description.appendChild(" / ");
+			description.appendChild(allSourceLink);
+			//			attachFormattedSourceLinks(description,testResult.getTestName());
 		} else {
 			description.appendChild(testResult.getMessage());
 		}
@@ -270,7 +285,12 @@ class StreamingWebTestListener extends RunListener
 		return improvedTestName;
 	}
 	
+	private void attachFormattedSourceLinks() {
 
+		
+	}
+	
+	
 	private Element buildTraceViewControl(int rowID)
 	{
 		Element toggleText = new Element("a");

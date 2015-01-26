@@ -51,6 +51,8 @@ class WebTestListener extends RunListener
 		if (newRun) {
 			currentTest = new AtomicTest(testCaseName);
 			currentTest.setStatus("Header");
+			currentTest.setMessage(String.format("<a href=\"webTesterSources/%s.java\">test case source</a>  " +
+					"<a href=\"webTesterSources/\"> all sources</a>",testCaseName));
 			testList.add(currentTest);
 			newRun = false;
 		}			

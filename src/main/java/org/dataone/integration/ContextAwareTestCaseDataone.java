@@ -63,7 +63,9 @@ import org.dataone.client.v1.itk.D1Object;
 import org.dataone.client.v1.types.D1TypeBuilder;
 import org.dataone.configuration.Settings;
 import org.dataone.configuration.TestSettings;
+import org.dataone.integration.adapters.CNCallAdapter;
 import org.dataone.integration.adapters.CommonCallAdapter;
+import org.dataone.integration.adapters.MNCallAdapter;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.IdentifierNotUnique;
 import org.dataone.service.exceptions.InsufficientResources;
@@ -119,7 +121,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 
     private static Map<String,MultipartRestClient> sessionMap = new HashMap<String,MultipartRestClient>();
     private static Map<String,Subject> subjectMap = new HashMap<String, Subject>();
-    
+
     private static final MultipartRestClient MULTIPART_REST_CLIENT = getSession(null);
 
     // context-related instance variables
@@ -253,7 +255,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
         // we will be testing multiple member nodes
         List<Node> allNodesList = new Vector<Node>();
         memberNodeList = new Vector<Node>();
-        
+
         if (nodelistUri != null) {
             // the list of member nodes is in this NodeList.xml file
             System.out.println("~~~ Context is ad-hoc NodeList at: " + nodelistUri);
@@ -276,7 +278,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
         // divide into separate lists
         for(int i=0; i < allNodesList.size(); i++) {
             Node currentNode = allNodesList.get(i);
-            
+
             if (currentNode.getType() == NodeType.CN) {
                 // test the baseUrl
                 try {
@@ -486,14 +488,14 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
     /**
      * Returns the cached {@link Subject} for the given {@code subjectName}.
      * This corresponds with the {@code certificateFilename} used in the call to
-     * {@link ContextAwareTestCaseDataone#getSession(String)}. 
+     * {@link ContextAwareTestCaseDataone#getSession(String)}.
      * <b>WARNING:</b> Will return null if the {@link Subject} was not already
      * cached. This method cannot call {@link #getSession(String)} to cache it
      * because of the side effects of that call (loading the certificate into
      * {@link CertificateManager}).
-     * 
-     * @param certificateFilename 
-     *          the name of the certificate file, without the extension, 
+     *
+     * @param certificateFilename
+     *          the name of the certificate file, without the extension,
      *          (does not necessarily match the CN (common name) in the
      *          {@link Subject} of the certificate)
      * @return the {@link Subject} for the given {@code subjectName}
@@ -501,10 +503,10 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
     public static Subject getSubject(String certificateFilename) {
         return subjectMap.get(certificateFilename);
     }
-    
+
     /**
      * Returns a {@link MultipartRestClient} set up with a certificate
-     * from the given {@code certificateFilename}. 
+     * from the given {@code certificateFilename}.
      * @param certificateFilename the name of the certificate file, without the extension
      *          (does NOT always match the actual subject CN in the certificate)
      * @return a {@link MultipartRestClient}
@@ -520,12 +522,12 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
                 Subject subject = setupClientSubject(certificateFilename);
                 subjectMap.put(certificateFilename, subject);
             }
-            sessionMap.put(certificateFilename, new DefaultHttpMultipartRestClient());           
+            sessionMap.put(certificateFilename, new DefaultHttpMultipartRestClient());
         }
         return sessionMap.get(certificateFilename);
     }
-    
-    
+
+
 
     public ObjectList procureObjectList(CommonCallAdapter cca)
     throws TestIterationEndingException
@@ -775,18 +777,22 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 //			// give it a go...
 //		}
         catch (NotFound e) {
-            if (cca instanceof MNode) {
-                Node node = ((MNode) cca).getCapabilities();
-                if (APITestUtils.isServiceAvailable(node, "MNStorage")) {
+            try {
+                if (cca instanceof MNode) {
+                    Node node = ((MNode) cca).getCapabilities();
+                    if (APITestUtils.isServiceAvailable(node, "MNStorage")) {
+                        log.debug("procureTestObject: calling createTestObject");
+                        identifier = createTestObject(cca, pid, accessRule);
+                    }
+                } else {
                     log.debug("procureTestObject: calling createTestObject");
                     identifier = createTestObject(cca, pid, accessRule);
                 }
-            } else {
-                log.debug("procureTestObject: calling createTestObject");
-                identifier = createTestObject(cca, pid, accessRule);
+            } catch (ClientSideException e1) {
+                throw new TestIterationEndingException("unexpected client-side exception encountered when trying to creat e test object", e1);
             }
         } catch (ClientSideException e) {
-            throw new TestIterationEndingException("unexpected client-side exception encountered when trying to procure a test object");
+            throw new TestIterationEndingException("unexpected client-side exception encountered when trying to procure a test object", e);
         }
         log.info(" ====>>>>> pid of procured test Object: " + identifier.getValue());
         return identifier;
@@ -912,11 +918,12 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
      * @throws InvalidRequest
      * @throws UnsupportedEncodingException
      * @throws NotFound
+     * @throws ClientSideException
      */
     public Identifier createPublicTestObject(D1Node d1Node, String idSuffix)
     throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique,
     UnsupportedType, InsufficientResources, InvalidSystemMetadata, NotImplemented,
-    InvalidRequest, UnsupportedEncodingException, NotFound
+    InvalidRequest, UnsupportedEncodingException, NotFound, ClientSideException
     {
         Subject subject = new Subject();
         subject.setValue(Constants.SUBJECT_PUBLIC);
@@ -966,7 +973,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
     public Identifier createTestObject(D1Node d1Node, String idSuffix, AccessRule accessRule)
     throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique,
     UnsupportedType, InsufficientResources, InvalidSystemMetadata, NotImplemented,
-    InvalidRequest, UnsupportedEncodingException, NotFound
+    InvalidRequest, UnsupportedEncodingException, NotFound, ClientSideException
     {
         // create the identifier for the test object
         Identifier pid = new Identifier();
@@ -1008,11 +1015,12 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
      * @throws InvalidRequest
      * @throws UnsupportedEncodingException
      * @throws NotFound
+     * @throws ClientSideException
      */
     public Identifier createTestObject(D1Node d1Node, Identifier pid, AccessRule accessRule)
     throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique, UnsupportedType,
     InsufficientResources, InvalidSystemMetadata, NotImplemented, InvalidRequest,
-    UnsupportedEncodingException, NotFound
+    UnsupportedEncodingException, NotFound, ClientSideException
     {
         // the default is to do all of the creates under the testSubmitter subject
         // and assign rights to testRightsHolder
@@ -1028,7 +1036,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
             AccessRule accessRule, String submitterSubjectLabel, String rightsHolderSubjectName)
     throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique, UnsupportedType,
     InsufficientResources, InvalidSystemMetadata, NotImplemented, InvalidRequest,
-    UnsupportedEncodingException, NotFound
+    UnsupportedEncodingException, NotFound, ClientSideException
     {
         AccessPolicy policy = null;
         if (accessRule != null) {
@@ -1063,12 +1071,13 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
      * @throws InvalidRequest
      * @throws UnsupportedEncodingException
      * @throws NotFound
+     * @throws ClientSideException
      */
     public Identifier createTestObject(D1Node d1Node, Identifier pid,
             AccessPolicy policy, String submitterSubjectLabel, String rightsHolderSubjectName)
     throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique, UnsupportedType,
     InsufficientResources, InvalidSystemMetadata, NotImplemented, InvalidRequest,
-    UnsupportedEncodingException, NotFound
+    UnsupportedEncodingException, NotFound, ClientSideException
     {
         // remember who the client currently is
         X509Certificate certificate = CertificateManager.getInstance().loadCertificate();
@@ -1147,8 +1156,14 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 
             if (d1Node instanceof MNode) {
                 retPid = ((MNode)d1Node).create(null, pid, objectInputStream, sysMeta);
-            } else {
+            } else if (d1Node instanceof CNode) {
                 retPid = ((CNode)d1Node).create(null, pid, objectInputStream, sysMeta);
+            } else if (d1Node instanceof MNCallAdapter) {
+                retPid = ((MNCallAdapter)d1Node).create(null, pid, objectInputStream, sysMeta);
+            } else if (d1Node instanceof CNCallAdapter) {
+                retPid = ((CNCallAdapter)d1Node).create(null, pid, objectInputStream, sysMeta);
+            } else {
+                throw new ClientSideException("Do not have a handler for D1Node of type " + d1Node.getClass().getName());
             }
             log.info("object created.  pid = " + retPid.getValue());
             checkEquals(d1Node.getNodeBaseServiceUrl(),
