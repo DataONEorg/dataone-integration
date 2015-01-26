@@ -254,9 +254,6 @@ public class MNStorageTestImplementations extends ContextAwareAdapter {
 
     /**
      *  Test MNStorage.update() functionality
-     *  
-     *  TODO: This test is sensitive to offsets between the tester and the MN's system time
-     *  (it currently uses the time to query for modified objects; should use get())
      */
     public void testUpdate(Node node, String version) {
 
@@ -274,10 +271,8 @@ public class MNStorageTestImplementations extends ContextAwareAdapter {
             Identifier originalPid = callAdapter.create(null, (Identifier) dataPackage[0],
                     (InputStream) dataPackage[1], sysMetaV2);
 
-            // prep for checking update time. 
-            Thread.sleep(100);
-            Date now = new Date();
-            Thread.sleep(100);
+            SystemMetadata createdObjSysMeta = callAdapter.getSystemMetadata(null, originalPid);
+            Date dateCreated = createdObjSysMeta.getDateSysMetadataModified();
 
             // create the new data package to update with. 
             dataPackage = ExampleUtilities.generateTestSciDataPackage("mNodeTier3TestUpdate", true, subject.getValue());
@@ -310,7 +305,12 @@ public class MNStorageTestImplementations extends ContextAwareAdapter {
                             .getObsoletedBy().getValue(), updatedPid.getValue());
 
             // the old pid needs to be in a timebound listObject search
-            ObjectList ol = callAdapter.listObjects(null, now, null, null, null, null, null);
+            ObjectList ol = callAdapter.listObjects(null, dateCreated, null, null, null, null, null);
+            
+            checkTrue(callAdapter.getLatestRequestUrl(), "Object info list shouldn't be null."
+                    + "This means that the listObjects() call failed.", 
+                    ol!= null && ol.getObjectInfoList() != null);
+            
             boolean foundUpdatedSysmeta = false;
             for (ObjectInfo oi : ol.getObjectInfoList()) {
                 if (oi.getIdentifier().getValue().equals(originalPid.getValue())) {
@@ -530,11 +530,6 @@ public class MNStorageTestImplementations extends ContextAwareAdapter {
             Identifier originalPid = callAdapterRH.create(null, (Identifier) dataPackage[0],
                     (InputStream) dataPackage[1], sysMetaV2);
 
-            // prep for checking update time. 
-            Thread.sleep(100);
-            Date now = new Date();
-            Thread.sleep(100);
-
             // create the new data package to update with. 
             dataPackage = ExampleUtilities.generateTestSciDataPackage("mNodeTier3TestUpdate", true, subjectSubmitter.getValue());
             Identifier newPid = (Identifier) dataPackage[0];
@@ -542,7 +537,7 @@ public class MNStorageTestImplementations extends ContextAwareAdapter {
             try {
                 // do the update
                 SystemMetadata smdV2 = TypeMarshaller.convertTypeFromType((org.dataone.service.types.v1.SystemMetadata) dataPackage[2], SystemMetadata.class);
-                Identifier updatedPid = callAdapterSubmitter.update(null, originalPid,
+                callAdapterSubmitter.update(null, originalPid,
                         (InputStream) dataPackage[1], // new data
                         newPid, smdV2 // new sysmeta
                         );
