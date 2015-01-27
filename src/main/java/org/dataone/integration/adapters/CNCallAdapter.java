@@ -230,7 +230,18 @@ public class CNCallAdapter extends CommonCallAdapter {
                 org.dataone.service.cn.v1.CNCore cnCore = D1NodeFactory.buildNode(
                         org.dataone.service.cn.v1.CNCore.class, this.mrc,
                         URI.create(this.node.getBaseURL()));
-                return cnCore.create(session, pid, object, sysmeta);
+                
+                org.dataone.service.types.v1.SystemMetadata v1SysMeta;
+                try {
+                    v1SysMeta = TypeMarshaller.convertTypeFromType(sysmeta, org.dataone.service.types.v1.SystemMetadata.class);
+                }
+                catch (InstantiationException | IllegalAccessException
+                        | InvocationTargetException | JiBXException
+                        | IOException e) {
+                    e.printStackTrace();
+                    throw new ClientSideException("Failed to convert SystemMetadata from v1 to v2 prior to the create call", e);
+                }
+                return cnCore.create(session, pid, object, v1SysMeta);
             } else if (this.version.toLowerCase().equals("v2")) {
                 CNCore cnCore = D1NodeFactory.buildNode(CNCore.class, this.mrc,
                         URI.create(this.node.getBaseURL()));

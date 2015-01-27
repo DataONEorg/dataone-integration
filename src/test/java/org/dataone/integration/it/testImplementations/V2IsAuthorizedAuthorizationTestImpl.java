@@ -1,7 +1,10 @@
 package org.dataone.integration.it.testImplementations;
 
+import org.dataone.integration.adapters.CNCallAdapter;
 import org.dataone.integration.adapters.CommonCallAdapter;
+import org.dataone.integration.adapters.MNCallAdapter;
 import org.dataone.service.types.v1.Node;
+import org.dataone.service.types.v1.NodeType;
 
 /**
  * A version-specific subclass of IsAuthorizedAuthorizationTestImplementations
@@ -17,7 +20,11 @@ public abstract class V2IsAuthorizedAuthorizationTestImpl extends
     @Override
     protected CommonCallAdapter instantiateD1Node(String subjectLabel, Node node)
     {
-       return new CommonCallAdapter(getSession(subjectLabel), node, "v2");
+        if(node.getType().equals(NodeType.MN)) {
+            return new MNCallAdapter(getSession(subjectLabel), node, "v1");
+        } else {
+            return new CNCallAdapter(getSession(subjectLabel), node, "v1");
+        } 
     }
 
 }
