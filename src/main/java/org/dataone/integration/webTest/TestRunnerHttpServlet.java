@@ -103,8 +103,7 @@ public class TestRunnerHttpServlet extends HttpServlet {
     }
 
     public void doPost(HttpServletRequest req, HttpServletResponse rsp)
-            throws ServletException, IOException
-    {
+            throws ServletException, IOException {
         log.debug("Entered TestRunnerHttpServlet.doPost()");
         doGet(req, rsp);
     }
@@ -113,8 +112,7 @@ public class TestRunnerHttpServlet extends HttpServlet {
      * Handles the get call to the servlet and triggers the junit tests run
      */
     public void doGet(HttpServletRequest req, HttpServletResponse rsp)
-            throws ServletException, IOException
-    {
+            throws ServletException, IOException {
         log.debug("Entered TestRunnerHttpServlet.doGet()");
         log.debug("current thread: " + Thread.currentThread().getId());
 
@@ -149,8 +147,7 @@ public class TestRunnerHttpServlet extends HttpServlet {
 
     private void executeJUnitRun(HttpServletRequest req, ServletOutputStream out)
             throws IOException, ClassNotFoundException, ValidityException,
-            ParsingException
-    {
+            ParsingException {
         String mNodeBaseUrl = req.getParameter("mNodeUrl");
         String testObjectSeries = req.getParameter("testObjectSeries");
         String[] selectedAPIs = req.getParameterValues("selectedAPIs");
@@ -232,7 +229,7 @@ public class TestRunnerHttpServlet extends HttpServlet {
         out.flush();
     }
 
- 
+
 
     /**
      * if not working within the context of MN API tests (the selectedAPIs param
@@ -241,8 +238,7 @@ public class TestRunnerHttpServlet extends HttpServlet {
      * and return true or false.
      * Expecting testCase simple names of the format {API}{Version}{extra}IT
      */
-    public boolean isASelectedAPI(String[] selectedAPIs, String version,  Class<?> testCase)
-    {
+    public boolean isASelectedAPI(String[] selectedAPIs, String version,  Class<?> testCase) {
         /* handles the unit test case */
         if ( selectedAPIs == null ) return true;
 
@@ -261,8 +257,7 @@ public class TestRunnerHttpServlet extends HttpServlet {
         return false;
     }
 
-    private void generateURLRow(Element div, String url)
-    {
+    private void generateURLRow(Element div, String url) {
 
         div.addAttribute(new Attribute("class", "greyDescr"));
 
@@ -283,8 +278,7 @@ public class TestRunnerHttpServlet extends HttpServlet {
     }
 
     @SuppressWarnings("rawtypes")
-    private Class[] getIntegrationTestClasses(String pattern)
-    {
+    private Class[] getIntegrationTestClasses(String pattern) {
         log.debug("Java class Path: " + System.getProperty("java.class.path"));
 
         ArrayList<Class> matchingClasses = new ArrayList<Class>();
@@ -326,8 +320,7 @@ public class TestRunnerHttpServlet extends HttpServlet {
      * @throws ClassNotFoundException
      * @throws IOException
      */
-    private static Class<?>[] getClasses(String packageName) throws IOException
-    {
+    private static Class<?>[] getClasses(String packageName) throws IOException {
         ClassLoader classLoader = Thread.currentThread()
                 .getContextClassLoader();
 
@@ -357,8 +350,7 @@ public class TestRunnerHttpServlet extends HttpServlet {
      * @return The classes
      * @throws ClassNotFoundException
      */
-    private static List<Class<?>> findClasses(File directory, String packageName)
-    {
+    private static List<Class<?>> findClasses(File directory, String packageName) {
         List<Class<?>> classes = new ArrayList<Class<?>>();
         if ( !directory.exists() ) {
             return classes;
@@ -390,8 +382,7 @@ public class TestRunnerHttpServlet extends HttpServlet {
         return classes;
     }
 
-    private static boolean compareToStarPattern(String pattern, String className)
-    {
+    private static boolean compareToStarPattern(String pattern, String className) {
 
         if ( pattern.startsWith("*") ) {
             pattern = pattern.substring(1);

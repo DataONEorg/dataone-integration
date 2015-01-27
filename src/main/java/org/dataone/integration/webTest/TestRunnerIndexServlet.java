@@ -45,8 +45,7 @@ public class TestRunnerIndexServlet extends HttpServlet {
     private DateFormat format = new SimpleDateFormat("MM/dd/yyyy 'at' HH:mm");
 
     public void doGet(HttpServletRequest request, HttpServletResponse response)
-            throws IOException, ServletException
-    {
+            throws IOException, ServletException {
 
         Manifest manifest = new Manifest(
                 getServletContext().getResourceAsStream("/META-INF/MANIFEST.MF"));
@@ -57,9 +56,8 @@ public class TestRunnerIndexServlet extends HttpServlet {
         rd.forward(request, response);
     }
 
-    private void setBuildContextInfo(HttpServletRequest request,
-            Attributes attributes)
-    {
+    private void setBuildContextInfo(HttpServletRequest request, Attributes attributes) {
+
         String version = attributes.getValue(D1_VERSION);
         if ( version == null ) {
             version = "";
@@ -89,8 +87,8 @@ public class TestRunnerIndexServlet extends HttpServlet {
     }
 
     public void doPut(HttpServletRequest request, HttpServletResponse response)
-    throws IOException, ServletException
-    {
+            throws IOException, ServletException {
+
         this.doGet(request, response);
     }
 
