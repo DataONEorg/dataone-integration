@@ -146,43 +146,6 @@ public class CNCallAdapter extends CommonCallAdapter {
                 + version);
     }
 
-    public QueryEngineList listQueryEngines(Session session) throws InvalidToken, ServiceFailure,
-            NotAuthorized, NotImplemented, ClientSideException {
-        if (this.node.getType().equals(NodeType.CN)) {
-            if (this.version.toLowerCase().equals("v1")) {
-                org.dataone.service.cn.v1.CNRead cnRead = D1NodeFactory.buildNode(
-                        org.dataone.service.cn.v1.CNRead.class, this.mrc,
-                        URI.create(this.node.getBaseURL()));
-                return cnRead.listQueryEngines();
-            } else if (this.version.toLowerCase().equals("v2")) {
-                CNRead cnRead = D1NodeFactory.buildNode(CNRead.class, this.mrc,
-                        URI.create(this.node.getBaseURL()));
-                return cnRead.listQueryEngines(session);
-            }
-        }
-        throw new ClientSideException("Fetching list of query engines failed. " + node.getType()
-                + " of version " + version);
-    }
-
-    public QueryEngineDescription getQueryEngineDescription(Session session, String queryEngine)
-            throws InvalidToken, ServiceFailure, NotAuthorized, NotImplemented, NotFound,
-            ClientSideException {
-        if (this.node.getType().equals(NodeType.CN)) {
-            if (this.version.toLowerCase().equals("v1")) {
-                org.dataone.service.cn.v1.CNRead cnRead = D1NodeFactory.buildNode(
-                        org.dataone.service.cn.v1.CNRead.class, this.mrc,
-                        URI.create(this.node.getBaseURL()));
-                return cnRead.getQueryEngineDescription(queryEngine);
-            } else if (this.version.toLowerCase().equals("v2")) {
-                CNRead cnRead = D1NodeFactory.buildNode(CNRead.class, this.mrc,
-                        URI.create(this.node.getBaseURL()));
-                return cnRead.getQueryEngineDescription(session, queryEngine);
-            }
-        }
-        throw new ClientSideException("Fetching query engine descriptions failed. "
-                + node.getType() + " of version " + version);
-    }
-
     public Identifier setRightsHolder(Session session, Identifier pid, Subject userId,
             long serialVersion) throws ClientSideException, InvalidToken, ServiceFailure, NotFound,
             NotAuthorized, NotImplemented, InvalidRequest, VersionMismatch {

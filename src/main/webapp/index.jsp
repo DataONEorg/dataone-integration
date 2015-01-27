@@ -58,9 +58,11 @@
                 <option value="MNRead">Tier 1: MNRead API</option>
                 <option value="MNAuthentication">Tier 1: Authentication</option>
                 <option value="MNContentIntegrity">Tier 1: Content Integrity</option>
+                <option value="MNQuery">Tier 1: MNQuery (optional)</option>
                 <option value="MNAuthorization">Tier 2: MNAuthorization API</option>
                 <option value="MNStorage">Tier 3: MNStorage API</option>
                 <option value="MNReplication">Tier 4: MNRepliation API</option>
+                <option value="MNQuery">Tier 1: MNQuery (optional)</option>
               </select>
             </td>
           </tr>

@@ -270,40 +270,5 @@ public class MNCallAdapter extends CommonCallAdapter {
                 + " of version " + version);
     }
 
-    public QueryEngineDescription getQueryEngineDescription(Session session, String queryEngine)
-            throws InvalidToken, ServiceFailure, NotAuthorized, NotImplemented, NotFound, ClientSideException {
-        if (this.node.getType().equals(NodeType.MN)) {
-            if (this.version.toLowerCase().equals("v1")) {
-                org.dataone.service.mn.v1.MNQuery mnQuery = D1NodeFactory.buildNode(
-                        org.dataone.service.mn.v1.MNQuery.class, this.mrc,
-                        URI.create(this.node.getBaseURL()));
-                return mnQuery.getQueryEngineDescription(queryEngine);
-            } else if (this.version.toLowerCase().equals("v2")) {
-                MNQuery mnQuery = D1NodeFactory.buildNode(MNQuery.class, this.mrc,
-                        URI.create(this.node.getBaseURL()));
-                return mnQuery.getQueryEngineDescription(session, queryEngine);
-            }
-        }
-        throw new ClientSideException("Call to getQueryEngineDescription failed. " + node.getType()
-                + " of version " + version);
-    }
-
-
-    public QueryEngineList listQueryEngines(Session session) throws InvalidToken, ServiceFailure,
-            NotAuthorized, NotImplemented, ClientSideException {
-        if (this.node.getType().equals(NodeType.MN)) {
-            if (this.version.toLowerCase().equals("v1")) {
-                org.dataone.service.mn.v1.MNQuery mnQuery = D1NodeFactory.buildNode(
-                        org.dataone.service.mn.v1.MNQuery.class, this.mrc,
-                        URI.create(this.node.getBaseURL()));
-                return mnQuery.listQueryEngines();
-            } else if (this.version.toLowerCase().equals("v2")) {
-                MNQuery mnQuery = D1NodeFactory.buildNode(MNQuery.class, this.mrc,
-                        URI.create(this.node.getBaseURL()));
-                return mnQuery.listQueryEngines(session);
-            }
-        }
-        throw new ClientSideException("Call to listQueryEngines failed. " + node.getType()
-                + " of version " + version);
-    }
+  
 }

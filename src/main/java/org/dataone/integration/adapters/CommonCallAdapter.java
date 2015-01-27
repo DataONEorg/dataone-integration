@@ -24,6 +24,7 @@ import org.dataone.service.exceptions.ServiceFailure;
 import org.dataone.service.mn.tier1.v1.MNCore;
 import org.dataone.service.mn.tier1.v1.MNRead;
 import org.dataone.service.mn.tier2.v1.MNAuthorization;
+import org.dataone.service.mn.v2.MNQuery;
 import org.dataone.service.types.v1.Checksum;
 import org.dataone.service.types.v1.DescribeResponse;
 import org.dataone.service.types.v1.Event;
@@ -36,6 +37,8 @@ import org.dataone.service.types.v1.ObjectList;
 import org.dataone.service.types.v1.Permission;
 import org.dataone.service.types.v1.Session;
 import org.dataone.service.types.v1.SystemMetadata;
+import org.dataone.service.types.v1_1.QueryEngineDescription;
+import org.dataone.service.types.v1_1.QueryEngineList;
 import org.dataone.service.types.v2.Log;
 import org.dataone.service.types.v2.LogEntry;
 import org.dataone.service.util.TypeMarshaller;
@@ -389,6 +392,67 @@ public class CommonCallAdapter implements D1Node {
         throw new ClientSideException("Unable to create node of type " + node.getType() + " of version " + version);
     
     }
+    
+    
+    public QueryEngineDescription getQueryEngineDescription(Session session, String queryEngine)
+            throws InvalidToken, ServiceFailure, NotAuthorized, NotImplemented, NotFound, ClientSideException {
+        if (this.node.getType().equals(NodeType.MN)) {
+            if (this.version.toLowerCase().equals("v1")) {
+                org.dataone.service.mn.v1.MNQuery mnQuery = D1NodeFactory.buildNode(
+                        org.dataone.service.mn.v1.MNQuery.class, this.mrc,
+                        URI.create(this.node.getBaseURL()));
+                return mnQuery.getQueryEngineDescription(queryEngine);
+            } else if (this.version.toLowerCase().equals("v2")) {
+                MNQuery mnQuery = D1NodeFactory.buildNode(MNQuery.class, this.mrc,
+                        URI.create(this.node.getBaseURL()));
+                return mnQuery.getQueryEngineDescription(session, queryEngine);
+            }
+        } else if (this.node.getType().equals(NodeType.CN)) {
+            if (this.version.toLowerCase().equals("v1")) {
+                org.dataone.service.cn.v1.CNRead cnRead = D1NodeFactory.buildNode(
+                        org.dataone.service.cn.v1.CNRead.class, this.mrc,
+                        URI.create(this.node.getBaseURL()));
+                return cnRead.getQueryEngineDescription(queryEngine);
+            } else if (this.version.toLowerCase().equals("v2")) {
+                CNRead cnRead = D1NodeFactory.buildNode(CNRead.class, this.mrc,
+                        URI.create(this.node.getBaseURL()));
+                return cnRead.getQueryEngineDescription(session, queryEngine);
+            }
+        }
+        throw new ClientSideException("Call to getQueryEngineDescription failed. " + node.getType()
+                + " of version " + version);
+    }
+
+
+    public QueryEngineList listQueryEngines(Session session) throws InvalidToken, ServiceFailure,
+            NotAuthorized, NotImplemented, ClientSideException {
+        if (this.node.getType().equals(NodeType.MN)) {
+            if (this.version.toLowerCase().equals("v1")) {
+                org.dataone.service.mn.v1.MNQuery mnQuery = D1NodeFactory.buildNode(
+                        org.dataone.service.mn.v1.MNQuery.class, this.mrc,
+                        URI.create(this.node.getBaseURL()));
+                return mnQuery.listQueryEngines();
+            } else if (this.version.toLowerCase().equals("v2")) {
+                MNQuery mnQuery = D1NodeFactory.buildNode(MNQuery.class, this.mrc,
+                        URI.create(this.node.getBaseURL()));
+                return mnQuery.listQueryEngines(session);
+            }
+        } else if (this.node.getType().equals(NodeType.CN)) {
+            if (this.version.toLowerCase().equals("v1")) {
+                org.dataone.service.cn.v1.CNRead cnRead = D1NodeFactory.buildNode(
+                        org.dataone.service.cn.v1.CNRead.class, this.mrc,
+                        URI.create(this.node.getBaseURL()));
+                return cnRead.listQueryEngines();
+            } else if (this.version.toLowerCase().equals("v2")) {
+                CNRead cnRead = D1NodeFactory.buildNode(CNRead.class, this.mrc,
+                        URI.create(this.node.getBaseURL()));
+                return cnRead.listQueryEngines(session);
+            }
+        }
+        throw new ClientSideException("Call to listQueryEngines failed. " + node.getType()
+                + " of version " + version);
+    }
+    
     
     private Log convertV1Log(org.dataone.service.types.v1.Log v1Log) 
     throws InstantiationException, IllegalAccessException, InvocationTargetException, JiBXException, IOException 

@@ -1,17 +1,15 @@
 package org.dataone.integration.it.apiTests;
 
 import org.dataone.integration.ContextAwareTestCaseDataone;
-import org.dataone.integration.it.testDefinitions.MNQueryTestDefinitions;
 import org.dataone.integration.it.testDefinitions.QueryTestDefinitions;
 import org.dataone.integration.it.testImplementations.QueryTestImplementations;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 /**
- * Tests MNQuery functionality for v2 of the API 
+ * Tests CNQuery functionality for v1 of the API 
  */
-public class MNQueryV2IT extends ContextAwareTestCaseDataone 
+public class CNQueryV1IT extends ContextAwareTestCaseDataone 
 implements QueryTestDefinitions {
 
     private QueryTestImplementations queryTestImpl;
@@ -23,19 +21,19 @@ implements QueryTestDefinitions {
 
     @Override
     protected String getTestDescription() {
-        return "Test Case that runs through the MN version 2 of query API methods";
+        return "Test Case that runs through the CN version 1 of query API methods";
     }
 
     @Override
     @Test
     public void testListQueryEngines() {
-        queryTestImpl.testListQueryEngines(getMemberNodeIterator(), "v2");
+        queryTestImpl.testListQueryEngines(getCoordinatingNodeIterator(), "v1");
     }
 
     @Override
     @Test
     public void testGetQueryEngineDescription() {
-        queryTestImpl.testGetQueryEngineDescription(getMemberNodeIterator(), "v2");
+        queryTestImpl.testGetQueryEngineDescription(getCoordinatingNodeIterator(), "v1");
 
     }
 }

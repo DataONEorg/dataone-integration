@@ -1,22 +1,22 @@
 package org.dataone.integration.it.apiTests;
 
 import org.dataone.integration.ContextAwareTestCaseDataone;
-import org.dataone.integration.it.testDefinitions.MNQueryTestDefinitions;
+import org.dataone.integration.it.testDefinitions.QueryTestDefinitions;
+import org.dataone.integration.it.testImplementations.QueryTestImplementations;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 /**
  * Tests MNQuery functionality for v1 of the API 
  */
 public class MNQueryV1IT extends ContextAwareTestCaseDataone 
-        implements MNQueryTestDefinitions {
+        implements QueryTestDefinitions {
 
-//    private MNQueryTestImplementations mnQueryTestImpl;
+    private QueryTestImplementations queryTestImpl;
 
     @Before
     public void setup() {
-//        mnQueryTestImpl = new MNQueryTestImplementations(this);
+        queryTestImpl = new QueryTestImplementations(this);
     }
 
     @Override
@@ -26,25 +26,14 @@ public class MNQueryV1IT extends ContextAwareTestCaseDataone
 
     @Override
     @Test
-    @Ignore("No test exists for this yet")
     public void testListQueryEngines() {
-        // TODO Auto-generated method stub
-        
+        queryTestImpl.testListQueryEngines(getMemberNodeIterator(), "v1");
     }
 
     @Override
     @Test
-    @Ignore("No test exists for this yet")
-    public void testQuery() {
-        // TODO Auto-generated method stub
-        
-    }
-
-    @Override
-    @Test
-    @Ignore("No test exists for this yet")
     public void testGetQueryEngineDescription() {
-        // TODO Auto-generated method stub
+        queryTestImpl.testGetQueryEngineDescription(getMemberNodeIterator(), "v1");
         
     }
 }
