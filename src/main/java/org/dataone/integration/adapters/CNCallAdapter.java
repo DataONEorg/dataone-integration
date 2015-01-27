@@ -465,9 +465,7 @@ public class CNCallAdapter extends CommonCallAdapter {
                         org.dataone.service.cn.v1.CNCore.class, this.mrc,
                         URI.create(this.node.getBaseURL()));
                 org.dataone.service.types.v1.ObjectFormatList formatListV1 = cnCore.listFormats();
-                ObjectFormatList formatListV2 = TypeMarshaller.convertTypeFromType(formatListV1,
-                        ObjectFormatList.class);
-                return formatListV2;
+                return convertV1ObjectFormatList(formatListV1);
             } else if (this.version.toLowerCase().equals("v2")) {
                 CNCore cnCore = D1NodeFactory.buildNode(CNCore.class, this.mrc,
                         URI.create(this.node.getBaseURL()));
@@ -528,9 +526,7 @@ public class CNCallAdapter extends CommonCallAdapter {
                         org.dataone.service.cn.v1.CNCore.class, this.mrc,
                         URI.create(this.node.getBaseURL()));
                 org.dataone.service.types.v1.NodeList nodeListV1 = cnCore.listNodes();
-                NodeList nodeListV2 = TypeMarshaller
-                        .convertTypeFromType(nodeListV1, NodeList.class);
-                return nodeListV2;
+                return convertV1NodeList(nodeListV1);
             } else if (this.version.toLowerCase().equals("v2")) {
                 CNCore cnCore = D1NodeFactory.buildNode(CNCore.class, this.mrc,
                         URI.create(this.node.getBaseURL()));

@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
 import java.util.Date;
+import java.util.List;
 
 import org.dataone.client.D1Node;
 import org.dataone.client.D1NodeFactory;
@@ -41,6 +42,9 @@ import org.dataone.service.types.v1_1.QueryEngineDescription;
 import org.dataone.service.types.v1_1.QueryEngineList;
 import org.dataone.service.types.v2.Log;
 import org.dataone.service.types.v2.LogEntry;
+import org.dataone.service.types.v2.NodeList;
+import org.dataone.service.types.v2.ObjectFormat;
+import org.dataone.service.types.v2.ObjectFormatList;
 import org.dataone.service.util.TypeMarshaller;
 import org.jibx.runtime.JiBXException;
 
@@ -466,4 +470,33 @@ public class CommonCallAdapter implements D1Node {
         return v2log;
     }
 
+    protected ObjectFormatList convertV1ObjectFormatList(org.dataone.service.types.v1.ObjectFormatList v1FormatList) 
+    throws InstantiationException, IllegalAccessException, InvocationTargetException, JiBXException, IOException 
+    {
+        ObjectFormatList v2FormatList = new ObjectFormatList();
+        List<org.dataone.service.types.v1.ObjectFormat> innerList = v1FormatList.getObjectFormatList();
+        if (innerList != null && innerList.size() > 0)
+            for(org.dataone.service.types.v1.ObjectFormat v1Format : innerList) {
+                ObjectFormat v2ObjectFormat = TypeMarshaller.convertTypeFromType(v1Format, ObjectFormat.class);
+                v2FormatList.addObjectFormat(v2ObjectFormat);
+            }
+        return v2FormatList;
+    }
+    
+    protected NodeList convertV1NodeList(org.dataone.service.types.v1.NodeList v1NodeList) 
+    throws InstantiationException, IllegalAccessException, InvocationTargetException, JiBXException, IOException 
+    {
+        NodeList v2NodeList = TypeMarshaller.convertTypeFromType(v1NodeList, NodeList.class);
+        List<org.dataone.service.types.v1.Node> innerList = v1NodeList.getNodeList();
+        if (innerList != null && innerList.size() > 0) {
+            v2NodeList.clearNodeList();
+            for (org.dataone.service.types.v1.Node v1Node : innerList) {
+                org.dataone.service.types.v2.Node v2Node = TypeMarshaller.convertTypeFromType(
+                        v1Node, org.dataone.service.types.v2.Node.class);
+                v2NodeList.addNode(v2Node);
+            }
+        }
+        return v2NodeList;
+    }
+    
 }
