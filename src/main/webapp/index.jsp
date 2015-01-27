@@ -51,9 +51,9 @@
             </td>
           </tr>
           <tr>
-            <td align="right">API(s) to test:</td>
+            <td align="right">Tests to Run:</td>
             <td>
-              <select multiple title="APIs to Test" size="6" name="selectedAPIs">
+              <select multiple title="APIs to Test" size="9" name="selectedAPIs">
                 <option value="MNCore">Tier 1: MNCore API</option>
                 <option value="MNRead">Tier 1: MNRead API</option>
                 <option value="MNAuthentication">Tier 1: Authentication</option>
@@ -62,7 +62,6 @@
                 <option value="MNAuthorization">Tier 2: MNAuthorization API</option>
                 <option value="MNStorage">Tier 3: MNStorage API</option>
                 <option value="MNReplication">Tier 4: MNRepliation API</option>
-                <option value="MNQuery">Tier 1: MNQuery (optional)</option>
               </select>
             </td>
           </tr>
