@@ -65,6 +65,11 @@ class StreamingWebTestListener extends RunListener
     private OutputStream out;
     private StreamableSerializer serializer;
     private int testRowIndex = 1;
+    
+    private enum lineStatus {
+        TEST_PASS, TEST_WARN, TEST_FAIL, TEST_IGNORE, SUMMARY_PASS, SUMMARY_WARN,
+        SUMMARY_FAIL, TC_HEADER, DESCRIPTION
+    }
 
 
     public StreamingWebTestListener(OutputStream os) throws ValidityException, ParsingException, IOException {
@@ -117,7 +122,7 @@ class StreamingWebTestListener extends RunListener
             currentTest.setMessage("Tier Tentative Pass (Ignored Tests present). [" + runSummary + "]");
         } else {
             currentTest.setStatus("Success");
-            currentTest.setMessage("Tier Passed (Ignored Tests present). [" + runSummary + "]");
+            currentTest.setMessage("Tier Passed. [" + runSummary + "]");
         }
         this.newRun = true;
     }
@@ -200,16 +205,24 @@ class StreamingWebTestListener extends RunListener
             div.addAttribute(new Attribute("class", "greyDescr"));
         }
         else if (testResult.getStatus().equals("Success")) {
-            div.addAttribute(new Attribute("class", "green"));
+            if (testResult.getMessage().contains("Tier Passed")) {
+                div.addAttribute(new Attribute("class","summaryPass"));
+            } else {
+                div.addAttribute(new Attribute("class", "testPass"));
+            }
         }
         else if (testResult.getStatus().equals("Ignored")) {
-            div.addAttribute(new Attribute("class", "yellow"));
+            div.addAttribute(new Attribute("class", "testIgnore"));
         }
         else if (testResult.getStatus().equals("Failed")) {
-            div.addAttribute(new Attribute("class", "red"));
+            if (testResult.getMessage().contains("Failed Tier")) {
+                div.addAttribute(new Attribute("class","summaryFail"));
+            } else {
+                div.addAttribute(new Attribute("class", "testFail"));
+            }
         }
         else if (testResult.getStatus().equals("Error")) {
-            div.addAttribute(new Attribute("class", "orange"));
+            div.addAttribute(new Attribute("class", "testWarn"));
         }
         else if (testResult.getStatus().equals("Header")) {
             div.addAttribute(new Attribute("class", "greyHeader"));
