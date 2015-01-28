@@ -306,16 +306,20 @@ public class CoreTestImplementations extends ContextAwareAdapter {
                 // try to create a log event
                 // if it can't it will throw a TestIterationEndingException
                 Identifier pid = this.catc.procurePublicReadableTestObject(callAdapter, null);
-                
                 callAdapter.get(null, pid);
-                toDate = new Date();
+                toDate = callAdapter.ping();
                 entries = APITestUtils.pagedGetLogRecords(callAdapter, null, toDate, null, null, null, null);
             }
 
             String targetType = entries.getLogEntry(0).getEvent();
             String otherType = null;
 
-            for (LogEntry le : entries.getLogEntryList()) {
+            List<LogEntry> logEntryList = entries.getLogEntryList();
+            if(logEntryList == null || logEntryList.size() == 0)
+                handleFail(callAdapter.getLatestRequestUrl(), "After successfully reading an object, should "
+                        + "have at least one log record.  Got zero");
+            
+            for (LogEntry le : logEntryList) {
                 if (!le.getEvent().equals(targetType)) {
                     otherType = le.getEvent();
                     break;
@@ -336,13 +340,14 @@ public class CoreTestImplementations extends ContextAwareAdapter {
                 entries = APITestUtils.pagedGetLogRecords(callAdapter, null, toDate, targetType, null, null, null);
                 boolean oneTypeOnly = true;
                 String unfilteredType = null;
-                for (LogEntry le : entries.getLogEntryList()) {
+                for (LogEntry le : logEntryList) {
                     if (!le.getEvent().equals(targetType)) {
                         oneTypeOnly = false;
                         unfilteredType = le.getEvent();
                         break;
                     }
                 }
+                
                 checkTrue(callAdapter.getLatestRequestUrl(), "Filtered log for the time period should contain only "
                         + "logs of type " + targetType + ". Got " + unfilteredType, oneTypeOnly);
             }
@@ -387,7 +392,6 @@ public class CoreTestImplementations extends ContextAwareAdapter {
         try {
             Date t0 = new Date();
             Date toDate = t0;
-            //              Date fromDate = t0;
 
             Log entries = APITestUtils.pagedGetLogRecords(callAdapter, null, toDate, null, null, null, null);
 
@@ -396,7 +400,7 @@ public class CoreTestImplementations extends ContextAwareAdapter {
                 // if it can't it will throw a TestIterationEndingException
                 Identifier pid = this.catc.procurePublicReadableTestObject(callAdapter, null);
                 callAdapter.get(null, pid);
-                toDate = new Date();
+                toDate = callAdapter.ping();
                 entries = APITestUtils.pagedGetLogRecords(callAdapter, null, toDate, null, null, null, null);
             }
 
