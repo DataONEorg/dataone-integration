@@ -22,31 +22,31 @@ implements CoreTestDefinitions, MNCoreTestDefinitions
     
     @Before 
     public void setup() {
-        this.coreTestImpl = new CoreTestImplementations(this);
+        coreTestImpl = new CoreTestImplementations(this);
     }
     
     
     @Override
     @Test
     public void testPing() {
-        this.coreTestImpl.testPing(getMemberNodeIterator(), "v1");
+        coreTestImpl.testPing(getMemberNodeIterator(), "v1");
     }
 
     @Override
     @Test
     public void testGetCapabilities() {
-        this.coreTestImpl.testGetCapabilities(getMemberNodeIterator(), "v1");
+        coreTestImpl.testGetCapabilities(getMemberNodeIterator(), "v1");
     }
 
     @Override
     @Test
     public void testGetCapabilities_HasCompatibleNodeContact() {
-        this.coreTestImpl.testGetCapabilities_HasCompatibleNodeContact(getMemberNodeIterator(), "v1");
+        coreTestImpl.testGetCapabilities_HasCompatibleNodeContact(getMemberNodeIterator(), "v1");
     }
 
     @Override
     @Test
     public void testGetCapabilities_NodeIdentityValidFormat() {
-        this.coreTestImpl.testGetCapabilities_NodeIdentityValidFormat(getMemberNodeIterator(), "v1");
+        coreTestImpl.testGetCapabilities_NodeIdentityValidFormat(getMemberNodeIterator(), "v1");
     }
 }

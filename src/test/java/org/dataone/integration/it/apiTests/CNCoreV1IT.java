@@ -32,104 +32,104 @@ implements CoreTestDefinitions, CNCoreTestDefinitions {
     @Override
     @Test
     public void testPing() {
-        this.coreTestImpl.testPing(getCoordinatingNodeIterator(), "v1");
+        coreTestImpl.testPing(getCoordinatingNodeIterator(), "v1");
     }
 
     @Override
     @Test
     public void testGetLogRecords() {
-        this.cnCoreTestImpl.testGetLogRecords(getCoordinatingNodeIterator(), "v1");
+        cnCoreTestImpl.testGetLogRecords(getCoordinatingNodeIterator(), "v1");
     }
 
     @Override
     @Test
     public void testGetLogRecords_Slicing() {
-        this.cnCoreTestImpl.testGetLogRecords_Slicing(getCoordinatingNodeIterator(), "v1");
+        cnCoreTestImpl.testGetLogRecords_Slicing(getCoordinatingNodeIterator(), "v1");
     }
 
     @Override
     @Test
     public void testGetLogRecords_dateFiltering() {
-        this.cnCoreTestImpl.testGetLogRecords_dateFiltering(getCoordinatingNodeIterator(), "v1");
+        cnCoreTestImpl.testGetLogRecords_dateFiltering(getCoordinatingNodeIterator(), "v1");
     }
 
     @Override
     @Test
     @Ignore("need a subject able to call create()")
     public void testCreate() {
-        this.cnCoreTestImpl.testCreate(getCoordinatingNodeIterator(), "v1");
+        cnCoreTestImpl.testCreate(getCoordinatingNodeIterator(), "v1");
     }
 
     @Override
     @Test
     @Ignore("need a subject able to call create()")
     public void testCreateData_IdentifierEncoding() {
-        this.cnCoreTestImpl.testCreateData_IdentifierEncoding(getCoordinatingNodeIterator(), "v1");
+        cnCoreTestImpl.testCreateData_IdentifierEncoding(getCoordinatingNodeIterator(), "v1");
     }
 
     @Override
     @Test
     public void testListChecksumAlgorithms() {
-        this.cnCoreTestImpl.testListChecksumAlgorithms(getCoordinatingNodeIterator(), "v1");
+        cnCoreTestImpl.testListChecksumAlgorithms(getCoordinatingNodeIterator(), "v1");
     }
 
     @Override
     @Test
     public void testListFormats() {
-        this.cnCoreTestImpl.testListFormats(getCoordinatingNodeIterator(), "v1");
+        cnCoreTestImpl.testListFormats(getCoordinatingNodeIterator(), "v1");
     }
 
     @Override
     @Test
     public void testGetFormat() {
-        this.cnCoreTestImpl.testGetFormat(getCoordinatingNodeIterator(), "v1");
+        cnCoreTestImpl.testGetFormat(getCoordinatingNodeIterator(), "v1");
     }
 
     @Override
     @Test
     public void testGetFormat_bogusFormat() {
-        this.cnCoreTestImpl.testGetFormat_bogusFormat(getCoordinatingNodeIterator(), "v1");
+        cnCoreTestImpl.testGetFormat_bogusFormat(getCoordinatingNodeIterator(), "v1");
     }
 
     @Override
     @Test
     public void testListNodes() {
-        this.cnCoreTestImpl.testListNodes(getCoordinatingNodeIterator(), "v1");
+        cnCoreTestImpl.testListNodes(getCoordinatingNodeIterator(), "v1");
     }
 
     @Override
     @Test
     public void testGenerateIdentifier() {
-        this.cnCoreTestImpl.testGenerateIdentifier(getCoordinatingNodeIterator(), "v1");
+        cnCoreTestImpl.testGenerateIdentifier(getCoordinatingNodeIterator(), "v1");
     }
 
     @Override
     @Test
     public void testGenerateIdentifier_badScheme() {
-        this.cnCoreTestImpl.testGenerateIdentifier_badScheme(getCoordinatingNodeIterator(), "v1");
+        cnCoreTestImpl.testGenerateIdentifier_badScheme(getCoordinatingNodeIterator(), "v1");
     }
 
     @Override
     @Test
     public void testReserveIdentifier() {
-        this.cnCoreTestImpl.testReserveIdentifier(getCoordinatingNodeIterator(), "v1");
+        cnCoreTestImpl.testReserveIdentifier(getCoordinatingNodeIterator(), "v1");
     }
 
     @Override
     @Test
     public void testRegisterSystemMetadata() {
-        this.cnCoreTestImpl.testRegisterSystemMetadata(getCoordinatingNodeIterator(), "v1");
+        cnCoreTestImpl.testRegisterSystemMetadata(getCoordinatingNodeIterator(), "v1");
     }
 
     @Override
     @Test
     public void testHasReservation() {
-        this.cnCoreTestImpl.testHasReservation(getCoordinatingNodeIterator(), "v1");
+        cnCoreTestImpl.testHasReservation(getCoordinatingNodeIterator(), "v1");
     }
 
     @Override
     @Test
     public void testHasReservation_noReservation() {
-        this.cnCoreTestImpl.testHasReservation_noReservation(getCoordinatingNodeIterator(), "v1");
+        cnCoreTestImpl.testHasReservation_noReservation(getCoordinatingNodeIterator(), "v1");
     }
 }
