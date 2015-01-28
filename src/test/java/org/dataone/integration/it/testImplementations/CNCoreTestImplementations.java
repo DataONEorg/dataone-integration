@@ -1,22 +1,27 @@
 package org.dataone.integration.it.testImplementations;
 
 import java.io.InputStream;
+import java.util.Date;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Scanner;
 import java.util.Vector;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.logging.Log;
+import org.dataone.service.types.v2.Log;
 import org.apache.commons.logging.LogFactory;
 import org.dataone.client.auth.ClientIdentityManager;
 import org.dataone.client.v1.types.D1TypeBuilder;
+import org.dataone.configuration.Settings;
 import org.dataone.integration.ContextAwareTestCaseDataone;
 import org.dataone.integration.ExampleUtilities;
 import org.dataone.integration.adapters.CNCallAdapter;
+import org.dataone.integration.adapters.CommonCallAdapter;
 import org.dataone.integration.it.ContextAwareAdapter;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.IdentifierNotUnique;
 import org.dataone.service.exceptions.InvalidRequest;
+import org.dataone.service.exceptions.NotAuthorized;
 import org.dataone.service.exceptions.NotFound;
 import org.dataone.service.types.v1.ChecksumAlgorithmList;
 import org.dataone.service.types.v1.Identifier;
@@ -24,6 +29,7 @@ import org.dataone.service.types.v1.Node;
 import org.dataone.service.types.v1.ObjectFormatIdentifier;
 import org.dataone.service.types.v1.Session;
 import org.dataone.service.types.v1.Subject;
+import org.dataone.service.types.v2.LogEntry;
 import org.dataone.service.types.v2.NodeList;
 import org.dataone.service.types.v2.ObjectFormat;
 import org.dataone.service.types.v2.ObjectFormatList;
@@ -34,7 +40,7 @@ import org.springframework.util.StringUtils;
 
 public class CNCoreTestImplementations extends ContextAwareAdapter {
 
-    private static Log log = LogFactory.getLog(CNCoreTestImplementations.class);
+    private static org.apache.commons.logging.Log log = LogFactory.getLog(CNCoreTestImplementations.class);
     
     private static final String identifierEncodingTestFile = "/d1_testdocs/encodingTestSet/testUnicodeStrings.utf8.txt";
     private static final String unicodeIdPrefix = "testCNodeTier1";
@@ -591,4 +597,180 @@ public class CNCoreTestImplementations extends ContextAwareAdapter {
         }
     }
     
+
+    /**
+     * Tests that getLogRecords() returns Log object, using the simplest case: no parameters.
+     * Also tests with all parameters are set.  Passes the tests by returning a Log object.
+     * Runs tests across all nodes in the given nodeIterator.
+     * 
+     * @param nodeIterator 
+     *      an {@link Iterator} accross MN or CN {@link Node}s
+     * @param version 
+     *      either "v1" or "v2", to match the API version being tested
+     */
+    public void testGetLogRecords(Iterator<Node> nodeIterator, String version) {
+        while (nodeIterator.hasNext())
+            testGetLogRecords(nodeIterator.next(), version);
+    }
+
+    /**
+     * Tests that getLogRecords() returns Log object, using the simplest case: no parameters.
+     * Also tests with all parameters are set.  Passes the tests by returning a Log object.
+     */
+    public void testGetLogRecords(Node node, String version) {
+
+        String cnSubmitter = Settings.getConfiguration().getString("dataone.it.cnode.submitter.cn", /* default */ "cnDevUNM1");
+        CommonCallAdapter callAdapter = new CommonCallAdapter(getSession(cnSubmitter), node, version);
+        
+        String currentUrl = node.getBaseURL();
+        printTestHeader("testGetLogRecords(...) vs. node: " + currentUrl);  
+        currentUrl = callAdapter.getNodeBaseServiceUrl();
+
+        try {
+            Log eventLog = callAdapter.getLogRecords(null, null, null, null, null, null, null);
+            checkTrue(callAdapter.getLatestRequestUrl(),"getLogRecords should return a log datatype", eventLog != null);
+        }
+        catch (BaseException e) {
+            handleFail(callAdapter.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
+                    e.getDetail_code() + ": " + e.getDescription());
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+            handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+        }              
+    }
+
+    public void testGetLogRecords_Slicing(Iterator<Node> nodeIterator, String version) {
+        while (nodeIterator.hasNext())
+            testGetLogRecords_Slicing(nodeIterator.next(), version);
+    }
+    
+    /**
+     * Tests that count and start parameters are functioning, and getCount() and getTotal()
+     * are reasonable values.
+     */
+    public void testGetLogRecords_Slicing(Node node, String version) {
+        
+        Settings.getConfiguration().setProperty("D1Client.D1Node.getLogRecords.timeout", "60000");
+        // TODO: change to testCnAdmin subject when obtained
+        String cnSubject = Settings.getConfiguration().getString("dataone.it.cnode.submitter.cn",
+                "cnStageUNM1");
+        CommonCallAdapter callAdapter = new CommonCallAdapter(getSession(cnSubject), node, version);
+        String currentUrl = node.getBaseURL();
+        printTestHeader("testGetLogRecords_Slicing(...) vs. node: " + currentUrl);
+        currentUrl = callAdapter.getNodeBaseServiceUrl();
+
+        try {
+            Log eventLog = callAdapter.getLogRecords(null, null, null, null, null, null, null);
+
+            StringBuffer sb = new StringBuffer();
+            int i = 0;
+            if (eventLog.getCount() != eventLog.sizeLogEntryList())
+                sb.append(++i + ". 'count' attribute should equal the number of LogEntry objects returned.  \n");
+
+            if (eventLog.getTotal() < eventLog.getCount())
+                sb.append(++i + ". 'total' attribute should be >= the 'count' attribute in the returned Log.  \n");
+
+            if (eventLog.getTotal() < eventLog.sizeLogEntryList())
+                sb.append(++i + "'total' attribute should be >= the number of LogEntry objects returned.  \n");
+
+            // test that one can limit the count
+            int halfCount = eventLog.sizeLogEntryList() / 2; // rounds down
+            eventLog = callAdapter.getLogRecords(null, null, null, null, null, 0, halfCount);
+
+            if (eventLog.sizeLogEntryList() != halfCount)
+                sb.append(++i
+                        + ". should be able to limit the number of returned LogEntry objects using 'count' parameter.");
+
+            // TODO:  test that 'start' parameter does what it says
+
+            // TODO: paging test
+
+            if (i > 0) {
+                handleFail(callAdapter.getLatestRequestUrl(), "Slicing errors:\n" + sb.toString());
+            }
+
+        } catch (NotAuthorized e) {
+            handleFail(
+                    callAdapter.getLatestRequestUrl(),
+                    "Should not get a NotAuthorized when connecting"
+                            + "with a cn admin subject . Check NodeList and MN configuration.  Msg details:"
+                            + e.getDetail_code() + ": " + e.getDescription());
+        } catch (BaseException e) {
+            handleFail(callAdapter.getLatestRequestUrl(),
+                    e.getClass().getSimpleName() + ": " + e.getDetail_code() + ": " + e.getDescription());
+        } catch (Exception e) {
+            e.printStackTrace();
+            handleFail(currentUrl, e.getClass().getName() + ": " + e.getMessage());
+        }
+
+    }
+
+    public void testGetLogRecords_dateFiltering(Iterator<Node> nodeIterator, String version) {
+        while (nodeIterator.hasNext())
+            testGetLogRecords_dateFiltering(nodeIterator.next(), version);
+    }
+    
+    public void testGetLogRecords_dateFiltering(Node node, String version) {
+        
+        Settings.getConfiguration().setProperty("D1Client.D1Node.getLogRecords.timeout", "60000");
+        // TODO: change to testCnAdmin subject when obtained
+        String cnSubject = Settings.getConfiguration().getString("dataone.it.cnode.submitter.cn",
+                "cnStageUNM1");
+        CommonCallAdapter callAdapter = new CommonCallAdapter(getSession(cnSubject), node, version);
+        String currentUrl = node.getBaseURL();
+        printTestHeader("testGetLogRecords_DateFiltering(...) vs. node: " + currentUrl);
+        currentUrl = callAdapter.getNodeBaseServiceUrl();
+        
+        try {
+            Log eventLog = callAdapter.getLogRecords(null, null, null, null, null, null, null);
+            int allEventsCount = eventLog.getTotal();
+            
+            
+            LogEntry entry0 = eventLog.getLogEntry(0);
+            Date fromDate = null;
+            LogEntry excludedEntry = null;
+            List<LogEntry> logEntryList = eventLog.getLogEntryList();
+            if (logEntryList == null || logEntryList.size() == 0)
+                handleFail(callAdapter.getLatestRequestUrl(),
+                        "Log entry list is empty");
+            
+            for (LogEntry le: logEntryList) {
+                if (!le.getDateLogged().equals(entry0.getDateLogged())) {
+                    // which is earlier?  can't assume chronological order of the list
+                    if (le.getDateLogged().after(entry0.getDateLogged())) {
+                        fromDate = le.getDateLogged();
+                        excludedEntry = entry0;
+                    } else {
+                        fromDate = entry0.getDateLogged();
+                        excludedEntry = le;
+                    }
+                    break;
+                }
+            }
+            if (excludedEntry == null) {
+                handleFail(callAdapter.getLatestRequestUrl(),"could not find 2 objects with different dateLogged times");
+            } else {
+            
+                // call with a fromDate
+                eventLog = callAdapter.getLogRecords(null, fromDate, null, null, null, null, null);
+
+                for (LogEntry le : logEntryList) {
+                    if (le.getEntryId().equals(excludedEntry.getEntryId())) {
+                        handleFail(callAdapter.getLatestRequestUrl(),"entryID " + excludedEntry.getEntryId() +
+                                " should not be in the event log where fromDate set to " + fromDate);
+                        break;
+                    }
+                }
+            }
+        } 
+        catch (BaseException e) {
+            handleFail(callAdapter.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
+                    e.getDetail_code() + ": " + e.getDescription());
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+            handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+        }   
+    }
 }

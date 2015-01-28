@@ -37,38 +37,20 @@ implements CoreTestDefinitions, CNCoreTestDefinitions {
 
     @Override
     @Test
-    public void testGetLogRecords_AccessRestriction() {
-        this.coreTestImpl.testGetLogRecords_AccessRestriction(getCoordinatingNodeIterator(), "v1");
-    }
-
-    @Override
-    @Test
     public void testGetLogRecords() {
-        this.coreTestImpl.testGetLogRecords(getCoordinatingNodeIterator(), "v1");
+        this.cnCoreTestImpl.testGetLogRecords(getCoordinatingNodeIterator(), "v1");
     }
 
     @Override
     @Test
     public void testGetLogRecords_Slicing() {
-        this.coreTestImpl.testGetLogRecords_Slicing(getCoordinatingNodeIterator(), "v1");
-    }
-
-    @Override
-    @Test
-    public void testGetLogRecords_eventFiltering() {
-        this.coreTestImpl.testGetLogRecords_eventFiltering(getCoordinatingNodeIterator(), "v1");
-    }
-
-    @Override
-    @Test
-    public void testGetLogRecords_pidFiltering() {
-        this.coreTestImpl.testGetLogRecords_pidFiltering(getCoordinatingNodeIterator(), "v1");
+        this.cnCoreTestImpl.testGetLogRecords_Slicing(getCoordinatingNodeIterator(), "v1");
     }
 
     @Override
     @Test
     public void testGetLogRecords_dateFiltering() {
-        this.coreTestImpl.testGetLogRecords_dateFiltering(getCoordinatingNodeIterator(), "v1");
+        this.cnCoreTestImpl.testGetLogRecords_dateFiltering(getCoordinatingNodeIterator(), "v1");
     }
 
     @Override

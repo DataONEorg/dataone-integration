@@ -32,15 +32,9 @@ public interface CNCoreTestDefinitions {
 
     public void testHasReservation_noReservation();
     
-    public void testGetLogRecords_AccessRestriction();
-
     public void testGetLogRecords();
 
     public void testGetLogRecords_Slicing();
-
-    public void testGetLogRecords_eventFiltering();
-
-    public void testGetLogRecords_pidFiltering();
 
     public void testGetLogRecords_dateFiltering();
     
