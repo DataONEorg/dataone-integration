@@ -205,7 +205,7 @@ class StreamingWebTestListener extends RunListener
             div.addAttribute(new Attribute("class", "greyDescr"));
         }
         else if (testResult.getStatus().equals("Success")) {
-            if (testResult.getMessage().contains("Tier Passed")) {
+            if (testResult.getMessage() != null && testResult.getMessage().contains("Tier Passed")) {
                 div.addAttribute(new Attribute("class","summaryPass"));
             } else {
                 div.addAttribute(new Attribute("class", "testPass"));
@@ -215,7 +215,7 @@ class StreamingWebTestListener extends RunListener
             div.addAttribute(new Attribute("class", "testIgnore"));
         }
         else if (testResult.getStatus().equals("Failed")) {
-            if (testResult.getMessage().contains("Failed Tier")) {
+            if (testResult.getMessage() != null && testResult.getMessage().contains("Failed Tier")) {
                 div.addAttribute(new Attribute("class","summaryFail"));
             } else {
                 div.addAttribute(new Attribute("class", "testFail"));

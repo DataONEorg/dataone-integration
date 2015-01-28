@@ -15,7 +15,7 @@ import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.SystemMetadata;
 import org.junit.Test;
 
-public class MNCreateTest { // extends ContextAwareTestCaseDataone {
+public class MNCreateFuncIT { // extends ContextAwareTestCaseDataone {
 
 	public String getTestDescription() {
 		return "try creating under a different name";
@@ -23,7 +23,7 @@ public class MNCreateTest { // extends ContextAwareTestCaseDataone {
 	
 	@Test
 	public void testMetadataCreate() {
-        Log log = LogFactory.getLog(MNCreateTest.class);
+        Log log = LogFactory.getLog(MNCreateFuncIT.class);
         
         
         
