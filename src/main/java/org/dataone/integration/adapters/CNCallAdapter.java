@@ -609,13 +609,14 @@ public class CNCallAdapter extends CommonCallAdapter {
 
     public Identifier registerSystemMetadata(Session session, Identifier pid, SystemMetadata sysmeta)
             throws NotImplemented, NotAuthorized, ServiceFailure, InvalidRequest,
-            InvalidSystemMetadata, InvalidToken, ClientSideException {
+            InvalidSystemMetadata, InvalidToken, ClientSideException, InstantiationException, IllegalAccessException, InvocationTargetException, JiBXException, IOException {
         if (this.node.getType().equals(NodeType.CN)) {
             if (this.version.toLowerCase().equals("v1")) {
                 org.dataone.service.cn.v1.CNCore cnCore = D1NodeFactory.buildNode(
                         org.dataone.service.cn.v1.CNCore.class, this.mrc,
                         URI.create(this.node.getBaseURL()));
-                return cnCore.registerSystemMetadata(session, pid, sysmeta);
+                org.dataone.service.types.v1.SystemMetadata v1SysMeta = TypeMarshaller.convertTypeFromType(sysmeta, org.dataone.service.types.v1.SystemMetadata.class);
+                return cnCore.registerSystemMetadata(session, pid, v1SysMeta);
             } else if (this.version.toLowerCase().equals("v2")) {
                 CNCore cnCore = D1NodeFactory.buildNode(CNCore.class, this.mrc,
                         URI.create(this.node.getBaseURL()));

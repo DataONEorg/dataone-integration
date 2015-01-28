@@ -525,9 +525,8 @@ public class CNCoreTestImplementations extends ContextAwareAdapter {
         
         CNCallAdapter callAdapter = new CNCallAdapter(getSession("testSubmitter"), node, version);
         String currentUrl = node.getBaseURL();
-        Subject clientSubject = ClientIdentityManager.getCurrentIdentity();
+        Subject clientSubject = ContextAwareTestCaseDataone.getSubject("testSubmitter");
         printTestHeader("testHasReservation(...) vs. node: " + currentUrl);
-        Session session = ExampleUtilities.getTestSession();
 
         try {
             boolean response = false;
@@ -536,8 +535,8 @@ public class CNCoreTestImplementations extends ContextAwareAdapter {
 //              } else {
                 Identifier pid = new Identifier();
                 pid.setValue(ExampleUtilities.generateIdentifier());
-                callAdapter.reserveIdentifier(session, pid );
-                response = callAdapter.hasReservation(session, clientSubject, pid);
+                callAdapter.reserveIdentifier(null, pid);
+                response = callAdapter.hasReservation(null, clientSubject, pid);
 //              }
             checkTrue(callAdapter.getLatestRequestUrl(),"response cannot be false. [Only true or exception].", response);
         } 
@@ -755,7 +754,7 @@ public class CNCoreTestImplementations extends ContextAwareAdapter {
                 // call with a fromDate
                 eventLog = callAdapter.getLogRecords(null, fromDate, null, null, null, null, null);
 
-                for (LogEntry le : logEntryList) {
+                for (LogEntry le : eventLog.getLogEntryList()) {
                     if (le.getEntryId().equals(excludedEntry.getEntryId())) {
                         handleFail(callAdapter.getLatestRequestUrl(),"entryID " + excludedEntry.getEntryId() +
                                 " should not be in the event log where fromDate set to " + fromDate);

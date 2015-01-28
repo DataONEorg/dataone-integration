@@ -38,19 +38,19 @@ implements CoreTestDefinitions, CNCoreTestDefinitions {
     @Override
     @Test
     public void testGetLogRecords() {
-        cnCoreTestImpl.testGetLogRecords(getCoordinatingNodeIterator(), "v1");
+        coreTestImpl.testGetLogRecords(getCoordinatingNodeIterator(), "v1");
     }
 
     @Override
     @Test
     public void testGetLogRecords_Slicing() {
-        cnCoreTestImpl.testGetLogRecords_Slicing(getCoordinatingNodeIterator(), "v1");
+        coreTestImpl.testGetLogRecords_Slicing(getCoordinatingNodeIterator(), "v1");
     }
 
     @Override
     @Test
     public void testGetLogRecords_dateFiltering() {
-        cnCoreTestImpl.testGetLogRecords_dateFiltering(getCoordinatingNodeIterator(), "v1");
+        coreTestImpl.testGetLogRecords_dateFiltering(getCoordinatingNodeIterator(), "v1");
     }
 
     @Override

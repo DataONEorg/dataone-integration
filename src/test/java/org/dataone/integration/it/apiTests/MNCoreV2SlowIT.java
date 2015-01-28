@@ -3,7 +3,6 @@ package org.dataone.integration.it.apiTests;
 import org.dataone.integration.ContextAwareTestCaseDataone;
 import org.dataone.integration.it.testDefinitions.MNCoreSlowTestDefinitions;
 import org.dataone.integration.it.testImplementations.CoreTestImplementations;
-import org.dataone.integration.it.testImplementations.MNCoreTestImplementations;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -14,7 +13,7 @@ import org.junit.Test;
 public class MNCoreV2SlowIT extends ContextAwareTestCaseDataone 
         implements MNCoreSlowTestDefinitions {
 
-    private MNCoreTestImplementations mnCoreTestImpl;
+    private CoreTestImplementations coreTestImpl;
 
     @Override
     protected String getTestDescription() {
@@ -24,43 +23,43 @@ public class MNCoreV2SlowIT extends ContextAwareTestCaseDataone
 
     @Before
     public void setup() {
-        mnCoreTestImpl = new MNCoreTestImplementations(this);
+        coreTestImpl = new CoreTestImplementations(this);
     }
 
     @Override
     @Test
     public void testGetLogRecords_AccessRestriction() {
-        mnCoreTestImpl.testGetLogRecords_AccessRestriction(getMemberNodeIterator(), "v2");
+        coreTestImpl.testGetLogRecords_AccessRestriction(getMemberNodeIterator(), "v2");
     }
 
     @Override
     @Test
     public void testGetLogRecords() {
-        mnCoreTestImpl.testGetLogRecords(getMemberNodeIterator(), "v2");
+        coreTestImpl.testGetLogRecords(getMemberNodeIterator(), "v2");
     }
 
     @Override
     @Test
     public void testGetLogRecords_Slicing() {
-        mnCoreTestImpl.testGetLogRecords_Slicing(getMemberNodeIterator(), "v2");
+        coreTestImpl.testGetLogRecords_Slicing(getMemberNodeIterator(), "v2");
     }
 
     @Override
     @Test
     public void testGetLogRecords_eventFiltering() {
-        mnCoreTestImpl.testGetLogRecords_eventFiltering(getMemberNodeIterator(), "v2");
+        coreTestImpl.testGetLogRecords_eventFiltering(getMemberNodeIterator(), "v2");
     }
 
     @Override
     @Test
     public void testGetLogRecords_pidFiltering() {
-        mnCoreTestImpl.testGetLogRecords_pidFiltering(getMemberNodeIterator(), "v2");
+        coreTestImpl.testGetLogRecords_pidFiltering(getMemberNodeIterator(), "v2");
     }
 
     @Override
     @Test
     public void testGetLogRecords_dateFiltering() {
-        mnCoreTestImpl.testGetLogRecords_dateFiltering(getMemberNodeIterator(), "v2");
+        coreTestImpl.testGetLogRecords_dateFiltering(getMemberNodeIterator(), "v2");
     }
 
 }
