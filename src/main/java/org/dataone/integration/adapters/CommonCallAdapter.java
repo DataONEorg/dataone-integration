@@ -461,13 +461,16 @@ public class CommonCallAdapter implements D1Node {
     private Log convertV1Log(org.dataone.service.types.v1.Log v1Log) 
     throws InstantiationException, IllegalAccessException, InvocationTargetException, JiBXException, IOException 
     {
-        Log v2log = new Log();
+        Log v2Log = new Log();
         if (v1Log.getLogEntryList() != null && v1Log.getLogEntryList().size() > 0)
             for(org.dataone.service.types.v1.LogEntry v1entry : v1Log.getLogEntryList()) {
                 LogEntry v2LogEntry = TypeMarshaller.convertTypeFromType(v1entry, LogEntry.class);
-                v2log.addLogEntry(v2LogEntry);
+                v2Log.addLogEntry(v2LogEntry);
             }
-        return v2log;
+        v2Log.setStart(v1Log.getStart());
+        v2Log.setCount(v1Log.getCount());
+        v2Log.setTotal(v1Log.getTotal());
+        return v2Log;
     }
 
     protected ObjectFormatList convertV1ObjectFormatList(org.dataone.service.types.v1.ObjectFormatList v1FormatList) 
@@ -480,6 +483,9 @@ public class CommonCallAdapter implements D1Node {
                 ObjectFormat v2ObjectFormat = TypeMarshaller.convertTypeFromType(v1Format, ObjectFormat.class);
                 v2FormatList.addObjectFormat(v2ObjectFormat);
             }
+        v2FormatList.setStart(v1FormatList.getStart());
+        v2FormatList.setCount(v1FormatList.getCount());
+        v2FormatList.setTotal(v1FormatList.getTotal());
         return v2FormatList;
     }
     
