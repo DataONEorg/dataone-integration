@@ -50,14 +50,13 @@ public class CNReadTestImplementations extends ContextAwareAdapter {
         CNCallAdapter callAdapter = new CNCallAdapter(getSession(Constants.SUBJECT_PUBLIC), node, version);
         String currentUrl = node.getBaseURL();
         printTestHeader("testResolve(...) vs. node: " + currentUrl);
-        Session session = ExampleUtilities.getTestSession();
 
         try {
             ObjectList ol = catc.procureObjectList(callAdapter);
             Identifier pid = null;
             for (int i = 0; i < ol.sizeObjectInfoList(); i++) {
                 try {
-                    callAdapter.getSystemMetadata(session, ol.getObjectInfo(i).getIdentifier());
+                    callAdapter.getSystemMetadata(null, ol.getObjectInfo(i).getIdentifier());
                     pid = ol.getObjectInfo(i).getIdentifier();
                     break;
                 } catch (BaseException be) {
@@ -66,7 +65,7 @@ public class CNReadTestImplementations extends ContextAwareAdapter {
             }
             if (pid != null) {
                 log.debug("   pid = " + pid.getValue());
-                ObjectLocationList response = callAdapter.resolve(session, pid);
+                ObjectLocationList response = callAdapter.resolve(null, pid);
                 checkTrue(callAdapter.getLatestRequestUrl(),
                         "resolve(...) returns an ObjectLocationList object", response != null
                                 && response instanceof ObjectLocationList);
@@ -194,10 +193,9 @@ public class CNReadTestImplementations extends ContextAwareAdapter {
         CNCallAdapter callAdapter = new CNCallAdapter(getSession(Constants.SUBJECT_PUBLIC), node, version);
         String currentUrl = callAdapter.getNodeBaseServiceUrl();
         printTestHeader("testQuery(...) vs. node: " + currentUrl);
-        Session session = ExampleUtilities.getTestSession();
 
         try {
-            InputStream response2 = callAdapter.query(session, "solr", "?q=*:*");
+            InputStream response2 = callAdapter.query(null, "solr", "?q=*:*");
             checkTrue(callAdapter.getLatestRequestUrl(), "query(...)"
                     + " returns an InputStream object", response2 != null);
         } catch (Exception e) {
@@ -216,10 +214,9 @@ public class CNReadTestImplementations extends ContextAwareAdapter {
         CNCallAdapter callAdapter = new CNCallAdapter(getSession(Constants.SUBJECT_PUBLIC), node, version);
         String currentUrl = callAdapter.getNodeBaseServiceUrl();
         printTestHeader("testQuery(...) vs. node: " + currentUrl);
-        Session session = ExampleUtilities.getTestSession();
 
         try {
-            InputStream response2 = callAdapter.query(session, "solr", "?q=*:*");
+            InputStream response2 = callAdapter.query(null, "solr", "?q=*:*");
             checkTrue(callAdapter.getLatestRequestUrl(), "query(...)"
                     + " returns an InputStream object", response2 != null);
         } catch (Exception e) {
@@ -239,10 +236,9 @@ public class CNReadTestImplementations extends ContextAwareAdapter {
         CNCallAdapter callAdapter = new CNCallAdapter(getSession(Constants.SUBJECT_PUBLIC), node, version);
         String currentUrl = callAdapter.getNodeBaseServiceUrl();
         printTestHeader("testListQueryEngines(...) vs. node: " + currentUrl);
-        Session session = ExampleUtilities.getTestSession();
 
         try {
-            QueryEngineList response = callAdapter.listQueryEngines(session);
+            QueryEngineList response = callAdapter.listQueryEngines(null);
             checkTrue(callAdapter.getLatestRequestUrl(),
                     "listQueryEngines(...) returns a QueryEngineList object", response != null);
         } catch (BaseException e) {
@@ -268,12 +264,11 @@ public class CNReadTestImplementations extends ContextAwareAdapter {
         CNCallAdapter callAdapter = new CNCallAdapter(getSession(Constants.SUBJECT_PUBLIC), node, version);
         String currentUrl = callAdapter.getNodeBaseServiceUrl();
         printTestHeader("testGetQueryEngineDescription(...) vs. node: " + currentUrl);
-        Session session = ExampleUtilities.getTestSession();
 
         try {
-            QueryEngineList response = callAdapter.listQueryEngines(session);
+            QueryEngineList response = callAdapter.listQueryEngines(null);
 
-            QueryEngineDescription response2 = callAdapter.getQueryEngineDescription(session,
+            QueryEngineDescription response2 = callAdapter.getQueryEngineDescription(null,
                     response.getQueryEngine(0));
             checkTrue(callAdapter.getLatestRequestUrl(), "getQueryEngineDescription(...)"
                     + " returns a QueryEngineDescription object", response2 != null);
