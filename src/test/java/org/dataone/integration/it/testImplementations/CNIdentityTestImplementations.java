@@ -1,6 +1,9 @@
 package org.dataone.integration.it.testImplementations;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
+import java.util.List;
 
 import org.dataone.client.v1.types.D1TypeBuilder;
 import org.dataone.integration.APITestUtils;
@@ -22,34 +25,34 @@ public class CNIdentityTestImplementations extends ContextAwareAdapter {
         super(catc);
     }
 
-    public void testRegisterAccount(Iterator<Node> nodeIterator, String version) {
+    public void testRegisterAccount_InvalidPerson(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
-            testRegisterAccount(nodeIterator.next(), version);
+            testRegisterAccount_InvalidPerson(nodeIterator.next(), version);
     }
 
     /**
      * This is difficult to run over and over, because it require creating
      * new certificates for each new subject provided.
      */
-    public void testRegisterAccount(Node node, String version) {
+    public void testRegisterAccount_InvalidPerson(Node node, String version) {
 
         CNCallAdapter callAdapter = new CNCallAdapter(getSession("testPerson"), node, version);
         String currentUrl = node.getBaseURL();
         printTestHeader("testRegisterAccount(...) vs. node: " + currentUrl);
 
         try {
-            Subject response = callAdapter.registerAccount(null, APITestUtils.buildPerson(
+            callAdapter.registerAccount(null, APITestUtils.buildPerson(
                     APITestUtils.buildSubject("testAccountA"),
                     "aFamily", "aGivenName", "me@foo.bar"));
-            checkTrue(callAdapter.getLatestRequestUrl(),"registerAccount(...) returns a Subject object",
-                    response != null);
-            // checkTrue(cn.getLatestRequestUrl(),"response cannot be false. [Only true or exception].", response);
+            
+            handleFail(callAdapter.getLatestRequestUrl(),
+                    "registerAccount() should fail if not given a valid Subject");
         }
         catch (IndexOutOfBoundsException e) {
             handleFail(callAdapter.getLatestRequestUrl(),"No Objects available to test against");
         }
         catch (BaseException e) {
-            handleFail(callAdapter.getLatestRequestUrl(),e.getDescription());
+            // expected result - registerAccount() needs to fail if not given a valid subject
         }
         catch(Exception e) {
             e.printStackTrace();
@@ -57,27 +60,52 @@ public class CNIdentityTestImplementations extends ContextAwareAdapter {
         }
     }
 
-    public void testUpdateAccount(Iterator<Node> nodeIterator, String version) {
+    public void testRegisterAccount_ExistingPerson(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
-            testUpdateAccount(nodeIterator.next(), version);
+            testRegisterAccount_ExistingPerson(nodeIterator.next(), version);
+    }
+    
+    public void testRegisterAccount_ExistingPerson(Node node, String version) {
+
+        CNCallAdapter callAdapter = new CNCallAdapter(getSession("testPerson"), node, version);
+        String currentUrl = node.getBaseURL();
+        printTestHeader("testRegisterAccount(...) vs. node: " + currentUrl);
+
+        try {
+            // test registerAccount( existingPerson )
+            SubjectInfo subjectInfo = callAdapter.listSubjects(null, null, null, null, null);
+            if (subjectInfo.getPersonList().size() > 0) {
+                Person person = subjectInfo.getPerson(0);
+                callAdapter.registerAccount(null, person);
+            }
+        } catch (BaseException e) {
+            // expected result
+        } catch (Exception e) {
+            e.printStackTrace();
+            handleFail(currentUrl, e.getClass().getName() + ": " + e.getMessage());
+        }
+    }
+    
+    public void testUpdateAccount_InvalidPerson(Iterator<Node> nodeIterator, String version) {
+        while (nodeIterator.hasNext())
+            testUpdateAccount_InvalidPerson(nodeIterator.next(), version);
     }
 
-    public void testUpdateAccount(Node node, String version) {
+    public void testUpdateAccount_InvalidPerson(Node node, String version) {
         //TODO: is this the right client subject?  maybe testPerson?
         CNCallAdapter callAdapter = new CNCallAdapter(getSession(Constants.SUBJECT_PUBLIC), node, version);
         String currentUrl = node.getBaseURL();
         printTestHeader("testUpdateAccount(...) vs. node: " + currentUrl);
 
         try {
-            Subject response = callAdapter.updateAccount(null,new Person());
-            checkTrue(callAdapter.getLatestRequestUrl(),"updateAccount(...) returns a Subject object", response != null);
-            // checkTrue(cn.getLatestRequestUrl(),"response cannot be false. [Only true or exception].", response);
+            callAdapter.updateAccount(null, new Person());
+            handleFail(callAdapter.getLatestRequestUrl(), "Should not be able to update an invalid Person");
         }
         catch (IndexOutOfBoundsException e) {
             handleFail(callAdapter.getLatestRequestUrl(),"No Objects available to test against");
         }
         catch (BaseException e) {
-            handleFail(callAdapter.getLatestRequestUrl(),e.getDescription());
+            // expected value - should not be able to update an invalid Person
         }
         catch(Exception e) {
             e.printStackTrace();
@@ -85,25 +113,70 @@ public class CNIdentityTestImplementations extends ContextAwareAdapter {
         }
     }
 
-    public void testVerifyAccount(Iterator<Node> nodeIterator, String version) {
+//    public void testVerifyAccount_AlreadyVerified(Iterator<Node> nodeIterator, String version) {
+//        while (nodeIterator.hasNext())
+//            testVerifyAccount_AlreadyVerified(nodeIterator.next(), version);
+//    }
+//    
+//    public void testVerifyAccount_AlreadyVerified(Node node, String version) {
+//        
+//        // TODO who has authorization to verify accounts?
+//    
+//        String currentUrl = node.getBaseURL();
+//        printTestHeader("testVerifyAccount_AlreadyVerified(...) vs. node: " + currentUrl);
+//        CNCallAdapter callAdapter = new CNCallAdapter(getSession("cnDevUNM1"), node, version);
+//        
+//        try {
+//            SubjectInfo subjectInfo = callAdapter.listSubjects(null, null, null, null, null);
+//            Person verifiedPerson = null;
+//            for (Person person : subjectInfo.getPersonList()) {
+//                if (person.getVerified()) {
+//                    verifiedPerson = person;
+//                    break;
+//                }
+//            }
+//            
+//            if(verifiedPerson != null)
+//                callAdapter.verifyAccount(null, verifiedPerson.getSubject());
+//        }
+//        catch (BaseException e) {
+//            e.printStackTrace();
+//            handleFail(callAdapter.getLatestRequestUrl(),e.getDescription());
+//        }
+//        catch(Exception e) {
+//            e.printStackTrace();
+//            handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+//        }
+//    }
+    
+    public void testVerifyAccount_NotAuthorized(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
-            testVerifyAccount(nodeIterator.next(), version);
+            testVerifyAccount_NotAuthorized(nodeIterator.next(), version);
     }
-
-    public void testVerifyAccount(Node node, String version) {
-        //TODO: determine the proper subject
-        CNCallAdapter callAdapter = new CNCallAdapter(getSession(Constants.SUBJECT_PUBLIC), node, version);
+    
+    public void testVerifyAccount_NotAuthorized(Node node, String version) {
+        
         String currentUrl = node.getBaseURL();
-        printTestHeader("testVerifyAccount(...) vs. node: " + currentUrl);
-
+        printTestHeader("testVerifyAccount_NotAuthorized(...) vs. node: " + currentUrl);
+        CNCallAdapter callAdapter = new CNCallAdapter(getSession("testPerson"), node, version);
+        
         try {
-            boolean response = callAdapter.verifyAccount(null,new Subject());
-            checkTrue(callAdapter.getLatestRequestUrl(),"response cannot be false. [Only true or exception].", response);
+            SubjectInfo subjectInfo = callAdapter.listSubjects(null, null, null, null, null);
+            Person verifiedPerson = null;
+            for (Person person : subjectInfo.getPersonList())
+                if (person.getVerified()) {
+                    verifiedPerson = person;
+                    break;
+                }
+            
+            if(verifiedPerson != null)
+                callAdapter.verifyAccount(null, verifiedPerson.getSubject());
         }
-        catch (IndexOutOfBoundsException e) {
-            handleFail(callAdapter.getLatestRequestUrl(),"No Objects available to test against");
+        catch (NotAuthorized e) {
+            // expected result - Subject "testPerson" shouldn't be able to verify accounts
         }
         catch (BaseException e) {
+            e.printStackTrace();
             handleFail(callAdapter.getLatestRequestUrl(),e.getDescription());
         }
         catch(Exception e) {
@@ -111,7 +184,7 @@ public class CNIdentityTestImplementations extends ContextAwareAdapter {
             handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
         }
     }
-
+    
     public void testGetSubjectInfo(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testGetSubjectInfo(nodeIterator.next(), version);

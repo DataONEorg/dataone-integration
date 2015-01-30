@@ -6,12 +6,14 @@ package org.dataone.integration.it.testDefinitions;
  */
 public interface CNIdentityTestDefinitions {
 
-    public void testRegisterAccount();
+    public void testRegisterAccount_InvalidPerson();
 
-    public void testUpdateAccount();
+    public void testRegisterAccount_ExistingPerson();
+    
+    public void testUpdateAccount_InvalidPerson();
 
-    public void testVerifyAccount();
-
+    public void testVerifyAccount_NotAuthorized();
+    
     public void testGetSubjectInfo();
 
     public void testGetSubjectInfo_UrlEncodingSpaces();

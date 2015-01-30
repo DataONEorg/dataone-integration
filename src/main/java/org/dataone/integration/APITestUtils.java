@@ -166,21 +166,21 @@ public class APITestUtils {
     public static Person buildPerson(Subject subject, String familyName,
             String givenName, String emailString)
     {
-        String[] badParam = new String[]{};
+        StringBuilder badParams = new StringBuilder();
         Person person = new Person();
         //	  try {
             //		InternetAddress ia = new InternetAddress(emailString, true);
         if (emailString == null || emailString.trim().equals(""))
-            badParam[badParam.length] = "emailString";
+            badParams.append("emailString, ");
         if (familyName == null || familyName.trim().equals(""))
-            badParam[badParam.length] = "familyName";
+            badParams.append("familyName, ");
         if (givenName == null || givenName.trim().equals(""))
-            badParam[badParam.length] = "givenName";
+            badParams.append("givenName, ");
         if (subject == null || subject.getValue().equals(""))
-            badParam[badParam.length] = "subject";
+            badParams.append("subject");
 
-        if (badParam.length > 0)
-            throw new IllegalArgumentException("null or empty string values for parameters: " + badParam);
+        if (badParams.length() > 0)
+            throw new IllegalArgumentException("null or empty string values for parameters: " + badParams);
 
         //	} catch (AddressException e) {
         //		// thrown by IndernetAddress constructor

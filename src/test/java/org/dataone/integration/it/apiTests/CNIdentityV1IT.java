@@ -26,22 +26,34 @@ public class CNIdentityV1IT extends ContextAwareTestCaseDataone
 
     @Override
     @Test
-    public void testRegisterAccount() {
-        identityTestImpl.testRegisterAccount(getCoordinatingNodeIterator(), "v1");
+    public void testRegisterAccount_InvalidPerson() {
+        identityTestImpl.testRegisterAccount_InvalidPerson(getCoordinatingNodeIterator(), "v1");
     }
 
     @Override
     @Test
-    public void testUpdateAccount() {
-        identityTestImpl.testUpdateAccount(getCoordinatingNodeIterator(), "v1");
+    public void testRegisterAccount_ExistingPerson() {
+        identityTestImpl.testRegisterAccount_ExistingPerson(getCoordinatingNodeIterator(), "v1");
     }
-
+    
     @Override
     @Test
-    public void testVerifyAccount() {
-        identityTestImpl.testVerifyAccount(getCoordinatingNodeIterator(), "v1");
+    public void testUpdateAccount_InvalidPerson() {
+        identityTestImpl.testUpdateAccount_InvalidPerson(getCoordinatingNodeIterator(), "v1");
     }
 
+//    @Override
+//    @Test
+//    public void testVerifyAccount_AlreadyVerified() {
+//        identityTestImpl.testVerifyAccount_AlreadyVerified(getCoordinatingNodeIterator(), "v1");
+//    }
+    
+    @Override
+    @Test
+    public void testVerifyAccount_NotAuthorized() {
+        identityTestImpl.testVerifyAccount_NotAuthorized(getCoordinatingNodeIterator(), "v1");
+    }
+    
     @Override
     @Test
     public void testGetSubjectInfo() {
