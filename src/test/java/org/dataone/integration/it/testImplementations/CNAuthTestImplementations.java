@@ -138,9 +138,10 @@ public class CNAuthTestImplementations extends ContextAwareAdapter {
 
         boolean origObjectCacheSetting = Settings.getConfiguration().getBoolean("D1Client.useLocalCache");
         Settings.getConfiguration().setProperty("D1Client.useLocalCache", false);
+        Settings.getConfiguration().setProperty("D1Client.CNode.create.timeouts", 10000);
         String currentUrl = callAdapter.getNodeBaseServiceUrl();
         printTestHeader("testSetAccessPolicy() vs. node: " + currentUrl);
-
+        
         try {
             // need to procure the target test object and verify 
             // that we are the rightsHolder

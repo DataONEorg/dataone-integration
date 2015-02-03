@@ -697,13 +697,14 @@ public class CNCallAdapter extends CommonCallAdapter {
 
     public boolean updateNodeCapabilities(Session session, NodeReference nodeid,
             org.dataone.service.types.v2.Node node) throws NotImplemented, NotAuthorized,
-            ServiceFailure, InvalidRequest, NotFound, InvalidToken, ClientSideException {
+            ServiceFailure, InvalidRequest, NotFound, InvalidToken, ClientSideException, InstantiationException, IllegalAccessException, InvocationTargetException, JiBXException, IOException {
         if (this.node.getType().equals(NodeType.CN)) {
             if (this.version.toLowerCase().equals("v1")) {
                 org.dataone.service.cn.v1.CNRegister cnRegister = D1NodeFactory.buildNode(
                         org.dataone.service.cn.v1.CNRegister.class, this.mrc,
                         URI.create(this.node.getBaseURL()));
-                return cnRegister.updateNodeCapabilities(session, nodeid, node);
+                Node v1Node = TypeMarshaller.convertTypeFromType(node, Node.class);
+                return cnRegister.updateNodeCapabilities(session, nodeid, v1Node);
             } else if (this.version.toLowerCase().equals("v2")) {
                 CNRegister cnRegister = D1NodeFactory.buildNode(CNRegister.class, this.mrc,
                         URI.create(this.node.getBaseURL()));
@@ -716,13 +717,14 @@ public class CNCallAdapter extends CommonCallAdapter {
 
     public NodeReference register(Session session, org.dataone.service.types.v2.Node node)
             throws NotImplemented, NotAuthorized, ServiceFailure, InvalidRequest, InvalidToken,
-            IdentifierNotUnique, ClientSideException {
+            IdentifierNotUnique, ClientSideException, InstantiationException, IllegalAccessException, InvocationTargetException, JiBXException, IOException {
         if (this.node.getType().equals(NodeType.CN)) {
             if (this.version.toLowerCase().equals("v1")) {
                 org.dataone.service.cn.v1.CNRegister cnRegister = D1NodeFactory.buildNode(
                         org.dataone.service.cn.v1.CNRegister.class, this.mrc,
                         URI.create(this.node.getBaseURL()));
-                return cnRegister.register(session, node);
+                Node v1Node = TypeMarshaller.convertTypeFromType(node, Node.class);
+                return cnRegister.register(session, v1Node);
             } else if (this.version.toLowerCase().equals("v2")) {
                 CNRegister cnRegister = D1NodeFactory.buildNode(CNRegister.class, this.mrc,
                         URI.create(this.node.getBaseURL()));
