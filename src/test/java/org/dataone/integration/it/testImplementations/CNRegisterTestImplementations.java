@@ -52,16 +52,17 @@ public class CNRegisterTestImplementations extends ContextAwareAdapter {
                 handleFail(callAdapter.getLatestRequestUrl(),
                         "Cannot test updateNodeCapabilities unless there is a node in the NodeList");
             } else {
-                NodeReference nodeRef = node.getIdentifier();
+                Node node0 = cNodeList.get(0);
+                NodeReference nodeRef = node0.getIdentifier();
 
-                Ping ping = node.getPing();
+                Ping ping = node0.getPing();
                 if (ping == null)
                     ping = new Ping();
                 Date orginalLastSuccess = ping.getLastSuccess();
                 ping.setLastSuccess(new Date());
-                node.setPing(ping);
+                node0.setPing(ping);
 
-                org.dataone.service.types.v2.Node nodeV2 = TypeMarshaller.convertTypeFromType(node, org.dataone.service.types.v2.Node.class);
+                org.dataone.service.types.v2.Node nodeV2 = TypeMarshaller.convertTypeFromType(node0, org.dataone.service.types.v2.Node.class);
                 boolean response = callAdapter.updateNodeCapabilities(null, nodeRef, nodeV2);
                 checkTrue(callAdapter.getLatestRequestUrl(),
                         "response cannot be false. [Only true or exception].", response);
@@ -95,19 +96,20 @@ public class CNRegisterTestImplementations extends ContextAwareAdapter {
                 handleFail(callAdapter.getLatestRequestUrl(),
                         "Cannot test updateNodeCapabilities unless there is a node in the NodeList");
             } else {
-                NodeReference nodeRef = node.getIdentifier();
+                Node node0 = cNodeList.get(0);
+                NodeReference nodeRef = node0.getIdentifier();
                 nodeRef.setValue(nodeRef.getValue() + "bizzBazzBuzz");
-                node.setIdentifier(nodeRef);
-                node.addSubject(clientSubject);
+                node0.setIdentifier(nodeRef);
+                node0.addSubject(clientSubject);
 
-                Ping ping = node.getPing();
+                Ping ping = node0.getPing();
                 if (ping == null)
                     ping = new Ping();
                 Date orginalLastSuccess = ping.getLastSuccess();
                 ping.setLastSuccess(new Date());
-                node.setPing(ping);
+                node0.setPing(ping);
 
-                org.dataone.service.types.v2.Node nodeV2 = TypeMarshaller.convertTypeFromType(node, org.dataone.service.types.v2.Node.class);
+                org.dataone.service.types.v2.Node nodeV2 = TypeMarshaller.convertTypeFromType(node0, org.dataone.service.types.v2.Node.class);
                 boolean response = callAdapter.updateNodeCapabilities(null, nodeRef, nodeV2);
                 handleFail(callAdapter.getLatestRequestUrl(),
                         "updateNodeCapabilities on fictitious node should fail");
@@ -144,16 +146,17 @@ public class CNRegisterTestImplementations extends ContextAwareAdapter {
                 handleFail(callAdapter.getLatestRequestUrl(),
                         "Cannot test updateNodeCapabilities unless there is a node in the NodeList");
             } else {
-                NodeReference nodeRef = node.getIdentifier();
+                Node node0 = cNodeList.get(0);
+                NodeReference nodeRef = node0.getIdentifier();
 
-                Ping ping = node.getPing();
+                Ping ping = node0.getPing();
                 if (ping == null)
                     ping = new Ping();
                 Date orginalLastSuccess = ping.getLastSuccess();
                 ping.setLastSuccess(new Date());
-                node.setPing(ping);
+                node0.setPing(ping);
 
-                org.dataone.service.types.v2.Node nodeV2 = TypeMarshaller.convertTypeFromType(node, org.dataone.service.types.v2.Node.class);
+                org.dataone.service.types.v2.Node nodeV2 = TypeMarshaller.convertTypeFromType(node0, org.dataone.service.types.v2.Node.class);
                 boolean response = callAdapter.updateNodeCapabilities(null, nodeRef, nodeV2);
                 handleFail(callAdapter.getLatestRequestUrl(),
                         "updateNodeCapabilities on fictitious node should fail");
@@ -193,18 +196,19 @@ public class CNRegisterTestImplementations extends ContextAwareAdapter {
                 handleFail(callAdapter.getLatestRequestUrl(),
                         "Cannot test updateNodeCapabilities unless there is a node in the NodeList");
             } else {
-                node.setDescription(node.getDescription()
+                Node node0 = cNodeList.get(0);
+                node0.setDescription(node.getDescription()
                         + " Tier2 updateNodeCapabilities_updatingOtherField test");
-                NodeReference nodeRef = node.getIdentifier();
+                NodeReference nodeRef = node0.getIdentifier();
 
-                Ping ping = node.getPing();
+                Ping ping = node0.getPing();
                 if (ping == null)
                     ping = new Ping();
                 Date orginalLastSuccess = ping.getLastSuccess();
                 ping.setLastSuccess(new Date());
-                node.setPing(ping);
+                node0.setPing(ping);
 
-                org.dataone.service.types.v2.Node nodeV2 = TypeMarshaller.convertTypeFromType(node, org.dataone.service.types.v2.Node.class);
+                org.dataone.service.types.v2.Node nodeV2 = TypeMarshaller.convertTypeFromType(node0, org.dataone.service.types.v2.Node.class);
                 boolean response = callAdapter.updateNodeCapabilities(null, nodeRef, nodeV2);
                 handleFail(callAdapter.getLatestRequestUrl(),
                         "updateNodeCapabilities to update other fields should fail");
@@ -241,12 +245,13 @@ public class CNRegisterTestImplementations extends ContextAwareAdapter {
                 handleFail(callAdapter.getLatestRequestUrl(),
                         "Cannot test cn.register() unless there is a Member Node in the NodeList");
             } else {
-                String nr = node.getIdentifier().getValue();
+                Node mNode = mNodeList.get(0);
+                String nr = mNode.getIdentifier().getValue();
                 NodeReference newRef = new NodeReference();
                 newRef.setValue(nr + "abcdefghij");
-                node.setIdentifier(newRef);
-                node.setBaseURL(node.getBaseURL() + "/fakeBaseUrlThatIsDifferent");
-                org.dataone.service.types.v2.Node nodeV2 = TypeMarshaller.convertTypeFromType(node, org.dataone.service.types.v2.Node.class);
+                mNode.setIdentifier(newRef);
+                mNode.setBaseURL(mNode.getBaseURL() + "/fakeBaseUrlThatIsDifferent");
+                org.dataone.service.types.v2.Node nodeV2 = TypeMarshaller.convertTypeFromType(mNode, org.dataone.service.types.v2.Node.class);
                 NodeReference response = callAdapter.register(null, nodeV2);
                 checkTrue(callAdapter.getLatestRequestUrl(),
                         "register(...) returns a NodeReference object", response != null);
@@ -278,7 +283,7 @@ public class CNRegisterTestImplementations extends ContextAwareAdapter {
                         "Cannot test cn.register() unless there is a Member Node in the NodeList");
             } else {
                 // attempt to re-register a node...
-                org.dataone.service.types.v2.Node nodeV2 = TypeMarshaller.convertTypeFromType(node, org.dataone.service.types.v2.Node.class);
+                org.dataone.service.types.v2.Node nodeV2 = TypeMarshaller.convertTypeFromType(mNodeList.get(0), org.dataone.service.types.v2.Node.class);
                 NodeReference response = callAdapter.register(null, nodeV2);
                 handleFail(callAdapter.getLatestRequestUrl(),
                         "register(...) should throw IndentifierNotUnique exception when"
