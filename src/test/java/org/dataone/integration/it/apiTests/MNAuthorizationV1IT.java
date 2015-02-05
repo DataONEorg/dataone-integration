@@ -30,6 +30,7 @@ public class MNAuthorizationV1IT extends V1IsAuthorizedAuthorizationTestImpl
 
     @Before
     public void setup() {
+        setApiVersion("v1");
         authTestImpl = new AuthTestImplementations(this);
         /* systemMetadataChangedTest implementations are in MNReplicationTestImpls */
         mnReplicationTestImpl = new MNReplicationTestImplementations(this);

@@ -25,6 +25,7 @@ public class MNAuthorizationV2IT extends V1IsAuthorizedAuthorizationTestImpl
 
     @Before
     public void setup() {
+        setApiVersion("v2");
         authTestImpl = new AuthTestImplementations(this);
     }
 
@@ -36,6 +37,6 @@ public class MNAuthorizationV2IT extends V1IsAuthorizedAuthorizationTestImpl
     @Override
     @Test
     public void testIsAuthorized() {
-        authTestImpl.testIsAuthorized(getMemberNodeIterator(), "v1");
+        authTestImpl.testIsAuthorized(getMemberNodeIterator(), "v2");
     }
 }

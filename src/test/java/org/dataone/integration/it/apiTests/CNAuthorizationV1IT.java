@@ -28,6 +28,7 @@ public class CNAuthorizationV1IT extends V1IsAuthorizedAuthorizationTestImpl
 
     @Before
     public void setup() {
+        setApiVersion("v1");
         authTestImpl = new AuthAPITestImplementations(this);
         cnAuthTestImpl = new CNAuthTestImplementations(this);
     }
