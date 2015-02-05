@@ -1,6 +1,7 @@
 package org.dataone.integration.it.testImplementations;
 
 import java.util.Iterator;
+import java.util.List;
 
 import org.dataone.integration.ContextAwareTestCaseDataone;
 import org.dataone.integration.adapters.CommonCallAdapter;
@@ -10,6 +11,8 @@ import org.dataone.service.exceptions.ServiceFailure;
 import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Node;
 import org.dataone.service.types.v1.Permission;
+import org.dataone.service.types.v2.Log;
+import org.dataone.service.types.v2.LogEntry;
 import org.dataone.service.util.Constants;
 
 public class SSLTestImplementations extends ContextAwareAdapter {
@@ -27,19 +30,19 @@ public class SSLTestImplementations extends ContextAwareAdapter {
     public void testConnectionLayer_SelfSignedCert(Node node, String version)
     {
         String currentUrl = node.getBaseURL();
-        CommonCallAdapter d1Node = new CommonCallAdapter(getSession("testPerson_SelfSigned"), node, version);
+        CommonCallAdapter callAdapter = new CommonCallAdapter(getSession("testPerson_SelfSigned"), node, version);
 
         try {
-            d1Node.getLogRecords(null, null, null, null, null, 0, 0);
-            handleFail(d1Node.getLatestRequestUrl(), "ssl connection should not succeed with " +
-            		"a self-signed certificate (untrusted CA): getLogRecords(...)");
+            Log logRecords = callAdapter.getLogRecords(null, null, null, null, null, 0, 0);
+            List<LogEntry> logEntryList = logRecords.getLogEntryList();
+            
+            checkTrue(callAdapter.getLatestRequestUrl(), "Accessing log records with a self-signed certificate "
+                    + "should return an empty log entry list", logEntryList.size() == 0);
         } catch (BaseException be) {
-            if (!(be instanceof ServiceFailure)) {
-                handleFail(d1Node.getLatestRequestUrl(),"a self-signed certificate should not be" +
-                		" trusted and should throw a ServiceFailure. Got: "
-                        + be.getClass().getSimpleName() + ": " +
-                        be.getDetail_code() + ":: " + be.getDescription());
-            }
+            handleFail(callAdapter.getLatestRequestUrl(),"a self-signed certificate should " +
+            		"be able to make a getLogRecords call (and just return 0 results). Got: "
+                    + be.getClass().getSimpleName() + ": " +
+                    be.getDetail_code() + ":: " + be.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
@@ -58,13 +61,13 @@ public class SSLTestImplementations extends ContextAwareAdapter {
     public void testConnectionLayer_ExpiredCertificate(Node node, String version) 
     {    
         String currentUrl = node.getBaseURL();
-        CommonCallAdapter d1Node = new CommonCallAdapter(getSession("testPerson_Expired"), node, version);
+        CommonCallAdapter callAdapter = new CommonCallAdapter(getSession("testPerson_Expired"), node, version);
 
         try {
-            d1Node.ping();
+            callAdapter.ping();
         } catch (BaseException be) {
             if (!(be instanceof ServiceFailure)) {
-            handleFail(d1Node.getLatestRequestUrl(),"an Expired Certificate should throw a ServiceFailure. Got: "
+            handleFail(callAdapter.getLatestRequestUrl(),"an Expired Certificate should throw a ServiceFailure. Got: "
                     + be.getClass().getSimpleName() + ": " +
                     be.getDetail_code() + ":: " + be.getDescription());
             }
@@ -87,12 +90,12 @@ public class SSLTestImplementations extends ContextAwareAdapter {
     public void testConnectionLayer_dataoneCAtrusted(Node node, String version) 
     {    
         String currentUrl = node.getBaseURL();
-        CommonCallAdapter d1Node = new CommonCallAdapter(getSession("testSubmitter"), node, version);
+        CommonCallAdapter callAdapter = new CommonCallAdapter(getSession("testSubmitter"), node, version);
 
         try {
-            d1Node.ping();
+            callAdapter.ping();
         } catch (BaseException e) {
-            handleFail(d1Node.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " +
+            handleFail(callAdapter.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " +
                     e.getDetail_code() + ":: " + e.getDescription());
         }
         catch(Exception e) {
