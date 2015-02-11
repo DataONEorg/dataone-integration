@@ -21,10 +21,19 @@ public abstract class V2IsAuthorizedAuthorizationTestImpl extends
     protected CommonCallAdapter instantiateD1Node(String subjectLabel, Node node)
     {
         if(node.getType().equals(NodeType.MN)) {
-            return new MNCallAdapter(getSession(subjectLabel), node, "v1");
+            return new MNCallAdapter(getSession(subjectLabel), node, "v2");
         } else {
-            return new CNCallAdapter(getSession(subjectLabel), node, "v1");
+            return new CNCallAdapter(getSession(subjectLabel), node, "v2");
         } 
     }
 
+    @Override
+    protected CommonCallAdapter instantiateProcuringD1Node(String subjectLabel, Node node)
+    {
+       if(node.getType().equals(NodeType.MN)) {
+           return instantiateD1Node(subjectLabel, node);
+       } else {
+           return new CNCallAdapter(getSession(cnSubmitter), node, "v2");
+       } 
+    }
 }

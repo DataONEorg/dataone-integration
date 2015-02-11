@@ -50,64 +50,60 @@ public class CNAuthTestImplementations extends ContextAwareAdapter {
      */
     public void testSetRightsHolder(Node node, String version) 
     {
-        Subject inheritorSubject = ContextAwareTestCaseDataone.setupClientSubject("testPerson");
         String currentUrl = node.getBaseURL();
-        // TODO ^ this initialization is not like the others... is this ok?
         printTestHeader("testSetRightsHolder(...) vs. node: " + currentUrl);
 
-        CNCallAdapter callAdapter = null;
+        CNCallAdapter callAdapterCN = new CNCallAdapter(getSession(cnSubmitter), node, version);
+        CNCallAdapter callAdapterRightsHolder = new CNCallAdapter(getSession("testRightsHolder"), node, version);
+        CNCallAdapter callAdapterPerson = new CNCallAdapter(getSession("testPerson"), node, version);
+        Subject originalOwnerSubject = ContextAwareTestCaseDataone.getSubject("testRightsHolder");
+        Subject inheritorSubject = ContextAwareTestCaseDataone.getSubject("testPerson");
+        
         try {
-            Subject ownerSubject = ContextAwareTestCaseDataone.setupClientSubject("testRightsHolder");
-            callAdapter = new CNCallAdapter(getSession("testRightsHolder"), node, version);
-
             // create a new identifier for testing, owned by current subject and with null AP
             Identifier changeableObject = APITestUtils.buildIdentifier(
                     "TierTesting:setRH:" + ExampleUtilities.generateIdentifier()); 
 
-            changeableObject = catc.createTestObject(callAdapter, changeableObject, null);
+            changeableObject = catc.createTestObject(callAdapterCN, changeableObject, null, cnSubmitter);
             
             if (changeableObject != null) {
-                SystemMetadata smd = callAdapter.getSystemMetadata(null, changeableObject);
-                Identifier response = callAdapter.setRightsHolder(
+                SystemMetadata smd = callAdapterCN.getSystemMetadata(null, changeableObject);
+                Identifier response = callAdapterCN.setRightsHolder(
                         null, 
                         changeableObject,
                         inheritorSubject, 
                         smd.getSerialVersion().longValue());
             
-                checkTrue(callAdapter.getLatestRequestUrl(),"1. setRightsHolder(...) returns a Identifier object", response != null);
+                checkTrue(callAdapterCN.getLatestRequestUrl(),"1. setRightsHolder(...) returns a Identifier object", response != null);
                 try {
-                    callAdapter.isAuthorized(null, changeableObject, Permission.CHANGE_PERMISSION);
-                    handleFail(callAdapter.getLatestRequestUrl(), "2. isAuthorized to CHANGE as former rightsHolder should fail.");
+                    callAdapterRightsHolder.isAuthorized(null, changeableObject, Permission.CHANGE_PERMISSION);
+                    handleFail(callAdapterRightsHolder.getLatestRequestUrl(), "2. isAuthorized to CHANGE as former rightsHolder should fail.");
                 } 
                 catch (NotAuthorized e) {
                     ; // expected
                 }
                 
-                callAdapter = new CNCallAdapter(getSession("testPerson"), node, version);
                 try {
-                    callAdapter.isAuthorized(null, changeableObject, Permission.CHANGE_PERMISSION);
+                    callAdapterPerson.isAuthorized(null, changeableObject, Permission.CHANGE_PERMISSION);
                 } catch (NotAuthorized na) {
-                    handleFail(callAdapter.getLatestRequestUrl(),"3. testPerson should now be able to CHANGE the object");
+                    handleFail(callAdapterPerson.getLatestRequestUrl(),"3. testPerson should not be able to CHANGE the object");
                 }
                 
                 try {
-                    smd = callAdapter.getSystemMetadata(null, changeableObject);
-                    checkTrue(callAdapter.getLatestRequestUrl(), "4. testPerson should be the rightsHolder",smd.getRightsHolder().equals(inheritorSubject));
+                    smd = callAdapterPerson.getSystemMetadata(null, changeableObject);
+                    checkTrue(callAdapterPerson.getLatestRequestUrl(), "4. testPerson should be the rightsHolder",smd.getRightsHolder().equals(inheritorSubject));
                 } catch (NotAuthorized na) {
-                    handleFail(callAdapter.getLatestRequestUrl(),"5. testPerson should now be able to get the systemmetadata");
+                    handleFail(callAdapterPerson.getLatestRequestUrl(),"5. testPerson should now be able to get the systemmetadata");
                 }
                 // clean up step to try to put it back under the testRightsHolder subject.
-                callAdapter.setRightsHolder(null, changeableObject, ownerSubject, smd.getSerialVersion().longValue());
+                callAdapterCN.setRightsHolder(null, changeableObject, originalOwnerSubject, smd.getSerialVersion().longValue());
                 
             } else {
-                handleFail(callAdapter.getLatestRequestUrl(),"could not create object for testing setRightsHolder");
+                handleFail(callAdapterCN.getLatestRequestUrl(),"could not create object for testing setRightsHolder");
             }
         } 
-        catch (IndexOutOfBoundsException e) {
-            handleFail(callAdapter.getLatestRequestUrl(),"No Objects available to test against");
-        }
         catch (BaseException e) {
-            handleFail(callAdapter.getLatestRequestUrl(),e.getDescription());
+            handleFail(callAdapterCN.getLatestRequestUrl(),e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
@@ -133,13 +129,18 @@ public class CNAuthTestImplementations extends ContextAwareAdapter {
      */
     public void testSetAccessPolicy(Node node, String version) 
     {   
-        Subject ownerSubject = ContextAwareTestCaseDataone.setupClientSubject("testRightsHolder");               
-        CNCallAdapter callAdapter = new CNCallAdapter(getSession("testRightsHolder"), node, version);
-
+        CNCallAdapter callAdapterCN = new CNCallAdapter(getSession(cnSubmitter), node, version);
+        CNCallAdapter callAdapterRH = new CNCallAdapter(getSession("testRightsHolder"), node, version);
+        CNCallAdapter callAdapterPerson = new CNCallAdapter(getSession("testPerson"), node, version);
+        CNCallAdapter callAdapterSubmitter = new CNCallAdapter(getSession("testSubmitter"), node, version);
+        CNCallAdapter callAdapterPublic = new CNCallAdapter(getSession(Constants.SUBJECT_PUBLIC), node, version);
+        Subject ownerSubject = ContextAwareTestCaseDataone.getSubject("testRightsHolder");               
+        Subject readerSubject = ContextAwareTestCaseDataone.getSubject("testPerson");
+        
         boolean origObjectCacheSetting = Settings.getConfiguration().getBoolean("D1Client.useLocalCache");
         Settings.getConfiguration().setProperty("D1Client.useLocalCache", false);
         Settings.getConfiguration().setProperty("D1Client.CNode.create.timeouts", 10000);
-        String currentUrl = callAdapter.getNodeBaseServiceUrl();
+        String currentUrl = callAdapterCN.getNodeBaseServiceUrl();
         printTestHeader("testSetAccessPolicy() vs. node: " + currentUrl);
         
         try {
@@ -147,51 +148,49 @@ public class CNAuthTestImplementations extends ContextAwareAdapter {
             // that we are the rightsHolder
             Identifier changeableObject = D1TypeBuilder.buildIdentifier(
                     String.format("TierTesting:%s:setAccess%s",
-                            catc.createNodeAbbreviation(callAdapter.getNodeBaseServiceUrl()),
+                            catc.createNodeAbbreviation(callAdapterCN.getNodeBaseServiceUrl()),
                             catc.getTestObjectSeriesSuffix()));
             
             SystemMetadata smd = null;
             try {
-                smd = callAdapter.getSystemMetadata(null,changeableObject);
+                smd = callAdapterCN.getSystemMetadata(null,changeableObject);
                 if (!smd.getRightsHolder().equals(ownerSubject)) 
                     throw new TestIterationEndingException("the test object should be owned by "
                             + "the client subject");
             } 
             catch (NotFound e) {
-                changeableObject = catc.createTestObject(callAdapter, changeableObject, null);
+                changeableObject = catc.createTestObject(callAdapterCN, changeableObject, null, cnSubmitter);
             }
                 
             log.info("clear the AccessPolicy");
             long serialVersion = smd.getSerialVersion().longValue();
-            boolean success = callAdapter.setAccessPolicy(null, changeableObject, 
+            boolean success = callAdapterCN.setAccessPolicy(null, changeableObject, 
                     new AccessPolicy(), serialVersion);
 
             // ensure blank policy with isAuthorized(), get()
-            Subject readerSubject = ContextAwareTestCaseDataone.setupClientSubject("testPerson");               
             try {
-                callAdapter.isAuthorized(null, changeableObject, Permission.READ);
-                handleFail(callAdapter.getLatestRequestUrl(),"1. isAuthorized by the reader should fail");
+                callAdapterPerson.isAuthorized(null, changeableObject, Permission.READ);
+                handleFail(callAdapterPerson.getLatestRequestUrl(),"1. isAuthorized by the reader should fail");
             } catch (NotAuthorized na) {
                 // should fail
             }
             try {
-                callAdapter.get(null, changeableObject);
-                handleFail(callAdapter.getLatestRequestUrl(),"2. getting the newly created object as a reader should fail");
+                callAdapterPerson.get(null, changeableObject);
+                handleFail(callAdapterPerson.getLatestRequestUrl(),"2. getting the newly created object as a reader should fail");
             } catch (NotAuthorized na) {
                 // this is what we want
             }
 
-            // log.info("allow read permission for client-who-is-the-object's-RightsHolder");
-            ContextAwareTestCaseDataone.setupClientSubject("testRightsHolder");
-            smd = callAdapter.getSystemMetadata(null, changeableObject);
+            log.info("allow read permission for client-who-is-the-object's-RightsHolder");
+            smd = callAdapterRH.getSystemMetadata(null, changeableObject);
             serialVersion = smd.getSerialVersion().longValue();
-            success = callAdapter.setAccessPolicy(null, changeableObject, 
+            success = callAdapterRH.setAccessPolicy(null, changeableObject, 
                     AccessUtil.createSingleRuleAccessPolicy(new String[] {readerSubject.getValue()},
                             new Permission[] {Permission.READ}), serialVersion);
-            checkTrue(callAdapter.getLatestRequestUrl(),"3. testRightsHolder should be able to set the access policy",success);
+            checkTrue(callAdapterRH.getLatestRequestUrl(),"3. testRightsHolder should be able to set the access policy",success);
 
 
-            smd = callAdapter.getSystemMetadata(null, changeableObject);
+            smd = callAdapterRH.getSystemMetadata(null, changeableObject);
             ByteArrayOutputStream os = new ByteArrayOutputStream();
             TypeMarshaller.marshalTypeToOutputStream(smd.getAccessPolicy(), os);
             log.info(os.toString());
@@ -199,46 +198,43 @@ public class CNAuthTestImplementations extends ContextAwareAdapter {
 
             // test for success
             log.info("trying isAuthorized as testPerson");
-            ContextAwareTestCaseDataone.setupClientSubject("testPerson");           
             try {
-                callAdapter.isAuthorized(null, changeableObject, Permission.READ);
+                callAdapterPerson.isAuthorized(null, changeableObject, Permission.READ);
             } catch (NotAuthorized na) {
-                handleFail(callAdapter.getLatestRequestUrl(),"4. testPerson should be authorized to read this pid '" 
+                handleFail(callAdapterPerson.getLatestRequestUrl(),"4. testPerson should be authorized to read this pid '" 
                         + changeableObject.getValue() + "'");
             }
 
             log.info("now trying get() as testPerson");
             try {
-                callAdapter.get(null, changeableObject);
+                callAdapterPerson.get(null, changeableObject);
             } catch (NotAuthorized na) {
-                handleFail(callAdapter.getLatestRequestUrl(),"5. testPerson should now be able to get the object");
+                handleFail(callAdapterPerson.getLatestRequestUrl(),"5. testPerson should now be able to get the object");
             }
 
             log.info("now try to get as a known user with no rights to the object (should not be able)");
 
 
-            ContextAwareTestCaseDataone.setupClientSubject("testSubmitter");
             try {
-                InputStream is = callAdapter.get(null, changeableObject);
+                InputStream is = callAdapterSubmitter.get(null, changeableObject);
                 log.info(IOUtils.toString(is));
-                handleFail(callAdapter.getLatestRequestUrl(),"6. testSubmitter should not be able to get the object");
+                handleFail(callAdapterSubmitter.getLatestRequestUrl(),"6. testSubmitter should not be able to get the object");
 
             } catch (NotAuthorized na) {
                 // this is what we want
             }
             log.info("now try isAuthorized() on it as a known user with no rights to the object");
             try {
-                callAdapter.isAuthorized(null, changeableObject, Permission.READ);
-                handleFail(callAdapter.getLatestRequestUrl(),"7. testSubmitter should not be authorized to read the object");
+                callAdapterSubmitter.isAuthorized(null, changeableObject, Permission.READ);
+                handleFail(callAdapterSubmitter.getLatestRequestUrl(),"7. testSubmitter should not be authorized to read the object");
             } catch (NotAuthorized na) {
                 // this is what we want
             }
 
             log.info("finally test access against anonymous client");
-            ContextAwareTestCaseDataone.setupClientSubject_NoCert();
             try {
-                callAdapter.get(null, changeableObject);
-                handleFail(callAdapter.getLatestRequestUrl(),"8. anonymous client (no certificate) should not be" +
+                callAdapterPublic.get(null, changeableObject);
+                handleFail(callAdapterPublic.getLatestRequestUrl(),"8. anonymous client (no certificate) should not be" +
                         "able to get the object");
             } catch (NotAuthorized na) {
                 // this is what we want
@@ -246,8 +242,8 @@ public class CNAuthTestImplementations extends ContextAwareAdapter {
 
             log.info("and test isAuthorized on it with certificateless client");
             try {
-                callAdapter.isAuthorized(null, changeableObject, Permission.READ);
-                handleFail(callAdapter.getLatestRequestUrl(),"9. anonymous client (no certificate) should not be " +
+                callAdapterPublic.isAuthorized(null, changeableObject, Permission.READ);
+                handleFail(callAdapterPublic.getLatestRequestUrl(),"9. anonymous client (no certificate) should not be " +
                         "able to get successful response from isAuthorized()");
             } catch (NotAuthorized na) {
                 // this is what we want
@@ -255,9 +251,9 @@ public class CNAuthTestImplementations extends ContextAwareAdapter {
             log.info("done.");
 
         } catch (TestIterationEndingException e) {
-            handleFail(callAdapter.getLatestRequestUrl(),"No Objects available to test against: " + e.getMessage());
+            handleFail(callAdapterRH.getLatestRequestUrl(),"No Objects available to test against: " + e.getMessage());
         } catch (BaseException e) {
-            handleFail(callAdapter.getLatestRequestUrl(), e.getClass().getSimpleName() + ": " + 
+            handleFail(callAdapterRH.getLatestRequestUrl(), e.getClass().getSimpleName() + ": " + 
                     e.getDetail_code() + ": " + e.getDescription());
         } catch (Exception e) {
             e.printStackTrace();

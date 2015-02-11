@@ -17,20 +17,23 @@ public abstract class V1IsAuthorizedAuthorizationTestImpl extends
         IsAuthorizedAuthorizationTestImplementations
 {
 
-    protected String version;
-    
-    protected void setApiVersion(String version) {
-        this.version = version;
-    }
-    
     @Override
     protected CommonCallAdapter instantiateD1Node(String subjectLabel, Node node)
     {
        if(node.getType().equals(NodeType.MN)) {
-           return new MNCallAdapter(getSession(subjectLabel), node, version);
+           return new MNCallAdapter(getSession(subjectLabel), node, "v1");
        } else {
-           return new CNCallAdapter(getSession(subjectLabel), node, version);
+           return new CNCallAdapter(getSession(subjectLabel), node, "v1");
        } 
     }
 
+    @Override
+    protected CommonCallAdapter instantiateProcuringD1Node(String subjectLabel, Node node)
+    {
+       if(node.getType().equals(NodeType.MN)) {
+           return instantiateD1Node(subjectLabel, node);
+       } else {
+           return new CNCallAdapter(getSession(cnSubmitter), node, "v1");
+       } 
+    }
 }

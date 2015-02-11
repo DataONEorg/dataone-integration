@@ -28,13 +28,10 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.dataone.client.exception.ClientSideException;
-import org.dataone.client.v1.CNode;
-import org.dataone.client.v1.MNode;
 import org.dataone.integration.APITestUtils;
 import org.dataone.integration.ContextAwareTestCaseDataone;
 import org.dataone.integration.TestIterationEndingException;
 import org.dataone.integration.adapters.CommonCallAdapter;
-import org.dataone.integration.it.ContextAwareAdapter;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.IdentifierNotUnique;
 import org.dataone.service.exceptions.InsufficientResources;
@@ -80,6 +77,12 @@ public abstract class AbstractAuthorizationTestImplementations extends ContextAw
 
     protected abstract CommonCallAdapter instantiateD1Node(String subjectLabel, Node node);
 
+    /**
+     * Similar to {@link #instantiateD1Node(String, Node)}, but ensures that returned node
+     * can create objects. This means in the case of CNs, we set it up with a CN certificate.
+     */
+    protected abstract CommonCallAdapter instantiateProcuringD1Node(String subjectLabel, Node node);
+    
     /**
      * used to determine which tests to run, based on Permission
      * (used to generalize for READ-only methods, like query)
@@ -218,7 +221,7 @@ public abstract class AbstractAuthorizationTestImplementations extends ContextAw
 
              try {
 
-                 activeClient = instantiateD1Node(procuringSubjectString, node);
+                 activeClient = instantiateProcuringD1Node(procuringSubjectString, node);
 
                  String objectIdentifier = "TierTesting:" +
                      createNodeAbbreviation(activeClient.getNodeBaseServiceUrl()) +
@@ -356,7 +359,7 @@ public abstract class AbstractAuthorizationTestImplementations extends ContextAw
              currentUrl = node.getBaseURL();
 
              try {
-                 activeClient = instantiateD1Node(procuringSubjectString, node);
+                 activeClient = instantiateProcuringD1Node(procuringSubjectString, node);
 
                  String objectIdentifier = "TierTesting:" +
                      createNodeAbbreviation(activeClient.getNodeBaseServiceUrl()) +
@@ -501,7 +504,7 @@ public abstract class AbstractAuthorizationTestImplementations extends ContextAw
              currentUrl = node.getBaseURL();
 
              try {
-                 activeClient = instantiateD1Node(procuringSubjectString, node);
+                 activeClient = instantiateProcuringD1Node(procuringSubjectString, node);
                  String objectIdentifier = "TierTesting:" +
                      createNodeAbbreviation(activeClient.getNodeBaseServiceUrl()) +
                      ":Public_READ" + getTestObjectSeriesSuffix();
@@ -635,7 +638,7 @@ public abstract class AbstractAuthorizationTestImplementations extends ContextAw
              currentUrl = node.getBaseURL();
 
              try {
-                 activeClient = instantiateD1Node(procuringSubjectString, node);
+                 activeClient = instantiateProcuringD1Node(procuringSubjectString, node);
                  String objectIdentifier = "TierTesting:" +
                      createNodeAbbreviation(activeClient.getNodeBaseServiceUrl()) +
                      ":Authenticated_READ" + getTestObjectSeriesSuffix();
@@ -770,7 +773,7 @@ public abstract class AbstractAuthorizationTestImplementations extends ContextAw
              currentUrl = node.getBaseURL();
 
              try {
-                 activeClient = instantiateD1Node(procuringSubjectString, node);
+                 activeClient = instantiateProcuringD1Node(procuringSubjectString, node);
                  String objectIdentifier = "TierTesting:" +
                      createNodeAbbreviation(activeClient.getNodeBaseServiceUrl()) +
                      ":Verified_READ" + getTestObjectSeriesSuffix();
@@ -916,7 +919,7 @@ public abstract class AbstractAuthorizationTestImplementations extends ContextAw
 
              try {
                  // get or create the test object
-                 activeClient = instantiateD1Node(procuringSubjectString, node);
+                 activeClient = instantiateProcuringD1Node(procuringSubjectString, node);
                  String objectIdentifier = "TierTesting:" +
                      createNodeAbbreviation(activeClient.getNodeBaseServiceUrl()) +
                      ":testPerson_READ" + getTestObjectSeriesSuffix();
@@ -1055,7 +1058,7 @@ public abstract class AbstractAuthorizationTestImplementations extends ContextAw
              currentUrl = node.getBaseURL();
 
              try {
-                 activeClient = instantiateD1Node(procuringSubjectString, node);
+                 activeClient = instantiateProcuringD1Node(procuringSubjectString, node);
                  String objectIdentifier = "TierTesting:" +
                      createNodeAbbreviation(activeClient.getNodeBaseServiceUrl()) +
                      ":testPerson_WRITE" + getTestObjectSeriesSuffix();
@@ -1193,7 +1196,7 @@ public abstract class AbstractAuthorizationTestImplementations extends ContextAw
 
 
              try {
-                 activeClient = instantiateD1Node(procuringSubjectString, node);
+                 activeClient = instantiateProcuringD1Node(procuringSubjectString, node);
                  String objectIdentifier = "TierTesting:" +
                      createNodeAbbreviation(activeClient.getNodeBaseServiceUrl()) +
                      ":testPerson_CHANGE" + getTestObjectSeriesSuffix();
@@ -1330,7 +1333,7 @@ public abstract class AbstractAuthorizationTestImplementations extends ContextAw
 
              try {
                  // get or create the test object
-                 activeClient = instantiateD1Node(procuringSubjectString, node);
+                 activeClient = instantiateProcuringD1Node(procuringSubjectString, node);
                  String objectIdentifier = "TierTesting:" +
                      createNodeAbbreviation(activeClient.getNodeBaseServiceUrl()) +
                      ":testGroup_READ" + getTestObjectSeriesSuffix();
@@ -1472,11 +1475,10 @@ public abstract class AbstractAuthorizationTestImplementations extends ContextAw
          while (it.hasNext()) {
              Node node = it.next();
              currentUrl = node.getBaseURL();
-             activeClient = instantiateD1Node(procuringSubjectString, node);
 
              try {
                  // get or create the test object
-                 activeClient = instantiateD1Node(procuringSubjectString, node);
+                 activeClient = instantiateProcuringD1Node(procuringSubjectString, node);
                  String objectIdentifier = "TierTesting:" +
                      createNodeAbbreviation(activeClient.getNodeBaseServiceUrl()) +
                      ":testGroup_WRITE" + getTestObjectSeriesSuffix();
@@ -1621,7 +1623,7 @@ public abstract class AbstractAuthorizationTestImplementations extends ContextAw
 
              try {
                  // get or create the test object
-                 activeClient = instantiateD1Node(procuringSubjectString, node);
+                 activeClient = instantiateProcuringD1Node(procuringSubjectString, node);
                  String objectIdentifier = "TierTesting:" +
                      createNodeAbbreviation(activeClient.getNodeBaseServiceUrl()) +
                      ":testGroup_CHANGE" + getTestObjectSeriesSuffix();
@@ -1762,7 +1764,7 @@ public abstract class AbstractAuthorizationTestImplementations extends ContextAw
              currentUrl = node.getBaseURL();
 
              try {
-                 activeClient = instantiateD1Node(procuringSubjectString, node);
+                 activeClient = instantiateProcuringD1Node(procuringSubjectString, node);
                  // get or create the test object
                  String objectIdentifier = "TierTesting:" +
                      createNodeAbbreviation(activeClient.getNodeBaseServiceUrl()) +
@@ -1924,7 +1926,7 @@ public abstract class AbstractAuthorizationTestImplementations extends ContextAw
              currentUrl = node.getBaseURL();
 
              try {
-                 activeClient = instantiateD1Node(procuringSubjectString, node);
+                 activeClient = instantiateProcuringD1Node(procuringSubjectString, node);
                  String objectIdentifier = "TierTesting:" +
                      createNodeAbbreviation(activeClient.getNodeBaseServiceUrl()) +
                      ":ComplicatedPolicy" + getTestObjectSeriesSuffix();

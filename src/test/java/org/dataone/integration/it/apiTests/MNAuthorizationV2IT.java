@@ -4,7 +4,7 @@ import java.util.Iterator;
 
 import org.dataone.integration.it.testDefinitions.AuthTestDefinitions;
 import org.dataone.integration.it.testImplementations.AuthTestImplementations;
-import org.dataone.integration.it.testImplementations.V1IsAuthorizedAuthorizationTestImpl;
+import org.dataone.integration.it.testImplementations.V2IsAuthorizedAuthorizationTestImpl;
 import org.dataone.service.types.v1.Node;
 import org.junit.Before;
 import org.junit.Test;
@@ -12,7 +12,7 @@ import org.junit.Test;
 /**
  * Tests MNAuthentication functionality for v2 of the API
  */
-public class MNAuthorizationV2IT extends V1IsAuthorizedAuthorizationTestImpl
+public class MNAuthorizationV2IT extends V2IsAuthorizedAuthorizationTestImpl
         implements AuthTestDefinitions {
 
     private AuthTestImplementations authTestImpl;
@@ -25,7 +25,6 @@ public class MNAuthorizationV2IT extends V1IsAuthorizedAuthorizationTestImpl
 
     @Before
     public void setup() {
-        setApiVersion("v2");
         authTestImpl = new AuthTestImplementations(this);
     }
 
