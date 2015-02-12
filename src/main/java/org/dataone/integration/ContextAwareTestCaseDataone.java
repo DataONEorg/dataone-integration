@@ -55,7 +55,7 @@ import org.dataone.client.D1NodeFactory;
 import org.dataone.client.auth.CertificateManager;
 import org.dataone.client.auth.ClientIdentityManager;
 import org.dataone.client.exception.ClientSideException;
-import org.dataone.client.rest.DefaultHttpMultipartRestClient;
+import org.dataone.client.rest.HttpMultipartRestClient;
 import org.dataone.client.rest.MultipartRestClient;
 import org.dataone.client.v1.CNode;
 import org.dataone.client.v1.MNode;
@@ -77,6 +77,7 @@ import org.dataone.service.exceptions.NotFound;
 import org.dataone.service.exceptions.NotImplemented;
 import org.dataone.service.exceptions.ServiceFailure;
 import org.dataone.service.exceptions.UnsupportedType;
+import org.dataone.service.exceptions.VersionMismatch;
 import org.dataone.service.types.v1.AccessPolicy;
 import org.dataone.service.types.v1.AccessRule;
 import org.dataone.service.types.v1.Identifier;
@@ -117,7 +118,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 //	public static final String DEFAULT_TEST_OBJECTFORMAT = ExampleUtilities.FORMAT_EML_2_0_0;
 
 
-    public static String cnSubmitter = Settings.getConfiguration().getString("dataone.it.cnode.submitter.cn", /* default */ "cnDevUNM1");
+    public static String cnSubmitter = Settings.getConfiguration().getString("dataone.it.cnode.submitter.cn", /* default */ "cnSandboxUNM1");
 
     private static Map<String,MultipartRestClient> sessionMap = new HashMap<String,MultipartRestClient>();
     private static Map<String,Subject> subjectMap = new HashMap<String, Subject>();
@@ -522,7 +523,15 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
                 Subject subject = setupClientSubject(certificateFilename);
                 subjectMap.put(certificateFilename, subject);
             }
-            sessionMap.put(certificateFilename, new DefaultHttpMultipartRestClient());
+            try {
+                sessionMap.put(certificateFilename, new HttpMultipartRestClient());
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            } catch (ClientSideException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
         }
         return sessionMap.get(certificateFilename);
     }
@@ -1017,7 +1026,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
      * @throws NotFound
      * @throws ClientSideException
      */
-    public Identifier createTestObject(D1Node d1Node, Identifier pid, AccessRule accessRule)
+    public Identifier createTestObject(D1Node d1Node, Identifier pid, AccessRule accessRule, String submitterSubject)
     throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique, UnsupportedType,
     InsufficientResources, InvalidSystemMetadata, NotImplemented, InvalidRequest,
     UnsupportedEncodingException, NotFound, ClientSideException
@@ -1025,12 +1034,15 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
         // the default is to do all of the creates under the testSubmitter subject
         // and assign rights to testRightsHolder
         if (d1Node instanceof MNode) {
-            return createTestObject(d1Node, pid, accessRule,"testSubmitter","CN=testRightsHolder,DC=dataone,DC=org");
+            return createTestObject(d1Node, pid, accessRule, "testSubmitter", "CN=testRightsHolder,DC=dataone,DC=org");
         } else {
-            return createTestObject(d1Node, pid, accessRule,cnSubmitter,"CN=testRightsHolder,DC=dataone,DC=org");
+            return createTestObject(d1Node, pid, accessRule, submitterSubject, "CN=testRightsHolder,DC=dataone,DC=org");
         }
     }
 
+    public Identifier createTestObject(D1Node d1Node, Identifier pid, AccessRule accessRule) throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique, UnsupportedType, InsufficientResources, InvalidSystemMetadata, NotImplemented, InvalidRequest, UnsupportedEncodingException, NotFound, ClientSideException {
+        return createTestObject(d1Node, pid, accessRule, cnSubmitter);
+    }
 
     public Identifier createTestObject(D1Node d1Node, Identifier pid,
             AccessRule accessRule, String submitterSubjectLabel, String rightsHolderSubjectName)
@@ -1079,12 +1091,49 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
     InsufficientResources, InvalidSystemMetadata, NotImplemented, InvalidRequest,
     UnsupportedEncodingException, NotFound, ClientSideException
     {
+        return createTestObject(d1Node, pid, null, null, false, false, policy, 
+                submitterSubjectLabel, rightsHolderSubjectName);
+    }
+    
+    /**
+     * Creates a test object according to the parameters provided.  
+     * Also allows setting the SID and the obsoletes / obsoletedBy chain.
+     * 
+     * The method becomes the submitter client for the create, and restores the client 
+     * subject/certificate to what it was at the start of the method call.
+     * remembers the starting client subject
+     * @param d1Node - the node to create the object on
+     * @param pid - the identifier for the create object
+     * @param sid - the series identifier for the given pid
+     * @param obsoletesId - an {@link Identifier} for the previous object in the chain
+     * @param setObsoletes whether to set the obsoletes parameter on this object to be
+     *              the {@link Identifier} passed in the <code>obsoletesId</code> parameter
+     * @param setObsoletedBy whether to set the obsoletedBy parameter on the previous object,
+     *              (the object pointed to by the {@link Identifier} <code>obsoletesId</code>)
+     *              to be the identifier of the current object (<code>pid</code>)
+     *              <b>NOTE: will make an additional call to accomplish this</b>
+     * @param policy - the single access rule that will become the AccessPolicy
+     *                     for the created object.  null results in null AccessPolicy
+     * @param submitterSubjectLabel - label for the submitter subject, to be used as
+     *                                the client subject, via setupClientSubject() method
+     * @param rightsHolderSubjectName - string value for the rightsHolder subject in the
+     *                                   systemMetadata
+     * @return the Identifier for the created object
+     */
+    public Identifier createTestObject(D1Node d1Node, Identifier pid, Identifier sid, 
+            Identifier obsoletesId, boolean setObsoletes, boolean setObsoletedBy,
+            AccessPolicy policy, String submitterSubjectLabel, String rightsHolderSubjectName)
+    throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique, UnsupportedType,
+    InsufficientResources, InvalidSystemMetadata, NotImplemented, InvalidRequest,
+    UnsupportedEncodingException, NotFound, ClientSideException
+    {
         // remember who the client currently is
         X509Certificate certificate = CertificateManager.getInstance().loadCertificate();
         String startingCertLoc = CertificateManager.getInstance().getCertificateLocation();
-
+        
         Identifier retPid = null;
-
+        SystemMetadata sysMeta = null;
+        
         try {
             setupClientSubject(submitterSubjectLabel);
 
@@ -1094,7 +1143,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 
             ByteArrayInputStream objectInputStream = null;
             D1Object d1o = null;
-            SystemMetadata sysMeta = null;
+            
             try {
                 // make the submitter the same as the cert DN
                 certificate = CertificateManager.getInstance().loadCertificate();
@@ -1113,6 +1162,9 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
                         D1TypeBuilder.buildNodeReference("bogusAuthoritativeNode"));
                 //			}
                 sysMeta = TypeMarshaller.convertTypeFromType(d1o.getSystemMetadata(), SystemMetadata.class);
+                sysMeta.setSeriesId(sid);
+                if(setObsoletes)
+                    sysMeta.setObsoletes(obsoletesId);
             } catch (NoSuchAlgorithmException e) {
                 e.printStackTrace();
                 throw new ServiceFailure("0000","client misconfiguration related to checksum algorithms");
@@ -1171,8 +1223,9 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
                     pid.getValue(), retPid.getValue());
 
 
-        }
-        finally {
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
             // reset the client to the starting subject/certificate
             // (this should work for public user, too, since we create a public user by
             // using a bogus certificate location)
@@ -1184,9 +1237,30 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
             }
         }
 
+        if(setObsoletedBy && obsoletesId != null && d1Node instanceof CNCallAdapter)
+            setObsoletedBy((CNCallAdapter) d1Node, pid, retPid, sysMeta.getSerialVersion().longValue());
+        
         return retPid;
     }
 
+    /**
+     * Sets the obsoletedBy parameter on the object with the given <code>pid</code>
+     * to be the <code>obsoletedByPid</code>.
+     * 
+     * @param node the {@link CNCallAdapter} on which to call setObsoletedBy
+     * @param pid the {@link Identifier} of the object whose obsoletedBy we're changing
+     * @param obsoletedByPid the {@link Identifier} of the object doing the obsoleting
+     * @param serialVersion the version of the {@link SystemMetadata}
+     */
+    protected void setObsoletedBy(CNCallAdapter node, Identifier pid, Identifier obsoletedByPid, long serialVersion)
+            throws NotImplemented, NotFound, NotAuthorized, ServiceFailure, InvalidRequest,
+            InvalidToken, ClientSideException {
+        try {
+            node.setObsoletedBy(null, pid, obsoletedByPid, serialVersion);
+        } catch (VersionMismatch e) {
+           throw new ServiceFailure(e.getDetail_code(), "VersionMismatch : " + e.getDescription());
+        }
+    }
 
     /**
      * create an accessPolicy that assigns read permission to public subject.

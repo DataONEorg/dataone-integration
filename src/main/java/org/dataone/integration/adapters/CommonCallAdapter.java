@@ -192,26 +192,26 @@ public class CommonCallAdapter implements D1Node {
         return mrc.getLatestRequestUrl();
     }
 
-    public InputStream get(Session session, Identifier pid) throws ClientSideException, InvalidToken, NotAuthorized,
+    public InputStream get(Session session, Identifier id) throws ClientSideException, InvalidToken, NotAuthorized,
             NotImplemented, ServiceFailure, NotFound, InsufficientResources {
         if (this.node.getType().equals(NodeType.MN)) {
             if (this.version.toLowerCase().equals("v1")) {
                 MNRead mnRead = D1NodeFactory.buildNode(org.dataone.service.mn.tier1.v1.MNRead.class, this.mrc,
                         URI.create(this.node.getBaseURL()));
-                return mnRead.get(session, pid);
+                return mnRead.get(session, id);
             } else if (this.version.toLowerCase().equals("v2")) {
                 org.dataone.service.mn.tier1.v2.MNRead mnRead = D1NodeFactory.buildNode(
                         org.dataone.service.mn.tier1.v2.MNRead.class, this.mrc, URI.create(this.node.getBaseURL()));
-                return mnRead.get(session, pid);
+                return mnRead.get(session, id);
             }
         } else if (this.node.getType().equals(NodeType.CN)) {
             if (this.version.toLowerCase().equals("v1")) {
                 org.dataone.service.cn.v1.CNRead cnRead = D1NodeFactory.buildNode(
                         org.dataone.service.cn.v1.CNRead.class, this.mrc, URI.create(this.node.getBaseURL()));
-                return cnRead.get(session, pid);
+                return cnRead.get(session, id);
             } else if (this.version.toLowerCase().equals("v2")) {
                 CNRead cnRead = D1NodeFactory.buildNode(CNRead.class, this.mrc, URI.create(this.node.getBaseURL()));
-                return cnRead.get(session, pid);
+                return cnRead.get(session, id);
             }
         }
         throw new ClientSideException("Unable to create node of type " + node.getType() + " of version " + version);
