@@ -57,7 +57,7 @@ class WebTestListener extends RunListener
             newRun = false;
         }
         currentTest = new AtomicTest(testCaseName + ": " + d.getMethodName());
-        currentTest.setType("Test");
+//        currentTest.setType("Test");
         currentTest.setStatus("Success");
 
         this.newRun = false;
@@ -68,7 +68,7 @@ class WebTestListener extends RunListener
             testList.add(currentTest);
         }
         currentTest = new AtomicTest(testCaseName);
-        currentTest.setType("Summary");
+//        currentTest.setType("Summary");
         String runSummary = "RunCount=" + r.getRunCount() +
                 "   Failures/Errors=" + r.getFailureCount() +
                 "   Ignored=" + r.getIgnoreCount();
@@ -90,7 +90,7 @@ class WebTestListener extends RunListener
             testList.add(currentTest);
         }
         currentTest = new AtomicTest(d.getClassName() + ": " + d.getMethodName());
-        currentTest.setType("Test");
+//        currentTest.setType("Test");
         currentTest.setStatus("Ignored");
         currentTest.setMessage(d.getAnnotation(org.junit.Ignore.class).value());
     }

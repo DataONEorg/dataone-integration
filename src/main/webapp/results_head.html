@@ -1,21 +1,62 @@
-    <head>
-        <title>Member Node Web Service Test Results</title>
-        <style type="text/css">
+  <head>
+    <title>Member Node Web Service Test Results</title>
+    <style type="text/css">
       div { padding-left: 10px; padding-right: 10px; border-top: 2px solid #CCC; }
       body { font-family: sans-serif; margin: 0px; }
       div.padded { margin-top: 20px; }
       table { width: 100%; }
       th { text-align: left; }
       td { width: 60%; text-align: left; font-weight=normal; font-size: smaller; padding-left: 50px; }
-      .testPass {background-image: url('images/blue.png'); background-repeat: no-repeat; padding: 10px; padding-left: 70px;}
-      .summaryPass {background-image: url('images/blue.png'); background: #999; background-repeat: no-repeat; padding: 10px; padding-left: 70px;}
-      .testFail {background-image: url('images/red.png'); background-repeat: no-repeat; padding: 10px; padding-left: 70px;}
-      .summaryFail {background-image: url('images/red.png'); background: #999; background-repeat: no-repeat; padding: 10px; padding-left: 70px;}
-      .testIgnore {background-image: url('images/grey.png'); background-repeat: no-repeat; padding: 10px; padding-left: 70px;}
-      .greyDescr {background: #ccc; padding: 10px; padding-left: 70px; font-family: serif;}
-      .testWarn {background-image: url('images/yellow.png'); background-repeat: no-repeat; padding: 10px; padding-left: 70px;}
-      .summaryWarn {background-image: url('images/yellow.png'); background-repeat: no-repeat; padding: 10px; padding-left: 70px;}
-      .greyHeader {background: grey; padding: 10px; padding-left: 30px;}
+      .runHeader {
+          background: gray;
+          padding: 10px; padding-left: 50px;}
+
+      .testPass {
+          background-image: url('images/blue.png');   background-repeat: no-repeat;
+          padding: 10px; padding-left: 70px;
+          }
+      .testIgnore {
+          background-image: url('images/grey.png');   background-repeat: no-repeat;
+          padding: 10px; padding-left: 70px;
+          }
+      .testFailure {
+          background-image: url('images/red.png');    background-repeat: no-repeat;
+          padding: 10px; padding-left: 70px;
+          }
+      .testWarning {
+          background-image: url('images/yellow.png'); background-repeat: no-repeat;
+          padding: 10px; padding-left: 70px;
+          }
+      .testError {
+          background-image: url('images/red.png'); background-repeat: no-repeat;
+          padding: 10px; padding-left: 70px;
+          }
+      .testAssumptionBye {
+          background-image: url('images/blue.png'); background-repeat: no-repeat;
+          padding: 10px; padding-left: 70px;
+          }
+      .summaryPass {
+          background: #aaa; background-image: url('images/blue.png');   background-repeat: no-repeat;
+          padding: 10px; padding-left: 50px;
+          }
+      .summaryFail {
+          background: #aaa; background-image: url('images/red.png');    background-repeat: no-repeat;
+          padding: 10px; padding-left: 50px;
+          }
+      .summaryWarn {
+          background: #aaa; background-image: url('images/yellow.png'); background-repeat: no-repeat;
+          padding: 10px; padding-left: 50px;
+          }
+      .summaryAllIgnored {
+          background: #aaa; background-image: url('images/yellow.png'); background-repeat: no-repeat;
+          padding: 10px; padding-left: 50px;
+          }
+      .greyDescr {
+          background: #ccc;
+          padding: 10px; padding-left: 50px;
+          }
+          padding: 10px; padding-left: 70px; font-family: serif;
+          }
     </style>
     <script language="javascript">
 function toggleTrace(showHideDiv, switchTextDiv) {
@@ -30,5 +71,7 @@ function toggleTrace(showHideDiv, switchTextDiv) {
     text.innerHTML = "hide trace";
     }
 }
-</script>
-    </head>
+    </script>
+  </head>
+
+

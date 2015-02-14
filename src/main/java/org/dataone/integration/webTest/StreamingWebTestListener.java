@@ -65,11 +65,10 @@ class StreamingWebTestListener extends RunListener
     private OutputStream out;
     private StreamableSerializer serializer;
     private int testRowIndex = 1;
-    
-    private enum lineStatus {
-        TEST_PASS, TEST_WARN, TEST_FAIL, TEST_IGNORE, SUMMARY_PASS, SUMMARY_WARN,
-        SUMMARY_FAIL, TC_HEADER, DESCRIPTION
-    }
+    private int assumptions = 0;
+    private int failures = 0;
+    private int warnings = 0;
+    private int errors = 0;
 
 
     public StreamingWebTestListener(OutputStream os) throws ValidityException, ParsingException, IOException {
@@ -83,88 +82,151 @@ class StreamingWebTestListener extends RunListener
 
     }
 
+    /**
+     * testStarted reports any previous test and creates a new 'current test'
+     * If it is considered a new run, it also reports a header line with the name
+     * of the test case.
+     */
+    @Override
     public void testStarted(Description d) {
+
         if (currentTest != null) {
             report(currentTest);
-            //			testList.add(currentTest);
         }
+        
         testCaseName = d.getClassName();
         if (newRun) {
             currentTest = new AtomicTest(testCaseName);
-            currentTest.setStatus("Header");
+            currentTest.setStatus("runHeader");
             currentTest.setMessage("SOURCE");
             report(currentTest);
-            //			testList.add(currentTest);
             newRun = false;
         }
         currentTest = new AtomicTest(testCaseName + ": " + d.getMethodName());
-        currentTest.setType("Test");
-        currentTest.setStatus("Success");
+        currentTest.setStatus("testStarted");
 
-        this.newRun = false;
+//        this.newRun = false;
     }
-
-    public void testRunFinished(Result r) {
-        if (currentTest != null) {
-            report(currentTest);
-            //			testList.add(currentTest);
-        }
-        currentTest = new AtomicTest(testCaseName);
-        currentTest.setType("Summary");
-        String runSummary = "RunCount=" + r.getRunCount() +
-                "   Failures/Errors=" + r.getFailureCount() +
-                "   Ignored=" + r.getIgnoreCount();
-        if(r.getFailureCount() > 0) {
-            currentTest.setStatus("Failed");
-            currentTest.setMessage("Failed Tier due to failures or exceptions. [" + runSummary + "]");
-        } else if (r.getIgnoreCount() > 0) {
-            currentTest.setStatus("Ignored");
-            currentTest.setMessage("Tier Tentative Pass (Ignored Tests present). [" + runSummary + "]");
-        } else {
-            currentTest.setStatus("Success");
-            currentTest.setMessage("Tier Passed. [" + runSummary + "]");
-        }
-        this.newRun = true;
-    }
-
+    
+    /**
+     * testIgnored reports any previous test and creates a new 'current test'
+     * If it is considered a new run, it also reports a header line with the name
+     * of the test case.
+     */
+    @Override
     public void testIgnored(Description d) {
         if (currentTest != null) {
             report(currentTest);
-            //			testList.add(currentTest);
         }
+        
+        testCaseName = d.getClassName();
+        if (newRun) {
+            currentTest = new AtomicTest(testCaseName);
+            currentTest.setStatus("runHeader");
+            currentTest.setMessage("SOURCE");
+            report(currentTest);
+            newRun = false;
+        }
+        
+        
         currentTest = new AtomicTest(d.getClassName() + ": " + d.getMethodName());
-        currentTest.setType("Test");
-        currentTest.setStatus("Ignored");
+        currentTest.setStatus("testIgnored");
         currentTest.setMessage(d.getAnnotation(org.junit.Ignore.class).value());
     }
+    
 
+    /**
+     * testFailure modifies the status, message, and stackTrace of the current test
+     */
+    @Override
     public void testFailure(Failure f) {
         Throwable t = f.getException();
         if (t instanceof java.lang.AssertionError) {
-            currentTest.setStatus("Failed");
+            currentTest.setStatus("testFailure");
+            this.failures++;
+        } else if (t instanceof org.dataone.integration.TestIterationEndingException) {
+            currentTest.setStatus("testWarning");
+            this.warnings++;
         } else {
-            currentTest.setStatus("Error");
+            currentTest.setStatus("testError");
+            this.errors++;
         }
         currentTest.setMessage( t.getClass().getSimpleName() + ": " + f.getMessage());
         currentTest.setTrace(f.getTrace());
     }
+    
+    
+    /**
+     * testAssumptionFailure modifies the status, message, and stackTrace of the current test
+     * It is called when the org.junit.runner.AssumptionViolationException is thrown
+     * and is used to indicate when a precondition for the test is not met.
+     */
+    @Override
+    public void testAssumptionFailure(Failure f) {
+        Throwable t = f.getException();
 
-    //	public ArrayList<AtomicTest> getTestList() {
-    //		if (currentTest != null) {
-    //			report(currentTest);
-    ////			testList.add(currentTest);
-    //			currentTest = null;
-    //		}
-    //		return testList;
-    //	}
+        this.assumptions++;
+        currentTest.setStatus("testAssumptionBye");
+        currentTest.setMessage( t.getClass().getSimpleName() + ": " + f.getMessage());
+        currentTest.setTrace(f.getTrace());
+        
+    }
 
+
+
+    /**
+     * testRunFinished reports the previous test and creates a new current test
+     * that is the summary of the run / testcase.  It can get the count of failures
+     *  ignored tests, and total tests run from the Result parameter, but can't
+     *  get the testAssumptionFailures, so gets it from a counter property maintained
+     *  in this class.
+     */
+    @Override
+    public void testRunFinished(Result r) {
+        if (currentTest != null) {
+            report(currentTest);
+        }
+        
+        currentTest = new AtomicTest(testCaseName);
+        String runSummary = "RunCount=" + r.getRunCount() +
+                "  Failures=" + this.failures +
+                "  Errors=" + this.errors +
+                "  Warnings=" + this.warnings +
+                "  Assumptions=" +  this.assumptions + 
+                "  Ignored=" + r.getIgnoreCount();
+        if (this.failures > 0) { 
+            currentTest.setStatus("summaryFail");
+            currentTest.setMessage("Failed Test Case due to failures. [" + runSummary + "]");
+        } else if (this.errors + this.warnings > 0) {
+            // want to warn if either the node isn't ready to test fully, or tests
+            // are in error, somehow (needs debugging then).
+            currentTest.setStatus("summaryWarning");
+            currentTest.setMessage("Could not run all tests. [" + runSummary + "]");
+        } else if (r.getRunCount() == r.getIgnoreCount()) {
+            currentTest.setStatus("summaryAllIgnored");
+            currentTest.setMessage("Tier Not Tested [" + runSummary + "]");
+        } else {
+            currentTest.setStatus("summaryPass");
+            currentTest.setMessage("Tier Passed. [" + runSummary + "]");
+        }
+        this.newRun = true;
+        this.failures = 0;
+        this.assumptions = 0;
+        this.warnings = 0;
+        this.errors = 0;
+        
+    }
+    
+    /**
+     * this reports any currentTest that hasn't been flushed, usually the
+     * run summary line, but it can also be called 
+     */
     public void finishReport() {
         if (this.currentTest != null)
             report(this.currentTest);
     }
 
-
-
+    
     protected void report(AtomicTest test) {
 
         try {
@@ -188,47 +250,55 @@ class StreamingWebTestListener extends RunListener
 
     }
 
-    /**
+    /*
+     * this method fill the div with contents of the AtomicTest with the result
+     * for each test / test header.
+     * 
      * adapted from webTester in MN package...
-     * @param testResult
-     * @param div
+     * 
+     * see src/main/webapp/results_head.html for html formatting class definitions
      */
     private void generateTestReportLine(AtomicTest testResult, Element div, int rowIndex) {
 
+        // make an html table 
         Element table = new Element("table");
         Element tr = new Element("tr");
         Element name = new Element("th");
         Element description = new Element("td");
 
-        // set color based on status
+        // set format class based on the status
         if (testResult == null) {
-            div.addAttribute(new Attribute("class", "greyDescr"));
+            div.addAttribute(new Attribute("class", "uncategorized"));
         }
-        else if (testResult.getStatus().equals("Success")) {
-            if (testResult.getMessage() != null && testResult.getMessage().contains("Tier Passed")) {
-                div.addAttribute(new Attribute("class","summaryPass"));
-            } else {
-                div.addAttribute(new Attribute("class", "testPass"));
-            }
+        else if (testResult.getStatus().equals("testStarted")) {
+            div.addAttribute(new Attribute("class", "testPass"));
         }
-        else if (testResult.getStatus().equals("Ignored")) {
-            div.addAttribute(new Attribute("class", "testIgnore"));
+        else if (testResult.getStatus().equals("testIgnored")) {
+            div.addAttribute(new Attribute("class", "testIgnored"));
         }
-        else if (testResult.getStatus().equals("Failed")) {
-            if (testResult.getMessage() != null && testResult.getMessage().contains("Failed Tier")) {
-                div.addAttribute(new Attribute("class","summaryFail"));
-            } else {
-                div.addAttribute(new Attribute("class", "testFail"));
-            }
+        else if (testResult.getStatus().equals("testFailure")) {
+            div.addAttribute(new Attribute("class", "testFailure"));
         }
-        else if (testResult.getStatus().equals("Error")) {
-            div.addAttribute(new Attribute("class", "testWarn"));
+        else if (testResult.getStatus().equals("testAssumptionFailure")) {
+            div.addAttribute(new Attribute("class", "testAssumptionFailure"));
         }
-        else if (testResult.getStatus().equals("Header")) {
-            div.addAttribute(new Attribute("class", "greyHeader"));
+        else if (testResult.getStatus().equals("summaryFail")) {
+            div.addAttribute(new Attribute("class", "summaryFail"));
+        }
+        else if (testResult.getStatus().equals("summaryPass")) {
+            div.addAttribute(new Attribute("class", "summaryPass"));
+        }
+        else if (testResult.getStatus().equals("summaryAllIgnored")) {
+            div.addAttribute(new Attribute("class", "summaryAllIgnored"));
+        }
+        else if (testResult.getStatus().equals("summaryHasAssumptionViolations")) {
+            div.addAttribute(new Attribute("class", "summaryHasAssumptionViolations"));
+        }
+        else if (testResult.getStatus().equals("runHeader")) {
+            div.addAttribute(new Attribute("class", "runHeader"));
         }
         else {
-            div.addAttribute(new Attribute("class", "greyDescr"));
+            div.addAttribute(new Attribute("class", "uncategorized"));
         }
 
         // add contents to the table row...

@@ -45,6 +45,11 @@ class AtomicTest {
         return testName;
     }
 
+    /**
+     *   the status of the test 
+     * 
+     * @param status
+     */
     public void setStatus(String status)
     {
         this.status = status;
@@ -53,11 +58,6 @@ class AtomicTest {
     public String getStatus()
     {
         return status;
-    }
-
-    public boolean wasSuccessful()
-    {
-        return getStatus().equals("Success");
     }
 
     public void setMessage(String message)
@@ -70,15 +70,6 @@ class AtomicTest {
         return message;
     }
 
-    public void setType(String type)
-    {
-        this.type = type;
-    }
-
-    public String getType()
-    {
-        return type;
-    }
 
     public void setTrace(String trace)
     {

@@ -51,7 +51,7 @@ import java.util.regex.Pattern;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.dataone.client.exception.ClientSideException;
-import org.dataone.client.rest.DefaultHttpMultipartRestClient;
+import org.dataone.client.rest.HttpMultipartRestClient;
 import org.dataone.client.rest.MultipartRestClient;
 import org.dataone.client.v1.itk.D1Object;
 import org.dataone.client.v2.CNode;
@@ -130,7 +130,7 @@ public class ClientArchitectureConformityIT {
     protected static final String EXCEPTION_SERVICE = "/exception";
     protected static String pathInfoBase;
 
-    private static final MultipartRestClient MRC = new DefaultHttpMultipartRestClient();
+    private static MultipartRestClient MRC;
 
     protected static Log log = LogFactory.getLog(ClientArchitectureConformityIT.class);
 
@@ -169,9 +169,10 @@ public class ClientArchitectureConformityIT {
     public ErrorCollector errorCollector = new ErrorCollector();
 
     @BeforeClass
-    public static void setUp() {
+    public static void setUp() throws IOException, ClientSideException {
         Settings.getConfiguration().setProperty("D1Client.useLocalCache","false");
         Settings.getConfiguration().setProperty("CNode.useObjectFormatCache","false");
+        MRC = new HttpMultipartRestClient();
     }
 
     @Parameters
@@ -471,9 +472,9 @@ public class ClientArchitectureConformityIT {
         checkTrue(currentMethodKey,
                   String.format("Implemented return type (%s) should match documented type (%s)",
                             returnTypeSimpleName, expectedReturnType),
-                  ArchitectureUtils.checkDocTypeEqualsJavaType(
-                          expectedReturnType,
-                          returnTypeSimpleName)
+                            ArchitectureUtils.checkDocTypeEqualsJavaType(
+                                    expectedReturnType,
+                                    returnTypeSimpleName)
                   );
     }
 

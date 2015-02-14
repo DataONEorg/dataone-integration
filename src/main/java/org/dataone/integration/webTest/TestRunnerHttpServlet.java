@@ -177,6 +177,9 @@ public class TestRunnerHttpServlet extends HttpServlet {
         generateURLRow(div, mNodeBaseUrl);
         StreamableSerializer ss = new StreamableSerializer(out);
         ss.writeChild(div);
+        
+        out.write("\n".getBytes("UTF-8"));
+        
         ss.flush();
 
         log.info("setting system property '" + TestSettings.CONTEXT_MN_URL

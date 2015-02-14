@@ -27,6 +27,7 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.internal.AssumptionViolatedException;
 
 
 public class MockV1ITCase { 
@@ -59,4 +60,9 @@ public class MockV1ITCase {
 		float f = 12 / 0;
 		f++;
 	}	
+	
+	@Test
+	public void testAssumptionViolatedException() {
+	    throw new AssumptionViolatedException("Could not set up the test properly.");
+	}
 }
