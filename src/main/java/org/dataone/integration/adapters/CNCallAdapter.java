@@ -184,37 +184,6 @@ public class CNCallAdapter extends CommonCallAdapter {
                 + " of version " + version);
     }
 
-    public Identifier create(Session session, Identifier pid, InputStream object,
-            SystemMetadata sysmeta) throws ClientSideException, InvalidToken, ServiceFailure,
-            NotAuthorized, IdentifierNotUnique, UnsupportedType, InsufficientResources,
-            InvalidSystemMetadata, NotImplemented, InvalidRequest {
-        if (this.node.getType().equals(NodeType.CN)) {
-            if (this.version.toLowerCase().equals("v1")) {
-                org.dataone.service.cn.v1.CNCore cnCore = D1NodeFactory.buildNode(
-                        org.dataone.service.cn.v1.CNCore.class, this.mrc,
-                        URI.create(this.node.getBaseURL()));
-                
-                org.dataone.service.types.v1.SystemMetadata v1SysMeta;
-                try {
-                    v1SysMeta = TypeMarshaller.convertTypeFromType(sysmeta, org.dataone.service.types.v1.SystemMetadata.class);
-                }
-                catch (InstantiationException | IllegalAccessException
-                        | InvocationTargetException | JiBXException
-                        | IOException e) {
-                    e.printStackTrace();
-                    throw new ClientSideException("Failed to convert SystemMetadata from v1 to v2 prior to the create call", e);
-                }
-                return cnCore.create(session, pid, object, v1SysMeta);
-            } else if (this.version.toLowerCase().equals("v2")) {
-                CNCore cnCore = D1NodeFactory.buildNode(CNCore.class, this.mrc,
-                        URI.create(this.node.getBaseURL()));
-                return cnCore.create(session, pid, object, sysmeta);
-            }
-        }
-        throw new ClientSideException("Call to create failed. " + node.getType() + " of version "
-                + version);
-    }
-
     public Subject registerAccount(Session session, Person person) throws ServiceFailure,
             NotAuthorized, IdentifierNotUnique, InvalidCredentials, NotImplemented, InvalidRequest,
             InvalidToken, ClientSideException {
@@ -657,42 +626,6 @@ public class CNCallAdapter extends CommonCallAdapter {
         }
         throw new ClientSideException("Call to setObsoletedBy failed. " + node.getType()
                 + " of version " + version);
-    }
-
-    public Identifier delete(Session session, Identifier id) throws InvalidToken, ServiceFailure,
-            NotAuthorized, NotFound, NotImplemented, ClientSideException, InvalidRequest {
-        if (this.node.getType().equals(NodeType.CN)) {
-            if (this.version.toLowerCase().equals("v1")) {
-                org.dataone.service.cn.v1.CNCore cnCore = D1NodeFactory.buildNode(
-                        org.dataone.service.cn.v1.CNCore.class, this.mrc,
-                        URI.create(this.node.getBaseURL()));
-                return cnCore.delete(session, id);
-            } else if (this.version.toLowerCase().equals("v2")) {
-                CNCore cnCore = D1NodeFactory.buildNode(CNCore.class, this.mrc,
-                        URI.create(this.node.getBaseURL()));
-                return cnCore.delete(session, id);
-            }
-        }
-        throw new ClientSideException("Call to delete failed. " + node.getType() + " of version "
-                + version);
-    }
-
-    public Identifier archive(Session session, Identifier id) throws InvalidToken, ServiceFailure,
-            NotAuthorized, NotFound, NotImplemented, ClientSideException, InvalidRequest {
-        if (this.node.getType().equals(NodeType.CN)) {
-            if (this.version.toLowerCase().equals("v1")) {
-                org.dataone.service.cn.v1.CNCore cnCore = D1NodeFactory.buildNode(
-                        org.dataone.service.cn.v1.CNCore.class, this.mrc,
-                        URI.create(this.node.getBaseURL()));
-                return cnCore.archive(session, id);
-            } else if (this.version.toLowerCase().equals("v2")) {
-                CNCore cnCore = D1NodeFactory.buildNode(CNCore.class, this.mrc,
-                        URI.create(this.node.getBaseURL()));
-                return cnCore.archive(session, id);
-            }
-        }
-        throw new ClientSideException("Call to archive failed. " + node.getType() + " of version "
-                + version);
     }
 
     public boolean updateNodeCapabilities(Session session, NodeReference nodeid,

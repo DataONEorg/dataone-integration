@@ -15,16 +15,20 @@ import org.dataone.client.rest.MultipartRestClient;
 import org.dataone.service.cn.v1.CNAuthorization;
 import org.dataone.service.cn.v1.CNCore;
 import org.dataone.service.cn.v2.CNRead;
+import org.dataone.service.exceptions.IdentifierNotUnique;
 import org.dataone.service.exceptions.InsufficientResources;
 import org.dataone.service.exceptions.InvalidRequest;
+import org.dataone.service.exceptions.InvalidSystemMetadata;
 import org.dataone.service.exceptions.InvalidToken;
 import org.dataone.service.exceptions.NotAuthorized;
 import org.dataone.service.exceptions.NotFound;
 import org.dataone.service.exceptions.NotImplemented;
 import org.dataone.service.exceptions.ServiceFailure;
+import org.dataone.service.exceptions.UnsupportedType;
 import org.dataone.service.mn.tier1.v1.MNCore;
 import org.dataone.service.mn.tier1.v1.MNRead;
 import org.dataone.service.mn.tier2.v1.MNAuthorization;
+import org.dataone.service.mn.tier3.v2.MNStorage;
 import org.dataone.service.mn.v2.MNQuery;
 import org.dataone.service.types.v1.Checksum;
 import org.dataone.service.types.v1.DescribeResponse;
@@ -457,7 +461,99 @@ public class CommonCallAdapter implements D1Node {
                 + " of version " + version);
     }
     
+    public Identifier create(Session session, Identifier pid, InputStream object,
+            SystemMetadata sysmeta) throws ClientSideException, InvalidToken, ServiceFailure,
+            NotAuthorized, IdentifierNotUnique, UnsupportedType, InsufficientResources,
+            InvalidSystemMetadata, NotImplemented, InvalidRequest, InstantiationException, IllegalAccessException, InvocationTargetException, JiBXException, IOException {
+        if (this.node.getType().equals(NodeType.CN)) {
+            if (this.version.toLowerCase().equals("v1")) {
+                CNCore cnCore = D1NodeFactory.buildNode(
+                        org.dataone.service.cn.v1.CNCore.class, this.mrc,
+                        URI.create(this.node.getBaseURL()));
+                org.dataone.service.types.v1.SystemMetadata v1SysMeta = TypeMarshaller.convertTypeFromType(sysmeta, org.dataone.service.types.v1.SystemMetadata.class);
+                return cnCore.create(session, pid, object, v1SysMeta);
+            } else if (this.version.toLowerCase().equals("v2")) {
+                org.dataone.service.cn.v2.CNCore cnCore = D1NodeFactory.buildNode(org.dataone.service.cn.v2.CNCore.class, this.mrc,
+                        URI.create(this.node.getBaseURL()));
+                org.dataone.service.types.v2.SystemMetadata sysmetaV2 = TypeMarshaller.convertTypeFromType(sysmeta, org.dataone.service.types.v2.SystemMetadata.class);
+                return cnCore.create(session, pid, object, sysmetaV2);
+            }
+        } else if (this.node.getType().equals(NodeType.MN)) {
+            if (this.version.toLowerCase().equals("v1")) {
+                org.dataone.service.mn.tier3.v1.MNStorage mnStorage = D1NodeFactory.buildNode(
+                        org.dataone.service.mn.tier3.v1.MNStorage.class, this.mrc,
+                        URI.create(this.node.getBaseURL()));
+                org.dataone.service.types.v1.SystemMetadata v1SysMeta = TypeMarshaller.convertTypeFromType(sysmeta, org.dataone.service.types.v1.SystemMetadata.class);
+                return mnStorage.create(session, pid, object, v1SysMeta);
+            } else if (this.version.toLowerCase().equals("v2")) {
+                MNStorage mnStorage = D1NodeFactory.buildNode(MNStorage.class, this.mrc,
+                        URI.create(this.node.getBaseURL()));
+                org.dataone.service.types.v2.SystemMetadata sysmetaV2 = TypeMarshaller.convertTypeFromType(sysmeta, org.dataone.service.types.v2.SystemMetadata.class);
+                return mnStorage.create(session, pid, object, sysmetaV2);
+            }
+        }
+        throw new ClientSideException("Call to create failed. " + node.getType() + " of version "
+                + version);
+    }
     
+    public Identifier delete(Session session, Identifier id) throws InvalidToken, ServiceFailure,
+            NotAuthorized, NotFound, NotImplemented, ClientSideException, InvalidRequest {
+        if (this.node.getType().equals(NodeType.CN)) {
+            if (this.version.toLowerCase().equals("v1")) {
+                org.dataone.service.cn.v1.CNCore cnCore = D1NodeFactory.buildNode(
+                        org.dataone.service.cn.v1.CNCore.class, this.mrc,
+                        URI.create(this.node.getBaseURL()));
+                return cnCore.delete(session, id);
+            } else if (this.version.toLowerCase().equals("v2")) {
+                CNCore cnCore = D1NodeFactory.buildNode(CNCore.class, this.mrc,
+                        URI.create(this.node.getBaseURL()));
+                return cnCore.delete(session, id);
+            }
+        } else if (this.node.getType().equals(NodeType.MN)) {
+            if (this.version.toLowerCase().equals("v1")) {
+                org.dataone.service.mn.tier3.v1.MNStorage mnStorage = D1NodeFactory.buildNode(
+                        org.dataone.service.mn.tier3.v1.MNStorage.class, this.mrc,
+                        URI.create(this.node.getBaseURL()));
+                return mnStorage.delete(session, id);
+            } else if (this.version.toLowerCase().equals("v2")) {
+                MNStorage mnStorage = D1NodeFactory.buildNode(MNStorage.class, this.mrc,
+                        URI.create(this.node.getBaseURL()));
+                return mnStorage.delete(session, id);
+            }
+        }
+        throw new ClientSideException("Call to delete failed. " + node.getType() + " of version "
+                + version);
+    }
+
+    public Identifier archive(Session session, Identifier id) throws InvalidToken, ServiceFailure,
+            NotAuthorized, NotFound, NotImplemented, ClientSideException, InvalidRequest {
+        if (this.node.getType().equals(NodeType.CN)) {
+            if (this.version.toLowerCase().equals("v1")) {
+                org.dataone.service.cn.v1.CNCore cnCore = D1NodeFactory.buildNode(
+                        org.dataone.service.cn.v1.CNCore.class, this.mrc,
+                        URI.create(this.node.getBaseURL()));
+                return cnCore.archive(session, id);
+            } else if (this.version.toLowerCase().equals("v2")) {
+                CNCore cnCore = D1NodeFactory.buildNode(CNCore.class, this.mrc,
+                        URI.create(this.node.getBaseURL()));
+                return cnCore.archive(session, id);
+            }
+        } else if (this.node.getType().equals(NodeType.MN)) {
+            if (this.version.toLowerCase().equals("v1")) {
+                org.dataone.service.mn.tier3.v1.MNStorage mnStorage = D1NodeFactory.buildNode(
+                        org.dataone.service.mn.tier3.v1.MNStorage.class, this.mrc,
+                        URI.create(this.node.getBaseURL()));
+                return mnStorage.archive(session, id);
+            } else if (this.version.toLowerCase().equals("v2")) {
+                MNStorage mnStorage = D1NodeFactory.buildNode(MNStorage.class, this.mrc,
+                        URI.create(this.node.getBaseURL()));
+                return mnStorage.archive(session, id);
+            }
+        }
+        throw new ClientSideException("Call to archive failed. " + node.getType() + " of version "
+                + version);
+    }
+
     private Log convertV1Log(org.dataone.service.types.v1.Log v1Log) 
     throws InstantiationException, IllegalAccessException, InvocationTargetException, JiBXException, IOException 
     {

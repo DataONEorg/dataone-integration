@@ -1144,11 +1144,11 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
             ByteArrayInputStream objectInputStream = null;
             D1Object d1o = null;
             
+            // make the submitter the same as the cert DN
+            certificate = CertificateManager.getInstance().loadCertificate();
+            String submitterX500 = CertificateManager.getInstance().getSubjectDN(certificate);
+            
             try {
-                // make the submitter the same as the cert DN
-                certificate = CertificateManager.getInstance().loadCertificate();
-                String submitterX500 = CertificateManager.getInstance().getSubjectDN(certificate);
-
                 //			if (d1Node instanceof MNode) {
                 //				byte[] contentBytes = "Plain text source for test object".getBytes("UTF-8");
                 //				objectInputStream = new ByteArrayInputStream(contentBytes);
@@ -1221,8 +1221,10 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
             checkEquals(d1Node.getNodeBaseServiceUrl(),
                     "createTestObject(): returned pid from the create() should match what was given",
                     pid.getValue(), retPid.getValue());
-
-
+            
+            if(setObsoletedBy && obsoletesId != null && d1Node instanceof CNCallAdapter)
+                ((CNCallAdapter)d1Node).setObsoletedBy(null, pid, retPid, sysMeta.getSerialVersion().longValue());
+            
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
@@ -1237,29 +1239,8 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
             }
         }
 
-        if(setObsoletedBy && obsoletesId != null && d1Node instanceof CNCallAdapter)
-            setObsoletedBy((CNCallAdapter) d1Node, pid, retPid, sysMeta.getSerialVersion().longValue());
         
         return retPid;
-    }
-
-    /**
-     * Sets the obsoletedBy parameter on the object with the given <code>pid</code>
-     * to be the <code>obsoletedByPid</code>.
-     * 
-     * @param node the {@link CNCallAdapter} on which to call setObsoletedBy
-     * @param pid the {@link Identifier} of the object whose obsoletedBy we're changing
-     * @param obsoletedByPid the {@link Identifier} of the object doing the obsoleting
-     * @param serialVersion the version of the {@link SystemMetadata}
-     */
-    protected void setObsoletedBy(CNCallAdapter node, Identifier pid, Identifier obsoletedByPid, long serialVersion)
-            throws NotImplemented, NotFound, NotAuthorized, ServiceFailure, InvalidRequest,
-            InvalidToken, ClientSideException {
-        try {
-            node.setObsoletedBy(null, pid, obsoletedByPid, serialVersion);
-        } catch (VersionMismatch e) {
-           throw new ServiceFailure(e.getDetail_code(), "VersionMismatch : " + e.getDescription());
-        }
     }
 
     /**

@@ -112,37 +112,6 @@ public class MNCallAdapter extends CommonCallAdapter {
 
     // MNStorage:
 
-    public Identifier create(Session session, Identifier pid, InputStream object,
-            SystemMetadata sysmeta)
-        throws IdentifierNotUnique, InsufficientResources, InvalidRequest, InvalidSystemMetadata,
-            InvalidToken, NotAuthorized, NotImplemented, ServiceFailure, UnsupportedType, ClientSideException  {
-
-        if (this.node.getType().equals(NodeType.MN)) {
-            if (this.version.toLowerCase().equals("v1")) {
-                org.dataone.service.mn.tier3.v1.MNStorage mnStorage = D1NodeFactory.buildNode(
-                        org.dataone.service.mn.tier3.v1.MNStorage.class, this.mrc,
-                        URI.create(this.node.getBaseURL()));
-                org.dataone.service.types.v1.SystemMetadata v1SysMeta;
-                try {
-                    v1SysMeta = TypeMarshaller.convertTypeFromType(sysmeta, org.dataone.service.types.v1.SystemMetadata.class);
-                }
-                catch (InstantiationException | IllegalAccessException
-                        | InvocationTargetException | JiBXException
-                        | IOException e) {
-                    e.printStackTrace();
-                    throw new ClientSideException("Failed to convert SystemMetadata from v1 to v2 prior to the create call", e);
-                }
-                return mnStorage.create(session, pid, object, v1SysMeta);
-            } else if (this.version.toLowerCase().equals("v2")) {
-                MNStorage mnStorage = D1NodeFactory.buildNode(MNStorage.class, this.mrc,
-                        URI.create(this.node.getBaseURL()));
-                return mnStorage.create(session, pid, object, sysmeta);
-            }
-        }
-        throw new ClientSideException("Call to create failed. " + node.getType()
-                + " of version " + version);
-    }
-
     public Identifier update(Session session, Identifier pid, InputStream object,
             Identifier newPid, SystemMetadata sysmeta) throws IdentifierNotUnique,
             InsufficientResources, InvalidRequest, InvalidSystemMetadata, InvalidToken,
@@ -174,42 +143,6 @@ public class MNCallAdapter extends CommonCallAdapter {
                 return mnStorage.updateSystemMetadata(session, pid, sysmeta);
         }
         throw new ClientSideException("Call to updateSystemMetadata failed. " + node.getType()
-                + " of version " + version);
-    }
-
-    public Identifier delete(Session session, Identifier id) throws InvalidToken, ServiceFailure,
-            NotAuthorized, NotFound, NotImplemented, ClientSideException {
-        if (this.node.getType().equals(NodeType.MN)) {
-            if (this.version.toLowerCase().equals("v1")) {
-                org.dataone.service.mn.tier3.v1.MNStorage mnStorage = D1NodeFactory.buildNode(
-                        org.dataone.service.mn.tier3.v1.MNStorage.class, this.mrc,
-                        URI.create(this.node.getBaseURL()));
-                return mnStorage.delete(session, id);
-            } else if (this.version.toLowerCase().equals("v2")) {
-                MNStorage mnStorage = D1NodeFactory.buildNode(MNStorage.class, this.mrc,
-                        URI.create(this.node.getBaseURL()));
-                return mnStorage.delete(session, id);
-            }
-        }
-        throw new ClientSideException("Call to delete failed. " + node.getType()
-                + " of version " + version);
-    }
-
-    public Identifier archive(Session session, Identifier id) throws InvalidToken, ServiceFailure,
-            NotAuthorized, NotFound, NotImplemented, ClientSideException {
-        if (this.node.getType().equals(NodeType.MN)) {
-            if (this.version.toLowerCase().equals("v1")) {
-                org.dataone.service.mn.tier3.v1.MNStorage mnStorage = D1NodeFactory.buildNode(
-                        org.dataone.service.mn.tier3.v1.MNStorage.class, this.mrc,
-                        URI.create(this.node.getBaseURL()));
-                return mnStorage.archive(session, id);
-            } else if (this.version.toLowerCase().equals("v2")) {
-                MNStorage mnStorage = D1NodeFactory.buildNode(MNStorage.class, this.mrc,
-                        URI.create(this.node.getBaseURL()));
-                return mnStorage.archive(session, id);
-            }
-        }
-        throw new ClientSideException("Call to archive failed. " + node.getType()
                 + " of version " + version);
     }
 
