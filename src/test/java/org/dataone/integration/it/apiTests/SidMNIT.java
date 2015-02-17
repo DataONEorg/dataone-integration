@@ -8,14 +8,13 @@ import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.security.NoSuchAlgorithmException;
-import java.util.Date;
 import java.util.Iterator;
 
 import org.apache.log4j.Logger;
 import org.dataone.client.v1.itk.D1Object;
 import org.dataone.client.v1.types.D1TypeBuilder;
 import org.dataone.integration.ExampleUtilities;
-import org.dataone.integration.adapters.CNCallAdapter;
+import org.dataone.integration.adapters.CommonCallAdapter;
 import org.dataone.integration.adapters.MNCallAdapter;
 import org.dataone.service.exceptions.InvalidRequest;
 import org.dataone.service.exceptions.NotFound;
@@ -49,7 +48,7 @@ private Logger logger = Logger.getLogger(SidMNIT.class);
             
             logger.info("Testing getPackage(), Case" + caseNum);
             
-            Method setupMethod = SidCommonIT.class.getDeclaredMethod("setupCase" + caseNum, CNCallAdapter.class, Node.class);
+            Method setupMethod = SidCommonIT.class.getDeclaredMethod("setupCase" + caseNum, CommonCallAdapter.class, Node.class);
     
             Iterator<Node> nodeIter = getNodeIterator();
             while (nodeIter.hasNext()) {
@@ -59,7 +58,7 @@ private Logger logger = Logger.getLogger(SidMNIT.class);
                 Identifier sid = idPair.firstID;
                 Identifier pid = idPair.secondID;
     
-                // TODO test getPackage() ...
+                // TODO getPackage() not implemented in client code
                 
             }
         }
@@ -78,7 +77,7 @@ private Logger logger = Logger.getLogger(SidMNIT.class);
             
             logger.info("Testing update(), Case" + caseNum);
             
-            Method setupMethod = SidCommonIT.class.getDeclaredMethod("setupCase" + caseNum, CNCallAdapter.class, Node.class);
+            Method setupMethod = SidCommonIT.class.getDeclaredMethod("setupCase" + caseNum, CommonCallAdapter.class, Node.class);
     
             Iterator<Node> nodeIter = getNodeIterator();
             while (nodeIter.hasNext()) {
@@ -100,7 +99,7 @@ private Logger logger = Logger.getLogger(SidMNIT.class);
                     // update SID
                     Identifier newPid = createIdentifier("P9_", node);
                     byte[] contentBytes = ExampleUtilities.getExampleObjectOfType(DEFAULT_TEST_OBJECTFORMAT);
-                    D1Object d1o = new D1Object(pid, contentBytes,
+                    D1Object d1o = new D1Object(newPid, contentBytes,
                             D1TypeBuilder.buildFormatIdentifier(DEFAULT_TEST_OBJECTFORMAT),
                             D1TypeBuilder.buildSubject(cnSubmitter),
                             D1TypeBuilder.buildNodeReference("bogusAuthoritativeNode"));
@@ -131,7 +130,7 @@ private Logger logger = Logger.getLogger(SidMNIT.class);
             
             logger.info("Testing systemMetadataChanged(), Case" + caseNum);
             
-            Method setupMethod = SidCommonIT.class.getDeclaredMethod("setupCase" + caseNum, CNCallAdapter.class, Node.class);
+            Method setupMethod = SidCommonIT.class.getDeclaredMethod("setupCase" + caseNum, CommonCallAdapter.class, Node.class);
     
             Iterator<Node> nodeIter = getNodeIterator();
             while (nodeIter.hasNext()) {
@@ -143,9 +142,17 @@ private Logger logger = Logger.getLogger(SidMNIT.class);
     
                 // TODO test systemMetadataChanged() ...
                 
-//                callAdapter.systemMetadataChanged(null, sid, 1, new Date());
+                // systemMetadataChanged() implies authoritative sysmeta on CN was updated
+                // so ... update sysmeta on CN
+                // (make sure this my knows to look to that CN ???)
+                // call systemMetadataChanged() - impl should be grabbing from CN using SID
+                //                              so CN does resolving, so this tests CN =/
+                // wait ... an unknown amount of time (no way to guarantee correctness here ...)
+                // check MN sysmeta against sysmeta updated to CN
                 
             }
         }
     }
+        
+        
 }

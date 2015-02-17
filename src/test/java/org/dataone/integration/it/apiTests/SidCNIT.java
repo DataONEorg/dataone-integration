@@ -11,6 +11,7 @@ import java.util.Iterator;
 import org.apache.log4j.Logger;
 import org.dataone.client.exception.ClientSideException;
 import org.dataone.integration.adapters.CNCallAdapter;
+import org.dataone.integration.adapters.CommonCallAdapter;
 import org.dataone.service.exceptions.InsufficientResources;
 import org.dataone.service.exceptions.InvalidRequest;
 import org.dataone.service.exceptions.InvalidToken;
@@ -31,7 +32,6 @@ import org.dataone.service.types.v1.Permission;
 import org.dataone.service.types.v1.ReplicationPolicy;
 import org.dataone.service.types.v1.Subject;
 import org.dataone.service.types.v1.util.AccessUtil;
-import org.dataone.service.types.v2.Log;
 import org.dataone.service.types.v2.SystemMetadata;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -55,7 +55,6 @@ public class SidCNIT extends SidCommonIT {
      * The resulting {@link ObjectLocationList}s should both hold the same resolve URLs.
      */
     @Test
-    @Ignore("need to resolve to the actual object?")
     public void testResolve() throws NoSuchMethodException,
             SecurityException, IllegalAccessException, IllegalArgumentException,
             InvocationTargetException, InvalidToken, NotAuthorized, NotImplemented, ServiceFailure,
@@ -67,7 +66,7 @@ public class SidCNIT extends SidCommonIT {
             
             logger.info("Testing resolve(), case " + caseNum);
             
-            Method setupMethod = SidCommonIT.class.getDeclaredMethod("setupCase" + caseNum, CNCallAdapter.class, Node.class);
+            Method setupMethod = SidCommonIT.class.getDeclaredMethod("setupCase" + caseNum, CommonCallAdapter.class, Node.class);
     
             Iterator<Node> cnIter = getCoordinatingNodeIterator();
             while (cnIter.hasNext()) {
@@ -116,7 +115,7 @@ public class SidCNIT extends SidCommonIT {
             
             logger.info("Testing setRightsHolder(), case " + caseNum);
             
-            Method setupMethod = SidCommonIT.class.getDeclaredMethod("setupCase" + caseNum, CNCallAdapter.class, Node.class);
+            Method setupMethod = SidCommonIT.class.getDeclaredMethod("setupCase" + caseNum, CommonCallAdapter.class, Node.class);
     
             Iterator<Node> cnIter = getCoordinatingNodeIterator();
             while (cnIter.hasNext()) {
@@ -155,7 +154,7 @@ public class SidCNIT extends SidCommonIT {
             
             logger.info("Testing setAccessPolicy(), case " + caseNum);
             
-            Method setupMethod = SidCommonIT.class.getDeclaredMethod("setupCase" + caseNum, CNCallAdapter.class, Node.class);
+            Method setupMethod = SidCommonIT.class.getDeclaredMethod("setupCase" + caseNum, CommonCallAdapter.class, Node.class);
     
             Iterator<Node> cnIter = getCoordinatingNodeIterator();
             while (cnIter.hasNext()) {
@@ -199,6 +198,7 @@ public class SidCNIT extends SidCommonIT {
      * one we just set to the SID.
      */
     @Test
+    @Ignore("According to \"Mutability of Content\" page, only supposed to work for PIDS. v2 API disagrees though...")
     public void testSetReplicationPolicy() throws NoSuchMethodException,
             SecurityException, IllegalAccessException, IllegalArgumentException,
             InvocationTargetException, InvalidToken, NotAuthorized, NotImplemented, ServiceFailure,
@@ -210,7 +210,7 @@ public class SidCNIT extends SidCommonIT {
             
             logger.info("Testing setReplicationPolicy(), case " + caseNum);
             
-            Method setupMethod = SidCommonIT.class.getDeclaredMethod("setupCase" + caseNum, CNCallAdapter.class, Node.class);
+            Method setupMethod = SidCommonIT.class.getDeclaredMethod("setupCase" + caseNum, CommonCallAdapter.class, Node.class);
     
             Iterator<Node> cnIter = getCoordinatingNodeIterator();
             while (cnIter.hasNext()) {
@@ -260,7 +260,7 @@ public class SidCNIT extends SidCommonIT {
             
             logger.info("Testing archive(), case " + caseNum);
             
-            Method setupMethod = SidCommonIT.class.getDeclaredMethod("setupCase" + caseNum, CNCallAdapter.class, Node.class);
+            Method setupMethod = SidCommonIT.class.getDeclaredMethod("setupCase" + caseNum, CommonCallAdapter.class, Node.class);
     
             Iterator<Node> cnIter = getCoordinatingNodeIterator();
             while (cnIter.hasNext()) {
@@ -303,50 +303,4 @@ public class SidCNIT extends SidCommonIT {
         }
     }
     
-    /**
-     * Sets up each pid chain scenario, then calls getLogRecords() with the SID.toString()
-     * and PID.toString as the idFilter parameter.
-     * </p>
-     * <b>Note: this test is allowed to fail.</b> From the API documentation:
-     * </p>
-     * <tt>
-     * idFilter (string) – Return only log records for identifiers that start 
-     * with the supplied identifier string. Support for this parameter is optional 
-     * and MAY be ignored by the Coordinating Node implementation with no warning. 
-     * Supports PID and SID values. 
-     * Only PID values will be included in the returned entries.
-     * </tt>
-     * </p>
-     * 
-     */
-    @Test
-    @Ignore("API is unclear about PID vs SID filter behavior ... and it says the PID/SID idFilter param is optional anyway")
-    public void testGetLogRecords() throws NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InvalidRequest, InvalidToken, NotAuthorized, NotImplemented, ServiceFailure, InsufficientResources, ClientSideException {
-        logger.info("Testing getLogRecords() method ... ");
-        
-        for (int caseNum = 1; caseNum <= 18; caseNum++) {
-            
-            logger.info("Testing getLogRecords(), Case" + caseNum);
-            
-            Method setupMethod = SidCommonIT.class.getDeclaredMethod("setupCase" + caseNum, CNCallAdapter.class, Node.class);
-    
-            Iterator<Node> nodeIter = getNodeIterator();
-            while (nodeIter.hasNext()) {
-                Node node = nodeIter.next();
-                CNCallAdapter callAdapter = new CNCallAdapter(getSession(cnSubmitter), node, "v2");
-                IdPair idPair = (IdPair) setupMethod.invoke(this, callAdapter, node);
-                Identifier sid = idPair.firstID;
-                Identifier pid = idPair.secondID;
-    
-                Log sidLogRecords = callAdapter.getLogRecords(null, null, null, null, sid.toString(), null, null);
-                Log pidLogRecords = callAdapter.getLogRecords(null, null, null, null, pid.toString(), null, null);
-                int numSidRecords = sidLogRecords.getCount();
-                int numPidRecords = pidLogRecords.getCount();
-
-                // TODO test getLogRecords() ...
-                
-            }
-        }
-    }
-
 }

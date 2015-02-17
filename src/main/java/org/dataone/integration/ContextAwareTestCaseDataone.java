@@ -1210,10 +1210,8 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
                 retPid = ((MNode)d1Node).create(null, pid, objectInputStream, sysMeta);
             } else if (d1Node instanceof CNode) {
                 retPid = ((CNode)d1Node).create(null, pid, objectInputStream, sysMeta);
-            } else if (d1Node instanceof MNCallAdapter) {
-                retPid = ((MNCallAdapter)d1Node).create(null, pid, objectInputStream, sysMeta);
-            } else if (d1Node instanceof CNCallAdapter) {
-                retPid = ((CNCallAdapter)d1Node).create(null, pid, objectInputStream, sysMeta);
+            } else if (d1Node instanceof CommonCallAdapter) {
+                retPid = ((CommonCallAdapter)d1Node).create(null, pid, objectInputStream, sysMeta);
             } else {
                 throw new ClientSideException("Do not have a handler for D1Node of type " + d1Node.getClass().getName());
             }

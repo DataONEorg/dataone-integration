@@ -44,6 +44,7 @@ import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Node;
 import org.dataone.service.types.v1.ObjectList;
 import org.dataone.service.types.v1.Permission;
+import org.dataone.service.types.v2.Log;
 import org.dataone.service.types.v2.SystemMetadata;
 import org.dataone.service.util.TypeMarshaller;
 import org.junit.After;
@@ -91,7 +92,7 @@ public abstract class SidCommonIT extends ContextAwareTestCaseDataone {
      * Cleans up the nodes created using the {@link #createdIDs} map.
      */
     @After
-    private void cleanUp() {
+    public void cleanUp() {
         for( Entry<Node, Set<String>> idsForNode :  createdIDs.entrySet())
         {
             Node node = idsForNode.getKey();
@@ -531,7 +532,7 @@ public abstract class SidCommonIT extends ContextAwareTestCaseDataone {
         for (int caseNum = 1; caseNum <= 18; caseNum++) {
             
             logger.info("Testing getSystemMetadata(), Case" + caseNum);
-            Method setupMethod = SidCommonIT.class.getDeclaredMethod("setupCase" + caseNum, CNCallAdapter.class, Node.class);
+            Method setupMethod = SidCommonIT.class.getDeclaredMethod("setupCase" + caseNum, CommonCallAdapter.class, Node.class);
     
             Iterator<Node> nodeIter = getNodeIterator();
             while (nodeIter.hasNext()) {
@@ -564,7 +565,7 @@ public abstract class SidCommonIT extends ContextAwareTestCaseDataone {
             
             logger.info("Testing get(), Case" + caseNum);
             
-            Method setupMethod = SidCommonIT.class.getDeclaredMethod("setupCase" + caseNum, CNCallAdapter.class, Node.class);
+            Method setupMethod = SidCommonIT.class.getDeclaredMethod("setupCase" + caseNum, CommonCallAdapter.class, Node.class);
     
             Iterator<Node> nodeIter = getNodeIterator();
             while (nodeIter.hasNext()) {
@@ -599,7 +600,7 @@ public abstract class SidCommonIT extends ContextAwareTestCaseDataone {
             
             logger.info("Testing describe(), Case" + caseNum);
             
-            Method setupMethod = SidCommonIT.class.getDeclaredMethod("setupCase" + caseNum, CNCallAdapter.class, Node.class);
+            Method setupMethod = SidCommonIT.class.getDeclaredMethod("setupCase" + caseNum, CommonCallAdapter.class, Node.class);
     
             Iterator<Node> nodeIter = getNodeIterator();
             while (nodeIter.hasNext()) {
@@ -636,7 +637,7 @@ public abstract class SidCommonIT extends ContextAwareTestCaseDataone {
             
             logger.info("Testing delete(), Case" + caseNum);
             
-            Method setupMethod = SidCommonIT.class.getDeclaredMethod("setupCase" + caseNum, CNCallAdapter.class, Node.class);
+            Method setupMethod = SidCommonIT.class.getDeclaredMethod("setupCase" + caseNum, CommonCallAdapter.class, Node.class);
     
             Iterator<Node> nodeIter = getNodeIterator();
             while (nodeIter.hasNext()) {
@@ -680,7 +681,7 @@ public abstract class SidCommonIT extends ContextAwareTestCaseDataone {
             
             logger.info("Testing archive(), Case" + caseNum);
             
-            Method setupMethod = SidCommonIT.class.getDeclaredMethod("setupCase" + caseNum, CNCallAdapter.class, Node.class);
+            Method setupMethod = SidCommonIT.class.getDeclaredMethod("setupCase" + caseNum, CommonCallAdapter.class, Node.class);
     
             Iterator<Node> nodeIter = getNodeIterator();
             while (nodeIter.hasNext()) {
@@ -722,7 +723,7 @@ public abstract class SidCommonIT extends ContextAwareTestCaseDataone {
             
             logger.info("Testing get(), Case" + caseNum);
             
-            Method setupMethod = SidCommonIT.class.getDeclaredMethod("setupCase" + caseNum, CNCallAdapter.class, Node.class);
+            Method setupMethod = SidCommonIT.class.getDeclaredMethod("setupCase" + caseNum, CommonCallAdapter.class, Node.class);
     
             Iterator<Node> nodeIter = getNodeIterator();
             while (nodeIter.hasNext()) {
@@ -738,31 +739,6 @@ public abstract class SidCommonIT extends ContextAwareTestCaseDataone {
                 assertEquals("listObjects() Case " + caseNum + ", filter down to 1 pid", 1, pidObjList.getCount());
                 // calling listObjects() for a SID will return results for every PID under that SID
                 assertEquals("listObjects() Case " + caseNum, pidsPerSid[caseNum-1], sidObjList.getCount());
-            }
-        }
-    }
-    
-    @Test
-    @Ignore("view() is not yet implemented in client code")
-    public void testView() throws NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
-        logger.info("Testing view() method ... ");
-        
-        for (int caseNum = 1; caseNum <= 18; caseNum++) {
-            
-            logger.info("Testing view(), Case" + caseNum);
-            
-            Method setupMethod = SidCommonIT.class.getDeclaredMethod("setupCase" + caseNum, CNCallAdapter.class, Node.class);
-    
-            Iterator<Node> nodeIter = getNodeIterator();
-            while (nodeIter.hasNext()) {
-                Node node = nodeIter.next();
-                CommonCallAdapter callAdapter = new CommonCallAdapter(getSession(cnSubmitter), node, "v2");
-                IdPair idPair = (IdPair) setupMethod.invoke(this, callAdapter, node);
-                Identifier sid = idPair.firstID;
-                Identifier pid = idPair.secondID;
-    
-                // TODO test view() ...
-                
             }
         }
     }
@@ -785,7 +761,7 @@ public abstract class SidCommonIT extends ContextAwareTestCaseDataone {
             
             logger.info("Testing isAuthorized(), Case" + caseNum);
             
-            Method setupMethod = SidCommonIT.class.getDeclaredMethod("setupCase" + caseNum, CNCallAdapter.class, Node.class);
+            Method setupMethod = SidCommonIT.class.getDeclaredMethod("setupCase" + caseNum, CommonCallAdapter.class, Node.class);
     
             Iterator<Node> nodeIter = getNodeIterator();
             while (nodeIter.hasNext()) {
@@ -851,6 +827,76 @@ public abstract class SidCommonIT extends ContextAwareTestCaseDataone {
         }
     }
     
+    /**
+     * Sets up each pid chain scenario, then calls getLogRecords() with the SID.toString()
+     * and PID.toString as the idFilter parameter.
+     * </p>
+     * <b>Note: this test is allowed to fail.</b> From the API documentation:
+     * </p>
+     * <tt>
+     * idFilter (string) – Return only log records for identifiers that start 
+     * with the supplied identifier string. Support for this parameter is optional 
+     * and MAY be ignored by the Coordinating Node implementation with no warning. 
+     * Supports PID and SID values. 
+     * Only PID values will be included in the returned entries.
+     * </tt>
+     * </p>
+     * 
+     */
+    @Test
+    @Ignore("API is unclear on PID|SID filter behavior; also says idFilter param is optional; also, per 2/17 meeting: only accept PIDs")
+    public void testGetLogRecords() throws NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InvalidRequest, InvalidToken, NotAuthorized, NotImplemented, ServiceFailure, InsufficientResources, ClientSideException {
+        logger.info("Testing getLogRecords() method ... ");
+        
+        for (int caseNum = 1; caseNum <= 18; caseNum++) {
+            
+            logger.info("Testing getLogRecords(), Case" + caseNum);
+            
+            Method setupMethod = SidCommonIT.class.getDeclaredMethod("setupCase" + caseNum, CommonCallAdapter.class, Node.class);
+    
+            Iterator<Node> nodeIter = getNodeIterator();
+            while (nodeIter.hasNext()) {
+                Node node = nodeIter.next();
+                CNCallAdapter callAdapter = new CNCallAdapter(getSession(cnSubmitter), node, "v2");
+                IdPair idPair = (IdPair) setupMethod.invoke(this, callAdapter, node);
+                Identifier sid = idPair.firstID;
+                Identifier pid = idPair.secondID;
+    
+                Log sidLogRecords = callAdapter.getLogRecords(null, null, null, null, sid.toString(), null, null);
+                Log pidLogRecords = callAdapter.getLogRecords(null, null, null, null, pid.toString(), null, null);
+                int numSidRecords = sidLogRecords.getCount();
+                int numPidRecords = pidLogRecords.getCount();
+
+                // TODO only accepts PIDs ... probably
+                
+            }
+        }
+    }
+    
+    @Test
+    @Ignore("view() is not yet implemented in client code")
+    public void testView() throws NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+        logger.info("Testing view() method ... ");
+        
+        for (int caseNum = 1; caseNum <= 18; caseNum++) {
+            
+            logger.info("Testing view(), Case" + caseNum);
+            
+            Method setupMethod = SidCommonIT.class.getDeclaredMethod("setupCase" + caseNum, CommonCallAdapter.class, Node.class);
+    
+            Iterator<Node> nodeIter = getNodeIterator();
+            while (nodeIter.hasNext()) {
+                Node node = nodeIter.next();
+                CommonCallAdapter callAdapter = new CommonCallAdapter(getSession(cnSubmitter), node, "v2");
+                IdPair idPair = (IdPair) setupMethod.invoke(this, callAdapter, node);
+                Identifier sid = idPair.firstID;
+                Identifier pid = idPair.secondID;
+    
+                // TODO view() not implemented in client code
+                
+            }
+        }
+    }
     
     /*
     @Test
