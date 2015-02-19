@@ -132,10 +132,10 @@ public class TestingTestRunnerServlet {
         System.out.println(responseString);
         assertTrue("Url should be successfully passed to servlet",responseString.contains(mNodeUrl));
         assertTrue("response should contain final summary line",responseString.contains("RunCount"));
-        assertTrue("response should contain 'MNCore'", responseString.contains("at org.dataone.integration.it.apiTests.MNCore"));
-        assertTrue("response should contain 'MNStorage'", responseString.contains("at org.dataone.integration.it.apiTests.MNStorage"));
-        assertFalse("response should NOT contain 'MNRead'", responseString.contains("at org.dataone.integration.it.apiTests.MNRead"));
-        assertFalse("response should NOT contain 'MNReplication'", responseString.contains("at org.dataone.integration.it.apiTests.MNReplication"));
+        assertTrue("response should contain 'MNCore'", responseString.contains("org.dataone.integration.it.apiTests.MNCore"));
+        assertTrue("response should contain 'MNStorage'", responseString.contains("org.dataone.integration.it.apiTests.MNStorage"));
+        assertFalse("response should NOT contain 'MNRead'", responseString.contains("org.dataone.integration.it.apiTests.MNRead"));
+        assertFalse("response should NOT contain 'MNReplication'", responseString.contains("org.dataone.integration.it.apiTests.MNReplication"));
     }
 
 }

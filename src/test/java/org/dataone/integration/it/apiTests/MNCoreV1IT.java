@@ -4,6 +4,7 @@ import org.dataone.integration.ContextAwareTestCaseDataone;
 import org.dataone.integration.it.testDefinitions.CoreTestDefinitions;
 import org.dataone.integration.it.testDefinitions.MNCoreTestDefinitions;
 import org.dataone.integration.it.testImplementations.CoreTestImplementations;
+import org.dataone.integration.webTest.WebTestImplementation;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -13,6 +14,7 @@ import org.junit.Test;
 public class MNCoreV1IT extends ContextAwareTestCaseDataone 
 implements CoreTestDefinitions, MNCoreTestDefinitions
 {
+    @WebTestImplementation
     private CoreTestImplementations coreTestImpl;
     
     @Override

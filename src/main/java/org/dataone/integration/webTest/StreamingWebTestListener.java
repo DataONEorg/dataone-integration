@@ -24,6 +24,10 @@ package org.dataone.integration.webTest;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.util.Iterator;
 import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -33,7 +37,6 @@ import nu.xom.Element;
 import nu.xom.ParsingException;
 import nu.xom.ValidityException;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.runner.Description;
@@ -79,9 +82,35 @@ class StreamingWebTestListener extends RunListener
         // to allow incremental rendering, start writing output to the output stream
         this.serializer = new StreamableSerializer(out);
         this.serializer.setIndent(2); // pretty-print output
-
     }
 
+    
+    /* 
+     * this helper performs the reflection needed to find the test implementation
+     * method where the annotations.  Uses @WebTestImplementation annotation
+     */
+    private Method findTestMethodImplementation(Description d) {
+        Method implMethod = null;
+        try {
+            Class<?> testClass= d.getTestClass();
+            Field[] f = testClass.getDeclaredFields();
+            for (int i=0; i<f.length; i++) {
+                if (f[i].getAnnotation(WebTestImplementation.class) != null) {
+                    Class<?> implClass = f[i].getType();
+                    implMethod = implClass.getMethod(d.getMethodName(), Iterator.class, String.class);
+                    if (implMethod != null) 
+                        break;
+                }
+            }
+        } 
+        catch (NoSuchMethodException | SecurityException e) {
+            ;
+        }
+        return implMethod;
+    }
+
+
+    
     /**
      * testStarted reports any previous test and creates a new 'current test'
      * If it is considered a new run, it also reports a header line with the name
@@ -98,15 +127,24 @@ class StreamingWebTestListener extends RunListener
         if (newRun) {
             currentTest = new AtomicTest(testCaseName);
             currentTest.setStatus("runHeader");
-            currentTest.setMessage("SOURCE");
             report(currentTest);
             newRun = false;
         }
-        currentTest = new AtomicTest(testCaseName + ": " + d.getMethodName());
+        Method implMethod = findTestMethodImplementation(d);
+        currentTest = new AtomicTest(d.getMethodName());
+        if (implMethod != null) {
+            Annotation a = implMethod.getAnnotation(WebTestName.class);
+            if (a != null)
+                currentTest.setTestLabel(((WebTestName)a).value());
+            a = implMethod.getAnnotation(WebTestDescription.class);
+            if (a != null)
+                currentTest.setTestDescription(((WebTestDescription)a).value());
+        }
         currentTest.setStatus("testStarted");
 
 //        this.newRun = false;
     }
+    
     
     /**
      * testIgnored reports any previous test and creates a new 'current test'
@@ -120,6 +158,7 @@ class StreamingWebTestListener extends RunListener
         }
         
         testCaseName = d.getClassName();
+        
         if (newRun) {
             currentTest = new AtomicTest(testCaseName);
             currentTest.setStatus("runHeader");
@@ -128,8 +167,16 @@ class StreamingWebTestListener extends RunListener
             newRun = false;
         }
         
-        
-        currentTest = new AtomicTest(d.getClassName() + ": " + d.getMethodName());
+        Method implMethod = findTestMethodImplementation(d);
+        currentTest = new AtomicTest(d.getMethodName());
+        if (implMethod != null) {
+            Annotation a = implMethod.getAnnotation(WebTestName.class);
+            if (a != null)
+                currentTest.setTestLabel(((WebTestName)a).value());
+            a = implMethod.getAnnotation(WebTestDescription.class);
+            if (a != null)
+                currentTest.setTestDescription(((WebTestDescription)a).value());
+        }
         currentTest.setStatus("testIgnored");
         currentTest.setMessage(d.getAnnotation(org.junit.Ignore.class).value());
     }
@@ -263,11 +310,11 @@ class StreamingWebTestListener extends RunListener
         // make an html table 
         Element table = new Element("table");
         Element tr = new Element("tr");
-        Element name = new Element("th");
-        Element description = new Element("td");
+        Element nameColumn = new Element("th");
+        Element messageColumn = new Element("td");
 
         // set format class based on the status
-        if (testResult == null) {
+        if (testResult == null || testResult.getStatus() == null) {
             div.addAttribute(new Attribute("class", "uncategorized"));
         }
         else if (testResult.getStatus().equals("testStarted")) {
@@ -302,30 +349,25 @@ class StreamingWebTestListener extends RunListener
         }
 
         // add contents to the table row...
-        name.appendChild(formatTestName(testResult.getTestName()));
-        tr.appendChild(name);
-
+        
+        // first the test label
+        nameColumn.appendChild(formatTestName(testResult));
+        tr.appendChild(nameColumn);
+        
+        
+        if (testResult.getStatus() != null && testResult.getStatus().startsWith("test")) 
+            messageColumn.appendChild(formatDescriptionMouseover(testResult.getTestDescription()));
+        
+        // uniformly handle multi-line messages
         if (testResult.getMessage() != null && testResult.getMessage().contains("\n")) {
             Element formattedText = new Element("pre");
             formattedText.appendChild(testResult.getMessage().replace("\n","\r\n"));
-            description.appendChild(formattedText);
-        } else if (testResult.getMessage() == "SOURCE") {
-            Element testCaseLink = new Element("a");
-            String bareTestCaseName = StringUtils.substringAfterLast(testResult.getTestName(), ".");
-            testCaseLink.addAttribute(new Attribute("href","webTesterSources/"+ bareTestCaseName + ".java"));
-            testCaseLink.appendChild("test case source");
-            Element allSourceLink = new Element("a");
-            allSourceLink.addAttribute(new Attribute("href","webTesterSources"));
-            allSourceLink.appendChild("all sources");
-
-            description.appendChild(testCaseLink);
-            description.appendChild(" / ");
-            description.appendChild(allSourceLink);
-            //			attachFormattedSourceLinks(description,testResult.getTestName());
-        } else {
-            description.appendChild(testResult.getMessage());
+            messageColumn.appendChild(formattedText);
+        } 
+        else {
+            messageColumn.appendChild(testResult.getMessage());
         }
-        tr.appendChild(description);
+        tr.appendChild(messageColumn);
         table.appendChild(tr);
         //		Element dateText = new Element("td");
         //		dateText.appendChild(new Date().toString());
@@ -338,7 +380,7 @@ class StreamingWebTestListener extends RunListener
         // add trace information if any (in separate table in the div)
         if (testResult.getTrace() != null) {
             // append toggle link to existing description
-            description.appendChild(buildTraceViewControl(rowIndex));
+            messageColumn.appendChild(buildTraceViewControl(rowIndex));
             // add another table to the div
             div.appendChild(buildTraceView(rowIndex, testResult));
         }
@@ -350,27 +392,40 @@ class StreamingWebTestListener extends RunListener
      * here is to keep the last segment of the raw name, where the segments
      * are {package}.{package}.{testCase}: {method_subtest}
      */
-    private String formatTestName(String rawTestName)
+    private String formatTestName(AtomicTest t)
     {
-        String improvedTestName = null;
-        if (rawTestName.contains(":")) {
-            // keep just the method and subtest
-            improvedTestName = rawTestName.replaceAll(".*\\: ", "");
-        } else {
-            // keep the TestCase segment
-            improvedTestName = rawTestName.replace(".*\\.", "");
+        String finalLabel = t.getTestLabel();
+        if (finalLabel == null) {
+
+            String improvedTestName = null;
+            if (t.getTestName().contains(":")) {
+                // keep just the method and subtest
+                finalLabel = t.getTestName().replaceAll(".*\\: ", "");
+            } else {
+                // keep the TestCase segment
+                finalLabel = t.getTestName().replace(".*\\.", "");
+            }
+            finalLabel = finalLabel.replaceFirst("_", " : ");
+
+            // underscores in subtest section of method name get converted to spaces
+            finalLabel = finalLabel.replaceAll("_", " ");
+            //		improvedTestName = humaniseCamelCase(improvedTestName);
         }
-        improvedTestName = improvedTestName.replaceFirst("_", " : ");
-
-        // underscores in subtest section of method name get converted to spaces
-        improvedTestName = improvedTestName.replaceAll("_", " ");
-        //		improvedTestName = humaniseCamelCase(improvedTestName);
-        return improvedTestName;
+        return finalLabel;
     }
-
-    private void attachFormattedSourceLinks() {
-
-
+    
+    private Element formatDescriptionMouseover(String description) {
+        Element formattedHelp = new Element("span");
+        formattedHelp.addAttribute(new Attribute("class", "dropt"));
+        formattedHelp.addAttribute(new Attribute("title", ""));
+        Element helpIcon = new Element("img");
+        helpIcon.addAttribute(new Attribute("src","images/help.png"));
+        formattedHelp.appendChild(helpIcon);
+        Element mouseOverText = new Element("span");
+        mouseOverText.addAttribute(new Attribute("style", "width: 500px;"));
+        mouseOverText.appendChild(description == null ? "no test description available" : description);
+        formattedHelp.appendChild(mouseOverText);
+        return formattedHelp;
     }
 
 

@@ -5,6 +5,7 @@ import org.dataone.integration.it.testDefinitions.CNCoreTestDefinitions;
 import org.dataone.integration.it.testDefinitions.CoreTestDefinitions;
 import org.dataone.integration.it.testImplementations.CNCoreTestImplementations;
 import org.dataone.integration.it.testImplementations.CoreTestImplementations;
+import org.dataone.integration.webTest.WebTestImplementation;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -15,7 +16,10 @@ import org.junit.Test;
 public class CNCoreV1IT extends ContextAwareTestCaseDataone 
 implements CoreTestDefinitions, CNCoreTestDefinitions {
     
+    @WebTestImplementation
     private CoreTestImplementations coreTestImpl;
+    
+    @WebTestImplementation
     private CNCoreTestImplementations cnCoreTestImpl;
     
     @Before 

@@ -25,6 +25,7 @@ package org.dataone.integration.webTest;
 
 import static org.junit.Assert.assertTrue;
 
+import org.dataone.integration.TestIterationEndingException;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.internal.AssumptionViolatedException;
@@ -34,17 +35,17 @@ public class MockV1ITCase {
 	
 	
 	@Test
-	public void testTrue() 
+	public void testSuccess() 
 	{
 		assertTrue(true);
 	}
 
 
-	@Test
-	public void testFalse()
-	{
-		assertTrue(1==2);
-	}
+//	@Test
+//	public void testFailure()
+//	{
+//		assertTrue(1==2);
+//	}
 	
 	
 	@Ignore
@@ -54,12 +55,18 @@ public class MockV1ITCase {
 	}
 
 	
-	@Test
-	public void testException() {
-		// should throw a numerical exception of some type
-		float f = 12 / 0;
-		f++;
-	}	
+//	@Test
+//	public void testError() {
+//		// should throw a numerical exception of some type
+//		float f = 12 / 0;
+//		f++;
+//	}	
+	
+	   @Test
+	    public void testWarning() throws TestIterationEndingException {
+	        // should throw a numerical exception of some type
+	        throw new TestIterationEndingException("");
+	    }   
 	
 	@Test
 	public void testAssumptionViolatedException() {

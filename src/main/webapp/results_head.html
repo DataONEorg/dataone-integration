@@ -6,7 +6,7 @@
       div.padded { margin-top: 20px; }
       table { width: 100%; }
       th { text-align: left; }
-      td { width: 60%; text-align: left; font-weight=normal; font-size: smaller; padding-left: 50px; }
+      td { width: 60%; text-align: left; font-weight: normal; font-size: smaller; padding-left: 50px; }
       .runHeader {
           background: gray;
           padding: 10px; padding-left: 50px;}
@@ -55,8 +55,18 @@
           background: #ccc;
           padding: 10px; padding-left: 50px;
           }
-          padding: 10px; padding-left: 70px; font-family: serif;
-          }
+
+      span.dropt {border-bottom: thin dotted;}
+      span.dropt:hover {text-decoration: none; background: #ffffff; z-index: 6; }
+      span.dropt span {position: absolute; left: -9999px;
+           margin: 20px 0 0 0px; padding: 3px 3px 3px 3px;
+           border-style:solid; border-color:black; border-width:1px; z-index: 6;}
+      span.dropt:hover span {left: 2%; background: #ffffff;} 
+      span.dropt span {position: absolute; left: -9999px;
+           margin: 4px 0 0 0px; padding: 3px 3px 3px 3px; 
+           border-style:solid; border-color:black; border-width:1px;}
+      span.dropt:hover span {margin: 20px 0 0 170px; background: #ffffff; z-index:6;} 
+      
     </style>
     <script language="javascript">
 function toggleTrace(showHideDiv, switchTextDiv) {

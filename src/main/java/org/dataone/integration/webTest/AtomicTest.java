@@ -25,6 +25,8 @@ package org.dataone.integration.webTest;
 class AtomicTest {
     private String type;
     private String testName;
+    private String testDescription;
+    private String testLabel;
     private String status;
     private String message;
     private String trace;
@@ -79,5 +81,21 @@ class AtomicTest {
     public String getTrace()
     {
         return this.trace;
+    }
+    
+    public void setTestDescription(String description) {
+        this.testDescription = description;
+    }
+    
+    public String getTestDescription() {
+        return this.testDescription;
+    }
+    
+    public void setTestLabel(String description) {
+        this.testLabel = description;
+    }
+    
+    public String getTestLabel() {
+        return this.testLabel;
     }
 }

@@ -16,6 +16,9 @@ import org.dataone.integration.ContextAwareTestCaseDataone;
 import org.dataone.integration.TestIterationEndingException;
 import org.dataone.integration.adapters.CommonCallAdapter;
 import org.dataone.integration.it.ContextAwareAdapter;
+import org.dataone.integration.webTest.WebTestImplementation;
+import org.dataone.integration.webTest.WebTestDescription;
+import org.dataone.integration.webTest.WebTestName;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.NotAuthorized;
 import org.dataone.service.exceptions.NotFound;
@@ -47,7 +50,10 @@ public class CoreTestImplementations extends ContextAwareAdapter {
      * @param version 
      *      either "v1" or "v2", to match the API version being tested
      */
-    public void testPing(Iterator<Node> nodeIterator, String version) {
+    @WebTestName("ping: test that it returns a valid date")
+    @WebTestDescription("this test uses a certificateless connection, and tests for a valid date that can be deserialized into java.Date," 
+            + "and also checks that the returned date is within 1 minute of the client date")
+   public void testPing(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testPing(nodeIterator.next(), version);
     }
