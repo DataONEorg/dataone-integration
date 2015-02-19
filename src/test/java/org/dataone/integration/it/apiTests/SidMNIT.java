@@ -44,7 +44,7 @@ private Logger logger = Logger.getLogger(SidMNIT.class);
     public void testGetPackage() throws NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
         logger.info("Testing getPackage() method ... ");
         
-        for (int caseNum = 1; caseNum <= 18; caseNum++) {
+        for (int caseNum = 1; caseNum <= numCases; caseNum++) {
             
             logger.info("Testing getPackage(), Case" + caseNum);
             
@@ -53,7 +53,7 @@ private Logger logger = Logger.getLogger(SidMNIT.class);
             Iterator<Node> nodeIter = getNodeIterator();
             while (nodeIter.hasNext()) {
                 Node node = nodeIter.next();
-                MNCallAdapter callAdapter = new MNCallAdapter(getSession(cnSubmitter), node, "v2");
+                MNCallAdapter callAdapter = new MNCallAdapter(getSession(subjectLabel), node, "v2");
                 IdPair idPair = (IdPair) setupMethod.invoke(this, callAdapter, node);
                 Identifier sid = idPair.firstID;
                 Identifier pid = idPair.secondID;
@@ -73,7 +73,7 @@ private Logger logger = Logger.getLogger(SidMNIT.class);
     public void testUpdate() throws NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, IOException, NoSuchAlgorithmException, NotFound {
         logger.info("Testing update() method ... ");
         
-        for (int caseNum = 1; caseNum <= 18; caseNum++) {
+        for (int caseNum = 1; caseNum <= numCases; caseNum++) {
             
             logger.info("Testing update(), Case" + caseNum);
             
@@ -82,7 +82,7 @@ private Logger logger = Logger.getLogger(SidMNIT.class);
             Iterator<Node> nodeIter = getNodeIterator();
             while (nodeIter.hasNext()) {
                 Node node = nodeIter.next();
-                MNCallAdapter callAdapter = new MNCallAdapter(getSession(cnSubmitter), node, "v2");
+                MNCallAdapter callAdapter = new MNCallAdapter(getSession(subjectLabel), node, "v2");
                 IdPair idPair = (IdPair) setupMethod.invoke(this, callAdapter, node);
                 Identifier sid = idPair.firstID;
                 Identifier pid = idPair.secondID;
@@ -101,7 +101,7 @@ private Logger logger = Logger.getLogger(SidMNIT.class);
                     byte[] contentBytes = ExampleUtilities.getExampleObjectOfType(DEFAULT_TEST_OBJECTFORMAT);
                     D1Object d1o = new D1Object(newPid, contentBytes,
                             D1TypeBuilder.buildFormatIdentifier(DEFAULT_TEST_OBJECTFORMAT),
-                            D1TypeBuilder.buildSubject(cnSubmitter),
+                            D1TypeBuilder.buildSubject(subjectLabel),
                             D1TypeBuilder.buildNodeReference("bogusAuthoritativeNode"));
                     SystemMetadata sysmeta = TypeMarshaller.convertTypeFromType(d1o.getSystemMetadata(), SystemMetadata.class);
                     sysmeta.setObsoletes(pid);
@@ -126,7 +126,7 @@ private Logger logger = Logger.getLogger(SidMNIT.class);
     public void testSystemMetadataChanged() throws NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
         logger.info("Testing systemMetadataChanged() method ... ");
         
-        for (int caseNum = 1; caseNum <= 18; caseNum++) {
+        for (int caseNum = 1; caseNum <= numCases; caseNum++) {
             
             logger.info("Testing systemMetadataChanged(), Case" + caseNum);
             
@@ -135,7 +135,7 @@ private Logger logger = Logger.getLogger(SidMNIT.class);
             Iterator<Node> nodeIter = getNodeIterator();
             while (nodeIter.hasNext()) {
                 Node node = nodeIter.next();
-                MNCallAdapter callAdapter = new MNCallAdapter(getSession(cnSubmitter), node, "v2");
+                MNCallAdapter callAdapter = new MNCallAdapter(getSession(subjectLabel), node, "v2");
                 IdPair idPair = (IdPair) setupMethod.invoke(this, callAdapter, node);
                 Identifier sid = idPair.firstID;
                 Identifier pid = idPair.secondID;

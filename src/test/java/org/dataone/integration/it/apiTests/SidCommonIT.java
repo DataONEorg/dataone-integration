@@ -18,7 +18,9 @@ import java.util.Set;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
+import org.dataone.client.D1Node;
 import org.dataone.client.exception.ClientSideException;
+import org.dataone.client.rest.MultipartRestClient;
 import org.dataone.client.v1.itk.D1Object;
 import org.dataone.client.v1.types.D1TypeBuilder;
 import org.dataone.integration.ContextAwareTestCaseDataone;
@@ -48,6 +50,7 @@ import org.dataone.service.types.v2.Log;
 import org.dataone.service.types.v2.SystemMetadata;
 import org.dataone.service.util.TypeMarshaller;
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -71,6 +74,10 @@ public abstract class SidCommonIT extends ContextAwareTestCaseDataone {
                                              2, 2, 3, 3, 3,
                                              2, 2, 2, 2, 3,
                                              2, 3, 3};
+    /** The number of test cases we can currently set up and test */
+    protected static final int numCases = 1;//pidsPerSid.length;
+    protected static final String subjectLabel = cnSubmitter; // "test.dataone.org"
+    protected final AccessPolicy policy = buildPublicReadAccessPolicy();
     
     /**
      * Needed for {@link #cleanUp()} after tests run.
@@ -86,7 +93,11 @@ public abstract class SidCommonIT extends ContextAwareTestCaseDataone {
      */
     protected abstract Iterator<Node> getNodeIterator();
     
-    
+//    @Before
+//    public void setUp() {
+//        MultipartRestClient restClient = getSession(subjectLabel);
+//        System.out.println("setUp");
+//    }
     
     /**
      * Cleans up the nodes created using the {@link #createdIDs} map.
@@ -96,7 +107,7 @@ public abstract class SidCommonIT extends ContextAwareTestCaseDataone {
         for( Entry<Node, Set<String>> idsForNode :  createdIDs.entrySet())
         {
             Node node = idsForNode.getKey();
-            CommonCallAdapter callAdapter = new CommonCallAdapter(getSession(cnSubmitter), node, "v2");
+            CommonCallAdapter callAdapter = new CommonCallAdapter(getSession(subjectLabel), node, "v2");
             for(String idStr : idsForNode.getValue()) {
                 Identifier id = new Identifier();
                 id.setValue(idStr);
@@ -129,8 +140,8 @@ public abstract class SidCommonIT extends ContextAwareTestCaseDataone {
         Identifier id = new Identifier();
         id.setValue(prefix + ExampleUtilities.generateIdentifier());
         // TODO do these need to be reserved before the objects are created?
-        //          NO for create()
-        //          YES for update()    <-- weird... test w/o this first
+        // API says it's not necessary for create()
+        // but maybe there's validation on updateSystemMetadata() for valid PIDs?
         
         if(!createdIDs.containsKey(node))
             createdIDs.put(node, new HashSet<String>());
@@ -138,6 +149,39 @@ public abstract class SidCommonIT extends ContextAwareTestCaseDataone {
         idsForNode.add(id.getValue());
 
         return id;
+    }
+    
+    /**
+     * Creates a test object according to the parameters provided.  
+     * Also allows setting the SID and the obsoletes / obsoletedBy chain.
+     * If <code>obsoletesId</code> or <code>obsoletedById</code> are set, we need to
+     * make multiple calls - to create() and to updateSystemMetadata() since setting
+     * obsoletes or obsoletedBy on system metadata on create is invalid.
+     * 
+     * @param callAdapter - the adapter for the node we're creating the object on
+     * @param pid - the identifier for the create object
+     * @param sid - the series identifier for the given pid
+     * @param obsoletesId - an {@link Identifier} for the previous object in the chain (optional)
+     * @param obsoletedById an {@link Identifier} for the next object in the chain (optional)
+
+     * @return the Identifier for the created object
+     */
+    public Identifier createTestObject(CommonCallAdapter callAdapter, Identifier pid,
+            Identifier sid, Identifier obsoletesId, Identifier obsoletedById) throws InvalidToken,
+            ServiceFailure, NotAuthorized, IdentifierNotUnique, UnsupportedType,
+            InsufficientResources, InvalidSystemMetadata, NotImplemented, InvalidRequest,
+            UnsupportedEncodingException, NotFound, ClientSideException {
+
+        Identifier testObjPid = super.createTestObject(callAdapter, pid, sid, policy, subjectLabel, "testRightsHolder");
+        
+        if(obsoletesId != null || obsoletedById != null) {
+            SystemMetadata testSysmeta = callAdapter.getSystemMetadata(null, testObjPid);
+            testSysmeta.setObsoletes(obsoletesId);
+            testSysmeta.setObsoletedBy(obsoletedById);
+            callAdapter.updateSystemMetadata(null, testObjPid, testSysmeta);
+        }            
+        
+        return testObjPid;
     }
     
     /**
@@ -197,9 +241,8 @@ public abstract class SidCommonIT extends ContextAwareTestCaseDataone {
         Identifier p2 = createIdentifier("P2_", node);
         Identifier s1 = createIdentifier("S1_", node);
         
-        AccessPolicy policy = buildPublicReadAccessPolicy();
-        createTestObject(callAdapter, p1, s1, null, false, false, policy, cnSubmitter, "testRightsHolder");
-        createTestObject(callAdapter, p2, s1, p1, true, true, policy, cnSubmitter, "testRightsHolder");
+        createTestObject(callAdapter, p1, s1, null, p2);
+        createTestObject(callAdapter, p2, s1, p1, null);
 
         return new IdPair(s1, p2);
     }
@@ -211,9 +254,8 @@ public abstract class SidCommonIT extends ContextAwareTestCaseDataone {
         Identifier p2 = createIdentifier("P2_", node);
         Identifier s1 = createIdentifier("S1_", node);
         
-        AccessPolicy policy = buildPublicReadAccessPolicy();
-        createTestObject(callAdapter, p1, s1, null, false, false, policy, cnSubmitter, "testRightsHolder");
-        createTestObject(callAdapter, p2, s1, null, false, false, policy, cnSubmitter, "testRightsHolder");
+        createTestObject(callAdapter, p1, s1, null, null);
+        createTestObject(callAdapter, p2, s1, null, null);
     
         return new IdPair(s1, p2);
     }
@@ -225,9 +267,8 @@ public abstract class SidCommonIT extends ContextAwareTestCaseDataone {
         Identifier p2 = createIdentifier("P2_", node);
         Identifier s1 = createIdentifier("S1_", node);
         
-        AccessPolicy policy = buildPublicReadAccessPolicy();
-        createTestObject(callAdapter, p1, s1, null, false, false, policy, cnSubmitter, "testRightsHolder");
-        createTestObject(callAdapter, p2, s1, p1, true, false, policy, cnSubmitter, "testRightsHolder");
+        createTestObject(callAdapter, p1, s1, null, null);
+        createTestObject(callAdapter, p2, s1, p1, null);
     
         return new IdPair(s1, p2);
     }
@@ -241,10 +282,9 @@ public abstract class SidCommonIT extends ContextAwareTestCaseDataone {
         Identifier s1 = createIdentifier("S1_", node);
         Identifier s2 = createIdentifier("S2_", node);
         
-        AccessPolicy policy = buildPublicReadAccessPolicy();
-        createTestObject(callAdapter, p1, s1, null, false, false, policy, cnSubmitter, "testRightsHolder");
-        createTestObject(callAdapter, p2, s1, p1, true, true, policy, cnSubmitter, "testRightsHolder");
-        createTestObject(callAdapter, p3, s2, p2, true, true, policy, cnSubmitter, "testRightsHolder");
+        createTestObject(callAdapter, p1, s1, null, p2);
+        createTestObject(callAdapter, p2, s1, p1, p3);
+        createTestObject(callAdapter, p3, s2, p2, null);
     
         return new IdPair(s1, p2);
     }
@@ -258,10 +298,9 @@ public abstract class SidCommonIT extends ContextAwareTestCaseDataone {
         Identifier s1 = createIdentifier("S1_", node);
         Identifier s2 = createIdentifier("S2_", node);
         
-        AccessPolicy policy = buildPublicReadAccessPolicy();
-        createTestObject(callAdapter, p1, s1, null, false, false, policy, cnSubmitter, "testRightsHolder");
-        createTestObject(callAdapter, p2, s1, p1, true, false, policy, cnSubmitter, "testRightsHolder");
-        createTestObject(callAdapter, p3, s2, p2, true, false, policy, cnSubmitter, "testRightsHolder");
+        createTestObject(callAdapter, p1, s1, null, null);
+        createTestObject(callAdapter, p2, s1, p1, null);
+        createTestObject(callAdapter, p3, s2, p2, null);
     
         return new IdPair(s1, p2);
     }
@@ -274,10 +313,9 @@ public abstract class SidCommonIT extends ContextAwareTestCaseDataone {
         Identifier p3 = createIdentifier("P3_", node);
         Identifier s1 = createIdentifier("S1_", node);
         
-        AccessPolicy policy = buildPublicReadAccessPolicy();
-        createTestObject(callAdapter, p1, s1, null, false, false, policy, cnSubmitter, "testRightsHolder");
-        createTestObject(callAdapter, p2, s1, p1, true, true, policy, cnSubmitter, "testRightsHolder");
-        createTestObject(callAdapter, p3, null, p2, true, true, policy, cnSubmitter, "testRightsHolder");
+        createTestObject(callAdapter, p1, s1, null, p2);
+        createTestObject(callAdapter, p2, s1, p1, p3);
+        createTestObject(callAdapter, p3, null, p2, null);
     
         return new IdPair(s1, p2);
     }
@@ -292,11 +330,10 @@ public abstract class SidCommonIT extends ContextAwareTestCaseDataone {
         Identifier s1 = createIdentifier("S1_", node);
         Identifier s2 = createIdentifier("S2_", node);
         
-        AccessPolicy policy = buildPublicReadAccessPolicy();
-        createTestObject(callAdapter, p1, s1, null, false, false, policy, cnSubmitter, "testRightsHolder");
-        createTestObject(callAdapter, p2, s1, p1, true, true, policy, cnSubmitter, "testRightsHolder");
-        createTestObject(callAdapter, p3, null, p2, true, true, policy, cnSubmitter, "testRightsHolder");
-        createTestObject(callAdapter, p4, s2, p3, true, true, policy, cnSubmitter, "testRightsHolder");
+        createTestObject(callAdapter, p1, s1, null, p2);
+        createTestObject(callAdapter, p2, s1, p1, p3);
+        createTestObject(callAdapter, p3, null, p2, p4);
+        createTestObject(callAdapter, p4, s2, p3, null);
     
         return new IdPair(s1, p2);
     }
@@ -310,13 +347,9 @@ public abstract class SidCommonIT extends ContextAwareTestCaseDataone {
         Identifier p4 = createIdentifier("P4_", node);
         Identifier s1 = createIdentifier("S1_", node);
         
-        AccessPolicy policy = buildPublicReadAccessPolicy();
-        createTestObject(callAdapter, p1, s1, null, false, false, policy, cnSubmitter, "testRightsHolder");
-        createTestObject(callAdapter, p2, s1, p1, true, true, policy, cnSubmitter, "testRightsHolder");
-        setObsoletedBy(callAdapter, p2, p3, 1, cnSubmitter);
-        // TODO ^ serialVersion ????
-        // may need to fetch metadata after creation to get version
-        createTestObject(callAdapter, p4, s1, p3, false, true, policy, cnSubmitter, "testRightsHolder");
+        createTestObject(callAdapter, p1, s1, null, p2);
+        createTestObject(callAdapter, p2, s1, p1, p3);
+        createTestObject(callAdapter, p4, s1, p3, null);
     
         return new IdPair(s1, p4);
     }
@@ -332,12 +365,9 @@ public abstract class SidCommonIT extends ContextAwareTestCaseDataone {
         Identifier p4 = createIdentifier("P4_", node);
         Identifier s1 = createIdentifier("S1_", node);
         
-        AccessPolicy policy = buildPublicReadAccessPolicy();
-        createTestObject(callAdapter, p1, s1, null, false, false, policy, cnSubmitter, "testRightsHolder");
-        createTestObject(callAdapter, p2, s1, p1, true, true, policy, cnSubmitter, "testRightsHolder");
-        setObsoletedBy(callAdapter, p2, p3, 1, cnSubmitter);
-        // TODO ^ serialVersion ???? 
-        createTestObject(callAdapter, p4, s1, p3, false, true, policy, cnSubmitter, "testRightsHolder");
+        createTestObject(callAdapter, p1, s1, null, p2);
+        createTestObject(callAdapter, p2, s1, p1, p3);
+        createTestObject(callAdapter, p4, s1, p3, null);
     
         return new IdPair(s1, p4);
     }
@@ -351,11 +381,10 @@ public abstract class SidCommonIT extends ContextAwareTestCaseDataone {
         Identifier p4 = createIdentifier("P4_", node);
         Identifier s1 = createIdentifier("S1_", node);
         
-        AccessPolicy policy = buildPublicReadAccessPolicy();
-        createTestObject(callAdapter, p1, s1, null, false, false, policy, cnSubmitter, "testRightsHolder");
-        createTestObject(callAdapter, p2, s1, p1, true, true, policy, cnSubmitter, "testRightsHolder");
-        createTestObject(callAdapter, p3, s1, p2, true, true, policy, cnSubmitter, "testRightsHolder");
-        createTestObject(callAdapter, p4, s1, p3, true, true, policy, cnSubmitter, "testRightsHolder");
+        createTestObject(callAdapter, p1, s1, null, p2);
+        createTestObject(callAdapter, p2, s1, p1, p3);
+        createTestObject(callAdapter, p3, s1, null, null);
+        createTestObject(callAdapter, p4, s1, p3, null);
         callAdapter.delete(null, p3);
         
         return new IdPair(s1, p4);
@@ -369,10 +398,9 @@ public abstract class SidCommonIT extends ContextAwareTestCaseDataone {
         Identifier p3 = createIdentifier("P3_", node);
         Identifier s1 = createIdentifier("S1_", node);
         
-        AccessPolicy policy = buildPublicReadAccessPolicy();
-        createTestObject(callAdapter, p1, s1, null, false, false, policy, cnSubmitter, "testRightsHolder");
-        createTestObject(callAdapter, p2, s1, p1, true, true, policy, cnSubmitter, "testRightsHolder");
-        createTestObject(callAdapter, p3, s1, p2, true, true, policy, cnSubmitter, "testRightsHolder");
+        createTestObject(callAdapter, p1, s1, null, p2);
+        createTestObject(callAdapter, p2, s1, p1, p3);
+        createTestObject(callAdapter, p3, s1, p2, null);
         callAdapter.archive(null, p3);
         
         return new IdPair(s1, p3);
@@ -386,10 +414,9 @@ public abstract class SidCommonIT extends ContextAwareTestCaseDataone {
         Identifier p3 = createIdentifier("P3_", node);
         Identifier s1 = createIdentifier("S1_", node);
         
-        AccessPolicy policy = buildPublicReadAccessPolicy();
-        createTestObject(callAdapter, p1, s1, null, false, false, policy, cnSubmitter, "testRightsHolder");
-        createTestObject(callAdapter, p2, s1, p1, true, true, policy, cnSubmitter, "testRightsHolder");
-        setObsoletedBy(callAdapter, p2, p3, 1, cnSubmitter);
+        createTestObject(callAdapter, p1, s1, null, p2);
+        createTestObject(callAdapter, p2, s1, p1, p3);
+        setObsoletedBy(callAdapter, p2, p3, 1, subjectLabel);
         // TODO ^ may not work due to validation?
         
         return new IdPair(s1, p2);
@@ -403,11 +430,9 @@ public abstract class SidCommonIT extends ContextAwareTestCaseDataone {
         Identifier p3 = createIdentifier("P3_", node);
         Identifier s1 = createIdentifier("S1_", node);
         
-        AccessPolicy policy = buildPublicReadAccessPolicy();
-        createTestObject(callAdapter, p1, s1, null, false, false, policy, cnSubmitter, "testRightsHolder");
-        createTestObject(callAdapter, p2, s1, p1, true, false, policy, cnSubmitter, "testRightsHolder");
-//        createTestObject(callAdapter, p3, s1, p2, false, false, policy, cnSubmitter, "testRightsHolder");
-        setObsoletedBy(callAdapter, p2, p3, 1, cnSubmitter);
+        createTestObject(callAdapter, p1, s1, null, null);
+        createTestObject(callAdapter, p2, s1, p1, p3);
+//        createTestObject(callAdapter, p3, s1, null, null);
         
         return new IdPair(s1, p2);
     }
@@ -421,10 +446,9 @@ public abstract class SidCommonIT extends ContextAwareTestCaseDataone {
         Identifier s1 = createIdentifier("S1_", node);
         Identifier s2 = createIdentifier("S2_", node);
         
-        AccessPolicy policy = buildPublicReadAccessPolicy();
-        createTestObject(callAdapter, p1, s1, null, false, false, policy, cnSubmitter, "testRightsHolder");
-        createTestObject(callAdapter, p2, s1, p1, true, false, policy, cnSubmitter, "testRightsHolder");
-        createTestObject(callAdapter, p3, s2, p2, false, true, policy, cnSubmitter, "testRightsHolder");
+        createTestObject(callAdapter, p1, s1, null, null);
+        createTestObject(callAdapter, p2, s1, p1, p3);
+        createTestObject(callAdapter, p3, s2, null, null);
         
         return new IdPair(s1, p2);
     }
@@ -440,11 +464,10 @@ public abstract class SidCommonIT extends ContextAwareTestCaseDataone {
         Identifier s1 = createIdentifier("S1_", node);
         Identifier s2 = createIdentifier("S2_", node);
         
-        AccessPolicy policy = buildPublicReadAccessPolicy();
-        createTestObject(callAdapter, p1, s1, null, false, false, policy, cnSubmitter, "testRightsHolder");
-        createTestObject(callAdapter, p2, s1, p1, true, true, policy, cnSubmitter, "testRightsHolder");
-        createTestObject(callAdapter, p4, s1, p3, true, false, policy, cnSubmitter, "testRightsHolder");
-        createTestObject(callAdapter, p5, s2, p4, true, true, policy, cnSubmitter, "testRightsHolder");
+        createTestObject(callAdapter, p1, s1, null, p2);
+        createTestObject(callAdapter, p2, s1, p1, null);
+        createTestObject(callAdapter, p4, s1, p3, p5);
+        createTestObject(callAdapter, p5, s2, p4, null);
         
         return new IdPair(s1, p4);
     }
@@ -459,11 +482,9 @@ public abstract class SidCommonIT extends ContextAwareTestCaseDataone {
         Identifier s1 = createIdentifier("S1_", node);
         Identifier s2 = createIdentifier("S2_", node);
         
-        AccessPolicy policy = buildPublicReadAccessPolicy();
-        createTestObject(callAdapter, p1, s1, null, false, false, policy, cnSubmitter, "testRightsHolder");
-        createTestObject(callAdapter, p2, s1, p1, true, false, policy, cnSubmitter, "testRightsHolder");
-        setObsoletedBy(callAdapter, p2, p3, 1, cnSubmitter);
-        createTestObject(callAdapter, p4, s2, p3, true, false, policy, cnSubmitter, "testRightsHolder");
+        createTestObject(callAdapter, p1, s1, null, null);
+        createTestObject(callAdapter, p2, s1, p1, p3);
+        createTestObject(callAdapter, p4, s2, p3, null);
         
         return new IdPair(s1, p2);
     }
@@ -477,11 +498,9 @@ public abstract class SidCommonIT extends ContextAwareTestCaseDataone {
         Identifier p4 = createIdentifier("P4_", node);
         Identifier s1 = createIdentifier("S1_", node);
         
-        AccessPolicy policy = buildPublicReadAccessPolicy();
-        createTestObject(callAdapter, p1, s1, null, false, false, policy, cnSubmitter, "testRightsHolder");
-        createTestObject(callAdapter, p2, s1, p1, true, false, policy, cnSubmitter, "testRightsHolder");
-        setObsoletedBy(callAdapter, p2, p3, 1, cnSubmitter);
-        createTestObject(callAdapter, p4, s1, p3, true, false, policy, cnSubmitter, "testRightsHolder");
+        createTestObject(callAdapter, p1, s1, null, null);
+        createTestObject(callAdapter, p2, s1, p1, p3);
+        createTestObject(callAdapter, p4, s1, p3, null);
         
         return new IdPair(s1, p4);
     }
@@ -496,11 +515,9 @@ public abstract class SidCommonIT extends ContextAwareTestCaseDataone {
         Identifier p5 = createIdentifier("P5_", node);
         Identifier s1 = createIdentifier("S1_", node);
         
-        AccessPolicy policy = buildPublicReadAccessPolicy();
-        createTestObject(callAdapter, p1, s1, null, false, false, policy, cnSubmitter, "testRightsHolder");
-        createTestObject(callAdapter, p2, s1, p1, true, true, policy, cnSubmitter, "testRightsHolder");
-        setObsoletedBy(callAdapter, p2, p3, 1, cnSubmitter);
-        createTestObject(callAdapter, p5, s1, p4, true, false, policy, cnSubmitter, "testRightsHolder");
+        createTestObject(callAdapter, p1, s1, null, p2);
+        createTestObject(callAdapter, p2, s1, p1, p3);
+        createTestObject(callAdapter, p5, s1, p4, null);
         
         return new IdPair(s1, p5);
     }
@@ -529,7 +546,7 @@ public abstract class SidCommonIT extends ContextAwareTestCaseDataone {
 
         logger.info("Testing getSystemMetadata() method ... ");
         
-        for (int caseNum = 1; caseNum <= 18; caseNum++) {
+        for (int caseNum = 1; caseNum <= numCases; caseNum++) {
             
             logger.info("Testing getSystemMetadata(), Case" + caseNum);
             Method setupMethod = SidCommonIT.class.getDeclaredMethod("setupCase" + caseNum, CommonCallAdapter.class, Node.class);
@@ -537,7 +554,7 @@ public abstract class SidCommonIT extends ContextAwareTestCaseDataone {
             Iterator<Node> nodeIter = getNodeIterator();
             while (nodeIter.hasNext()) {
                 Node node = nodeIter.next();
-                CommonCallAdapter callAdapter = new CommonCallAdapter(getSession(cnSubmitter), node, "v2");
+                CommonCallAdapter callAdapter = new CommonCallAdapter(getSession(subjectLabel), node, "v2");
                 IdPair idPair = (IdPair) setupMethod.invoke(this, callAdapter, node);
                 Identifier sid = idPair.firstID;
                 Identifier pid = idPair.secondID;
@@ -561,7 +578,7 @@ public abstract class SidCommonIT extends ContextAwareTestCaseDataone {
 
         logger.info("Testing get() method ... ");
         
-        for (int caseNum = 1; caseNum <= 18; caseNum++) {
+        for (int caseNum = 1; caseNum <= numCases; caseNum++) {
             
             logger.info("Testing get(), Case" + caseNum);
             
@@ -570,7 +587,7 @@ public abstract class SidCommonIT extends ContextAwareTestCaseDataone {
             Iterator<Node> nodeIter = getNodeIterator();
             while (nodeIter.hasNext()) {
                 Node node = nodeIter.next();
-                CommonCallAdapter callAdapter = new CommonCallAdapter(getSession(cnSubmitter), node, "v2");
+                CommonCallAdapter callAdapter = new CommonCallAdapter(getSession(subjectLabel), node, "v2");
                 IdPair idPair = (IdPair) setupMethod.invoke(this, callAdapter, node);
                 Identifier sid = idPair.firstID;
                 Identifier pid = idPair.secondID;
@@ -596,7 +613,7 @@ public abstract class SidCommonIT extends ContextAwareTestCaseDataone {
 
         logger.info("Testing describe() method ... ");
         
-        for (int caseNum = 1; caseNum <= 18; caseNum++) {
+        for (int caseNum = 1; caseNum <= numCases; caseNum++) {
             
             logger.info("Testing describe(), Case" + caseNum);
             
@@ -605,7 +622,7 @@ public abstract class SidCommonIT extends ContextAwareTestCaseDataone {
             Iterator<Node> nodeIter = getNodeIterator();
             while (nodeIter.hasNext()) {
                 Node node = nodeIter.next();
-                CommonCallAdapter callAdapter = new CommonCallAdapter(getSession(cnSubmitter), node, "v2");
+                CommonCallAdapter callAdapter = new CommonCallAdapter(getSession(subjectLabel), node, "v2");
                 IdPair idPair = (IdPair) setupMethod.invoke(this, callAdapter, node);
                 Identifier sid = idPair.firstID;
                 Identifier pid = idPair.secondID;
@@ -633,7 +650,7 @@ public abstract class SidCommonIT extends ContextAwareTestCaseDataone {
 
         logger.info("Testing delete() method ... ");
         
-        for (int caseNum = 1; caseNum <= 18; caseNum++) {
+        for (int caseNum = 1; caseNum <= numCases; caseNum++) {
             
             logger.info("Testing delete(), Case" + caseNum);
             
@@ -642,7 +659,7 @@ public abstract class SidCommonIT extends ContextAwareTestCaseDataone {
             Iterator<Node> nodeIter = getNodeIterator();
             while (nodeIter.hasNext()) {
                 Node node = nodeIter.next();
-                CommonCallAdapter callAdapter = new CommonCallAdapter(getSession(cnSubmitter), node, "v2");
+                CommonCallAdapter callAdapter = new CommonCallAdapter(getSession(subjectLabel), node, "v2");
                 IdPair idPair = (IdPair) setupMethod.invoke(this, callAdapter, node);
                 Identifier sid = idPair.firstID;
                 Identifier pid = idPair.secondID;
@@ -677,7 +694,7 @@ public abstract class SidCommonIT extends ContextAwareTestCaseDataone {
 
         logger.info("Testing archive() method ... ");
         
-        for (int caseNum = 1; caseNum <= 18; caseNum++) {
+        for (int caseNum = 1; caseNum <= numCases; caseNum++) {
             
             logger.info("Testing archive(), Case" + caseNum);
             
@@ -686,7 +703,7 @@ public abstract class SidCommonIT extends ContextAwareTestCaseDataone {
             Iterator<Node> nodeIter = getNodeIterator();
             while (nodeIter.hasNext()) {
                 Node node = nodeIter.next();
-                CommonCallAdapter callAdapter = new CommonCallAdapter(getSession(cnSubmitter), node, "v2");
+                CommonCallAdapter callAdapter = new CommonCallAdapter(getSession(subjectLabel), node, "v2");
                 IdPair idPair = (IdPair) setupMethod.invoke(this, callAdapter, node);
                 Identifier sid = idPair.firstID;
                 Identifier pid = idPair.secondID;
@@ -719,7 +736,7 @@ public abstract class SidCommonIT extends ContextAwareTestCaseDataone {
 
         logger.info("Testing get() method ... ");
         
-        for (int caseNum = 1; caseNum <= 18; caseNum++) {
+        for (int caseNum = 1; caseNum <= numCases; caseNum++) {
             
             logger.info("Testing get(), Case" + caseNum);
             
@@ -728,7 +745,7 @@ public abstract class SidCommonIT extends ContextAwareTestCaseDataone {
             Iterator<Node> nodeIter = getNodeIterator();
             while (nodeIter.hasNext()) {
                 Node node = nodeIter.next();
-                CommonCallAdapter callAdapter = new CommonCallAdapter(getSession(cnSubmitter), node, "v2");
+                CommonCallAdapter callAdapter = new CommonCallAdapter(getSession(subjectLabel), node, "v2");
                 IdPair idPair = (IdPair) setupMethod.invoke(this, callAdapter, node);
                 Identifier sid = idPair.firstID;
                 Identifier pid = idPair.secondID;
@@ -757,7 +774,7 @@ public abstract class SidCommonIT extends ContextAwareTestCaseDataone {
 
         logger.info("Testing isAuthorized() method ... ");
         
-        for (int caseNum = 1; caseNum <= 18; caseNum++) {
+        for (int caseNum = 1; caseNum <= numCases; caseNum++) {
             
             logger.info("Testing isAuthorized(), Case" + caseNum);
             
@@ -766,7 +783,7 @@ public abstract class SidCommonIT extends ContextAwareTestCaseDataone {
             Iterator<Node> nodeIter = getNodeIterator();
             while (nodeIter.hasNext()) {
                 Node node = nodeIter.next();
-                CommonCallAdapter callAdapter = new CommonCallAdapter(getSession(cnSubmitter), node, "v2");
+                CommonCallAdapter callAdapter = new CommonCallAdapter(getSession(subjectLabel), node, "v2");
                 IdPair idPair = (IdPair) setupMethod.invoke(this, callAdapter, node);
                 Identifier sid = idPair.firstID;
                 Identifier pid = idPair.secondID;
@@ -848,7 +865,7 @@ public abstract class SidCommonIT extends ContextAwareTestCaseDataone {
     public void testGetLogRecords() throws NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InvalidRequest, InvalidToken, NotAuthorized, NotImplemented, ServiceFailure, InsufficientResources, ClientSideException {
         logger.info("Testing getLogRecords() method ... ");
         
-        for (int caseNum = 1; caseNum <= 18; caseNum++) {
+        for (int caseNum = 1; caseNum <= numCases; caseNum++) {
             
             logger.info("Testing getLogRecords(), Case" + caseNum);
             
@@ -857,7 +874,7 @@ public abstract class SidCommonIT extends ContextAwareTestCaseDataone {
             Iterator<Node> nodeIter = getNodeIterator();
             while (nodeIter.hasNext()) {
                 Node node = nodeIter.next();
-                CNCallAdapter callAdapter = new CNCallAdapter(getSession(cnSubmitter), node, "v2");
+                CNCallAdapter callAdapter = new CNCallAdapter(getSession(subjectLabel), node, "v2");
                 IdPair idPair = (IdPair) setupMethod.invoke(this, callAdapter, node);
                 Identifier sid = idPair.firstID;
                 Identifier pid = idPair.secondID;
@@ -878,7 +895,7 @@ public abstract class SidCommonIT extends ContextAwareTestCaseDataone {
     public void testView() throws NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
         logger.info("Testing view() method ... ");
         
-        for (int caseNum = 1; caseNum <= 18; caseNum++) {
+        for (int caseNum = 1; caseNum <= numCases; caseNum++) {
             
             logger.info("Testing view(), Case" + caseNum);
             
@@ -887,7 +904,7 @@ public abstract class SidCommonIT extends ContextAwareTestCaseDataone {
             Iterator<Node> nodeIter = getNodeIterator();
             while (nodeIter.hasNext()) {
                 Node node = nodeIter.next();
-                CommonCallAdapter callAdapter = new CommonCallAdapter(getSession(cnSubmitter), node, "v2");
+                CommonCallAdapter callAdapter = new CommonCallAdapter(getSession(subjectLabel), node, "v2");
                 IdPair idPair = (IdPair) setupMethod.invoke(this, callAdapter, node);
                 Identifier sid = idPair.firstID;
                 Identifier pid = idPair.secondID;
@@ -908,7 +925,7 @@ public abstract class SidCommonIT extends ContextAwareTestCaseDataone {
     
     public void testGetSystemMetadataCase1(Node node) throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique, UnsupportedType, InsufficientResources, InvalidSystemMetadata, NotImplemented, InvalidRequest, NotFound, ClientSideException, InstantiationException, IllegalAccessException, IOException, JiBXException {
         
-        CommonCallAdapter callAdapter = new CommonCallAdapter(getSession(cnSubmitter), node, "v2");
+        CommonCallAdapter callAdapter = new CommonCallAdapter(getSession(subjectLabel), node, "v2");
         IdPair idPair = setupCase1(callAdapter, node);
         Identifier s1 = idPair.firstID;
         Identifier p2 = idPair.secondID;
@@ -928,7 +945,7 @@ public abstract class SidCommonIT extends ContextAwareTestCaseDataone {
     
     public void testGetSystemMetadataCase2(Node node) throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique, UnsupportedType, InsufficientResources, InvalidSystemMetadata, NotImplemented, InvalidRequest, NotFound, ClientSideException, InstantiationException, IllegalAccessException, IOException, JiBXException {
         
-        CommonCallAdapter callAdapter = new CommonCallAdapter(getSession(cnSubmitter), node, "v2");
+        CommonCallAdapter callAdapter = new CommonCallAdapter(getSession(subjectLabel), node, "v2");
         IdPair idPair = setupCase2(callAdapter, node);
         Identifier s1 = idPair.firstID;
         Identifier p2 = idPair.secondID;
@@ -948,7 +965,7 @@ public abstract class SidCommonIT extends ContextAwareTestCaseDataone {
     
     public void testGetSystemMetadataCase3(Node node) throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique, UnsupportedType, InsufficientResources, InvalidSystemMetadata, NotImplemented, InvalidRequest, NotFound, ClientSideException, InstantiationException, IllegalAccessException, IOException, JiBXException {
         
-        CommonCallAdapter callAdapter = new CommonCallAdapter(getSession(cnSubmitter), node, "v2");
+        CommonCallAdapter callAdapter = new CommonCallAdapter(getSession(subjectLabel), node, "v2");
         IdPair idPair = setupCase3(callAdapter, node);
         Identifier s1 = idPair.firstID;
         Identifier p2 = idPair.secondID;
@@ -969,7 +986,7 @@ public abstract class SidCommonIT extends ContextAwareTestCaseDataone {
     
     public void testGetSystemMetadataCase4(Node node) throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique, UnsupportedType, InsufficientResources, InvalidSystemMetadata, NotImplemented, InvalidRequest, NotFound, ClientSideException, InstantiationException, IllegalAccessException, IOException, JiBXException {
         
-        CommonCallAdapter callAdapter = new CommonCallAdapter(getSession(cnSubmitter), node, "v2");
+        CommonCallAdapter callAdapter = new CommonCallAdapter(getSession(subjectLabel), node, "v2");
         IdPair idPair = setupCase4(callAdapter, node);
         Identifier s1 = idPair.firstID;
         Identifier p2 = idPair.secondID;
@@ -990,7 +1007,7 @@ public abstract class SidCommonIT extends ContextAwareTestCaseDataone {
     
     public void testGetSystemMetadataCase5(Node node) throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique, UnsupportedType, InsufficientResources, InvalidSystemMetadata, NotImplemented, InvalidRequest, NotFound, ClientSideException, InstantiationException, IllegalAccessException, IOException, JiBXException {
         
-        CommonCallAdapter callAdapter = new CommonCallAdapter(getSession(cnSubmitter), node, "v2");
+        CommonCallAdapter callAdapter = new CommonCallAdapter(getSession(subjectLabel), node, "v2");
         IdPair idPair = setupCase5(callAdapter, node);
         Identifier s1 = idPair.firstID;
         Identifier p2 = idPair.secondID;
@@ -1011,7 +1028,7 @@ public abstract class SidCommonIT extends ContextAwareTestCaseDataone {
     
     public void testGetSystemMetadataCase6(Node node) throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique, UnsupportedType, InsufficientResources, InvalidSystemMetadata, NotImplemented, InvalidRequest, NotFound, ClientSideException, InstantiationException, IllegalAccessException, IOException, JiBXException {
         
-        CommonCallAdapter callAdapter = new CommonCallAdapter(getSession(cnSubmitter), node, "v2");
+        CommonCallAdapter callAdapter = new CommonCallAdapter(getSession(subjectLabel), node, "v2");
         IdPair idPair = setupCase6(callAdapter, node);
         Identifier s1 = idPair.firstID;
         Identifier p2 = idPair.secondID;
@@ -1032,7 +1049,7 @@ public abstract class SidCommonIT extends ContextAwareTestCaseDataone {
     
     public void testGetSystemMetadataCase7(Node node) throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique, UnsupportedType, InsufficientResources, InvalidSystemMetadata, NotImplemented, InvalidRequest, NotFound, ClientSideException, InstantiationException, IllegalAccessException, IOException, JiBXException {
         
-        CommonCallAdapter callAdapter = new CommonCallAdapter(getSession(cnSubmitter), node, "v2");
+        CommonCallAdapter callAdapter = new CommonCallAdapter(getSession(subjectLabel), node, "v2");
         IdPair idPair = setupCase7(callAdapter, node);
         Identifier s1 = idPair.firstID;
         Identifier p2 = idPair.secondID;
@@ -1053,7 +1070,7 @@ public abstract class SidCommonIT extends ContextAwareTestCaseDataone {
     
     public void testGetSystemMetadataCase8(Node node) throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique, UnsupportedType, InsufficientResources, InvalidSystemMetadata, NotImplemented, InvalidRequest, NotFound, ClientSideException, InstantiationException, IllegalAccessException, IOException, JiBXException {
         
-        CommonCallAdapter callAdapter = new CommonCallAdapter(getSession(cnSubmitter), node, "v2");
+        CommonCallAdapter callAdapter = new CommonCallAdapter(getSession(subjectLabel), node, "v2");
         IdPair idPair = setupCase8(callAdapter, node);
         Identifier s1 = idPair.firstID;
         Identifier p4 = idPair.secondID;
@@ -1074,7 +1091,7 @@ public abstract class SidCommonIT extends ContextAwareTestCaseDataone {
     
     public void testGetSystemMetadataCase9(Node node) throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique, UnsupportedType, InsufficientResources, InvalidSystemMetadata, NotImplemented, InvalidRequest, NotFound, ClientSideException, InstantiationException, IllegalAccessException, IOException, JiBXException {
         
-        CommonCallAdapter callAdapter = new CommonCallAdapter(getSession(cnSubmitter), node, "v2");
+        CommonCallAdapter callAdapter = new CommonCallAdapter(getSession(subjectLabel), node, "v2");
         IdPair idPair = setupCase9(callAdapter, node);
         Identifier s1 = idPair.firstID;
         Identifier p4 = idPair.secondID;
@@ -1095,7 +1112,7 @@ public abstract class SidCommonIT extends ContextAwareTestCaseDataone {
     
     public void testGetSystemMetadataCase10(Node node) throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique, UnsupportedType, InsufficientResources, InvalidSystemMetadata, NotImplemented, InvalidRequest, NotFound, ClientSideException, InstantiationException, IllegalAccessException, IOException, JiBXException {
         
-        CommonCallAdapter callAdapter = new CommonCallAdapter(getSession(cnSubmitter), node, "v2");
+        CommonCallAdapter callAdapter = new CommonCallAdapter(getSession(subjectLabel), node, "v2");
         IdPair idPair = setupCase10(callAdapter, node);
         Identifier s1 = idPair.firstID;
         Identifier p4 = idPair.secondID;
@@ -1116,7 +1133,7 @@ public abstract class SidCommonIT extends ContextAwareTestCaseDataone {
     
     public void testGetSystemMetadataCase11(Node node) throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique, UnsupportedType, InsufficientResources, InvalidSystemMetadata, NotImplemented, InvalidRequest, NotFound, ClientSideException, InstantiationException, IllegalAccessException, IOException, JiBXException {
         
-        CommonCallAdapter callAdapter = new CommonCallAdapter(getSession(cnSubmitter), node, "v2");
+        CommonCallAdapter callAdapter = new CommonCallAdapter(getSession(subjectLabel), node, "v2");
         IdPair idPair = setupCase11(callAdapter, node);
         Identifier s1 = idPair.firstID;
         Identifier p3 = idPair.secondID;
@@ -1137,7 +1154,7 @@ public abstract class SidCommonIT extends ContextAwareTestCaseDataone {
     
     public void testGetSystemMetadataCase12(Node node) throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique, UnsupportedType, InsufficientResources, InvalidSystemMetadata, NotImplemented, InvalidRequest, NotFound, ClientSideException, InstantiationException, IllegalAccessException, IOException, JiBXException {
         
-        CommonCallAdapter callAdapter = new CommonCallAdapter(getSession(cnSubmitter), node, "v2");
+        CommonCallAdapter callAdapter = new CommonCallAdapter(getSession(subjectLabel), node, "v2");
         IdPair idPair = setupCase12(callAdapter, node);
         Identifier s1 = idPair.firstID;
         Identifier p2 = idPair.secondID;
@@ -1157,7 +1174,7 @@ public abstract class SidCommonIT extends ContextAwareTestCaseDataone {
     
     public void testGetSystemMetadataCase13(Node node) throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique, UnsupportedType, InsufficientResources, InvalidSystemMetadata, NotImplemented, InvalidRequest, NotFound, ClientSideException, InstantiationException, IllegalAccessException, IOException, JiBXException {
         
-        CommonCallAdapter callAdapter = new CommonCallAdapter(getSession(cnSubmitter), node, "v2");
+        CommonCallAdapter callAdapter = new CommonCallAdapter(getSession(subjectLabel), node, "v2");
         IdPair idPair = setupCase13(callAdapter, node);
         Identifier s1 = idPair.firstID;
         Identifier p2 = idPair.secondID;
@@ -1177,7 +1194,7 @@ public abstract class SidCommonIT extends ContextAwareTestCaseDataone {
     
     public void testGetSystemMetadataCase14(Node node) throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique, UnsupportedType, InsufficientResources, InvalidSystemMetadata, NotImplemented, InvalidRequest, NotFound, ClientSideException, InstantiationException, IllegalAccessException, IOException, JiBXException {
         
-        CommonCallAdapter callAdapter = new CommonCallAdapter(getSession(cnSubmitter), node, "v2");
+        CommonCallAdapter callAdapter = new CommonCallAdapter(getSession(subjectLabel), node, "v2");
         IdPair idPair = setupCase14(callAdapter, node);
         Identifier s1 = idPair.firstID;
         Identifier p2 = idPair.secondID;
@@ -1197,7 +1214,7 @@ public abstract class SidCommonIT extends ContextAwareTestCaseDataone {
     
     public void testGetSystemMetadataCase15(Node node) throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique, UnsupportedType, InsufficientResources, InvalidSystemMetadata, NotImplemented, InvalidRequest, NotFound, ClientSideException, InstantiationException, IllegalAccessException, IOException, JiBXException {
         
-        CommonCallAdapter callAdapter = new CommonCallAdapter(getSession(cnSubmitter), node, "v2");
+        CommonCallAdapter callAdapter = new CommonCallAdapter(getSession(subjectLabel), node, "v2");
         IdPair idPair = setupCase15(callAdapter, node);
         Identifier s1 = idPair.firstID;
         Identifier p4 = idPair.secondID;
@@ -1217,7 +1234,7 @@ public abstract class SidCommonIT extends ContextAwareTestCaseDataone {
     
     public void testGetSystemMetadataCase16(Node node) throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique, UnsupportedType, InsufficientResources, InvalidSystemMetadata, NotImplemented, InvalidRequest, NotFound, ClientSideException, InstantiationException, IllegalAccessException, IOException, JiBXException {
         
-        CommonCallAdapter callAdapter = new CommonCallAdapter(getSession(cnSubmitter), node, "v2");
+        CommonCallAdapter callAdapter = new CommonCallAdapter(getSession(subjectLabel), node, "v2");
         IdPair idPair = setupCase16(callAdapter, node);
         Identifier s1 = idPair.firstID;
         Identifier p2 = idPair.secondID;
@@ -1237,7 +1254,7 @@ public abstract class SidCommonIT extends ContextAwareTestCaseDataone {
     
     public void testGetSystemMetadataCase17(Node node) throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique, UnsupportedType, InsufficientResources, InvalidSystemMetadata, NotImplemented, InvalidRequest, NotFound, ClientSideException, InstantiationException, IllegalAccessException, IOException, JiBXException {
         
-        CommonCallAdapter callAdapter = new CommonCallAdapter(getSession(cnSubmitter), node, "v2");
+        CommonCallAdapter callAdapter = new CommonCallAdapter(getSession(subjectLabel), node, "v2");
         IdPair idPair = setupCase17(callAdapter, node);
         Identifier s1 = idPair.firstID;
         Identifier p4 = idPair.secondID;
@@ -1257,7 +1274,7 @@ public abstract class SidCommonIT extends ContextAwareTestCaseDataone {
     
     public void testGetSystemMetadataCase18(Node node) throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique, UnsupportedType, InsufficientResources, InvalidSystemMetadata, NotImplemented, InvalidRequest, NotFound, ClientSideException, InstantiationException, IllegalAccessException, IOException, JiBXException {
         
-        CommonCallAdapter callAdapter = new CommonCallAdapter(getSession(cnSubmitter), node, "v2");
+        CommonCallAdapter callAdapter = new CommonCallAdapter(getSession(subjectLabel), node, "v2");
         IdPair idPair = setupCase18(callAdapter, node);
         Identifier s1 = idPair.firstID;
         Identifier p5 = idPair.secondID;

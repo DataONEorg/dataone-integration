@@ -554,6 +554,24 @@ public class CommonCallAdapter implements D1Node {
                 + version);
     }
 
+    public boolean updateSystemMetadata(Session session, Identifier pid, org.dataone.service.types.v2.SystemMetadata sysmeta)
+            throws NotImplemented, NotAuthorized, ServiceFailure, InvalidRequest,
+            InvalidSystemMetadata, InvalidToken, ClientSideException, NotFound {
+        if (this.version.toLowerCase().equals("v2")) {
+            if (this.node.getType().equals(NodeType.CN)) {
+                org.dataone.service.cn.v2.CNCore cnCore = D1NodeFactory.buildNode(org.dataone.service.cn.v2.CNCore.class, this.mrc,
+                        URI.create(this.node.getBaseURL()));
+                return cnCore.updateSystemMetadata(session, pid, sysmeta);
+            } else if (this.node.getType().equals(NodeType.MN)) {
+                    MNStorage mnStorage = D1NodeFactory.buildNode(MNStorage.class, this.mrc,
+                            URI.create(this.node.getBaseURL()));
+                return mnStorage.updateSystemMetadata(session, pid, sysmeta);
+            }
+        }
+        throw new ClientSideException("Call to updateSystemMetadata failed. " + node.getType()
+                + " of version " + version);
+    }
+    
     private Log convertV1Log(org.dataone.service.types.v1.Log v1Log) 
     throws InstantiationException, IllegalAccessException, InvocationTargetException, JiBXException, IOException 
     {

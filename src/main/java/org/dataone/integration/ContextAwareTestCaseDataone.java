@@ -1091,8 +1091,8 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
     InsufficientResources, InvalidSystemMetadata, NotImplemented, InvalidRequest,
     UnsupportedEncodingException, NotFound, ClientSideException
     {
-        return createTestObject(d1Node, pid, null, null, false, false, policy, 
-                submitterSubjectLabel, rightsHolderSubjectName);
+        return createTestObject(d1Node, pid, null, policy, submitterSubjectLabel,
+                rightsHolderSubjectName);
     }
     
     /**
@@ -1105,13 +1105,6 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
      * @param d1Node - the node to create the object on
      * @param pid - the identifier for the create object
      * @param sid - the series identifier for the given pid
-     * @param obsoletesId - an {@link Identifier} for the previous object in the chain
-     * @param setObsoletes whether to set the obsoletes parameter on this object to be
-     *              the {@link Identifier} passed in the <code>obsoletesId</code> parameter
-     * @param setObsoletedBy whether to set the obsoletedBy parameter on the previous object,
-     *              (the object pointed to by the {@link Identifier} <code>obsoletesId</code>)
-     *              to be the identifier of the current object (<code>pid</code>)
-     *              <b>NOTE: will make an additional call to accomplish this</b>
      * @param policy - the single access rule that will become the AccessPolicy
      *                     for the created object.  null results in null AccessPolicy
      * @param submitterSubjectLabel - label for the submitter subject, to be used as
@@ -1121,7 +1114,6 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
      * @return the Identifier for the created object
      */
     public Identifier createTestObject(D1Node d1Node, Identifier pid, Identifier sid, 
-            Identifier obsoletesId, boolean setObsoletes, boolean setObsoletedBy,
             AccessPolicy policy, String submitterSubjectLabel, String rightsHolderSubjectName)
     throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique, UnsupportedType,
     InsufficientResources, InvalidSystemMetadata, NotImplemented, InvalidRequest,
@@ -1136,7 +1128,6 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
         
         try {
             setupClientSubject(submitterSubjectLabel);
-
 
             // prepare the data object for the create:
             // generate some data bytes as an input stream
@@ -1163,8 +1154,6 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
                 //			}
                 sysMeta = TypeMarshaller.convertTypeFromType(d1o.getSystemMetadata(), SystemMetadata.class);
                 sysMeta.setSeriesId(sid);
-                if(setObsoletes)
-                    sysMeta.setObsoletes(obsoletesId);
             } catch (NoSuchAlgorithmException e) {
                 e.printStackTrace();
                 throw new ServiceFailure("0000","client misconfiguration related to checksum algorithms");
@@ -1219,10 +1208,9 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
             checkEquals(d1Node.getNodeBaseServiceUrl(),
                     "createTestObject(): returned pid from the create() should match what was given",
                     pid.getValue(), retPid.getValue());
-            
-            if(setObsoletedBy && obsoletesId != null && d1Node instanceof CNCallAdapter)
-                ((CNCallAdapter)d1Node).setObsoletedBy(null, pid, retPid, sysMeta.getSerialVersion().longValue());
-            
+        } catch (BaseException be) {
+            be.printStackTrace();
+            throw new ClientSideException("Unable to create test object!", be);
         } catch (Exception e) {
             e.printStackTrace();
         } finally {

@@ -62,7 +62,7 @@ public class SidCNIT extends SidCommonIT {
 
         logger.info("Testing resolve() method ... ");
         
-        for (int caseNum = 1; caseNum <= 18; caseNum++) {
+        for (int caseNum = 1; caseNum <= numCases; caseNum++) {
             
             logger.info("Testing resolve(), case " + caseNum);
             
@@ -71,7 +71,7 @@ public class SidCNIT extends SidCommonIT {
             Iterator<Node> cnIter = getCoordinatingNodeIterator();
             while (cnIter.hasNext()) {
                 Node node = cnIter.next();
-                CNCallAdapter callAdapter = new CNCallAdapter(getSession(cnSubmitter), node, "v2");
+                CNCallAdapter callAdapter = new CNCallAdapter(getSession(subjectLabel), node, "v2");
                 IdPair idPair = (IdPair) setupMethod.invoke(this, callAdapter, node);
                 Identifier sid = idPair.firstID;
                 Identifier pid = idPair.secondID;
@@ -111,7 +111,7 @@ public class SidCNIT extends SidCommonIT {
 
         logger.info("Testing setRightsHolder() method ... ");
         
-        for (int caseNum = 1; caseNum <= 18; caseNum++) {
+        for (int caseNum = 1; caseNum <= numCases; caseNum++) {
             
             logger.info("Testing setRightsHolder(), case " + caseNum);
             
@@ -120,7 +120,7 @@ public class SidCNIT extends SidCommonIT {
             Iterator<Node> cnIter = getCoordinatingNodeIterator();
             while (cnIter.hasNext()) {
                 Node node = cnIter.next();
-                CNCallAdapter callAdapter = new CNCallAdapter(getSession(cnSubmitter), node, "v2");
+                CNCallAdapter callAdapter = new CNCallAdapter(getSession(subjectLabel), node, "v2");
                 IdPair idPair = (IdPair) setupMethod.invoke(this, callAdapter, node);
                 Identifier sid = idPair.firstID;
                 Identifier pid = idPair.secondID;
@@ -150,7 +150,7 @@ public class SidCNIT extends SidCommonIT {
 
         logger.info("Testing setAccessPolicy() method ... ");
         
-        for (int caseNum = 1; caseNum <= 18; caseNum++) {
+        for (int caseNum = 1; caseNum <= numCases; caseNum++) {
             
             logger.info("Testing setAccessPolicy(), case " + caseNum);
             
@@ -159,13 +159,13 @@ public class SidCNIT extends SidCommonIT {
             Iterator<Node> cnIter = getCoordinatingNodeIterator();
             while (cnIter.hasNext()) {
                 Node node = cnIter.next();
-                CNCallAdapter callAdapter = new CNCallAdapter(getSession(cnSubmitter), node, "v2");
+                CNCallAdapter callAdapter = new CNCallAdapter(getSession(subjectLabel), node, "v2");
                 IdPair idPair = (IdPair) setupMethod.invoke(this, callAdapter, node);
                 Identifier sid = idPair.firstID;
                 Identifier pid = idPair.secondID;
     
                 AccessPolicy sidAccessPolicy = new AccessPolicy();
-                Subject cnSubject = getSubject(cnSubmitter);
+                Subject cnSubject = getSubject(subjectLabel);
                 AccessRule accessRuleCN = AccessUtil.createAccessRule(
                         new Subject[] { cnSubject }, new Permission[] { Permission.CHANGE_PERMISSION });
                 String testSubject = "BLARG";
@@ -206,7 +206,7 @@ public class SidCNIT extends SidCommonIT {
 
         logger.info("Testing setReplicationPolicy() method ... ");
         
-        for (int caseNum = 1; caseNum <= 18; caseNum++) {
+        for (int caseNum = 1; caseNum <= numCases; caseNum++) {
             
             logger.info("Testing setReplicationPolicy(), case " + caseNum);
             
@@ -215,7 +215,7 @@ public class SidCNIT extends SidCommonIT {
             Iterator<Node> cnIter = getCoordinatingNodeIterator();
             while (cnIter.hasNext()) {
                 Node node = cnIter.next();
-                CNCallAdapter callAdapter = new CNCallAdapter(getSession(cnSubmitter), node, "v2");
+                CNCallAdapter callAdapter = new CNCallAdapter(getSession(subjectLabel), node, "v2");
                 IdPair idPair = (IdPair) setupMethod.invoke(this, callAdapter, node);
                 Identifier sid = idPair.firstID;
                 Identifier pid = idPair.secondID;
@@ -256,7 +256,7 @@ public class SidCNIT extends SidCommonIT {
 
         logger.info("Testing archive() method ... ");
         
-        for (int caseNum = 1; caseNum <= 18; caseNum++) {
+        for (int caseNum = 1; caseNum <= numCases; caseNum++) {
             
             logger.info("Testing archive(), case " + caseNum);
             
@@ -265,7 +265,7 @@ public class SidCNIT extends SidCommonIT {
             Iterator<Node> cnIter = getCoordinatingNodeIterator();
             while (cnIter.hasNext()) {
                 Node node = cnIter.next();
-                CNCallAdapter callAdapter = new CNCallAdapter(getSession(cnSubmitter), node, "v2");
+                CNCallAdapter callAdapter = new CNCallAdapter(getSession(subjectLabel), node, "v2");
                 IdPair idPair = (IdPair) setupMethod.invoke(this, callAdapter, node);
                 Identifier sid = idPair.firstID;
                 Identifier pid = idPair.secondID;

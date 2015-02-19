@@ -443,14 +443,13 @@ public class CNCoreTestImplementations extends ContextAwareAdapter {
         CNCallAdapter callAdapter = new CNCallAdapter(getSession("testSubmitter"), node, version);
         String currentUrl = node.getBaseURL();
         printTestHeader("testReserveIdentifier(...) vs. node: " + currentUrl);
-        Session session = ExampleUtilities.getTestSession();
         
         boolean isReserved = false;
         try {
             Identifier pid = new Identifier();
             pid.setValue(ExampleUtilities.generateIdentifier());
 
-            Identifier response = callAdapter.reserveIdentifier(session, pid);
+            Identifier response = callAdapter.reserveIdentifier(null, pid);
             checkTrue(callAdapter.getLatestRequestUrl(),"reserveIdentifier(...) should return the given identifier",
                     response.equals(pid));
             isReserved = true;

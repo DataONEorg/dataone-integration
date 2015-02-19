@@ -133,19 +133,6 @@ public class MNCallAdapter extends CommonCallAdapter {
                 + " of version " + version);
     }
 
-    public boolean updateSystemMetadata(Session session, Identifier pid, SystemMetadata sysmeta)
-            throws NotImplemented, NotAuthorized, NotFound, ServiceFailure, InvalidRequest,
-            InvalidSystemMetadata, InvalidToken, ClientSideException {
-        if (this.node.getType().equals(NodeType.MN)
-                && this.version.toLowerCase().equals("v2")) {
-                MNStorage mnStorage = D1NodeFactory.buildNode(MNStorage.class, this.mrc,
-                        URI.create(this.node.getBaseURL()));
-                return mnStorage.updateSystemMetadata(session, pid, sysmeta);
-        }
-        throw new ClientSideException("Call to updateSystemMetadata failed. " + node.getType()
-                + " of version " + version);
-    }
-
     public Identifier generateIdentifier(Session session, String scheme, String fragment)
             throws InvalidToken, ServiceFailure, NotAuthorized, NotImplemented, InvalidRequest, ClientSideException {
         if (this.node.getType().equals(NodeType.MN)) {
