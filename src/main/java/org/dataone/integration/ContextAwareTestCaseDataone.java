@@ -1091,7 +1091,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
     InsufficientResources, InvalidSystemMetadata, NotImplemented, InvalidRequest,
     UnsupportedEncodingException, NotFound, ClientSideException
     {
-        return createTestObject(d1Node, pid, null, policy, submitterSubjectLabel,
+        return createTestObject(d1Node, pid, null, null, null, policy, submitterSubjectLabel,
                 rightsHolderSubjectName);
     }
     
@@ -1114,6 +1114,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
      * @return the Identifier for the created object
      */
     public Identifier createTestObject(D1Node d1Node, Identifier pid, Identifier sid, 
+            Identifier obsoletesId, Identifier obsoletedById,
             AccessPolicy policy, String submitterSubjectLabel, String rightsHolderSubjectName)
     throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique, UnsupportedType,
     InsufficientResources, InvalidSystemMetadata, NotImplemented, InvalidRequest,
@@ -1180,6 +1181,12 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
                 sysMeta.setAccessPolicy(policy);
             }
 
+            // CN.create() - but not MN.create() - allows metadata to contain the following
+            if(d1Node instanceof CommonCallAdapter && d1Node.getNodeType() == NodeType.CN) {
+                sysMeta.setObsoletes(obsoletesId);
+                sysMeta.setObsoletedBy(obsoletedById);
+            }
+            
             // create the test object on the given mNode
             if (log.isInfoEnabled()) {
                 log.info("creating a test object.  pid = " + pid.getValue());

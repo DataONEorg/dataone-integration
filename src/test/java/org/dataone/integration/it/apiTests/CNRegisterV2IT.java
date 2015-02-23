@@ -3,6 +3,7 @@ package org.dataone.integration.it.apiTests;
 import org.dataone.integration.ContextAwareTestCaseDataone;
 import org.dataone.integration.it.testDefinitions.CNRegisterTestDefinitions;
 import org.dataone.integration.it.testImplementations.CNRegisterTestImplementations;
+import org.dataone.integration.webTest.WebTestImplementation;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -13,8 +14,10 @@ import org.junit.Test;
 public class CNRegisterV2IT extends ContextAwareTestCaseDataone
         implements CNRegisterTestDefinitions {
 
+    @WebTestImplementation
     private CNRegisterTestImplementations registerTestImpl;
 
+    
     @Before
     public void setup() {
         registerTestImpl = new CNRegisterTestImplementations(this);

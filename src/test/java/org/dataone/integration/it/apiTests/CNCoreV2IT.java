@@ -1,11 +1,15 @@
 package org.dataone.integration.it.apiTests;
 
 import org.dataone.integration.ContextAwareTestCaseDataone;
+import org.dataone.integration.it.testDefinitions.CNCoreSidTestDefinitions;
 import org.dataone.integration.it.testDefinitions.CNCoreTestDefinitions;
 import org.dataone.integration.it.testDefinitions.CNv2CoreTestDefinitions;
 import org.dataone.integration.it.testDefinitions.CoreTestDefinitions;
 import org.dataone.integration.it.testImplementations.CNCoreTestImplementations;
 import org.dataone.integration.it.testImplementations.CoreTestImplementations;
+import org.dataone.integration.it.testImplementations.SidCNTestImplementations;
+import org.dataone.integration.webTest.WebTestImplementation;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -14,15 +18,28 @@ import org.junit.Test;
  * Tests CNCore functionality for v2 of the API 
  */
 public class CNCoreV2IT extends ContextAwareTestCaseDataone
-implements CoreTestDefinitions, CNCoreTestDefinitions, CNv2CoreTestDefinitions{
+implements CoreTestDefinitions, CNCoreTestDefinitions, CNv2CoreTestDefinitions, CNCoreSidTestDefinitions {
 
+    @WebTestImplementation
     private CoreTestImplementations coreTestImpl;
+    
+    @WebTestImplementation
     private CNCoreTestImplementations cnCoreTestImpl;
+    
+    @WebTestImplementation
+    private SidCNTestImplementations sidImpl;
+    
     
     @Before 
     public void setup() {
         coreTestImpl = new CoreTestImplementations(this);
         cnCoreTestImpl = new CNCoreTestImplementations(this);
+        sidImpl = new SidCNTestImplementations();
+    }
+    
+    @After
+    public void cleanUp() {
+        sidImpl.cleanUp();
     }
     
     @Override
@@ -147,4 +164,29 @@ implements CoreTestDefinitions, CNCoreTestDefinitions, CNv2CoreTestDefinitions{
     public void testUpdateSystemMetadata() {
 //        cnCoreTestImpl.testUpdateSystemMetadata(getCoordinatingNodeIterator(), "v2");
     }
+
+    @Override
+    @Test
+    public void testSidCreate() {
+        sidImpl.testCreate();
+    }
+
+    @Override
+    @Test
+    public void testDelete() {
+        sidImpl.testDelete();
+    }
+
+    @Override
+    @Test
+    public void testSidArchive() {
+        sidImpl.testArchive();
+    }
+
+    @Override
+    @Test
+    public void testSidGetLogRecords() {
+        sidImpl.testGetLogRecords();
+    }
+
 }

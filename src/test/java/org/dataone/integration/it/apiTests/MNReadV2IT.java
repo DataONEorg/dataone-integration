@@ -1,11 +1,14 @@
 package org.dataone.integration.it.apiTests;
 
 import org.dataone.integration.ContextAwareTestCaseDataone;
+import org.dataone.integration.it.testDefinitions.MNReadSidTestDefinitions;
 import org.dataone.integration.it.testDefinitions.MNReadTestDefinitions;
 import org.dataone.integration.it.testDefinitions.MNSystemMetadataChangedTestDefinitions;
 import org.dataone.integration.it.testDefinitions.ReadTestDefinitions;
 import org.dataone.integration.it.testImplementations.MNReadTestImplementations;
 import org.dataone.integration.it.testImplementations.ReadTestImplementations;
+import org.dataone.integration.it.testImplementations.SidMNTestImplementations;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -13,11 +16,11 @@ import org.junit.Test;
  * Tests MNRead functionality for v2 of the API 
  */
 public class MNReadV2IT extends ContextAwareTestCaseDataone 
-        implements ReadTestDefinitions, MNReadTestDefinitions {
+        implements ReadTestDefinitions, MNReadTestDefinitions, MNReadSidTestDefinitions {
 
     private ReadTestImplementations readTestImpl;
     private MNReadTestImplementations mnReadTestImpl;
-    
+    private SidMNTestImplementations sidImpl;
     
     @Override
     protected String getTestDescription() {
@@ -28,8 +31,14 @@ public class MNReadV2IT extends ContextAwareTestCaseDataone
     public void setup() {
         readTestImpl = new ReadTestImplementations(this);
         mnReadTestImpl = new MNReadTestImplementations(this);
+        sidImpl = new SidMNTestImplementations();
     }
 
+    @After
+    public void cleanUp() {
+        sidImpl.cleanUp();
+    }
+    
     @Override
     @Test
     public void testGet() {
@@ -166,5 +175,29 @@ public class MNReadV2IT extends ContextAwareTestCaseDataone
     @Test
     public void testGetReplica_IdentifierEncoding() {
         mnReadTestImpl.testGetReplica_IdentifierEncoding(getMemberNodeIterator(), "v2");
+    }
+
+    @Override
+    @Test
+    public void testSidGet() {
+        sidImpl.testGet();
+    }
+
+    @Override
+    @Test
+    public void testSidGetSystemMetadata() {
+        sidImpl.testGetSystemMetadata();
+    }
+
+    @Override
+    @Test
+    public void testSidDescribe() {
+        sidImpl.testDescribe();
+    }
+
+    @Override
+    @Test
+    public void testSidListObjects() {
+        sidImpl.testListObjects();
     }
 }

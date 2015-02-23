@@ -1,23 +1,33 @@
 package org.dataone.integration.it.apiTests;
 
 import org.dataone.integration.ContextAwareTestCaseDataone;
+import org.dataone.integration.it.testDefinitions.MNStorageSidTestDefinitions;
 import org.dataone.integration.it.testDefinitions.MNStorageTestDefinitions;
 import org.dataone.integration.it.testDefinitions.MNv2StorageTestDefinitions;
 import org.dataone.integration.it.testImplementations.MNStorageTestImplementations;
+import org.dataone.integration.it.testImplementations.SidMNTestImplementations;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
 public class MNStorageV2IT extends ContextAwareTestCaseDataone
-        implements MNStorageTestDefinitions, MNv2StorageTestDefinitions {
+        implements MNStorageTestDefinitions, MNv2StorageTestDefinitions, MNStorageSidTestDefinitions {
 
     private MNStorageTestImplementations mnStorageTestImpl;
-
+    private SidMNTestImplementations sidImpl;
+    
     @Before
     public void setup() {
         mnStorageTestImpl = new MNStorageTestImplementations(this);
+        sidImpl = new SidMNTestImplementations();
     }
 
+    @After
+    public void cleanUp() {
+        sidImpl.cleanUp();
+    }
+    
     @Override
     protected String getTestDescription() {
         return "Test Case that runs through the MN version 2 of storage API methods";
@@ -108,5 +118,29 @@ public class MNStorageV2IT extends ContextAwareTestCaseDataone
     @Ignore("No test exists for this yet.")
     public void testUpdateSystemMetadata() {
 //        mnStorageTestImpl.testUpdateSystemMetadata(getMemberNodeIterator(), "v2");
+    }
+
+    @Override
+    @Test
+    public void testSidCreate() {
+        sidImpl.testCreate();
+    }
+
+    @Override
+    @Test
+    public void testSidUpdate() {
+        sidImpl.testUpdate();
+    }
+
+    @Override
+    @Test
+    public void testSidDelete() {
+        sidImpl.testDelete();
+    }
+
+    @Override
+    @Test
+    public void testSidArchive() {
+        sidImpl.testArchive();
     }
 }

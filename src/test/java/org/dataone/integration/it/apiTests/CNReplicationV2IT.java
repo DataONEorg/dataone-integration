@@ -1,8 +1,12 @@
 package org.dataone.integration.it.apiTests;
 
 import org.dataone.integration.ContextAwareTestCaseDataone;
+import org.dataone.integration.it.testDefinitions.CNReplicationSidTestDefinitions;
 import org.dataone.integration.it.testDefinitions.CNReplicationTestDefinitions;
 import org.dataone.integration.it.testImplementations.CNReplicationTestImplementations;
+import org.dataone.integration.it.testImplementations.SidCNTestImplementations;
+import org.dataone.integration.webTest.WebTestImplementation;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -11,15 +15,26 @@ import org.junit.Test;
  * Tests CNReplication functionality for v2 of the API 
  */
 public class CNReplicationV2IT extends ContextAwareTestCaseDataone implements
-        CNReplicationTestDefinitions {
+        CNReplicationTestDefinitions, CNReplicationSidTestDefinitions {
 
+    @WebTestImplementation
     private CNReplicationTestImplementations replicationTestImpl;
-
+    
+    @WebTestImplementation
+    private SidCNTestImplementations sidImpl;
+    
+    
     @Before
     public void setup() {
         replicationTestImpl = new CNReplicationTestImplementations(this);
+        sidImpl = new SidCNTestImplementations();
     }
 
+    @After
+    public void cleanUp() {
+        sidImpl.cleanUp();
+    }
+    
     @Override
     protected String getTestDescription() {
         return "Test Case that runs through the CN version 2 of replication API methods.";
@@ -149,5 +164,11 @@ public class CNReplicationV2IT extends ContextAwareTestCaseDataone implements
     @Ignore("No test exists for this yet")
     public void testDeleteReplicationMetadata() {
         //replicationTestImpl.testDeleteReplicationMetadata(getCoordinatingNodeIterator(), "v2");
+    }
+
+    @Override
+    @Test
+    public void testSidSetReplicationPolicy() {
+        sidImpl.testSetReplicationPolicy();
     }
 }

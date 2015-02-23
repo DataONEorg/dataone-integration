@@ -1,10 +1,14 @@
 package org.dataone.integration.it.apiTests;
 
 import org.dataone.integration.ContextAwareTestCaseDataone;
+import org.dataone.integration.it.testDefinitions.CNReadSidTestDefinitions;
 import org.dataone.integration.it.testDefinitions.CNReadTestDefinitions;
 import org.dataone.integration.it.testDefinitions.ReadTestDefinitions;
 import org.dataone.integration.it.testImplementations.CNReadTestImplementations;
 import org.dataone.integration.it.testImplementations.ReadTestImplementations;
+import org.dataone.integration.it.testImplementations.SidCNTestImplementations;
+import org.dataone.integration.webTest.WebTestImplementation;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -12,10 +16,16 @@ import org.junit.Test;
  * Tests CNRead functionality for v2 of the API 
  */
 public class CNReadV2IT extends ContextAwareTestCaseDataone 
-        implements ReadTestDefinitions, CNReadTestDefinitions {
+        implements ReadTestDefinitions, CNReadTestDefinitions, CNReadSidTestDefinitions {
 
+    @WebTestImplementation
     private ReadTestImplementations readTestImpl;
+    
+    @WebTestImplementation
     private CNReadTestImplementations cnReadTestImpl;
+    
+    @WebTestImplementation
+    private SidCNTestImplementations sidImpl;
     
     
     @Override
@@ -27,8 +37,14 @@ public class CNReadV2IT extends ContextAwareTestCaseDataone
     public void setup() {
         readTestImpl = new ReadTestImplementations(this);
         cnReadTestImpl = new CNReadTestImplementations(this);
+        sidImpl = new SidCNTestImplementations();
     }
 
+    @After
+    public void cleanUp() {
+        sidImpl.cleanUp();
+    }
+    
     @Override
     @Test
     public void testGet() {
@@ -171,5 +187,35 @@ public class CNReadV2IT extends ContextAwareTestCaseDataone
     @Test
     public void testGetQueryEngineDescription() {
         cnReadTestImpl.testGetQueryEngineDescription(getCoordinatingNodeIterator(), "v2");
+    }
+
+    @Override
+    @Test
+    public void testSidGet() {
+        sidImpl.testGet();
+    }
+
+    @Override
+    @Test
+    public void testSidGetSystemMetadata() {
+        sidImpl.testGetSystemMetadata();
+    }
+
+    @Override
+    @Test
+    public void testSidDescribe() {
+        sidImpl.testDescribe();
+    }
+
+    @Override
+    @Test
+    public void testSidListObjects() {
+        sidImpl.testListObjects();
+    }
+
+    @Override
+    @Test
+    public void testSidResolve() {
+        sidImpl.testResolve();
     }
 }
