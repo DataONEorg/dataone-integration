@@ -18,6 +18,8 @@ import org.dataone.integration.ExampleUtilities;
 import org.dataone.integration.adapters.CNCallAdapter;
 import org.dataone.integration.adapters.CommonCallAdapter;
 import org.dataone.integration.it.ContextAwareAdapter;
+import org.dataone.integration.webTest.WebTestDescription;
+import org.dataone.integration.webTest.WebTestName;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.IdentifierNotUnique;
 import org.dataone.service.exceptions.InvalidRequest;
@@ -51,6 +53,9 @@ public class CNCoreTestImplementations extends ContextAwareAdapter {
         super(catc);
     }
     
+    @WebTestName("create: tests that calling create works")
+    @WebTestDescription("this test checks that the PID of a created object equals the one given, "
+            + "and that it contains the data passed in")
     public void testCreate(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testCreate(nodeIterator.next(), version);
@@ -88,6 +93,9 @@ public class CNCoreTestImplementations extends ContextAwareAdapter {
         }   
     }
     
+    @WebTestName("create - identifier encoding: tests that calling create works for different types of encodings in the identifier")
+    @WebTestDescription("this test checks that calling create can succeed even if the identifier given "
+            + "contains a variety of character encodings")
     public void testCreateData_IdentifierEncoding(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testCreateData_IdentifierEncoding(nodeIterator.next(), version);
@@ -187,6 +195,9 @@ public class CNCoreTestImplementations extends ContextAwareAdapter {
         }
     }
     
+    @WebTestName("listChecksumAlgorithms: tests that the listChecksumAlgorithms call works")
+    @WebTestDescription("tests that calling listChecksumAlgorithms "
+            + "returns a valid ChecksumAlgorithmList object")
     public void testListChecksumAlgorithms(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testListChecksumAlgorithms(nodeIterator.next(), version);
@@ -216,6 +227,9 @@ public class CNCoreTestImplementations extends ContextAwareAdapter {
         }
     }
     
+    @WebTestName("listFormats: tests that the listFormats call works")
+    @WebTestDescription("tests that calling listFormats "
+            + "returns a valid ObjectFormatList object")
     public void testListFormats(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testListFormats(nodeIterator.next(), version);
@@ -248,6 +262,9 @@ public class CNCoreTestImplementations extends ContextAwareAdapter {
         }
     }
     
+    @WebTestName("getFormat: tests that the getFormat call works")
+    @WebTestDescription("tests that calling getFormat "
+            + "returns a valid ObjectFormat object")
     public void testGetFormat(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testGetFormat(nodeIterator.next(), version);
@@ -288,6 +305,9 @@ public class CNCoreTestImplementations extends ContextAwareAdapter {
         }
     }
     
+    @WebTestName("getFormat - : tests that the getFormat call fails for invalid formats")
+    @WebTestDescription("tests that calling getFormat yields a NotFound exception if we "
+            + "give it a bogus formatID")
     public void testGetFormat_bogusFormat(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testGetFormat_bogusFormat(nodeIterator.next(), version);
@@ -326,6 +346,8 @@ public class CNCoreTestImplementations extends ContextAwareAdapter {
         }
     }
     
+    @WebTestName("listNodes: tests that the listNodes call works")
+    @WebTestDescription("tests that calling listNodes returns a valid NodeList object")
     public void testListNodes(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testListNodes(nodeIterator.next(), version);
@@ -355,6 +377,9 @@ public class CNCoreTestImplementations extends ContextAwareAdapter {
         }
     }
     
+    @WebTestName("generateIdentifier: tests that the generateIdentifier call works")
+    @WebTestDescription("tests that calling generateIdentifier returns an "
+            + "identifier with 5 hexidecimal segments separated by '-'s")
     public void testGenerateIdentifier(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testListNodes(nodeIterator.next(), version);
@@ -393,6 +418,9 @@ public class CNCoreTestImplementations extends ContextAwareAdapter {
         }
     }
     
+    @WebTestName("generateIdentifier - bad scheme: tests that the generateIdentifier call fails if given an invalid scheme")
+    @WebTestDescription("tests that calling generateIdentifier yields an "
+            + "an InvalidRequest exception if the given scheme parameter is invalid")
     public void testGenerateIdentifier_badScheme(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testGenerateIdentifier_badScheme(nodeIterator.next(), version);
@@ -429,6 +457,10 @@ public class CNCoreTestImplementations extends ContextAwareAdapter {
         }
     }
 
+    @WebTestName("reserveIdentifier: tests that the reserveIdentifier call works")
+    @WebTestDescription("tests that calling reserveIdentifier returns the given identifier, "
+            + "and that calling it again with the same identifier yields the expected "
+            + "IdentifierNotUnique exception")
     public void testReserveIdentifier(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testReserveIdentifier(nodeIterator.next(), version);
@@ -476,6 +508,9 @@ public class CNCoreTestImplementations extends ContextAwareAdapter {
         }
     }
     
+    @WebTestName("registerSystemMetadata: tests that the registerSystemMetadata call works")
+    @WebTestDescription("tests that calling registerSystemMetadata returns the same pid it was given, "
+            + "and that we can then fetch the system metadata after it's been registered")
     public void testRegisterSystemMetadata(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testRegisterSystemMetadata(nodeIterator.next(), version);
@@ -511,6 +546,9 @@ public class CNCoreTestImplementations extends ContextAwareAdapter {
         }   
     }
 
+    @WebTestName("hasReservation: tests that the hasReservation call works")
+    @WebTestDescription("tests that calling hasReservation after having registered the identifier "
+            + "returns true")
     public void testHasReservation(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testHasReservation(nodeIterator.next(), version);
@@ -551,6 +589,9 @@ public class CNCoreTestImplementations extends ContextAwareAdapter {
         }
     }
     
+    @WebTestName("hasReservation - no reservation: tests that the hasReservation call fails if no reservation")
+    @WebTestDescription("tests that calling hasReservation after NOT having registered the identifier "
+            + "yields a NotFound exception")
     public void testHasReservation_noReservation(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testHasReservation_noReservation(nodeIterator.next(), version);
@@ -606,6 +647,8 @@ public class CNCoreTestImplementations extends ContextAwareAdapter {
      * @param version 
      *      either "v1" or "v2", to match the API version being tested
      */
+    @WebTestName("getLogRecords: tests that the getLogRecords call works")
+    @WebTestDescription("tests that calling getLogRecords returns a non-null result")
     public void testGetLogRecords(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testGetLogRecords(nodeIterator.next(), version);
@@ -638,6 +681,11 @@ public class CNCoreTestImplementations extends ContextAwareAdapter {
         }              
     }
 
+    @WebTestName("getLogRecords - slicing: tests that the getLogRecords call's count and start parameters work")
+    @WebTestDescription("tests that calling getLogRecords returns a Log whose 'count' attribute matches the "
+            + "number of LogEntry objects returned, that 'total' is >= the 'count', and that 'total' is >= "
+            + "the number of LogEntry objects returned. It then calls getLogRecords with half the result set size "
+            + "as the 'count' parameter and checks that the number of results matches the count")
     public void testGetLogRecords_Slicing(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testGetLogRecords_Slicing(nodeIterator.next(), version);
@@ -704,6 +752,10 @@ public class CNCoreTestImplementations extends ContextAwareAdapter {
 
     }
 
+    @WebTestName("getLogRecords - date filtering: tests that the getLogRecords call's fromData parameter works")
+    @WebTestDescription("calls getLogRecords and checks what the earliest log is, calls getLogRecords with "
+            + "that records date as the fromDate parameter, then checks to make sure that earliest log "
+            + "is not in the results")
     public void testGetLogRecords_dateFiltering(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testGetLogRecords_dateFiltering(nodeIterator.next(), version);
