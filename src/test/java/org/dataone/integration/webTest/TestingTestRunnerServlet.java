@@ -25,6 +25,7 @@ package org.dataone.integration.webTest;
 import static org.junit.Assert.*;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
@@ -136,6 +137,40 @@ public class TestingTestRunnerServlet {
         assertTrue("response should contain 'MNStorage'", responseString.contains("org.dataone.integration.it.apiTests.MNStorage"));
         assertFalse("response should NOT contain 'MNRead'", responseString.contains("org.dataone.integration.it.apiTests.MNRead"));
         assertFalse("response should NOT contain 'MNReplication'", responseString.contains("org.dataone.integration.it.apiTests.MNReplication"));
+    }
+
+    @Test
+    public void testClassAnnotation() throws IOException {
+        String mNodeUrl = "http://demo.test.dataone.org/knb/d1/mn";
+
+        // set up mock objects
+        ServletContext sc = new MockServletContext("src/main/webapp", null);
+        MockHttpServletRequest request = new MockHttpServletRequest(sc, null,
+                "/some/path?mNodeUrl=NodeFromMockClient");
+        MockHttpServletResponse response = new MockHttpServletResponse();
+
+        request.setParameter("mNodeUrl",mNodeUrl);
+        request.setParameter("selectedAPIs", "Mock");
+        request.setParameter("selectedVersion", "V1");
+        request.addHeader("accept", (Object) "text/xml");
+        request.setMethod("GET");
+
+        // call the servlet
+        try {
+            TestRunnerHttpServlet servlet = new TestRunnerHttpServlet(true);
+
+            servlet.doGet(request, response);
+        } catch (ServletException se) {
+            fail("servlet exception at servlet.doGet(): " + se);
+        } catch (IOException ioe) {
+            fail("IO exception at servlet.goGet(): " + ioe);
+        }
+
+        // process the response - did it return anything meaningful?
+        String responseString = response.getContentAsString();
+
+        assertTrue("response should contain the test case class annotation",
+                responseString.contains("TestCase class annotation"));
     }
 
 }

@@ -3,6 +3,7 @@ package org.dataone.integration.it.apiTests;
 import org.dataone.integration.ContextAwareTestCaseDataone;
 import org.dataone.integration.it.testDefinitions.MNCoreSlowTestDefinitions;
 import org.dataone.integration.it.testImplementations.CoreTestImplementations;
+import org.dataone.integration.webTest.WebTestImplementation;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -10,18 +11,19 @@ import org.junit.Test;
  * Tests some of the slower MNCore functionality for v1 of the API.
  * The other MNCore v1 methods are in {@link MNCoreV1IT}.
  */
-public class MNCoreV1SlowIT extends ContextAwareTestCaseDataone 
+public class MNCoreV1SlowIT extends ContextAwareTestCaseDataone
         implements MNCoreSlowTestDefinitions {
-    
+
+    @WebTestImplementation
     private CoreTestImplementations coreTestImpl;
-    
+
     @Override
     protected String getTestDescription() {
         return "Test Case that runs through the MN version 1 core API methods "
                 + "that may run slowly";
     }
-    
-    @Before 
+
+    @Before
     public void setup() {
         coreTestImpl = new CoreTestImplementations(this);
     }

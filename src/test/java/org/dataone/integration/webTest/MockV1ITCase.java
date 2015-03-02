@@ -1,6 +1,6 @@
 /**
  * This work was created by participants in the DataONE project, and is
- * jointly copyrighted by participating institutions in DataONE. For 
+ * jointly copyrighted by participating institutions in DataONE. For
  * more information on DataONE, see our web site at http://dataone.org.
  *
  *   Copyright ${year}
@@ -14,9 +14,9 @@
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and 
+ * See the License for the specific language governing permissions and
  * limitations under the License.
- * 
+ *
  * $Id$
  */
 
@@ -30,15 +30,15 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.internal.AssumptionViolatedException;
 
+@WebTestDescription("TestCase class annotation")
+public class MockV1ITCase {
 
-public class MockV1ITCase { 
-	
-	
-	@Test
-	public void testSuccess() 
-	{
-		assertTrue(true);
-	}
+
+    @Test
+    public void testSuccess()
+    {
+        assertTrue(true);
+    }
 
 
 //	@Test
@@ -46,30 +46,30 @@ public class MockV1ITCase {
 //	{
 //		assertTrue(1==2);
 //	}
-	
-	
-	@Ignore
-	@Test
-	public void testIgnore() {
-		;
-	}
 
-	
+
+    @Ignore
+    @Test
+    public void testIgnore() {
+        ;
+    }
+
+
 //	@Test
 //	public void testError() {
 //		// should throw a numerical exception of some type
 //		float f = 12 / 0;
 //		f++;
-//	}	
-	
-	   @Test
-	    public void testWarning() throws TestIterationEndingException {
-	        // should throw a numerical exception of some type
-	        throw new TestIterationEndingException("");
-	    }   
-	
-	@Test
-	public void testAssumptionViolatedException() {
-	    throw new AssumptionViolatedException("Could not set up the test properly.");
-	}
+//	}
+
+       @Test
+        public void testWarning() throws TestIterationEndingException {
+            // should throw a numerical exception of some type
+            throw new TestIterationEndingException("");
+        }
+
+    @Test
+    public void testAssumptionViolatedException() {
+        throw new AssumptionViolatedException("Could not set up the test properly.");
+    }
 }

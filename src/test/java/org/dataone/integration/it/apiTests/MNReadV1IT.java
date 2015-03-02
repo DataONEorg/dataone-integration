@@ -5,26 +5,30 @@ import org.dataone.integration.it.testDefinitions.MNReadTestDefinitions;
 import org.dataone.integration.it.testDefinitions.ReadTestDefinitions;
 import org.dataone.integration.it.testImplementations.MNReadTestImplementations;
 import org.dataone.integration.it.testImplementations.ReadTestImplementations;
+import org.dataone.integration.webTest.WebTestDescription;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
 /**
- * Tests MNRead functionality for v1 of the API 
+ * Tests MNRead functionality for v1 of the API
  */
-public class MNReadV1IT extends ContextAwareTestCaseDataone 
+@WebTestDescription("Tests for the MNRead API that use ListObjects to locate a public object "
+        + "that can be used to exercise all of the read (HTTP.GET) methods. It will create"
+        + "test objects on Tier 3 nodes, but only if there is no public content already in the system.")
+public class MNReadV1IT extends ContextAwareTestCaseDataone
         implements ReadTestDefinitions, MNReadTestDefinitions {
 
     private ReadTestImplementations readTestImpl;
     private MNReadTestImplementations mnReadTestImpl;
-    
-    
+
+
     @Override
     protected String getTestDescription() {
         return "Test Case that runs through the MN version 1 of read API methods";
     }
-    
-    @Before 
+
+    @Before
     public void setup() {
         readTestImpl = new ReadTestImplementations(this);
         mnReadTestImpl = new MNReadTestImplementations(this);

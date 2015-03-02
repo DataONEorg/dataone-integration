@@ -33,25 +33,25 @@ import org.dataone.service.util.Constants;
 //import org.dataone.integration.ExampleUtilities;
 
 
-public class CoreTestImplementations extends ContextAwareAdapter { 
-    
-    
+public class CoreTestImplementations extends ContextAwareAdapter {
+
+
     public CoreTestImplementations(ContextAwareTestCaseDataone catc) {
         super(catc);
     }
-    
+
     /**
      * Will test the ping call for all nodes. Requires an iterator to go through
      * all the nodes (this may iterate across either MN or CN nodes). Also requires
-     * a version string so it knows against which version of API it should test ping. 
-     * 
-     * @param nodeIterator 
+     * a version string so it knows against which version of API it should test ping.
+     *
+     * @param nodeIterator
      *      an {@link Iterator} accross MN or CN {@link Node}s
-     * @param version 
+     * @param version
      *      either "v1" or "v2", to match the API version being tested
      */
-    @WebTestName("ping: test that it returns a valid date")
-    @WebTestDescription("this test uses a certificateless connection, and tests for a valid date that can be deserialized into java.Date," 
+    @WebTestName("ping - test for valid return")
+    @WebTestDescription("this test uses a certificateless connection, and tests for a valid date that can be deserialized into java.util.Date,"
             + "and also checks that the returned date is within 1 minute of the client date")
    public void testPing(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
@@ -62,12 +62,12 @@ public class CoreTestImplementations extends ContextAwareAdapter {
      * Will run the ping command and test for proper execution.
      * Makes use of {@link CommonCallAdapter} to call ping on the correct node type
      * (MN or CN) against the correct API version.
-     * @param node 
+     * @param node
      * @param version
      */
     public void testPing(Node node, String version) {
 
-    	ContextAwareTestCaseDataone.setupClientSubject_NoCert();
+        ContextAwareTestCaseDataone.setupClientSubject_NoCert();
         CommonCallAdapter callAdapter = new CommonCallAdapter(getSession(Constants.SUBJECT_PUBLIC), node, version);
         String currentUrl = callAdapter.getNodeBaseServiceUrl();
 
@@ -94,8 +94,41 @@ public class CoreTestImplementations extends ContextAwareAdapter {
 
     }
 
-    
+    @WebTestName("ping - test Date accuracy")
+    @WebTestDescription("this test checks that the returned date is within 1 minute of the date on the client machine")
+   public void testPing_AccurateDate(Iterator<Node> nodeIterator, String version) {
+        while (nodeIterator.hasNext())
+            testPing(nodeIterator.next(), version);
+    }
 
+    public void testPing_AccurateDate(Node node, String version) {
+
+        ContextAwareTestCaseDataone.setupClientSubject_NoCert();
+        CommonCallAdapter callAdapter = new CommonCallAdapter(getSession(Constants.SUBJECT_PUBLIC), node, version);
+        String currentUrl = callAdapter.getNodeBaseServiceUrl();
+
+        try {
+            //          Assume.assumeTrue(APITestUtils.isTierImplemented(mn, "Tier5"));
+            Date localNow = new Date();
+            Date pingDate = callAdapter.ping();
+
+            assertTrue(callAdapter.getLatestRequestUrl()
+                    + " returned date should be within 1 minute of time measured on test machine", pingDate.getTime()
+                    - localNow.getTime() < 1000 * 60
+                    && localNow.getTime() - pingDate.getTime() > -1000 * 60);
+
+        } catch (BaseException e) {
+            fail(callAdapter.getLatestRequestUrl() + " " + e.getClass().getSimpleName() + ": " + e.getDetail_code()
+                    + ":: " + e.getDescription());
+        } catch (Exception e) {
+            e.printStackTrace();
+            fail(currentUrl + " " + e.getClass().getName() + ": " + e.getMessage());
+        }
+
+    }
+
+
+    @WebTestName("getCapabilities - test that a Node document is returned")
     public void testGetCapabilities(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testGetCapabilities(nodeIterator.next(), version);
@@ -120,14 +153,16 @@ public class CoreTestImplementations extends ContextAwareAdapter {
         }
 
     }
-    
+
+    @WebTestName("getCapabilities - contactSubject value is valid")
+    @WebTestDescription("tests that at least one contactSubject element is populated with a RFC2253 compliant Subject value.")
     public void testGetCapabilities_HasCompatibleNodeContact(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testGetCapabilities_HasCompatibleNodeContact(nodeIterator.next(), version);
     }
-    
+
     /**
-     * Tests that at least one of the node contacts is RFC2253 compatible, 
+     * Tests that at least one of the node contacts is RFC2253 compatible,
      * meaning that it could be represented by a CILogon issued certificate
      */
     public void testGetCapabilities_HasCompatibleNodeContact(Node node, String version) {
@@ -164,12 +199,14 @@ public class CoreTestImplementations extends ContextAwareAdapter {
             handleFail(currentUrl, e.getClass().getName() + ": " + e.getMessage());
         }
     }
-    
+
+    @WebTestName("getCapabilities - nodeIdentity value is valid")
+    @WebTestDescription("tests that the nodeIdentity field follows naming rules indicated by 'urn:node:[[alpha]|_]{2,23}'")
     public void testGetCapabilities_NodeIdentityValidFormat(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testGetCapabilities_NodeIdentityValidFormat(nodeIterator.next(), version);
     }
-    
+
     /**
      * Tests that the nodeReference of the node is in the proper urn format.
      */
@@ -197,17 +234,20 @@ public class CoreTestImplementations extends ContextAwareAdapter {
             handleFail(currentUrl, e.getClass().getName() + ": " + e.getMessage());
         }
     }
-    
+
     /**
-     * Tests that getLogRecords() implements access restricitons properly, testing
+     * Tests that getLogRecords() implements access restrictions properly, testing
      * the negative case - where client is not a CN and is public.
      * Runs tests across all nodes in the given nodeIterator.
-     * 
-     * @param nodeIterator 
+     *
+     * @param nodeIterator
      *      an {@link Iterator} accross MN or CN {@link Node}s
-     * @param version 
+     * @param version
      *      either "v1" or "v2", to match the API version being tested
      */
+    @WebTestName("getLogRecords - enforces access restrictions")
+    @WebTestDescription("this test works by testing the negative case where the client is not"
+            + " a CN making the call, but is anonymous")
     public void testGetLogRecords_AccessRestriction(Iterator<Node> nodeIterator, String version) {
        while (nodeIterator.hasNext())
             testGetLogRecords_AccessRestriction(nodeIterator.next(), version);
@@ -218,7 +258,7 @@ public class CoreTestImplementations extends ContextAwareAdapter {
      * the negative case - where client is not a CN and is public.
      */
     public void testGetLogRecords_AccessRestriction(Node node, String version) {
-        
+
         Settings.getConfiguration().setProperty("D1Client.D1Node.getLogRecords.timeout", "60000");
         CommonCallAdapter callAdapter = new CommonCallAdapter(getSession(Constants.SUBJECT_PUBLIC), node, version);
         String currentUrl = node.getBaseURL();
@@ -266,12 +306,14 @@ public class CoreTestImplementations extends ContextAwareAdapter {
      * Tests that getLogRecords() returns Log object, using the simplest case: no parameters.
      * Also tests with all parameters are set.  Passes the tests by returning a Log object.
      * Runs tests across all nodes in the given nodeIterator.
-     * 
-     * @param nodeIterator 
+     *
+     * @param nodeIterator
      *      an {@link Iterator} accross MN or CN {@link Node}s
-     * @param version 
+     * @param version
      *      either "v1" or "v2", to match the API version being tested
      */
+    @WebTestName("getLogRecords - test no parameter and every-parameter cases")
+    @WebTestDescription("test that a Log object is returned, calling with the STAGE CN certificate.")
     public void testGetLogRecords(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testGetLogRecords(nodeIterator.next(), version);
@@ -287,7 +329,7 @@ public class CoreTestImplementations extends ContextAwareAdapter {
         Settings.getConfiguration().setProperty("D1Client.D1Node.getLogRecords.timeout", "60000");
         String cnSubject = Settings.getConfiguration().getString("dataone.it.cnode.submitter.cn",
                 "cnStageUNM1");
-        
+
         CommonCallAdapter callAdapter = new CommonCallAdapter(getSession(cnSubject), node, version);
         String currentUrl = node.getBaseURL();
         printTestHeader("testGetLogRecords(...) vs. node: " + currentUrl);
@@ -300,7 +342,7 @@ public class CoreTestImplementations extends ContextAwareAdapter {
             Date fromDate = new Date();
             Thread.sleep(1000);
             Date toDate = new Date();
-            
+
             eventLog = callAdapter.getLogRecords(null, fromDate, toDate, Event.READ.toString(), "pidFilter", 0, 10);
             checkTrue(callAdapter.getLatestRequestUrl(), "getLogRecords(<parameters>) returns a Log", eventLog != null);
         } catch (NotAuthorized e) {
@@ -318,17 +360,21 @@ public class CoreTestImplementations extends ContextAwareAdapter {
         }
     }
 
+
+    @WebTestName("getLogRecords - test list slicing behavior")
+    @WebTestDescription("performs heuristic tests that count and total parameters are correct,"
+            + " and that the caller can limit the number of items returned using the count parameter.")
     public void testGetLogRecords_Slicing(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testGetLogRecords_Slicing(nodeIterator.next(), version);
     }
-    
+
     /**
      * Tests that count and start parameters are functioning, and getCount() and getTotal()
      * are reasonable values.
      */
     public void testGetLogRecords_Slicing(Node node, String version) {
-        
+
         Settings.getConfiguration().setProperty("D1Client.D1Node.getLogRecords.timeout", "60000");
         // TODO: change to testCnAdmin subject when obtained
         String cnSubject = Settings.getConfiguration().getString("dataone.it.cnode.submitter.cn",
@@ -384,14 +430,19 @@ public class CoreTestImplementations extends ContextAwareAdapter {
 
     }
 
+    @WebTestName("getLogRecords - test event filtering")
+    @WebTestDescription("Tier 1 MNs might only have READ events, so the test gets the log records from "
+            + "a given period and if only one type of event, filters for a different one and "
+            + "expect zero of them returned.  If 2 types, just expect fewer records from within"
+            + "that time period.  ")
     public void testGetLogRecords_eventFiltering(Iterator<Node> nodeIterator, String version) {
        while (nodeIterator.hasNext())
             testGetLogRecords_eventFiltering(nodeIterator.next(), version);
     }
-    
+
     /**
      * Tier 1 MNs might only have READ events, so will get the log records from
-     * a given period and if only one type, filter for a different one an expect 
+     * a given period and if only one type, filter for a different one an expect
      * zero returned.  If 2 types, just expect fewer records.
      * Must be careful to check that all the records requested are returned.
      */
@@ -405,13 +456,13 @@ public class CoreTestImplementations extends ContextAwareAdapter {
         String currentUrl = node.getBaseURL();
         printTestHeader("testGetLogRecords_eventFiltering() vs. node: " + currentUrl);
         currentUrl = callAdapter.getNodeBaseServiceUrl();
-        
+
         try {
             Date toDate = new Date();
 
             // using the paged-implementation to make sure we get them all.
             Log entries = APITestUtils.pagedGetLogRecords(callAdapter, null, toDate, null, null, null, null);
-            
+
             if (entries.getCount() == 0) {
                 // try to create a log event
                 // if it can't it will throw a TestIterationEndingException
@@ -428,7 +479,7 @@ public class CoreTestImplementations extends ContextAwareAdapter {
             if(logEntryList == null || logEntryList.size() == 0)
                 handleFail(callAdapter.getLatestRequestUrl(), "After successfully reading an object, should "
                         + "have at least one log record.  Got zero");
-            
+
             for (LogEntry le : logEntryList) {
                 if (!le.getEvent().equals(targetType)) {
                     otherType = le.getEvent();
@@ -457,7 +508,7 @@ public class CoreTestImplementations extends ContextAwareAdapter {
                         break;
                     }
                 }
-                
+
                 checkTrue(callAdapter.getLatestRequestUrl(), "Filtered log for the time period should contain only "
                         + "logs of type " + targetType + ". Got " + unfilteredType, oneTypeOnly);
             }
@@ -477,19 +528,17 @@ public class CoreTestImplementations extends ContextAwareAdapter {
 
     }
 
-    
+    @WebTestName("getLogRecords - test PID filtering")
+    @WebTestDescription("Test that pidFilter only returns objects starting with the given string "
+     + "The test attepmpts to find a negative case and to make sure it is filtered out when the"
+     + "filter is applied.")
     public void testGetLogRecords_pidFiltering(Iterator<Node> nodeIterator, String version){
         while (nodeIterator.hasNext())
             testGetLogRecords_pidFiltering(nodeIterator.next(), version);
     }
-    
-    /**
-     * Test that pidFilter only returns objects starting with the given string
-     * Want to find a negative case and to make sure it is filtered out when the
-     * filter is applied.
-     */
+
     public void testGetLogRecords_pidFiltering(Node node, String version) {
-            
+
         Settings.getConfiguration().setProperty("D1Client.D1Node.getLogRecords.timeout", "60000");
         // TODO: change to testCnAdmin subject when obtained
         String cnSubject = Settings.getConfiguration().getString("dataone.it.cnode.submitter.cn",
@@ -498,7 +547,7 @@ public class CoreTestImplementations extends ContextAwareAdapter {
         String currentUrl = node.getBaseURL();
         currentUrl = callAdapter.getNodeBaseServiceUrl();
         printTestHeader("testGetLogRecords_pidFiltering() vs. node: " + currentUrl);
-        
+
         try {
             Date t0 = new Date();
             Date toDate = t0;
@@ -581,9 +630,9 @@ public class CoreTestImplementations extends ContextAwareAdapter {
         while (nodeIterator.hasNext())
             testGetLogRecords_dateFiltering(nodeIterator.next(), version);
     }
-    
+
     public void testGetLogRecords_dateFiltering(Node node, String version) {
-        
+
         Settings.getConfiguration().setProperty("D1Client.D1Node.getLogRecords.timeout", "60000");
         // TODO: change to testCnAdmin subject when obtained
         String cnSubject = Settings.getConfiguration().getString("dataone.it.cnode.submitter.cn",
@@ -592,14 +641,14 @@ public class CoreTestImplementations extends ContextAwareAdapter {
         String currentUrl = node.getBaseURL();
         printTestHeader("testGetLogRecords_DateFiltering(...) vs. node: " + currentUrl);
         currentUrl = callAdapter.getNodeBaseServiceUrl();
-        
+
         try {
             Log eventLog = callAdapter.getLogRecords(null, null, null, null, null, null, null);
 
             if (eventLog.getLogEntryList() == null ) {
                 handleFail(callAdapter.getLatestRequestUrl(), "the event log list is null after trying to read an object");
             }
-            
+
             if (eventLog.getLogEntryList().size() == 0) {
 
                 // read an existing object
@@ -612,7 +661,7 @@ public class CoreTestImplementations extends ContextAwareAdapter {
                     Thread.sleep(1000); // just in case...
                     eventLog = callAdapter.getLogRecords(null, null, null, null, null, null, null);
                 } catch (TestIterationEndingException e) {
-                    ; // 
+                    ; //
                 }
             }
 

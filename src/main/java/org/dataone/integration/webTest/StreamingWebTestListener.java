@@ -84,8 +84,8 @@ class StreamingWebTestListener extends RunListener
         this.serializer.setIndent(2); // pretty-print output
     }
 
-    
-    /* 
+
+    /*
      * this helper performs the reflection needed to find the test implementation
      * method where the annotations.  Uses @WebTestImplementation annotation
      */
@@ -98,11 +98,11 @@ class StreamingWebTestListener extends RunListener
                 if (f[i].getAnnotation(WebTestImplementation.class) != null) {
                     Class<?> implClass = f[i].getType();
                     implMethod = implClass.getMethod(d.getMethodName(), Iterator.class, String.class);
-                    if (implMethod != null) 
+                    if (implMethod != null)
                         break;
                 }
             }
-        } 
+        }
         catch (NoSuchMethodException | SecurityException e) {
             ;
         }
@@ -110,7 +110,7 @@ class StreamingWebTestListener extends RunListener
     }
 
 
-    
+
     /**
      * testStarted reports any previous test and creates a new 'current test'
      * If it is considered a new run, it also reports a header line with the name
@@ -122,11 +122,13 @@ class StreamingWebTestListener extends RunListener
         if (currentTest != null) {
             report(currentTest);
         }
-        
+
         testCaseName = d.getClassName();
         if (newRun) {
             currentTest = new AtomicTest(testCaseName);
             currentTest.setStatus("runHeader");
+            if (d.getTestClass().getAnnotation(WebTestDescription.class) != null)
+                currentTest.setTestDescription(d.getTestClass().getAnnotation(WebTestDescription.class).value());
             report(currentTest);
             newRun = false;
         }
@@ -144,8 +146,8 @@ class StreamingWebTestListener extends RunListener
 
 //        this.newRun = false;
     }
-    
-    
+
+
     /**
      * testIgnored reports any previous test and creates a new 'current test'
      * If it is considered a new run, it also reports a header line with the name
@@ -156,9 +158,9 @@ class StreamingWebTestListener extends RunListener
         if (currentTest != null) {
             report(currentTest);
         }
-        
+
         testCaseName = d.getClassName();
-        
+
         if (newRun) {
             currentTest = new AtomicTest(testCaseName);
             currentTest.setStatus("runHeader");
@@ -166,7 +168,7 @@ class StreamingWebTestListener extends RunListener
             report(currentTest);
             newRun = false;
         }
-        
+
         Method implMethod = findTestMethodImplementation(d);
         currentTest = new AtomicTest(d.getMethodName());
         if (implMethod != null) {
@@ -180,7 +182,7 @@ class StreamingWebTestListener extends RunListener
         currentTest.setStatus("testIgnored");
         currentTest.setMessage(d.getAnnotation(org.junit.Ignore.class).value());
     }
-    
+
 
     /**
      * testFailure modifies the status, message, and stackTrace of the current test
@@ -201,8 +203,8 @@ class StreamingWebTestListener extends RunListener
         currentTest.setMessage( t.getClass().getSimpleName() + ": " + f.getMessage());
         currentTest.setTrace(f.getTrace());
     }
-    
-    
+
+
     /**
      * testAssumptionFailure modifies the status, message, and stackTrace of the current test
      * It is called when the org.junit.runner.AssumptionViolationException is thrown
@@ -216,7 +218,7 @@ class StreamingWebTestListener extends RunListener
         currentTest.setStatus("testAssumptionBye");
         currentTest.setMessage( t.getClass().getSimpleName() + ": " + f.getMessage());
         currentTest.setTrace(f.getTrace());
-        
+
     }
 
 
@@ -233,15 +235,15 @@ class StreamingWebTestListener extends RunListener
         if (currentTest != null) {
             report(currentTest);
         }
-        
+
         currentTest = new AtomicTest(testCaseName);
         String runSummary = "RunCount=" + r.getRunCount() +
                 "  Failures=" + this.failures +
                 "  Errors=" + this.errors +
                 "  Warnings=" + this.warnings +
-                "  Assumptions=" +  this.assumptions + 
+                "  Assumptions=" +  this.assumptions +
                 "  Ignored=" + r.getIgnoreCount();
-        if (this.failures > 0) { 
+        if (this.failures > 0) {
             currentTest.setStatus("summaryFail");
             currentTest.setMessage("Failed Test Case due to failures. [" + runSummary + "]");
         } else if (this.errors + this.warnings > 0) {
@@ -261,19 +263,19 @@ class StreamingWebTestListener extends RunListener
         this.assumptions = 0;
         this.warnings = 0;
         this.errors = 0;
-        
+
     }
-    
+
     /**
      * this reports any currentTest that hasn't been flushed, usually the
-     * run summary line, but it can also be called 
+     * run summary line, but it can also be called
      */
     public void finishReport() {
         if (this.currentTest != null)
             report(this.currentTest);
     }
 
-    
+
     protected void report(AtomicTest test) {
 
         try {
@@ -300,14 +302,14 @@ class StreamingWebTestListener extends RunListener
     /*
      * this method fill the div with contents of the AtomicTest with the result
      * for each test / test header.
-     * 
+     *
      * adapted from webTester in MN package...
-     * 
+     *
      * see src/main/webapp/results_head.html for html formatting class definitions
      */
     private void generateTestReportLine(AtomicTest testResult, Element div, int rowIndex) {
 
-        // make an html table 
+        // make an html table
         Element table = new Element("table");
         Element tr = new Element("tr");
         Element nameColumn = new Element("th");
@@ -349,21 +351,21 @@ class StreamingWebTestListener extends RunListener
         }
 
         // add contents to the table row...
-        
+
         // first the test label
         nameColumn.appendChild(formatTestName(testResult));
         tr.appendChild(nameColumn);
-        
-        
-        if (testResult.getStatus() != null && testResult.getStatus().startsWith("test")) 
+
+        // add the test description annotation value if
+        if (testResult.getStatus() != null && testResult.getTestDescription() != null) //getStatus().startsWith("test"))
             messageColumn.appendChild(formatDescriptionMouseover(testResult.getTestDescription()));
-        
+
         // uniformly handle multi-line messages
         if (testResult.getMessage() != null && testResult.getMessage().contains("\n")) {
             Element formattedText = new Element("pre");
             formattedText.appendChild(testResult.getMessage().replace("\n","\r\n"));
             messageColumn.appendChild(formattedText);
-        } 
+        }
         else {
             messageColumn.appendChild(testResult.getMessage());
         }
@@ -413,7 +415,7 @@ class StreamingWebTestListener extends RunListener
         }
         return finalLabel;
     }
-    
+
     private Element formatDescriptionMouseover(String description) {
         Element formattedHelp = new Element("span");
         formattedHelp.addAttribute(new Attribute("class", "dropt"));
