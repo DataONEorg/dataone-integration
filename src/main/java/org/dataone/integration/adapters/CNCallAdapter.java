@@ -53,6 +53,7 @@ import org.dataone.service.types.v2.NodeList;
 import org.dataone.service.types.v2.ObjectFormat;
 import org.dataone.service.types.v2.ObjectFormatList;
 import org.dataone.service.types.v2.SystemMetadata;
+import org.dataone.service.util.TypeConverter;
 import org.dataone.service.util.TypeMarshaller;
 import org.jibx.runtime.JiBXException;
 
@@ -434,7 +435,7 @@ public class CNCallAdapter extends CommonCallAdapter {
                         org.dataone.service.cn.v1.CNCore.class, this.mrc,
                         URI.create(this.node.getBaseURL()));
                 org.dataone.service.types.v1.ObjectFormatList formatListV1 = cnCore.listFormats();
-                return convertV1ObjectFormatList(formatListV1);
+                return TypeConverter.convertObjectFormatList(formatListV1);
             } else if (this.version.toLowerCase().equals("v2")) {
                 CNCore cnCore = D1NodeFactory.buildNode(CNCore.class, this.mrc,
                         URI.create(this.node.getBaseURL()));
@@ -495,7 +496,7 @@ public class CNCallAdapter extends CommonCallAdapter {
                         org.dataone.service.cn.v1.CNCore.class, this.mrc,
                         URI.create(this.node.getBaseURL()));
                 org.dataone.service.types.v1.NodeList nodeListV1 = cnCore.listNodes();
-                return convertV1NodeList(nodeListV1);
+                return TypeConverter.convertNodeList(nodeListV1);
             } else if (this.version.toLowerCase().equals("v2")) {
                 CNCore cnCore = D1NodeFactory.buildNode(CNCore.class, this.mrc,
                         URI.create(this.node.getBaseURL()));

@@ -6,7 +6,6 @@ import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
 import java.util.Date;
-import java.util.List;
 
 import org.dataone.client.D1Node;
 import org.dataone.client.D1NodeFactory;
@@ -45,10 +44,7 @@ import org.dataone.service.types.v1.SystemMetadata;
 import org.dataone.service.types.v1_1.QueryEngineDescription;
 import org.dataone.service.types.v1_1.QueryEngineList;
 import org.dataone.service.types.v2.Log;
-import org.dataone.service.types.v2.LogEntry;
-import org.dataone.service.types.v2.NodeList;
-import org.dataone.service.types.v2.ObjectFormat;
-import org.dataone.service.types.v2.ObjectFormatList;
+import org.dataone.service.util.TypeConverter;
 import org.dataone.service.util.TypeMarshaller;
 import org.jibx.runtime.JiBXException;
 
@@ -118,7 +114,7 @@ public class CommonCallAdapter implements D1Node {
                 org.dataone.service.types.v1.Log log = mnCore.getLogRecords(session, fromDate, toDate,
                         Event.convert(event), pidFilter, start, count);
 //                return TypeMarshaller.convertTypeFromType(log, Log.class);
-                return convertV1Log(log);
+                return TypeConverter.convertLog(log);
             } else if (this.version.toLowerCase().equals("v2")) {
                 org.dataone.service.mn.tier1.v2.MNCore mnCore = D1NodeFactory.buildNode(
                         org.dataone.service.mn.tier1.v2.MNCore.class, this.mrc, URI.create(this.node.getBaseURL()));
@@ -132,7 +128,7 @@ public class CommonCallAdapter implements D1Node {
                 org.dataone.service.types.v1.Log log = cnCore.getLogRecords(session, fromDate, toDate,
                         Event.convert(event), pidFilter, start, count);
 //                return TypeMarshaller.convertTypeFromType(log, Log.class);
-                return convertV1Log(log);
+                return TypeConverter.convertLog(log);
             } else if (this.version.toLowerCase().equals("v2")) {
                 org.dataone.service.mn.tier1.v2.MNCore cnCore = D1NodeFactory.buildNode(
                         org.dataone.service.mn.tier1.v2.MNCore.class, this.mrc, URI.create(this.node.getBaseURL()));
@@ -574,53 +570,6 @@ public class CommonCallAdapter implements D1Node {
         }
         throw new ClientSideException("Call to updateSystemMetadata failed. " + node.getType()
                 + " of version " + version);
-    }
-    
-    private Log convertV1Log(org.dataone.service.types.v1.Log v1Log) 
-    throws InstantiationException, IllegalAccessException, InvocationTargetException, JiBXException, IOException 
-    {
-        Log v2Log = new Log();
-        if (v1Log.getLogEntryList() != null && v1Log.getLogEntryList().size() > 0)
-            for(org.dataone.service.types.v1.LogEntry v1entry : v1Log.getLogEntryList()) {
-                LogEntry v2LogEntry = TypeMarshaller.convertTypeFromType(v1entry, LogEntry.class);
-                v2Log.addLogEntry(v2LogEntry);
-            }
-        v2Log.setStart(v1Log.getStart());
-        v2Log.setCount(v1Log.getCount());
-        v2Log.setTotal(v1Log.getTotal());
-        return v2Log;
-    }
-
-    protected ObjectFormatList convertV1ObjectFormatList(org.dataone.service.types.v1.ObjectFormatList v1FormatList) 
-    throws InstantiationException, IllegalAccessException, InvocationTargetException, JiBXException, IOException 
-    {
-        ObjectFormatList v2FormatList = new ObjectFormatList();
-        List<org.dataone.service.types.v1.ObjectFormat> innerList = v1FormatList.getObjectFormatList();
-        if (innerList != null && innerList.size() > 0)
-            for(org.dataone.service.types.v1.ObjectFormat v1Format : innerList) {
-                ObjectFormat v2ObjectFormat = TypeMarshaller.convertTypeFromType(v1Format, ObjectFormat.class);
-                v2FormatList.addObjectFormat(v2ObjectFormat);
-            }
-        v2FormatList.setStart(v1FormatList.getStart());
-        v2FormatList.setCount(v1FormatList.getCount());
-        v2FormatList.setTotal(v1FormatList.getTotal());
-        return v2FormatList;
-    }
-    
-    protected NodeList convertV1NodeList(org.dataone.service.types.v1.NodeList v1NodeList) 
-    throws InstantiationException, IllegalAccessException, InvocationTargetException, JiBXException, IOException 
-    {
-        NodeList v2NodeList = TypeMarshaller.convertTypeFromType(v1NodeList, NodeList.class);
-        List<org.dataone.service.types.v1.Node> innerList = v1NodeList.getNodeList();
-        if (innerList != null && innerList.size() > 0) {
-            v2NodeList.clearNodeList();
-            for (org.dataone.service.types.v1.Node v1Node : innerList) {
-                org.dataone.service.types.v2.Node v2Node = TypeMarshaller.convertTypeFromType(
-                        v1Node, org.dataone.service.types.v2.Node.class);
-                v2NodeList.addNode(v2Node);
-            }
-        }
-        return v2NodeList;
     }
     
 }
