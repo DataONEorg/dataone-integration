@@ -14,6 +14,8 @@ import org.dataone.integration.ExampleUtilities;
 import org.dataone.integration.TestIterationEndingException;
 import org.dataone.integration.adapters.CommonCallAdapter;
 import org.dataone.integration.it.ContextAwareAdapter;
+import org.dataone.integration.webTest.WebTestDescription;
+import org.dataone.integration.webTest.WebTestName;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.NotFound;
 import org.dataone.service.exceptions.ServiceFailure;
@@ -42,6 +44,8 @@ public class ReadTestImplementations extends ContextAwareAdapter {
         super(catc);
     }
     
+    @WebTestName("get - returns an object stream")
+    @WebTestDescription("tests that get returns a valid non-null object stream")
     public void testGet(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testGet(nodeIterator.next(), version);
@@ -73,6 +77,9 @@ public class ReadTestImplementations extends ContextAwareAdapter {
         }
     }
 
+    @WebTestName("get - should not find a fake identifier")
+    @WebTestDescription("tests the negative case when get has an invalid identifier as a parameter, "
+            + "a NotFound exception is expected")
     public void testGet_NotFound(Iterator<Node> nodeIterator, String version) {
        while (nodeIterator.hasNext())
             testGet_NotFound(nodeIterator.next(), version);
@@ -105,6 +112,11 @@ public class ReadTestImplementations extends ContextAwareAdapter {
      * test getting data with challenging unicode identifiers.  Will try to 
      * differentiate between NotFound and ServiceFailure
      */
+    @WebTestName("get - getting data with challenging unicode identifiers")
+    @WebTestDescription("tests the negative case when get has an invalid identifier as a parameter, "
+            + "containing a variety of unicode identifiers, and expects either "
+            + "a NotFound or a ServiceFailue (the latter only if it mentions "
+            + "\"Providing message body\" or \"404: NotFound:\")")
     public void testGet_IdentifierEncoding(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testGet_IdentifierEncoding(nodeIterator.next(), version);
@@ -174,6 +186,8 @@ public class ReadTestImplementations extends ContextAwareAdapter {
         }
     }
 
+    @WebTestName("getSystemMetadata - getting system metadata returns a valid object")
+    @WebTestDescription("tests the getSystemMetadata returns a valid non-null SystemMetadata object")
     public void testGetSystemMetadata(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testGetSystemMetadata(nodeIterator.next(), version);
@@ -206,6 +220,9 @@ public class ReadTestImplementations extends ContextAwareAdapter {
         }
     }
 
+    @WebTestName("getSystemMetadata - should not find system metadata when given a fake identifier")
+    @WebTestDescription("tests the negative case where getSystemMetadata is given a fake identifier, "
+            + "expecting a NotFound exception")
     public void testGetSystemMetadata_NotFound(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testGetSystemMetadata_NotFound(nodeIterator.next(), version);
@@ -233,6 +250,11 @@ public class ReadTestImplementations extends ContextAwareAdapter {
         }
     }
 
+    @WebTestName("getSystemMetadata - getting data with challenging unicode identifiers")
+    @WebTestDescription("tests the negative case when get has an invalid identifier as a parameter, "
+            + "containing a variety of unicode identifiers, and expects either "
+            + "a NotFound or a ServiceFailue (the latter only if it mentions "
+            + "\"Providing message body\" or \"404: NotFound:\")")
     public void testGetSystemMetadata_IdentifierEncoding(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testGetSystemMetadata_IdentifierEncoding(nodeIterator.next(), version);
@@ -297,6 +319,9 @@ public class ReadTestImplementations extends ContextAwareAdapter {
         }
     }
 
+    @WebTestName("describe - describe returns a DescribeResponse")
+    @WebTestDescription("tests that calling describe with a valid identifier "
+            + "returns a non-null DescribeResponse")
     public void testDescribe(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testDescribe(nodeIterator.next(), version);
@@ -328,6 +353,9 @@ public class ReadTestImplementations extends ContextAwareAdapter {
         }
     }
 
+    @WebTestName("describe - describe should not work with a fake identifier")
+    @WebTestDescription("tests that calling describe with a fake identifier "
+            + "returns a NotFoundException")
     public void testDescribe_NotFound(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testDescribe_NotFound(nodeIterator.next(), version);
@@ -356,6 +384,11 @@ public class ReadTestImplementations extends ContextAwareAdapter {
         }
     }
 
+    @WebTestName("describe - calling describe with challenging unicode identifiers")
+    @WebTestDescription("tests the negative case when get has an invalid identifier as a parameter, "
+            + "containing a variety of unicode identifiers, and expects either "
+            + "a NotFound or a ServiceFailue (the latter only if it mentions "
+            + "\"Providing message body\" or \"404: NotFound:\")")
     public void testDescribe_IdentifierEncoding(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testDescribe_IdentifierEncoding(nodeIterator.next(), version);
@@ -421,6 +454,9 @@ public class ReadTestImplementations extends ContextAwareAdapter {
         }
     }
 
+    @WebTestName("getChecksum - calling getChecksum returns a valid Checksum")
+    @WebTestDescription("tests that calling getChecksum with a valid identifier "
+            + "returns a non-null Checksum")
     public void testGetChecksum(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testGetChecksum(nodeIterator.next(), version);
@@ -452,6 +488,9 @@ public class ReadTestImplementations extends ContextAwareAdapter {
         }
     }
 
+    @WebTestName("getChecksum - calling getChecksum returns a valid Checksum")
+    @WebTestDescription("tests the negative case, when getChecksum is called with a fake "
+            + "identifier and is expected to return a NotFoundException")
     public void testGetChecksum_NotFound(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testGetChecksum_NotFound(nodeIterator.next(), version);
@@ -479,6 +518,11 @@ public class ReadTestImplementations extends ContextAwareAdapter {
         }
     }
 
+    @WebTestName("getChecksum - calling getChecksum with challenging unicode identifiers")
+    @WebTestDescription("tests the negative case when get has an invalid identifier as a parameter, "
+            + "containing a variety of unicode identifiers, and expects either "
+            + "a NotFound or a ServiceFailue (the latter only if it mentions "
+            + "\"Providing message body\" or \"404: NotFound:\")")
     public void testGetChecksum_IdentifierEncoding(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testGetChecksum_IdentifierEncoding(nodeIterator.next(), version);
@@ -547,6 +591,9 @@ public class ReadTestImplementations extends ContextAwareAdapter {
     /**
      * Tests the parameterless and parameterized listObject methods for proper returns.
      */
+    @WebTestName("listObjects - calling listObjects returns a valid ObjectList")
+    @WebTestDescription("tests that callin listObjects with a valid identifier "
+            + "returns a non-null ObjectList")
     public void testListObjects(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testListObjects(nodeIterator.next(), version);
@@ -590,6 +637,11 @@ public class ReadTestImplementations extends ContextAwareAdapter {
      * Tests that count and start parameters are functioning, and getCount() and getTotal()
      * are the correct values.
      */
+    @WebTestName("listObjects - tests slicing with listObjects")
+    @WebTestDescription("tests that the 'count' attribute should equal the number of ObjectInfos returned, "
+            + "that the 'total' attribute is >= the 'count' attribute in the returned ObjectList, "
+            + "that the 'total' attribute should be >= the number of ObjectInfos returned, "
+            + "and that we should be able to limit the number of returned ObjectInfos using the 'count' parameter.")
     public void testListObjects_Slicing(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext()) 
             testListObjects_Slicing(nodeIterator.next(), version);
@@ -652,6 +704,9 @@ public class ReadTestImplementations extends ContextAwareAdapter {
      * Tests that the fromDate parameter successfully filters out records where
      * the systemMetadataModified date/time is earler than fromDate.
      */
+    @WebTestName("listObjects - tests date filtering with listObjects")
+    @WebTestDescription("tests that the fromDate parameter for listObjects works and can "
+            + "be used to filter results based on the date")
     public void testListObjects_FromDateTest(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext()) 
             testListObjects_FromDateTest(nodeIterator.next(), version);
@@ -727,6 +782,9 @@ public class ReadTestImplementations extends ContextAwareAdapter {
      * Tests that the formatID parameter rightly returns no records
      * when a fake format is given
      */
+    @WebTestName("listObjects - tests fake formatID parameter")
+    @WebTestDescription("tests that a fake formatID parameter passed to listObjects will "
+            + "return no records")
     public void testListObjects_FormatIdFilteringTestFakeFormat(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext()) 
             testListObjects_FormatIdFilteringTestFakeFormat(nodeIterator.next(), version);
@@ -765,6 +823,10 @@ public class ReadTestImplementations extends ContextAwareAdapter {
      * the given formatId.  It is an indirect test of the totals returned
      * by list objects with and without a formatId filter.
      */
+    @WebTestName("listObjects - tests filtering by formatID parameter")
+    @WebTestDescription("tests that the formatID parameter successfully filters records by "
+            + "the given formatId, calling listObjects with and without formatID and "
+            + "comparing totals")
     public void testListObjects_FormatIdFilteringTest(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testListObjects_FormatIdFilteringTest(nodeIterator.next(), version);

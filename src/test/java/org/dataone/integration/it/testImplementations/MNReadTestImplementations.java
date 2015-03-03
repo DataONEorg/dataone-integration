@@ -13,6 +13,8 @@ import org.dataone.integration.ContextAwareTestCaseDataone;
 import org.dataone.integration.ExampleUtilities;
 import org.dataone.integration.adapters.MNCallAdapter;
 import org.dataone.integration.it.ContextAwareAdapter;
+import org.dataone.integration.webTest.WebTestDescription;
+import org.dataone.integration.webTest.WebTestName;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.InvalidToken;
 import org.dataone.service.exceptions.NotAuthorized;
@@ -36,6 +38,9 @@ public class MNReadTestImplementations extends ContextAwareAdapter {
 		super(catc);
 	}
 
+	@WebTestName("synchronizationFailed - tests synchronizationFailed without a certificate")
+    @WebTestDescription("tests that calling synchronizationFailed with a certificateless connection "
+            + "returns a NotAuthorized exception")
 	public void testSynchronizationFailed_NoCert(Iterator<Node> nodeIterator, String version){
 		while (nodeIterator.hasNext())
         	testSynchronizationFailed_NoCert(nodeIterator.next(), version);
@@ -75,6 +80,9 @@ public class MNReadTestImplementations extends ContextAwareAdapter {
         }
     }
 
+    @WebTestName("getReplica - tests getReplica returns a valid object")
+    @WebTestDescription("tests that calling getReplica on a public readable object's "
+            + "identifier returns a non-null InputStream")
 	public void testGetReplica_PublicObject(Iterator<Node> nodeIterator, String version){
 		while (nodeIterator.hasNext())
         	testGetReplica_PublicObject(nodeIterator.next(), version);
@@ -114,6 +122,9 @@ public class MNReadTestImplementations extends ContextAwareAdapter {
         }
     }
 
+    @WebTestName("getReplica - tests getReplica with a non-member-node certificate")
+    @WebTestDescription("tests that calling getReplica with a non-member-node certificate "
+            + "for a public readable object will result in a NotAUthorized exception")
 	public void testGetReplica_ValidCertificate_NotMN(Iterator<Node> nodeIterator, String version){
 		ContextAwareTestCaseDataone.setupClientSubject_NoCert();
         while (nodeIterator.hasNext()) {
@@ -151,7 +162,9 @@ public class MNReadTestImplementations extends ContextAwareAdapter {
         }
 	}
 
-
+	@WebTestName("getReplica - tests getReplica with a certificate-less connection")
+    @WebTestDescription("tests that calling getReplica with a certificate-less connection "
+            + "will yield a NotAuthorized or InvalaidToken exception")
 	public void testGetReplica_NoCertificate(Iterator<Node> nodeIterator, String version){
 		while (nodeIterator.hasNext())
         	testGetReplica_NoCertificate(nodeIterator.next(), version);
@@ -190,7 +203,9 @@ public class MNReadTestImplementations extends ContextAwareAdapter {
         }
 	}
 
-
+	@WebTestName("getReplica - tests getReplica with a fake identifier")
+    @WebTestDescription("tests that calling getReplica with a fake identifier "
+            + "will yield a NotFound exception")
 	public void testGetReplica_NotFound(Iterator<Node> nodeIterator, String version){
 		while (nodeIterator.hasNext())
         	testGetReplica_NotFound(nodeIterator.next(), version);
@@ -221,7 +236,11 @@ public class MNReadTestImplementations extends ContextAwareAdapter {
         }
 	}
 
-
+	@WebTestName("getReplica - calling getReplica with challenging unicode identifiers")
+    @WebTestDescription("tests the negative case when getReplica has an invalid identifier as a parameter, "
+            + "containing a variety of unicode identifiers, and expects either "
+            + "a NotFound or a ServiceFailue (the latter only if it mentions "
+            + "\"Providing message body\" or \"404: NotFound:\")")
 	public void testGetReplica_IdentifierEncoding(Iterator<Node> nodeIterator, String version){
         while (nodeIterator.hasNext())
         	testGetReplica_IdentifierEncoding(nodeIterator.next(), version);

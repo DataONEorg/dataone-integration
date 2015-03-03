@@ -13,6 +13,8 @@ import org.dataone.integration.ExampleUtilities;
 import org.dataone.integration.adapters.CNCallAdapter;
 import org.dataone.integration.it.ContextAwareAdapter;
 import org.dataone.integration.it.testDefinitions.CNReadTestDefinitions;
+import org.dataone.integration.webTest.WebTestDescription;
+import org.dataone.integration.webTest.WebTestName;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Node;
@@ -40,6 +42,8 @@ public class CNReadTestImplementations extends ContextAwareAdapter {
         super(catc);
     }
 
+    @WebTestName("resolve - calling resolve returns valid ObjectLocationList")
+    @WebTestDescription("tests that calling resolve returns a non-null ObjectLocationList")
     public void testResolve(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testResolve(nodeIterator.next(), version);
@@ -80,6 +84,8 @@ public class CNReadTestImplementations extends ContextAwareAdapter {
         }
     }
 
+    @WebTestName("search - search returns valid ObjectList")
+    @WebTestDescription("tests that calling search returns a non-null ObjectList")
     public void testSearch(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testSearch(nodeIterator.next(), version);
@@ -103,6 +109,9 @@ public class CNReadTestImplementations extends ContextAwareAdapter {
         }
     }
 
+    @WebTestName("search - tests search with a variety of unicode strings")
+    @WebTestDescription("tests that calling search with a variety of unicode strings "
+            + "returns a non-null ObjectList (which may be empty)")
     public void testSearch_Solr_unicodeTests(Iterator<Node> nodeIterator, String version) {
         initializeUnicodeStrings();
         while (nodeIterator.hasNext())
@@ -183,6 +192,9 @@ public class CNReadTestImplementations extends ContextAwareAdapter {
         }
     }
 
+    @WebTestName("query - tests query returns a valid object")
+    @WebTestDescription("tests that running a solr query with ?q=*.* returns "
+            + "a non-null InputStream")
     public void testQuery(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testQuery(nodeIterator.next(), version);
@@ -204,6 +216,9 @@ public class CNReadTestImplementations extends ContextAwareAdapter {
         }
     }
 
+    @WebTestName("query - tests query with a certificate-less connection")
+    @WebTestDescription("tests that running a solr query with with a certificate-less connection "
+            + "throws no exceptions and returns a non-null InputStream")
     public void testQuery_Authentication(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testQuery_Authentication(nodeIterator.next(), version);
@@ -225,6 +240,8 @@ public class CNReadTestImplementations extends ContextAwareAdapter {
         }
     }
 
+    @WebTestName("listQueryEngines - tests listQueryEngines returns a valid QueryEngineList")
+    @WebTestDescription("tests that calling listQueryEngines returns a non-null QueryEngineList")
     public void testListQueryEngines(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext()) {
             testListQueryEngines(nodeIterator.next(), version);
@@ -252,6 +269,9 @@ public class CNReadTestImplementations extends ContextAwareAdapter {
         }
     }
 
+    @WebTestName("getQueryEngineDescription - tests getQueryEngineDescription returns a valid QueryEngineDescription")
+    @WebTestDescription("calls listQueryEngines and uses the first query engine in the list to call "
+            + "getQueryEngineDescription with, and checks that this returns a non-null QueryEngineDescription")
     public void testGetQueryEngineDescription(Iterator<Node> nodeIterator, String version) {
         ContextAwareTestCaseDataone.setupClientSubject_NoCert();
         while (nodeIterator.hasNext()) {
