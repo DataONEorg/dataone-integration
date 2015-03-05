@@ -4,6 +4,7 @@ import org.dataone.integration.ContextAwareTestCaseDataone;
 import org.dataone.integration.it.testDefinitions.CNIdentityTestDefinitions;
 import org.dataone.integration.it.testImplementations.CNIdentityTestImplementations;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -80,48 +81,56 @@ public class CNIdentityV1IT extends ContextAwareTestCaseDataone
 
     @Override
     @Test
+    @Ignore("Test code is commented out, probably for a good reason.")
     public void testMapIdentity() {
         identityTestImpl.testMapIdentity(getCoordinatingNodeIterator(), "v1");
     }
 
     @Override
     @Test
+    @Ignore("Test code is commented out, probably for a good reason.")
     public void testRequestMapIdentity() {
         identityTestImpl.testRequestMapIdentity(getCoordinatingNodeIterator(), "v1");
     }
 
     @Override
     @Test
+    @Ignore("Test code is commented out, probably for a good reason.")
     public void testGetPendingMapIdentity() {
         identityTestImpl.testGetPendingMapIdentity(getCoordinatingNodeIterator(), "v1");
     }
 
     @Override
     @Test
+    @Ignore("Test code is commented out, probably for a good reason.")
     public void testConfirmMapIdentity() {
         identityTestImpl.testConfirmMapIdentity(getCoordinatingNodeIterator(), "v1");
     }
 
     @Override
     @Test
+    @Ignore("Test code is commented out, probably for a good reason.")
     public void testDenyMapIdentity() {
         identityTestImpl.testDenyMapIdentity(getCoordinatingNodeIterator(), "v1");
     }
 
     @Override
     @Test
+    @Ignore("Test code is commented out, probably for a good reason.")
     public void testRemoveMapIdentity() {
         identityTestImpl.testRemoveMapIdentity(getCoordinatingNodeIterator(), "v1");
     }
 
     @Override
     @Test
+    @Ignore("Test code is commented out, probably for a good reason.")
     public void testCreateGroup() {
         identityTestImpl.testCreateGroup(getCoordinatingNodeIterator(), "v1");
     }
 
     @Override
     @Test
+    @Ignore("Test code is commented out, probably for a good reason.")
     public void testUpdateGroup() {
         identityTestImpl.testUpdateGroup(getCoordinatingNodeIterator(), "v1");
     }

@@ -13,6 +13,8 @@ import org.dataone.integration.ContextAwareTestCaseDataone;
 import org.dataone.integration.ExampleUtilities;
 import org.dataone.integration.adapters.CNCallAdapter;
 import org.dataone.integration.it.ContextAwareAdapter;
+import org.dataone.integration.webTest.WebTestDescription;
+import org.dataone.integration.webTest.WebTestName;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.InvalidRequest;
 import org.dataone.service.exceptions.InvalidToken;
@@ -79,6 +81,9 @@ public class CNReplicationTestImplementations extends ContextAwareAdapter {
         }
     }
 
+    @WebTestName("setReplicationStatus - test with unauthorized certificate")
+    @WebTestDescription("this tests the negative case, when we try to call setReplicationStatus with "
+            + "an unauthorized certificate, and expect a NotAuthorized exception")
     public void testSetReplicationStatus_NotAuthorized(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testSetReplicationStatus_NotAuthorized(nodeIterator.next(), version);
@@ -121,6 +126,9 @@ public class CNReplicationTestImplementations extends ContextAwareAdapter {
         }
     }
     
+    @WebTestName("setReplicationStatus - tests with an invalid request")
+    @WebTestDescription("tests a negative case in which setReplicationStatus is called "
+            + "with a bogus NodeReference and expect an InvalidRequest exception")
     public void testSetReplicationStatus_InvalidRequest(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testSetReplicationStatus_InvalidRequest(nodeIterator.next(), version);
@@ -164,6 +172,9 @@ public class CNReplicationTestImplementations extends ContextAwareAdapter {
         }
     }
     
+    @WebTestName("setReplicationStatus - tests with a fake identifier")
+    @WebTestDescription("this tests a negative case in which setReplicationStatus is called with "
+            + "an invalid identifier and expect an InvalidRequest exception")
     public void testSetReplicationStatus_NotFound(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testSetReplicationStatus_NotFound(nodeIterator.next(), version);
@@ -204,6 +215,9 @@ public class CNReplicationTestImplementations extends ContextAwareAdapter {
         }
     }
     
+    @WebTestName("setReplicationStatus - tests for a valid response")
+    @WebTestDescription("tests that calling setReplicationStatus with valid parameters "
+            + "returns a boolean \"true\" response and throws no exceptions")
     public void testSetReplicationPolicy(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testSetReplicationPolicy(nodeIterator.next(), version);
@@ -242,6 +256,10 @@ public class CNReplicationTestImplementations extends ContextAwareAdapter {
         }
     }
     
+    @WebTestName("setReplicationPolicy - test with invalid certificate")
+    @WebTestDescription("tests a negative case in which setReplicationPolicy is called "
+            + "with a certificate whose subject doesn't have the rights to change "
+            + "the replication policy - expects a NotAuthorizedException")
     public void testSetReplicationPolicy_NotAuthorized(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testSetReplicationPolicy_NotAuthorized(nodeIterator.next(), version);
@@ -284,6 +302,9 @@ public class CNReplicationTestImplementations extends ContextAwareAdapter {
         }
     }
     
+    @WebTestName("setReplicationPolicy - test with fake identifier")
+    @WebTestDescription("tests a negative case in which setReplicationPolicy is called "
+            + "with a fake identifier and expects a NotFound exception")
     public void testSetReplicationPolicy_NotFound(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testSetReplicationPolicy_NotFound(nodeIterator.next(), version);
@@ -322,6 +343,10 @@ public class CNReplicationTestImplementations extends ContextAwareAdapter {
         }
     }
     
+    @WebTestName("setReplicationPolicy - test with incorrect system metadata version")
+    @WebTestDescription("tests a negative case in which setReplicationPolicy is called "
+            + "with the incorrect version number passed for the system metadata, expecting "
+            + "a VersionMismatch exception")
     public void testSetReplicationPolicy_VersionMismatch(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testSetReplicationPolicy_VersionMismatch(nodeIterator.next(), version);
@@ -364,6 +389,10 @@ public class CNReplicationTestImplementations extends ContextAwareAdapter {
         }
     }
     
+    @WebTestName("setReplicationPolicy - test with incorrect number of replicas")
+    @WebTestDescription("tests a negative case in which setReplicationPolicy is called "
+            + "with -1 set for the number of replicas on the ReplicationPolicy, expecting "
+            + "an InvalidRequest exception")
     public void testSetReplicationPolicy_InvalidRequest(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testSetReplicationPolicy_InvalidRequest(nodeIterator.next(), version);
@@ -406,6 +435,8 @@ public class CNReplicationTestImplementations extends ContextAwareAdapter {
         }
     }
     
+    @WebTestName("isNodeAuthorized - tests with invalid identification token")
+    @WebTestDescription(" ... test not yet implemented ...?")
     public void testIsNodeAuthorized_InvalidToken(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testIsNodeAuthorized_InvalidToken(nodeIterator.next(), version);
@@ -447,6 +478,10 @@ public class CNReplicationTestImplementations extends ContextAwareAdapter {
         }
     }
 
+    @WebTestName("isNodeAuthorized - tests with an unauthorized client subject")
+    @WebTestDescription(" ... test not yet implemented ...?"
+            + "tests a negative case in which isNodeAuthorized is called "
+            + "with a client subject that is not authorized")
     public void testIsNodeAuthorized_NotAuthorized(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testIsNodeAuthorized_NotAuthorized(nodeIterator.next(), version);
@@ -490,6 +525,9 @@ public class CNReplicationTestImplementations extends ContextAwareAdapter {
         }
     }
     
+    @WebTestName("isNodeAuthorized - tests with no subject")
+    @WebTestDescription("tests a negative case in which isNodeAuthorized is called "
+            + "with a null Subject, expecting an InvalidRequest exception")
     public void testIsNodeAuthorized_InvalidRequest(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testIsNodeAuthorized_InvalidRequest(nodeIterator.next(), version);
@@ -497,7 +535,6 @@ public class CNReplicationTestImplementations extends ContextAwareAdapter {
     
 //    @Ignore("test not implemented")
     public void testIsNodeAuthorized_InvalidRequest(Node node, String version) {
-        // TODO: 
         
         CNCallAdapter callAdapter = new CNCallAdapter(getSession("testMemberNode"), node, version);
         String currentUrl = node.getBaseURL();
@@ -529,6 +566,9 @@ public class CNReplicationTestImplementations extends ContextAwareAdapter {
         }
     }
     
+    @WebTestName("isNodeAuthorized - tests a fake identifier")
+    @WebTestDescription("tests a negative case in which isNodeAuthorized is called "
+            + "with an identifier that doesn't exist, expecting a NotFound exception")
     public void testIsNodeAuthorized_NotFound(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testIsNodeAuthorized_NotFound(nodeIterator.next(), version);
@@ -568,6 +608,9 @@ public class CNReplicationTestImplementations extends ContextAwareAdapter {
         }
     }
 
+    @WebTestName("updateReplicationMetadata - tests with copy of current replica")
+    @WebTestDescription("test makes a call to updateReplicationMetadata using a copy "
+            + "of the current replica")
     public void testUpdateReplicationMetadata(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testUpdateReplicationMetadata(nodeIterator.next(), version);
@@ -592,7 +635,6 @@ public class CNReplicationTestImplementations extends ContextAwareAdapter {
             Identifier replicatedObject = allObjects.get(0).getIdentifier();                
             log.debug("   pid = " + replicatedObject);
             
-            
             SystemMetadata smd = callAdapter.getSystemMetadata(null, replicatedObject);
             long serialVersion = smd.getSerialVersion().longValue();
             Replica replica = smd.getReplica(0);
@@ -615,6 +657,10 @@ public class CNReplicationTestImplementations extends ContextAwareAdapter {
         }
     }
     
+    @WebTestName("updateReplicationMetadata - tests using a no-rights subject")
+    @WebTestDescription("test makes a call to updateReplicationMetadata using a copy "
+            + "of the current replica but with a subject that is not authorized, "
+            + "expecting a NotAuthorized exception")
     public void testUpdateReplicationMetadata_NotAuthorized(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testUpdateReplicationMetadata_NotAuthorized(nodeIterator.next(), version);
@@ -663,6 +709,10 @@ public class CNReplicationTestImplementations extends ContextAwareAdapter {
         }
     }
     
+    @WebTestName("updateReplicationMetadata - ")
+    @WebTestDescription(" ... not implemented ... "
+            + "seems to be a copy of testUpdateReplicationMetadata_NotAuthorized "
+            + "instead of testing a NotFound exception")
     public void testUpdateReplicationMetadata_NotFound(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testUpdateReplicationMetadata_NotFound(nodeIterator.next(), version);
@@ -688,7 +738,6 @@ public class CNReplicationTestImplementations extends ContextAwareAdapter {
 
             Identifier badPid = new Identifier();
             badPid.setValue("CNodeTier4test: " + ExampleUtilities.generateIdentifier());
-
             
             SystemMetadata smd = callAdapter.getSystemMetadata(null, replicatedObject);
             long serialVersion = smd.getSerialVersion().longValue();
@@ -715,6 +764,9 @@ public class CNReplicationTestImplementations extends ContextAwareAdapter {
         }
     }
     
+    @WebTestName("updateReplicationMetadata - tests with a null replica")
+    @WebTestDescription("tests a negative case, calling updateReplicationMetadata with "
+            + "a null value for the replica, expecting an InvalidRequest exception")
     public void testUpdateReplicationMetadata_InvalidRequest(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testUpdateReplicationMetadata_InvalidRequest(nodeIterator.next(), version);
@@ -742,12 +794,11 @@ public class CNReplicationTestImplementations extends ContextAwareAdapter {
             
             SystemMetadata smd = callAdapter.getSystemMetadata(null, replicatedObject);
             long serialVersion = smd.getSerialVersion().longValue();
-            Replica replica = smd.getReplica(0);
             
-            // try an update to the replica by replacing it with a null value
+            // try an update to the replica by replacing it with a null value Replica
             boolean response = callAdapter.updateReplicationMetadata(null, replicatedObject, null, serialVersion);
 
-            handleFail(callAdapter.getLatestRequestUrl(),"updateReplicaMetadata should fail when using no-rights subject");
+            handleFail(callAdapter.getLatestRequestUrl(),"updateReplicaMetadata should fail when using a null Replica");
         }
         catch (IndexOutOfBoundsException e) {
             handleFail(callAdapter.getLatestRequestUrl(),"No Objects available to test against");
@@ -765,6 +816,9 @@ public class CNReplicationTestImplementations extends ContextAwareAdapter {
         }
     }
     
+    @WebTestName("updateReplicationMetadata - tests with an bad serialVersion")
+    @WebTestDescription("tests a negative case, calling updateReplicationMetadata with "
+            + "a serialVersion number that's incorrect, expecting a VersionMismatch exception")
     public void testUpdateReplicationMetadata_VersionMismatch(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testUpdateReplicationMetadata_VersionMismatch(nodeIterator.next(), version);

@@ -10,6 +10,8 @@ import org.dataone.integration.APITestUtils;
 import org.dataone.integration.ContextAwareTestCaseDataone;
 import org.dataone.integration.adapters.CNCallAdapter;
 import org.dataone.integration.it.ContextAwareAdapter;
+import org.dataone.integration.webTest.WebTestDescription;
+import org.dataone.integration.webTest.WebTestName;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.NotAuthorized;
 import org.dataone.service.exceptions.NotFound;
@@ -25,6 +27,9 @@ public class CNIdentityTestImplementations extends ContextAwareAdapter {
         super(catc);
     }
 
+    @WebTestName("registerAccount - tests with an invalid person")
+    @WebTestDescription("tests a negative case, calling registerAccount with "
+            + "an invalid Person, expecting an exception")
     public void testRegisterAccount_InvalidPerson(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testRegisterAccount_InvalidPerson(nodeIterator.next(), version);
@@ -60,6 +65,9 @@ public class CNIdentityTestImplementations extends ContextAwareAdapter {
         }
     }
 
+    @WebTestName("registerAccount - tests with an existing person")
+    @WebTestDescription("tests a negative case, calling registerAccount with "
+            + "a Person that already exists, expecting an exception")
     public void testRegisterAccount_ExistingPerson(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testRegisterAccount_ExistingPerson(nodeIterator.next(), version);
@@ -86,6 +94,9 @@ public class CNIdentityTestImplementations extends ContextAwareAdapter {
         }
     }
     
+    @WebTestName("updateAccount - tests with an invalid person")
+    @WebTestDescription("tests a negative case, calling updateAccount with "
+            + "an invalid Person, expecting an exception")
     public void testUpdateAccount_InvalidPerson(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testUpdateAccount_InvalidPerson(nodeIterator.next(), version);
@@ -149,6 +160,10 @@ public class CNIdentityTestImplementations extends ContextAwareAdapter {
 //        }
 //    }
     
+    @WebTestName("verifyAccount - tests with an unauthorized subject")
+    @WebTestDescription("tests a negative case, calling verifyAccount as "
+            + "a subject who is unauthorized to verify accounts, "
+            + "expecting a NotAuthorized exception")
     public void testVerifyAccount_NotAuthorized(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testVerifyAccount_NotAuthorized(nodeIterator.next(), version);
@@ -185,6 +200,9 @@ public class CNIdentityTestImplementations extends ContextAwareAdapter {
         }
     }
     
+    @WebTestName("getSubjectInfo - tests that getSubjectInfo works")
+    @WebTestDescription("test calling getSubjectInfo with a valid / existing "
+            + "Subject and checks that it returns a non-null SubjectInfo object")
     public void testGetSubjectInfo(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testGetSubjectInfo(nodeIterator.next(), version);
@@ -215,6 +233,10 @@ public class CNIdentityTestImplementations extends ContextAwareAdapter {
         }
     }
 
+    @WebTestName("getSubjectInfo - tests identifier with spaces")
+    @WebTestDescription("test calling getSubjectInfo with an identifier that "
+            + "contains spaces, expecting to get either a non-null SubjectInfo "
+            + "or a NotFound exception, but no other kind of exception")
     public void testGetSubjectInfo_UrlEncodingSpaces(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testGetSubjectInfo_UrlEncodingSpaces(nodeIterator.next(), version);
@@ -255,6 +277,9 @@ public class CNIdentityTestImplementations extends ContextAwareAdapter {
         }
     }
 
+    @WebTestName("listSubjects - tests that listSubjects works with null parameters")
+    @WebTestDescription("test calling listSubjects with null or empty parameters "
+            + "expecting it to return a non-null SubjectInfo response")
     public void testListSubjects(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testListSubjects(nodeIterator.next(), version);
@@ -286,6 +311,10 @@ public class CNIdentityTestImplementations extends ContextAwareAdapter {
         }
     }
 
+    @WebTestName("listSubjects - tests slicing with the count parameter")
+    @WebTestDescription("test calling listSubjects with the count parameter set to half "
+            + "the actual number of records, expecting it to return a SubjectInfo with "
+            + "the expected number of results")
     public void testListSubjects_Slicing(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testListSubjects_Slicing(nodeIterator.next(), version);
