@@ -9,6 +9,8 @@ import org.dataone.configuration.Settings;
 import org.dataone.integration.ContextAwareTestCaseDataone;
 import org.dataone.integration.adapters.CNCallAdapter;
 import org.dataone.integration.it.ContextAwareAdapter;
+import org.dataone.integration.webTest.WebTestDescription;
+import org.dataone.integration.webTest.WebTestName;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.IdentifierNotUnique;
 import org.dataone.service.exceptions.InvalidRequest;
@@ -78,6 +80,9 @@ public class CNRegisterTestImplementations extends ContextAwareAdapter {
         }
     }
 
+    @WebTestName("updateNodeCapabilities - test for nonexistent node")
+    @WebTestDescription("this tests a negative case by calling updateNodeCapabilities with "
+            + "an invalid NodeReference, expecting a NotFound exception")
     public void testUpdateNodeCapabilities_NotFound(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testUpdateNodeCapabilities_NotFound(nodeIterator.next(), version);
@@ -127,6 +132,9 @@ public class CNRegisterTestImplementations extends ContextAwareAdapter {
         }
     }
 
+    @WebTestName("updateNodeCapabilities - test with unauthorized subject")
+    @WebTestDescription("this tests a negative case by calling updateNodeCapabilities with "
+            + "an unauthorized certificate, expecting a NotAuthorized exception")
     public void testUpdateNodeCapabilities_NotAuthorized(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testUpdateNodeCapabilities_NotAuthorized(nodeIterator.next(), version);
@@ -136,7 +144,7 @@ public class CNRegisterTestImplementations extends ContextAwareAdapter {
 
         //TODO ensure that the current subject is not able to update the node record
         // do this by looking at the node record?
-        CNCallAdapter callAdapter = new CNCallAdapter(getSession(cnSubmitter), node, version);
+        CNCallAdapter callAdapter = new CNCallAdapter(getSession(Constants.SUBJECT_PUBLIC), node, version);
         String currentUrl = node.getBaseURL();
         printTestHeader("testUpdateNodeCapabilities(...) vs. node: " + currentUrl);
 
@@ -159,7 +167,7 @@ public class CNRegisterTestImplementations extends ContextAwareAdapter {
                 org.dataone.service.types.v2.Node nodeV2 = TypeMarshaller.convertTypeFromType(node0, org.dataone.service.types.v2.Node.class);
                 boolean response = callAdapter.updateNodeCapabilities(null, nodeRef, nodeV2);
                 handleFail(callAdapter.getLatestRequestUrl(),
-                        "updateNodeCapabilities on fictitious node should fail");
+                        "updateNodeCapabilities with unauthorized subject should fail");
 
                 // TODO: confirm the changed node record.  currently cannot do this as the node update
                 // process is not automatic.
@@ -176,6 +184,10 @@ public class CNRegisterTestImplementations extends ContextAwareAdapter {
         }
     }
 
+    @WebTestName("updateNodeCapabilities - test updating other fields")
+    @WebTestDescription("this tests a negative case by calling updateNodeCapabilities "
+            + "and trying to set fields other than the node capabilities, "
+            + "expecting an InvalidRequest exception")
     public void testUpdateNodeCapabilities_updatingOtherField(Iterator<Node> nodeIterator,
             String version) {
         while (nodeIterator.hasNext())
@@ -226,6 +238,9 @@ public class CNRegisterTestImplementations extends ContextAwareAdapter {
         }
     }
 
+    @WebTestName("register - test that register works with a valid node")
+    @WebTestDescription("tests that calling register with a "
+            + "valid Node will return a non-null NodeReference")
     public void testRegister(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testRegister(nodeIterator.next(), version);
@@ -264,6 +279,10 @@ public class CNRegisterTestImplementations extends ContextAwareAdapter {
         }
     }
 
+    @WebTestName("register - test with a non-unique identifier")
+    @WebTestDescription("tests a negative case by calling register with a "
+            + "Node that is not unique and has already been registered, "
+            + "expecting a IdentifierNotUnique exception")
     public void testRegister_IdentifierNotUnique(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testRegister_IdentifierNotUnique(nodeIterator.next(), version);
