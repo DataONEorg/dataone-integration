@@ -6,6 +6,8 @@ import org.dataone.client.v1.types.D1TypeBuilder;
 import org.dataone.integration.ContextAwareTestCaseDataone;
 import org.dataone.integration.adapters.CommonCallAdapter;
 import org.dataone.integration.it.ContextAwareAdapter;
+import org.dataone.integration.webTest.WebTestDescription;
+import org.dataone.integration.webTest.WebTestName;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Node;
@@ -17,6 +19,10 @@ public class AuthTestImplementations extends ContextAwareAdapter {
         super(catc);
     }
     
+    @WebTestName("isAuthorized - tests that isAuthorized works")
+    @WebTestDescription("this test locates an object that is publicly readable, "
+            + "then uses a certificate with no special permissions to call "
+            + "isAuthorized on it, expecting a true response")
     public void testIsAuthorized(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testIsAuthorized(nodeIterator.next(), version);

@@ -3,6 +3,7 @@ package org.dataone.integration.it.apiTests;
 import org.dataone.integration.ContextAwareTestCaseDataone;
 import org.dataone.integration.it.testDefinitions.MNCoreSlowTestDefinitions;
 import org.dataone.integration.it.testImplementations.CoreTestImplementations;
+import org.dataone.integration.webTest.WebTestImplementation;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -13,8 +14,10 @@ import org.junit.Test;
 public class MNCoreV2SlowIT extends ContextAwareTestCaseDataone 
         implements MNCoreSlowTestDefinitions {
 
+    @WebTestImplementation
     private CoreTestImplementations coreTestImpl;
 
+    
     @Override
     protected String getTestDescription() {
         return "Test Case that runs through the MN version 2 core API methods "

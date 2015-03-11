@@ -16,6 +16,8 @@ import org.dataone.integration.ExampleUtilities;
 import org.dataone.integration.TestIterationEndingException;
 import org.dataone.integration.adapters.CNCallAdapter;
 import org.dataone.integration.it.ContextAwareAdapter;
+import org.dataone.integration.webTest.WebTestDescription;
+import org.dataone.integration.webTest.WebTestName;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.NotAuthorized;
 import org.dataone.service.exceptions.NotFound;
@@ -38,6 +40,11 @@ public class CNAuthTestImplementations extends ContextAwareAdapter {
         super(catc);
     }
 
+    @WebTestName("setRightsHolder - tests that setRightsHolder works")
+    @WebTestDescription("first uses setRightsHolder to change the rights holder, "
+            + "then calls isAuthorized with an unauthorized subject, verifies that "
+            + "if fails with a NotAuthorized exception, then calls isAuthorized with "
+            + "the rights holder set earlier and verifies that there's no exception" )
     public void testSetRightsHolder(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testSetRightsHolder(nodeIterator.next(), version);
@@ -111,7 +118,13 @@ public class CNAuthTestImplementations extends ContextAwareAdapter {
         }
     }
     
-    
+    @WebTestName("setAccessPolicy - tests that setAccessPolicy works")
+    @WebTestDescription("finds an object that can be modified, clears its AccessPolicy, "
+            + "calls isAuthorized with a non-owner subject expecting a "
+            + "NotAuthorized exception, then calls setAccessPolicy as the rights holder "
+            + "to set the AccessPolicy to allow read for a specific person, "
+            + "verifies that this was allowed, then tries isAuthorized again "
+            + "as that specific person, making sure they now have access")
     public void testSetAccessPolicy(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testSetAccessPolicy(nodeIterator.next(), version);

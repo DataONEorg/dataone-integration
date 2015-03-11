@@ -6,6 +6,8 @@ import java.util.List;
 import org.dataone.integration.ContextAwareTestCaseDataone;
 import org.dataone.integration.adapters.CommonCallAdapter;
 import org.dataone.integration.it.ContextAwareAdapter;
+import org.dataone.integration.webTest.WebTestDescription;
+import org.dataone.integration.webTest.WebTestName;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.ServiceFailure;
 import org.dataone.service.types.v1.Identifier;
@@ -22,6 +24,9 @@ public class SSLTestImplementations extends ContextAwareAdapter {
         // TODO Auto-generated constructor stub
     }
 
+    @WebTestName("connection layer - test with self-signed certificate")
+    @WebTestDescription("this test uses a self-signed certificate to make a call to "
+            + "getLogRecords and verifies that the number of results returned is 0")
     public void testConnectionLayer_SelfSignedCert(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testConnectionLayer_SelfSignedCert(nodeIterator.next(), version);
@@ -50,14 +55,15 @@ public class SSLTestImplementations extends ContextAwareAdapter {
         }
     }
     
-    
+    @WebTestName("connection layer - test with expired certificate")
+    @WebTestDescription("this test uses an expired certificate to make a call to "
+            + "ping and verifies that it results in a ServiceFailure exception")
     public void testConnectionLayer_ExpiredCertificate(Iterator<Node> nodeIterator, String version) 
     {          
         while (nodeIterator.hasNext())
             testConnectionLayer_ExpiredCertificate(nodeIterator.next(), version);       
     }
 
-    
     public void testConnectionLayer_ExpiredCertificate(Node node, String version) 
     {    
         String currentUrl = node.getBaseURL();
@@ -78,8 +84,10 @@ public class SSLTestImplementations extends ContextAwareAdapter {
         }
     }
 
-    
-    
+    @WebTestName("connection layer - test DataONE CA trusted certificate")
+    @WebTestDescription("this test uses a DataONE CA trusted certificate "
+            + "to make a call to ping and verifies that it does not result in"
+            + "any exception")
     public void testConnectionLayer_dataoneCAtrusted(Iterator<Node> nodeIterator, String version) {
 
         while (nodeIterator.hasNext())

@@ -6,6 +6,7 @@ import java.net.URISyntaxException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.input.CountingInputStream;
@@ -14,6 +15,8 @@ import org.dataone.client.v2.formats.ObjectFormatCache;
 import org.dataone.integration.ContextAwareTestCaseDataone;
 import org.dataone.integration.adapters.CommonCallAdapter;
 import org.dataone.integration.it.ContextAwareAdapter;
+import org.dataone.integration.webTest.WebTestDescription;
+import org.dataone.integration.webTest.WebTestName;
 import org.dataone.ore.ResourceMapFactory;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.NotAuthorized;
@@ -38,7 +41,10 @@ public class ContentIntegrityTestImplementations extends ContextAwareAdapter
         super(catc);
     }
 
-
+    @WebTestName("resource map - parsing")
+    @WebTestDescription("this test gets a resource map for the format identifier "
+            + "'http://www.openarchives.org/ore/terms' and attempts to parse the "
+            + "contents of the input stream, verifying that no exceptions are thrown")
     public void testResourceMap_Parsing(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testResourceMap_Parsing(nodeIterator.next(), version);
@@ -80,14 +86,19 @@ public class ContentIntegrityTestImplementations extends ContextAwareAdapter
         }
     }
 
-
+    @WebTestName("resource map - checksum size consistency")
+    @WebTestDescription("this test lists objects of type 'RESOURCE' and looks at the ObjectInfo"
+            + "to make sure the checksum and its size match what is in system metadata "
+            + "and that it matches what is recalculated when retrieving the object")
     public void testResourceMap_Checksum_Size_Consistency(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testContent_Checksum_Size_Consistency("RESOURCE", nodeIterator.next(), version);
     }
 
-
-
+    @WebTestName("metadata - checksum size consistency")
+    @WebTestDescription("this test lists objects of type 'METADATA' and looks at the ObjectInfo"
+            + "to make sure the checksum and its size match what is in system metadata "
+            + "and that it matches what is recalculated when retrieving the object")
     public void testMetadata_Checksum_Size_Consistency(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testContent_Checksum_Size_Consistency("METADATA", nodeIterator.next(), version);
@@ -168,7 +179,11 @@ public class ContentIntegrityTestImplementations extends ContextAwareAdapter
 
     }
 
-
+    @WebTestName("resource map - parsing")
+    @WebTestDescription("a more thorough test of resource map parsing that fetches "
+            + "calls listObjects on the 'RESOURCE' format and iterates through all "
+            + "results and attempts to parse the contents of the input stream, "
+            + "verifying that no exceptions are thrown")
     public void testResourceMapParsing(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testResourceMapParsing(nodeIterator.next(), version);
@@ -243,7 +258,10 @@ public class ContentIntegrityTestImplementations extends ContextAwareAdapter
 
     }
 
-
+    @WebTestName("resource map - resolve URL")
+    @WebTestDescription(" ... test seems to be unfinished ... "
+            + "looks like it should be going through the resource map and checking for "
+            + "resolve URLs?")
     public void testResourceMap_ResolveURL(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testResourceMap_ResolveURL(nodeIterator.next(), version);

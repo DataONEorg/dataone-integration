@@ -11,6 +11,7 @@ import org.dataone.integration.it.testDefinitions.MNCoreSidTestDefinitions;
 import org.dataone.integration.it.testDefinitions.MNCoreTestDefinitions;
 import org.dataone.integration.it.testImplementations.CoreTestImplementations;
 import org.dataone.integration.it.testImplementations.SidMNTestImplementations;
+import org.dataone.integration.webTest.WebTestImplementation;
 import org.dataone.service.exceptions.InsufficientResources;
 import org.dataone.service.exceptions.InvalidRequest;
 import org.dataone.service.exceptions.InvalidToken;
@@ -28,8 +29,11 @@ import org.junit.Test;
 public class MNCoreV2IT extends ContextAwareTestCaseDataone 
 implements CoreTestDefinitions, MNCoreTestDefinitions, MNCoreSidTestDefinitions
 {
+    @WebTestImplementation
     private CoreTestImplementations coreTestImpl;
+    @WebTestImplementation
     private SidMNTestImplementations sidImpl;
+    
     
     @Before 
     public void setup() {

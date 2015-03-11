@@ -32,6 +32,8 @@ import org.dataone.integration.APITestUtils;
 import org.dataone.integration.ContextAwareTestCaseDataone;
 import org.dataone.integration.TestIterationEndingException;
 import org.dataone.integration.adapters.CommonCallAdapter;
+import org.dataone.integration.webTest.WebTestDescription;
+import org.dataone.integration.webTest.WebTestName;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.IdentifierNotUnique;
 import org.dataone.service.exceptions.InsufficientResources;
@@ -202,6 +204,10 @@ public abstract class AbstractAuthorizationTestImplementations extends ContextAw
       * The authorization tests...................................
       */
 
+     @WebTestName("isAuthorized - test object has a null AccessPolicy and testPerson as rights holder")
+     @WebTestDescription("this test uses an object created with testPerson as the rights holder "
+             + "and a null AccessPolicy. It runs a series of isAuthorized tests each "
+             + "with a different certificate / subject trying to access the object")
      @Test
      public void testIsAuthorized_NullPolicy_testPerson_is_RightsHolder() {
 
@@ -343,7 +349,10 @@ public abstract class AbstractAuthorizationTestImplementations extends ContextAw
          }
      }
 
-
+     @WebTestName("isAuthorized - test object has a null AccessPolicy and testGroup as rights holder")
+     @WebTestDescription("this test uses an object created with testGroup as the rights holder "
+             + "and a null AccessPolicy. It runs a series of isAuthorized tests each "
+             + "with a different certificate / subject trying to access the object")
      @Test
      public void testIsAuthorized_NullPolicy_testGroup_is_RightsHolder() {
 
@@ -488,7 +497,10 @@ public abstract class AbstractAuthorizationTestImplementations extends ContextAw
          }
      }
 
-
+     @WebTestName("isAuthorized - test object has a public readable AccessPolicy and testRightsHolder as rights holder")
+     @WebTestDescription("this test uses an object created with testRightsHolder as the rights holder "
+             + "and an AccessPolicy that has public readability enabled. It runs a series of isAuthorized tests each "
+             + "with a different certificate / subject trying to access the object")
      @Test
      public void testIsAuthorized_AccessPolicy_is_Public_can_Read() {
 
@@ -623,6 +635,10 @@ public abstract class AbstractAuthorizationTestImplementations extends ContextAw
          }
      }
 
+     @WebTestName("isAuthorized - test object has an authenticated user readable AccessPolicy and testRightsHolder as rights holder")
+     @WebTestDescription("this test uses an object created with testRightsHolder as the rights holder "
+             + "and an AccessPolicy that has readability enabled for an authenticated user. It runs a series of isAuthorized tests each "
+             + "with a different certificate / subject trying to access the object")
      @Test
      public void testIsAuthorized_AccessPolicy_is_AuthenticatedUser_can_Read() {
 
@@ -757,7 +773,10 @@ public abstract class AbstractAuthorizationTestImplementations extends ContextAw
          }
      }
 
-
+     @WebTestName("isAuthorized - test object has an verified user readable AccessPolicy and testRightsHolder as rights holder")
+     @WebTestDescription("this test uses an object created with testRightsHolder as the rights holder "
+             + "and an AccessPolicy that has readability enabled for a verified user. It runs a series of isAuthorized tests each "
+             + "with a different certificate / subject trying to access the object")
      @Test
      public void testIsAuthorized_AccessPolicy_is_VerifiedUser_can_Read() {
 
@@ -902,7 +921,10 @@ public abstract class AbstractAuthorizationTestImplementations extends ContextAw
          }
      }
 
-
+     @WebTestName("isAuthorized - test object has testPerson-readable AccessPolicy and testRightsHolder as rights holder")
+     @WebTestDescription("this test uses an object created with testRightsHolder as the rights holder "
+             + "and an AccessPolicy that has readability enabled for the testPerson subject. It runs a series of isAuthorized tests each "
+             + "with a different certificate / subject trying to access the object")
      @Test
      public void testIsAuthorized_AccessPolicy_is_testPerson_can_Read() {
 
@@ -1043,7 +1065,10 @@ public abstract class AbstractAuthorizationTestImplementations extends ContextAw
 
      }
 
-
+     @WebTestName("isAuthorized - test object has an testPerson-writable AccessPolicy and testRightsHolder as rights holder")
+     @WebTestDescription("this test uses an object created with testRightsHolder as the rights holder "
+             + "and an AccessPolicy that has write permission enabled for the testPerson subject. It runs a series of isAuthorized tests each "
+             + "with a different certificate / subject trying to access the object")
      @Test
      public void testIsAuthorized_AccessPolicy_is_testPerson_can_Write() {
          String procuringSubjectString = "testRightsHolder";
@@ -1180,7 +1205,10 @@ public abstract class AbstractAuthorizationTestImplementations extends ContextAw
          }
      }
 
-
+     @WebTestName("isAuthorized - test object has an testPerson-changeable AccessPolicy and testRightsHolder as rights holder")
+     @WebTestDescription("this test uses an object created with testRightsHolder as the rights holder "
+             + "and an AccessPolicy that has change permission enabled for the testPerson subject. It runs a series of isAuthorized tests each "
+             + "with a different certificate / subject trying to access the object")
      @Test
      public void testIsAuthorized_AccessPolicy_is_testPerson_can_ChangePerm() {
          String procuringSubjectString = "testRightsHolder";
@@ -1317,7 +1345,10 @@ public abstract class AbstractAuthorizationTestImplementations extends ContextAw
          }
      }
 
-
+     @WebTestName("isAuthorized - test object has an testGroup-readable AccessPolicy and testRightsHolder as rights holder")
+     @WebTestDescription("this test uses an object created with testRightsHolder as the rights holder "
+             + "and an AccessPolicy that has read permission enabled for the testGroup subject. It runs a series of isAuthorized tests each "
+             + "with a different certificate / subject trying to access the object")
      @Test
      public void testIsAuthorized_AccessPolicy_is_testGroup_can_Read() {
          String procuringSubjectString = "testRightsHolder";
@@ -1461,8 +1492,10 @@ public abstract class AbstractAuthorizationTestImplementations extends ContextAw
          }
      }
 
-
-
+     @WebTestName("isAuthorized - test object has an testGroup-writable AccessPolicy and testRightsHolder as rights holder")
+     @WebTestDescription("this test uses an object created with testRightsHolder as the rights holder "
+             + "and an AccessPolicy that has write permission enabled for the testGroup subject. It runs a series of isAuthorized tests each "
+             + "with a different certificate / subject trying to access the object")
      @Test
      public void testIsAuthorized_AccessPolicy_is_testGroup_can_Write() {
          String procuringSubjectString = "testRightsHolder";
@@ -1607,7 +1640,10 @@ public abstract class AbstractAuthorizationTestImplementations extends ContextAw
          }
      }
 
-
+     @WebTestName("isAuthorized - test object has an testGroup-changeable AccessPolicy and testRightsHolder as rights holder")
+     @WebTestDescription("this test uses an object created with testRightsHolder as the rights holder "
+             + "and an AccessPolicy that has change permission enabled for the testGroup subject. It runs a series of isAuthorized tests each "
+             + "with a different certificate / subject trying to access the object")
      @Test
      public void testIsAuthorized_AccessPolicy_is_testGroup_can_ChangePerm() {
          String procuringSubjectString = "testRightsHolder";
@@ -1750,7 +1786,10 @@ public abstract class AbstractAuthorizationTestImplementations extends ContextAw
          }
      }
 
-
+     @WebTestName("isAuthorized - test object has an legacy account writable AccessPolicy and testRightsHolder as rights holder")
+     @WebTestDescription("this test uses an object created with testRightsHolder as the rights holder "
+             + "and an AccessPolicy that has write permission enabled for some legacy account. It runs a series of isAuthorized tests each "
+             + "with a different certificate / subject trying to access the object")
      @Test
      public void testIsAuthorized_AccessPolicy_is_legacyAccount_can_Write() {
          String procuringSubjectString = "testRightsHolder";
@@ -1896,6 +1935,12 @@ public abstract class AbstractAuthorizationTestImplementations extends ContextAw
          return String.format("CN=%s,DC=dataone,DC=org",cn);
      }
 
+     @WebTestName("isAuthorized - test object has a more complicated AccessPolicy and testRightsHolder as rights holder")
+     @WebTestDescription("this test uses an object created with testRightsHolder as the rights holder "
+             + "and an AccessPolicy with read and write permission for testGroupie, "
+             + "read permission for testPerson, and write permission for testPerson and 'cc'. "
+             + "It runs a series of isAuthorized tests each "
+             + "with a different certificate / subject trying to access the object")
      @Test
      public void testIsAuthorized_ComplicatedAccessPolicy() {
 

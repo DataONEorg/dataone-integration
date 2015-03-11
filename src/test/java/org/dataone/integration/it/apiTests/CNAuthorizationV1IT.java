@@ -7,6 +7,7 @@ import org.dataone.integration.it.testDefinitions.CNAuthTestDefinitions;
 import org.dataone.integration.it.testImplementations.AuthAPITestImplementations;
 import org.dataone.integration.it.testImplementations.CNAuthTestImplementations;
 import org.dataone.integration.it.testImplementations.V1IsAuthorizedAuthorizationTestImpl;
+import org.dataone.integration.webTest.WebTestImplementation;
 import org.dataone.service.types.v1.Node;
 import org.junit.Before;
 import org.junit.Test;
@@ -17,9 +18,12 @@ import org.junit.Test;
 public class CNAuthorizationV1IT extends V1IsAuthorizedAuthorizationTestImpl
         implements AuthAPITestDefinitions, CNAuthTestDefinitions {
 
+    @WebTestImplementation
     private AuthAPITestImplementations authTestImpl;
+    @WebTestImplementation
     private CNAuthTestImplementations cnAuthTestImpl;
 
+    
     @Override
     protected Iterator<Node> getNodeIterator()
     {

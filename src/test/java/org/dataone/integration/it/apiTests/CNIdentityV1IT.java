@@ -3,6 +3,7 @@ package org.dataone.integration.it.apiTests;
 import org.dataone.integration.ContextAwareTestCaseDataone;
 import org.dataone.integration.it.testDefinitions.CNIdentityTestDefinitions;
 import org.dataone.integration.it.testImplementations.CNIdentityTestImplementations;
+import org.dataone.integration.webTest.WebTestImplementation;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -13,7 +14,9 @@ import org.junit.Test;
 public class CNIdentityV1IT extends ContextAwareTestCaseDataone 
         implements CNIdentityTestDefinitions {
 
+    @WebTestImplementation
     private CNIdentityTestImplementations identityTestImpl;
+    
     
     @Before
     public void setup() {

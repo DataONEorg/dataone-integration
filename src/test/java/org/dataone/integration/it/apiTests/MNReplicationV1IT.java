@@ -3,6 +3,7 @@ package org.dataone.integration.it.apiTests;
 import org.dataone.integration.ContextAwareTestCaseDataone;
 import org.dataone.integration.it.testDefinitions.MNReplicationTestDefinitions;
 import org.dataone.integration.it.testImplementations.MNReplicationTestImplementations;
+import org.dataone.integration.webTest.WebTestImplementation;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -13,6 +14,7 @@ import org.junit.Test;
 public class MNReplicationV1IT extends ContextAwareTestCaseDataone 
     implements MNReplicationTestDefinitions {
 
+    @WebTestImplementation
     private MNReplicationTestImplementations mnReplicationTestImpl;
     
     @Before

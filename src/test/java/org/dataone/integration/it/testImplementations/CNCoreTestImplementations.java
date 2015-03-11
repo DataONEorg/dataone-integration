@@ -93,7 +93,7 @@ public class CNCoreTestImplementations extends ContextAwareAdapter {
         }   
     }
     
-    @WebTestName("create - identifier encoding: tests that calling create works for different types of encodings in the identifier")
+    @WebTestName("create - identifier encoding: tests that calling create works for different types of identifier encodings")
     @WebTestDescription("this test checks that calling create can succeed even if the identifier given "
             + "contains a variety of character encodings")
     public void testCreateData_IdentifierEncoding(Iterator<Node> nodeIterator, String version) {

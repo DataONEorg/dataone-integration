@@ -6,7 +6,9 @@ import org.dataone.integration.it.testDefinitions.AuthTestDefinitions;
 import org.dataone.integration.it.testDefinitions.MNSystemMetadataChangedTestDefinitions;
 import org.dataone.integration.it.testImplementations.AuthTestImplementations;
 import org.dataone.integration.it.testImplementations.MNReplicationTestImplementations;
+import org.dataone.integration.it.testImplementations.MNSystemMetadataChangedMethodTestImplementations;
 import org.dataone.integration.it.testImplementations.V1IsAuthorizedAuthorizationTestImpl;
+import org.dataone.integration.webTest.WebTestImplementation;
 import org.dataone.service.types.v1.Node;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -18,9 +20,12 @@ import org.junit.Test;
 public class MNAuthorizationV1IT extends V1IsAuthorizedAuthorizationTestImpl
         implements AuthTestDefinitions, MNSystemMetadataChangedTestDefinitions {
 
+    @WebTestImplementation
     private AuthTestImplementations authTestImpl;
-    private MNReplicationTestImplementations mnReplicationTestImpl;
+    @WebTestImplementation
+    private MNSystemMetadataChangedMethodTestImplementations mnSysmetaChangedImpl;
 
+    
     /* configure the tests from the abstract class */
     @Override
     protected Iterator<Node> getNodeIterator()
@@ -32,7 +37,7 @@ public class MNAuthorizationV1IT extends V1IsAuthorizedAuthorizationTestImpl
     public void setup() {
         authTestImpl = new AuthTestImplementations(this);
         /* systemMetadataChangedTest implementations are in MNReplicationTestImpls */
-        mnReplicationTestImpl = new MNReplicationTestImplementations(this);
+        mnSysmetaChangedImpl = new MNSystemMetadataChangedMethodTestImplementations(this);
     }
 
     @Override
@@ -49,26 +54,26 @@ public class MNAuthorizationV1IT extends V1IsAuthorizedAuthorizationTestImpl
     @Override
     @Test
     public void testSystemMetadataChanged() {
-        mnReplicationTestImpl.testSystemMetadataChanged(getMemberNodeIterator(), "v1");
+        mnSysmetaChangedImpl.testSystemMetadataChanged(getMemberNodeIterator(), "v1");
     }
 
     @Override
     @Test
     @Ignore("Skipped in original tier tests. Ignoring to match WebTester results for now.")
     public void testSystemMetadataChanged_EarlierDate() {
-        mnReplicationTestImpl.testSystemMetadataChanged_EarlierDate(getMemberNodeIterator(), "v1");
+        mnSysmetaChangedImpl.testSystemMetadataChanged_EarlierDate(getMemberNodeIterator(), "v1");
     }
 
     @Override
     @Test
     public void testSystemMetadataChanged_authenticatedITKuser() {
-        mnReplicationTestImpl.testSystemMetadataChanged_authenticatedITKuser(getMemberNodeIterator(), "v1");
+        mnSysmetaChangedImpl.testSystemMetadataChanged_authenticatedITKuser(getMemberNodeIterator(), "v1");
     }
 
     @Override
     @Test
     @Ignore("Skipped in original tier tests. Ignoring to match WebTester results for now.")
     public void testSystemMetadataChanged_withCreate() {
-        mnReplicationTestImpl.testSystemMetadataChanged_withCreate(getMemberNodeIterator(), "v1");
+        mnSysmetaChangedImpl.testSystemMetadataChanged_withCreate(getMemberNodeIterator(), "v1");
     }
 }

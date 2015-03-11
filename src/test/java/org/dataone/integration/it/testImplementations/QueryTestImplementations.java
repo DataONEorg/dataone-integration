@@ -1,35 +1,19 @@
 package org.dataone.integration.it.testImplementations;
 
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import java.io.InputStream;
-import java.util.Date;
 import java.util.Iterator;
-import java.util.List;
 
-import org.dataone.client.auth.CertificateManager;
-import org.dataone.client.v1.types.D1TypeBuilder;
-import org.dataone.configuration.Settings;
-import org.dataone.integration.APITestUtils;
 import org.dataone.integration.ContextAwareTestCaseDataone;
-import org.dataone.integration.TestIterationEndingException;
 import org.dataone.integration.adapters.CommonCallAdapter;
 import org.dataone.integration.it.ContextAwareAdapter;
+import org.dataone.integration.webTest.WebTestDescription;
+import org.dataone.integration.webTest.WebTestName;
 import org.dataone.service.exceptions.BaseException;
-import org.dataone.service.exceptions.NotAuthorized;
-import org.dataone.service.exceptions.NotFound;
-import org.dataone.service.types.v1.Event;
-import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Node;
-import org.dataone.service.types.v1.NodeReference;
-import org.dataone.service.types.v1.Subject;
 import org.dataone.service.types.v1_1.QueryEngineDescription;
 import org.dataone.service.types.v1_1.QueryEngineList;
-import org.dataone.service.types.v2.Log;
-import org.dataone.service.types.v2.LogEntry;
 import org.dataone.service.util.Constants;
-//import org.dataone.integration.ExampleUtilities;
 
 
 public class QueryTestImplementations extends ContextAwareAdapter { 
@@ -38,7 +22,12 @@ public class QueryTestImplementations extends ContextAwareAdapter {
     public QueryTestImplementations(ContextAwareTestCaseDataone catc) {
         super(catc);
     }
-    
+
+    @WebTestName("getQueryEngineDescription - tests that getQueryEngineDescription works")
+    @WebTestDescription("this test uses listQueryEngines to get a QueryEngineList, "
+            + "then calls getQueryEngineDescription with the first one, verifying that "
+            + "it throws no exceptions. This test will also fail if listQueryEngines "
+            + "returns no results.")
     /**
      * Tests that getQueryEngineDescription(foo) returns a QueryEngineDescription
      */
@@ -70,6 +59,9 @@ public class QueryTestImplementations extends ContextAwareAdapter {
 
     }
 
+    @WebTestName("listQueryEngines - tests that listQueryEngines works")
+    @WebTestDescription("this test calls listQueryEngines and verifies that "
+            + "no exceptions are thrown")
     /**
      * Tests that listQueryEngines() returns a QueryEngineList
      */    

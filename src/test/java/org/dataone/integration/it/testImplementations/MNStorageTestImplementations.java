@@ -15,6 +15,8 @@ import org.dataone.integration.ContextAwareTestCaseDataone;
 import org.dataone.integration.ExampleUtilities;
 import org.dataone.integration.adapters.MNCallAdapter;
 import org.dataone.integration.it.ContextAwareAdapter;
+import org.dataone.integration.webTest.WebTestDescription;
+import org.dataone.integration.webTest.WebTestName;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.InvalidSystemMetadata;
 import org.dataone.service.exceptions.InvalidToken;
@@ -41,6 +43,11 @@ public class MNStorageTestImplementations extends ContextAwareAdapter {
         super(catc);
     }
 
+    @WebTestName("create - tests that create works")
+    @WebTestDescription("this test calls create, then verifies that the "
+            + "returned identifier matches the one passed to create, "
+            + "and also calls get in order to test that the object with "
+            + "that identifier contains the text submitted")
     public void testCreate(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testCreate(nodeIterator.next(), version);
@@ -56,7 +63,7 @@ public class MNStorageTestImplementations extends ContextAwareAdapter {
         String currentUrl = node.getBaseURL();
         currentUrl = callAdapter.getNodeBaseServiceUrl();
         printTestHeader("testCreate() vs. node: " + currentUrl);
-
+        
         try {
             Object[] dataPackage = ExampleUtilities.generateTestSciDataPackage(
                     "mNodeTier3TestCreate", true, subjectRH.getValue());
@@ -87,6 +94,10 @@ public class MNStorageTestImplementations extends ContextAwareAdapter {
         }
     }
 
+    @WebTestName("create - test with unauthorized subject")
+    @WebTestDescription("this test calls create with a certificate whose "
+            + "subject is not authorized and expects to get either a "
+            + "NotAuthorized or InvalidToken exception")
     public void testCreate_NoCert(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testCreate_NoCert(nodeIterator.next(), version);
@@ -126,6 +137,9 @@ public class MNStorageTestImplementations extends ContextAwareAdapter {
         }
     }
 
+    @WebTestName("create - test with challenging unicode identifiers")
+    @WebTestDescription("tests create called with a variety of "
+            + "unicode identifiers, verifying that create throws no exceptions")
     public void testCreateData_IdentifierEncoding(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testCreateData_IdentifierEncoding(nodeIterator.next(), version);
@@ -247,6 +261,18 @@ public class MNStorageTestImplementations extends ContextAwareAdapter {
         System.out.println();
     }
 
+    @WebTestName("update - tests that update works ")
+    @WebTestDescription("this test creates a new object and calls update on the "
+            + "object. "
+            + "It verifies that the identifier returned from update matches "
+            + "the new identifier given to the update call. It then gets the "
+            + "updated system metadata and verifies the it has the "
+            + "original identifier in obsoletes field. "
+            + "It also verifies that dateSystemMetadataModified was set properly. "
+            + "It then gets the original system metadata and "
+            + "verifies that it has the new identifier in the obsoletedBy field. "
+            + "It also verifies that a call to listObjects will contain the "
+            + "updated system metadata.")
     public void testUpdate(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testUpdate(nodeIterator.next(), version);
@@ -333,6 +359,10 @@ public class MNStorageTestImplementations extends ContextAwareAdapter {
         }
     }
 
+    @WebTestName("update - tests with bad obsoletedBy info")
+    @WebTestDescription("this test incorrectly sets the obsoletedBy property "
+            + "instead of the obsoletes property on the system metadata before "
+            + "calling update with it, expecting an InvalidSystemMetadata exception")
     public void testUpdate_badObsoletedByInfo(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testUpdate_badObsoletedByInfo(nodeIterator.next(), version);
@@ -386,6 +416,9 @@ public class MNStorageTestImplementations extends ContextAwareAdapter {
         }
     }
 
+    @WebTestName("update - tests with bad obsoletes info")
+    @WebTestDescription("this test sets the obsoletes property on the system metadata "
+            + "before calling update with it, expecting an InvalidSystemMetadata exception")
     public void testUpdate_badObsoletesInfo(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testUpdate_badObsoletesInfo(nodeIterator.next(), version);
@@ -411,7 +444,7 @@ public class MNStorageTestImplementations extends ContextAwareAdapter {
             dataPackage = ExampleUtilities.generateTestSciDataPackage("mNodeTier3TestUpdate", true, subject.getValue());
             Identifier newPid = (Identifier) dataPackage[0];
 
-            //  incorrectly set the obsoletedBy property instead of obsoletes
+            //  incorrectly set the obsoletes property
             org.dataone.service.types.v1.SystemMetadata smd = (org.dataone.service.types.v1.SystemMetadata) dataPackage[2];
             Identifier phonyId = new Identifier();
             phonyId.setValue("phonyId");
@@ -438,6 +471,10 @@ public class MNStorageTestImplementations extends ContextAwareAdapter {
         }
     }
 
+    @WebTestName("update - tests without a certificate")
+    @WebTestDescription("this test creates an object and then tries, without a "
+            + "certificate, to call update, expecting a NotAuthorized or "
+            + "InvalidToken exception")
     public void testUpdate_NoCert(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testUpdate_NoCert(nodeIterator.next(), version);
@@ -507,6 +544,11 @@ public class MNStorageTestImplementations extends ContextAwareAdapter {
         }
     }
 
+    @WebTestName("update - tests without a certificate")
+    @WebTestDescription("this test creates an object and then tries, with a "
+            + "certificate that isn't authorized, to call update, expecting a NotAuthorized "
+            + "exception. It also gets the system metadata and verifies that the "
+            + "obsoletedBy was not modified")
     public void testUpdate_NoRightsOnObsoleted(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testUpdate_NoRightsOnObsoleted(nodeIterator.next(), version);
@@ -564,6 +606,11 @@ public class MNStorageTestImplementations extends ContextAwareAdapter {
         }
     }
 
+    @WebTestName("archive - tests that archive works")
+    @WebTestDescription("this test creates an object, calls archive on it, "
+            + "then checks that the identifier returned from the archive call "
+            + "matches the one given and that the system metadata for the "
+            + "archived object has a status of archived")
     public void testArchive(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testArchive(nodeIterator.next(), version);
@@ -597,7 +644,7 @@ public class MNStorageTestImplementations extends ContextAwareAdapter {
 
             SystemMetadata smd = callAdapterRH.getSystemMetadata(null, pid);
             checkTrue(callAdapterRH.getLatestRequestUrl(),
-                    "sysmeta for archived object should be has status of archived",
+                    "sysmeta for archived object should have a status of archived",
                     smd.getArchived());
         } catch (BaseException e) {
             handleFail(
@@ -610,6 +657,9 @@ public class MNStorageTestImplementations extends ContextAwareAdapter {
         }
     }
 
+    @WebTestName("archive - test with a fake identifier")
+    @WebTestDescription("this test calls archive with a fake identifier, "
+            + "expecting a NotFound exception")
     public void testArchive_NotFound(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testArchive_NotFound(nodeIterator.next(), version);
@@ -646,6 +696,9 @@ public class MNStorageTestImplementations extends ContextAwareAdapter {
         }
     }
 
+    @WebTestName("archive - test without a certificate")
+    @WebTestDescription("this test creates an object then calls archive without "
+            + "a certificate, expecting a NotAuthorized or InvalidToken exception")
     public void testArchive_NoCert(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testArchive_NoCert(nodeIterator.next(), version);
@@ -721,6 +774,9 @@ public class MNStorageTestImplementations extends ContextAwareAdapter {
         }
     }
 
+    @WebTestName("delete - test without a certificate")
+    @WebTestDescription("this test creates an object then calls delete without "
+            + "a certificate, expecting a NotAuthorized or InvalidToken exception")
     public void testDelete_NoCert(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testDelete_NoCert(nodeIterator.next(), version);

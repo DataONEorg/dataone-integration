@@ -4,6 +4,8 @@ import org.dataone.integration.ContextAwareTestCaseDataone;
 import org.dataone.integration.it.testDefinitions.MNReplicationTestDefinitions;
 import org.dataone.integration.it.testDefinitions.MNSystemMetadataChangedTestDefinitions;
 import org.dataone.integration.it.testImplementations.MNReplicationTestImplementations;
+import org.dataone.integration.it.testImplementations.MNSystemMetadataChangedMethodTestImplementations;
+import org.dataone.integration.webTest.WebTestImplementation;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -14,11 +16,15 @@ import org.junit.Test;
 public class MNReplicationV2IT extends ContextAwareTestCaseDataone 
         implements MNReplicationTestDefinitions, MNSystemMetadataChangedTestDefinitions {
 
+    @WebTestImplementation
     private MNReplicationTestImplementations mnReplicationTestImpl;
-
+    @WebTestImplementation
+    private MNSystemMetadataChangedMethodTestImplementations mnSysmetaChangedImpl;
+    
     @Before
     public void setup() {
         mnReplicationTestImpl = new MNReplicationTestImplementations(this);
+        mnSysmetaChangedImpl = new MNSystemMetadataChangedMethodTestImplementations(this);
     }
 
     @Override
@@ -55,25 +61,25 @@ public class MNReplicationV2IT extends ContextAwareTestCaseDataone
     @Override
     @Test
     public void testSystemMetadataChanged() {
-        mnReplicationTestImpl.testSystemMetadataChanged(getMemberNodeIterator(), "v2");
+        mnSysmetaChangedImpl.testSystemMetadataChanged(getMemberNodeIterator(), "v2");
     }
 
     
     @Override
     @Test
     public void testSystemMetadataChanged_EarlierDate() {
-        mnReplicationTestImpl.testSystemMetadataChanged_EarlierDate(getMemberNodeIterator(), "v2");
+        mnSysmetaChangedImpl.testSystemMetadataChanged_EarlierDate(getMemberNodeIterator(), "v2");
     }
 
     @Override
     @Test
     public void testSystemMetadataChanged_authenticatedITKuser() {
-        mnReplicationTestImpl.testSystemMetadataChanged_authenticatedITKuser(getMemberNodeIterator(), "v2");
+        mnSysmetaChangedImpl.testSystemMetadataChanged_authenticatedITKuser(getMemberNodeIterator(), "v2");
     }
 
     @Override
     @Test
     public void testSystemMetadataChanged_withCreate() {
-        mnReplicationTestImpl.testSystemMetadataChanged_withCreate(getMemberNodeIterator(), "v2");
+        mnSysmetaChangedImpl.testSystemMetadataChanged_withCreate(getMemberNodeIterator(), "v2");
     }
 }

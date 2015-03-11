@@ -3,6 +3,7 @@ package org.dataone.integration.it.apiTests;
 import org.dataone.integration.ContextAwareTestCaseDataone;
 import org.dataone.integration.it.testDefinitions.QueryTestDefinitions;
 import org.dataone.integration.it.testImplementations.QueryTestImplementations;
+import org.dataone.integration.webTest.WebTestImplementation;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -12,6 +13,7 @@ import org.junit.Test;
 public class MNQueryV1IT extends ContextAwareTestCaseDataone 
         implements QueryTestDefinitions {
 
+    @WebTestImplementation
     private QueryTestImplementations queryTestImpl;
 
     @Before

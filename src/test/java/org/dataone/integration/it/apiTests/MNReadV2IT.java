@@ -8,6 +8,7 @@ import org.dataone.integration.it.testDefinitions.ReadTestDefinitions;
 import org.dataone.integration.it.testImplementations.MNReadTestImplementations;
 import org.dataone.integration.it.testImplementations.ReadTestImplementations;
 import org.dataone.integration.it.testImplementations.SidMNTestImplementations;
+import org.dataone.integration.webTest.WebTestImplementation;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -18,8 +19,11 @@ import org.junit.Test;
 public class MNReadV2IT extends ContextAwareTestCaseDataone 
         implements ReadTestDefinitions, MNReadTestDefinitions, MNReadSidTestDefinitions {
 
+    @WebTestImplementation
     private ReadTestImplementations readTestImpl;
+    @WebTestImplementation
     private MNReadTestImplementations mnReadTestImpl;
+    @WebTestImplementation
     private SidMNTestImplementations sidImpl;
     
     @Override

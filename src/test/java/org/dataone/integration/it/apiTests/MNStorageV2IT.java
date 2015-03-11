@@ -6,6 +6,7 @@ import org.dataone.integration.it.testDefinitions.MNStorageTestDefinitions;
 import org.dataone.integration.it.testDefinitions.MNv2StorageTestDefinitions;
 import org.dataone.integration.it.testImplementations.MNStorageTestImplementations;
 import org.dataone.integration.it.testImplementations.SidMNTestImplementations;
+import org.dataone.integration.webTest.WebTestImplementation;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -14,7 +15,9 @@ import org.junit.Test;
 public class MNStorageV2IT extends ContextAwareTestCaseDataone
         implements MNStorageTestDefinitions, MNv2StorageTestDefinitions, MNStorageSidTestDefinitions {
 
+    @WebTestImplementation
     private MNStorageTestImplementations mnStorageTestImpl;
+    @WebTestImplementation
     private SidMNTestImplementations sidImpl;
     
     @Before

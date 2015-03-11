@@ -9,6 +9,8 @@ import org.dataone.integration.ContextAwareTestCaseDataone;
 import org.dataone.integration.ExampleUtilities;
 import org.dataone.integration.adapters.MNCallAdapter;
 import org.dataone.integration.it.ContextAwareAdapter;
+import org.dataone.integration.webTest.WebTestDescription;
+import org.dataone.integration.webTest.WebTestName;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.InvalidRequest;
 import org.dataone.service.exceptions.NotAuthorized;
@@ -24,6 +26,13 @@ public class MNSystemMetadataChangedMethodTestImplementations extends ContextAwa
     }
 
 
+    @WebTestName("systemMetadataChanged - tests that systemMetadataChanged works")
+    @WebTestDescription("this test poses as CNs from 3 different environments, all "
+            + "making a call to the MN. The MN is supposed to reply before scheduling "
+            + "it's own call to the CN. MNs should return 'true' if the object is "
+            + "on their node. The test checks that only one CN returns success ('true'), "
+            + "but allows for one CN to throw an InvalidRequest exception if the object "
+            + "is not on that node.")
     /**
      * Test the call from CN to MN.  The MN is supposed to reply before scheduling
      * it's own call to the CN.  MNs should return 'true' (no excpetion) if the 
@@ -110,7 +119,10 @@ public class MNSystemMetadataChangedMethodTestImplementations extends ContextAwa
         }   
     }
     
-    
+    @WebTestName("systemMetadataChanged - tests with a date before the last modified date")
+    @WebTestDescription("this test tries calling systemMetadataChanged with a date that "
+            + "is earlier than the existing last-modified date on the system metadata, "
+            + "making sure no exception is thrown as a result")
     public void testSystemMetadataChanged_EarlierDate(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testSystemMetadataChanged_EarlierDate(nodeIterator.next(), version);
@@ -143,6 +155,9 @@ public class MNSystemMetadataChangedMethodTestImplementations extends ContextAwa
 
     }
     
+    @WebTestName("systemMetadataChanged - tests with non-CN subject")
+    @WebTestDescription("this test tries calling systemMetadataChanged with "
+            + "a non-CN subject, making sure it results in a NotAuthorized exception")
     /**
      * This test tries to have a non-CN subject call the method.  should fail.
      */
@@ -180,8 +195,10 @@ public class MNSystemMetadataChangedMethodTestImplementations extends ContextAwa
         }   
     }
 
-
-    
+    @WebTestName("systemMetadataChanged - tests systemMetadataChanged together with create method")
+    @WebTestDescription("this test first calls create to produce a new object, "
+            + "then calls systemMetadataChanged with the new object's identifier, "
+            + "making sure no exception is thrown")
     public void testSystemMetadataChanged_withCreate(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testSystemMetadataChanged(nodeIterator.next(), version);
@@ -204,9 +221,9 @@ public class MNSystemMetadataChangedMethodTestImplementations extends ContextAwa
             cca.systemMetadataChanged(null, pid, 10, afterCreate);
         }
         catch (BaseException e) {
-            handleFail(cca.getLatestRequestUrl(),"Expected InvalidToken, got: " +
-                    e.getClass().getSimpleName() + ": " + e.getDetail_code() + 
-                    ": " + e.getDescription());
+            handleFail(cca.getLatestRequestUrl(),"This call to create should not throw "
+                    + "an exception, got: " +  e.getClass().getSimpleName() + ": " + 
+                    e.getDetail_code() + ": " + e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();

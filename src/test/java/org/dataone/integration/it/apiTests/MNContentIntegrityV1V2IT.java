@@ -5,12 +5,14 @@ import org.dataone.integration.it.testDefinitions.ContentIntegrityTestDefinition
 import org.dataone.integration.it.testDefinitions.SSLTestDefinitions;
 import org.dataone.integration.it.testImplementations.ContentIntegrityTestImplementations;
 import org.dataone.integration.it.testImplementations.SSLTestImplementations;
+import org.dataone.integration.webTest.WebTestImplementation;
 import org.junit.Before;
 import org.junit.Test;
 
 public class MNContentIntegrityV1V2IT extends ContextAwareTestCaseDataone 
 implements  ContentIntegrityTestDefinitions {
 
+    @WebTestImplementation
     private ContentIntegrityTestImplementations contentTestImpl;
 
     

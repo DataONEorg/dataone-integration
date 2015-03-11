@@ -3,6 +3,7 @@ package org.dataone.integration.it.apiTests;
 import org.dataone.integration.ContextAwareTestCaseDataone;
 import org.dataone.integration.it.testDefinitions.CNReplicationTestDefinitions;
 import org.dataone.integration.it.testImplementations.CNReplicationTestImplementations;
+import org.dataone.integration.webTest.WebTestImplementation;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -13,8 +14,10 @@ import org.junit.Test;
 public class CNReplicationV1IT extends ContextAwareTestCaseDataone implements
         CNReplicationTestDefinitions {
 
+    @WebTestImplementation
     private CNReplicationTestImplementations replicationTestImpl;
 
+    
     @Before
     public void setup() {
         replicationTestImpl = new CNReplicationTestImplementations(this);

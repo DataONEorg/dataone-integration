@@ -7,6 +7,7 @@ import org.dataone.integration.it.testDefinitions.MNAuthorizationSidTestDefiniti
 import org.dataone.integration.it.testImplementations.AuthTestImplementations;
 import org.dataone.integration.it.testImplementations.SidMNTestImplementations;
 import org.dataone.integration.it.testImplementations.V2IsAuthorizedAuthorizationTestImpl;
+import org.dataone.integration.webTest.WebTestImplementation;
 import org.dataone.service.types.v1.Node;
 import org.junit.After;
 import org.junit.Before;
@@ -18,8 +19,11 @@ import org.junit.Test;
 public class MNAuthorizationV2IT extends V2IsAuthorizedAuthorizationTestImpl
         implements AuthTestDefinitions, MNAuthorizationSidTestDefinitions {
 
+    @WebTestImplementation
     private AuthTestImplementations authTestImpl;
+    @WebTestImplementation
     private SidMNTestImplementations sidImpl;
+    
     
     @Override
     protected Iterator<Node> getNodeIterator()
