@@ -9,6 +9,7 @@ import java.util.Date;
 import org.dataone.client.D1NodeFactory;
 import org.dataone.client.exception.ClientSideException;
 import org.dataone.client.rest.MultipartRestClient;
+import org.dataone.service.cn.v2.CNView;
 import org.dataone.service.exceptions.IdentifierNotUnique;
 import org.dataone.service.exceptions.InsufficientResources;
 import org.dataone.service.exceptions.InvalidRequest;
@@ -24,11 +25,14 @@ import org.dataone.service.mn.tier1.v2.MNRead;
 import org.dataone.service.mn.tier2.v1.MNAuthorization;
 import org.dataone.service.mn.tier3.v2.MNStorage;
 import org.dataone.service.mn.tier4.v2.MNReplication;
+import org.dataone.service.mn.v2.MNPackage;
 import org.dataone.service.mn.v2.MNQuery;
+import org.dataone.service.mn.v2.MNView;
 import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Node;
 import org.dataone.service.types.v1.NodeReference;
 import org.dataone.service.types.v1.NodeType;
+import org.dataone.service.types.v1.ObjectFormatIdentifier;
 import org.dataone.service.types.v1.Session;
 import org.dataone.service.types.v1_1.QueryEngineDescription;
 import org.dataone.service.types.v1_1.QueryEngineList;
@@ -190,5 +194,15 @@ public class MNCallAdapter extends CommonCallAdapter {
                 + " of version " + version);
     }
 
-  
+    public InputStream getPackage(Session session, ObjectFormatIdentifier packageType, Identifier id)
+            throws InvalidToken, ServiceFailure, NotAuthorized, InvalidRequest, NotImplemented,
+            NotFound, ClientSideException {
+
+        if (this.version.toLowerCase().equals("v2") && this.node.getType().equals(NodeType.MN)) {
+                MNPackage mnPkg = D1NodeFactory.buildNode(MNPackage.class, this.mrc, URI.create(this.node.getBaseURL()));
+                return mnPkg.getPackage(session, packageType, id);
+        }
+        throw new ClientSideException("Call to listViews failed. " + node.getType() + " of version "
+                + version);
+    }
 }

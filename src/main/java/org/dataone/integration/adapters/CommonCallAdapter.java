@@ -14,6 +14,7 @@ import org.dataone.client.rest.MultipartRestClient;
 import org.dataone.service.cn.v1.CNAuthorization;
 import org.dataone.service.cn.v1.CNCore;
 import org.dataone.service.cn.v2.CNRead;
+import org.dataone.service.cn.v2.CNView;
 import org.dataone.service.exceptions.IdentifierNotUnique;
 import org.dataone.service.exceptions.InsufficientResources;
 import org.dataone.service.exceptions.InvalidRequest;
@@ -28,7 +29,9 @@ import org.dataone.service.mn.tier1.v1.MNCore;
 import org.dataone.service.mn.tier1.v1.MNRead;
 import org.dataone.service.mn.tier2.v1.MNAuthorization;
 import org.dataone.service.mn.tier3.v2.MNStorage;
+import org.dataone.service.mn.v2.MNPackage;
 import org.dataone.service.mn.v2.MNQuery;
+import org.dataone.service.mn.v2.MNView;
 import org.dataone.service.types.v1.Checksum;
 import org.dataone.service.types.v1.DescribeResponse;
 import org.dataone.service.types.v1.Event;
@@ -44,6 +47,7 @@ import org.dataone.service.types.v1.SystemMetadata;
 import org.dataone.service.types.v1_1.QueryEngineDescription;
 import org.dataone.service.types.v1_1.QueryEngineList;
 import org.dataone.service.types.v2.Log;
+import org.dataone.service.types.v2.OptionList;
 import org.dataone.service.util.TypeConverter;
 import org.dataone.service.util.TypeMarshaller;
 import org.jibx.runtime.JiBXException;
@@ -571,5 +575,37 @@ public class CommonCallAdapter implements D1Node {
         throw new ClientSideException("Call to updateSystemMetadata failed. " + node.getType()
                 + " of version " + version);
     }
-    
+
+    public InputStream view(Session session, String theme, Identifier id) throws InvalidToken,
+            ServiceFailure, NotAuthorized, InvalidRequest, NotImplemented, NotFound, ClientSideException {
+        
+        if (this.version.toLowerCase().equals("v2"))
+            if (this.node.getType().equals(NodeType.CN)) {
+                CNView cnView = D1NodeFactory.buildNode( CNView.class, this.mrc, URI.create(this.node.getBaseURL()));
+                return cnView.view(session, theme, id);
+            } else if (this.node.getType().equals(NodeType.MN)) {
+                MNView mnView = D1NodeFactory.buildNode(MNView.class, this.mrc, URI.create(this.node.getBaseURL()));
+                return mnView.view(session, theme, id);
+            
+            }
+        throw new ClientSideException("Call to view failed. " + node.getType() + " of version "
+                + version);
+    }
+
+    public OptionList listViews(Session session) throws InvalidToken, ServiceFailure, NotAuthorized,
+            InvalidRequest, NotImplemented, ClientSideException {
+
+        if (this.version.toLowerCase().equals("v2"))
+            if (this.node.getType().equals(NodeType.CN)) {
+                CNView cnView = D1NodeFactory.buildNode( CNView.class, this.mrc, URI.create(this.node.getBaseURL()));
+                return cnView.listViews();
+            } else if (this.node.getType().equals(NodeType.MN)) {
+                MNView mnView = D1NodeFactory.buildNode(MNView.class, this.mrc, URI.create(this.node.getBaseURL()));
+                return mnView.listViews(session);
+            
+            }
+        throw new ClientSideException("Call to listViews failed. " + node.getType() + " of version "
+                + version);
+    }
+
 }
