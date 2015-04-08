@@ -36,10 +36,8 @@ import org.junit.Ignore;
  * 
  * <ol>
  *      <li>Some metadata is changed on an MN</li>
- *      <li>The MN calls CN.updateSystemMetadata() to notify it of the change.</li>
- *      <li>The CN updates its own copy of the system metadata.</li>
- *      <li>The CN notifies other relevant MNs of the update using systemMetadataChanged(). (It notifies those MNs holding a replica).</li>
- *      <li>Those MNs fetch an updated version of the system metadata.</li>
+ *      <li>The MN calls CN.updateSystemMetadata() to update its version of the system metadata. (Synchronous call.)</li>
+ *      <li>The MN also calls MN.updateSystemMetadata() on other replica-holding MNs, to update their system metadata. (Synchronous call.)</li>
  * </ol>
  * 
  * Assumptions made:
@@ -47,12 +45,9 @@ import org.junit.Ignore;
  * <ul>
  *      <li>We have one or more working CNs in the environment</li>
  *      <li>We have two or more working MNs in the environment</li>
- *      <li>We know the amount of time it takes to : </li>
- *      <ul>
- *          <li>Have the CN sync</li>
- *          <li>Have the CN replicate</li>
- *      </ul>
+ *      <li>The MNs/CNs are properly registered with each other.</li>
  *      <li>The metadata can by synced to the the other MNs in the environment</li>
+ *      <li>We know how long it takes the CN to sync MN data (if using newly-created data).</li>
  * </ul>
  * 
  * @author Andrei
@@ -84,29 +79,25 @@ public class SystemMetadataChangedTestImplementation extends ContextAwareTestCas
     }
 
     @WebTestName("systemMetadataChanged: tests that changes made to system metadata by an MN are propegated")
-    @WebTestDescription("This test shows whether the following sequence of events is triggered by an MN: "
-            + "Some metadata is changed on an MN. "
-            + "The MN calls CN.updateSystemMetadata() to notify it of the change. "
-            + "The CN updates its own copy of the system metadata. "
-            + "The CN notifies other relevant MNs of the update using systemMetadataChanged(). "
-            + " (It notifies those MNs holding a replica.)"
-            + "Those MNs fetch an updated version of the system metadata.")
+    @WebTestDescription("This test checks whether the following events on the MN trigger the correct changes: "
+            + "Some metadata is changed on an MN"
+            + "The MN calls CN.updateSystemMetadata() to update its version of the system metadata. (Synchronous call.)"
+            + "The MN also calls MN.updateSystemMetadata() on other replica-holding MNs, to update their system metadata. (Synchronous call.)</li>")
     @Ignore("Not completely implemented yet")
     public void testUpdateMetadata() {
      
-        assertTrue("This test requires at least two MNs to work.", mnList.size() < 2);
-        assertTrue("This test requires at least one CN to work.", cnList.size() < 1); 
+        assertTrue("This test requires at least two MNs to work.", mnList.size() >= 2);
+        assertTrue("This test requires at least one CN to work.", cnList.size() >= 1);
 
         String subjectLabel = cnSubmitter;
-        
-        // create some data to work with
         
         Node mnNode = mnList.get(0);
         CommonCallAdapter mn = new CommonCallAdapter(getSession(subjectLabel), mnNode, "v2");
         try {
 
+            // create some data to work with
             Identifier pid = new Identifier();
-//            pid.setValue("SystemMetadataChangedTest_" + ExampleUtilities.generateIdentifier());
+            //  pid.setValue("SystemMetadataChangedTest_" + ExampleUtilities.generateIdentifier());
             pid.setValue("SystemMetadataChangedTest");    // FIXME <-- revert this later :p
             byte[] contentBytes = ExampleUtilities.getExampleObjectOfType(DEFAULT_TEST_OBJECTFORMAT);
             
@@ -131,50 +122,61 @@ public class SystemMetadataChangedTestImplementation extends ContextAwareTestCas
             Date nowIsh = new Date();
             sysmeta.setDateSysMetadataModified(nowIsh);
             boolean success = mn.updateSystemMetadata(null, pid, sysmeta);
-            assertTrue("MN modified system metadata successfully", success);
+            assertTrue("MN should have modified its own system metadata successfully.", success);
+            // TODO ^ does the MN update its own sysmeta the same way it would other MNs' ?
             
             // notify CN of the MN's change
             Node cnNode = cnList.get(0);
             CNCallAdapter cn = new CNCallAdapter(getSession(subjectLabel), cnNode, "v2");
-            cn.updateSystemMetadata(null, createdPid, sysmeta);
+            success = cn.updateSystemMetadata(null, createdPid, sysmeta);
+            assertTrue("CN should have had its system metadata updated successfully.", success);
             
-            // CN should update its own copy of the system metadata
-            Thread.sleep(SYNC_TIME);   // sleep long enough for CN sync to happen
+            // verify that sysmeta fetched from CN is updated
             SystemMetadata fetchedCNSysmeta = cn.getSystemMetadata(null, createdPid);
             boolean serialVersionMatches = fetchedCNSysmeta.getSerialVersion().equals(newSerialVersion);
             boolean dateModifiedMatches = fetchedCNSysmeta.getDateSysMetadataModified().equals(nowIsh);
-            assertTrue("System metadata fetched from CN should now have updated serialVersion", serialVersionMatches);
-            assertTrue("System metadata fetched from CN should now have updated dateSysMetadataModified", dateModifiedMatches );
+            assertTrue("System metadata fetched from CN should now have updated serialVersion.", serialVersionMatches);
+            assertTrue("System metadata fetched from CN should now have updated dateSysMetadataModified.", dateModifiedMatches );
             
-            // CN should notify other relevant MNs of the update using systemMetadataChanged()
-            // (It notifies those MNs holding a replica)
-            Thread.sleep(REPLICATION_TIME);   // sleep long enough for CN replication to happen
+            // CN needs to run replication in order for metadata to contain replica info
+            // and in order for originating MN to update replica-holding MNs
+            Thread.sleep(REPLICATION_TIME);
+            
+            fetchedCNSysmeta = cn.getSystemMetadata(null, createdPid);
             List<Replica> replicaList = fetchedCNSysmeta.getReplicaList();
             assertTrue("System metadata fetched from CN should now have a non-empty replica list", replicaList.size() > 0);
-            Replica replica = replicaList.get(0);
-            NodeReference replicaNodeRef = replica.getReplicaMemberNode();
-
-            Node replicaHolderNode = null;
-            for (Node n : mnList)
-                if (n.getIdentifier().getValue().equals(replicaNodeRef.getValue())) {
-                    replicaHolderNode = n;
-                    break;
-                }
-
-            assertTrue("Should be able to find another MN that holds a replica.", replicaHolderNode != null);
             
-            // MNs w/ replicas should've fetched updated version of sysmeta
-            CommonCallAdapter replicaHolderMN = new CommonCallAdapter(getSession(subjectLabel), replicaHolderNode, "v2");
-            SystemMetadata replicaSysmeta = replicaHolderMN.getSystemMetadata(null, createdPid);
+            // notify replica-holding MNs of the sysmeta change
+            for (Replica replica : replicaList) {
+                NodeReference replicaNodeRef = replica.getReplicaMemberNode();
+
+                Node replicaHolderNode = null;
+                for (Node n : mnList)
+                    if (n.getIdentifier().getValue().equals(replicaNodeRef.getValue())) {
+                        replicaHolderNode = n;
+                        break;
+                    }
+                assertTrue("Should be able to find another MN that holds a replica.", replicaHolderNode != null);
+                
+                CommonCallAdapter replicaHolderMN = new CommonCallAdapter(getSession(subjectLabel), replicaHolderNode, "v2");
+                success = replicaHolderMN.updateSystemMetadata(null, createdPid, sysmeta);
+                assertTrue("Replica-holder MN (" + replica.getReplicaMemberNode().getValue() + ") should have had its system metadata updated successfully.", success);
+                
+                SystemMetadata replicaSysmeta = replicaHolderMN.getSystemMetadata(null, createdPid);
+                serialVersionMatches = replicaSysmeta.getSerialVersion().equals(newSerialVersion);
+                dateModifiedMatches = replicaSysmeta.getDateSysMetadataModified().equals(nowIsh);
+                assertTrue("System metadata fetched from replica-holder MN should now have updated serialVersion", serialVersionMatches);
+                assertTrue("System metadata fetched from replica-holder MN should now have updated dateSysMetadataModified", dateModifiedMatches );
+            }
             
-            serialVersionMatches = replicaSysmeta.getSerialVersion().equals(newSerialVersion);
-            dateModifiedMatches = replicaSysmeta.getDateSysMetadataModified().equals(nowIsh);
-            assertTrue("System metadata fetched from replica MN should now have updated serialVersion", serialVersionMatches);
-            assertTrue("System metadata fetched from replica MN should now have updated dateSysMetadataModified", dateModifiedMatches );
+
+            
             
         } catch (Exception e) {
             assertTrue("Testing failed with exception: " + e.getMessage(), false);
             e.printStackTrace();
+        } finally {
+            // TODO delete(pid) ... or ideally purge(pid)
         }
     }
     
