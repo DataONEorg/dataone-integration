@@ -1,6 +1,7 @@
 package org.dataone.integration.it.testImplementations;
 
 import java.io.InputStream;
+import java.math.BigInteger;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
@@ -8,11 +9,10 @@ import java.util.Scanner;
 import java.util.Vector;
 
 import org.apache.commons.io.IOUtils;
-import org.dataone.service.types.v2.Log;
 import org.apache.commons.logging.LogFactory;
-import org.dataone.client.auth.ClientIdentityManager;
 import org.dataone.client.v1.types.D1TypeBuilder;
 import org.dataone.configuration.Settings;
+import org.dataone.integration.APITestUtils;
 import org.dataone.integration.ContextAwareTestCaseDataone;
 import org.dataone.integration.ExampleUtilities;
 import org.dataone.integration.adapters.CNCallAdapter;
@@ -25,12 +25,14 @@ import org.dataone.service.exceptions.IdentifierNotUnique;
 import org.dataone.service.exceptions.InvalidRequest;
 import org.dataone.service.exceptions.NotAuthorized;
 import org.dataone.service.exceptions.NotFound;
+import org.dataone.service.types.v1.AccessRule;
 import org.dataone.service.types.v1.ChecksumAlgorithmList;
 import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Node;
 import org.dataone.service.types.v1.ObjectFormatIdentifier;
-import org.dataone.service.types.v1.Session;
+import org.dataone.service.types.v1.Permission;
 import org.dataone.service.types.v1.Subject;
+import org.dataone.service.types.v2.Log;
 import org.dataone.service.types.v2.LogEntry;
 import org.dataone.service.types.v2.NodeList;
 import org.dataone.service.types.v2.ObjectFormat;
@@ -823,4 +825,79 @@ public class CNCoreTestImplementations extends ContextAwareAdapter {
             handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
         }   
     }
+
+    @WebTestName("updateSystemMetadata - tests if the call fails with an unauthorized certificate subject")
+    @WebTestDescription("this test calls updateSystemMetadata() with the \"testPerson\" certificate subject "
+            + "and expects a NotAuthorized exception to be thrown")
+    public void testUpdateSystemMetadata_NotAuthorized(Iterator<Node> nodeIterator, String version) {
+        while (nodeIterator.hasNext())
+            testUpdateSystemMetadata_NotAuthorized(nodeIterator.next(), version);
+    }
+    
+    public void testUpdateSystemMetadata_NotAuthorized(Node node, String version) {
+        
+        CommonCallAdapter cnCallAdapter = new CommonCallAdapter(getSession(cnSubmitter), node, version);
+        CommonCallAdapter personCallAdapter = new CommonCallAdapter(getSession("testPerson"), node, version);
+        String currentUrl = node.getBaseURL();
+        printTestHeader("testUpdateSystemMetadata(...) vs. node: " + currentUrl);
+        currentUrl = cnCallAdapter.getNodeBaseServiceUrl();
+        
+        try {
+            AccessRule accessRule = APITestUtils.buildAccessRule("subject", Permission.READ);
+            Identifier pid = new Identifier();
+            pid.setValue(ExampleUtilities.generateIdentifier());
+            Identifier testObjPid = catc.procureTestObject(cnCallAdapter, accessRule, pid);
+            
+            SystemMetadata sysmeta = cnCallAdapter.getSystemMetadata(null, testObjPid);
+            sysmeta.setSerialVersion(sysmeta.getSerialVersion().add(BigInteger.ONE));
+            sysmeta.setDateSysMetadataModified(new Date());
+            personCallAdapter.updateSystemMetadata(null, pid , sysmeta);
+            handleFail(personCallAdapter.getLatestRequestUrl(), "updateSystemMetadata call should fail for a connection with unauthorized certificate");
+        } 
+        catch (NotAuthorized e) {
+            // expected
+        }
+        catch (BaseException e) {
+            handleFail(cnCallAdapter.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
+                    e.getDetail_code() + ": " + e.getDescription());
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+            handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+        }   
+    }
+    
+    @WebTestName("updateSystemMetadata - ")
+    @WebTestDescription("")
+    public void testUpdateSystemMetadata(Iterator<Node> nodeIterator, String version) {
+        while (nodeIterator.hasNext())
+            testUpdateSystemMetadata(nodeIterator.next(), version);
+    }
+    
+    public void testUpdateSystemMetadata(Node node, String version) {
+        
+        handleFail("Not implemented", "Not implemented");   // TODO remove
+        
+        // test negative cases first
+        /*  no documentation on when these happen though:
+         * 
+            Exceptions.NotAuthorized – use testPerson cert subj
+            Exceptions.ServiceFailure – ??? 
+            Exceptions.InvalidRequest – ???
+            Exceptions.InvalidSystemMetadata – bad serialVersion? no pid? 
+            Exceptions.InvalidToken – invalid session info? how so?
+         */
+
+        
+        // test positive case
+        // use existing data?                                                           ?
+
+        // either create or getSysMeta()
+        // update serialVersion and modDate
+        // updateSysMeta() - with ... what cert? (call usually from MN...)              ?
+        // check if success 
+        // getSysMeta()
+        // check if ^ updated
+    }
+    
 }

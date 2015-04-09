@@ -160,9 +160,15 @@ implements CoreTestDefinitions, CNCoreTestDefinitions, CNv2CoreTestDefinitions, 
 
     @Override
     @Test
+    public void testUpdateSystemMetadata_NotAuthorized() {
+        cnCoreTestImpl.testUpdateSystemMetadata_NotAuthorized(getCoordinatingNodeIterator(), "v2");
+    }
+    
+    @Override
+    @Test
     @Ignore("Not yet implemented")
     public void testUpdateSystemMetadata() {
-//        cnCoreTestImpl.testUpdateSystemMetadata(getCoordinatingNodeIterator(), "v2");
+        cnCoreTestImpl.testUpdateSystemMetadata(getCoordinatingNodeIterator(), "v2");
     }
 
     @Override

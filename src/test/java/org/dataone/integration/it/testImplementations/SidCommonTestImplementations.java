@@ -448,18 +448,8 @@ public abstract class SidCommonTestImplementations extends ContextAwareTestCaseD
                     Identifier pid = idPair.secondID;
         
                     Identifier deletedObjectID = callAdapter.delete(null, sid);
-                    boolean notFound = false;
-                    try {
-                        callAdapter.get(null, pid);
-                    } catch (NotFound e) {
-                        // expected result
-                        notFound = true;
-                    }
-                    
-                    assertTrue("delete() Case " + caseNum, notFound);
-                    
-                    // TODO maybe delete(SID) is meant to return the PID? (API is unclear on this) 
-                    // If so, this test can be simplified to compare that with our PID.
+                    // delete(SID) should return the PID of deleted object
+                    assertTrue("delete() Case " + caseNum, deletedObjectID.equals(pid));
                     
                 } catch (BaseException e) {
                     e.printStackTrace();
@@ -475,12 +465,13 @@ public abstract class SidCommonTestImplementations extends ContextAwareTestCaseD
     /**
      * Sets up each pid chain scenario, then calls archive() with the SID.
      * After this, the head PID should still be resolvable, but not show up in searches.
-     * So we do a solr query and assert that it returns no reults.
+     * So we do a solr query and assert that it returns no results.
      */
     @WebTestName("archive: tests that archive works if given a SID")
     @WebTestDescription("this test creates a PID chain, calls archive with the SID of the chain "
             + ", then does a solr query for the head PID of the created chain, and makes sure "
-            + "that it returns no results")
+            + "that it returns no results (since archive should make an identifier no longer show"
+            + "up in solr queries)")
     public void testArchive() {
         logger.info("Testing archive() method ... ");
         
@@ -708,7 +699,8 @@ public abstract class SidCommonTestImplementations extends ContextAwareTestCaseD
                     int numSidRecords = sidLogRecords.getCount();
                     int numPidRecords = pidLogRecords.getCount();
     
-                    // TODO  ignoring ... only accepts PIDs ... probably ... maybe
+                    // TODO  ignoring ... getLogRecords() only accepts PIDs ... probably ... 
+                    
                 } catch (BaseException e) {
                     e.printStackTrace();
                     handleFail(callAdapter.getNodeBaseServiceUrl(), e.getDescription());
@@ -721,8 +713,8 @@ public abstract class SidCommonTestImplementations extends ContextAwareTestCaseD
     }
     
     @WebTestName("view: tests that view works if given a SID")
-    @WebTestDescription("... test not yet implemented ...  ")
-    @Ignore("... test not yet implemented ...  because view() is not yet implemented in client code")
+    @WebTestDescription("this test checks that calling view() with a pid and sid "
+            + "yields the same result")
     public void testView() {
         logger.info("Testing view() method ... ");
         
@@ -742,7 +734,10 @@ public abstract class SidCommonTestImplementations extends ContextAwareTestCaseD
                     Identifier sid = idPair.firstID;
                     Identifier pid = idPair.secondID;
         
-                    // TODO  ignoring ... view() not implemented in client code
+                    InputStream sidView = callAdapter.view(null, "default", sid);
+                    InputStream pidView = callAdapter.view(null, "default", pid);
+                    
+                    assertTrue("view() Case " + caseNum, IOUtils.contentEquals(sidView, pidView));
                     
                 } catch (Exception e) {
                     e.printStackTrace();

@@ -10,6 +10,7 @@ import java.lang.reflect.Method;
 import java.security.NoSuchAlgorithmException;
 import java.util.Iterator;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 import org.dataone.client.exception.ClientSideException;
 import org.dataone.client.v1.itk.D1Object;
@@ -31,6 +32,7 @@ import org.dataone.service.exceptions.ServiceFailure;
 import org.dataone.service.exceptions.UnsupportedType;
 import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Node;
+import org.dataone.service.types.v1.ObjectFormatIdentifier;
 import org.dataone.service.types.v2.SystemMetadata;
 import org.dataone.service.util.TypeMarshaller;
 import org.jibx.runtime.JiBXException;
@@ -298,7 +300,7 @@ public class SidMNTestImplementations extends SidCommonTestImplementations {
 
     @WebTestName("getPackage: ... test not yet implemented ... ")
     @WebTestDescription(" ... test not yet implemented ... ")
-    @Ignore("getPackage() is not yet implemented in client code")
+    @Ignore("getPackage() functionality is not yet implemented")
     public void testGetPackage() throws NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
         logger.info("Testing getPackage() method ... ");
         
@@ -316,9 +318,11 @@ public class SidMNTestImplementations extends SidCommonTestImplementations {
                 IdPair idPair = (IdPair) setupMethod.invoke(this, callAdapter, node);
                 Identifier sid = idPair.firstID;
                 Identifier pid = idPair.secondID;
-    
-                // TODO getPackage() not implemented in client code
                 
+//                InputStream sidPkg = callAdapter.getPackage(null, ???ObjectFormatIdentifier???, sid);
+//                InputStream pidPkg = callAdapter.getPackage(null, ???ObjectFormatIdentifier???, pid);
+//                
+//                assertTrue("getPackage() Case " + caseNum, IOUtils.contentEquals(sidPkg, pidPkg));
             }
         }
     }

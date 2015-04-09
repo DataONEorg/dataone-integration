@@ -10,5 +10,7 @@ public interface CNv2CoreTestDefinitions {
     public void testGetCapabilities();
 
     public void testUpdateSystemMetadata();
+    
+    public void testUpdateSystemMetadata_NotAuthorized();
 
 }
