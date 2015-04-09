@@ -6,6 +6,7 @@ import org.dataone.integration.it.testDefinitions.MNReadTestDefinitions;
 import org.dataone.integration.it.testDefinitions.MNSystemMetadataChangedTestDefinitions;
 import org.dataone.integration.it.testDefinitions.ReadTestDefinitions;
 import org.dataone.integration.it.testImplementations.MNReadTestImplementations;
+import org.dataone.integration.it.testImplementations.MNSystemMetadataChangedMethodTestImplementations;
 import org.dataone.integration.it.testImplementations.ReadTestImplementations;
 import org.dataone.integration.it.testImplementations.SidMNTestImplementations;
 import org.dataone.integration.webTest.WebTestImplementation;
@@ -17,7 +18,7 @@ import org.junit.Test;
  * Tests MNRead functionality for v2 of the API 
  */
 public class MNReadV2IT extends ContextAwareTestCaseDataone 
-        implements ReadTestDefinitions, MNReadTestDefinitions, MNReadSidTestDefinitions {
+        implements ReadTestDefinitions, MNReadTestDefinitions, MNReadSidTestDefinitions, MNSystemMetadataChangedTestDefinitions {
 
     @WebTestImplementation
     private ReadTestImplementations readTestImpl;
@@ -25,6 +26,8 @@ public class MNReadV2IT extends ContextAwareTestCaseDataone
     private MNReadTestImplementations mnReadTestImpl;
     @WebTestImplementation
     private SidMNTestImplementations sidImpl;
+    @WebTestImplementation
+    private MNSystemMetadataChangedMethodTestImplementations mnSysmetaChangedImpl;
     
     @Override
     protected String getTestDescription() {
@@ -36,6 +39,7 @@ public class MNReadV2IT extends ContextAwareTestCaseDataone
         readTestImpl = new ReadTestImplementations(this);
         mnReadTestImpl = new MNReadTestImplementations(this);
         sidImpl = new SidMNTestImplementations();
+        mnSysmetaChangedImpl = new MNSystemMetadataChangedMethodTestImplementations(this);
     }
 
     @After
@@ -203,5 +207,29 @@ public class MNReadV2IT extends ContextAwareTestCaseDataone
     @Test
     public void testSidListObjects() {
         sidImpl.testListObjects();
+    }
+    
+    @Override
+    @Test
+    public void testSystemMetadataChanged() {
+        mnSysmetaChangedImpl.testSystemMetadataChanged(getMemberNodeIterator(), "v2");
+    }
+    
+    @Override
+    @Test
+    public void testSystemMetadataChanged_EarlierDate() {
+        mnSysmetaChangedImpl.testSystemMetadataChanged_EarlierDate(getMemberNodeIterator(), "v2");
+    }
+
+    @Override
+    @Test
+    public void testSystemMetadataChanged_authenticatedITKuser() {
+        mnSysmetaChangedImpl.testSystemMetadataChanged_authenticatedITKuser(getMemberNodeIterator(), "v2");
+    }
+
+    @Override
+    @Test
+    public void testSystemMetadataChanged_withCreate() {
+        mnSysmetaChangedImpl.testSystemMetadataChanged_withCreate(getMemberNodeIterator(), "v2");
     }
 }

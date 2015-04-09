@@ -14,17 +14,14 @@ import org.junit.Test;
  * Tests MNReplication functionality for v2 of the API 
  */
 public class MNReplicationV2IT extends ContextAwareTestCaseDataone 
-        implements MNReplicationTestDefinitions, MNSystemMetadataChangedTestDefinitions {
+        implements MNReplicationTestDefinitions {
 
     @WebTestImplementation
     private MNReplicationTestImplementations mnReplicationTestImpl;
-    @WebTestImplementation
-    private MNSystemMetadataChangedMethodTestImplementations mnSysmetaChangedImpl;
     
     @Before
     public void setup() {
         mnReplicationTestImpl = new MNReplicationTestImplementations(this);
-        mnSysmetaChangedImpl = new MNSystemMetadataChangedMethodTestImplementations(this);
     }
 
     @Override
@@ -58,28 +55,4 @@ public class MNReplicationV2IT extends ContextAwareTestCaseDataone
         mnReplicationTestImpl.testReplicate_FaultyNodeReference(getMemberNodeIterator(), "v2");
     }
 
-    @Override
-    @Test
-    public void testSystemMetadataChanged() {
-        mnSysmetaChangedImpl.testSystemMetadataChanged(getMemberNodeIterator(), "v2");
-    }
-
-    
-    @Override
-    @Test
-    public void testSystemMetadataChanged_EarlierDate() {
-        mnSysmetaChangedImpl.testSystemMetadataChanged_EarlierDate(getMemberNodeIterator(), "v2");
-    }
-
-    @Override
-    @Test
-    public void testSystemMetadataChanged_authenticatedITKuser() {
-        mnSysmetaChangedImpl.testSystemMetadataChanged_authenticatedITKuser(getMemberNodeIterator(), "v2");
-    }
-
-    @Override
-    @Test
-    public void testSystemMetadataChanged_withCreate() {
-        mnSysmetaChangedImpl.testSystemMetadataChanged_withCreate(getMemberNodeIterator(), "v2");
-    }
 }
