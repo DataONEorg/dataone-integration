@@ -13,4 +13,6 @@ public interface CNv2CoreTestDefinitions {
     
     public void testUpdateSystemMetadata_NotAuthorized();
 
+    public void testUpdateSystemMetadata_InvalidSystemMetadata();
+    
 }

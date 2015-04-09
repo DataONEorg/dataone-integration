@@ -1,5 +1,7 @@
 package org.dataone.integration.it.testImplementations;
 
+import static org.junit.Assert.assertTrue;
+
 import java.io.InputStream;
 import java.math.BigInteger;
 import java.util.Date;
@@ -23,6 +25,7 @@ import org.dataone.integration.webTest.WebTestName;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.IdentifierNotUnique;
 import org.dataone.service.exceptions.InvalidRequest;
+import org.dataone.service.exceptions.InvalidSystemMetadata;
 import org.dataone.service.exceptions.NotAuthorized;
 import org.dataone.service.exceptions.NotFound;
 import org.dataone.service.types.v1.AccessRule;
@@ -843,9 +846,9 @@ public class CNCoreTestImplementations extends ContextAwareAdapter {
         currentUrl = cnCallAdapter.getNodeBaseServiceUrl();
         
         try {
-            AccessRule accessRule = APITestUtils.buildAccessRule("subject", Permission.READ);
+            AccessRule accessRule = APITestUtils.buildAccessRule(Constants.SUBJECT_PUBLIC, Permission.READ);
             Identifier pid = new Identifier();
-            pid.setValue(ExampleUtilities.generateIdentifier());
+            pid.setValue("testUpdateSystemMetadata_NotAuthorized_" + ExampleUtilities.generateIdentifier());
             Identifier testObjPid = catc.procureTestObject(cnCallAdapter, accessRule, pid);
             
             SystemMetadata sysmeta = cnCallAdapter.getSystemMetadata(null, testObjPid);
@@ -858,17 +861,73 @@ public class CNCoreTestImplementations extends ContextAwareAdapter {
             // expected
         }
         catch (BaseException e) {
-            handleFail(cnCallAdapter.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
-                    e.getDetail_code() + ": " + e.getDescription());
+            handleFail(cnCallAdapter.getLatestRequestUrl(), "Expected a NotAuthorized exception. Got: " + 
+                    e.getClass().getSimpleName() + ": " + e.getDetail_code() + ": " + e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
-            handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
-        }   
+            handleFail(currentUrl, "Expected a NotAuthorized exception. Got: " + e.getClass().getName() + 
+                    ": " + e.getMessage());
+        }
     }
     
-    @WebTestName("updateSystemMetadata - ")
-    @WebTestDescription("")
+    @WebTestName("updateSystemMetadata - tests if the call fails with invalid system metadata")
+    @WebTestDescription("this test calls updateSystemMetadata() with invalid system metadata "
+            + "and expects an InvalidSystemMetadata exception to be thrown")
+    public void testUpdateSystemMetadata_InvalidSystemMetadata(Iterator<Node> nodeIterator, String version) {
+        while (nodeIterator.hasNext())
+            testUpdateSystemMetadata_NotAuthorized(nodeIterator.next(), version);
+    }
+    
+    public void testUpdateSystemMetadata_InvalidSystemMetadata(Node node, String version) {
+        
+        CommonCallAdapter cnCallAdapter = new CommonCallAdapter(getSession(cnSubmitter), node, version);
+        CommonCallAdapter personCallAdapter = new CommonCallAdapter(getSession("testPerson"), node, version);
+        String currentUrl = node.getBaseURL();
+        printTestHeader("testUpdateSystemMetadata(...) vs. node: " + currentUrl);
+        currentUrl = cnCallAdapter.getNodeBaseServiceUrl();
+        
+        try {
+            AccessRule accessRule = APITestUtils.buildAccessRule(Constants.SUBJECT_PUBLIC, Permission.READ);
+            Identifier pid = new Identifier();
+            pid.setValue("testUpdateSystemMetadata_NotAuthorized_" + ExampleUtilities.generateIdentifier());
+            Identifier testObjPid = catc.procureTestObject(cnCallAdapter, accessRule, pid);
+            
+            SystemMetadata sysmeta = cnCallAdapter.getSystemMetadata(null, testObjPid);
+            sysmeta.setSerialVersion(null);
+            sysmeta.setIdentifier(null);
+            sysmeta.setDateSysMetadataModified(new Date());
+            
+            personCallAdapter.updateSystemMetadata(null, pid , sysmeta);
+            handleFail(personCallAdapter.getLatestRequestUrl(), "updateSystemMetadata call should fail for invalid metadata");
+        } 
+        catch (InvalidSystemMetadata e) {
+            // expected
+        }
+        catch (BaseException e) {
+            handleFail(cnCallAdapter.getLatestRequestUrl(), "Expected an InvalidSystemMetadata exception. Got: " + 
+                    e.getClass().getSimpleName() + ": " + e.getDetail_code() + ": " + e.getDescription());
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+            handleFail(currentUrl, "Expected an InvalidSystemMetadata exception. Got: " + e.getClass().getName() + 
+                    ": " + e.getMessage());
+        }
+    }
+    
+    // test more negative cases
+    /*  no documentation on when these happen though:
+     * 
+        Exceptions.ServiceFailure – ??? 
+        Exceptions.InvalidRequest – ???
+        Exceptions.InvalidToken – invalid session info? how so?
+     */
+    
+    @WebTestName("updateSystemMetadata - tests that the updateSystemMetadata call works")
+    @WebTestDescription("this test calls updateSystemMetadata() to update the metadata, "
+            + "checks that the call was successful, then also uses getSystemMetadata() "
+            + "to fetch the new metadata and check that for updated serialVersion and "
+            + "dateSysMetadataModified")
     public void testUpdateSystemMetadata(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testUpdateSystemMetadata(nodeIterator.next(), version);
@@ -876,28 +935,40 @@ public class CNCoreTestImplementations extends ContextAwareAdapter {
     
     public void testUpdateSystemMetadata(Node node, String version) {
         
-        handleFail("Not implemented", "Not implemented");   // TODO remove
+        CommonCallAdapter cnCallAdapter = new CommonCallAdapter(getSession(cnSubmitter), node, version);
+        CommonCallAdapter rightsHolderCallAdapter = new CommonCallAdapter(getSession("testRightsHolder"), node, version);
+        String currentUrl = node.getBaseURL();
+        printTestHeader("testUpdateSystemMetadata(...) vs. node: " + currentUrl);
+        currentUrl = cnCallAdapter.getNodeBaseServiceUrl();
         
-        // test negative cases first
-        /*  no documentation on when these happen though:
-         * 
-            Exceptions.NotAuthorized – use testPerson cert subj
-            Exceptions.ServiceFailure – ??? 
-            Exceptions.InvalidRequest – ???
-            Exceptions.InvalidSystemMetadata – bad serialVersion? no pid? 
-            Exceptions.InvalidToken – invalid session info? how so?
-         */
-
-        
-        // test positive case
-        // use existing data?                                                           ?
-
-        // either create or getSysMeta()
-        // update serialVersion and modDate
-        // updateSysMeta() - with ... what cert? (call usually from MN...)              ?
-        // check if success 
-        // getSysMeta()
-        // check if ^ updated
+        try {
+            AccessRule accessRule = APITestUtils.buildAccessRule("testRightsHolder", Permission.CHANGE_PERMISSION);
+            Identifier pid = new Identifier();
+            pid.setValue("testUpdateSystemMetadata_" + ExampleUtilities.generateIdentifier());
+            Identifier testObjPid = catc.procureTestObject(cnCallAdapter, accessRule, pid);
+            
+            SystemMetadata sysmeta = cnCallAdapter.getSystemMetadata(null, testObjPid);
+            BigInteger newSerialVersion = sysmeta.getSerialVersion().add(BigInteger.ONE);
+            Date nowIsh = new Date();
+            sysmeta.setSerialVersion(newSerialVersion);
+            sysmeta.setDateSysMetadataModified(nowIsh);
+            boolean success = rightsHolderCallAdapter.updateSystemMetadata(null, pid , sysmeta);
+            assertTrue("Call to updateSystemMetadata() should be successful.", success);
+            
+            SystemMetadata fetchedSysmeta = rightsHolderCallAdapter.getSystemMetadata(null, testObjPid);
+            boolean serialVersionMatches = fetchedSysmeta.getSerialVersion().equals(newSerialVersion);
+            boolean dateModifiedMatches = fetchedSysmeta.getDateSysMetadataModified().equals(nowIsh);
+            assertTrue("System metadata should now have updated serialVersion", serialVersionMatches);
+            assertTrue("System metadata should now have updated dateSysMetadataModified", dateModifiedMatches );
+        } 
+        catch (BaseException e) {
+            handleFail(cnCallAdapter.getLatestRequestUrl(), e.getClass().getSimpleName() + ": " + 
+                    e.getDetail_code() + ": " + e.getDescription());
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+            handleFail(currentUrl, e.getClass().getName() + ": " + e.getMessage());
+        }  
     }
     
 }
