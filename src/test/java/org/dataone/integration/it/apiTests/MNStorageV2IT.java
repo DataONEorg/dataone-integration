@@ -6,6 +6,7 @@ import org.dataone.integration.it.testDefinitions.MNStorageTestDefinitions;
 import org.dataone.integration.it.testDefinitions.MNv2StorageTestDefinitions;
 import org.dataone.integration.it.testImplementations.MNStorageTestImplementations;
 import org.dataone.integration.it.testImplementations.SidMNTestImplementations;
+import org.dataone.integration.it.testImplementations.UpdateSystemMetadataTestImplementations;
 import org.dataone.integration.webTest.WebTestImplementation;
 import org.junit.After;
 import org.junit.Before;
@@ -17,13 +18,18 @@ public class MNStorageV2IT extends ContextAwareTestCaseDataone
 
     @WebTestImplementation
     private MNStorageTestImplementations mnStorageTestImpl;
+
     @WebTestImplementation
     private SidMNTestImplementations sidImpl;
-    
+
+    @WebTestImplementation
+    private UpdateSystemMetadataTestImplementations updSysmetaImpl;
+
     @Before
     public void setup() {
         mnStorageTestImpl = new MNStorageTestImplementations(this);
         sidImpl = new SidMNTestImplementations();
+        updSysmetaImpl = new UpdateSystemMetadataTestImplementations(this);
     }
 
     @After
@@ -118,11 +124,20 @@ public class MNStorageV2IT extends ContextAwareTestCaseDataone
 
     @Override
     @Test
-    @Ignore("No test exists for this yet.")
     public void testUpdateSystemMetadata() {
-//        mnStorageTestImpl.testUpdateSystemMetadata(getMemberNodeIterator(), "v2");
+        updSysmetaImpl.testUpdateSystemMetadata(getMemberNodeIterator(), "v2");
     }
 
+    @Override
+    public void testUpdateSystemMetadata_NotAuthorized() {
+        updSysmetaImpl.testUpdateSystemMetadata_NotAuthorized(getMemberNodeIterator(), "v2");
+    }
+
+    @Override
+    public void testUpdateSystemMetadata_InvalidSystemMetadata() {
+        updSysmetaImpl.testUpdateSystemMetadata_InvalidSystemMetadata(getMemberNodeIterator(), "v2");
+    }
+    
     @Override
     @Test
     public void testSidCreate() {
@@ -146,4 +161,5 @@ public class MNStorageV2IT extends ContextAwareTestCaseDataone
     public void testSidArchive() {
         sidImpl.testArchive();
     }
+
 }

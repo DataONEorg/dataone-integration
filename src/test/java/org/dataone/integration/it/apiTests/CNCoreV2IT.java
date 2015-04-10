@@ -5,9 +5,11 @@ import org.dataone.integration.it.testDefinitions.CNCoreSidTestDefinitions;
 import org.dataone.integration.it.testDefinitions.CNCoreTestDefinitions;
 import org.dataone.integration.it.testDefinitions.CNv2CoreTestDefinitions;
 import org.dataone.integration.it.testDefinitions.CoreTestDefinitions;
+import org.dataone.integration.it.testDefinitions.UpdateSystemMetadataTestDefinitions;
 import org.dataone.integration.it.testImplementations.CNCoreTestImplementations;
 import org.dataone.integration.it.testImplementations.CoreTestImplementations;
 import org.dataone.integration.it.testImplementations.SidCNTestImplementations;
+import org.dataone.integration.it.testImplementations.UpdateSystemMetadataTestImplementations;
 import org.dataone.integration.webTest.WebTestImplementation;
 import org.junit.After;
 import org.junit.Before;
@@ -18,23 +20,26 @@ import org.junit.Test;
  * Tests CNCore functionality for v2 of the API 
  */
 public class CNCoreV2IT extends ContextAwareTestCaseDataone
-implements CoreTestDefinitions, CNCoreTestDefinitions, CNv2CoreTestDefinitions, CNCoreSidTestDefinitions {
+implements CoreTestDefinitions, CNCoreTestDefinitions, CNv2CoreTestDefinitions, CNCoreSidTestDefinitions, UpdateSystemMetadataTestDefinitions {
 
     @WebTestImplementation
     private CoreTestImplementations coreTestImpl;
-    
+
     @WebTestImplementation
     private CNCoreTestImplementations cnCoreTestImpl;
-    
+
     @WebTestImplementation
     private SidCNTestImplementations sidImpl;
-    
-    
-    @Before 
+
+    @WebTestImplementation
+    private UpdateSystemMetadataTestImplementations updSysmetaImpl;
+
+    @Before
     public void setup() {
         coreTestImpl = new CoreTestImplementations(this);
         cnCoreTestImpl = new CNCoreTestImplementations(this);
         sidImpl = new SidCNTestImplementations();
+        updSysmetaImpl = new UpdateSystemMetadataTestImplementations(this);
     }
     
     @After
@@ -161,19 +166,19 @@ implements CoreTestDefinitions, CNCoreTestDefinitions, CNv2CoreTestDefinitions, 
     @Override
     @Test
     public void testUpdateSystemMetadata_NotAuthorized() {
-        cnCoreTestImpl.testUpdateSystemMetadata_NotAuthorized(getCoordinatingNodeIterator(), "v2");
+        updSysmetaImpl.testUpdateSystemMetadata_NotAuthorized(getCoordinatingNodeIterator(), "v2");
     }
 
     @Override
     @Test
     public void testUpdateSystemMetadata() {
-        cnCoreTestImpl.testUpdateSystemMetadata(getCoordinatingNodeIterator(), "v2");
+        updSysmetaImpl.testUpdateSystemMetadata(getCoordinatingNodeIterator(), "v2");
     }
     
     @Override
     @Test
     public void testUpdateSystemMetadata_InvalidSystemMetadata() {
-        cnCoreTestImpl.testUpdateSystemMetadata_InvalidSystemMetadata(getCoordinatingNodeIterator(), "v2");
+        updSysmetaImpl.testUpdateSystemMetadata_InvalidSystemMetadata(getCoordinatingNodeIterator(), "v2");
     }
     
     @Override
