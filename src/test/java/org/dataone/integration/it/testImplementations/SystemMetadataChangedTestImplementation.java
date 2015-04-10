@@ -85,24 +85,24 @@ public class SystemMetadataChangedTestImplementation extends ContextAwareTestCas
         assertTrue("This test requires at least two MNs to work.", mnList.size() >= 2);
         assertTrue("This test requires at least one CN to work.", cnList.size() >= 1);
 
-        Identifier pid = null;
+        Identifier createdPid = null;
         Node mnNode = mnList.get(0);
         CommonCallAdapter mn = new CommonCallAdapter(getSession("testRightsHolder"), mnNode, "v2");
         try {
             AccessRule accessRule = APITestUtils.buildAccessRule("testRightsHolder", Permission.CHANGE_PERMISSION);
-            pid = new Identifier();
+            Identifier pid = new Identifier();
             pid.setValue("testSystemMetadataChanged_" + ExampleUtilities.generateIdentifier());
-            Identifier createdPid = procureTestObject(mn, accessRule, pid);
+            createdPid = procureTestObject(mn, accessRule, pid);
             // procureTestObject() is probably creating a new object
             Thread.sleep(SYNC_TIME);   // sleep long enough for CN sync to happen
             
             // modify the data
-            SystemMetadata sysmeta = mn.getSystemMetadata(null, pid);
+            SystemMetadata sysmeta = mn.getSystemMetadata(null, createdPid);
             BigInteger newSerialVersion = sysmeta.getSerialVersion().add(BigInteger.ONE);
             sysmeta.setSerialVersion(newSerialVersion);
             Date nowIsh = new Date();
             sysmeta.setDateSysMetadataModified(nowIsh);
-            boolean success = mn.updateSystemMetadata(null, pid, sysmeta);
+            boolean success = mn.updateSystemMetadata(null, createdPid, sysmeta);
             assertTrue("MN should have modified its own system metadata successfully.", success);
             
             // notify CN of the MN's change
@@ -153,11 +153,12 @@ public class SystemMetadataChangedTestImplementation extends ContextAwareTestCas
             assertTrue("Testing failed with exception: " + e.getMessage(), false);
             e.printStackTrace();
         } finally {
-            // TODO purge(pid)
+            // TODO purge(pid) ideally
             try {
-                if(pid != null)     
-                    mn.delete(null, pid);
+                if(createdPid != null)     
+                    mn.delete(null, createdPid);
             } catch (Exception e2) {
+                e2.printStackTrace();
             }
         }
     }

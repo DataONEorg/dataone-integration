@@ -80,19 +80,18 @@ public class UpdateSystemMetadataTestImplementations extends ContextAwareAdapter
     
     public void testUpdateSystemMetadata_InvalidSystemMetadata(Node node, String version) {
         
-        CommonCallAdapter cnCertCallAdapter = new CommonCallAdapter(getSession(cnSubmitter), node, version);
         CommonCallAdapter rightsHolderCallAdapter = new CommonCallAdapter(getSession("testRightsHolder"), node, version);
         String currentUrl = node.getBaseURL();
         printTestHeader("testUpdateSystemMetadata_InvalidSystemMetadata(...) vs. node: " + currentUrl);
-        currentUrl = cnCertCallAdapter.getNodeBaseServiceUrl();
+        currentUrl = rightsHolderCallAdapter.getNodeBaseServiceUrl();
         
         try {
             AccessRule accessRule = APITestUtils.buildAccessRule("testRightsHolder", Permission.CHANGE_PERMISSION);
             Identifier pid = new Identifier();
             pid.setValue("testUpdateSystemMetadata_InvalidSystemMetadata_" + ExampleUtilities.generateIdentifier());
-            Identifier testObjPid = catc.procureTestObject(cnCertCallAdapter, accessRule, pid);
+            Identifier testObjPid = catc.procureTestObject(rightsHolderCallAdapter, accessRule, pid);
             
-            SystemMetadata sysmeta = cnCertCallAdapter.getSystemMetadata(null, testObjPid);
+            SystemMetadata sysmeta = rightsHolderCallAdapter.getSystemMetadata(null, testObjPid);
             sysmeta.setSerialVersion(null);
             sysmeta.setIdentifier(null);
             sysmeta.setDateSysMetadataModified(new Date());
@@ -104,7 +103,7 @@ public class UpdateSystemMetadataTestImplementations extends ContextAwareAdapter
             // expected
         }
         catch (BaseException e) {
-            handleFail(cnCertCallAdapter.getLatestRequestUrl(), "Expected an InvalidSystemMetadata exception. Got: " + 
+            handleFail(rightsHolderCallAdapter.getLatestRequestUrl(), "Expected an InvalidSystemMetadata exception. Got: " + 
                     e.getClass().getSimpleName() + ": " + e.getDetail_code() + ": " + e.getDescription());
         }
         catch(Exception e) {
@@ -126,19 +125,18 @@ public class UpdateSystemMetadataTestImplementations extends ContextAwareAdapter
     
     public void testUpdateSystemMetadata(Node node, String version) {
         
-        CommonCallAdapter cnCertCallAdapter = new CommonCallAdapter(getSession(cnSubmitter), node, version);
         CommonCallAdapter rightsHolderCallAdapter = new CommonCallAdapter(getSession("testRightsHolder"), node, version);
         String currentUrl = node.getBaseURL();
         printTestHeader("testUpdateSystemMetadata(...) vs. node: " + currentUrl);
-        currentUrl = cnCertCallAdapter.getNodeBaseServiceUrl();
+        currentUrl = rightsHolderCallAdapter.getNodeBaseServiceUrl();
         
         try {
             AccessRule accessRule = APITestUtils.buildAccessRule("testRightsHolder", Permission.CHANGE_PERMISSION);
             Identifier pid = new Identifier();
             pid.setValue("testUpdateSystemMetadata_" + ExampleUtilities.generateIdentifier());
-            Identifier testObjPid = catc.procureTestObject(cnCertCallAdapter, accessRule, pid);
+            Identifier testObjPid = catc.procureTestObject(rightsHolderCallAdapter, accessRule, pid);
             
-            SystemMetadata sysmeta = cnCertCallAdapter.getSystemMetadata(null, testObjPid);
+            SystemMetadata sysmeta = rightsHolderCallAdapter.getSystemMetadata(null, testObjPid);
             BigInteger newSerialVersion = sysmeta.getSerialVersion().add(BigInteger.ONE);
             Date nowIsh = new Date();
             sysmeta.setSerialVersion(newSerialVersion);
@@ -153,7 +151,7 @@ public class UpdateSystemMetadataTestImplementations extends ContextAwareAdapter
             assertTrue("System metadata should now have updated dateSysMetadataModified", dateModifiedMatches );
         } 
         catch (BaseException e) {
-            handleFail(cnCertCallAdapter.getLatestRequestUrl(), e.getClass().getSimpleName() + ": " + 
+            handleFail(rightsHolderCallAdapter.getLatestRequestUrl(), e.getClass().getSimpleName() + ": " + 
                     e.getDetail_code() + ": " + e.getDescription());
         }
         catch(Exception e) {
@@ -163,7 +161,10 @@ public class UpdateSystemMetadataTestImplementations extends ContextAwareAdapter
     }
     
     // TODO test more negative cases:
-    //      Exceptions.InvalidRequest   - what causes this exception ???
-    //      Exceptions.InvalidToken     - what causes this exception ???
+    //      Exceptions.InvalidRequest   - what causes this exception ?
+    //                                    bad request params? 
+    //                                      should be covered by InvalidSysMeta (for sysmeta) & NotFound (for pid)
+    //      Exceptions.InvalidToken     - what causes this exception ?
+    //                                    invalid certificate - meaning what exactly ?
     
 }
