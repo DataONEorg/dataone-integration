@@ -1,10 +1,5 @@
 package org.dataone.integration.it.apiTests;
 
-import static org.junit.Assert.*;
-
-import java.lang.reflect.InvocationTargetException;
-
-import org.dataone.client.exception.ClientSideException;
 import org.dataone.integration.ContextAwareTestCaseDataone;
 import org.dataone.integration.it.testDefinitions.CoreTestDefinitions;
 import org.dataone.integration.it.testDefinitions.MNCoreSidTestDefinitions;
@@ -12,12 +7,6 @@ import org.dataone.integration.it.testDefinitions.MNCoreTestDefinitions;
 import org.dataone.integration.it.testImplementations.CoreTestImplementations;
 import org.dataone.integration.it.testImplementations.SidMNTestImplementations;
 import org.dataone.integration.webTest.WebTestImplementation;
-import org.dataone.service.exceptions.InsufficientResources;
-import org.dataone.service.exceptions.InvalidRequest;
-import org.dataone.service.exceptions.InvalidToken;
-import org.dataone.service.exceptions.NotAuthorized;
-import org.dataone.service.exceptions.NotImplemented;
-import org.dataone.service.exceptions.ServiceFailure;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;

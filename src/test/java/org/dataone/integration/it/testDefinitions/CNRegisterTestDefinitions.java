@@ -6,8 +6,6 @@ public interface CNRegisterTestDefinitions {
 
     public void testRegister_IdentifierNotUnique();
 
-    public void testGetNodeCapabilities();
-
     public void testUpdateNodeCapabilities();
 
     public void testUpdateNodeCapabilities_NotFound();

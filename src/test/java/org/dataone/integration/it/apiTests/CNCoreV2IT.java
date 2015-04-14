@@ -158,9 +158,8 @@ implements CoreTestDefinitions, CNCoreTestDefinitions, CNv2CoreTestDefinitions, 
 
     @Override
     @Test
-    @Ignore("Not yet implemented")
     public void testGetCapabilities() {
-//        cnCoreTestImpl.testGetCapabilities(getCoordinatingNodeIterator(), "v2");
+        coreTestImpl.testGetCapabilities(getCoordinatingNodeIterator(), "v2");
     }
 
     @Override

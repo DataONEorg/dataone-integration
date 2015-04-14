@@ -77,13 +77,6 @@ public class CNRegisterV1IT extends ContextAwareTestCaseDataone
 
     @Override
     @Test
-    @Ignore("No test implemented for this yet.")
-    public void testGetNodeCapabilities() {
-//        registerTestImpl.testGetNodeCapabilities(getCoordinatingNodeIterator(), "v1");
-    }
-
-    @Override
-    @Test
     public void testUpdateNodeCapabilities() {
         registerTestImpl.testUpdateNodeCapabilities(getCoordinatingNodeIterator(), "v1");
     }

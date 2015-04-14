@@ -16,6 +16,7 @@ import org.dataone.integration.webTest.WebTestName;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.InvalidSystemMetadata;
 import org.dataone.service.exceptions.NotAuthorized;
+import org.dataone.service.exceptions.NotFound;
 import org.dataone.service.types.v1.AccessRule;
 import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Node;
@@ -53,7 +54,7 @@ public class UpdateSystemMetadataTestImplementations extends ContextAwareAdapter
             SystemMetadata sysmeta = cnCertCallAdapter.getSystemMetadata(null, testObjPid);
             sysmeta.setSerialVersion(sysmeta.getSerialVersion().add(BigInteger.ONE));
             sysmeta.setDateSysMetadataModified(new Date());
-            personCallAdapter.updateSystemMetadata(null, pid , sysmeta);
+            personCallAdapter.updateSystemMetadata(null, testObjPid , sysmeta);
             handleFail(personCallAdapter.getLatestRequestUrl(), "updateSystemMetadata call should fail for a connection with unauthorized certificate");
         } 
         catch (NotAuthorized e) {
@@ -96,7 +97,7 @@ public class UpdateSystemMetadataTestImplementations extends ContextAwareAdapter
             sysmeta.setIdentifier(null);
             sysmeta.setDateSysMetadataModified(new Date());
             
-            rightsHolderCallAdapter.updateSystemMetadata(null, pid , sysmeta);
+            rightsHolderCallAdapter.updateSystemMetadata(null, testObjPid , sysmeta);
             handleFail(rightsHolderCallAdapter.getLatestRequestUrl(), "updateSystemMetadata call should fail for invalid metadata");
         } 
         catch (InvalidSystemMetadata e) {
@@ -109,6 +110,50 @@ public class UpdateSystemMetadataTestImplementations extends ContextAwareAdapter
         catch(Exception e) {
             e.printStackTrace();
             handleFail(currentUrl, "Expected an InvalidSystemMetadata exception. Got: " + e.getClass().getName() + 
+                    ": " + e.getMessage());
+        }
+    }
+    
+    @WebTestName("updateSystemMetadata - tests if the call fails with a non-existent pid")
+    @WebTestDescription("this test calls updateSystemMetadata() with a pid that does not exist "
+            + "and expects a NotFound exception to be thrown")
+    public void testUpdateSystemMetadata_NotFound(Iterator<Node> nodeIterator, String version) {
+        while (nodeIterator.hasNext())
+            testUpdateSystemMetadata_NotAuthorized(nodeIterator.next(), version);
+    }
+    
+    public void testUpdateSystemMetadata_NotFound(Node node, String version) {
+        
+        CommonCallAdapter rightsHolderCallAdapter = new CommonCallAdapter(getSession("testRightsHolder"), node, version);
+        String currentUrl = node.getBaseURL();
+        printTestHeader("testUpdateSystemMetadata_InvalidSystemMetadata(...) vs. node: " + currentUrl);
+        currentUrl = rightsHolderCallAdapter.getNodeBaseServiceUrl();
+        
+        try {
+            AccessRule accessRule = APITestUtils.buildAccessRule("testRightsHolder", Permission.CHANGE_PERMISSION);
+            Identifier pid = new Identifier();
+            pid.setValue("testUpdateSystemMetadata_InvalidSystemMetadata_" + ExampleUtilities.generateIdentifier());
+            Identifier testObjPid = catc.procureTestObject(rightsHolderCallAdapter, accessRule, pid);
+            
+            SystemMetadata sysmeta = rightsHolderCallAdapter.getSystemMetadata(null, testObjPid);
+            sysmeta.setSerialVersion(null);
+            sysmeta.setIdentifier(null);
+            sysmeta.setDateSysMetadataModified(new Date());
+            
+            pid.setValue("bogus pid");
+            rightsHolderCallAdapter.updateSystemMetadata(null, pid , sysmeta);
+            handleFail(rightsHolderCallAdapter.getLatestRequestUrl(), "updateSystemMetadata call should fail for bogus pid");
+        } 
+        catch (NotFound e) {
+            // expected
+        }
+        catch (BaseException e) {
+            handleFail(rightsHolderCallAdapter.getLatestRequestUrl(), "Expected a NotFound exception. Got: " + 
+                    e.getClass().getSimpleName() + ": " + e.getDetail_code() + ": " + e.getDescription());
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+            handleFail(currentUrl, "Expected a NotFound exception. Got: " + e.getClass().getName() + 
                     ": " + e.getMessage());
         }
     }
@@ -141,7 +186,7 @@ public class UpdateSystemMetadataTestImplementations extends ContextAwareAdapter
             Date nowIsh = new Date();
             sysmeta.setSerialVersion(newSerialVersion);
             sysmeta.setDateSysMetadataModified(nowIsh);
-            boolean success = rightsHolderCallAdapter.updateSystemMetadata(null, pid , sysmeta);
+            boolean success = rightsHolderCallAdapter.updateSystemMetadata(null, testObjPid , sysmeta);
             assertTrue("Call to updateSystemMetadata() should be successful.", success);
             
             SystemMetadata fetchedSysmeta = rightsHolderCallAdapter.getSystemMetadata(null, testObjPid);
@@ -157,14 +202,20 @@ public class UpdateSystemMetadataTestImplementations extends ContextAwareAdapter
         catch(Exception e) {
             e.printStackTrace();
             handleFail(currentUrl, e.getClass().getName() + ": " + e.getMessage());
-        }  
+        }
     }
     
+    
+    
+    
     // TODO test more negative cases:
-    //      Exceptions.InvalidRequest   - what causes this exception ?
-    //                                    bad request params? 
-    //                                      should be covered by InvalidSysMeta (for sysmeta) & NotFound (for pid)
-    //      Exceptions.InvalidToken     - what causes this exception ?
-    //                                    invalid certificate - meaning what exactly ?
+    //
+    //      Exceptions.InvalidRequest   - what causes this exception ? bad request params? 
+    //                                  - covered by InvalidSysMeta (for sysmeta) & NotFound (for pid)
+    //
+    //      Exceptions.InvalidToken     - authentication rather than authorization error
+    //                                  - invalid certificate - meaning what exactly ?
+    //                                  - how to test ?
+    
     
 }

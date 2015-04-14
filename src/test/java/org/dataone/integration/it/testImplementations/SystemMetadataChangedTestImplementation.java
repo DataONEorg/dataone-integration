@@ -139,8 +139,12 @@ public class SystemMetadataChangedTestImplementation extends ContextAwareTestCas
                 assertTrue("Should be able to find another MN that holds a replica.", replicaHolderNode != null);
                 
                 CommonCallAdapter replicaHolderMN = new CommonCallAdapter(getSession("testRightsHolder"), replicaHolderNode, "v2");
-                success = replicaHolderMN.updateSystemMetadata(null, createdPid, sysmeta);
-                assertTrue("Replica-holder MN (" + replica.getReplicaMemberNode().getValue() + ") should have had its system metadata updated successfully.", success);
+                // it's not the MN's responsibility to update replica-holders
+                // this should happen as part of CN sync / replication
+                // so here we just check if the replicas have the updated version of sysmeta 
+                
+                // success = replicaHolderMN.updateSystemMetadata(null, createdPid, sysmeta);
+                // assertTrue("Replica-holder MN (" + replica.getReplicaMemberNode().getValue() + ") should have had its system metadata updated successfully.", success);
                 
                 SystemMetadata replicaSysmeta = replicaHolderMN.getSystemMetadata(null, createdPid);
                 serialVersionMatches = replicaSysmeta.getSerialVersion().equals(newSerialVersion);

@@ -161,8 +161,12 @@ public class CommonCallAdapter implements D1Node {
                         org.dataone.service.mn.tier1.v2.MNCore.class, this.mrc, URI.create(this.node.getBaseURL()));
                 return mnCore.getCapabilities();
             }
-        } else if (this.node.getType().equals(NodeType.CN)) {
-            throw new UnsupportedOperationException("CN nodes to not support a getCapabilities call.");
+        } else if (this.node.getType().equals(NodeType.CN) && 
+                this.version.toLowerCase().equals("v2")) {
+            org.dataone.service.cn.v2.CNCore cnCore = D1NodeFactory.buildNode(
+                    org.dataone.service.cn.v2.CNCore.class, this.mrc,
+                    URI.create(this.node.getBaseURL()));
+            return cnCore.getCapabilities();
         }
         throw new ClientSideException("Unable to create node of type " + node.getType() + " of version " + version);
     }

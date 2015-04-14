@@ -2,6 +2,7 @@ package org.dataone.integration.it.apiTests;
 
 import org.dataone.integration.ContextAwareTestCaseDataone;
 import org.dataone.integration.it.testDefinitions.CNRegisterTestDefinitions;
+import org.dataone.integration.it.testDefinitions.CNv2RegisterTestDefinitions;
 import org.dataone.integration.it.testImplementations.CNRegisterTestImplementations;
 import org.dataone.integration.webTest.WebTestImplementation;
 import org.junit.Before;
@@ -12,7 +13,7 @@ import org.junit.Test;
  * Tests CNRegister functionality for v2 of the API 
  */
 public class CNRegisterV2IT extends ContextAwareTestCaseDataone
-        implements CNRegisterTestDefinitions {
+        implements CNRegisterTestDefinitions, CNv2RegisterTestDefinitions {
 
     @WebTestImplementation
     private CNRegisterTestImplementations registerTestImpl;
@@ -43,9 +44,8 @@ public class CNRegisterV2IT extends ContextAwareTestCaseDataone
 
     @Override
     @Test
-    @Ignore("No test implemented for this yet.")
     public void testGetNodeCapabilities() {
-        //registerTestImpl.testGetNodeCapabilities(getCoordinatingNodeIterator(), "v2");
+        registerTestImpl.testGetNodeCapabilities(getCoordinatingNodeIterator(), "v2");
     }
 
     @Override

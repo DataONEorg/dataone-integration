@@ -5,6 +5,8 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
+import junit.framework.Assert;
+
 import org.dataone.configuration.Settings;
 import org.dataone.integration.ContextAwareTestCaseDataone;
 import org.dataone.integration.adapters.CNCallAdapter;
@@ -19,6 +21,8 @@ import org.dataone.service.exceptions.NotFound;
 import org.dataone.service.types.v1.NodeReference;
 import org.dataone.service.types.v1.NodeType;
 import org.dataone.service.types.v1.Ping;
+import org.dataone.service.types.v1.Service;
+import org.dataone.service.types.v1.Services;
 import org.dataone.service.types.v1.Subject;
 import org.dataone.service.types.v1.Node;
 import org.dataone.service.types.v2.NodeList;
@@ -332,6 +336,43 @@ public class CNRegisterTestImplementations extends ContextAwareAdapter {
             }
         }
         return nodes;
+    }
+    
+    @WebTestName("getNodeCapabilities - test that getNodeCapabilities call works")
+    @WebTestDescription("this test just calls getNodeCapabilities with an MN node reference "
+            + "and verifies that it gets back a non-null Node containing a non-null Services object")
+    public void testGetNodeCapabilities(Iterator<Node> nodeIterator, String version) {
+        while (nodeIterator.hasNext())
+            testGetNodeCapabilities(nodeIterator.next(), version);
+    }
+
+    public void testGetNodeCapabilities(Node node, String version) {
+
+        CNCallAdapter callAdapter = new CNCallAdapter(getSession(cnSubmitter), node, version);
+        String currentUrl = node.getBaseURL();
+        printTestHeader("testGetNodeCapabilities(...) vs. node: " + currentUrl);
+
+        try {
+            List<Node> mNodeList = selectNodes(callAdapter.listNodes(), NodeType.MN);
+            if (mNodeList.isEmpty()) {
+                handleFail(callAdapter.getLatestRequestUrl(),
+                        "Cannot test cn.getNodeCapabilities() unless there is a Member Node in the NodeList");
+            } else {
+                org.dataone.service.types.v2.Node nodeV2 = TypeMarshaller.convertTypeFromType(mNodeList.get(0), org.dataone.service.types.v2.Node.class);
+                NodeReference nodeRef = nodeV2.getIdentifier();
+                org.dataone.service.types.v2.Node capabilities = callAdapter.getNodeCapabilities(nodeRef);
+                Assert.assertTrue("getNodeCapabilities call should return a non-null Node", capabilities != null);
+                
+                Services services = capabilities.getServices();
+                Assert.assertTrue("getNodeCapabilities call should return a Node containing non-null Services definition", services != null);                
+            }
+        } catch (BaseException e) {
+            handleFail(
+                    callAdapter.getLatestRequestUrl(), e.getClass() + ":: " + e.getDescription());
+        } catch (Exception e) {
+            e.printStackTrace();
+            handleFail(currentUrl, e.getClass().getName() + ": " + e.getMessage());
+        }
     }
 
 }
