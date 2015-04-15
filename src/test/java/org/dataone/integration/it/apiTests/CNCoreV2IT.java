@@ -20,7 +20,7 @@ import org.junit.Test;
  * Tests CNCore functionality for v2 of the API 
  */
 public class CNCoreV2IT extends ContextAwareTestCaseDataone
-implements CoreTestDefinitions, CNCoreTestDefinitions, CNv2CoreTestDefinitions, CNCoreSidTestDefinitions, UpdateSystemMetadataTestDefinitions {
+implements CoreTestDefinitions, CNCoreTestDefinitions, CNv2CoreTestDefinitions, CNCoreSidTestDefinitions {
 
     @WebTestImplementation
     private CoreTestImplementations coreTestImpl;
@@ -162,24 +162,6 @@ implements CoreTestDefinitions, CNCoreTestDefinitions, CNv2CoreTestDefinitions, 
         coreTestImpl.testGetCapabilities(getCoordinatingNodeIterator(), "v2");
     }
 
-    @Override
-    @Test
-    public void testUpdateSystemMetadata_NotAuthorized() {
-        updSysmetaImpl.testUpdateSystemMetadata_NotAuthorized(getCoordinatingNodeIterator(), "v2");
-    }
-
-    @Override
-    @Test
-    public void testUpdateSystemMetadata() {
-        updSysmetaImpl.testUpdateSystemMetadata(getCoordinatingNodeIterator(), "v2");
-    }
-    
-    @Override
-    @Test
-    public void testUpdateSystemMetadata_InvalidSystemMetadata() {
-        updSysmetaImpl.testUpdateSystemMetadata_InvalidSystemMetadata(getCoordinatingNodeIterator(), "v2");
-    }
-    
     @Override
     @Test
     public void testSidCreate() {

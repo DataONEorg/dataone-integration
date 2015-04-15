@@ -339,7 +339,7 @@ public class CNRegisterTestImplementations extends ContextAwareAdapter {
     }
     
     @WebTestName("getNodeCapabilities - test that getNodeCapabilities call works")
-    @WebTestDescription("this test just calls getNodeCapabilities with an MN node reference "
+    @WebTestDescription("this test just calls getNodeCapabilities with an MN reference "
             + "and verifies that it gets back a non-null Node containing a non-null Services object")
     public void testGetNodeCapabilities(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
@@ -375,4 +375,40 @@ public class CNRegisterTestImplementations extends ContextAwareAdapter {
         }
     }
 
+    @WebTestName("getNodeCapabilities - test that getNodeCapabilities fails for an invalid Node")
+    @WebTestDescription("this test just calls getNodeCapabilities with an invalid MN reference "
+            + "and expects a NotFound exception")
+    public void testGetNodeCapabilities_NotFound(Iterator<Node> nodeIterator, String version) {
+        while (nodeIterator.hasNext())
+            testGetNodeCapabilities_NotFound(nodeIterator.next(), version);
+    }
+
+    public void testGetNodeCapabilities_NotFound(Node node, String version) {
+
+        CNCallAdapter callAdapter = new CNCallAdapter(getSession(cnSubmitter), node, version);
+        String currentUrl = node.getBaseURL();
+        printTestHeader("testGetNodeCapabilities(...) vs. node: " + currentUrl);
+
+        try {
+            List<Node> mNodeList = selectNodes(callAdapter.listNodes(), NodeType.MN);
+            if (mNodeList.isEmpty()) {
+                handleFail(callAdapter.getLatestRequestUrl(),
+                        "Cannot test cn.getNodeCapabilities() unless there is a Member Node in the NodeList");
+            } else {
+                org.dataone.service.types.v2.Node nodeV2 = TypeMarshaller.convertTypeFromType(mNodeList.get(0), org.dataone.service.types.v2.Node.class);
+                NodeReference nodeRef = new NodeReference();
+                nodeRef.setValue("urn:node:bogus");
+                callAdapter.getNodeCapabilities(nodeRef);
+                handleFail(callAdapter.getLatestRequestUrl(), "Expected getNodeCapabilities() to fail with NotFound if given an invalid Node reference.");          
+            }
+        } catch (NotFound e) {
+            // expected
+        } catch (BaseException e) {
+            handleFail( callAdapter.getLatestRequestUrl(), "expected fail with NotFound. Got: " + e.getClass() + ":: " + e.getDescription());
+        } catch (Exception e) {
+            e.printStackTrace();
+            handleFail(currentUrl, "expected fail with NotFound. Got: " + e.getClass().getName() + ": " + e.getMessage());
+        }
+    }
+    
 }

@@ -56,7 +56,6 @@ public class MNStorageV2IT extends ContextAwareTestCaseDataone
 
     @Override
     @Test
-    @Ignore("Test exists but claims to not be implemented (see MNStorageTestImplementations)")
     public void testCreateData_IdentifierEncoding() {
         mnStorageTestImpl.testCreateData_IdentifierEncoding(getMemberNodeIterator(), "v2");
     }
@@ -124,18 +123,50 @@ public class MNStorageV2IT extends ContextAwareTestCaseDataone
 
     @Override
     @Test
-    public void testUpdateSystemMetadata() {
-        updSysmetaImpl.testUpdateSystemMetadata(getMemberNodeIterator(), "v2");
+    public void testUpdateSystemMetadata_RightsHolder() {
+        updSysmetaImpl.testUpdateSystemMetadata_RightsHolder(getMemberNodeIterator(), "v2");
     }
 
+    @Override
+    @Test
+    public void testUpdateSystemMetadata_CN() {
+        updSysmetaImpl.testUpdateSystemMetadata_CN(getMemberNodeIterator(), "v2");
+    }
+    
+    @Override
+    @Test
+    public void testUpdateSystemMetadata_NotFound() {
+        updSysmetaImpl.testUpdateSystemMetadata_NotFound(getMemberNodeIterator(), "v2");
+    }
+    
     @Override
     public void testUpdateSystemMetadata_NotAuthorized() {
         updSysmetaImpl.testUpdateSystemMetadata_NotAuthorized(getMemberNodeIterator(), "v2");
     }
 
     @Override
+    @Test
+    @Ignore("No MN test certificates to test with at the moment")
+    public void testUpdateSystemMetadata_NotAuthorizedMN() {
+        updSysmetaImpl.testUpdateSystemMetadata_NotAuthorizedMN(getMemberNodeIterator(), "v2");
+    }
+    
+    @Override
+    @Test
     public void testUpdateSystemMetadata_InvalidSystemMetadata() {
         updSysmetaImpl.testUpdateSystemMetadata_InvalidSystemMetadata(getMemberNodeIterator(), "v2");
+    }
+    
+    @Override
+    @Test
+    public void testUpdateSystemMetadata_InvalidRequestPidMismatch() {
+        updSysmetaImpl.testUpdateSystemMetadata_InvalidRequestPidMismatch(getMemberNodeIterator(), "v2");
+    }
+    
+    @Override
+    @Test
+    public void testUpdateSystemMetadata_InvalidRequestSysmetaUnmodified() {
+        updSysmetaImpl.testUpdateSystemMetadata_InvalidRequestSysmetaUnmodified(getMemberNodeIterator(), "v2");
     }
     
     @Override
