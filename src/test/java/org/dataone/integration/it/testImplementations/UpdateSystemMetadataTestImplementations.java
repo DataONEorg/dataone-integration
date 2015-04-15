@@ -19,9 +19,11 @@ import org.dataone.service.exceptions.InvalidSystemMetadata;
 import org.dataone.service.exceptions.NotAuthorized;
 import org.dataone.service.exceptions.NotFound;
 import org.dataone.service.types.v1.AccessRule;
+import org.dataone.service.types.v1.Checksum;
 import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Node;
 import org.dataone.service.types.v1.Permission;
+import org.dataone.service.types.v1.Subject;
 import org.dataone.service.types.v2.SystemMetadata;
 
 public class UpdateSystemMetadataTestImplementations extends ContextAwareAdapter {
@@ -115,15 +117,58 @@ public class UpdateSystemMetadataTestImplementations extends ContextAwareAdapter
 //        }
     }
     
-    @WebTestName("updateSystemMetadata - tests if the call fails with invalid system metadata")
+    @WebTestName("updateSystemMetadata - tests if the call fails with system metadata containing no identifier")
     @WebTestDescription("this test calls updateSystemMetadata() with invalid system metadata "
-            + "and expects an InvalidSystemMetadata exception to be thrown")
-    public void testUpdateSystemMetadata_InvalidSystemMetadata(Iterator<Node> nodeIterator, String version) {
+            + "(because the identifier is null) and expects an InvalidSystemMetadata exception to be thrown")
+    public void testUpdateSystemMetadata_InvalidSystemMetadata_NoPid(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
-            testUpdateSystemMetadata_NotAuthorized(nodeIterator.next(), version);
+            testUpdateSystemMetadata_InvalidSystemMetadata_NoPid(nodeIterator.next(), version);
     }
     
-    public void testUpdateSystemMetadata_InvalidSystemMetadata(Node node, String version) {
+    public void testUpdateSystemMetadata_InvalidSystemMetadata_NoPid(Node node, String version) {
+        
+        CommonCallAdapter rightsHolderCallAdapter = new CommonCallAdapter(getSession("testRightsHolder"), node, version);
+        String currentUrl = node.getBaseURL();
+        printTestHeader("testUpdateSystemMetadata_InvalidSystemMetadata(...) vs. node: " + currentUrl);
+        currentUrl = rightsHolderCallAdapter.getNodeBaseServiceUrl();
+        
+        try {
+            AccessRule accessRule = APITestUtils.buildAccessRule("testRightsHolder", Permission.CHANGE_PERMISSION);
+            Identifier pid = new Identifier();
+            pid.setValue("testUpdateSystemMetadata_InvalidSystemMetadata_" + ExampleUtilities.generateIdentifier());
+            Identifier testObjPid = catc.procureTestObject(rightsHolderCallAdapter, accessRule, pid);
+            
+            SystemMetadata sysmeta = rightsHolderCallAdapter.getSystemMetadata(null, testObjPid);
+            sysmeta.setSerialVersion(sysmeta.getSerialVersion().add(BigInteger.ONE));
+            sysmeta.setIdentifier(null);
+            sysmeta.setDateSysMetadataModified(new Date());
+            
+            rightsHolderCallAdapter.updateSystemMetadata(null, testObjPid , sysmeta);
+            handleFail(rightsHolderCallAdapter.getLatestRequestUrl(), "updateSystemMetadata call should fail for invalid metadata");
+        } 
+        catch (InvalidSystemMetadata e) {
+            // expected
+        }
+        catch (BaseException e) {
+            handleFail(rightsHolderCallAdapter.getLatestRequestUrl(), "Expected an InvalidSystemMetadata exception. Got: " + 
+                    e.getClass().getSimpleName() + ": " + e.getDetail_code() + ": " + e.getDescription());
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+            handleFail(currentUrl, "Expected an InvalidSystemMetadata exception. Got: " + e.getClass().getName() + 
+                    ": " + e.getMessage());
+        }
+    }
+    
+    @WebTestName("updateSystemMetadata - tests if the call fails with system metadata containing no serialVersion")
+    @WebTestDescription("this test calls updateSystemMetadata() with invalid system metadata "
+            + "(because the serialVersion is null) and expects an InvalidSystemMetadata exception to be thrown")
+    public void testUpdateSystemMetadata_InvalidSystemMetadata_NoSerialVersion(Iterator<Node> nodeIterator, String version) {
+        while (nodeIterator.hasNext())
+            testUpdateSystemMetadata_InvalidSystemMetadata_NoSerialVersion(nodeIterator.next(), version);
+    }
+    
+    public void testUpdateSystemMetadata_InvalidSystemMetadata_NoSerialVersion(Node node, String version) {
         
         CommonCallAdapter rightsHolderCallAdapter = new CommonCallAdapter(getSession("testRightsHolder"), node, version);
         String currentUrl = node.getBaseURL();
@@ -138,7 +183,6 @@ public class UpdateSystemMetadataTestImplementations extends ContextAwareAdapter
             
             SystemMetadata sysmeta = rightsHolderCallAdapter.getSystemMetadata(null, testObjPid);
             sysmeta.setSerialVersion(null);
-            sysmeta.setIdentifier(null);
             sysmeta.setDateSysMetadataModified(new Date());
             
             rightsHolderCallAdapter.updateSystemMetadata(null, testObjPid , sysmeta);
@@ -161,12 +205,12 @@ public class UpdateSystemMetadataTestImplementations extends ContextAwareAdapter
     @WebTestName("updateSystemMetadata - tests if the call fails if the pid and system metadata don't match")
     @WebTestDescription("this test calls updateSystemMetadata() with a pid and system matadata whose identifier "
             + "doesn't match, expecting an InvalidRequest exception to be thrown")
-    public void testUpdateSystemMetadata_InvalidRequestPidMismatch(Iterator<Node> nodeIterator, String version) {
+    public void testUpdateSystemMetadata_InvalidRequest_PidMismatch(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
-            testUpdateSystemMetadata_InvalidRequestPidMismatch(nodeIterator.next(), version);
+            testUpdateSystemMetadata_InvalidRequest_PidMismatch(nodeIterator.next(), version);
     }
     
-    public void testUpdateSystemMetadata_InvalidRequestPidMismatch(Node node, String version) {
+    public void testUpdateSystemMetadata_InvalidRequest_PidMismatch(Node node, String version) {
         
         CommonCallAdapter rightsHolderCallAdapter = new CommonCallAdapter(getSession("testRightsHolder"), node, version);
         String currentUrl = node.getBaseURL();
@@ -205,12 +249,12 @@ public class UpdateSystemMetadataTestImplementations extends ContextAwareAdapter
     @WebTestName("updateSystemMetadata - tests if the call fails if the system metadata was unchanged")
     @WebTestDescription("this test calls updateSystemMetadata() with system matadata identical to the "
             + "existing metadata, expecting an InvalidRequest exception to be thrown")
-    public void testUpdateSystemMetadata_InvalidRequestSysmetaUnmodified(Iterator<Node> nodeIterator, String version) {
+    public void testUpdateSystemMetadata_InvalidRequest_SysmetaUnmodified(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
-            testUpdateSystemMetadata_InvalidRequestSysmetaUnmodified(nodeIterator.next(), version);
+            testUpdateSystemMetadata_InvalidRequest_SysmetaUnmodified(nodeIterator.next(), version);
     }
     
-    public void testUpdateSystemMetadata_InvalidRequestSysmetaUnmodified(Node node, String version) {
+    public void testUpdateSystemMetadata_InvalidRequest_SysmetaUnmodified(Node node, String version) {
         
         CommonCallAdapter rightsHolderCallAdapter = new CommonCallAdapter(getSession("testRightsHolder"), node, version);
         String currentUrl = node.getBaseURL();
@@ -226,6 +270,309 @@ public class UpdateSystemMetadataTestImplementations extends ContextAwareAdapter
             SystemMetadata sysmeta = rightsHolderCallAdapter.getSystemMetadata(null, testObjPid);
             rightsHolderCallAdapter.updateSystemMetadata(null, testObjPid , sysmeta);
             handleFail(rightsHolderCallAdapter.getLatestRequestUrl(), "updateSystemMetadata call should fail for unchanged metadata");
+        } 
+        catch (InvalidRequest e) {
+            // expected
+        }
+        catch (BaseException e) {
+            handleFail(rightsHolderCallAdapter.getLatestRequestUrl(), "Expected an InvalidRequest. Got: " + 
+                    e.getClass().getSimpleName() + ": " + e.getDetail_code() + ": " + e.getDescription());
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+            handleFail(currentUrl, "Expected an InvalidRequest exception. Got: " + e.getClass().getName() + 
+                    ": " + e.getMessage());
+        }
+    }
+    
+    @WebTestName("updateSystemMetadata - tests if the call fails if trying to modify the identifier")
+    @WebTestDescription("this test calls updateSystemMetadata() with one of the unmodifiable fields modified "
+            + "(identifier), expecting an InvalidRequest exception to be thrown")
+    public void testUpdateSystemMetadata_InvalidRequest_ModifiedIdentifier(Iterator<Node> nodeIterator, String version) {
+        while (nodeIterator.hasNext())
+            testUpdateSystemMetadata_InvalidRequest_ModifiedIdentifier(nodeIterator.next(), version);
+    }
+    
+    public void testUpdateSystemMetadata_InvalidRequest_ModifiedIdentifier(Node node, String version) {
+        CommonCallAdapter rightsHolderCallAdapter = new CommonCallAdapter(getSession("testRightsHolder"), node, version);
+        String currentUrl = node.getBaseURL();
+        printTestHeader("testUpdateSystemMetadata_InvalidRequest_ModifiedIdentifier(...) vs. node: " + currentUrl);
+        currentUrl = rightsHolderCallAdapter.getNodeBaseServiceUrl();
+        
+        try {
+            AccessRule accessRule = APITestUtils.buildAccessRule("testRightsHolder", Permission.CHANGE_PERMISSION);
+            Identifier pid = new Identifier();
+            pid.setValue("testUpdateSystemMetadata_InvalidRequest_ModifiedIdentifier_" + ExampleUtilities.generateIdentifier());
+            Identifier testObjPid = catc.procureTestObject(rightsHolderCallAdapter, accessRule, pid);
+            
+            SystemMetadata sysmeta = rightsHolderCallAdapter.getSystemMetadata(null, testObjPid);
+            // try to updateSystemMetadata with the modified pid
+            testObjPid.setValue(testObjPid.getValue() + "_MODIFIED");
+            sysmeta.setIdentifier(testObjPid);
+            
+            rightsHolderCallAdapter.updateSystemMetadata(null, testObjPid , sysmeta);
+            handleFail(rightsHolderCallAdapter.getLatestRequestUrl(), "updateSystemMetadata call should fail for unchanged metadata");
+        } 
+        catch (InvalidRequest e) {
+            // expected
+        }
+        catch (BaseException e) {
+            // TODO we may actually get a NotFound instead
+            handleFail(rightsHolderCallAdapter.getLatestRequestUrl(), "Expected an InvalidRequest. Got: " + 
+                    e.getClass().getSimpleName() + ": " + e.getDetail_code() + ": " + e.getDescription());
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+            handleFail(currentUrl, "Expected an InvalidRequest exception. Got: " + e.getClass().getName() + 
+                    ": " + e.getMessage());
+        }
+    }
+    
+    @WebTestName("updateSystemMetadata - tests if the call fails if trying to modify the size")
+    @WebTestDescription("this test calls updateSystemMetadata() with one of the unmodifiable fields modified "
+            + "(size), expecting an InvalidRequest exception to be thrown")
+    public void testUpdateSystemMetadata_InvalidRequest_ModifiedSize(Iterator<Node> nodeIterator, String version) {
+        while (nodeIterator.hasNext())
+            testUpdateSystemMetadata_InvalidRequest_ModifiedSize(nodeIterator.next(), version);
+    }
+    
+    public void testUpdateSystemMetadata_InvalidRequest_ModifiedSize(Node node, String version) {
+        CommonCallAdapter rightsHolderCallAdapter = new CommonCallAdapter(getSession("testRightsHolder"), node, version);
+        String currentUrl = node.getBaseURL();
+        printTestHeader("testUpdateSystemMetadata_InvalidRequest_ModifiedSize(...) vs. node: " + currentUrl);
+        currentUrl = rightsHolderCallAdapter.getNodeBaseServiceUrl();
+        
+        try {
+            AccessRule accessRule = APITestUtils.buildAccessRule("testRightsHolder", Permission.CHANGE_PERMISSION);
+            Identifier pid = new Identifier();
+            pid.setValue("testUpdateSystemMetadata_InvalidRequest_ModifiedSize" + ExampleUtilities.generateIdentifier());
+            Identifier testObjPid = catc.procureTestObject(rightsHolderCallAdapter, accessRule, pid);
+            
+            SystemMetadata sysmeta = rightsHolderCallAdapter.getSystemMetadata(null, testObjPid);
+            // try to updateSystemMetadata with the modified pid
+            testObjPid.setValue(testObjPid.getValue() + "_MODIFIED");
+            sysmeta.setSize(BigInteger.ONE);
+            
+            rightsHolderCallAdapter.updateSystemMetadata(null, testObjPid , sysmeta);
+            handleFail(rightsHolderCallAdapter.getLatestRequestUrl(), "updateSystemMetadata call should fail "
+                    + "if trying to modify size field in system metadata");
+        } 
+        catch (InvalidRequest e) {
+            // expected
+        }
+        catch (BaseException e) {
+            // TODO we may actually get a NotFound instead
+            handleFail(rightsHolderCallAdapter.getLatestRequestUrl(), "Expected an InvalidRequest. Got: " + 
+                    e.getClass().getSimpleName() + ": " + e.getDetail_code() + ": " + e.getDescription());
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+            handleFail(currentUrl, "Expected an InvalidRequest exception. Got: " + e.getClass().getName() + 
+                    ": " + e.getMessage());
+        }
+    }
+    
+    @WebTestName("updateSystemMetadata - tests if the call fails if trying to modify the checksum")
+    @WebTestDescription("this test calls updateSystemMetadata() with one of the unmodifiable fields modified "
+            + "(checksum), expecting an InvalidRequest exception to be thrown")
+    public void testUpdateSystemMetadata_InvalidRequest_ModifiedChecksum(Iterator<Node> nodeIterator, String version) {
+        while (nodeIterator.hasNext())
+            testUpdateSystemMetadata_InvalidRequest_ModifiedChecksum(nodeIterator.next(), version);
+    }
+    
+    public void testUpdateSystemMetadata_InvalidRequest_ModifiedChecksum(Node node, String version) {
+        CommonCallAdapter rightsHolderCallAdapter = new CommonCallAdapter(getSession("testRightsHolder"), node, version);
+        String currentUrl = node.getBaseURL();
+        printTestHeader("testUpdateSystemMetadata_InvalidRequest_ModifiedChecksum(...) vs. node: " + currentUrl);
+        currentUrl = rightsHolderCallAdapter.getNodeBaseServiceUrl();
+        
+        try {
+            AccessRule accessRule = APITestUtils.buildAccessRule("testRightsHolder", Permission.CHANGE_PERMISSION);
+            Identifier pid = new Identifier();
+            pid.setValue("testUpdateSystemMetadata_InvalidRequest_ModifiedChecksum" + ExampleUtilities.generateIdentifier());
+            Identifier testObjPid = catc.procureTestObject(rightsHolderCallAdapter, accessRule, pid);
+            
+            SystemMetadata sysmeta = rightsHolderCallAdapter.getSystemMetadata(null, testObjPid);
+            // try to updateSystemMetadata with the modified checksum
+            Checksum checksum = new Checksum();
+            checksum.setValue("bogusChecksum");
+            sysmeta.setChecksum(checksum);
+            
+            rightsHolderCallAdapter.updateSystemMetadata(null, testObjPid , sysmeta);
+            handleFail(rightsHolderCallAdapter.getLatestRequestUrl(), "updateSystemMetadata call should fail "
+                    + "if trying to modify checksum in system metadata");
+        } 
+        catch (InvalidRequest e) {
+            // expected
+        }
+        catch (BaseException e) {
+            handleFail(rightsHolderCallAdapter.getLatestRequestUrl(), "Expected an InvalidRequest. Got: " + 
+                    e.getClass().getSimpleName() + ": " + e.getDetail_code() + ": " + e.getDescription());
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+            handleFail(currentUrl, "Expected an InvalidRequest exception. Got: " + e.getClass().getName() + 
+                    ": " + e.getMessage());
+        }
+    }
+    
+    @WebTestName("updateSystemMetadata - tests if the call fails if trying to modify the submitter")
+    @WebTestDescription("this test calls updateSystemMetadata() with one of the unmodifiable fields modified "
+            + "(submitter), expecting an InvalidRequest exception to be thrown")
+    public void testUpdateSystemMetadata_InvalidRequest_ModifiedSubmitter(Iterator<Node> nodeIterator, String version) {
+        while (nodeIterator.hasNext())
+            testUpdateSystemMetadata_InvalidRequest_ModifiedSubmitter(nodeIterator.next(), version);
+    }
+    
+    public void testUpdateSystemMetadata_InvalidRequest_ModifiedSubmitter(Node node, String version) {
+        CommonCallAdapter rightsHolderCallAdapter = new CommonCallAdapter(getSession("testRightsHolder"), node, version);
+        String currentUrl = node.getBaseURL();
+        printTestHeader("testUpdateSystemMetadata_InvalidRequest_ModifiedSubmitter(...) vs. node: " + currentUrl);
+        currentUrl = rightsHolderCallAdapter.getNodeBaseServiceUrl();
+        
+        try {
+            AccessRule accessRule = APITestUtils.buildAccessRule("testRightsHolder", Permission.CHANGE_PERMISSION);
+            Identifier pid = new Identifier();
+            pid.setValue("testUpdateSystemMetadata_InvalidRequest_ModifiedSubmitter" + ExampleUtilities.generateIdentifier());
+            Identifier testObjPid = catc.procureTestObject(rightsHolderCallAdapter, accessRule, pid);
+            
+            SystemMetadata sysmeta = rightsHolderCallAdapter.getSystemMetadata(null, testObjPid);
+            // try to updateSystemMetadata with the modified submitter
+            Subject submitter = new Subject();
+            submitter.setValue("bogusSubject");
+            sysmeta.setSubmitter(submitter);
+            
+            rightsHolderCallAdapter.updateSystemMetadata(null, testObjPid , sysmeta);
+            handleFail(rightsHolderCallAdapter.getLatestRequestUrl(), "updateSystemMetadata call should fail "
+                    + "if trying to modify the submitter in system metadata");
+        } 
+        catch (InvalidRequest e) {
+            // expected
+        }
+        catch (BaseException e) {
+            handleFail(rightsHolderCallAdapter.getLatestRequestUrl(), "Expected an InvalidRequest. Got: " + 
+                    e.getClass().getSimpleName() + ": " + e.getDetail_code() + ": " + e.getDescription());
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+            handleFail(currentUrl, "Expected an InvalidRequest exception. Got: " + e.getClass().getName() + 
+                    ": " + e.getMessage());
+        }
+    }
+    
+    @WebTestName("updateSystemMetadata - tests if the call fails if trying to modify the dateUploaded")
+    @WebTestDescription("this test calls updateSystemMetadata() with one of the unmodifiable fields modified "
+            + "(dateUploaded), expecting an InvalidRequest exception to be thrown")
+    public void testUpdateSystemMetadata_InvalidRequest_ModifiedDateUploaded(Iterator<Node> nodeIterator, String version) {
+        while (nodeIterator.hasNext())
+            testUpdateSystemMetadata_InvalidRequest_ModifiedDateUploaded(nodeIterator.next(), version);
+    }
+    
+    public void testUpdateSystemMetadata_InvalidRequest_ModifiedDateUploaded(Node node, String version) {
+        CommonCallAdapter rightsHolderCallAdapter = new CommonCallAdapter(getSession("testRightsHolder"), node, version);
+        String currentUrl = node.getBaseURL();
+        printTestHeader("testUpdateSystemMetadata_InvalidRequest_ModifiedDateUploaded(...) vs. node: " + currentUrl);
+        currentUrl = rightsHolderCallAdapter.getNodeBaseServiceUrl();
+        
+        try {
+            AccessRule accessRule = APITestUtils.buildAccessRule("testRightsHolder", Permission.CHANGE_PERMISSION);
+            Identifier pid = new Identifier();
+            pid.setValue("testUpdateSystemMetadata_InvalidRequest_ModifiedDateUploaded_" + ExampleUtilities.generateIdentifier());
+            Identifier testObjPid = catc.procureTestObject(rightsHolderCallAdapter, accessRule, pid);
+            
+            SystemMetadata sysmeta = rightsHolderCallAdapter.getSystemMetadata(null, testObjPid);
+            // try to updateSystemMetadata with the modified dateUploaded
+            sysmeta.setDateUploaded(new Date());
+            
+            rightsHolderCallAdapter.updateSystemMetadata(null, testObjPid , sysmeta);
+            handleFail(rightsHolderCallAdapter.getLatestRequestUrl(), "updateSystemMetadata call should fail "
+                    + "if trying to modify the dateUploaded in system metadata");
+        } 
+        catch (InvalidRequest e) {
+            // expected
+        }
+        catch (BaseException e) {
+            handleFail(rightsHolderCallAdapter.getLatestRequestUrl(), "Expected an InvalidRequest. Got: " + 
+                    e.getClass().getSimpleName() + ": " + e.getDetail_code() + ": " + e.getDescription());
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+            handleFail(currentUrl, "Expected an InvalidRequest exception. Got: " + e.getClass().getName() + 
+                    ": " + e.getMessage());
+        }
+    }
+    
+    @WebTestName("updateSystemMetadata - tests if the call fails if trying to modify the originMemberNode")
+    @WebTestDescription("this test calls updateSystemMetadata() with one of the unmodifiable fields modified "
+            + "(originMemberNode), expecting an InvalidRequest exception to be thrown")
+    public void testUpdateSystemMetadata_InvalidRequest_ModifiedOriginMN(Iterator<Node> nodeIterator, String version) {
+        while (nodeIterator.hasNext())
+            testUpdateSystemMetadata_InvalidRequest_ModifiedOriginMN(nodeIterator.next(), version);
+    }
+    
+    public void testUpdateSystemMetadata_InvalidRequest_ModifiedOriginMN(Node node, String version) {
+        CommonCallAdapter rightsHolderCallAdapter = new CommonCallAdapter(getSession("testRightsHolder"), node, version);
+        String currentUrl = node.getBaseURL();
+        printTestHeader("testUpdateSystemMetadata_InvalidRequest_ModifiedOriginMN(...) vs. node: " + currentUrl);
+        currentUrl = rightsHolderCallAdapter.getNodeBaseServiceUrl();
+        
+        try {
+            AccessRule accessRule = APITestUtils.buildAccessRule("testRightsHolder", Permission.CHANGE_PERMISSION);
+            Identifier pid = new Identifier();
+            pid.setValue("testUpdateSystemMetadata_InvalidRequest_ModifiedOriginMN_" + ExampleUtilities.generateIdentifier());
+            Identifier testObjPid = catc.procureTestObject(rightsHolderCallAdapter, accessRule, pid);
+            
+            SystemMetadata sysmeta = rightsHolderCallAdapter.getSystemMetadata(null, testObjPid);
+            // try to updateSystemMetadata with the modified originMemberNode
+            sysmeta.setOriginMemberNode(node.getIdentifier());
+            
+            rightsHolderCallAdapter.updateSystemMetadata(null, testObjPid , sysmeta);
+            handleFail(rightsHolderCallAdapter.getLatestRequestUrl(), "updateSystemMetadata call should fail "
+                    + "if trying to modify the originMemberNode in system metadata");
+        } 
+        catch (InvalidRequest e) {
+            // expected
+        }
+        catch (BaseException e) {
+            handleFail(rightsHolderCallAdapter.getLatestRequestUrl(), "Expected an InvalidRequest. Got: " + 
+                    e.getClass().getSimpleName() + ": " + e.getDetail_code() + ": " + e.getDescription());
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+            handleFail(currentUrl, "Expected an InvalidRequest exception. Got: " + e.getClass().getName() + 
+                    ": " + e.getMessage());
+        }
+    }
+    
+    @WebTestName("updateSystemMetadata - tests if the call fails if trying to modify the seriesId")
+    @WebTestDescription("this test calls updateSystemMetadata() with one of the unmodifiable fields modified "
+            + "(seriesId), expecting an InvalidRequest exception to be thrown")
+    public void testUpdateSystemMetadata_InvalidRequest_ModifiedSeriesId(Iterator<Node> nodeIterator, String version) {
+        while (nodeIterator.hasNext())
+            testUpdateSystemMetadata_InvalidRequest_ModifiedSeriesId(nodeIterator.next(), version);
+    }
+    
+    public void testUpdateSystemMetadata_InvalidRequest_ModifiedSeriesId(Node node, String version) {
+        CommonCallAdapter rightsHolderCallAdapter = new CommonCallAdapter(getSession("testRightsHolder"), node, version);
+        String currentUrl = node.getBaseURL();
+        printTestHeader("testUpdateSystemMetadata_InvalidRequest_ModifiedSeriesId(...) vs. node: " + currentUrl);
+        currentUrl = rightsHolderCallAdapter.getNodeBaseServiceUrl();
+        
+        try {
+            AccessRule accessRule = APITestUtils.buildAccessRule("testRightsHolder", Permission.CHANGE_PERMISSION);
+            Identifier pid = new Identifier();
+            pid.setValue("testUpdateSystemMetadata_InvalidRequest_ModifiedSeriesId_" + ExampleUtilities.generateIdentifier());
+            Identifier testObjPid = catc.procureTestObject(rightsHolderCallAdapter, accessRule, pid);
+            
+            SystemMetadata sysmeta = rightsHolderCallAdapter.getSystemMetadata(null, testObjPid);
+            // try to updateSystemMetadata with the modified seriesId
+            Identifier seriesId = new Identifier();
+            seriesId.setValue("bogusSeriesId");
+            sysmeta.setSeriesId(seriesId);
+            
+            rightsHolderCallAdapter.updateSystemMetadata(null, testObjPid , sysmeta);
+            handleFail(rightsHolderCallAdapter.getLatestRequestUrl(), "updateSystemMetadata call should fail "
+                    + "if trying to modify the seriesId in system metadata");
         } 
         catch (InvalidRequest e) {
             // expected
