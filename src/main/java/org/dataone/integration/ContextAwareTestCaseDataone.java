@@ -50,6 +50,11 @@ import java.util.concurrent.Callable;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.util.EntityUtils;
 import org.dataone.client.D1Node;
 import org.dataone.client.D1NodeFactory;
 import org.dataone.client.auth.CertificateManager;
@@ -57,15 +62,14 @@ import org.dataone.client.auth.ClientIdentityManager;
 import org.dataone.client.exception.ClientSideException;
 import org.dataone.client.rest.HttpMultipartRestClient;
 import org.dataone.client.rest.MultipartRestClient;
+import org.dataone.client.rest.RestClient;
 import org.dataone.client.v1.CNode;
 import org.dataone.client.v1.MNode;
 import org.dataone.client.v1.itk.D1Object;
 import org.dataone.client.v1.types.D1TypeBuilder;
 import org.dataone.configuration.Settings;
 import org.dataone.configuration.TestSettings;
-import org.dataone.integration.adapters.CNCallAdapter;
 import org.dataone.integration.adapters.CommonCallAdapter;
-import org.dataone.integration.adapters.MNCallAdapter;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.IdentifierNotUnique;
 import org.dataone.service.exceptions.InsufficientResources;
@@ -77,7 +81,6 @@ import org.dataone.service.exceptions.NotFound;
 import org.dataone.service.exceptions.NotImplemented;
 import org.dataone.service.exceptions.ServiceFailure;
 import org.dataone.service.exceptions.UnsupportedType;
-import org.dataone.service.exceptions.VersionMismatch;
 import org.dataone.service.types.v1.AccessPolicy;
 import org.dataone.service.types.v1.AccessRule;
 import org.dataone.service.types.v1.Identifier;
@@ -136,10 +139,18 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
     protected  String referenceContext = null;
     protected  String referenceCnBaseUrl = null;
 
-    public List<Node> memberNodeList = null;
+    public List<Node> memberNodeList = new Vector<Node>();
     public List<Node> coordinatingNodeList = new Vector<Node>();
     public List<Node> monitorNodeList = new Vector<Node>();
-
+    
+    // multinode contexts gained through iterating through a nodelst are expensive 
+    // to set up because of checks that the listed nodes are in service, which may timeout.
+    // these tests (currently) are not run in a multi-threaded execution context
+    // so we can cache these values.
+    private static boolean multiNodeExists = false;
+    private static List<Node> multiNodeMemberNodeList = new Vector<Node>();
+    private static List<Node> multiNodeCoordinatingNodeList = new Vector<Node>();
+    private static List<Node> multiNodeMonitorNodeList = new Vector<Node>();
 
     // this here defines the default
     // can be overwritten by property passed into base class
@@ -253,10 +264,35 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
     throws IOException, InstantiationException, IllegalAccessException,
     JiBXException, ServiceFailure, NotImplemented, ClientSideException
     {
+        if (!multiNodeExists) {
+            // building a low-timeout httpClient for determining if a
+            // node is reachable or not
+            RequestConfig config = RequestConfig.custom()
+                    .setConnectTimeout(10000)
+                    .setConnectionRequestTimeout(10000)
+                    .setSocketTimeout(10000)
+                    .build();
+            RestClient rc = new RestClient(
+            HttpClients.custom().setDefaultRequestConfig(config).build()
+            );
+            parseContextNodeList(rc);
+            multiNodeExists = true;
+        }
+        memberNodeList = multiNodeMemberNodeList;
+        coordinatingNodeList = multiNodeCoordinatingNodeList;
+        monitorNodeList = multiNodeMonitorNodeList;
+    }
+
+    /*
+     * this routine sets the static node lists for reuse
+     */
+    private void parseContextNodeList(RestClient rc) 
+    throws IOException, InstantiationException, IllegalAccessException,
+    JiBXException, ServiceFailure, NotImplemented, ClientSideException
+    {
         // we will be testing multiple member nodes
         List<Node> allNodesList = new Vector<Node>();
-        memberNodeList = new Vector<Node>();
-
+        
         if (nodelistUri != null) {
             // the list of member nodes is in this NodeList.xml file
             System.out.println("~~~ Context is ad-hoc NodeList at: " + nodelistUri);
@@ -276,6 +312,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
             System.out.println("~~~ Context is from d1client.properties: " + cnBaseUrl);
             allNodesList = getNodeList(cnBaseUrl);
         }
+        
         // divide into separate lists
         for(int i=0; i < allNodesList.size(); i++) {
             Node currentNode = allNodesList.get(i);
@@ -283,8 +320,8 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
             if (currentNode.getType() == NodeType.CN) {
                 // test the baseUrl
                 try {
-                    getCapabilities(currentNode.getBaseURL());
-                    coordinatingNodeList.add(currentNode);
+                    isNodeAlive(rc, currentNode.getBaseURL());
+                    multiNodeCoordinatingNodeList.add(currentNode);
                     log.info("*** Adding CN to list: " + currentNode.getName() +
                             " [ " + currentNode.getBaseURL() +" ]");
                 }
@@ -300,8 +337,8 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
                 }
             } else if (currentNode.getType() == NodeType.MN) {
                 try {
-                    getCapabilities(currentNode.getBaseURL());
-                    memberNodeList.add(currentNode);
+                    isNodeAlive(rc, currentNode.getBaseURL());
+                    multiNodeMemberNodeList.add(currentNode);
                     log.info("*** Adding MN to list: " + currentNode.getName() +
                             " [ " + currentNode.getBaseURL() +" ]");
                 }
@@ -317,7 +354,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
                             );
                 }
             } else if (currentNode.getType() == NodeType.MONITOR) {
-                monitorNodeList.add(currentNode);
+                multiNodeMonitorNodeList.add(currentNode);
                 log.info("*** Adding MonitorNode to list: " + currentNode.getName() +
                         " [ " + currentNode.getBaseURL() +" ]");
             } else {
@@ -328,22 +365,21 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
         }
     }
 
-    private Node getCapabilities(String baseURL)
-    throws ServiceFailure, NotImplemented, ClientSideException
+    /*
+     * Returns true or throws an exception
+     * Exceptions are thrown if a response cannot be returned from the baseurl
+     */
+    private boolean isNodeAlive(RestClient rc, String baseURL)
+    throws IOException, ClientProtocolException
     {
+        HttpResponse resp = null;
         try {
-            org.dataone.client.v1.MNode mnv1 =
-                    D1NodeFactory.buildNode(org.dataone.client.v1.MNode.class,
-                            MULTIPART_REST_CLIENT, URI.create(baseURL));
-            return mnv1.getCapabilities();
+           resp = rc.doGetRequest(baseURL, null);
+        } finally {
+            if (resp != null) 
+                EntityUtils.consumeQuietly(resp.getEntity());
         }
-        catch (Exception e) {
-            org.dataone.client.v2.MNode mnv2 =
-                    D1NodeFactory.buildNode(org.dataone.client.v2.MNode.class,
-                            MULTIPART_REST_CLIENT, URI.create(baseURL));
-            return mnv2.getCapabilities();
-
-        }
+        return true;
     }
 
 
