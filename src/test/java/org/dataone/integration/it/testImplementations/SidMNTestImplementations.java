@@ -301,6 +301,7 @@ public class SidMNTestImplementations extends SidCommonTestImplementations {
     @WebTestName("getPackage: ... test not yet implemented ... ")
     @WebTestDescription(" ... test not yet implemented ... ")
     @Ignore("getPackage() functionality is not yet implemented")
+    @Test
     public void testGetPackage() throws NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
         logger.info("Testing getPackage() method ... ");
         
@@ -335,6 +336,7 @@ public class SidMNTestImplementations extends SidCommonTestImplementations {
     @WebTestName("update: tests that update works if given a SID")
     @WebTestDescription("this test checks that calling update with a SID "
             + "doesn't work if the head PID is archived")
+    @Test
     public void testUpdate() {
         logger.info("Testing update() method ... ");
         
@@ -397,6 +399,7 @@ public class SidMNTestImplementations extends SidCommonTestImplementations {
     @WebTestName("systemMetadataChanged: ... test not yet implemented ... ")
     @WebTestDescription(" ... test not yet implemented ... ")
     @Ignore(" ... test not yet implemented ... ")
+    @Test
     public void testSystemMetadataChanged() {
         logger.info("Testing systemMetadataChanged() method ... ");
         

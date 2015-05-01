@@ -762,4 +762,17 @@ public class CNCallAdapter extends CommonCallAdapter {
                 + version);
     }
 
+    public boolean synchronize(Session session, Identifier pid)
+            throws NotImplemented, NotAuthorized, ServiceFailure, InvalidRequest,
+            InvalidSystemMetadata, InvalidToken, ClientSideException {
+        
+        if (this.node.getType().equals(NodeType.CN) 
+                && this.version.toLowerCase().equals("v2")) {
+            CNCore cnCore = D1NodeFactory.buildNode(CNCore.class, mrc, URI.create(node.getBaseURL()));
+            return cnCore.synchronize(session, pid);
+        }
+        throw new ClientSideException("Call to deleteReplicationMetadata failed. " + node.getType() + " of version "
+                + version);
+    }
+    
 }

@@ -31,15 +31,12 @@ implements CoreTestDefinitions, CNCoreTestDefinitions, CNv2CoreTestDefinitions, 
     @WebTestImplementation
     private SidCNTestImplementations sidImpl;
 
-    @WebTestImplementation
-    private UpdateSystemMetadataTestImplementations updSysmetaImpl;
 
     @Before
     public void setup() {
         coreTestImpl = new CoreTestImplementations(this);
         cnCoreTestImpl = new CNCoreTestImplementations(this);
         sidImpl = new SidCNTestImplementations();
-        updSysmetaImpl = new UpdateSystemMetadataTestImplementations(this);
     }
     
     @After

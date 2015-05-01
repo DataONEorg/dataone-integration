@@ -121,7 +121,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 //	public static final String DEFAULT_TEST_OBJECTFORMAT = ExampleUtilities.FORMAT_EML_2_0_0;
 
 
-    public static String cnSubmitter = Settings.getConfiguration().getString("dataone.it.cnode.submitter.cn", /* default */ "cnSandboxUNM1");
+    public static String cnSubmitter = Settings.getConfiguration().getString("dataone.it.cnode.submitter.cn", /* default */ "cnDevUNM1");
 
     private static Map<String,MultipartRestClient> sessionMap = new HashMap<String,MultipartRestClient>();
     private static Map<String,Subject> subjectMap = new HashMap<String, Subject>();

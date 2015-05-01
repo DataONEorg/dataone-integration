@@ -64,7 +64,7 @@ public class SidCNTestImplementations extends SidCommonTestImplementations {
     
     @Override
     protected int[] getCasesToTest() {
-        return new int[] {  1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18};
+        return new int[] {  1 };//, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18};
     }
     
     @Override
@@ -363,12 +363,13 @@ public class SidCNTestImplementations extends SidCommonTestImplementations {
     @WebTestName("resolve: tests that resolve works if given a SID")
     @WebTestDescription("this test checks to see if calling resolve with a SID returns "
             + "the same location list as if it were given the head PID")
+    @Test
     public void testResolve() {
 
         logger.info("Testing resolve() method ... ");
         
         int[] casesToTest = getCasesToTest();
-        for (int i = 0; i <= casesToTest.length; i++) {
+        for (int i = 0; i < casesToTest.length; i++) {
             int caseNum = casesToTest[i];
             logger.info("Testing resolve(), case " + caseNum);
             
@@ -402,10 +403,10 @@ public class SidCNTestImplementations extends SidCommonTestImplementations {
                             sidResolveURL, pidResolveURL);
                 } catch (BaseException e) {
                     e.printStackTrace();
-                    handleFail(callAdapter.getNodeBaseServiceUrl(), e.getDescription());
+                    handleFail( "Case: " + i + " : " + callAdapter.getNodeBaseServiceUrl(), e.getDescription());
                 } catch (Exception e) {
                     e.printStackTrace();
-                    handleFail(callAdapter.getNodeBaseServiceUrl(), e.getMessage());
+                    handleFail( "Case: " + i + " : " + callAdapter.getNodeBaseServiceUrl(), e.getMessage() + ", " + (e.getCause() == null ? "" : e.getCause().getMessage()));
                 }
             }
         }
@@ -420,12 +421,13 @@ public class SidCNTestImplementations extends SidCommonTestImplementations {
     @WebTestName("setRightsHolder: tests that setRightsHolder works if given a SID")
     @WebTestDescription("this test checks if setting the rights holder with a SID "
             + "correctly changed the rights holder for the head PID")
+    @Test
     public void testSetRightsHolder() {
 
         logger.info("Testing setRightsHolder() method ... ");
         
         int[] casesToTest = getCasesToTest();
-        for (int i = 0; i <= casesToTest.length; i++) {
+        for (int i = 0; i < casesToTest.length; i++) {
             int caseNum = casesToTest[i];
             logger.info("Testing setRightsHolder(), case " + caseNum);
             
@@ -449,10 +451,10 @@ public class SidCNTestImplementations extends SidCommonTestImplementations {
                     assertTrue("setRightsHolder() Case " + caseNum, sidRightsHolder.getValue().equals(pidRightsHolder.getValue()));
                 } catch (BaseException e) {
                     e.printStackTrace();
-                    handleFail(callAdapter.getNodeBaseServiceUrl(), e.getDescription());
+                    handleFail( "Case: " + i + " : " + callAdapter.getNodeBaseServiceUrl(), e.getDescription());
                 } catch (Exception e) {
                     e.printStackTrace();
-                    handleFail(callAdapter.getNodeBaseServiceUrl(), e.getMessage());
+                    handleFail( "Case: " + i + " : " + callAdapter.getNodeBaseServiceUrl(), e.getMessage() + ", " + (e.getCause() == null ? "" : e.getCause().getMessage()));
                 }
             }
         }
@@ -467,12 +469,13 @@ public class SidCNTestImplementations extends SidCommonTestImplementations {
     @WebTestName("setAccessPolicy: tests that setAccessPolicy works if given a SID")
     @WebTestDescription("this test checks if setting the access policy with a SID "
             + "correctly changed the policy for the head PID")
+    @Test
     public void testSetAccessPolicy() {
 
         logger.info("Testing setAccessPolicy() method ... ");
         
         int[] casesToTest = getCasesToTest();
-        for (int i = 0; i <= casesToTest.length; i++) {
+        for (int i = 0; i < casesToTest.length; i++) {
             int caseNum = casesToTest[i];
             logger.info("Testing setAccessPolicy(), case " + caseNum);
             
@@ -512,10 +515,10 @@ public class SidCNTestImplementations extends SidCommonTestImplementations {
                             fetchedAccessRuleBlarg.getSubject(1).getValue().equals(testSubject));
                 } catch (BaseException e) {
                     e.printStackTrace();
-                    handleFail(callAdapter.getNodeBaseServiceUrl(), e.getDescription());
+                    handleFail( "Case: " + i + " : " + callAdapter.getNodeBaseServiceUrl(), e.getDescription());
                 } catch (Exception e) {
                     e.printStackTrace();
-                    handleFail(callAdapter.getNodeBaseServiceUrl(), e.getMessage());
+                    handleFail( "Case: " + i + " : " + callAdapter.getNodeBaseServiceUrl(), e.getMessage() + ", " + (e.getCause() == null ? "" : e.getCause().getMessage()));
                 }
             }
         }
@@ -531,12 +534,13 @@ public class SidCNTestImplementations extends SidCommonTestImplementations {
     @WebTestDescription("this test checks if setting the replication policy with a SID "
             + "correctly changed the policy for the head PID")
     @Ignore("According to \"Mutability of Content\" page, only supposed to work for PIDS. v2 API disagrees though...")
+    @Test
     public void testSetReplicationPolicy() {
 
         logger.info("Testing setReplicationPolicy() method ... ");
         
         int[] casesToTest = getCasesToTest();
-        for (int i = 0; i <= casesToTest.length; i++) {
+        for (int i = 0; i < casesToTest.length; i++) {
             int caseNum = casesToTest[i];
             logger.info("Testing setReplicationPolicy(), case " + caseNum);
             
@@ -571,10 +575,10 @@ public class SidCNTestImplementations extends SidCommonTestImplementations {
                             fetchedNodeRef.getValue().equals(testNodeRef));
                 } catch (BaseException e) {
                     e.printStackTrace();
-                    handleFail(callAdapter.getNodeBaseServiceUrl(), e.getDescription());
+                    handleFail( "Case: " + i + " : " + callAdapter.getNodeBaseServiceUrl(), e.getDescription());
                 } catch (Exception e) {
                     e.printStackTrace();
-                    handleFail(callAdapter.getNodeBaseServiceUrl(), e.getMessage());
+                    handleFail( "Case: " + i + " : " + callAdapter.getNodeBaseServiceUrl(), e.getMessage() + ", " + (e.getCause() == null ? "" : e.getCause().getMessage()));
                 }
             }
         }
@@ -590,11 +594,12 @@ public class SidCNTestImplementations extends SidCommonTestImplementations {
     @WebTestDescription("this test checks if calling archive with a SID "
             + "makes the head PID no longer show up in solr queries")
     @Override
+    @Test
     public void testArchive() {
         logger.info("Testing archive() method ... ");
         
         int[] casesToTest = getCasesToTest();
-        for (int i = 0; i <= casesToTest.length; i++) {
+        for (int i = 0; i < casesToTest.length; i++) {
             int caseNum = casesToTest[i];
             logger.info("Testing archive(), case " + caseNum);
             
@@ -642,10 +647,10 @@ public class SidCNTestImplementations extends SidCommonTestImplementations {
                             locationList != null && locationList.getObjectLocationList().size() > 0);
                 } catch (BaseException e) {
                     e.printStackTrace();
-                    handleFail(callAdapter.getNodeBaseServiceUrl(), e.getDescription());
+                    handleFail( "Case: " + i + " : " + callAdapter.getNodeBaseServiceUrl(), e.getDescription());
                 } catch (Exception e) {
                     e.printStackTrace();
-                    handleFail(callAdapter.getNodeBaseServiceUrl(), e.getMessage());
+                    handleFail( "Case: " + i + " : " + callAdapter.getNodeBaseServiceUrl(), e.getMessage() + ", " + (e.getCause() == null ? "" : e.getCause().getMessage()));
                 }
             }
         }

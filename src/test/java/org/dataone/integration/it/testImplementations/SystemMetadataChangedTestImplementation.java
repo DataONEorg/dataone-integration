@@ -2,7 +2,10 @@ package org.dataone.integration.it.testImplementations;
 
 import static org.junit.Assert.assertTrue;
 
+import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
@@ -10,6 +13,7 @@ import java.util.List;
 import org.apache.commons.collections.IteratorUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.dataone.client.exception.ClientSideException;
 import org.dataone.configuration.Settings;
 import org.dataone.integration.APITestUtils;
 import org.dataone.integration.ContextAwareTestCaseDataone;
@@ -18,15 +22,20 @@ import org.dataone.integration.adapters.CNCallAdapter;
 import org.dataone.integration.adapters.CommonCallAdapter;
 import org.dataone.integration.webTest.WebTestDescription;
 import org.dataone.integration.webTest.WebTestName;
+import org.dataone.service.exceptions.BaseException;
+import org.dataone.service.exceptions.NotImplemented;
+import org.dataone.service.exceptions.ServiceFailure;
 import org.dataone.service.types.v1.AccessRule;
 import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Node;
 import org.dataone.service.types.v1.NodeReference;
+import org.dataone.service.types.v1.NodeType;
 import org.dataone.service.types.v1.Permission;
 import org.dataone.service.types.v1.Replica;
 import org.dataone.service.types.v2.SystemMetadata;
+import org.jibx.runtime.JiBXException;
 import org.junit.Before;
-import org.junit.Ignore;
+import org.junit.Test;
 
 
 /**
@@ -62,10 +71,28 @@ public class SystemMetadataChangedTestImplementation extends ContextAwareTestCas
     
     @Before
     public void setup() {
+        cnList = new ArrayList<Node>();
+        mnList = new ArrayList<Node>();
+
         Iterator<Node> cnIter = getCoordinatingNodeIterator();
-        Iterator<Node> mnIter = getMemberNodeIterator();
-        cnList = IteratorUtils.toList(cnIter);
-        mnList = IteratorUtils.toList(mnIter);
+        if(cnIter != null)
+            cnList = IteratorUtils.toList(cnIter);
+        
+        CNCallAdapter cn = null;
+        if(cnList.size() > 0)
+            cn = new CNCallAdapter(getSession(cnSubmitter), cnList.get(0), "v2");
+        if(cn != null) {
+            try {
+                for(Node n : cn.listNodes().getNodeList())
+                    if(n.getType() == NodeType.MN)
+                        mnList.add(n);
+            } catch (NotImplemented | ServiceFailure | InstantiationException
+                    | IllegalAccessException | InvocationTargetException | ClientSideException
+                    | JiBXException | IOException e) {
+                log.warn("Unable to fetch node list from CN: " + cn.getNodeBaseServiceUrl(), e);
+            }
+        }
+
         log.info("CNs available: " + cnList.size());
         log.info("MNs available: " + mnList.size());
     }
@@ -78,13 +105,16 @@ public class SystemMetadataChangedTestImplementation extends ContextAwareTestCas
     @WebTestName("systemMetadataChanged: tests that changes made to system metadata by an MN are propegated")
     @WebTestDescription("This test checks whether the following events on the MN trigger the correct changes: "
             + "Some metadata is changed on an MN"
-            + "The MN calls CN.updateSystemMetadata() to update its version of the system metadata. (Synchronous call.)"
-            + "The MN also calls MN.updateSystemMetadata() on other replica-holding MNs, to update their system metadata. (Synchronous call.)</li>")
+            + "The MN calls CN.synchronizeObject() to notify the CN to update its version of the object. (Asynchronous call.)"
+            + "We then need to wait for the CN to synchronize."
+            + "When that happens, the CN should update its own copy, then propegate the change to "
+            + "the replica MNs. We check that the CN's as well as the other MNs' copies are up to date.")
+    @Test
     public void testSystemMetadataChanged() {
-     
+        
         assertTrue("This test requires at least two MNs to work.", mnList.size() >= 2);
         assertTrue("This test requires at least one CN to work.", cnList.size() >= 1);
-
+        
         Identifier createdPid = null;
         Node mnNode = mnList.get(0);
         CommonCallAdapter mn = new CommonCallAdapter(getSession("testRightsHolder"), mnNode, "v2");
@@ -92,9 +122,11 @@ public class SystemMetadataChangedTestImplementation extends ContextAwareTestCas
             AccessRule accessRule = APITestUtils.buildAccessRule("testRightsHolder", Permission.CHANGE_PERMISSION);
             Identifier pid = new Identifier();
             pid.setValue("testSystemMetadataChanged_" + ExampleUtilities.generateIdentifier());
-            createdPid = procureTestObject(mn, accessRule, pid);
-            // procureTestObject() is probably creating a new object
-            Thread.sleep(SYNC_TIME);   // sleep long enough for CN sync to happen
+            try {
+                createdPid = procureTestObject(mn, accessRule, pid);
+            } catch (BaseException be) {
+                handleFail(mn.getLatestRequestUrl(), "Unable to create a test object: " + pid);
+            }
             
             // modify the data
             SystemMetadata sysmeta = mn.getSystemMetadata(null, createdPid);
@@ -102,14 +134,28 @@ public class SystemMetadataChangedTestImplementation extends ContextAwareTestCas
             sysmeta.setSerialVersion(newSerialVersion);
             Date nowIsh = new Date();
             sysmeta.setDateSysMetadataModified(nowIsh);
-            boolean success = mn.updateSystemMetadata(null, createdPid, sysmeta);
+            boolean success = false;
+            try {
+                success = mn.updateSystemMetadata(null, createdPid, sysmeta);
+            } catch (BaseException be) {
+                handleFail(mn.getLatestRequestUrl(), "Call to MN updateSystemMetadata failed: " + be.getMessage());
+                be.printStackTrace();
+            }
             assertTrue("MN should have modified its own system metadata successfully.", success);
             
             // notify CN of the MN's change
             Node cnNode = cnList.get(0);
             CNCallAdapter cn = new CNCallAdapter(getSession(cnSubmitter), cnNode, "v2");
-            success = cn.updateSystemMetadata(null, createdPid, sysmeta);
-            assertTrue("CN should have had its system metadata updated successfully.", success);
+            try {
+                success = cn.updateSystemMetadata(null, createdPid, sysmeta);
+            } catch (BaseException be) {
+                handleFail(mn.getLatestRequestUrl(), "Call to CN updateSystemMetadata failed: " + be.getMessage());
+                be.printStackTrace();
+            }
+            assertTrue("CN should have been notified to synchronize object: " + createdPid, success);
+
+            // CN needs time to synchronize
+            Thread.sleep(SYNC_TIME);
             
             // verify that sysmeta fetched from CN is updated
             SystemMetadata fetchedCNSysmeta = cn.getSystemMetadata(null, createdPid);
@@ -157,7 +203,7 @@ public class SystemMetadataChangedTestImplementation extends ContextAwareTestCas
             assertTrue("Testing failed with exception: " + e.getMessage(), false);
             e.printStackTrace();
         } finally {
-            // TODO purge(pid) ideally
+            // TODO ideally, purge(pid)
             try {
                 if(createdPid != null)     
                     mn.delete(null, createdPid);
