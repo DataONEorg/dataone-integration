@@ -3,7 +3,8 @@ certicate authority.  Reguirements for the certificates are:
 
 1. they need to be long-lived to be useful for testing. (>1 year?)
 2. they need to contain serialized SubjectInfo, as typical certs used in production would.
-3. they should not be trusted by production Nodes.
+3. they should NOT be trusted by production Nodes.
+4. they should be trusted by test Nodes.
 4. the filename for each certificate needs to match the subject common name.
 
 Testing Design
@@ -12,8 +13,11 @@ Most of the certificates in the set are used to test Authorization, which requir
 several different users to thoroughly test authorization scenarios.
 
 Authorization testing imagines a set of related subjects (for Groups, Persons, and Nodes):
+
 CommonName              Details
-testGroup               
+--------------------    --------------------------------------------------------------------
+testGroup               has member who is testPerson
+                        has rightsHolder who is testGroupie
 
 testGroupie             is a member of testGroup
 
@@ -31,9 +35,9 @@ testEQPerson2           has equivalent identity of testPerson1
                         
 testEQPerson3           has equivalent identity of testPerson2
 
-testSubmitter           
+testSubmitter           (no equivalent identities or groups)
 
-testRightsHolder
+testRightsHolder        (no equivalent identities or groups)
 
 
 
@@ -42,34 +46,48 @@ testRightsHolder
 
 I'm using subjects with the following common names as client subjects/certificates for integration testing:
 
-testSubmitter             (  full subject becomes:    "CN=testSubmitter,DC=dataone,DC=org"    )
+testSubmitter             (the full subject becomes:    "CN=testSubmitter,DC=dataone,DC=org")
 testRightsHolder
 testPerson
-testMappedPerson
+testEQPerson1
+testEQPerson2
+testEQPerson3
 testGroupie
 
-We're also testing various certificate situations, so I am creating a handful of certificate variants for testPerson, and give them the following names:
+We also need to test various certificate situations, so need a handful of 
+certificate variants for testPerson, with the following names:
                         
-testPerson_Expired.crt                  
-testPerson_NoSubjectInfo.crt       
-testPerson_MissingSelf.crt            
-testPerson_MissingMappedID.crt   
-testPerson_InvalidVsSchema.crt    
+testPerson_Expired.crt          (don't need to remake unless the DN changes)
+testPerson_NoSubjectInfo.crt    
+testPerson_InvalidVsSchema.crt 
 
 
-Attached is a zip file containing serialized xml for the subject info to be included in the certificate:
+serialized SubjectInfo's for the above certificates can be found at: 
 
-testGroupieSI.xml
-testMappedPersonSI.xml
-...
+https://repository.dataone.org/software/cicore/trunk/d1_test_resources/src/main/resources/D1shared/authorizationTesting/d1_integration/
 
 there should be an SI file for all but 2 of the above certificates needed:
 
-1. testPerson_Expired.crt                  uses testPersonSI.xml, but expiration set to 1 hour or day from now (I think that's the lowest increment possible)
+1. testPerson_Expired.crt              uses testPersonSI.xml, but expiration set to 1 hour or day from now (I think that's the lowest increment possible)
 2. testPerson_NoSubjectInfo.crt        (certificate doesn't include any SI.xml)
 
 
 The cilogon oid for the subjectInfo is:  "1.3.6.1.4.1.34998.2.1"
 
 
-Thanks for generating them.
+Full List of Certificates and corresponding SubjectInfos
+---------------------------------------------------------
+
+ #   Common Name               SubjectInfo file
+---  ------------------------  ------------------------- 
+ 1   testSubmitter             testSubmitter_SI.xml
+ 2   testRightsHolder          testRightsHolder_SI.xml
+ 3   testGroupie               testGroupie_SI.xml
+ 4   testEQPerson1             testEQPerson1_SI.xml
+ 5   testEQPerson2             testEQPerson2_SI.xml
+ 6   testEQPerson3             testEQPerson3_SI.xml
+
+ 7   testPerson                testPerson_SI.xml
+ 8   testPerson_NoSubjectInfo  -
+ 9   testPerson_Expired        testPerson_SI.xml
+ 
