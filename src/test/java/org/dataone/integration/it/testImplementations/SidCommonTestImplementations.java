@@ -231,15 +231,11 @@ public abstract class SidCommonTestImplementations extends ContextAwareTestCaseD
         sysmeta.setObsoletes(oldPid);
         InputStream objectInputStream = null;
         Identifier updatedPid = null;
-        try {
-            objectInputStream = new ByteArrayInputStream(contentBytes);
-            
-            updatedPid = mnCallAdapter.update(null, oldPid, objectInputStream, newPid, sysmeta);
-            
-            markForCleanUp(callAdapter.getNode(), newPid);
-        } finally {
-            IOUtils.closeQuietly(objectInputStream);
-        }
+        
+        objectInputStream = new ByteArrayInputStream(contentBytes);
+        updatedPid = mnCallAdapter.update(null, oldPid, objectInputStream, newPid, sysmeta);
+
+        markForCleanUp(callAdapter.getNode(), newPid);
         return updatedPid;
     }
     
@@ -369,7 +365,7 @@ public abstract class SidCommonTestImplementations extends ContextAwareTestCaseD
                     Checksum sidChecksum = sidObjectDescription.getDataONE_Checksum();
                     Checksum pidChecksum = pidObjectDescription.getDataONE_Checksum();
                     
-                    assertTrue("describe() Case " + caseNum, sidChecksum.equals(pidChecksum));
+                    assertTrue("describe() Case " + caseNum + " checksums of retrieved descriptions should be the same", sidChecksum.getValue().equals(pidChecksum.getValue()));
                     
                 } catch (BaseException e) {
                     e.printStackTrace();
@@ -433,8 +429,6 @@ public abstract class SidCommonTestImplementations extends ContextAwareTestCaseD
             } catch (Exception e) {
                 e.printStackTrace();
                 handleFail(callAdapter.getNodeBaseServiceUrl(), e.getMessage() + (e.getCause() == null ? "" : e.getCause().getMessage()));
-            } finally {
-                IOUtils.closeQuietly(objectInputStream);
             }
         }
     }
@@ -466,10 +460,21 @@ public abstract class SidCommonTestImplementations extends ContextAwareTestCaseD
                     IdPair idPair = (IdPair) setupMethod.invoke(getSetupClass(), callAdapter, node);
                     Identifier sid = idPair.firstID;
                     Identifier pid = idPair.secondID;
-        
+                    
                     Identifier deletedObjectID = callAdapter.delete(null, sid);
-                    // delete(SID) should return the PID of deleted object
-                    assertTrue("delete() Case " + caseNum, deletedObjectID.equals(pid));
+//                    // delete(SID) should return the PID of deleted object
+//                    assertTrue("testDelete(), Case " + caseNum + ", delete() should return the pid of the deleted object.", deletedObjectID.equals(pid));
+                    
+                    boolean notFound = false;
+                    try {
+                        callAdapter.get(null, pid);
+                    } catch (NotFound e) {
+                        // expected result
+                        notFound = true;
+                    }
+                    
+                    assertTrue("testDelete(), Case " + caseNum + ", object for the head pid should have been deleted by its sid.", notFound);
+                    
                     
                 } catch (BaseException e) {
                     e.printStackTrace();
@@ -497,7 +502,7 @@ public abstract class SidCommonTestImplementations extends ContextAwareTestCaseD
         logger.info("Testing archive() method ... ");
         
         int[] casesToTest = getCasesToTest();
-        for (int i = 0; i <= casesToTest.length; i++) {
+        for (int i = 0; i < casesToTest.length; i++) {
             int caseNum = casesToTest[i];
             logger.info("Testing archive(), Case" + caseNum);
             
@@ -778,6 +783,11 @@ public abstract class SidCommonTestImplementations extends ContextAwareTestCaseD
         }
     }
     
+    /**
+     * Holds a pair of {@link Identifier}s.
+     * Used to store the sid in the firstID and 
+     * the head pid it should resolve to in the secondID.
+     */
     protected static class IdPair {
         Identifier firstID, secondID;
 

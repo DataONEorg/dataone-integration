@@ -59,7 +59,7 @@ public class SidMNTestImplementations extends SidCommonTestImplementations {
     }
     
     protected int[] getCasesToTest() {
-        return new int[] {  1, 2 , 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
+        return new int[] {  1 };//, 2 , 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
     }
     
     @Override
@@ -306,11 +306,11 @@ public class SidMNTestImplementations extends SidCommonTestImplementations {
         logger.info("Testing getPackage() method ... ");
         
         int[] casesToTest = getCasesToTest();
-        for (int i = 0; i <= casesToTest.length; i++) {
+        for (int i = 0; i < casesToTest.length; i++) {
             int caseNum = casesToTest[i];
             logger.info("Testing getPackage(), Case" + caseNum);
             
-            Method setupMethod = SidCommonTestImplementations.class.getDeclaredMethod("setupCase" + caseNum, CommonCallAdapter.class, Node.class);
+            Method setupMethod = SidMNTestImplementations.class.getDeclaredMethod("setupMNCase" + caseNum, CommonCallAdapter.class, Node.class);
     
             Iterator<Node> nodeIter = getNodeIterator();
             while (nodeIter.hasNext()) {
@@ -341,7 +341,7 @@ public class SidMNTestImplementations extends SidCommonTestImplementations {
         logger.info("Testing update() method ... ");
         
         int[] casesToTest = getCasesToTest();
-        for (int i = 0; i <= casesToTest.length; i++) {
+        for (int i = 0; i < casesToTest.length; i++) {
             int caseNum = casesToTest[i];
             logger.info("Testing update(), Case" + caseNum);
             
@@ -352,7 +352,7 @@ public class SidMNTestImplementations extends SidCommonTestImplementations {
                 MNCallAdapter callAdapter = new MNCallAdapter(getSession(subjectLabel), node, "v2");
                 IdPair idPair = null;
                 try {
-                    Method setupMethod = SidCommonTestImplementations.class.getDeclaredMethod("setupCase" + caseNum, CommonCallAdapter.class, Node.class);
+                    Method setupMethod = SidMNTestImplementations.class.getDeclaredMethod("setupMNCase" + caseNum, CommonCallAdapter.class, Node.class);
                     idPair = (IdPair) setupMethod.invoke(this, callAdapter, node);
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -366,7 +366,7 @@ public class SidMNTestImplementations extends SidCommonTestImplementations {
                 try {
                     callAdapter.archive(null, pid);
                 } catch (Exception e) {
-                    assertTrue("update() Case " + caseNum + ", testUpdate() setup failed; couldn't archive().", false);
+                    assertTrue("update() Case " + caseNum + ", setup step failed for testUpdate(): couldn't archive().", false);
                 }
                 
                 boolean invalidRequestCaught = false;
@@ -404,7 +404,7 @@ public class SidMNTestImplementations extends SidCommonTestImplementations {
         logger.info("Testing systemMetadataChanged() method ... ");
         
         int[] casesToTest = getCasesToTest();
-        for (int i = 0; i <= casesToTest.length; i++) {
+        for (int i = 0; i < casesToTest.length; i++) {
             int caseNum = casesToTest[i];
             logger.info("Testing systemMetadataChanged(), Case" + caseNum);
             
@@ -413,7 +413,7 @@ public class SidMNTestImplementations extends SidCommonTestImplementations {
                 Node node = nodeIter.next();
                 MNCallAdapter callAdapter = new MNCallAdapter(getSession(subjectLabel), node, "v2");
                 try {
-                    Method setupMethod = SidCommonTestImplementations.class.getDeclaredMethod("setupCase" + caseNum, CommonCallAdapter.class, Node.class);
+                    Method setupMethod = SidMNTestImplementations.class.getDeclaredMethod("setupMNCase" + caseNum, CommonCallAdapter.class, Node.class);
                     IdPair idPair = (IdPair) setupMethod.invoke(this, callAdapter, node);
                     Identifier sid = idPair.firstID;
                     Identifier pid = idPair.secondID;
@@ -422,7 +422,6 @@ public class SidMNTestImplementations extends SidCommonTestImplementations {
                     
                     // systemMetadataChanged() implies authoritative sysmeta on CN was updated
                     // so ... update sysmeta on CN
-                    // (make sure this my knows to look to that CN ???)
                     // call systemMetadataChanged() - impl should be grabbing from CN using SID
                     //                              so CN does resolving, so this tests CN =/
                     // wait ... an unknown amount of time (no way to guarantee correctness here ...)

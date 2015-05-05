@@ -442,6 +442,7 @@ public class SidCNTestImplementations extends SidCommonTestImplementations {
                     Identifier sid = idPair.firstID;
                     Identifier pid = idPair.secondID;
         
+                    getSession("testRightsHolder");
                     Subject sidRightsHolder = getSubject("testRightsHolder");
                     callAdapter.setRightsHolder(null, sid, sidRightsHolder, 1);
                     
@@ -449,6 +450,16 @@ public class SidCNTestImplementations extends SidCommonTestImplementations {
                     Subject pidRightsHolder = sysmeta.getRightsHolder();
                     
                     assertTrue("setRightsHolder() Case " + caseNum, sidRightsHolder.getValue().equals(pidRightsHolder.getValue()));
+                    
+                    getSession("testPerson");
+                    sidRightsHolder = getSubject("testPerson");
+                    callAdapter.setRightsHolder(null, sid, sidRightsHolder, 2);
+                    
+                    sysmeta = callAdapter.getSystemMetadata(null, pid);
+                    pidRightsHolder = sysmeta.getRightsHolder();
+                    
+                    assertTrue("setRightsHolder() Case " + caseNum, sidRightsHolder.getValue().equals(pidRightsHolder.getValue()));
+                    
                 } catch (BaseException e) {
                     e.printStackTrace();
                     handleFail( "Case: " + i + " : " + callAdapter.getNodeBaseServiceUrl(), e.getDescription());
@@ -512,7 +523,7 @@ public class SidCNTestImplementations extends SidCommonTestImplementations {
                     assertTrue("setAccessPolicy() Case " + caseNum + " : CN access rule", 
                             fetchedAccessRuleCN.getSubject(0).getValue().equals(cnSubject.getValue()));
                     assertTrue("setAccessPolicy() Case " + caseNum + " : test access rule",
-                            fetchedAccessRuleBlarg.getSubject(1).getValue().equals(testSubject));
+                            fetchedAccessRuleBlarg.getSubject(0).getValue().equals(testSubject));
                 } catch (BaseException e) {
                     e.printStackTrace();
                     handleFail( "Case: " + i + " : " + callAdapter.getNodeBaseServiceUrl(), e.getDescription());
