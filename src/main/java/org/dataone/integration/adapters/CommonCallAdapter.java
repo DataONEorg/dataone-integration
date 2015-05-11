@@ -24,12 +24,12 @@ import org.dataone.service.exceptions.NotAuthorized;
 import org.dataone.service.exceptions.NotFound;
 import org.dataone.service.exceptions.NotImplemented;
 import org.dataone.service.exceptions.ServiceFailure;
+import org.dataone.service.exceptions.SynchronizationFailed;
 import org.dataone.service.exceptions.UnsupportedType;
 import org.dataone.service.mn.tier1.v1.MNCore;
 import org.dataone.service.mn.tier1.v1.MNRead;
 import org.dataone.service.mn.tier2.v1.MNAuthorization;
 import org.dataone.service.mn.tier3.v2.MNStorage;
-import org.dataone.service.mn.v2.MNPackage;
 import org.dataone.service.mn.v2.MNQuery;
 import org.dataone.service.mn.v2.MNView;
 import org.dataone.service.types.v1.Checksum;
@@ -564,7 +564,8 @@ public class CommonCallAdapter implements D1Node {
 
     public boolean updateSystemMetadata(Session session, Identifier pid, org.dataone.service.types.v2.SystemMetadata sysmeta)
             throws NotImplemented, NotAuthorized, ServiceFailure, InvalidRequest,
-            InvalidSystemMetadata, InvalidToken, ClientSideException, NotFound {
+            InvalidSystemMetadata, InvalidToken, ClientSideException, NotFound, 
+            SynchronizationFailed {
         if (this.version.toLowerCase().equals("v2")) {
             if (this.node.getType().equals(NodeType.CN)) {
                 org.dataone.service.cn.v2.CNCore cnCore = D1NodeFactory.buildNode(org.dataone.service.cn.v2.CNCore.class, this.mrc,

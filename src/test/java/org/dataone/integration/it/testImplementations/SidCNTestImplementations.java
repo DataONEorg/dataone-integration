@@ -381,8 +381,8 @@ public class SidCNTestImplementations extends SidCommonTestImplementations {
                 try {
                     Method setupMethod = getSetupClass().getClass().getDeclaredMethod(setupMethodName, CommonCallAdapter.class, Node.class);
                     IdPair idPair = (IdPair) setupMethod.invoke(this, callAdapter, node);
-                    Identifier sid = idPair.firstID;
-                    Identifier pid = idPair.secondID;
+                    Identifier sid = idPair.sid;
+                    Identifier pid = idPair.headPid;
         
                     ObjectLocationList sidLocationList = callAdapter.resolve(null, sid);
                     ObjectLocationList pidLocationList = callAdapter.resolve(null, pid);
@@ -403,10 +403,10 @@ public class SidCNTestImplementations extends SidCommonTestImplementations {
                             sidResolveURL, pidResolveURL);
                 } catch (BaseException e) {
                     e.printStackTrace();
-                    handleFail( "Case: " + i + " : " + callAdapter.getNodeBaseServiceUrl(), e.getDescription());
+                    handleFail( callAdapter.getNodeBaseServiceUrl(), "Case: " + i + " : " + e.getDescription());
                 } catch (Exception e) {
                     e.printStackTrace();
-                    handleFail( "Case: " + i + " : " + callAdapter.getNodeBaseServiceUrl(), e.getMessage() + ", " + (e.getCause() == null ? "" : e.getCause().getMessage()));
+                    handleFail( callAdapter.getNodeBaseServiceUrl(), "Case: " + i + " : " + e.getMessage() + ", " + (e.getCause() == null ? "" : e.getCause().getMessage()));
                 }
             }
         }
@@ -439,8 +439,8 @@ public class SidCNTestImplementations extends SidCommonTestImplementations {
                 try {
                     Method setupMethod = getSetupClass().getClass().getDeclaredMethod(setupMethodName, CommonCallAdapter.class, Node.class);
                     IdPair idPair = (IdPair) setupMethod.invoke(this, callAdapter, node);
-                    Identifier sid = idPair.firstID;
-                    Identifier pid = idPair.secondID;
+                    Identifier sid = idPair.sid;
+                    Identifier pid = idPair.headPid;
         
                     getSession("testRightsHolder");
                     Subject sidRightsHolder = getSubject("testRightsHolder");
@@ -462,10 +462,10 @@ public class SidCNTestImplementations extends SidCommonTestImplementations {
                     
                 } catch (BaseException e) {
                     e.printStackTrace();
-                    handleFail( "Case: " + i + " : " + callAdapter.getNodeBaseServiceUrl(), e.getDescription());
+                    handleFail( callAdapter.getNodeBaseServiceUrl(), "Case: " + i + " : " + e.getDescription());
                 } catch (Exception e) {
                     e.printStackTrace();
-                    handleFail( "Case: " + i + " : " + callAdapter.getNodeBaseServiceUrl(), e.getMessage() + ", " + (e.getCause() == null ? "" : e.getCause().getMessage()));
+                    handleFail( callAdapter.getNodeBaseServiceUrl(), "Case: " + i + " : " + e.getMessage() + ", " + (e.getCause() == null ? "" : e.getCause().getMessage()));
                 }
             }
         }
@@ -498,8 +498,8 @@ public class SidCNTestImplementations extends SidCommonTestImplementations {
                 try {
                     Method setupMethod = getSetupClass().getClass().getDeclaredMethod(setupMethodName, CommonCallAdapter.class, Node.class);
                     IdPair idPair = (IdPair) setupMethod.invoke(this, callAdapter, node);
-                    Identifier sid = idPair.firstID;
-                    Identifier pid = idPair.secondID;
+                    Identifier sid = idPair.sid;
+                    Identifier pid = idPair.headPid;
         
                     AccessPolicy sidAccessPolicy = new AccessPolicy();
                     Subject cnSubject = getSubject(subjectLabel);
@@ -526,10 +526,10 @@ public class SidCNTestImplementations extends SidCommonTestImplementations {
                             fetchedAccessRuleBlarg.getSubject(0).getValue().equals(testSubject));
                 } catch (BaseException e) {
                     e.printStackTrace();
-                    handleFail( "Case: " + i + " : " + callAdapter.getNodeBaseServiceUrl(), e.getDescription());
+                    handleFail( callAdapter.getNodeBaseServiceUrl(), "Case: " + i + " : " + e.getDescription());
                 } catch (Exception e) {
                     e.printStackTrace();
-                    handleFail( "Case: " + i + " : " + callAdapter.getNodeBaseServiceUrl(), e.getMessage() + ", " + (e.getCause() == null ? "" : e.getCause().getMessage()));
+                    handleFail( callAdapter.getNodeBaseServiceUrl(), "Case: " + i + " : " + e.getMessage() + ", " + (e.getCause() == null ? "" : e.getCause().getMessage()));
                 }
             }
         }
@@ -564,8 +564,8 @@ public class SidCNTestImplementations extends SidCommonTestImplementations {
                 try {
                     Method setupMethod = getSetupClass().getClass().getDeclaredMethod(setupMethodName, CommonCallAdapter.class, Node.class);
                     IdPair idPair = (IdPair) setupMethod.invoke(this, callAdapter, node);
-                    Identifier sid = idPair.firstID;
-                    Identifier pid = idPair.secondID;
+                    Identifier sid = idPair.sid;
+                    Identifier pid = idPair.headPid;
         
                     ReplicationPolicy policy = new ReplicationPolicy();
                     NodeReference nodeRef = new NodeReference();
@@ -586,10 +586,10 @@ public class SidCNTestImplementations extends SidCommonTestImplementations {
                             fetchedNodeRef.getValue().equals(testNodeRef));
                 } catch (BaseException e) {
                     e.printStackTrace();
-                    handleFail( "Case: " + i + " : " + callAdapter.getNodeBaseServiceUrl(), e.getDescription());
+                    handleFail( callAdapter.getNodeBaseServiceUrl(), "Case: " + i + " : " + e.getDescription());
                 } catch (Exception e) {
                     e.printStackTrace();
-                    handleFail( "Case: " + i + " : " + callAdapter.getNodeBaseServiceUrl(), e.getMessage() + ", " + (e.getCause() == null ? "" : e.getCause().getMessage()));
+                    handleFail( callAdapter.getNodeBaseServiceUrl(), "Case: " + i + " : " + e.getMessage() + ", " + (e.getCause() == null ? "" : e.getCause().getMessage()));
                 }
             }
         }
@@ -624,8 +624,8 @@ public class SidCNTestImplementations extends SidCommonTestImplementations {
                 try {
                     Method setupMethod = getSetupClass().getClass().getDeclaredMethod(setupMethodName, CommonCallAdapter.class, Node.class);
                     IdPair idPair = (IdPair) setupMethod.invoke(this, callAdapter, node);
-                    Identifier sid = idPair.firstID;
-                    Identifier pid = idPair.secondID;
+                    Identifier sid = idPair.sid;
+                    Identifier pid = idPair.headPid;
         
                     callAdapter.archive(null, sid);
                     
@@ -658,10 +658,10 @@ public class SidCNTestImplementations extends SidCommonTestImplementations {
                             locationList != null && locationList.getObjectLocationList().size() > 0);
                 } catch (BaseException e) {
                     e.printStackTrace();
-                    handleFail( "Case: " + i + " : " + callAdapter.getNodeBaseServiceUrl(), e.getDescription());
+                    handleFail( callAdapter.getNodeBaseServiceUrl(), "Case: " + i + " : " + e.getDescription());
                 } catch (Exception e) {
                     e.printStackTrace();
-                    handleFail( "Case: " + i + " : " + callAdapter.getNodeBaseServiceUrl(), e.getMessage() + ", " + (e.getCause() == null ? "" : e.getCause().getMessage()));
+                    handleFail( callAdapter.getNodeBaseServiceUrl(), "Case: " + i + " : " + e.getMessage() + ", " + (e.getCause() == null ? "" : e.getCause().getMessage()));
                 }
             }
         }

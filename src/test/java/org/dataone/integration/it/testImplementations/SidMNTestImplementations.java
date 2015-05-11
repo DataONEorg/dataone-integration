@@ -317,8 +317,8 @@ public class SidMNTestImplementations extends SidCommonTestImplementations {
                 Node node = nodeIter.next();
                 MNCallAdapter callAdapter = new MNCallAdapter(getSession(subjectLabel), node, "v2");
                 IdPair idPair = (IdPair) setupMethod.invoke(this, callAdapter, node);
-                Identifier sid = idPair.firstID;
-                Identifier pid = idPair.secondID;
+                Identifier sid = idPair.sid;
+                Identifier pid = idPair.headPid;
                 
 //                InputStream sidPkg = callAdapter.getPackage(null, ???ObjectFormatIdentifier???, sid);
 //                InputStream pidPkg = callAdapter.getPackage(null, ???ObjectFormatIdentifier???, pid);
@@ -333,9 +333,9 @@ public class SidMNTestImplementations extends SidCommonTestImplementations {
      * it mandatory for an update() call on the same object to fail with an {@link InvalidRequest}.
      * Then it calls update() on the SID and expects to catch the {@link InvalidRequest}.
      */
-    @WebTestName("update: tests that update works if given a SID")
+    @WebTestName("update: tests that update fails if given a SID's head PID is archived")
     @WebTestDescription("this test checks that calling update with a SID "
-            + "doesn't work if the head PID is archived")
+            + "doesn't work if the head PID has been archived")
     @Test
     public void testUpdate() {
         logger.info("Testing update() method ... ");
@@ -345,11 +345,10 @@ public class SidMNTestImplementations extends SidCommonTestImplementations {
             int caseNum = casesToTest[i];
             logger.info("Testing update(), Case" + caseNum);
             
-            
             Iterator<Node> nodeIter = getNodeIterator();
             while (nodeIter.hasNext()) {
                 Node node = nodeIter.next();
-                MNCallAdapter callAdapter = new MNCallAdapter(getSession(subjectLabel), node, "v2");
+                MNCallAdapter callAdapter = new MNCallAdapter(getSession("testRightsHolder"), node, "v2");
                 IdPair idPair = null;
                 try {
                     Method setupMethod = SidMNTestImplementations.class.getDeclaredMethod("setupMNCase" + caseNum, CommonCallAdapter.class, Node.class);
@@ -359,14 +358,16 @@ public class SidMNTestImplementations extends SidCommonTestImplementations {
                     handleFail(callAdapter.getNodeBaseServiceUrl(), e.getMessage());
                 }
                 
-                Identifier sid = idPair.firstID;
-                Identifier pid = idPair.secondID;
+                Identifier sid = idPair.sid;
+                Identifier pid = idPair.headPid;
     
                 // archive PID
                 try {
+                    Thread.sleep(INDEXING_TIME);
                     callAdapter.archive(null, pid);
                 } catch (Exception e) {
-                    assertTrue("update() Case " + caseNum + ", setup step failed for testUpdate(): couldn't archive().", false);
+                    assertTrue("update() Case " + caseNum + ", setup step failed for testUpdate(): couldn't archive().\n"
+                            + "Error: " + e.getMessage(), false);
                 }
                 
                 boolean invalidRequestCaught = false;
@@ -415,12 +416,12 @@ public class SidMNTestImplementations extends SidCommonTestImplementations {
                 try {
                     Method setupMethod = SidMNTestImplementations.class.getDeclaredMethod("setupMNCase" + caseNum, CommonCallAdapter.class, Node.class);
                     IdPair idPair = (IdPair) setupMethod.invoke(this, callAdapter, node);
-                    Identifier sid = idPair.firstID;
-                    Identifier pid = idPair.secondID;
+                    Identifier sid = idPair.sid;
+                    Identifier pid = idPair.headPid;
         
                     // TODO test systemMetadataChanged() ...
                     
-                    // systemMetadataChanged() implies authoritative sysmeta on CN was updated
+                    // systemMetadataChanged() implies authoritative sysmeta on another MN (and CN?) was updated
                     // so ... update sysmeta on CN
                     // call systemMetadataChanged() - impl should be grabbing from CN using SID
                     //                              so CN does resolving, so this tests CN =/
@@ -429,7 +430,7 @@ public class SidMNTestImplementations extends SidCommonTestImplementations {
                     
                 } catch (Exception e) {
                     e.printStackTrace();
-                    handleFail(callAdapter.getNodeBaseServiceUrl(), e.getMessage());
+                    handleFail(callAdapter.getNodeBaseServiceUrl(), "Case: " + i + " : " + e.getMessage());
                 }
             }
         }

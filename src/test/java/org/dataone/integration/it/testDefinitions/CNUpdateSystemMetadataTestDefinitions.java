@@ -1,8 +1,6 @@
 package org.dataone.integration.it.testDefinitions;
 
-
-
-public interface UpdateSystemMetadataTestDefinitions {
+public interface CNUpdateSystemMetadataTestDefinitions {
 
     public void testUpdateSystemMetadata_NotFound();
     
@@ -32,7 +30,7 @@ public interface UpdateSystemMetadataTestDefinitions {
     
     public void testUpdateSystemMetadata_InvalidRequest_ModifiedSeriesId();
     
-    public void testUpdateSystemMetadata_RightsHolder();
+    public void testUpdateSystemMetadata_NotAuthorized_RightsHolder();
 
     public void testUpdateSystemMetadata_CN();
 

@@ -6,7 +6,7 @@ import org.dataone.integration.it.testDefinitions.MNStorageTestDefinitions;
 import org.dataone.integration.it.testDefinitions.MNv2StorageTestDefinitions;
 import org.dataone.integration.it.testImplementations.MNStorageTestImplementations;
 import org.dataone.integration.it.testImplementations.SidMNTestImplementations;
-import org.dataone.integration.it.testImplementations.UpdateSystemMetadataTestImplementations;
+import org.dataone.integration.it.testImplementations.MNUpdateSystemMetadataTestImplementations;
 import org.dataone.integration.webTest.WebTestImplementation;
 import org.junit.After;
 import org.junit.Before;
@@ -23,14 +23,14 @@ public class MNStorageV2IT extends ContextAwareTestCaseDataone
     private SidMNTestImplementations sidImpl;
 
     @WebTestImplementation
-    private UpdateSystemMetadataTestImplementations updSysmetaImpl;
+    private MNUpdateSystemMetadataTestImplementations updSysmetaImpl;
 
     
     @Before
     public void setup() {
         mnStorageTestImpl = new MNStorageTestImplementations(this);
         sidImpl = new SidMNTestImplementations();
-        updSysmetaImpl = new UpdateSystemMetadataTestImplementations(this);
+        updSysmetaImpl = new MNUpdateSystemMetadataTestImplementations(this);
     }
 
     @After
@@ -126,12 +126,6 @@ public class MNStorageV2IT extends ContextAwareTestCaseDataone
     @Test
     public void testUpdateSystemMetadata_RightsHolder() {
         updSysmetaImpl.testUpdateSystemMetadata_RightsHolder(getMemberNodeIterator(), "v2");
-    }
-
-    @Override
-    @Test
-    public void testUpdateSystemMetadata_CN() {
-        updSysmetaImpl.testUpdateSystemMetadata_CN(getMemberNodeIterator(), "v2");
     }
     
     @Override

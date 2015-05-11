@@ -48,11 +48,11 @@ import org.dataone.service.types.v1.Node;
 import org.dataone.service.types.v1.NodeType;
 import org.dataone.service.types.v1.ObjectList;
 import org.dataone.service.types.v1.Permission;
+import org.dataone.service.types.v1.Subject;
 import org.dataone.service.types.v2.Log;
 import org.dataone.service.types.v2.SystemMetadata;
 import org.dataone.service.util.TypeMarshaller;
 import org.jibx.runtime.JiBXException;
-import org.junit.After;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -68,9 +68,15 @@ import org.junit.Test;
  */
 public abstract class SidCommonTestImplementations extends ContextAwareTestCaseDataone {
 
-    private Logger logger = Logger.getLogger(SidCommonTestImplementations.class);
+    protected static final Logger logger = Logger.getLogger(SidCommonTestImplementations.class);
     protected static final String subjectLabel = cnSubmitter;
     protected final AccessPolicy policy = buildPublicReadAccessPolicy();
+    
+    /** 
+     * metacat needs time to perform indexing operations
+     * (these run on a separate thread)
+     **/
+    protected static final int INDEXING_TIME = 10000;
     
     /**
      * Needed for {@link #cleanUp()} after tests run.
@@ -195,8 +201,11 @@ public abstract class SidCommonTestImplementations extends ContextAwareTestCaseD
 
         Identifier testObjPid = null;
         
+        getSession("testRightsHolder");
+        Subject rightsHolder = getSubject("testRightsHolder");
+        
         try {
-            testObjPid = super.createTestObject(callAdapter, pid, sid, obsoletesId, obsoletedById, policy, subjectLabel, "testRightsHolder");
+            testObjPid = super.createTestObject(callAdapter, pid, sid, obsoletesId, obsoletedById, policy, subjectLabel, rightsHolder.getValue());
         } catch (BaseException be) {
             logger.error("Unable to create test object. "
                     + be.getMessage() + " " + be.getDescription(), be);
@@ -265,8 +274,8 @@ public abstract class SidCommonTestImplementations extends ContextAwareTestCaseD
                 try {
                     Method setupMethod = getSetupClass().getClass().getDeclaredMethod(setupMethodName, CommonCallAdapter.class, Node.class);
                     IdPair idPair = (IdPair) setupMethod.invoke(getSetupClass(), callAdapter, node);
-                    Identifier sid = idPair.firstID;
-                    Identifier pid = idPair.secondID;
+                    Identifier sid = idPair.sid;
+                    Identifier pid = idPair.headPid;
         
                     SystemMetadata sysMeta = callAdapter.getSystemMetadata(null, sid);
                     Identifier fetchedID = sysMeta.getIdentifier();
@@ -274,10 +283,10 @@ public abstract class SidCommonTestImplementations extends ContextAwareTestCaseD
                     
                 } catch (BaseException e) {
                     e.printStackTrace();
-                    handleFail(callAdapter.getNodeBaseServiceUrl(), e.getDescription());
+                    handleFail(callAdapter.getNodeBaseServiceUrl(), "Case: " + i + " : " + e.getDescription());
                 } catch (Exception e) {
                     e.printStackTrace();
-                    handleFail(callAdapter.getNodeBaseServiceUrl(), e.getMessage() + (e.getCause() == null ? "" : e.getCause().getMessage()));
+                    handleFail(callAdapter.getNodeBaseServiceUrl(), "Case: " + i + " : " + e.getMessage() + (e.getCause() == null ? "" : e.getCause().getMessage()));
                 }
             }
         }
@@ -310,8 +319,8 @@ public abstract class SidCommonTestImplementations extends ContextAwareTestCaseD
                 try {
                     Method setupMethod = getSetupClass().getClass().getDeclaredMethod(setupMethodName, CommonCallAdapter.class, Node.class);
                     IdPair idPair = (IdPair) setupMethod.invoke(getSetupClass(), callAdapter, node);
-                    Identifier sid = idPair.firstID;
-                    Identifier pid = idPair.secondID;
+                    Identifier sid = idPair.sid;
+                    Identifier pid = idPair.headPid;
         
                     sidIS = callAdapter.get(null, sid);
                     pidIS = callAdapter.get(null, pid);
@@ -320,10 +329,10 @@ public abstract class SidCommonTestImplementations extends ContextAwareTestCaseD
                     
                 } catch (BaseException e) {
                     e.printStackTrace();
-                    handleFail(callAdapter.getNodeBaseServiceUrl(), e.getDescription());
+                    handleFail(callAdapter.getNodeBaseServiceUrl(), "Case: " + i + " : " + e.getDescription());
                 } catch (Exception e) {
                     e.printStackTrace();
-                    handleFail(callAdapter.getNodeBaseServiceUrl(), e.getMessage() + (e.getCause() == null ? "" : e.getCause().getMessage()));
+                    handleFail(callAdapter.getNodeBaseServiceUrl(), "Case: " + i + " : " + e.getMessage() + (e.getCause() == null ? "" : e.getCause().getMessage()));
                 } finally {
                     IOUtils.closeQuietly(sidIS);
                     IOUtils.closeQuietly(pidIS);
@@ -357,8 +366,8 @@ public abstract class SidCommonTestImplementations extends ContextAwareTestCaseD
                 try {
                     Method setupMethod = getSetupClass().getClass().getDeclaredMethod(setupMethodName, CommonCallAdapter.class, Node.class);
                     IdPair idPair = (IdPair) setupMethod.invoke(getSetupClass(), callAdapter, node);
-                    Identifier sid = idPair.firstID;
-                    Identifier pid = idPair.secondID;
+                    Identifier sid = idPair.sid;
+                    Identifier pid = idPair.headPid;
         
                     DescribeResponse sidObjectDescription = callAdapter.describe(null, sid);
                     DescribeResponse pidObjectDescription = callAdapter.describe(null, pid);
@@ -369,10 +378,10 @@ public abstract class SidCommonTestImplementations extends ContextAwareTestCaseD
                     
                 } catch (BaseException e) {
                     e.printStackTrace();
-                    handleFail(callAdapter.getNodeBaseServiceUrl(), e.getDescription());
+                    handleFail(callAdapter.getNodeBaseServiceUrl(), "Case: " + i + " : " + e.getDescription());
                 } catch (Exception e) {
                     e.printStackTrace();
-                    handleFail(callAdapter.getNodeBaseServiceUrl(), e.getMessage() + (e.getCause() == null ? "" : e.getCause().getMessage()));
+                    handleFail(callAdapter.getNodeBaseServiceUrl(), "Case: " + i + " : " + e.getMessage() + (e.getCause() == null ? "" : e.getCause().getMessage()));
                 }
             }
         }
@@ -458,9 +467,10 @@ public abstract class SidCommonTestImplementations extends ContextAwareTestCaseD
                 try {
                     Method setupMethod = getSetupClass().getClass().getDeclaredMethod(setupMethodName, CommonCallAdapter.class, Node.class);
                     IdPair idPair = (IdPair) setupMethod.invoke(getSetupClass(), callAdapter, node);
-                    Identifier sid = idPair.firstID;
-                    Identifier pid = idPair.secondID;
+                    Identifier sid = idPair.sid;
+                    Identifier pid = idPair.headPid;
                     
+                    Thread.sleep(INDEXING_TIME);
                     Identifier deletedObjectID = callAdapter.delete(null, sid);
 //                    // delete(SID) should return the PID of deleted object
 //                    assertTrue("testDelete(), Case " + caseNum + ", delete() should return the pid of the deleted object.", deletedObjectID.equals(pid));
@@ -475,13 +485,12 @@ public abstract class SidCommonTestImplementations extends ContextAwareTestCaseD
                     
                     assertTrue("testDelete(), Case " + caseNum + ", object for the head pid should have been deleted by its sid.", notFound);
                     
-                    
                 } catch (BaseException e) {
                     e.printStackTrace();
-                    handleFail(callAdapter.getNodeBaseServiceUrl(), e.getDescription());
+                    handleFail(callAdapter.getNodeBaseServiceUrl(), "Case: " + i + " : " + e.getDescription());
                 } catch (Exception e) {
                     e.printStackTrace();
-                    handleFail(callAdapter.getNodeBaseServiceUrl(), e.getMessage() + (e.getCause() == null ? "" : e.getCause().getMessage()));
+                    handleFail(callAdapter.getNodeBaseServiceUrl(), "Case: " + i + " : " + e.getMessage() + (e.getCause() == null ? "" : e.getCause().getMessage()));
                 }
             }
         }
@@ -514,9 +523,10 @@ public abstract class SidCommonTestImplementations extends ContextAwareTestCaseD
                 try {
                     Method setupMethod = getSetupClass().getClass().getDeclaredMethod(setupMethodName, CommonCallAdapter.class, Node.class);
                     IdPair idPair = (IdPair) setupMethod.invoke(getSetupClass(), callAdapter, node);
-                    Identifier sid = idPair.firstID;
-                    Identifier pid = idPair.secondID;
+                    Identifier sid = idPair.sid;
+                    Identifier pid = idPair.headPid;
         
+                    Thread.sleep(INDEXING_TIME);
                     callAdapter.archive(null, sid);
     
                     SystemMetadata sysmeta = null;
@@ -529,10 +539,10 @@ public abstract class SidCommonTestImplementations extends ContextAwareTestCaseD
                     
                 } catch (BaseException e) {
                     e.printStackTrace();
-                    handleFail(callAdapter.getNodeBaseServiceUrl(), e.getDescription());
+                    handleFail(callAdapter.getNodeBaseServiceUrl(), "Case: " + i + " : " + e.getDescription());
                 } catch (Exception e) {
                     e.printStackTrace();
-                    handleFail(callAdapter.getNodeBaseServiceUrl(), e.getMessage() + (e.getCause() == null ? "" : e.getCause().getMessage()));
+                    handleFail(callAdapter.getNodeBaseServiceUrl(), "Case: " + i + " : " + e.getMessage() + (e.getCause() == null ? "" : e.getCause().getMessage()));
                 }
             }
         }
@@ -564,8 +574,8 @@ public abstract class SidCommonTestImplementations extends ContextAwareTestCaseD
                 try {
                     Method setupMethod = getSetupClass().getClass().getDeclaredMethod(setupMethodName, CommonCallAdapter.class, Node.class);
                     IdPair idPair = (IdPair) setupMethod.invoke(getSetupClass(), callAdapter, node);
-                    Identifier sid = idPair.firstID;
-                    Identifier pid = idPair.secondID;
+                    Identifier sid = idPair.sid;
+                    Identifier pid = idPair.headPid;
         
                     ObjectList pidObjList = callAdapter.listObjects(null, null, null, null, pid, null, null, null);
                     ObjectList sidObjList = callAdapter.listObjects(null, null, null, null, sid, null, null, null);
@@ -576,10 +586,10 @@ public abstract class SidCommonTestImplementations extends ContextAwareTestCaseD
                 
                 } catch (BaseException e) {
                     e.printStackTrace();
-                    handleFail(callAdapter.getNodeBaseServiceUrl(), e.getDescription());
+                    handleFail(callAdapter.getNodeBaseServiceUrl(), "Case: " + i + " : " + e.getDescription());
                 } catch (Exception e) {
                     e.printStackTrace();
-                    handleFail(callAdapter.getNodeBaseServiceUrl(), e.getMessage() + (e.getCause() == null ? "" : e.getCause().getMessage()));
+                    handleFail(callAdapter.getNodeBaseServiceUrl(), "Case: " + i + " : " + e.getMessage() + (e.getCause() == null ? "" : e.getCause().getMessage()));
                 }
             }
         }
@@ -620,8 +630,8 @@ public abstract class SidCommonTestImplementations extends ContextAwareTestCaseD
                 try {
                     Method setupMethod = getSetupClass().getClass().getDeclaredMethod(setupMethodName, CommonCallAdapter.class, Node.class);
                     IdPair idPair = (IdPair) setupMethod.invoke(getSetupClass(), callAdapter, node);
-                    Identifier sid = idPair.firstID;
-                    Identifier pid = idPair.secondID;
+                    Identifier sid = idPair.sid;
+                    Identifier pid = idPair.headPid;
         
                     boolean sidRead = false, pidRead = false;
                     String sidReadExc = "", pidReadExc = "";
@@ -677,7 +687,7 @@ public abstract class SidCommonTestImplementations extends ContextAwareTestCaseD
                     
                 } catch (Exception e) {
                     e.printStackTrace();
-                    handleFail(callAdapter.getNodeBaseServiceUrl(), e.getMessage() + (e.getCause() == null ? "" : e.getCause().getMessage()));
+                    handleFail(callAdapter.getNodeBaseServiceUrl(), "Case: " + i + " : " + e.getMessage() + (e.getCause() == null ? "" : e.getCause().getMessage()));
                 }
             }
         }
@@ -720,8 +730,8 @@ public abstract class SidCommonTestImplementations extends ContextAwareTestCaseD
                 try {
                     Method setupMethod = getSetupClass().getClass().getDeclaredMethod(setupMethodName, CommonCallAdapter.class, Node.class);
                     IdPair idPair = (IdPair) setupMethod.invoke(getSetupClass(), callAdapter, node);
-                    Identifier sid = idPair.firstID;
-                    Identifier pid = idPair.secondID;
+                    Identifier sid = idPair.sid;
+                    Identifier pid = idPair.headPid;
         
                     Log sidLogRecords = callAdapter.getLogRecords(null, null, null, null, sid.toString(), null, null);
                     Log pidLogRecords = callAdapter.getLogRecords(null, null, null, null, pid.toString(), null, null);
@@ -732,10 +742,10 @@ public abstract class SidCommonTestImplementations extends ContextAwareTestCaseD
                     
                 } catch (BaseException e) {
                     e.printStackTrace();
-                    handleFail(callAdapter.getNodeBaseServiceUrl(), e.getDescription());
+                    handleFail(callAdapter.getNodeBaseServiceUrl(), "Case: " + i + " : " + e.getDescription());
                 } catch (Exception e) {
                     e.printStackTrace();
-                    handleFail(callAdapter.getNodeBaseServiceUrl(), e.getMessage() + (e.getCause() == null ? "" : e.getCause().getMessage()));
+                    handleFail(callAdapter.getNodeBaseServiceUrl(), "Case: " + i + " : " + e.getMessage() + (e.getCause() == null ? "" : e.getCause().getMessage()));
                 }
             }
         }
@@ -764,8 +774,8 @@ public abstract class SidCommonTestImplementations extends ContextAwareTestCaseD
                 try {
                     Method setupMethod = getSetupClass().getClass().getDeclaredMethod(setupMethodName, CommonCallAdapter.class, Node.class);
                     IdPair idPair = (IdPair) setupMethod.invoke(getSetupClass(), callAdapter, node);
-                    Identifier sid = idPair.firstID;
-                    Identifier pid = idPair.secondID;
+                    Identifier sid = idPair.sid;
+                    Identifier pid = idPair.headPid;
         
                     sidView = callAdapter.view(null, "default", sid);
                     pidView = callAdapter.view(null, "default", pid);
@@ -785,15 +795,15 @@ public abstract class SidCommonTestImplementations extends ContextAwareTestCaseD
     
     /**
      * Holds a pair of {@link Identifier}s.
-     * Used to store the sid in the firstID and 
-     * the head pid it should resolve to in the secondID.
+     * Used to store the sid and head pid it should resolve to.
      */
     protected static class IdPair {
-        Identifier firstID, secondID;
+        Identifier sid, headPid;
 
-        public IdPair(Identifier firstID, Identifier secondID) {
-            this.firstID = firstID;
-            this.secondID = secondID;
+        public IdPair(Identifier sid, Identifier headPid) {
+            this.sid = sid;
+            this.headPid = headPid;
+            logger.fatal("Created SID (" + sid.getValue() + ") and head PID (" + headPid.getValue() + ") pair.");
         }
     }
 }
