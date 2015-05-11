@@ -634,15 +634,21 @@ public class SidCNTestImplementations extends SidCommonTestImplementations {
                     try {
                         sysmeta = callAdapter.getSystemMetadata(null, pid);
                     } catch (NotFound e) {
-                        assertTrue("archive() Case " + caseNum + ", should be able to getSystemMetadata() for an archived object", 
+                        assertTrue("testArchive() Case " + caseNum + ", should be able to getSystemMetadata() for an archived object", 
                                 false);
                     }
-                    assertTrue("archive() Case " + caseNum + ", object should be archived", 
+                    assertTrue("testArchive() Case " + caseNum + ", object should be archived", 
                             sysmeta.getArchived());
                     
                     // test search
-                    ObjectList objectList = callAdapter.search(null, QUERYTYPE_SOLR, "?q=identifier:" + pid);
-                    assertTrue("archive() Case " + caseNum + " search() for archived object shouldn't return results",
+                    ObjectList objectList = null;
+                    String query = "?q=identifier:" + pid.getValue();
+                    try {
+                        objectList = callAdapter.search(null, QUERYTYPE_SOLR, query);
+                    } catch (Exception e) {
+                        assertTrue("testArchive() Case " + caseNum + ", should be able to call search(). Query: " + query, false);
+                    }
+                    assertTrue("testArchive() Case " + caseNum + " search() for archived object shouldn't return results",
                             objectList.getObjectInfoList().size() == 0);
     
                     // test resolve()-able
@@ -650,11 +656,11 @@ public class SidCNTestImplementations extends SidCommonTestImplementations {
                     try {
                         locationList = callAdapter.resolve(null, sid);
                     } catch (NotFound e) {
-                        assertTrue("archive() Case " + caseNum + ", should be able to resolve() an archived object", 
+                        assertTrue("testArchive() Case " + caseNum + ", should be able to resolve() an archived object", 
                                 false);
                     }
                     
-                    assertTrue("archive() Case " + caseNum + ", should be able to resolve() an archived object to a location list", 
+                    assertTrue("testArchive() Case " + caseNum + ", should be able to resolve() an archived object to a location list", 
                             locationList != null && locationList.getObjectLocationList().size() > 0);
                 } catch (BaseException e) {
                     e.printStackTrace();

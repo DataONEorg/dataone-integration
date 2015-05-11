@@ -508,13 +508,12 @@ public class CommonCallAdapter implements D1Node {
             NotAuthorized, NotFound, NotImplemented, ClientSideException, InvalidRequest {
         if (this.node.getType().equals(NodeType.CN)) {
             if (this.version.toLowerCase().equals("v1")) {
-                org.dataone.service.cn.v1.CNCore cnCore = D1NodeFactory.buildNode(
-                        org.dataone.service.cn.v1.CNCore.class, this.mrc,
-                        URI.create(this.node.getBaseURL()));
+                CNCore cnCore = D1NodeFactory.buildNode(
+                        CNCore.class, this.mrc, URI.create(this.node.getBaseURL()));
                 return cnCore.delete(session, id);
             } else if (this.version.toLowerCase().equals("v2")) {
-                CNCore cnCore = D1NodeFactory.buildNode(CNCore.class, this.mrc,
-                        URI.create(this.node.getBaseURL()));
+                org.dataone.service.cn.v2.CNCore cnCore = D1NodeFactory.buildNode(
+                        org.dataone.service.cn.v2.CNCore.class, this.mrc, URI.create(this.node.getBaseURL()));
                 return cnCore.delete(session, id);
             }
         } else if (this.node.getType().equals(NodeType.MN)) {
@@ -537,13 +536,12 @@ public class CommonCallAdapter implements D1Node {
             NotAuthorized, NotFound, NotImplemented, ClientSideException, InvalidRequest {
         if (this.node.getType().equals(NodeType.CN)) {
             if (this.version.toLowerCase().equals("v1")) {
-                org.dataone.service.cn.v1.CNCore cnCore = D1NodeFactory.buildNode(
-                        org.dataone.service.cn.v1.CNCore.class, this.mrc,
-                        URI.create(this.node.getBaseURL()));
+                CNCore cnCore = D1NodeFactory.buildNode(
+                        CNCore.class, this.mrc, URI.create(this.node.getBaseURL()));
                 return cnCore.archive(session, id);
             } else if (this.version.toLowerCase().equals("v2")) {
-                CNCore cnCore = D1NodeFactory.buildNode(CNCore.class, this.mrc,
-                        URI.create(this.node.getBaseURL()));
+                org.dataone.service.cn.v2.CNCore cnCore = D1NodeFactory.buildNode(
+                        org.dataone.service.cn.v2.CNCore.class, this.mrc, URI.create(this.node.getBaseURL()));
                 return cnCore.archive(session, id);
             }
         } else if (this.node.getType().equals(NodeType.MN)) {
