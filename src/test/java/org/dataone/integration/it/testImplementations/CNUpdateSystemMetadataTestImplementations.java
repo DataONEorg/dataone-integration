@@ -9,6 +9,7 @@ import java.util.Iterator;
 import org.dataone.integration.APITestUtils;
 import org.dataone.integration.ContextAwareTestCaseDataone;
 import org.dataone.integration.ExampleUtilities;
+import org.dataone.integration.adapters.CNCallAdapter;
 import org.dataone.integration.adapters.CommonCallAdapter;
 import org.dataone.integration.webTest.WebTestDescription;
 import org.dataone.integration.webTest.WebTestName;
@@ -26,6 +27,10 @@ public class CNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
         super(catc);
     }
 
+    protected CNCallAdapter getCallAdapter(Node node, String version) {
+        return new CNCallAdapter(getSession(cnSubmitter), node, version);
+    }
+    
     @WebTestName("updateSystemMetadata - tests if the call fails with any MN certificate subject")
     @WebTestDescription("this test calls updateSystemMetadata() with an MN certificate subject "
             + "and expects a NotAuthorized exception to be thrown since this call is CN-to-CN only")
@@ -81,28 +86,28 @@ public class CNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
     
     public void testUpdateSystemMetadata_NotAuthorized_RightsHolder(Node node, String version) {
         
-        CommonCallAdapter rightsHolderCallAdapter = new CommonCallAdapter(getSession("testRightsHolder"), node, version);
+        CommonCallAdapter callAdapter = getCallAdapter(node, version);
         String currentUrl = node.getBaseURL();
         printTestHeader("testUpdateSystemMetadata_RightsHolder(...) vs. node: " + currentUrl);
-        currentUrl = rightsHolderCallAdapter.getNodeBaseServiceUrl();
+        currentUrl = callAdapter.getNodeBaseServiceUrl();
         
         try {
             AccessRule accessRule = APITestUtils.buildAccessRule("testRightsHolder", Permission.CHANGE_PERMISSION);
             Identifier pid = new Identifier();
             pid.setValue("testUpdateSystemMetadata_RightsHolder_" + ExampleUtilities.generateIdentifier());
-            Identifier testObjPid = catc.procureTestObject(rightsHolderCallAdapter, accessRule, pid);
+            Identifier testObjPid = catc.procureTestObject(callAdapter, accessRule, pid);
             
-            SystemMetadata sysmeta = rightsHolderCallAdapter.getSystemMetadata(null, testObjPid);
+            SystemMetadata sysmeta = callAdapter.getSystemMetadata(null, testObjPid);
             BigInteger newSerialVersion = sysmeta.getSerialVersion().add(BigInteger.ONE);
             Date nowIsh = new Date();
             sysmeta.setSerialVersion(newSerialVersion);
             sysmeta.setDateSysMetadataModified(nowIsh);
-            rightsHolderCallAdapter.updateSystemMetadata(null, testObjPid , sysmeta);
-            handleFail(rightsHolderCallAdapter.getLatestRequestUrl(), "updateSystemMetadata call should fail for a connection with non-CN certificate");
+            callAdapter.updateSystemMetadata(null, testObjPid , sysmeta);
+            handleFail(callAdapter.getLatestRequestUrl(), "updateSystemMetadata call should fail for a connection with non-CN certificate");
         } catch (NotAuthorized e) {
             // expected outcome 
         } catch (BaseException e) {
-            handleFail(rightsHolderCallAdapter.getLatestRequestUrl(), e.getClass().getSimpleName() + ": " + 
+            handleFail(callAdapter.getLatestRequestUrl(), e.getClass().getSimpleName() + ": " + 
                     e.getDetail_code() + ": " + e.getDescription());
         } catch(Exception e) {
             e.printStackTrace();
@@ -123,33 +128,33 @@ public class CNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
     
     public void testUpdateSystemMetadata_CN(Node node, String version) {
         
-        CommonCallAdapter rightsHolderCallAdapter = new CommonCallAdapter(getSession(cnSubmitter), node, version);
+        CommonCallAdapter callAdapter = getCallAdapter(node, version);
         String currentUrl = node.getBaseURL();
         printTestHeader("testUpdateSystemMetadata_CN_(...) vs. node: " + currentUrl);
-        currentUrl = rightsHolderCallAdapter.getNodeBaseServiceUrl();
+        currentUrl = callAdapter.getNodeBaseServiceUrl();
         
         try {
             AccessRule accessRule = APITestUtils.buildAccessRule(cnSubmitter, Permission.CHANGE_PERMISSION);
             Identifier pid = new Identifier();
             pid.setValue("testUpdateSystemMetadata_CN_" + ExampleUtilities.generateIdentifier());
-            Identifier testObjPid = catc.procureTestObject(rightsHolderCallAdapter, accessRule, pid);
+            Identifier testObjPid = catc.procureTestObject(callAdapter, accessRule, pid);
             
-            SystemMetadata sysmeta = rightsHolderCallAdapter.getSystemMetadata(null, testObjPid);
+            SystemMetadata sysmeta = callAdapter.getSystemMetadata(null, testObjPid);
             BigInteger newSerialVersion = sysmeta.getSerialVersion().add(BigInteger.ONE);
             Date nowIsh = new Date();
             sysmeta.setSerialVersion(newSerialVersion);
             sysmeta.setDateSysMetadataModified(nowIsh);
-            boolean success = rightsHolderCallAdapter.updateSystemMetadata(null, testObjPid , sysmeta);
+            boolean success = callAdapter.updateSystemMetadata(null, testObjPid , sysmeta);
             assertTrue("Call to updateSystemMetadata() should be successful.", success);
             
-            SystemMetadata fetchedSysmeta = rightsHolderCallAdapter.getSystemMetadata(null, testObjPid);
+            SystemMetadata fetchedSysmeta = callAdapter.getSystemMetadata(null, testObjPid);
             boolean serialVersionMatches = fetchedSysmeta.getSerialVersion().equals(newSerialVersion);
             boolean dateModifiedMatches = fetchedSysmeta.getDateSysMetadataModified().equals(nowIsh);
             assertTrue("System metadata should now have updated serialVersion", serialVersionMatches);
             assertTrue("System metadata should now have updated dateSysMetadataModified", dateModifiedMatches );
         } 
         catch (BaseException e) {
-            handleFail(rightsHolderCallAdapter.getLatestRequestUrl(), e.getClass().getSimpleName() + ": " + 
+            handleFail(callAdapter.getLatestRequestUrl(), e.getClass().getSimpleName() + ": " + 
                     e.getDetail_code() + ": " + e.getDescription());
         }
         catch(Exception e) {
@@ -157,6 +162,5 @@ public class CNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
             handleFail(currentUrl, e.getClass().getName() + ": " + e.getMessage());
         }
     }
-    
     
 }

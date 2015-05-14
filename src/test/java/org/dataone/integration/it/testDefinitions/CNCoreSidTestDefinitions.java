@@ -8,6 +8,4 @@ public interface CNCoreSidTestDefinitions {
 
     public void testSidArchive();
 
-    public void testSidGetLogRecords();
-
 }

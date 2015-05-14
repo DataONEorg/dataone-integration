@@ -107,8 +107,8 @@ public class SynchronizeMetadataTestImplementations extends ContextAwareAdapter 
         }
     }
     
-    @WebTestName("synchronize - tests if the call fails if   ... ")
-    @WebTestDescription("this test calls synchronize() with   ...  ")
+    @WebTestName("synchronize - tests if the call fails when an invalid authentication token is passed")
+    @WebTestDescription("this test calls synchronize() with an invalid authentication token ")
     public void testSynchronize_InvalidToken(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testSynchronize_InvalidToken(nodeIterator.next(), version);
@@ -116,21 +116,8 @@ public class SynchronizeMetadataTestImplementations extends ContextAwareAdapter 
     
     public void testSynchronize_InvalidToken(Node node, String version) {
         
-        assertTrue("Not sure if this should be returnable by synchronize()", false);
+        assertTrue("Not yet implemented.", false);
         
     }
     
-    
-    @WebTestName("synchronize - tests if the call fails if   ... ")
-    @WebTestDescription("this test calls synchronize() with   ...  ")
-    public void testSynchronize_InvalidRequest(Iterator<Node> nodeIterator, String version) {
-        while (nodeIterator.hasNext())
-            testSynchronize_InvalidRequest(nodeIterator.next(), version);
-    }
-    
-    public void testSynchronize_InvalidRequest(Node node, String version) {
-        
-        assertTrue("Not sure if this should be returnable by synchronize()", false);
-        
-    }
 }

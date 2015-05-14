@@ -186,12 +186,6 @@ implements CoreTestDefinitions, CNCoreTestDefinitions, CNv2CoreTestDefinitions, 
 
     @Override
     @Test
-    public void testSidGetLogRecords() {
-        sidImpl.testGetLogRecords();
-    }
-
-    @Override
-    @Test
     public void testUpdateSystemMetadata_NotFound() {
         updateSysMetaImpl.testUpdateSystemMetadata_NotFound(getCoordinatingNodeIterator(), "v2");
     }
@@ -305,14 +299,9 @@ implements CoreTestDefinitions, CNCoreTestDefinitions, CNv2CoreTestDefinitions, 
 
     @Override
     @Test
+    @Ignore("Not yet implemented")
     public void testSynchronize_InvalidToken() {
         syncMetaImpl.testSynchronize_InvalidToken(getCoordinatingNodeIterator(), "v2");
-    }
-
-    @Override
-    @Test
-    public void testSynchronize_InvalidRequest() {
-        syncMetaImpl.testSynchronize_InvalidRequest(getCoordinatingNodeIterator(), "v2");
     }
 
 }

@@ -202,7 +202,7 @@ public class MNCallAdapter extends CommonCallAdapter {
                 MNPackage mnPkg = D1NodeFactory.buildNode(MNPackage.class, this.mrc, URI.create(this.node.getBaseURL()));
                 return mnPkg.getPackage(session, packageType, id);
         }
-        throw new ClientSideException("Call to listViews failed. " + node.getType() + " of version "
+        throw new ClientSideException("Call to getPackage failed. " + node.getType() + " of version "
                 + version);
     }
 }

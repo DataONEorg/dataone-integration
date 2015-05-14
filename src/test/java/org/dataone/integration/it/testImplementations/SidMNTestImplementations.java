@@ -300,9 +300,8 @@ public class SidMNTestImplementations extends SidCommonTestImplementations {
 
     @WebTestName("getPackage: ... test not yet implemented ... ")
     @WebTestDescription(" ... test not yet implemented ... ")
-    @Ignore("getPackage() functionality is not yet implemented")
     @Test
-    public void testGetPackage() throws NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+    public void testGetPackage() throws NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InvalidToken, ServiceFailure, NotAuthorized, InvalidRequest, NotImplemented, NotFound, ClientSideException {
         logger.info("Testing getPackage() method ... ");
         
         int[] casesToTest = getCasesToTest();
@@ -320,10 +319,18 @@ public class SidMNTestImplementations extends SidCommonTestImplementations {
                 Identifier sid = idPair.sid;
                 Identifier pid = idPair.headPid;
                 
-//                InputStream sidPkg = callAdapter.getPackage(null, ???ObjectFormatIdentifier???, sid);
-//                InputStream pidPkg = callAdapter.getPackage(null, ???ObjectFormatIdentifier???, pid);
-//                
-//                assertTrue("getPackage() Case " + caseNum, IOUtils.contentEquals(sidPkg, pidPkg));
+                ObjectFormatIdentifier formatID = new ObjectFormatIdentifier();
+                // FIXME    bagit format should be supported by default
+                //          but it's not yet in the objectFormatList.xml
+                formatID.setValue("application/zip");
+                InputStream sidPkg = callAdapter.getPackage(null, formatID, sid);
+                InputStream pidPkg = callAdapter.getPackage(null, formatID, pid);
+                try {
+                    assertTrue("getPackage() Case " + caseNum, IOUtils.contentEquals(sidPkg, pidPkg));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    handleFail(callAdapter.getNodeBaseServiceUrl(), "Case: " + i + " : " + e.getMessage());
+                }
             }
         }
     }
@@ -421,9 +428,10 @@ public class SidMNTestImplementations extends SidCommonTestImplementations {
         
                     // TODO test systemMetadataChanged() ...
                     
-                    // systemMetadataChanged() implies authoritative sysmeta on another MN (and CN?) was updated
-                    // so ... update sysmeta on CN
-                    // call systemMetadataChanged() - impl should be grabbing from CN using SID
+                    // systemMetadataChanged() implies authoritative sysmeta was updated
+                    // on another MN (and probably on the CN too, since authMN should'be notified it)
+                    // so update sysmeta on another MN
+                    // call MN.systemMetadataChanged() - impl should be grabbing from CN using SID
                     //                              so CN does resolving, so this tests CN =/
                     // wait ... an unknown amount of time (no way to guarantee correctness here ...)
                     // check MN sysmeta against sysmeta updated to CN

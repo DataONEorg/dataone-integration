@@ -2,21 +2,19 @@ package org.dataone.integration.it.apiTests;
 
 import org.dataone.integration.ContextAwareTestCaseDataone;
 import org.dataone.integration.it.testDefinitions.CoreTestDefinitions;
-import org.dataone.integration.it.testDefinitions.MNCoreSidTestDefinitions;
 import org.dataone.integration.it.testDefinitions.MNCoreTestDefinitions;
 import org.dataone.integration.it.testImplementations.CoreTestImplementations;
 import org.dataone.integration.it.testImplementations.SidMNTestImplementations;
 import org.dataone.integration.webTest.WebTestImplementation;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 /**
  * Tests MNCore functionality for v2 of the API 
  */
 public class MNCoreV2IT extends ContextAwareTestCaseDataone 
-implements CoreTestDefinitions, MNCoreTestDefinitions, MNCoreSidTestDefinitions
+implements CoreTestDefinitions, MNCoreTestDefinitions
 {
     @WebTestImplementation
     private CoreTestImplementations coreTestImpl;
@@ -62,12 +60,5 @@ implements CoreTestDefinitions, MNCoreTestDefinitions, MNCoreSidTestDefinitions
     @Test
     public void testGetCapabilities_NodeIdentityValidFormat() {
         coreTestImpl.testGetCapabilities_NodeIdentityValidFormat(getMemberNodeIterator(), "v2");
-    }
-
-    @Override
-    @Test
-    @Ignore("API is unclear on PID|SID filter behavior; may only accept PIDs")
-    public void testSidGetLogRecords() {
-        sidImpl.testGetLogRecords();
     }
 }

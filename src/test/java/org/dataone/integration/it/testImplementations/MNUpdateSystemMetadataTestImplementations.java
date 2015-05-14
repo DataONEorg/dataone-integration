@@ -10,6 +10,7 @@ import org.dataone.integration.APITestUtils;
 import org.dataone.integration.ContextAwareTestCaseDataone;
 import org.dataone.integration.ExampleUtilities;
 import org.dataone.integration.adapters.CommonCallAdapter;
+import org.dataone.integration.adapters.MNCallAdapter;
 import org.dataone.integration.webTest.WebTestDescription;
 import org.dataone.integration.webTest.WebTestName;
 import org.dataone.service.exceptions.BaseException;
@@ -28,6 +29,10 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
         super(catc);
     }
 
+    protected MNCallAdapter getCallAdapter(Node node, String version) {
+        return new MNCallAdapter(getSession("testRightsHolder"), node, version);
+    }
+    
     @WebTestName("updateSystemMetadata - tests if the call fails with an unauthorized MN certificate subject")
     @WebTestDescription("this test calls updateSystemMetadata() with a non-authoritative MN certificate subject "
             + "and expects a NotAuthorized exception to be thrown")
@@ -85,26 +90,26 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
     
     public void testUpdateSystemMetadata_RightsHolder(Node node, String version) {
         
-        CommonCallAdapter rightsHolderCallAdapter = new CommonCallAdapter(getSession("testRightsHolder"), node, version);
+        CommonCallAdapter callAdapter = getCallAdapter(node, version);
         String currentUrl = node.getBaseURL();
         printTestHeader("testUpdateSystemMetadata_RightsHolder(...) vs. node: " + currentUrl);
-        currentUrl = rightsHolderCallAdapter.getNodeBaseServiceUrl();
+        currentUrl = callAdapter.getNodeBaseServiceUrl();
         
         try {
             AccessRule accessRule = APITestUtils.buildAccessRule("testRightsHolder", Permission.CHANGE_PERMISSION);
             Identifier pid = new Identifier();
             pid.setValue("testUpdateSystemMetadata_RightsHolder_" + ExampleUtilities.generateIdentifier());
-            Identifier testObjPid = catc.procureTestObject(rightsHolderCallAdapter, accessRule, pid);
+            Identifier testObjPid = catc.procureTestObject(callAdapter, accessRule, pid);
             
-            SystemMetadata sysmeta = rightsHolderCallAdapter.getSystemMetadata(null, testObjPid);
+            SystemMetadata sysmeta = callAdapter.getSystemMetadata(null, testObjPid);
             BigInteger newSerialVersion = sysmeta.getSerialVersion().add(BigInteger.ONE);
             Date nowIsh = new Date();
             sysmeta.setSerialVersion(newSerialVersion);
             sysmeta.setDateSysMetadataModified(nowIsh);
-            boolean success = rightsHolderCallAdapter.updateSystemMetadata(null, testObjPid , sysmeta);
+            boolean success = callAdapter.updateSystemMetadata(null, testObjPid , sysmeta);
             assertTrue("Call to updateSystemMetadata() should be successful.", success);
             
-            SystemMetadata fetchedSysmeta = rightsHolderCallAdapter.getSystemMetadata(null, testObjPid);
+            SystemMetadata fetchedSysmeta = callAdapter.getSystemMetadata(null, testObjPid);
             boolean serialVersionMatches = fetchedSysmeta.getSerialVersion().equals(newSerialVersion);
             boolean dateModifiedMatches = fetchedSysmeta.getDateSysMetadataModified().equals(nowIsh);
             assertTrue("System metadata should now have updated serialVersion", serialVersionMatches);
@@ -113,21 +118,22 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
         } catch (ServiceFailure e) {
             // ServiceFailure is an allowed outcome for the MN.updateSystemMetadata()
             if(node.getType() != NodeType.MN)
-                handleFail(rightsHolderCallAdapter.getLatestRequestUrl(), e.getClass().getSimpleName() + ": " +
+                handleFail(callAdapter.getLatestRequestUrl(), e.getClass().getSimpleName() + ": " +
                     "MN may throw ServiceFailure on a valid call to updateSystemMetadata. CN should not. " + 
                     e.getDetail_code() + ": " + e.getDescription());
         } catch (SynchronizationFailed e) {
             // SynchronizationFailed is an allowed outcome for the CN.updateSystemMetadata()
             if(node.getType() != NodeType.CN)
-                handleFail(rightsHolderCallAdapter.getLatestRequestUrl(), e.getClass().getSimpleName() + ": " +
+                handleFail(callAdapter.getLatestRequestUrl(), e.getClass().getSimpleName() + ": " +
                    "CN may throw SynchronizationFailed on a valid call to updateSystemMetadata. MN should not. " +
                     e.getDetail_code() + ": " + e.getDescription());
         } catch (BaseException e) {
-            handleFail(rightsHolderCallAdapter.getLatestRequestUrl(), e.getClass().getSimpleName() + ": " + 
+            handleFail(callAdapter.getLatestRequestUrl(), e.getClass().getSimpleName() + ": " + 
                     e.getDetail_code() + ": " + e.getDescription());
         } catch(Exception e) {
             e.printStackTrace();
             handleFail(currentUrl, e.getClass().getName() + ": " + e.getMessage());
         }
     }
+    
 }

@@ -51,6 +51,7 @@ import org.dataone.service.types.v1.Permission;
 import org.dataone.service.types.v1.Subject;
 import org.dataone.service.types.v2.Log;
 import org.dataone.service.types.v2.SystemMetadata;
+import org.dataone.service.util.Constants;
 import org.dataone.service.util.TypeMarshaller;
 import org.jibx.runtime.JiBXException;
 import org.junit.Ignore;
@@ -693,64 +694,6 @@ public abstract class SidCommonTestImplementations extends ContextAwareTestCaseD
         }
     }
     
-    /**
-     * Sets up each pid chain scenario, then calls getLogRecords() with the SID.toString()
-     * and PID.toString as the idFilter parameter.
-     * </p>
-     * <b>Note: this test is allowed to fail.</b> From the API documentation:
-     * </p>
-     * <tt>
-     * idFilter (string) – Return only log records for identifiers that start 
-     * with the supplied identifier string. Support for this parameter is optional 
-     * and MAY be ignored by the Coordinating Node implementation with no warning. 
-     * Supports PID and SID values. 
-     * Only PID values will be included in the returned entries.
-     * </tt>
-     * </p>
-     * 
-     */
-    @WebTestName("getLogRecords: tests that getLogRecords works if given a SID")
-    @WebTestDescription("... test not yet implemented ... may only need to support PIDs")
-    @Ignore("... test not yet implemented ... ")
-    @Test
-    public void testGetLogRecords() {
-        logger.info("Testing getLogRecords() method ... ");
-        
-        int[] casesToTest = getCasesToTest();
-        for (int i = 0; i < casesToTest.length; i++) {
-            int caseNum = casesToTest[i];
-            logger.info("Testing getLogRecords(), Case" + caseNum);
-            
-            Iterator<Node> nodeIter = getNodeIterator();
-            while (nodeIter.hasNext()) {
-                Node node = nodeIter.next();
-                CNCallAdapter callAdapter = new CNCallAdapter(getSession(subjectLabel), node, "v2");
-                String setupMethodName = "setup" + node.getType() + "Case" + caseNum;
-                
-                try {
-                    Method setupMethod = getSetupClass().getClass().getDeclaredMethod(setupMethodName, CommonCallAdapter.class, Node.class);
-                    IdPair idPair = (IdPair) setupMethod.invoke(getSetupClass(), callAdapter, node);
-                    Identifier sid = idPair.sid;
-                    Identifier pid = idPair.headPid;
-        
-                    Log sidLogRecords = callAdapter.getLogRecords(null, null, null, null, sid.toString(), null, null);
-                    Log pidLogRecords = callAdapter.getLogRecords(null, null, null, null, pid.toString(), null, null);
-                    int numSidRecords = sidLogRecords.getCount();
-                    int numPidRecords = pidLogRecords.getCount();
-    
-                    // TODO  ignoring ... getLogRecords() only accepts PIDs ... probably ... 
-                    
-                } catch (BaseException e) {
-                    e.printStackTrace();
-                    handleFail(callAdapter.getNodeBaseServiceUrl(), "Case: " + i + " : " + e.getDescription());
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    handleFail(callAdapter.getNodeBaseServiceUrl(), "Case: " + i + " : " + e.getMessage() + (e.getCause() == null ? "" : e.getCause().getMessage()));
-                }
-            }
-        }
-    }
-    
     @WebTestName("view: tests that view works if given a SID")
     @WebTestDescription("this test checks that calling view() with a pid and sid "
             + "yields the same result")
@@ -767,6 +710,8 @@ public abstract class SidCommonTestImplementations extends ContextAwareTestCaseD
             while (nodeIter.hasNext()) {
                 Node node = nodeIter.next();
                 CommonCallAdapter callAdapter = new CommonCallAdapter(getSession(subjectLabel), node, "v2");
+                CommonCallAdapter publicCallAdapter = new CommonCallAdapter(getSession(null), node, "v2");
+                
                 String setupMethodName = "setup" + node.getType() + "Case" + caseNum;
                 InputStream sidView = null;
                 InputStream pidView = null;
@@ -777,8 +722,8 @@ public abstract class SidCommonTestImplementations extends ContextAwareTestCaseD
                     Identifier sid = idPair.sid;
                     Identifier pid = idPair.headPid;
         
-                    sidView = callAdapter.view(null, "default", sid);
-                    pidView = callAdapter.view(null, "default", pid);
+                    sidView = publicCallAdapter.view(null, "default", sid);
+                    pidView = publicCallAdapter.view(null, "default", pid);
                     
                     assertTrue("view() Case " + caseNum, IOUtils.contentEquals(sidView, pidView));
                     
