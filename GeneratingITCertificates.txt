@@ -78,16 +78,16 @@ The cilogon oid for the subjectInfo is:  "1.3.6.1.4.1.34998.2.1"
 Full List of Certificates and corresponding SubjectInfos
 ---------------------------------------------------------
 
- #   Common Name               SubjectInfo file
----  ------------------------  ------------------------- 
- 1   testSubmitter             testSubmitter_SI.xml
- 2   testRightsHolder          testRightsHolder_SI.xml
- 3   testGroupie               testGroupie_SI.xml
- 4   testEQPerson1             testEQPerson1_SI.xml
- 5   testEQPerson2             testEQPerson2_SI.xml
- 6   testEQPerson3             testEQPerson3_SI.xml
+ #   File Name                 Common Name      SubjectInfo file
+---  ------------------------  ---------------  --------------------- 
+ 1   testSubmitter             testSubmitter    testSubmitter_SI.xml
+ 2   testRightsHolder          testRightHolder  testRightsHolder_SI.xml
+ 3   testGroupie               testGroupie      testGroupie_SI.xml
+ 4   testEQPerson1             testEQPerson1    testEQPerson1_SI.xml
+ 5   testEQPerson2             testEQPerson2    testEQPerson2_SI.xml
+ 6   testEQPerson3             testEQPerson3    testEQPerson3_SI.xml
 
- 7   testPerson                testPerson_SI.xml
- 8   testPerson_NoSubjectInfo  -
- 9   testPerson_Expired        testPerson_SI.xml
+ 7   testPerson                testPerson       testPerson_SI.xml
+ 8   testPerson_NoSubjectInfo  testPerson       -
+ 9   testPerson_Expired        testPerson       testPerson_SI.xml
  
