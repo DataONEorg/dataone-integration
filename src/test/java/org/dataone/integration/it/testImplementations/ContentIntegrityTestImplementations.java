@@ -136,7 +136,13 @@ public class ContentIntegrityTestImplementations extends ContextAwareAdapter
                                 of.getFormatId().getValue());
 
                         ObjectInfo oi = ol.getObjectInfoList().get(0);
-                        SystemMetadata smd = cca.getSystemMetadata(null, oi.getIdentifier());
+                        SystemMetadata smd = null;
+                        try {
+                            smd = cca.getSystemMetadata(null, oi.getIdentifier());
+                        } catch (NotAuthorized e) {
+                            continue;
+                        }
+                        
                         checkEquals(cca.getLatestRequestUrl(),"objectInfo checksum should equal that of sysMeta",
                                 oi.getChecksum().getAlgorithm() + " : " + oi.getChecksum().getValue(),
                                 smd.getChecksum().getAlgorithm() + " : " + smd.getChecksum().getValue());
