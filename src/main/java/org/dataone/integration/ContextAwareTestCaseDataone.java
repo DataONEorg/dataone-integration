@@ -38,6 +38,7 @@ import java.net.URI;
 import java.net.URL;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -69,7 +70,10 @@ import org.dataone.client.v1.itk.D1Object;
 import org.dataone.client.v1.types.D1TypeBuilder;
 import org.dataone.configuration.Settings;
 import org.dataone.configuration.TestSettings;
+import org.dataone.integration.adapters.CNCallAdapter;
 import org.dataone.integration.adapters.CommonCallAdapter;
+import org.dataone.integration.adapters.MNCallAdapter;
+import org.dataone.ore.ResourceMapFactory;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.IdentifierNotUnique;
 import org.dataone.service.exceptions.InsufficientResources;
@@ -87,6 +91,7 @@ import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Node;
 import org.dataone.service.types.v1.NodeList;
 import org.dataone.service.types.v1.NodeType;
+import org.dataone.service.types.v1.ObjectFormatIdentifier;
 import org.dataone.service.types.v1.ObjectInfo;
 import org.dataone.service.types.v1.ObjectList;
 import org.dataone.service.types.v1.Permission;
@@ -95,6 +100,7 @@ import org.dataone.service.types.v1.util.AccessUtil;
 import org.dataone.service.types.v2.SystemMetadata;
 import org.dataone.service.util.Constants;
 import org.dataone.service.util.TypeMarshaller;
+import org.dspace.foresite.ResourceMap;
 import org.jibx.runtime.JiBXException;
 import org.junit.Before;
 import org.junit.Rule;
@@ -119,7 +125,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
     public static final String DEFAULT_TEST_OBJECTFORMAT = ExampleUtilities.FORMAT_EML_2_0_1;
 //	public static final String DEFAULT_TEST_OBJECTFORMAT = ExampleUtilities.FORMAT_TEXT_PLAIN;
 //	public static final String DEFAULT_TEST_OBJECTFORMAT = ExampleUtilities.FORMAT_EML_2_0_0;
-
+    public static final String RESOURCE_MAP_FORMAT_ID = "http://www.openarchives.org/ore/terms";
 
     public static String cnSubmitter = Settings.getConfiguration().getString("dataone.it.cnode.submitter.cn", /* default */ "cnDevUNM1");
 
@@ -1405,6 +1411,155 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
                 return null;
             }
         });
+    }
+
+    /**
+     * Returns the {@link Identifier} for a resource map document, either one 
+     * that existed in the system, or one that was newly-created. 
+     * ({@link ObjectFormatIdentifier} type: RESOURCE, id: "http://www.openarchives.org/ore/terms")
+     * 
+     * @param mnPackageTestImplementations TODO
+     * @param cca the {@link CommonCallAdapter} to use for making the listObjects() call
+     * @return the Identifier of a resource map
+     * 
+     * @throws ClientSideException if no resource map identifier could be located
+     */
+    public Identifier procureResourceMap(CommonCallAdapter cca) throws ClientSideException {
+        
+        ObjectFormatIdentifier formatID = new ObjectFormatIdentifier();
+        formatID.setValue(RESOURCE_MAP_FORMAT_ID);
+        
+        ObjectList resourceObjInfo = new ObjectList();
+        try {
+            resourceObjInfo = cca.listObjects(null, null, null, formatID, null, null, null);
+        } catch (InvalidRequest | InvalidToken | NotAuthorized | NotImplemented | ServiceFailure
+                | ClientSideException e) {
+            e.printStackTrace();
+            throw new ClientSideException("Unable to fetch a list of resource objects for MNPackage testing.", e);
+        }
+        
+        Identifier resourceMapPid = null;
+        
+        List<ObjectInfo> objectInfoList = resourceObjInfo.getObjectInfoList();
+        for (ObjectInfo objectInfo : objectInfoList) {
+            Identifier id = objectInfo.getIdentifier();
+            try {
+                cca.get(null, id);
+                break;
+            } catch (Exception e) {
+                continue;
+            }
+        }
+        
+        // no existing resource map? create a package
+//        if (true)
+        if (resourceMapPid == null)
+            resourceMapPid = createPackage(cca, null, null, null, null);
+        
+        if (resourceMapPid == null)
+            throw new ClientSideException("Unable to fetch a resource map for MNPackage testing.");
+        
+        return resourceMapPid;
+    }
+    
+    /**
+     * Returns the {@link Identifier} for a newly-created package, meaning the same
+     * Identifier as that of the resource map document.
+     * ({@link ObjectFormatIdentifier} type: RESOURCE, id: "http://www.openarchives.org/ore/terms")
+     * 
+     * @param cca the {@link CommonCallAdapter} to use for making the listObjects() call
+     * @param packagePid the pid of this package / resource map (may be null)
+     * @param packageSid the seriesId of this package / resource map (may be null)
+     * @param obsoletes the Identifier of the package / resource map that this one is obsoleting (may be null)
+     * @param obsoletedBy the Identifier of the package / resource map that this one is obsoleted by (may be null)
+     * 
+     * @return the Identifier of the package / resource map
+     * 
+     * @throws ClientSideException if no resource map identifier could be located
+     */
+    public Identifier createPackage(CommonCallAdapter cca, Identifier packagePid, Identifier packageSid, Identifier obsoletes, Identifier obsoletedBy) throws ClientSideException {
+        
+        ObjectFormatIdentifier formatID = new ObjectFormatIdentifier();
+        formatID.setValue(RESOURCE_MAP_FORMAT_ID);
+        Identifier resourceMapPid = null;
+        AccessRule accessRule = new AccessRule();
+        getSession("testRightsHolder");
+        Subject subject = getSubject("testRightsHolder");
+        accessRule.addSubject(subject);
+        accessRule.addPermission(Permission.CHANGE_PERMISSION);
+        
+        Identifier scimetaPid = null;
+        Identifier dataObjPid = null;
+        ObjectList resourceObjInfo = null;
+        
+        // create science metadata object
+        try {
+            scimetaPid = createTestObject(cca, "testGetPackage_scimeta_", accessRule);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new ClientSideException("Unable to create object for MNPackage testing.", e);
+        }
+        
+        // create data object
+        try {
+            dataObjPid = createTestObject(cca, "testGetPackage_dataObj_", accessRule);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new ClientSideException("Unable to create metadata for MNPackage testing.", e);
+        }
+    
+        // create resource map
+        try {
+            if(packagePid == null)
+                resourceMapPid = D1TypeBuilder.buildIdentifier("testGetPackage_resourceMap_" + ExampleUtilities.generateIdentifier());
+            else
+                resourceMapPid = packagePid;
+            
+            Map<Identifier, List<Identifier>> idMap = new HashMap<Identifier, List<Identifier>>();
+            List<Identifier> dataIds = new ArrayList<Identifier>();
+            dataIds.add(dataObjPid);
+            idMap.put(scimetaPid, dataIds);
+            
+            ResourceMapFactory rmf = ResourceMapFactory.getInstance();
+            ResourceMap resourceMap = rmf.createResourceMap(resourceMapPid, idMap);
+            String rdfXml = rmf.serializeResourceMap(resourceMap);
+            byte[] resourceMapBytes = rdfXml.getBytes("UTF-8");
+            
+            InputStream objectInputStream = new ByteArrayInputStream(resourceMapBytes);
+            D1Object d1o = new D1Object(resourceMapPid, resourceMapBytes,
+                    D1TypeBuilder.buildFormatIdentifier(RESOURCE_MAP_FORMAT_ID),
+                    D1TypeBuilder.buildSubject(subject.getValue()),
+                    D1TypeBuilder.buildNodeReference("bogusAuthoritativeNode"));
+            
+            SystemMetadata sysmeta = TypeMarshaller.convertTypeFromType(d1o.getSystemMetadata(), SystemMetadata.class);
+            sysmeta.setSeriesId(packageSid);
+            sysmeta.setObsoletes(obsoletes);
+            sysmeta.setObsoletedBy(obsoletedBy);
+            
+            // is this an MN.update()?
+            if (cca instanceof MNCallAdapter && obsoletes != null)
+                ((MNCallAdapter)cca).update(null, obsoletes, objectInputStream, sysmeta.getIdentifier(), sysmeta);
+            else // or a regular MN or CN create()?
+                cca.create(null, sysmeta.getIdentifier(), objectInputStream, sysmeta);
+            
+//            // created resource map, so try to fetch again
+//            try {
+//                Thread.sleep(10000);
+//                resourceObjInfo = cca.listObjects(null, null, null, formatID, null, null, null);
+//            } catch (Exception e) {
+//                e.printStackTrace();
+//                throw new ClientSideException("Unable to fetch recently-created resource objects for MNPackage testing.", e);
+//            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new ClientSideException("Unable to create resource map for MNPackage testing.", e);
+        }
+        
+//        List<ObjectInfo> objectInfoList = resourceObjInfo.getObjectInfoList();
+//        if (objectInfoList.size() == 0)
+//            throw new ClientSideException("List of resource objects was empty but should have been created.");
+        
+        return resourceMapPid;
     }
 
 }

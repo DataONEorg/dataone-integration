@@ -297,20 +297,248 @@ public class SidMNTestImplementations extends SidCommonTestImplementations {
         return new IdPair(s2, p2);
     }
 
+    protected IdPair setupResourcePkgMNCase1(CommonCallAdapter callAdapter, Node node) throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique, UnsupportedType, InsufficientResources, InvalidSystemMetadata, NotImplemented, InvalidRequest, NotFound, ClientSideException, NoSuchAlgorithmException, InstantiationException, IllegalAccessException, InvocationTargetException, IOException, JiBXException {
 
-    @WebTestName("getPackage: ... test not yet implemented ... ")
-    @WebTestDescription(" ... test not yet implemented ... ")
+        // Case 1   P1(S1)   S1 = P1
+        Identifier p1 = createIdentifier("P1_", node);
+        Identifier s1 = createIdentifier("S1_", node);
+        
+        createPackage(callAdapter, p1, s1, null, null);
+        
+        return new IdPair(s1, p1);
+    }
+
+    protected IdPair setupResourcePkgMNCase2(CommonCallAdapter callAdapter, Node node) throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique, UnsupportedType, InsufficientResources, InvalidSystemMetadata, NotImplemented, InvalidRequest, NotFound, ClientSideException, NoSuchAlgorithmException, InstantiationException, IllegalAccessException, InvocationTargetException, IOException, JiBXException {
+        
+        // Case 2   P1(S1) <-> P2(S1)   S1 = P2
+        Identifier p1 = createIdentifier("P1_", node);
+        Identifier p2 = createIdentifier("P2_", node);
+        Identifier s1 = createIdentifier("S1_", node);
+        
+        createPackage(callAdapter, p1, s1, null, null);
+        createPackage(callAdapter, p2, s1, p1, null);
+        
+        return new IdPair(s1, p2);
+    }
+
+    protected IdPair setupResourcePkgMNCase3(CommonCallAdapter callAdapter, Node node) throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique, UnsupportedType, InsufficientResources, InvalidSystemMetadata, NotImplemented, InvalidRequest, NotFound, ClientSideException, NoSuchAlgorithmException, InstantiationException, IllegalAccessException, InvocationTargetException, IOException, JiBXException {
+        
+        // Case 5   P1(S1) <-> P2(S2)  S1 = P1
+        Identifier p1 = createIdentifier("P1_", node);
+        Identifier p2 = createIdentifier("P2_", node);
+        Identifier s1 = createIdentifier("S1_", node);
+        Identifier s2 = createIdentifier("S2_", node);
+        
+        createPackage(callAdapter, p1, s1, null, null);
+        createPackage(callAdapter, p2, s1, p1, null);
+        
+        return new IdPair(s1, p1);
+    }
+
+    protected IdPair setupResourcePkgMNCase4(CommonCallAdapter callAdapter, Node node) throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique, UnsupportedType, InsufficientResources, InvalidSystemMetadata, NotImplemented, InvalidRequest, NotFound, ClientSideException, NoSuchAlgorithmException, InstantiationException, IllegalAccessException, InvocationTargetException, IOException, JiBXException {
+    
+        // Case 6   P1(S1) <-> P2(S2)  S2 = P2
+        Identifier p1 = createIdentifier("P1_", node);
+        Identifier p2 = createIdentifier("P2_", node);
+        Identifier s1 = createIdentifier("S1_", node);
+        Identifier s2 = createIdentifier("S2_", node);
+        
+        createPackage(callAdapter, p1, s1, null, null);
+        createPackage(callAdapter, p2, s2, p1, null);
+        
+        return new IdPair(s2, p2);
+    }
+
+    protected IdPair setupResourcePkgMNCase5(CommonCallAdapter callAdapter, Node node) throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique, UnsupportedType, InsufficientResources, InvalidSystemMetadata, NotImplemented, InvalidRequest, NotFound, ClientSideException, NoSuchAlgorithmException, InstantiationException, IllegalAccessException, InvocationTargetException, IOException, JiBXException {
+    
+        // Case 7   [deleted] <- P2(S2)  S2 = P2
+        Identifier p1 = createIdentifier("P1_", node);
+        Identifier p2 = createIdentifier("P2_", node);
+        Identifier s1 = createIdentifier("S1_", node);
+        Identifier s2 = createIdentifier("S2_", node);
+        
+        createPackage(callAdapter, p1, s1, null, null);
+        createPackage(callAdapter, p2, s1, p1, null);
+        callAdapter.delete(null, p1);
+        
+        return new IdPair(s2, p2);
+    }
+
+    protected IdPair setupResourcePkgMNCase6(CommonCallAdapter callAdapter, Node node) throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique, UnsupportedType, InsufficientResources, InvalidSystemMetadata, NotImplemented, InvalidRequest, NotFound, ClientSideException, NoSuchAlgorithmException, InstantiationException, IllegalAccessException, InvocationTargetException, IOException, JiBXException {
+    
+        // Case 8   P1(S1) -> [deleted]  S1 = P1
+        Identifier p1 = createIdentifier("P1_", node);
+        Identifier p2 = createIdentifier("P2_", node);
+        Identifier s1 = createIdentifier("S1_", node);
+        Identifier s2 = createIdentifier("S2_", node);
+        
+        createPackage(callAdapter, p1, s1, null, null);
+        createPackage(callAdapter, p2, s2, p1, null);
+        callAdapter.delete(null, p2);
+        
+        return new IdPair(s1, p1);
+    }
+
+    protected IdPair setupResourcePkgMNCase7(CommonCallAdapter callAdapter, Node node) throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique, UnsupportedType, InsufficientResources, InvalidSystemMetadata, NotImplemented, InvalidRequest, NotFound, ClientSideException, NoSuchAlgorithmException, InstantiationException, IllegalAccessException, InvocationTargetException, IOException, JiBXException {
+    
+        // Case 9   P1(S1) <-> P2(S1) <-> P3(S1)   S1 = P3
+        Identifier p1 = createIdentifier("P1_", node);
+        Identifier p2 = createIdentifier("P2_", node);
+        Identifier p3 = createIdentifier("P3_", node);
+        Identifier s1 = createIdentifier("S1_", node);
+        
+        createPackage(callAdapter, p1, s1, null, p2);
+        createPackage(callAdapter, p2, s1, p1, null);
+        createPackage(callAdapter, p3, s1, p2, null);
+        
+        return new IdPair(s1, p3);
+    }
+
+    protected IdPair setupResourcePkgMNCase8(CommonCallAdapter callAdapter, Node node) throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique, UnsupportedType, InsufficientResources, InvalidSystemMetadata, NotImplemented, InvalidRequest, NotFound, ClientSideException, NoSuchAlgorithmException, InstantiationException, IllegalAccessException, InvocationTargetException, IOException, JiBXException {
+    
+        // Case 10   P1(S1) -> [deleted] <- P3(S1)   S1 = P3
+        Identifier p1 = createIdentifier("P1_", node);
+        Identifier p2 = createIdentifier("P2_", node);
+        Identifier p3 = createIdentifier("P3_", node);
+        Identifier s1 = createIdentifier("S1_", node);
+        
+        createPackage(callAdapter, p1, s1, null, null);
+        createPackage(callAdapter, p2, s1, p1, null);
+        createPackage(callAdapter, p3, s1, p2, null);
+        callAdapter.delete(null, p2);
+        
+        return new IdPair(s1, p3);
+    }
+
+    protected IdPair setupResourcePkgMNCase9(CommonCallAdapter callAdapter, Node node) throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique, UnsupportedType, InsufficientResources, InvalidSystemMetadata, NotImplemented, InvalidRequest, NotFound, ClientSideException, NoSuchAlgorithmException, InstantiationException, IllegalAccessException, InvocationTargetException, IOException, JiBXException {
+
+        // Case 11   P1(S1) <-> P2(S1) -> [deleted]   S1 = P2
+        Identifier p1 = createIdentifier("P1_", node);
+        Identifier p2 = createIdentifier("P2_", node);
+        Identifier p3 = createIdentifier("P3_", node);
+        Identifier s1 = createIdentifier("S1_", node);
+        
+        createPackage(callAdapter, p1, s1, null, p2);
+        createPackage(callAdapter, p2, s1, p1, null);
+        createPackage(callAdapter, p3, s1, p2, null);
+        callAdapter.delete(null, p3);
+        
+        return new IdPair(s1, p2);
+    }
+
+    protected IdPair setupResourcePkgMNCase10(CommonCallAdapter callAdapter, Node node) throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique, UnsupportedType, InsufficientResources, InvalidSystemMetadata, NotImplemented, InvalidRequest, NotFound, ClientSideException, NoSuchAlgorithmException, InstantiationException, IllegalAccessException, InvocationTargetException, IOException, JiBXException {
+    
+        // Case 12   P1(S1) <-> P2(S1) <-> P3(S2)   S2 = P3
+        Identifier p1 = createIdentifier("P1_", node);
+        Identifier p2 = createIdentifier("P2_", node);
+        Identifier p3 = createIdentifier("P3_", node);
+        Identifier s1 = createIdentifier("S1_", node);
+        Identifier s2 = createIdentifier("S2_", node);
+        
+        createPackage(callAdapter, p1, s1, null, p2);
+        createPackage(callAdapter, p2, s1, p1, null);
+        createPackage(callAdapter, p3, s2, p2, null);
+        
+        return new IdPair(s2, p3);
+    }
+    
+    protected IdPair setupResourcePkgMNCase11(CommonCallAdapter callAdapter, Node node) throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique, UnsupportedType, InsufficientResources, InvalidSystemMetadata, NotImplemented, InvalidRequest, NotFound, ClientSideException, NoSuchAlgorithmException, InstantiationException, IllegalAccessException, InvocationTargetException, IOException, JiBXException {
+        
+        // Case 13   P1(S1) <-> P2(S2) <-> P3(S2)   S2 = P3
+        Identifier p1 = createIdentifier("P1_", node);
+        Identifier p2 = createIdentifier("P2_", node);
+        Identifier p3 = createIdentifier("P3_", node);
+        Identifier s1 = createIdentifier("S1_", node);
+        Identifier s2 = createIdentifier("S2_", node);
+        
+        createPackage(callAdapter, p1, s1, null, p2);
+        createPackage(callAdapter, p2, s2, p1, null);
+        createPackage(callAdapter, p3, s2, p2, null);
+        
+        return new IdPair(s2, p3);
+    }
+
+    protected IdPair setupResourcePkgMNCase12(CommonCallAdapter callAdapter, Node node) throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique, UnsupportedType, InsufficientResources, InvalidSystemMetadata, NotImplemented, InvalidRequest, NotFound, ClientSideException, NoSuchAlgorithmException, InstantiationException, IllegalAccessException, InvocationTargetException, IOException, JiBXException {
+        
+        // Case 14   P1(S1) <-> [deleted] <- P3(S2)  S1 = P1
+        Identifier p1 = createIdentifier("P1_", node);
+        Identifier p2 = createIdentifier("P2_", node);
+        Identifier p3 = createIdentifier("P3_", node);
+        Identifier s1 = createIdentifier("S1_", node);
+        Identifier s2 = createIdentifier("S2_", node);
+        
+        createPackage(callAdapter, p1, s1, null, p2);
+        createPackage(callAdapter, p2, s1, p1, null);
+        createPackage(callAdapter, p3, s2, p2, null);
+        callAdapter.delete(null, p2);
+        
+        return new IdPair(s1, p1);
+    }
+
+    protected IdPair setupResourcePkgMNCase13(CommonCallAdapter callAdapter, Node node) throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique, UnsupportedType, InsufficientResources, InvalidSystemMetadata, NotImplemented, InvalidRequest, NotFound, ClientSideException, NoSuchAlgorithmException, InstantiationException, IllegalAccessException, InvocationTargetException, IOException, JiBXException {
+
+        // Case 15   P1(S1) <-> P2(S1) -> [deleted]   S1 = P2
+        Identifier p1 = createIdentifier("P1_", node);
+        Identifier p2 = createIdentifier("P2_", node);
+        Identifier p3 = createIdentifier("P3_", node);
+        Identifier s1 = createIdentifier("S1_", node);
+        Identifier s2 = createIdentifier("S2_", node);
+        
+        createPackage(callAdapter, p1, s1, null, p2);
+        createPackage(callAdapter, p2, s1, p1, null);
+        createPackage(callAdapter, p3, s2, p2, null);
+        callAdapter.delete(null, p3);
+        
+        return new IdPair(s1, p2);
+    }
+
+    protected IdPair setupResourcePkgMNCase14(CommonCallAdapter callAdapter, Node node) throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique, UnsupportedType, InsufficientResources, InvalidSystemMetadata, NotImplemented, InvalidRequest, NotFound, ClientSideException, NoSuchAlgorithmException, InstantiationException, IllegalAccessException, InvocationTargetException, IOException, JiBXException {
+
+        // Case 13   P1(S1) -> [deleted] <- P3(S2)   S2 = P3
+        Identifier p1 = createIdentifier("P1_", node);
+        Identifier p2 = createIdentifier("P2_", node);
+        Identifier p3 = createIdentifier("P3_", node);
+        Identifier s1 = createIdentifier("S1_", node);
+        Identifier s2 = createIdentifier("S2_", node);
+        
+        createPackage(callAdapter, p1, s1, null, p2);
+        createPackage(callAdapter, p2, s2, p1, null);
+        createPackage(callAdapter, p3, s2, p2, null);
+        callAdapter.delete(null, p2);
+        
+        return new IdPair(s2, p3);
+    }
+
+    protected IdPair setupResourcePkgMNCase15(CommonCallAdapter callAdapter, Node node) throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique, UnsupportedType, InsufficientResources, InvalidSystemMetadata, NotImplemented, InvalidRequest, NotFound, ClientSideException, NoSuchAlgorithmException, InstantiationException, IllegalAccessException, InvocationTargetException, IOException, JiBXException {
+
+        // Case 13   P1(S1) <-> P2(S2) <-> [deleted]   S2 = P2
+        Identifier p1 = createIdentifier("P1_", node);
+        Identifier p2 = createIdentifier("P2_", node);
+        Identifier p3 = createIdentifier("P3_", node);
+        Identifier s1 = createIdentifier("S1_", node);
+        Identifier s2 = createIdentifier("S2_", node);
+        
+        createPackage(callAdapter, p1, s1, null, p2);
+        createPackage(callAdapter, p2, s2, p1, null);
+        createPackage(callAdapter, p3, s2, p2, null);
+        callAdapter.delete(null, p3);
+        
+        return new IdPair(s2, p2);
+    }
+    
+    @WebTestName("getPackage: tests that getPackage() works whether given a sid and pid")
+    @WebTestDescription("this test checks that calling getPackage() with a sid and with "
+            + "the pid that's the head of that sid chain, then compares the resulting "
+            + "InputStreams for equality")
     @Test
     public void testGetPackage() throws NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InvalidToken, ServiceFailure, NotAuthorized, InvalidRequest, NotImplemented, NotFound, ClientSideException {
         logger.info("Testing getPackage() method ... ");
         
-        int[] casesToTest = getCasesToTest();
-        for (int i = 0; i < casesToTest.length; i++) {
-            int caseNum = casesToTest[i];
+        for (int caseNum = 1; caseNum <= 15; caseNum++) {
             logger.info("Testing getPackage(), Case" + caseNum);
             
-            Method setupMethod = SidMNTestImplementations.class.getDeclaredMethod("setupMNCase" + caseNum, CommonCallAdapter.class, Node.class);
-    
+            Method setupMethod = SidMNTestImplementations.class.getDeclaredMethod("setupResourcePkgMNCase" + caseNum, CommonCallAdapter.class, Node.class);
+            
             Iterator<Node> nodeIter = getNodeIterator();
             while (nodeIter.hasNext()) {
                 Node node = nodeIter.next();
@@ -320,8 +548,7 @@ public class SidMNTestImplementations extends SidCommonTestImplementations {
                 Identifier pid = idPair.headPid;
                 
                 ObjectFormatIdentifier formatID = new ObjectFormatIdentifier();
-                // FIXME    bagit format should be supported by default
-                //          but it's not yet in the objectFormatList.xml
+                
                 formatID.setValue("application/zip");
                 InputStream sidPkg = callAdapter.getPackage(null, formatID, sid);
                 InputStream pidPkg = callAdapter.getPackage(null, formatID, pid);
@@ -329,7 +556,7 @@ public class SidMNTestImplementations extends SidCommonTestImplementations {
                     assertTrue("getPackage() Case " + caseNum, IOUtils.contentEquals(sidPkg, pidPkg));
                 } catch (IOException e) {
                     e.printStackTrace();
-                    handleFail(callAdapter.getNodeBaseServiceUrl(), "Case: " + i + " : " + e.getMessage());
+                    handleFail(callAdapter.getNodeBaseServiceUrl(), "Case: " + caseNum + " : " + e.getMessage());
                 }
             }
         }

@@ -12,6 +12,7 @@ import org.dataone.client.exception.ClientSideException;
 import org.dataone.client.rest.MultipartRestClient;
 import org.dataone.service.cn.v2.CNAuthorization;
 import org.dataone.service.cn.v2.CNCore;
+import org.dataone.service.cn.v2.CNDiagnostic;
 import org.dataone.service.cn.v2.CNIdentity;
 import org.dataone.service.cn.v2.CNRead;
 import org.dataone.service.cn.v2.CNRegister;
@@ -27,6 +28,7 @@ import org.dataone.service.exceptions.NotAuthorized;
 import org.dataone.service.exceptions.NotFound;
 import org.dataone.service.exceptions.NotImplemented;
 import org.dataone.service.exceptions.ServiceFailure;
+import org.dataone.service.exceptions.UnsupportedMetadataType;
 import org.dataone.service.exceptions.UnsupportedType;
 import org.dataone.service.exceptions.VersionMismatch;
 import org.dataone.service.types.v1.AccessPolicy;
@@ -47,8 +49,6 @@ import org.dataone.service.types.v1.ReplicationStatus;
 import org.dataone.service.types.v1.Session;
 import org.dataone.service.types.v1.Subject;
 import org.dataone.service.types.v1.SubjectInfo;
-import org.dataone.service.types.v1_1.QueryEngineDescription;
-import org.dataone.service.types.v1_1.QueryEngineList;
 import org.dataone.service.types.v2.NodeList;
 import org.dataone.service.types.v2.ObjectFormat;
 import org.dataone.service.types.v2.ObjectFormatList;
@@ -771,8 +771,46 @@ public class CNCallAdapter extends CommonCallAdapter {
             CNCore cnCore = D1NodeFactory.buildNode(CNCore.class, mrc, URI.create(node.getBaseURL()));
             return cnCore.synchronize(session, pid);
         }
-        throw new ClientSideException("Call to deleteReplicationMetadata failed. " + node.getType() + " of version "
+        throw new ClientSideException("Call to synchronize failed. " + node.getType() + " of version "
                 + version);
     }
     
+    public SubjectInfo echoCredentials(Session session)
+            throws NotImplemented, NotAuthorized, ServiceFailure, InvalidRequest,
+            InvalidSystemMetadata, InvalidToken, ClientSideException {
+        
+        if (this.node.getType().equals(NodeType.CN) 
+                && this.version.toLowerCase().equals("v2")) {
+            CNDiagnostic cnDiagnostic = D1NodeFactory.buildNode(CNDiagnostic.class, mrc, URI.create(node.getBaseURL()));
+            return cnDiagnostic.echoCredentials(session);
+        }
+        throw new ClientSideException("Call to echoCredentials failed. " + node.getType() + " of version "
+                + version);
+    }
+    
+    public SystemMetadata echoSystemMetadata(Session session, SystemMetadata sysmeta)
+            throws NotImplemented, NotAuthorized, ServiceFailure, InvalidRequest,
+            InvalidSystemMetadata, InvalidToken, ClientSideException, IdentifierNotUnique {
+        
+        if (this.node.getType().equals(NodeType.CN) 
+                && this.version.toLowerCase().equals("v2")) {
+            CNDiagnostic cnDiagnostic = D1NodeFactory.buildNode(CNDiagnostic.class, mrc, URI.create(node.getBaseURL()));
+            return cnDiagnostic.echoSystemMetadata(session, sysmeta);
+        }
+        throw new ClientSideException("Call to echoSystemMetadata failed. " + node.getType() + " of version "
+                + version);
+    }
+    
+    public InputStream echoIndexedObject(Session session, String queryEngine, SystemMetadata sysmeta, InputStream object)
+            throws NotImplemented, NotAuthorized, ServiceFailure, InvalidRequest,
+            InvalidSystemMetadata, InvalidToken, ClientSideException, UnsupportedType, UnsupportedMetadataType, InsufficientResources {
+        
+        if (this.node.getType().equals(NodeType.CN) 
+                && this.version.toLowerCase().equals("v2")) {
+            CNDiagnostic cnDiagnostic = D1NodeFactory.buildNode(CNDiagnostic.class, mrc, URI.create(node.getBaseURL()));
+            return cnDiagnostic.echoIndexedObject(session, queryEngine, sysmeta, object);
+        }
+        throw new ClientSideException("Call to echoIndexedObject failed. " + node.getType() + " of version "
+                + version);
+    }
 }
