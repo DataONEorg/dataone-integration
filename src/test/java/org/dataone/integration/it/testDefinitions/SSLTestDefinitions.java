@@ -17,7 +17,9 @@ public interface SSLTestDefinitions {
      * This test will test the downgraded permissions to make sure it only has
      * access to public data, not it's own.
      */
-    public void testConnectionLayer_SelfSignedCert();
+    public void testConnectionLayer_SelfSignedCert_JavaSSL();
+    
+    public void testConnectionLayer_SelfSignedCert_curl();
     
     public void testConnectionLayer_ExpiredCertificate();
     

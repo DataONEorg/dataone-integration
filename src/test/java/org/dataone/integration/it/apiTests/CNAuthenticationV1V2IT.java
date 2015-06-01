@@ -28,8 +28,14 @@ implements  SSLTestDefinitions {
 
     @Override
     @Test
-    public void testConnectionLayer_SelfSignedCert() {
-        sslTestImpl.testConnectionLayer_SelfSignedCert(getCoordinatingNodeIterator(), "v1");
+    public void testConnectionLayer_SelfSignedCert_JavaSSL() {
+        sslTestImpl.testConnectionLayer_SelfSignedCert_JavaSSL(getCoordinatingNodeIterator(), "v1");
+    }
+    
+    @Override
+    @Test
+    public void testConnectionLayer_SelfSignedCert_curl() {
+//        sslTestImpl.testConnectionLayer_SelfSignedCert_curl(getCoordinatingNodeIterator(), "v1");
     }
 
 
