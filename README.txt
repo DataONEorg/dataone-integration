@@ -83,34 +83,68 @@ currently work on Hudson.
 
 
 
-Running the Web Tests Locally
+Running the WebTester Locally
 -----------------------------
 In addition to running the WebTester from mncheck.test.dataone.org, those who want
-more control over testing have a few options on running the tests locally, depending
-on your readiness with Java development tools.
+more control can run the WebTester locally using its embedded Jetty web server.  All
+that is needed is a Java runtime, Subversion and Maven(3) installed, and a browser.
+You will not need to work with java code.
 
-1. No Maven: The WebTester webapp can be downloaded and run from the commandline,
-setting up a jetty web server that you point your browser to instead of mncheck.test.dataone.org.
 This option lets you start and stop the server and cancel jobs, but gives you the
-same functionality and UI as the WebTester DataONE maintains.  You will also have access
-to log messages the webapp produces.
+same functionality and UI as the WebTester DataONE maintains on mncheck.test.dataone.org.  
+You will also have access to the log messages the webapp produces.
 
-To do this download the MNWebTester.war and run from the commandline:
-   
-  1.   java -jar MNWebTester.war
-  2.   point your browser to localhost:6680
- 
+For *NIX OS's
+
+1. install subversion if necessary
+
+2. install maven if necessary
+
+3. install a Java JDK if necessary (compiling the tests via maven requires a JDK)
+
+3. checkout this project, if necessary, either the development branch (/trunk) 
+   or a released branch (/branches/D1_INTEGRATION_v[X].[Y]
+   For example:
+      svn co https://repository.dataone.org/software/cicore/trunk/d1_integration
+      svn co https://repository.dataone.org/software/cicore/branches/D1_INTEGRATION_v1.1
+      
+4. from the checked-out d1_integration top-level directory, build the .war file (the web app)
+      $ mvn package
+      
+5. run the MNWebTester:
+      $ java -jar target/MNWebTester_<some version and build number>.war
+      
+      # this starts an embedded jetty server that will be listening on port 6680 
+      
+6. run / connect to the MNWebTester by pointing your browser to
+
+     http://localhost:6680
+     
+7. from the browser page, enter the url of the Member Node you wish to test, and
+   choose the tests you wish to run.
+
+
 You can stop the server with ^C or through a telnet command to a listener on the adjacent port:
 
-  3.   telnet localhost 6681
-  4.   tap return key
+      $ telnet localhost 6681
+      <tap return key again after issuing the command above>
 
-2. Maven, no Java:  The d1_integration project can be checked out and run locally from
-the command line.  For example:
+
+Running the WebTester tests locally
+-----------------------------------
+For those more comfortable running maven tests from the command line, you can also
+check out the d1_integration project and run the tests through the command line.
+Note: for v1.x d1_integration checkouts, tests are organized by Tier, but in v2 
+we reorganized the tests into API names, for greater flexibility.
 
 For example: 
+   
    mvn -Dcontext.mn.baseurl=https://mn.foo.org/mn -Dit.test=MNodeTier1IT verify
    mvn -Dcontext.mn.baseurl=https://mn.foo.org/mn -Dit.test=MNodeTier* verify
+   
+   or for v2:
+   mvn -Dcontext.mn.baseurl=https://mn.foo.org/mn -Dit.test=MNCore* verify
+   mvn -Dcontext.mn.baseurl=https://mn.foo.org/mn -Dit.test=MNRead* verify
    
 In the examples above, the baseurl and test sets are specified with -D options,
 and both are necessary.  The verify is the life-cycle goal maven is given that
@@ -119,15 +153,15 @@ tests matching the pattern you specify.
 
 All of the WebTester tests are organized in the project under:
   
-  src/test/java/org/dataone/integration/it/MNodeTier*
-
+  v1: src/test/java/org/dataone/integration/it/MNodeTier*
+  v2: src/test/java/org/dataone/integration/it/apiTests/MN*
 
 Additionally, Tier2 and above tests make use of a set of client certificates when making 
 api calls.  These need to be downloaded separately and installed on the machine
 from where the tests are being run.  Please contact support@dataone.org to request
-the certificates.
+these certificates.
 
-the property and default that controls where the libclient will look for these is:
+the property (and default value) that controls where the libclient will look for these is:
 
   d1.test.cert.location=/etc/dataone/client/testClientCerts/
 
