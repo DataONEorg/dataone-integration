@@ -34,6 +34,7 @@ import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.math.BigInteger;
 import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
@@ -53,7 +54,7 @@ import org.apache.commons.logging.LogFactory;
 import org.dataone.client.exception.ClientSideException;
 import org.dataone.client.rest.HttpMultipartRestClient;
 import org.dataone.client.rest.MultipartRestClient;
-import org.dataone.client.v1.itk.D1Object;
+import org.dataone.client.v1.types.D1TypeBuilder;
 import org.dataone.client.v2.CNode;
 import org.dataone.client.v2.MNode;
 import org.dataone.configuration.Settings;
@@ -61,9 +62,9 @@ import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.NotImplemented;
 import org.dataone.service.exceptions.ServiceFailure;
 import org.dataone.service.exceptions.SynchronizationFailed;
+import org.dataone.service.types.v1.Checksum;
 import org.dataone.service.types.v1.Group;
 import org.dataone.service.types.v1.Identifier;
-import org.dataone.service.types.v2.Node;
 import org.dataone.service.types.v1.NodeReference;
 import org.dataone.service.types.v1.NodeState;
 import org.dataone.service.types.v1.NodeType;
@@ -72,6 +73,8 @@ import org.dataone.service.types.v1.Person;
 import org.dataone.service.types.v1.Replica;
 import org.dataone.service.types.v1.ReplicationStatus;
 import org.dataone.service.types.v1.Subject;
+import org.dataone.service.types.v2.Node;
+import org.dataone.service.types.v2.SystemMetadata;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
@@ -179,7 +182,7 @@ public class ClientArchitectureConformityIT {
     public static Collection<Object[]> setUpTestParameters() throws IOException
     {
         methodMap = ArchitectureUtils.setUpMethodDocumentationMap();
-
+        
         // creating a superset of methodKeys - if it exists in documentation or
         // implementation we're gonna test it
 
@@ -246,6 +249,7 @@ public class ClientArchitectureConformityIT {
             ArrayList<String> interfaceMethodList = new ArrayList<String>();
             Class<?>[] interfaces = CNode.class.getInterfaces();
             for (Class<?> c : interfaces) {
+                if (c.getSimpleName().equals("D1Node")) continue;
                 log.info("Interface under test: " + c.getName());
                 Method[] methods = c.getMethods();
                 for (Method m : methods) {
@@ -275,6 +279,7 @@ public class ClientArchitectureConformityIT {
             ArrayList<String> interfaceMethodList = new ArrayList<String>();
             Class<?>[] interfaces = MNode.class.getInterfaces();
             for (Class<?> c : interfaces) {
+                if (c.getSimpleName().equals("D1Node")) continue;
                 log.info("Interface under test: " + c.getName());
                 Method[] methods = c.getMethods();
                 for (Method m : methods) {
@@ -691,11 +696,11 @@ public class ClientArchitectureConformityIT {
         String echoResponse = null;
         D1Node d1node = null;
         if (nodeType.equals(NodeType.CN)) {
-            d1node = D1NodeFactory.buildNode(org.dataone.client.v1.CNode.class,
+            d1node = D1NodeFactory.buildNode(org.dataone.client.v2.CNode.class,
                     MRC,URI.create(TEST_SERVICE_BASE + testResource));
             echoResponse = getEchoResponse(d1node,getCNInterfaceMethods().get(currentMethodKey));
         } else {
-            d1node = D1NodeFactory.buildNode(org.dataone.client.v1.MNode.class,
+            d1node = D1NodeFactory.buildNode(org.dataone.client.v2.MNode.class,
                     MRC,URI.create(TEST_SERVICE_BASE + testResource));
             echoResponse = getEchoResponse(d1node,getMNInterfaceMethods().get(currentMethodKey));
         }
@@ -817,14 +822,22 @@ public class ClientArchitectureConformityIT {
         } else if (c.getCanonicalName().endsWith("SystemMetadata")) {
             Identifier id = new Identifier();
             id.setValue("testIdentifier");
-            D1Object d1o = null;
-            try {
-                d1o = new 	D1Object(id, "testData".getBytes(), "text/plain",
-                        "submitterString", "nodeIdString");
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            o = d1o.getSystemMetadata();
+            SystemMetadata smd = new SystemMetadata();
+            smd.setIdentifier(id);
+            smd.setOriginMemberNode(D1TypeBuilder.buildNodeReference("nodeIdString"));
+            smd.setAuthoritativeMemberNode(D1TypeBuilder.buildNodeReference("nodeIdString"));
+            smd.setFormatId(D1TypeBuilder.buildFormatIdentifier("text/plain"));
+            smd.setSubmitter(D1TypeBuilder.buildSubject("submitterString"));
+            smd.setSerialVersion(BigInteger.ONE);
+            smd.setSize(BigInteger.TEN);
+            smd.setDateSysMetadataModified(new Date());
+            smd.setDateUploaded(new Date());
+            smd.setChecksum(new Checksum());
+            smd.getChecksum().setAlgorithm("MD5");
+            smd.getChecksum().setValue("asqweroivlksjklrwe452398opvds9fdcvoipefnwr");
+            smd.setRightsHolder(D1TypeBuilder.buildSubject("rightsHolderString"));
+            
+            o = smd;
 
         } else if (c.getCanonicalName().endsWith("SynchronizationFailed")) {
             o = new SynchronizationFailed("detailCodeString","descriptionString");

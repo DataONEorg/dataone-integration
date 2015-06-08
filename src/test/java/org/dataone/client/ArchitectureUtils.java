@@ -42,7 +42,7 @@ public class ArchitectureUtils {
 	protected static Log log = LogFactory.getLog(ArchitectureUtils.class);
 	
 	private static final String METHOD_REFERENCE_DOC = 
-		"https://repository.dataone.org/software/cicore/tags/API-DOCUMENTATION-v1.1.0/" +
+		"https://repository.dataone.org/documents/Projects/cicore/architecture/api-documentation/" +
 		"MethodCrossReference.xls";
 	private static final String V1_METHOD_REFERENCE_DOC =
 			"https://repository.dataone.org/documents/Projects/cicore/" +
