@@ -438,16 +438,18 @@ public class ClientArchitectureConformityIT {
             if (i < implParamTypes.length) {
                 String paramTypeSimpleName = implParamTypes[i].getSimpleName(); // don't have to worry about arrays
                 if (sessionCorrection == 0) {
+                    String docParamType = i < docParamTypes.size() ? docParamTypes.get(i) : null;
                     checkTrue(currentMethodKey,"Implemented parameter type ("+ paramTypeSimpleName +
-                            ") at position " + i + " should match documented type ("+ docParamTypes.get(i) +")",
-                            ArchitectureUtils.checkDocTypeEqualsJavaType(docParamTypes.get(i),
+                            ") at position " + i + " should match documented type ("+ docParamType +")",
+                            ArchitectureUtils.checkDocTypeEqualsJavaType(docParamType,
                                     paramTypeSimpleName));
                 }
                 else {
+                    String docParamType = i+1 < docParamTypes.size() ? docParamTypes.get(i+1) : null;
                     checkTrue(currentMethodKey,"Implemented parameter type ("+ paramTypeSimpleName +
-                            ") at position " + i + " should match documented type ("+ docParamTypes.get(i+1) +") " +
+                            ") at position " + i + " should match documented type ("+ docParamType +") " +
                             "at position " + (i+1),
-                            ArchitectureUtils.checkDocTypeEqualsJavaType(docParamTypes.get(i+1),
+                            ArchitectureUtils.checkDocTypeEqualsJavaType(docParamType,
                                     paramTypeSimpleName));
                 }
             } else {
@@ -583,7 +585,7 @@ public class ClientArchitectureConformityIT {
                                 if (paramTypes != null) {
                                     paramType = paramTypes.get(i);
                                     expectedLocation = paramLocation.get(i++);
-                                    // session is not sent in the echo test so need to foce a match
+                                    // session is not sent in the echo test so need to force a match
                                     if (paramType.equalsIgnoreCase("Session")) {
                                         expectedLocation = null;
                                     }
@@ -918,8 +920,10 @@ public class ClientArchitectureConformityIT {
             // to determine its location - so look for the line and match on
             // the string value of that parameter (in the form 'test{Type}')
             // will use this value if param name not elsewhere
-            if (line.startsWith("request.META[ PATH_INFO ]") && line.endsWith("/" + paramTestObject)) {
-                pathLocation = "Path";
+            if (line.startsWith("request.META[ PATH_INFO ]")) {
+                if (line.contains("/" + paramTestObject)) {
+                    pathLocation = "Path";
+                }
             }
         }
         if (location == null) {

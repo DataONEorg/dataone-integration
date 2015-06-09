@@ -51,7 +51,10 @@ public class ArchitectureUtils {
 	
 	public static boolean checkDocTypeEqualsJavaType(String docParamType, String implParamType)
 	{
-		docParamType = docParamType.toLowerCase();
+		if (docParamType == null) 
+		    return false;
+		
+	    docParamType = docParamType.toLowerCase();
 		implParamType = implParamType.toLowerCase();
 		if (docParamType.equals(implParamType))
 			return true;
