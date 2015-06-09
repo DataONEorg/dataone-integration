@@ -3,26 +3,41 @@ package org.dataone.integration.it.testImplementations;
 import static org.junit.Assert.assertTrue;
 
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
+import java.math.BigInteger;
 import java.util.Iterator;
+import java.util.List;
 
+import org.dataone.client.exception.ClientSideException;
 import org.dataone.client.v1.types.D1TypeBuilder;
 import org.dataone.integration.ContextAwareTestCaseDataone;
+import org.dataone.integration.ExampleUtilities;
 import org.dataone.integration.adapters.CNCallAdapter;
 import org.dataone.integration.it.ContextAwareAdapter;
 import org.dataone.integration.webTest.WebTestDescription;
 import org.dataone.integration.webTest.WebTestName;
 import org.dataone.service.exceptions.BaseException;
+import org.dataone.service.exceptions.IdentifierNotUnique;
+import org.dataone.service.exceptions.InsufficientResources;
 import org.dataone.service.exceptions.InvalidRequest;
 import org.dataone.service.exceptions.InvalidSystemMetadata;
+import org.dataone.service.exceptions.InvalidToken;
 import org.dataone.service.exceptions.NotAuthorized;
+import org.dataone.service.exceptions.NotFound;
+import org.dataone.service.exceptions.NotImplemented;
+import org.dataone.service.exceptions.ServiceFailure;
+import org.dataone.service.exceptions.UnsupportedType;
+import org.dataone.service.types.v1.AccessPolicy;
 import org.dataone.service.types.v1.AccessRule;
+import org.dataone.service.types.v1.Group;
 import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Node;
 import org.dataone.service.types.v1.Permission;
+import org.dataone.service.types.v1.Person;
+import org.dataone.service.types.v1.ReplicationPolicy;
 import org.dataone.service.types.v1.Subject;
 import org.dataone.service.types.v1.SubjectInfo;
 import org.dataone.service.types.v2.SystemMetadata;
-import org.dataone.service.util.TypeMarshaller;
 
 public class CNDiagnosticTestImplementations extends ContextAwareAdapter {
 
@@ -41,7 +56,7 @@ public class CNDiagnosticTestImplementations extends ContextAwareAdapter {
 
     private void testEchoCredentials(Node node, String version) {
         
-        CNCallAdapter callAdapter = new CNCallAdapter(getSession(cnSubmitter), node, version);
+        CNCallAdapter callAdapter = new CNCallAdapter(getSession("testRightsHolder"), node, version);
         String currentUrl = node.getBaseURL();
         printTestHeader("testEchoCredentials(...) vs. node: " + currentUrl);
         
@@ -50,10 +65,14 @@ public class CNDiagnosticTestImplementations extends ContextAwareAdapter {
             assertTrue("echoCredentials should echo a non-null SubjectInfo", 
                     subjInfo != null);
             
-            // TODO test if the returned SubjectInfo is correct...
+            // TODO should also test if the returned SubjectInfo is correct...
             
-//            assertTrue("echoCredentials should echo the subject it was given", 
-//                    );
+            List<Person> personList = subjInfo.getPersonList();
+            List<Group> groupList = subjInfo.getGroupList();
+            
+            assertTrue("test", true);
+            //assertTrue("echoCredentials should echo the subject it was given", 
+            //        );
             
         }
         catch (BaseException e) {
@@ -84,7 +103,7 @@ public class CNDiagnosticTestImplementations extends ContextAwareAdapter {
       try {
           AccessRule accessRule = new AccessRule();
           getSession("testRightsHolder");
-          Subject subject = catc.getSubject("testRightsHolder");
+          Subject subject = ContextAwareTestCaseDataone.getSubject("testRightsHolder");
           accessRule.addSubject(subject);
           accessRule.addPermission(Permission.CHANGE_PERMISSION);
           
@@ -93,11 +112,9 @@ public class CNDiagnosticTestImplementations extends ContextAwareAdapter {
           
           SystemMetadata echoedSysmeta = callAdapter.echoSystemMetadata(null, sysmeta);
           assertTrue("echoSystemMetadata() should send back a valid SystemMetadata object", echoedSysmeta != null);
-          
           assertTrue("echoSystemMetadata() - echoed system metadata identifier should match", sysmeta.getIdentifier().equals(echoedSysmeta.getIdentifier()));
           assertTrue("echoSystemMetadata() - echoed system metadata serialVersion should match", sysmeta.getSerialVersion().equals(echoedSysmeta.getSerialVersion()));
           assertTrue("echoSystemMetadata() - echoed system metadata checksum should match", sysmeta.getChecksum().equals(echoedSysmeta.getChecksum()));
-          
       }
       catch (BaseException e) {
           handleFail(callAdapter.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
@@ -126,15 +143,7 @@ public class CNDiagnosticTestImplementations extends ContextAwareAdapter {
         printTestHeader("testEchoSystemMetadata_NotAuthorized(...) vs. node: " + currentUrl);
         
         try {
-            AccessRule accessRule = new AccessRule();
-            getSession("testRightsHolder");
-            Subject subject = catc.getSubject("testRightsHolder");
-            accessRule.addSubject(subject);
-            accessRule.addPermission(Permission.CHANGE_PERMISSION);
-            
-            Identifier pid = catc.createTestObject(callAdapter, "testEchoSystemMetadata_NotAuthorized", accessRule);
-            SystemMetadata sysmeta = callAdapter.getSystemMetadata(null, pid);
-            
+            SystemMetadata sysmeta = createTestSysmeta(callAdapter, "testEchoSystemMetadata_InvalidSysMeta");
             testPersonCallAdapter.echoSystemMetadata(null, sysmeta);
             handleFail(testPersonCallAdapter.getLatestRequestUrl(), "testEchoSystemMetadata_NotAuthorized() should throw a "
                     + "NotAuthorized with an unauthorized certificate subject.");
@@ -153,34 +162,26 @@ public class CNDiagnosticTestImplementations extends ContextAwareAdapter {
     }
 
     @WebTestName("echoSystemMetadata - tests if the echoSystemMetadata call fails with invalid system metadata sent")
-    @WebTestDescription("this test calls echoSystemMetadata() with system metadata containing a null "
+    @WebTestDescription("this test calls echoSystemMetadata() with system metadata containing a negative "
             + "serialVersion and expects an InvalidSystemMetadata exception to be thrown")
-    public void testEchoSystemMetadata_InvalidSysMeta(Iterator<Node> nodeIterator, String version) {
+    public void testEchoSystemMetadata_InvalidSysMeta_SerialVer(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
-            testEchoSystemMetadata_InvalidSysMeta(nodeIterator.next(), version);        
+            testEchoSystemMetadata_InvalidSysMeta_SerialVer(nodeIterator.next(), version);        
     }
 
-    private void testEchoSystemMetadata_InvalidSysMeta(Node node, String version) {
+    private void testEchoSystemMetadata_InvalidSysMeta_SerialVer(Node node, String version) {
         
         CNCallAdapter callAdapter = new CNCallAdapter(getSession(cnSubmitter), node, version);
-        CNCallAdapter testPersonCallAdapter = new CNCallAdapter(getSession("testPerson"), node, version);
         String currentUrl = node.getBaseURL();
-        printTestHeader("testEchoSystemMetadata_NotAuthorized(...) vs. node: " + currentUrl);
+        printTestHeader("testEchoSystemMetadata_InvalidSysMeta_SerialVer(...) vs. node: " + currentUrl);
         
         try {
-            AccessRule accessRule = new AccessRule();
-            getSession("testRightsHolder");
-            Subject subject = catc.getSubject("testRightsHolder");
-            accessRule.addSubject(subject);
-            accessRule.addPermission(Permission.CHANGE_PERMISSION);
-            
-            Identifier pid = catc.createTestObject(callAdapter, "testEchoSystemMetadata_NotAuthorized", accessRule);
-            SystemMetadata sysmeta = callAdapter.getSystemMetadata(null, pid);
-            sysmeta.setSerialVersion(null);   
-            
-            testPersonCallAdapter.echoSystemMetadata(null, sysmeta);
-            handleFail(testPersonCallAdapter.getLatestRequestUrl(), "testEchoSystemMetadata_InvalidSysMeta() should throw a "
-                    + "InvalidSystemMetadata with a null serialVersion in the system metadata.");
+            SystemMetadata sysmeta = createTestSysmeta(callAdapter, "testEchoSystemMetadata_InvalidSysMeta_SerialVer");
+            BigInteger negativeNum = new BigInteger("-1");
+            sysmeta.setSerialVersion(negativeNum);
+            callAdapter.echoSystemMetadata(null, sysmeta);
+            handleFail(callAdapter.getLatestRequestUrl(), "testEchoSystemMetadata_InvalidSysMeta_SerialVer() should throw a "
+                    + "InvalidSystemMetadata with a negative serialVersion in the system metadata.");
         }
         catch (InvalidSystemMetadata e) {
             // expected outcome
@@ -195,8 +196,529 @@ public class CNDiagnosticTestImplementations extends ContextAwareAdapter {
         }
     }
     
-    @WebTestName("echoSystemMetadata - tests if the echoSystemMetadata call ")
-    @WebTestDescription("this test calls echoSystemMetadata()   ...   ")
+    @WebTestName("echoSystemMetadata - tests if the echoSystemMetadata call fails with invalid system metadata sent")
+    @WebTestDescription("this test calls echoSystemMetadata() with system metadata containing an empty "
+            + "formatId and expects an InvalidSystemMetadata exception to be thrown")
+    public void testEchoSystemMetadata_InvalidSysMeta_FormatId(Iterator<Node> nodeIterator, String version) {
+        while (nodeIterator.hasNext())
+            testEchoSystemMetadata_InvalidSysMeta_FormatId(nodeIterator.next(), version);        
+    }
+
+    private void testEchoSystemMetadata_InvalidSysMeta_FormatId(Node node, String version) {
+        
+        CNCallAdapter callAdapter = new CNCallAdapter(getSession(cnSubmitter), node, version);
+        String currentUrl = node.getBaseURL();
+        printTestHeader("testEchoSystemMetadata_InvalidSysMeta_FormatId(...) vs. node: " + currentUrl);
+        
+        try {
+            SystemMetadata sysmeta = createTestSysmeta(callAdapter, "testEchoSystemMetadata_InvalidSysMeta_FormatId");
+            sysmeta.setFormatId(D1TypeBuilder.buildFormatIdentifier(""));
+            callAdapter.echoSystemMetadata(null, sysmeta);
+            handleFail(callAdapter.getLatestRequestUrl(), "testEchoSystemMetadata_InvalidSysMeta_FormatId() should throw a "
+                    + "InvalidSystemMetadata with an empty formatId in the system metadata.");
+        }
+        catch (InvalidSystemMetadata e) {
+            // expected outcome
+        }
+        catch (BaseException e) {
+            handleFail(callAdapter.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
+                    e.getDetail_code() + ":: " + e.getDescription());
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+            handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+        }
+    }
+    
+    @WebTestName("echoSystemMetadata - tests if the echoSystemMetadata call fails with invalid system metadata sent")
+    @WebTestDescription("this test calls echoSystemMetadata() with system metadata containing a null "
+            + "pid and expects an InvalidSystemMetadata exception to be thrown")
+    public void testEchoSystemMetadata_InvalidSysMeta_NoPid(Iterator<Node> nodeIterator, String version) {
+        while (nodeIterator.hasNext())
+            testEchoSystemMetadata_InvalidSysMeta_NoPid(nodeIterator.next(), version);        
+    }
+
+    private void testEchoSystemMetadata_InvalidSysMeta_NoPid(Node node, String version) {
+        
+        CNCallAdapter callAdapter = new CNCallAdapter(getSession(cnSubmitter), node, version);
+        String currentUrl = node.getBaseURL();
+        printTestHeader("testEchoSystemMetadata_InvalidSysMeta_NoPid(...) vs. node: " + currentUrl);
+        
+        try {
+            SystemMetadata sysmeta = createTestSysmeta(callAdapter, "testEchoSystemMetadata_InvalidSysMeta_NoPid");
+            sysmeta.setIdentifier(null);
+            callAdapter.echoSystemMetadata(null, sysmeta);
+            handleFail(callAdapter.getLatestRequestUrl(), "testEchoSystemMetadata_InvalidSysMeta_NoPid() should throw a "
+                    + "InvalidSystemMetadata with a null pid in the system metadata.");
+        }
+        catch (InvalidSystemMetadata e) {
+            // expected outcome
+        }
+        catch (BaseException e) {
+            handleFail(callAdapter.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
+                    e.getDetail_code() + ":: " + e.getDescription());
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+            handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+        }
+    }
+    
+    @WebTestName("echoSystemMetadata - tests if the echoSystemMetadata call fails with invalid system metadata sent")
+    @WebTestDescription("this test calls echoSystemMetadata() with system metadata containing an empty "
+            + "pid and expects an InvalidSystemMetadata exception to be thrown")
+    public void testEchoSystemMetadata_InvalidSysMeta_EmptyPid(Iterator<Node> nodeIterator, String version) {
+        while (nodeIterator.hasNext())
+            testEchoSystemMetadata_InvalidSysMeta_EmptyPid(nodeIterator.next(), version);        
+    }
+
+    private void testEchoSystemMetadata_InvalidSysMeta_EmptyPid(Node node, String version) {
+        
+        CNCallAdapter callAdapter = new CNCallAdapter(getSession(cnSubmitter), node, version);
+        String currentUrl = node.getBaseURL();
+        printTestHeader("testEchoSystemMetadata_InvalidSysMeta_EmptyPid(...) vs. node: " + currentUrl);
+        
+        try {
+            SystemMetadata sysmeta = createTestSysmeta(callAdapter, "testEchoSystemMetadata_InvalidSysMeta_EmptyPid");
+            sysmeta.setIdentifier(D1TypeBuilder.buildIdentifier(""));
+            callAdapter.echoSystemMetadata(null, sysmeta);
+            handleFail(callAdapter.getLatestRequestUrl(), "testEchoSystemMetadata_InvalidSysMeta_EmptyPid() should throw a "
+                    + "InvalidSystemMetadata with an empty pid in the system metadata.");
+        }
+        catch (InvalidSystemMetadata e) {
+            // expected outcome
+        }
+        catch (BaseException e) {
+            handleFail(callAdapter.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
+                    e.getDetail_code() + ":: " + e.getDescription());
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+            handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+        }
+    }
+    
+    @WebTestName("echoSystemMetadata - tests if the echoSystemMetadata call fails with invalid system metadata sent")
+    @WebTestDescription("this test calls echoSystemMetadata() with system metadata containing a "
+            + "pid with whitespace and expects an InvalidSystemMetadata exception to be thrown")
+    public void testEchoSystemMetadata_InvalidSysMeta_BadPid(Iterator<Node> nodeIterator, String version) {
+        while (nodeIterator.hasNext())
+            testEchoSystemMetadata_InvalidSysMeta_BadPid(nodeIterator.next(), version);        
+    }
+
+    private void testEchoSystemMetadata_InvalidSysMeta_BadPid(Node node, String version) {
+        
+        CNCallAdapter callAdapter = new CNCallAdapter(getSession(cnSubmitter), node, version);
+        String currentUrl = node.getBaseURL();
+        printTestHeader("testEchoSystemMetadata_InvalidSysMeta_BadPid(...) vs. node: " + currentUrl);
+        
+        try {
+            SystemMetadata sysmeta = createTestSysmeta(callAdapter, "testEchoSystemMetadata_InvalidSysMeta_BadPid");
+            sysmeta.setIdentifier(D1TypeBuilder.buildIdentifier("a b c d " + System.currentTimeMillis()));
+            callAdapter.echoSystemMetadata(null, sysmeta);
+            handleFail(callAdapter.getLatestRequestUrl(), "testEchoSystemMetadata_InvalidSysMeta_BadPid() should throw a "
+                    + "InvalidSystemMetadata with a pid containing whitespace in the system metadata.");
+        }
+        catch (InvalidSystemMetadata e) {
+            // expected outcome
+        }
+        catch (BaseException e) {
+            handleFail(callAdapter.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
+                    e.getDetail_code() + ":: " + e.getDescription());
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+            handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+        }
+    }
+    
+    @WebTestName("echoSystemMetadata - tests if the echoSystemMetadata call fails with invalid system metadata sent")
+    @WebTestDescription("this test calls echoSystemMetadata() with system metadata containing a null "
+            + "size and expects an InvalidSystemMetadata exception to be thrown")
+    public void testEchoSystemMetadata_InvalidSysMeta_NoSize(Iterator<Node> nodeIterator, String version) {
+        while (nodeIterator.hasNext())
+            testEchoSystemMetadata_InvalidSysMeta_NoSize(nodeIterator.next(), version);        
+    }
+
+    private void testEchoSystemMetadata_InvalidSysMeta_NoSize(Node node, String version) {
+        
+        CNCallAdapter callAdapter = new CNCallAdapter(getSession(cnSubmitter), node, version);
+        String currentUrl = node.getBaseURL();
+        printTestHeader("testEchoSystemMetadata_InvalidSysMeta_NoSize(...) vs. node: " + currentUrl);
+        
+        try {
+            SystemMetadata sysmeta = createTestSysmeta(callAdapter, "testEchoSystemMetadata_InvalidSysMeta_NoSize");
+            sysmeta.setSize(null);
+            callAdapter.echoSystemMetadata(null, sysmeta);
+            handleFail(callAdapter.getLatestRequestUrl(), "testEchoSystemMetadata_InvalidSysMeta_NoSize() should throw a "
+                    + "InvalidSystemMetadata with a null size in the system metadata.");
+        }
+        catch (InvalidSystemMetadata e) {
+            // expected outcome
+        }
+        catch (BaseException e) {
+            handleFail(callAdapter.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
+                    e.getDetail_code() + ":: " + e.getDescription());
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+            handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+        }
+    }
+    
+    @WebTestName("echoSystemMetadata - tests if the echoSystemMetadata call fails with invalid system metadata sent")
+    @WebTestDescription("this test calls echoSystemMetadata() with system metadata containing a null "
+            + "checksum and expects an InvalidSystemMetadata exception to be thrown")
+    public void testEchoSystemMetadata_InvalidSysMeta_NoChecksum(Iterator<Node> nodeIterator, String version) {
+        while (nodeIterator.hasNext())
+            testEchoSystemMetadata_InvalidSysMeta_NoChecksum(nodeIterator.next(), version);        
+    }
+
+    private void testEchoSystemMetadata_InvalidSysMeta_NoChecksum(Node node, String version) {
+        
+        CNCallAdapter callAdapter = new CNCallAdapter(getSession(cnSubmitter), node, version);
+        String currentUrl = node.getBaseURL();
+        printTestHeader("testEchoSystemMetadata_InvalidSysMeta_NoChecksum(...) vs. node: " + currentUrl);
+        
+        try {
+            SystemMetadata sysmeta = createTestSysmeta(callAdapter, "testEchoSystemMetadata_InvalidSysMeta_NoChecksum");
+            sysmeta.setSerialVersion(null);
+            callAdapter.echoSystemMetadata(null, sysmeta);
+            handleFail(callAdapter.getLatestRequestUrl(), "testEchoSystemMetadata_InvalidSysMeta_NoChecksum() should throw a "
+                    + "InvalidSystemMetadata with a null checksum in the system metadata.");
+        }
+        catch (InvalidSystemMetadata e) {
+            // expected outcome
+        }
+        catch (BaseException e) {
+            handleFail(callAdapter.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
+                    e.getDetail_code() + ":: " + e.getDescription());
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+            handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+        }
+    }
+    
+    @WebTestName("echoSystemMetadata - tests if the echoSystemMetadata call fails with invalid system metadata sent")
+    @WebTestDescription("this test calls echoSystemMetadata() with system metadata containing a null "
+            + "submitter and expects an InvalidSystemMetadata exception to be thrown")
+    public void testEchoSystemMetadata_InvalidSysMeta_NoSubmitter(Iterator<Node> nodeIterator, String version) {
+        while (nodeIterator.hasNext())
+            testEchoSystemMetadata_InvalidSysMeta_NoSubmitter(nodeIterator.next(), version);        
+    }
+
+    private void testEchoSystemMetadata_InvalidSysMeta_NoSubmitter(Node node, String version) {
+        
+        CNCallAdapter callAdapter = new CNCallAdapter(getSession(cnSubmitter), node, version);
+        String currentUrl = node.getBaseURL();
+        printTestHeader("testEchoSystemMetadata_InvalidSysMeta_NoSubmitter(...) vs. node: " + currentUrl);
+        
+        try {
+            SystemMetadata sysmeta = createTestSysmeta(callAdapter, "testEchoSystemMetadata_InvalidSysMeta_NoSubmitter");
+            sysmeta.setSubmitter(null);
+            callAdapter.echoSystemMetadata(null, sysmeta);
+            handleFail(callAdapter.getLatestRequestUrl(), "testEchoSystemMetadata_InvalidSysMeta_NoSubmitter() should throw a "
+                    + "InvalidSystemMetadata with a null submitter in the system metadata.");
+        }
+        catch (InvalidSystemMetadata e) {
+            // expected outcome
+        }
+        catch (BaseException e) {
+            handleFail(callAdapter.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
+                    e.getDetail_code() + ":: " + e.getDescription());
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+            handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+        }
+    }
+    
+    @WebTestName("echoSystemMetadata - tests if the echoSystemMetadata call fails with invalid system metadata sent")
+    @WebTestDescription("this test calls echoSystemMetadata() with system metadata containing an empty "
+            + "submitter and expects an InvalidSystemMetadata exception to be thrown")
+    public void testEchoSystemMetadata_InvalidSysMeta_EmptySubmitter(Iterator<Node> nodeIterator, String version) {
+        while (nodeIterator.hasNext())
+            testEchoSystemMetadata_InvalidSysMeta_EmptySubmitter(nodeIterator.next(), version);        
+    }
+
+    private void testEchoSystemMetadata_InvalidSysMeta_EmptySubmitter(Node node, String version) {
+        
+        CNCallAdapter callAdapter = new CNCallAdapter(getSession(cnSubmitter), node, version);
+        String currentUrl = node.getBaseURL();
+        printTestHeader("testEchoSystemMetadata_InvalidSysMeta_EmptySubmitter(...) vs. node: " + currentUrl);
+        
+        try {
+            SystemMetadata sysmeta = createTestSysmeta(callAdapter, "testEchoSystemMetadata_InvalidSysMeta_EmptySubmitter");
+            sysmeta.setSubmitter(D1TypeBuilder.buildSubject(""));
+            callAdapter.echoSystemMetadata(null, sysmeta);
+            handleFail(callAdapter.getLatestRequestUrl(), "testEchoSystemMetadata_InvalidSysMeta_EmptySubmitter() should throw a "
+                    + "InvalidSystemMetadata with an empty submitter in the system metadata.");
+        }
+        catch (InvalidSystemMetadata e) {
+            // expected outcome
+        }
+        catch (BaseException e) {
+            handleFail(callAdapter.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
+                    e.getDetail_code() + ":: " + e.getDescription());
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+            handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+        }
+    }
+    
+    @WebTestName("echoSystemMetadata - tests if the echoSystemMetadata call fails with invalid system metadata sent")
+    @WebTestDescription("this test calls echoSystemMetadata() with system metadata containing a null "
+            + "rightsHolder and expects an InvalidSystemMetadata exception to be thrown")
+    public void testEchoSystemMetadata_InvalidSysMeta_NoRightsHolder(Iterator<Node> nodeIterator, String version) {
+        while (nodeIterator.hasNext())
+            testEchoSystemMetadata_InvalidSysMeta_NoRightsHolder(nodeIterator.next(), version);        
+    }
+
+    private void testEchoSystemMetadata_InvalidSysMeta_NoRightsHolder(Node node, String version) {
+        
+        CNCallAdapter callAdapter = new CNCallAdapter(getSession(cnSubmitter), node, version);
+        String currentUrl = node.getBaseURL();
+        printTestHeader("testEchoSystemMetadata_InvalidSysMeta_NoRightsHolder(...) vs. node: " + currentUrl);
+        
+        try {
+            SystemMetadata sysmeta = createTestSysmeta(callAdapter, "testEchoSystemMetadata_InvalidSysMeta_NoRightsHolder");
+            sysmeta.setRightsHolder(null);
+            callAdapter.echoSystemMetadata(null, sysmeta);
+            handleFail(callAdapter.getLatestRequestUrl(), "testEchoSystemMetadata_InvalidSysMeta_NoRightsHolder() should throw a "
+                    + "InvalidSystemMetadata with a null rightsHolder in the system metadata.");
+        }
+        catch (InvalidSystemMetadata e) {
+            // expected outcome
+        }
+        catch (BaseException e) {
+            handleFail(callAdapter.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
+                    e.getDetail_code() + ":: " + e.getDescription());
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+            handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+        }
+    }
+    
+    @WebTestName("echoSystemMetadata - tests if the echoSystemMetadata call fails with invalid system metadata sent")
+    @WebTestDescription("this test calls echoSystemMetadata() with system metadata containing an empty "
+            + "rightsHolder and expects an InvalidSystemMetadata exception to be thrown")
+    public void testEchoSystemMetadata_InvalidSysMeta_EmptyRightsHolder(Iterator<Node> nodeIterator, String version) {
+        while (nodeIterator.hasNext())
+            testEchoSystemMetadata_InvalidSysMeta_EmptyRightsHolder(nodeIterator.next(), version);        
+    }
+
+    private void testEchoSystemMetadata_InvalidSysMeta_EmptyRightsHolder(Node node, String version) {
+        
+        CNCallAdapter callAdapter = new CNCallAdapter(getSession(cnSubmitter), node, version);
+        String currentUrl = node.getBaseURL();
+        printTestHeader("testEchoSystemMetadata_InvalidSysMeta_EmptyRightsHolder(...) vs. node: " + currentUrl);
+        
+        try {
+            SystemMetadata sysmeta = createTestSysmeta(callAdapter, "testEchoSystemMetadata_InvalidSysMeta_EmptyRightsHolder");
+            sysmeta.setRightsHolder(D1TypeBuilder.buildSubject(""));
+            callAdapter.echoSystemMetadata(null, sysmeta);
+            handleFail(callAdapter.getLatestRequestUrl(), "testEchoSystemMetadata_InvalidSysMeta_EmptyRightsHolder() should throw a "
+                    + "InvalidSystemMetadata with an empty rightsHolder in the system metadata.");
+        }
+        catch (InvalidSystemMetadata e) {
+            // expected outcome
+        }
+        catch (BaseException e) {
+            handleFail(callAdapter.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
+                    e.getDetail_code() + ":: " + e.getDescription());
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+            handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+        }
+    }
+    
+    @WebTestName("echoSystemMetadata - tests if the echoSystemMetadata call fails with invalid system metadata sent")
+    @WebTestDescription("this test calls echoSystemMetadata() with system metadata containing an invalid "
+            + "accessPolicy (containing no rules) and expects an InvalidSystemMetadata exception to be thrown")
+    public void testEchoSystemMetadata_InvalidSysMeta_AccessPolicy(Iterator<Node> nodeIterator, String version) {
+        while (nodeIterator.hasNext())
+            testEchoSystemMetadata_InvalidSysMeta_AccessPolicy(nodeIterator.next(), version);        
+    }
+
+    private void testEchoSystemMetadata_InvalidSysMeta_AccessPolicy(Node node, String version) {
+        
+        CNCallAdapter callAdapter = new CNCallAdapter(getSession(cnSubmitter), node, version);
+        String currentUrl = node.getBaseURL();
+        printTestHeader("testEchoSystemMetadata_InvalidSysMeta_AccessPolicy(...) vs. node: " + currentUrl);
+        
+        try {
+            SystemMetadata sysmeta = createTestSysmeta(callAdapter, "testEchoSystemMetadata_InvalidSysMeta_AccessPolicy");
+            sysmeta.setAccessPolicy(new AccessPolicy());
+            callAdapter.echoSystemMetadata(null, sysmeta);
+            handleFail(callAdapter.getLatestRequestUrl(), "testEchoSystemMetadata_InvalidSysMeta_AccessPolicy() should throw a "
+                    + "InvalidSystemMetadata with an invalid accessPolicy (containing no rules) in the system metadata.");
+        }
+        catch (InvalidSystemMetadata e) {
+            // expected outcome
+        }
+        catch (BaseException e) {
+            handleFail(callAdapter.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
+                    e.getDetail_code() + ":: " + e.getDescription());
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+            handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+        }
+    }
+    
+    @WebTestName("echoSystemMetadata - tests if the echoSystemMetadata call fails with invalid system metadata sent")
+    @WebTestDescription("this test calls echoSystemMetadata() with system metadata containing an invalid "
+            + "replicationPolicy (containing no numberReplicas) and expects an InvalidSystemMetadata exception to be thrown")
+    public void testEchoSystemMetadata_InvalidSysMeta_ReplNum(Iterator<Node> nodeIterator, String version) {
+        while (nodeIterator.hasNext())
+            testEchoSystemMetadata_InvalidSysMeta_ReplNum(nodeIterator.next(), version);        
+    }
+
+    private void testEchoSystemMetadata_InvalidSysMeta_ReplNum(Node node, String version) {
+        
+        CNCallAdapter callAdapter = new CNCallAdapter(getSession(cnSubmitter), node, version);
+        String currentUrl = node.getBaseURL();
+        printTestHeader("testEchoSystemMetadata_InvalidSysMeta_ReplNum(...) vs. node: " + currentUrl);
+        
+        try {
+            SystemMetadata sysmeta = createTestSysmeta(callAdapter, "testEchoSystemMetadata_InvalidSysMeta_ReplNum");
+            ReplicationPolicy replPolicy = new ReplicationPolicy();
+            replPolicy.setNumberReplicas(null);
+            sysmeta.setReplicationPolicy(replPolicy);
+            callAdapter.echoSystemMetadata(null, sysmeta);
+            handleFail(callAdapter.getLatestRequestUrl(), "testEchoSystemMetadata_InvalidSysMeta_ReplNum() should throw a "
+                    + "InvalidSystemMetadata with an invalid replicationPolicy (containing no numberReplicas) "
+                    + "in the system metadata.");
+        }
+        catch (InvalidSystemMetadata e) {
+            // expected outcome
+        }
+        catch (BaseException e) {
+            handleFail(callAdapter.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
+                    e.getDetail_code() + ":: " + e.getDescription());
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+            handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+        }
+    }
+    
+    @WebTestName("echoSystemMetadata - tests if the echoSystemMetadata call fails with invalid system metadata sent")
+    @WebTestDescription("this test calls echoSystemMetadata() with system metadata containing an invalid "
+            + "replicationPolicy (containing no replicationAllowed) and expects an InvalidSystemMetadata exception to be thrown")
+    public void testEchoSystemMetadata_InvalidSysMeta_ReplAllow(Iterator<Node> nodeIterator, String version) {
+        while (nodeIterator.hasNext())
+            testEchoSystemMetadata_InvalidSysMeta_ReplAllow(nodeIterator.next(), version);        
+    }
+
+    private void testEchoSystemMetadata_InvalidSysMeta_ReplAllow(Node node, String version) {
+        
+        CNCallAdapter callAdapter = new CNCallAdapter(getSession(cnSubmitter), node, version);
+        String currentUrl = node.getBaseURL();
+        printTestHeader("testEchoSystemMetadata_InvalidSysMeta_ReplAllow(...) vs. node: " + currentUrl);
+        
+        try {
+            SystemMetadata sysmeta = createTestSysmeta(callAdapter, "testEchoSystemMetadata_InvalidSysMeta_ReplAllow");
+            ReplicationPolicy replPolicy = new ReplicationPolicy();
+            replPolicy.setReplicationAllowed(null);
+            sysmeta.setReplicationPolicy(replPolicy);
+            callAdapter.echoSystemMetadata(null, sysmeta);
+            handleFail(callAdapter.getLatestRequestUrl(), "testEchoSystemMetadata_InvalidSysMeta_ReplAllow() should throw a "
+                    + "InvalidSystemMetadata with an invalid replicationPolicy (containing no replicationAllowed) "
+                    + "in the system metadata.");
+        }
+        catch (InvalidSystemMetadata e) {
+            // expected outcome
+        }
+        catch (BaseException e) {
+            handleFail(callAdapter.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
+                    e.getDetail_code() + ":: " + e.getDescription());
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+            handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+        }
+    }
+    
+    @WebTestName("echoSystemMetadata - tests if the echoSystemMetadata call fails with invalid system metadata sent")
+    @WebTestDescription("this test calls echoSystemMetadata() with system metadata containing an invalid "
+            + "originMemberNode (empty string) and expects an InvalidSystemMetadata exception to be thrown")
+    public void testEchoSystemMetadata_InvalidSysMeta_NoOriginMN(Iterator<Node> nodeIterator, String version) {
+        while (nodeIterator.hasNext())
+            testEchoSystemMetadata_InvalidSysMeta_NoOriginMN(nodeIterator.next(), version);        
+    }
+    
+    private void testEchoSystemMetadata_InvalidSysMeta_NoOriginMN(Node node, String version) {
+        
+        CNCallAdapter callAdapter = new CNCallAdapter(getSession(cnSubmitter), node, version);
+        String currentUrl = node.getBaseURL();
+        printTestHeader("testEchoSystemMetadata_InvalidSysMeta_NoOriginMN(...) vs. node: " + currentUrl);
+        
+        try {
+            SystemMetadata sysmeta = createTestSysmeta(callAdapter, "testEchoSystemMetadata_InvalidSysMeta_NoOriginMN");
+            sysmeta.setOriginMemberNode(D1TypeBuilder.buildNodeReference(""));
+            callAdapter.echoSystemMetadata(null, sysmeta);
+            handleFail(callAdapter.getLatestRequestUrl(), "testEchoSystemMetadata_InvalidSysMeta_NoOriginMN() should throw a "
+                    + "InvalidSystemMetadata with an invalid originMemberNode (empty string) "
+                    + "in the system metadata.");
+        }
+        catch (InvalidSystemMetadata e) {
+            // expected outcome
+        }
+        catch (BaseException e) {
+            handleFail(callAdapter.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
+                    e.getDetail_code() + ":: " + e.getDescription());
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+            handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+        }
+    }
+    
+    @WebTestName("echoSystemMetadata - tests if the echoSystemMetadata call fails with invalid system metadata sent")
+    @WebTestDescription("this test calls echoSystemMetadata() with system metadata containing an invalid "
+            + "authoritativeMemberNode (empty string) and expects an InvalidSystemMetadata exception to be thrown")
+    public void testEchoSystemMetadata_InvalidSysMeta_NoAuthMN(Iterator<Node> nodeIterator, String version) {
+        while (nodeIterator.hasNext())
+            testEchoSystemMetadata_InvalidSysMeta_NoAuthMN(nodeIterator.next(), version);        
+    }
+    
+    private void testEchoSystemMetadata_InvalidSysMeta_NoAuthMN(Node node, String version) {
+        
+        CNCallAdapter callAdapter = new CNCallAdapter(getSession(cnSubmitter), node, version);
+        String currentUrl = node.getBaseURL();
+        printTestHeader("testEchoSystemMetadata_InvalidSysMeta_NoAuthMN(...) vs. node: " + currentUrl);
+        
+        try {
+            SystemMetadata sysmeta = createTestSysmeta(callAdapter, "testEchoSystemMetadata_InvalidSysMeta_NoAuthMN");
+            sysmeta.setAuthoritativeMemberNode(D1TypeBuilder.buildNodeReference(""));
+            callAdapter.echoSystemMetadata(null, sysmeta);
+            handleFail(callAdapter.getLatestRequestUrl(), "testEchoSystemMetadata_InvalidSysMeta_NoAuthMN() should throw a "
+                    + "InvalidSystemMetadata with an invalid authoritativeMemberNode (empty string) "
+                    + "in the system metadata.");
+        }
+        catch (InvalidSystemMetadata e) {
+            // expected outcome
+        }
+        catch (BaseException e) {
+            handleFail(callAdapter.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
+                    e.getDetail_code() + ":: " + e.getDescription());
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+            handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+        }
+    }
+
+
+
+    @WebTestName("echoSystemMetadata - tests if the echoSystemMetadata call with a non-unique pid")
+    @WebTestDescription("this test calls echoSystemMetadata() with system metadata that has "
+            + "a pid which already exists in the system")
     public void testEchoSystemMetadata_IdentifierNotUnique(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testEchoSystemMetadata_IdentifierNotUnique(nodeIterator.next(), version);        
@@ -204,10 +726,37 @@ public class CNDiagnosticTestImplementations extends ContextAwareAdapter {
 
     private void testEchoSystemMetadata_IdentifierNotUnique(Node node, String version) {
 
-            handleFail("", "Nooooo idea what this is supposed to test...");
+            CNCallAdapter callAdapter = new CNCallAdapter(getSession(cnSubmitter), node, version);
+            CNCallAdapter testPersonCallAdapter = new CNCallAdapter(getSession("testPerson"), node, version);
+            String currentUrl = node.getBaseURL();
+            printTestHeader("testEchoSystemMetadata_IdentifierNotUnique(...) vs. node: " + currentUrl);
             
-//            what causes this?? 
-//            are we assuming the pid/sid in the sysmeta is supposed to exist already?
+            try {
+                AccessRule accessRule = new AccessRule();
+                getSession("testRightsHolder");
+                Subject subject = ContextAwareTestCaseDataone.getSubject("testRightsHolder");
+                accessRule.addSubject(subject);
+                accessRule.addPermission(Permission.CHANGE_PERMISSION);
+                
+                Identifier pid = catc.createTestObject(callAdapter, "testEchoSystemMetadata_IdentifierNotUnique", accessRule);
+                SystemMetadata sysmeta = callAdapter.getSystemMetadata(null, pid);
+                sysmeta.setSerialVersion(null);   
+                
+                testPersonCallAdapter.echoSystemMetadata(null, sysmeta);
+                handleFail(testPersonCallAdapter.getLatestRequestUrl(), "testEchoSystemMetadata_IdentifierNotUnique() should throw an "
+                        + "IdentifierNotUnique if the system metadata's pid already exists.");
+            }
+            catch (IdentifierNotUnique e) {
+                // expected outcome
+            }
+            catch (BaseException e) {
+                handleFail(callAdapter.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
+                        e.getDetail_code() + ":: " + e.getDescription());
+            }
+            catch(Exception e) {
+                e.printStackTrace();
+                handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+            }
     }
     
     @WebTestName("echoSystemMetadata - tests if the echoSystemMetadata call ")
@@ -221,6 +770,11 @@ public class CNDiagnosticTestImplementations extends ContextAwareAdapter {
 
         handleFail("", "Nooooo idea what this is supposed to test...");
 
+        
+        
+        
+        
+        
         //      what causes this?? 
     }
 
@@ -240,7 +794,7 @@ public class CNDiagnosticTestImplementations extends ContextAwareAdapter {
         try {
             AccessRule accessRule = new AccessRule();
             getSession("testRightsHolder");
-            Subject subject = catc.getSubject("testRightsHolder");
+            Subject subject = ContextAwareTestCaseDataone.getSubject("testRightsHolder");
             accessRule.addSubject(subject);
             accessRule.addPermission(Permission.CHANGE_PERMISSION);
             
@@ -282,7 +836,7 @@ public class CNDiagnosticTestImplementations extends ContextAwareAdapter {
         try {
             AccessRule accessRule = new AccessRule();
             getSession("testRightsHolder");
-            Subject subject = catc.getSubject("testRightsHolder");
+            Subject subject = ContextAwareTestCaseDataone.getSubject("testRightsHolder");
             accessRule.addSubject(subject);
             accessRule.addPermission(Permission.CHANGE_PERMISSION);
             
@@ -328,7 +882,7 @@ public class CNDiagnosticTestImplementations extends ContextAwareAdapter {
         try {
             AccessRule accessRule = new AccessRule();
             getSession("testRightsHolder");
-            Subject subject = catc.getSubject("testRightsHolder");
+            Subject subject = ContextAwareTestCaseDataone.getSubject("testRightsHolder");
             accessRule.addSubject(subject);
             accessRule.addPermission(Permission.CHANGE_PERMISSION);
             
@@ -375,7 +929,7 @@ public class CNDiagnosticTestImplementations extends ContextAwareAdapter {
         try {
             AccessRule accessRule = new AccessRule();
             getSession("testRightsHolder");
-            Subject subject = catc.getSubject("testRightsHolder");
+            Subject subject = ContextAwareTestCaseDataone.getSubject("testRightsHolder");
             accessRule.addSubject(subject);
             accessRule.addPermission(Permission.CHANGE_PERMISSION);
             
@@ -519,4 +1073,22 @@ public class CNDiagnosticTestImplementations extends ContextAwareAdapter {
         
     }
     
+    private SystemMetadata createTestSysmeta(CNCallAdapter callAdapter, String pidBase) 
+            throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique, UnsupportedType, InsufficientResources, InvalidSystemMetadata, 
+            NotImplemented, InvalidRequest, UnsupportedEncodingException, NotFound, ClientSideException {
+        
+        AccessRule accessRule = new AccessRule();
+        getSession("testRightsHolder");
+        Subject subject = ContextAwareTestCaseDataone.getSubject("testRightsHolder");
+        accessRule.addSubject(subject);
+        accessRule.addPermission(Permission.CHANGE_PERMISSION);
+        AccessPolicy policy = new AccessPolicy();
+        policy.addAllow(accessRule);
+        
+        Identifier pid = D1TypeBuilder.buildIdentifier(pidBase + ExampleUtilities.generateIdentifier() );
+        SystemMetadata sysmeta = catc.createTestSysmeta(callAdapter, pid, null, null, null, policy, cnSubmitter, "CN=testRightsHolder,DC=dataone,DC=org");
+        sysmeta.setSerialVersion(null);
+        
+        return sysmeta;
+    }
 }

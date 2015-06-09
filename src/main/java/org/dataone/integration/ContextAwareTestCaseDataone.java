@@ -1278,6 +1278,77 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
         return retPid;
     }
 
+    public SystemMetadata createTestSysmeta(D1Node d1Node, Identifier pid, Identifier sid, 
+            Identifier obsoletesId, Identifier obsoletedById,
+            AccessPolicy policy, String submitterSubjectLabel, String rightsHolderSubjectName)
+    throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique, UnsupportedType,
+    InsufficientResources, InvalidSystemMetadata, NotImplemented, InvalidRequest,
+    UnsupportedEncodingException, NotFound, ClientSideException
+    {
+        X509Certificate certificate = CertificateManager.getInstance().loadCertificate();
+        String startingCertLoc = CertificateManager.getInstance().getCertificateLocation();
+        SystemMetadata sysMeta = null;
+        
+        try {
+            setupClientSubject(submitterSubjectLabel);
+            ByteArrayInputStream objectInputStream = null;
+            D1Object d1o = null;
+            certificate = CertificateManager.getInstance().loadCertificate();
+            String submitterX500 = CertificateManager.getInstance().getSubjectDN(certificate);
+            
+            try {
+                byte[] contentBytes = ExampleUtilities.getExampleObjectOfType(DEFAULT_TEST_OBJECTFORMAT);
+                objectInputStream = new ByteArrayInputStream(contentBytes);
+                d1o = new D1Object(pid, contentBytes,
+                        D1TypeBuilder.buildFormatIdentifier(DEFAULT_TEST_OBJECTFORMAT),
+                        D1TypeBuilder.buildSubject(submitterX500),
+                        D1TypeBuilder.buildNodeReference("bogusAuthoritativeNode"));
+                sysMeta = TypeMarshaller.convertTypeFromType(d1o.getSystemMetadata(), SystemMetadata.class);
+                sysMeta.setSeriesId(sid);
+            } catch (NoSuchAlgorithmException e) {
+                e.printStackTrace();
+                throw new ServiceFailure("0000","client misconfiguration related to checksum algorithms");
+            } catch (NotFound e) {
+                e.printStackTrace();
+                throw e;
+            } catch (IOException e) {
+                e.printStackTrace();
+                throw new ServiceFailure("0000","client misconfiguration related to reading of content byte[]");
+            } catch (InstantiationException | IllegalAccessException |
+                    InvocationTargetException | JiBXException e) {
+                log.error("Unable to convert v1 SystemMetadata to v2 SystemMetadata.");
+                e.printStackTrace();
+            }
+
+            Subject rightsHolder = new Subject();
+            rightsHolder.setValue(rightsHolderSubjectName);
+            sysMeta.setRightsHolder(rightsHolder);
+
+            if (policy != null)
+                sysMeta.setAccessPolicy(policy);
+
+            if(d1Node instanceof CommonCallAdapter && d1Node.getNodeType() == NodeType.CN) {
+                sysMeta.setObsoletes(obsoletesId);
+                sysMeta.setObsoletedBy(obsoletedById);
+            }
+        } catch (BaseException be) {
+            be.printStackTrace();
+            throw new ClientSideException("Unable to create test object!", be);
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            // reset certificate
+            CertificateManager.getInstance().setCertificateLocation(startingCertLoc);
+            if (log.isDebugEnabled()) {
+                certificate = CertificateManager.getInstance().loadCertificate();
+                String currentX500 = CertificateManager.getInstance().getSubjectDN(certificate);
+                log.debug("current client certificate " + currentX500);
+            }
+        }
+        
+        return sysMeta;
+    }
+    
     /**
      * create an accessPolicy that assigns read permission to public subject.
      * This is a common test scenario...
@@ -1542,22 +1613,10 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
             else // or a regular MN or CN create()?
                 cca.create(null, sysmeta.getIdentifier(), objectInputStream, sysmeta);
             
-//            // created resource map, so try to fetch again
-//            try {
-//                Thread.sleep(10000);
-//                resourceObjInfo = cca.listObjects(null, null, null, formatID, null, null, null);
-//            } catch (Exception e) {
-//                e.printStackTrace();
-//                throw new ClientSideException("Unable to fetch recently-created resource objects for MNPackage testing.", e);
-//            }
         } catch (Exception e) {
             e.printStackTrace();
-            throw new ClientSideException("Unable to create resource map for MNPackage testing.", e);
+            throw new ClientSideException("Unable to create resource map for MNPackage testing, because : " + e.getMessage(), e);
         }
-        
-//        List<ObjectInfo> objectInfoList = resourceObjInfo.getObjectInfoList();
-//        if (objectInfoList.size() == 0)
-//            throw new ClientSideException("List of resource objects was empty but should have been created.");
         
         return resourceMapPid;
     }
