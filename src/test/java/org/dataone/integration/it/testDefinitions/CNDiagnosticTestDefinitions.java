@@ -47,20 +47,12 @@ public interface CNDiagnosticTestDefinitions {
     
     
     
-    // TODO TODO check the returned SubjectInfo more carefully
-    // testEchoCredentials()
-    
-    // TODO send request with some incorrect params
-    // so.... don't go through libclient callAdapters / MultipartCNode ???
-    public void testEchoSystemMetadata_InvalidRequest();
+    // TODO check the returned SubjectInfo more carefully
+    // testEchoCredentials above
     
     public void testEchoIndexedObject();
     
     public void testEchoIndexedObject_NotAuthorized();
-    
-    // TODO send request with some incorrect params
-    // so.... don't go through libclient callAdapters / MultipartCNode ???
-    public void testEchoIndexedObject_InvalidRequest();
     
     // TODO this can be expanded to include a ton of scenarios
     // in which sysmata is invalid...

@@ -759,25 +759,6 @@ public class CNDiagnosticTestImplementations extends ContextAwareAdapter {
             }
     }
     
-    @WebTestName("echoSystemMetadata - tests if the echoSystemMetadata call ")
-    @WebTestDescription("this test calls echoSystemMetadata()   ...   ")
-    public void testEchoSystemMetadata_InvalidRequest(Iterator<Node> nodeIterator, String version) {
-        while (nodeIterator.hasNext())
-            testEchoSystemMetadata_InvalidRequest(nodeIterator.next(), version);        
-    }
-
-    private void testEchoSystemMetadata_InvalidRequest(Node node, String version) {
-
-        handleFail("", "Nooooo idea what this is supposed to test...");
-
-        
-        
-        
-        
-        
-        //      what causes this?? 
-    }
-
     @WebTestName("echoIndexedObject - tests if the echoIndexedObject call ")
     @WebTestDescription("this test calls echoIndexedObject()   ...   ")
     public void testEchoIndexedObject(Iterator<Node> nodeIterator, String version) {
@@ -862,54 +843,6 @@ public class CNDiagnosticTestImplementations extends ContextAwareAdapter {
             handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
         }
         
-    }
-    
-    @WebTestName("echoIndexedObject - tests if the echoIndexedObject call fails when there is a format mismatch")
-    @WebTestDescription("this test calls echoIndexedObject() with system metadata that has a formatId which doesn't"
-            + "match the actual format of the object, "
-            + "expecting an InvalidSystemMetadata exception")
-    public void testEchoIndexedObject_InvalidRequest(Iterator<Node> nodeIterator, String version) {
-        while (nodeIterator.hasNext())
-            testEchoIndexedObject_InvalidRequest(nodeIterator.next(), version);        
-    }
-
-    private void testEchoIndexedObject_InvalidRequest(Node node, String version) {
-    
-        CNCallAdapter callAdapter = new CNCallAdapter(getSession(cnSubmitter), node, version);
-        String currentUrl = node.getBaseURL();
-        printTestHeader("testEchoIndexedObject(...) vs. node: " + currentUrl);
-        
-        try {
-            AccessRule accessRule = new AccessRule();
-            getSession("testRightsHolder");
-            Subject subject = ContextAwareTestCaseDataone.getSubject("testRightsHolder");
-            accessRule.addSubject(subject);
-            accessRule.addPermission(Permission.CHANGE_PERMISSION);
-            
-            Identifier pid = catc.createTestObject(callAdapter, "testEchoIndexedObject", accessRule);
-            SystemMetadata sysmeta = callAdapter.getSystemMetadata(null, pid);
-            sysmeta.setFormatId(D1TypeBuilder.buildFormatIdentifier("application/pdf"));
-            
-            Thread.sleep(10000);    // indexing time for metacat (indexing runs on separate thread)
-            
-            InputStream objStream = callAdapter.get(null, pid);
-            // FIXME ensure object format matches what API asks for
-            // where "bytes" is meant to be a UTF-8 String ?
-            InputStream is = callAdapter.echoIndexedObject(null, "solr", sysmeta, objStream);
-            handleFail(callAdapter.getLatestRequestUrl(), "echoIndexedObject should fail with an InvalidRequest exception "
-                    + "if the system metadata's format doesn't match the actual format.");
-        }
-        catch (InvalidRequest e) {
-            // expected
-        }
-        catch (BaseException e) {
-            handleFail(callAdapter.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
-                    e.getDetail_code() + ":: " + e.getDescription());
-        }
-        catch(Exception e) {
-            e.printStackTrace();
-            handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
-        }
     }
     
     @WebTestName("echoIndexedObject - tests if the echoIndexedObject call fails when passed invalid system metadata")

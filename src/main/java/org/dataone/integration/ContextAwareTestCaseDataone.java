@@ -24,6 +24,7 @@ package org.dataone.integration;
 
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
@@ -49,6 +50,7 @@ import java.util.Set;
 import java.util.Vector;
 import java.util.concurrent.Callable;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpResponse;
@@ -67,6 +69,7 @@ import org.dataone.client.rest.RestClient;
 import org.dataone.client.v1.CNode;
 import org.dataone.client.v1.MNode;
 import org.dataone.client.v1.itk.D1Object;
+import org.dataone.client.v1.itk.DataPackage;
 import org.dataone.client.v1.types.D1TypeBuilder;
 import org.dataone.configuration.Settings;
 import org.dataone.configuration.TestSettings;
@@ -1514,16 +1517,19 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
         List<ObjectInfo> objectInfoList = resourceObjInfo.getObjectInfoList();
         for (ObjectInfo objectInfo : objectInfoList) {
             Identifier id = objectInfo.getIdentifier();
+            
+            InputStream is = null;
             try {
-                cca.get(null, id);
+                is = cca.get(null, id);
                 break;
             } catch (Exception e) {
                 continue;
+            } finally {
+                IOUtils.closeQuietly(is);
             }
         }
         
         // no existing resource map? create a package
-//        if (true)
         if (resourceMapPid == null)
             resourceMapPid = createPackage(cca, null, null, null, null);
         
@@ -1552,7 +1558,6 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
         
         ObjectFormatIdentifier formatID = new ObjectFormatIdentifier();
         formatID.setValue(RESOURCE_MAP_FORMAT_ID);
-        Identifier resourceMapPid = null;
         AccessRule accessRule = new AccessRule();
         getSession("testRightsHolder");
         Subject subject = getSubject("testRightsHolder");
@@ -1561,7 +1566,12 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
         
         Identifier scimetaPid = null;
         Identifier dataObjPid = null;
-        ObjectList resourceObjInfo = null;
+        Identifier resourceMapPid = null;
+        if(packagePid != null)
+            resourceMapPid = packagePid;
+        else
+            resourceMapPid = D1TypeBuilder.buildIdentifier("testGetPackage_resourceMap_" + ExampleUtilities.generateIdentifier());
+        
         
         // create science metadata object
         try {
@@ -1579,12 +1589,18 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
             throw new ClientSideException("Unable to create metadata for MNPackage testing.", e);
         }
     
+        InputStream objectInputStream = null;
+        
         // create resource map
         try {
-            if(packagePid == null)
-                resourceMapPid = D1TypeBuilder.buildIdentifier("testGetPackage_resourceMap_" + ExampleUtilities.generateIdentifier());
-            else
-                resourceMapPid = packagePid;
+//            DataPackage dataPackage = new DataPackage(resourceMapPid);
+//            List<Identifier> dataIds = new ArrayList<Identifier>();
+//            dataIds.add(dataObjPid);
+//            dataPackage.insertRelationship(scimetaPid, dataIds);
+//            
+//            String resourceMapText = dataPackage.serializePackage();
+//            assertNotNull(resourceMapText);
+//            byte[] resourceMapBytes = resourceMapText.getBytes("UTF-8");
             
             Map<Identifier, List<Identifier>> idMap = new HashMap<Identifier, List<Identifier>>();
             List<Identifier> dataIds = new ArrayList<Identifier>();
@@ -1596,7 +1612,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
             String rdfXml = rmf.serializeResourceMap(resourceMap);
             byte[] resourceMapBytes = rdfXml.getBytes("UTF-8");
             
-            InputStream objectInputStream = new ByteArrayInputStream(resourceMapBytes);
+            objectInputStream = new ByteArrayInputStream(resourceMapBytes);
             D1Object d1o = new D1Object(resourceMapPid, resourceMapBytes,
                     D1TypeBuilder.buildFormatIdentifier(RESOURCE_MAP_FORMAT_ID),
                     D1TypeBuilder.buildSubject(subject.getValue()),
@@ -1616,6 +1632,8 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
         } catch (Exception e) {
             e.printStackTrace();
             throw new ClientSideException("Unable to create resource map for MNPackage testing, because : " + e.getMessage(), e);
+        } finally {
+            IOUtils.closeQuietly(objectInputStream);
         }
         
         return resourceMapPid;

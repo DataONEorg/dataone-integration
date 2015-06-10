@@ -5,6 +5,7 @@ import org.dataone.integration.it.testDefinitions.MNPackageTestDefinitions;
 import org.dataone.integration.it.testImplementations.MNPackageTestImplementations;
 import org.dataone.integration.webTest.WebTestImplementation;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class MNPackageV2IT extends ContextAwareTestCaseDataone implements MNPackageTestDefinitions{
@@ -26,12 +27,6 @@ public class MNPackageV2IT extends ContextAwareTestCaseDataone implements MNPack
     @Test
     public void testGetPackage_NotAuthorized() {
         packageTestImpl.testGetPackage_NotAuthorized(getMemberNodeIterator(), "v2");
-    }
-
-    @Override
-    @Test
-    public void testGetPackage_InvalidRequest() {
-        packageTestImpl.testGetPackage_InvalidRequest(getMemberNodeIterator(), "v2");
     }
 
     @Override

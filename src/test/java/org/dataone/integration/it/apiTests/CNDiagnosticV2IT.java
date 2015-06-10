@@ -138,12 +138,6 @@ public class CNDiagnosticV2IT extends ContextAwareTestCaseDataone implements CND
     
     @Override
     @Test
-    public void testEchoSystemMetadata_InvalidRequest() {
-        diagTestImpl.testEchoSystemMetadata_InvalidRequest(getCoordinatingNodeIterator(), "v2");
-    }
-
-    @Override
-    @Test
     public void testEchoIndexedObject() {
         diagTestImpl.testEchoIndexedObject(getCoordinatingNodeIterator(), "v2");
     }
@@ -152,12 +146,6 @@ public class CNDiagnosticV2IT extends ContextAwareTestCaseDataone implements CND
     @Test
     public void testEchoIndexedObject_NotAuthorized() {
         diagTestImpl.testEchoIndexedObject_NotAuthorized(getCoordinatingNodeIterator(), "v2");
-    }
-
-    @Override
-    @Test
-    public void testEchoIndexedObject_InvalidRequest() {
-        diagTestImpl.testEchoIndexedObject_InvalidRequest(getCoordinatingNodeIterator(), "v2");
     }
 
     @Override

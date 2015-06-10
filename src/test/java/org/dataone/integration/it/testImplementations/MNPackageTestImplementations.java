@@ -3,21 +3,17 @@ package org.dataone.integration.it.testImplementations;
 import static org.junit.Assert.assertTrue;
 
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
 import java.util.Iterator;
 
+import org.apache.commons.io.IOUtils;
 import org.dataone.integration.ContextAwareTestCaseDataone;
 import org.dataone.integration.adapters.MNCallAdapter;
 import org.dataone.integration.it.ContextAwareAdapter;
 import org.dataone.integration.webTest.WebTestDescription;
 import org.dataone.integration.webTest.WebTestName;
 import org.dataone.service.exceptions.BaseException;
-import org.dataone.service.exceptions.IdentifierNotUnique;
-import org.dataone.service.exceptions.InsufficientResources;
 import org.dataone.service.exceptions.InvalidRequest;
-import org.dataone.service.exceptions.InvalidSystemMetadata;
 import org.dataone.service.exceptions.NotFound;
-import org.dataone.service.exceptions.UnsupportedType;
 import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Node;
 import org.dataone.service.types.v1.ObjectFormatIdentifier;
@@ -42,11 +38,12 @@ public class MNPackageTestImplementations extends ContextAwareAdapter {
         String currentUrl = node.getBaseURL();
         printTestHeader("testGetPackage(...) vs. node: " + currentUrl);
         
+        InputStream is = null;
         try {
             ObjectFormatIdentifier formatID = new ObjectFormatIdentifier();
             formatID.setValue("application/zip");
             
-            InputStream is = testRightsHolderCallAdapter.getPackage(null, formatID, catc.procureResourceMap(callAdapter));
+            is = testRightsHolderCallAdapter.getPackage(null, formatID, catc.procureResourceMap(callAdapter));
             assertTrue("getPackage() should return a non-null InputStream", is != null);
         }
         catch (BaseException e) {
@@ -56,6 +53,9 @@ public class MNPackageTestImplementations extends ContextAwareAdapter {
         catch(Exception e) {
             e.printStackTrace();
             handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+        }
+        finally {
+            IOUtils.closeQuietly(is);
         }
     }
 
@@ -74,11 +74,12 @@ public class MNPackageTestImplementations extends ContextAwareAdapter {
         String currentUrl = node.getBaseURL();
         printTestHeader("testGetPackage_NotAuthorized(...) vs. node: " + currentUrl);
         
+        InputStream is = null;
         try {
             ObjectFormatIdentifier formatID = new ObjectFormatIdentifier();
             formatID.setValue("application/zip");
             
-            personCallAdapter.getPackage(null, formatID, catc.procureResourceMap(callAdapter));
+            is = personCallAdapter.getPackage(null, formatID, catc.procureResourceMap(callAdapter));
             handleFail(callAdapter.getLatestRequestUrl(),"getPackage() should fail with a NotAuthorized subject");
         } 
         catch (NotFound e) {
@@ -91,6 +92,9 @@ public class MNPackageTestImplementations extends ContextAwareAdapter {
         catch(Exception e) {
             e.printStackTrace();
             handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+        }
+        finally {
+            IOUtils.closeQuietly(is);
         }
     }
     
@@ -108,11 +112,12 @@ public class MNPackageTestImplementations extends ContextAwareAdapter {
         String currentUrl = node.getBaseURL();
         printTestHeader("testGetPackage_InvalidRequest(...) vs. node: " + currentUrl);
         
+        InputStream is = null;
         try {
             ObjectFormatIdentifier formatID = new ObjectFormatIdentifier();
             formatID.setValue("bogus/format");
             
-            rightsHolderCallAdapter.getPackage(null, formatID, catc.procureResourceMap(callAdapter));
+            is = rightsHolderCallAdapter.getPackage(null, formatID, catc.procureResourceMap(callAdapter));
             handleFail(callAdapter.getLatestRequestUrl(),"getPackage() should fail with an InvalidRequest for a bogus ObjectFormatIdentifier"
                     + " (" + formatID + ")");
         } 
@@ -126,6 +131,9 @@ public class MNPackageTestImplementations extends ContextAwareAdapter {
         catch(Exception e) {
             e.printStackTrace();
             handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+        }
+        finally {
+            IOUtils.closeQuietly(is);
         }
     }
     
@@ -143,6 +151,7 @@ public class MNPackageTestImplementations extends ContextAwareAdapter {
         String currentUrl = node.getBaseURL();
         printTestHeader("testGetPackage_NotAuthorized(...) vs. node: " + currentUrl);
         
+        InputStream is = null;
         try {
             Identifier pid = new Identifier();
             pid.setValue("bogusPid");
@@ -150,7 +159,7 @@ public class MNPackageTestImplementations extends ContextAwareAdapter {
             ObjectFormatIdentifier formatID = new ObjectFormatIdentifier();
             formatID.setValue("application/zip");
             
-            rightsHolderCallAdapter.getPackage(null, formatID, pid);
+            is = rightsHolderCallAdapter.getPackage(null, formatID, pid);
             handleFail(callAdapter.getLatestRequestUrl(),"getPackage() should fail with a NotFound for a bogus pid"
                     + " (" + pid + ")");
         } 
@@ -164,6 +173,9 @@ public class MNPackageTestImplementations extends ContextAwareAdapter {
         catch(Exception e) {
             e.printStackTrace();
             handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+        }
+        finally {
+            IOUtils.closeQuietly(is);
         }
     }
 }
