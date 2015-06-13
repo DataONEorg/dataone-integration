@@ -55,8 +55,8 @@ import org.dataone.client.exception.ClientSideException;
 import org.dataone.client.rest.HttpMultipartRestClient;
 import org.dataone.client.rest.MultipartRestClient;
 import org.dataone.client.v1.types.D1TypeBuilder;
-import org.dataone.client.v2.CNode;
-import org.dataone.client.v2.MNode;
+import org.dataone.client.v1.CNode;
+import org.dataone.client.v1.MNode;
 import org.dataone.configuration.Settings;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.NotImplemented;
@@ -73,8 +73,8 @@ import org.dataone.service.types.v1.Person;
 import org.dataone.service.types.v1.Replica;
 import org.dataone.service.types.v1.ReplicationStatus;
 import org.dataone.service.types.v1.Subject;
-import org.dataone.service.types.v2.Node;
-import org.dataone.service.types.v2.SystemMetadata;
+import org.dataone.service.types.v1.Node;
+import org.dataone.service.types.v1.SystemMetadata;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
@@ -122,7 +122,7 @@ import org.junit.runners.Parameterized.Parameters;
  *
  */
 @RunWith(value = Parameterized.class)
-public class ClientArchitectureConformityIT {
+public class V1ClientArchitectureConformityIT {
 
     private static boolean ignorePUTexceptions = false;
 
@@ -135,7 +135,7 @@ public class ClientArchitectureConformityIT {
 
     private static MultipartRestClient MRC;
 
-    protected static Log log = LogFactory.getLog(ClientArchitectureConformityIT.class);
+    protected static Log log = LogFactory.getLog(V1ClientArchitectureConformityIT.class);
 
     private static String methodMatchPattern = System.getenv("test.method.match");
 
@@ -150,7 +150,7 @@ public class ClientArchitectureConformityIT {
     private NodeType nodeType;
 
 
-    public ClientArchitectureConformityIT(String methodKey) {
+    public V1ClientArchitectureConformityIT(String methodKey) {
 
         if (methodKey.startsWith("CN.")) {
             this.nodeType = NodeType.CN;
@@ -181,7 +181,7 @@ public class ClientArchitectureConformityIT {
     @Parameters
     public static Collection<Object[]> setUpTestParameters() throws IOException
     {
-        methodMap = ArchitectureUtils.setUpMethodDocumentationMap(ArchitectureUtils.V2_METHOD_REFERENCE_DOC);
+        methodMap = ArchitectureUtils.setUpMethodDocumentationMap(ArchitectureUtils.V1_METHOD_REFERENCE_DOC);
         
         // creating a superset of methodKeys - if it exists in documentation or
         // implementation we're gonna test it
@@ -759,12 +759,12 @@ public class ClientArchitectureConformityIT {
         log.debug("  - - - -  calling " + TEST_SERVICE_BASE + EXCEPTION_SERVICE +
                 "/" + exception);
         if (nodeType.equals(NodeType.CN)) {
-            d1node = D1NodeFactory.buildNode(CNode.class,
+            d1node = D1NodeFactory.buildNode(org.dataone.client.v1.CNode.class,
                     MRC,URI.create(TEST_SERVICE_BASE + EXCEPTION_SERVICE +
                     "/" + exception)); // + "/v1/object");
             method = getCNInterfaceMethods().get(currentMethodKey);
         } else {
-            d1node = D1NodeFactory.buildNode(MNode.class,
+            d1node = D1NodeFactory.buildNode(org.dataone.client.v1.MNode.class,
                     MRC,URI.create(TEST_SERVICE_BASE + EXCEPTION_SERVICE +
                     "/" + exception)); // + "/v1/object");
             method = getMNInterfaceMethods().get(currentMethodKey);
