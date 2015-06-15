@@ -557,6 +557,9 @@ public class SidMNTestImplementations extends SidCommonTestImplementations {
                 } catch (IOException e) {
                     e.printStackTrace();
                     handleFail(callAdapter.getNodeBaseServiceUrl(), "Case: " + caseNum + " : " + e.getMessage());
+                } finally {
+                    IOUtils.closeQuietly(pidPkg);
+                    IOUtils.closeQuietly(sidPkg);
                 }
             }
         }
@@ -584,6 +587,8 @@ public class SidMNTestImplementations extends SidCommonTestImplementations {
                 Node node = nodeIter.next();
                 MNCallAdapter callAdapter = new MNCallAdapter(getSession("testRightsHolder"), node, "v2");
                 IdPair idPair = null;
+                
+                // setup PID chain
                 try {
                     Method setupMethod = SidMNTestImplementations.class.getDeclaredMethod("setupMNCase" + caseNum, CommonCallAdapter.class, Node.class);
                     idPair = (IdPair) setupMethod.invoke(this, callAdapter, node);
@@ -652,7 +657,7 @@ public class SidMNTestImplementations extends SidCommonTestImplementations {
                     IdPair idPair = (IdPair) setupMethod.invoke(this, callAdapter, node);
                     Identifier sid = idPair.sid;
                     Identifier pid = idPair.headPid;
-        
+                    
                     // TODO test systemMetadataChanged() ...
                     
                     // systemMetadataChanged() implies authoritative sysmeta was updated

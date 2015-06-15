@@ -5,11 +5,11 @@ import java.util.Iterator;
 import java.util.Scanner;
 import java.util.Vector;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.solr.client.solrj.util.ClientUtils;
 import org.dataone.integration.ContextAwareTestCaseDataone;
-import org.dataone.integration.ExampleUtilities;
 import org.dataone.integration.adapters.CNCallAdapter;
 import org.dataone.integration.it.ContextAwareAdapter;
 import org.dataone.integration.it.testDefinitions.CNReadTestDefinitions;
@@ -20,7 +20,6 @@ import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Node;
 import org.dataone.service.types.v1.ObjectList;
 import org.dataone.service.types.v1.ObjectLocationList;
-import org.dataone.service.types.v1.Session;
 import org.dataone.service.types.v1_1.QueryEngineDescription;
 import org.dataone.service.types.v1_1.QueryEngineList;
 import org.dataone.service.util.Constants;
@@ -206,13 +205,16 @@ public class CNReadTestImplementations extends ContextAwareAdapter {
         String currentUrl = callAdapter.getNodeBaseServiceUrl();
         printTestHeader("testQuery(...) vs. node: " + currentUrl);
 
+        InputStream response = null;
         try {
-            InputStream response2 = callAdapter.query(null, "solr", "?q=*:*");
+            response = callAdapter.query(null, "solr", "?q=*:*");
             checkTrue(callAdapter.getLatestRequestUrl(), "query(...)"
-                    + " returns an InputStream object", response2 != null);
+                    + " returns an InputStream object", response != null);
         } catch (Exception e) {
             e.printStackTrace();
             handleFail(currentUrl, e.getClass().getName() + ": " + e.getMessage());
+        } finally {
+            IOUtils.closeQuietly(response);
         }
     }
 
@@ -230,13 +232,16 @@ public class CNReadTestImplementations extends ContextAwareAdapter {
         String currentUrl = callAdapter.getNodeBaseServiceUrl();
         printTestHeader("testQuery(...) vs. node: " + currentUrl);
 
+        InputStream response = null;
         try {
-            InputStream response2 = callAdapter.query(null, "solr", "?q=*:*");
+            response = callAdapter.query(null, "solr", "?q=*:*");
             checkTrue(callAdapter.getLatestRequestUrl(), "query(...)"
-                    + " returns an InputStream object", response2 != null);
+                    + " returns an InputStream object", response != null);
         } catch (Exception e) {
             e.printStackTrace();
             handleFail(currentUrl, e.getClass().getName() + ": " + e.getMessage());
+        } finally {
+            IOUtils.closeQuietly(response);
         }
     }
 

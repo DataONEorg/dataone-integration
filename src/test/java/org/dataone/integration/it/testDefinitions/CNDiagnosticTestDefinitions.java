@@ -8,16 +8,16 @@ public interface CNDiagnosticTestDefinitions {
     public void testEchoSystemMetadata();
     
     public void testEchoSystemMetadata_NotAuthorized();
+
+    public void testEchoSystemMetadata_InvalidSysMeta_NoPid();
+
+    public void testEchoSystemMetadata_InvalidSysMeta_EmptyPid();
+    
+    public void testEchoSystemMetadata_InvalidSysMeta_BadPid();
     
     public void testEchoSystemMetadata_InvalidSysMeta_SerialVer();
     
     public void testEchoSystemMetadata_InvalidSysMeta_FormatId();
-    
-    public void testEchoSystemMetadata_InvalidSysMeta_NoPid();
-    
-    public void testEchoSystemMetadata_InvalidSysMeta_EmptyPid();
-    
-    public void testEchoSystemMetadata_InvalidSysMeta_BadPid();
     
     public void testEchoSystemMetadata_InvalidSysMeta_NoSize();
     
@@ -41,30 +41,46 @@ public interface CNDiagnosticTestDefinitions {
     
     public void testEchoSystemMetadata_InvalidSysMeta_NoAuthMN();
     
-    
-    
-    
-    
-    
-    
-    // TODO check the returned SubjectInfo more carefully
-    // testEchoCredentials above
-    
     public void testEchoIndexedObject();
     
     public void testEchoIndexedObject_NotAuthorized();
     
-    // TODO this can be expanded to include a ton of scenarios
-    // in which sysmata is invalid...
-    public void testEchoIndexedObject_InvalidSystemMetadata();
+    public void testEchoIndexedObject_InvalidSystemMetadata_NoPid();
     
-    //- Indicate if the formatId is one registered in the environment.
-    //- UnsupportedType seems to be equivalent to "Unsupported formatId"
+    public void testEchoIndexedObject_InvalidSystemMetadata_EmptyPid();
     
-    // Need to create a test object of unsupported type to test this...
+    public void testEchoIndexedObject_InvalidSystemMetadata_BadPid();
+    
+    public void testEchoIndexedObject_InvalidSystemMetadata_SerialVer();
+    
+    public void testEchoIndexedObject_InvalidSystemMetadata_FormatId();
+    
+    public void testEchoIndexedObject_InvalidSystemMetadata_NoSize();
+    
+    public void testEchoIndexedObject_InvalidSystemMetadata_NoChecksum();
+    
+    public void testEchoIndexedObject_InvalidSystemMetadata_NoSubmitter();
+    
+    public void testEchoIndexedObject_InvalidSystemMetadata_EmptySubmitter();
+    
+    public void testEchoIndexedObject_InvalidSystemMetadata_NoRightsHolder();
+    
+    public void testEchoIndexedObject_InvalidSystemMetadata_EmptyRightsHolder();
+    
+    public void testEchoIndexedObject_InvalidSystemMetadata_AccessPolicy();
+    
+    public void testEchoIndexedObject_InvalidSystemMetadata_ReplNum();
+    
+    public void testEchoIndexedObject_InvalidSystemMetadata_ReplAllow();
+    
+    public void testEchoIndexedObject_InvalidSystemMetadata_NoOriginMN();
+    
+    public void testEchoIndexedObject_InvalidSystemMetadata_NoAuthMN();
+    
     public void testEchoIndexedObject_UnsupportedType();
     
-    // Need to create a test scimeta of unsupported type to test this...
     public void testEchoIndexedObject_UnsupportedMetadataType();
     
+    // not very testable
+    // public void testEchoIndexedObject_InusfficientResources();
 }

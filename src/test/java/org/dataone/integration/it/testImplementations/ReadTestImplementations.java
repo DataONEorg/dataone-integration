@@ -6,6 +6,7 @@ import java.util.Iterator;
 import java.util.Scanner;
 import java.util.Vector;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.dataone.client.v1.types.D1TypeBuilder;
@@ -29,8 +30,6 @@ import org.dataone.service.types.v1.ObjectList;
 import org.dataone.service.types.v1.SystemMetadata;
 import org.dataone.service.util.Constants;
 import org.dataone.service.util.DateTimeMarshaller;
-import org.junit.Before;
-import org.junit.Test;
 
 public class ReadTestImplementations extends ContextAwareAdapter {
 
@@ -58,13 +57,14 @@ public class ReadTestImplementations extends ContextAwareAdapter {
         currentUrl = callAdapter.getNodeBaseServiceUrl();
         printTestHeader("testGet() vs. node: " + currentUrl);
 
+        InputStream is = null;
         try {
             String objectIdentifier = "TierTesting:" + catc.createNodeAbbreviation(callAdapter.getNodeBaseServiceUrl())
                     + ":Public_READ" + catc.getTestObjectSeriesSuffix();
             Identifier id = catc.procurePublicReadableTestObject(callAdapter,
                     D1TypeBuilder.buildIdentifier(objectIdentifier));
             //             Identifier id =catc.procurePublicReadableTestObject(mn);
-            InputStream is = callAdapter.get(null, id);
+            is = callAdapter.get(null, id);
             checkTrue(callAdapter.getLatestRequestUrl(), "get() returns an objectStream", is != null);
         } catch (TestIterationEndingException e) {
             handleFail(callAdapter.getLatestRequestUrl(), "No Objects available to test against:: " + e.getMessage());
@@ -74,6 +74,8 @@ public class ReadTestImplementations extends ContextAwareAdapter {
         } catch (Exception e) {
             e.printStackTrace();
             handleFail(currentUrl, e.getClass().getName() + ": " + e.getMessage());
+        } finally {
+            IOUtils.closeQuietly(is);
         }
     }
 
@@ -92,9 +94,10 @@ public class ReadTestImplementations extends ContextAwareAdapter {
         currentUrl = callAdapter.getNodeBaseServiceUrl();
         printTestHeader("testGet() vs. node: " + currentUrl);
 
+        InputStream is = null;
         try {
             String fakeID = "TestingNotFound:" + ExampleUtilities.generateIdentifier();
-            InputStream is = callAdapter.get(null, D1TypeBuilder.buildIdentifier(fakeID));
+            is = callAdapter.get(null, D1TypeBuilder.buildIdentifier(fakeID));
             handleFail(callAdapter.getLatestRequestUrl(), "get(fakeID) should not return an objectStream.");
             is.close();
         } catch (NotFound nf) {
@@ -105,6 +108,8 @@ public class ReadTestImplementations extends ContextAwareAdapter {
         } catch (Exception e) {
             e.printStackTrace();
             handleFail(currentUrl, e.getClass().getName() + ": " + e.getMessage());
+        } finally {
+            IOUtils.closeQuietly(is);
         }
     }
 
@@ -147,9 +152,9 @@ public class ReadTestImplementations extends ContextAwareAdapter {
             String idString = "Test" + ExampleUtilities.generateIdentifier() + "_" + unicodeStringV.get(j);
             String idStringEscaped = "Test" + ExampleUtilities.generateIdentifier() + "_" + escapedStringV.get(j);
 
+            InputStream data = null;
             try {
-
-                InputStream data = callAdapter.get(null, D1TypeBuilder.buildIdentifier(idString));
+                data = callAdapter.get(null, D1TypeBuilder.buildIdentifier(idString));
                 handleFail(callAdapter.getLatestRequestUrl(), "get() against the fake identifier (" + idStringEscaped
                         + ") should throw NotFound");
                 data.close();
@@ -173,6 +178,8 @@ public class ReadTestImplementations extends ContextAwareAdapter {
                 status = "Error";
                 e.printStackTrace();
                 status = String.format("Error:: %s: %s", e.getClass().getName(), first100Characters(e.getMessage()));
+            } finally {
+                IOUtils.closeQuietly(data);
             }
 
             nodeSummary.add("Test " + j + ": " + status + ": " + unicodeStringV.get(j));

@@ -1,9 +1,6 @@
 package org.dataone.integration.it.testImplementations;
 
-import static org.junit.Assert.assertTrue;
-
 import java.io.InputStream;
-import java.math.BigInteger;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
@@ -14,7 +11,6 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.LogFactory;
 import org.dataone.client.v1.types.D1TypeBuilder;
 import org.dataone.configuration.Settings;
-import org.dataone.integration.APITestUtils;
 import org.dataone.integration.ContextAwareTestCaseDataone;
 import org.dataone.integration.ExampleUtilities;
 import org.dataone.integration.adapters.CNCallAdapter;
@@ -25,15 +21,12 @@ import org.dataone.integration.webTest.WebTestName;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.IdentifierNotUnique;
 import org.dataone.service.exceptions.InvalidRequest;
-import org.dataone.service.exceptions.InvalidSystemMetadata;
 import org.dataone.service.exceptions.NotAuthorized;
 import org.dataone.service.exceptions.NotFound;
-import org.dataone.service.types.v1.AccessRule;
 import org.dataone.service.types.v1.ChecksumAlgorithmList;
 import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Node;
 import org.dataone.service.types.v1.ObjectFormatIdentifier;
-import org.dataone.service.types.v1.Permission;
 import org.dataone.service.types.v1.Subject;
 import org.dataone.service.types.v2.Log;
 import org.dataone.service.types.v2.LogEntry;
@@ -73,6 +66,7 @@ public class CNCoreTestImplementations extends ContextAwareAdapter {
         String currentUrl = callAdapter.getNodeBaseServiceUrl();
         printTestHeader("testCreate() vs. node: " + currentUrl);
 
+        InputStream theDataObject = null;
         try {
             Object[] dataPackage = ExampleUtilities.generateTestSciMetaDataPackage("cNodeTier1TestCreate",true);
             org.dataone.service.types.v1.SystemMetadata sysMetaV1 = (org.dataone.service.types.v1.SystemMetadata) dataPackage[2];
@@ -83,7 +77,7 @@ public class CNCoreTestImplementations extends ContextAwareAdapter {
             checkEquals(callAdapter.getLatestRequestUrl(),"pid of created object should equal that given",
                     ((Identifier)dataPackage[0]).getValue(), pid.getValue());
             
-            InputStream theDataObject = callAdapter.get(null,pid);
+            theDataObject = callAdapter.get(null,pid);
             String objectData = IOUtils.toString(theDataObject);
             checkTrue(callAdapter.getLatestRequestUrl(),"should get back an object containing submitted text:" + objectData,
                     objectData.contains("Plain text source"));
@@ -95,7 +89,9 @@ public class CNCoreTestImplementations extends ContextAwareAdapter {
         catch(Exception e) {
             e.printStackTrace();
             handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
-        }   
+        } finally {
+            IOUtils.closeQuietly(theDataObject);
+        }
     }
     
     @WebTestName("create - identifier encoding: tests that calling create works for different types of identifier encodings")

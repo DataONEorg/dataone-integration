@@ -8,6 +8,7 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
+import org.apache.commons.io.IOUtils;
 import org.dataone.client.auth.CertificateManager;
 import org.dataone.client.v1.types.D1TypeBuilder;
 import org.dataone.configuration.Settings;
@@ -16,7 +17,6 @@ import org.dataone.integration.ContextAwareTestCaseDataone;
 import org.dataone.integration.TestIterationEndingException;
 import org.dataone.integration.adapters.CommonCallAdapter;
 import org.dataone.integration.it.ContextAwareAdapter;
-import org.dataone.integration.webTest.WebTestImplementation;
 import org.dataone.integration.webTest.WebTestDescription;
 import org.dataone.integration.webTest.WebTestName;
 import org.dataone.service.exceptions.BaseException;
@@ -652,16 +652,19 @@ public class CoreTestImplementations extends ContextAwareAdapter {
             if (eventLog.getLogEntryList().size() == 0) {
 
                 // read an existing object
+                InputStream is = null;
                 try {
                     String objectIdentifier = "TierTesting:" + this.catc.createNodeAbbreviation(callAdapter.getNodeBaseServiceUrl())
                             + ":Public_READ" + this.catc.getTestObjectSeriesSuffix();
                     Identifier id = this.catc.procurePublicReadableTestObject(callAdapter, D1TypeBuilder.buildIdentifier(objectIdentifier));
-                    InputStream is = callAdapter.get(null, id);
+                    is = callAdapter.get(null, id);
                     is.close();
                     Thread.sleep(1000); // just in case...
                     eventLog = callAdapter.getLogRecords(null, null, null, null, null, null, null);
                 } catch (TestIterationEndingException e) {
-                    ; //
+                    //
+                } finally {
+                    IOUtils.closeQuietly(is);
                 }
             }
 
