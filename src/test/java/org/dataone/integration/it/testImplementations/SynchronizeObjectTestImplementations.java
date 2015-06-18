@@ -42,7 +42,7 @@ public class SynchronizeObjectTestImplementations extends ContextAwareAdapter {
     private List<Node> mnList;
     private List<Node> cnList;
     
-    private static Log log = LogFactory.getLog(SystemMetadataChangedTestImplementation.class);
+    private static Log log = LogFactory.getLog(SystemMetadataFunctionalTestImplementation.class);
     
     
     public SynchronizeObjectTestImplementations(ContextAwareTestCaseDataone catc) {

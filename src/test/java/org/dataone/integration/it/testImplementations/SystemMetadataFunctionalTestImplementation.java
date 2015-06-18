@@ -59,7 +59,7 @@ import org.junit.Test;
  * 
  * @author Andrei
  */
-public class SystemMetadataChangedTestImplementation extends ContextAwareTestCaseDataone {
+public class SystemMetadataFunctionalTestImplementation extends ContextAwareTestCaseDataone {
 
     private static final String cnSubmitter = Settings.getConfiguration().getString("dataone.it.cnode.submitter.cn", "cnDevUNM1");
     private List<Node> mnList;
@@ -67,7 +67,7 @@ public class SystemMetadataChangedTestImplementation extends ContextAwareTestCas
     private static final long SYNC_TIME = 300000;           // FIXME is there a reliable way to know these?
     private static final long REPLICATION_TIME = 300000;    // FIXME "
     
-    private static Log log = LogFactory.getLog(SystemMetadataChangedTestImplementation.class);
+    private static Log log = LogFactory.getLog(SystemMetadataFunctionalTestImplementation.class);
     
     @Before
     public void setup() {

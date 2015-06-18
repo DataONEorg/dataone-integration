@@ -58,8 +58,7 @@ public class CNDiagnosticTestImplementations extends ContextAwareAdapter {
 
     @WebTestName("echoCredentials - tests if the echoCredentials call succeeds")
     @WebTestDescription("this test calls echoCredentials() and verifies that "
-            + "a SubjectInfo is returned, containing the expected values, "
-            + "and that no exception is thrown")
+            + "a SubjectInfo is returned and that no exception is thrown")
     public void testEchoCredentials(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testEchoCredentials(nodeIterator.next(), version);        
@@ -75,40 +74,6 @@ public class CNDiagnosticTestImplementations extends ContextAwareAdapter {
             SubjectInfo subjInfo = callAdapter.echoCredentials(null);
             assertTrue("echoCredentials should echo a non-null SubjectInfo", 
                     subjInfo != null);
-            
-            boolean correctSubjectFound = false;
-            for (Person person : subjInfo.getPersonList()) {
-                if (person.getSubject().getValue().equals("DC=org, DC=dataone, CN=testRightsHolder")) {
-                    correctSubjectFound = true;
-                    break;
-                }
-            }
-            assertTrue("echoCredentials() with the rights-holder certificate "
-                    + "should return SubjectInfo containing the correct subject", correctSubjectFound);
-
-            callAdapter = new CNCallAdapter(getSession("testPerson"), node, version);
-            subjInfo = callAdapter.echoCredentials(null);
-            assertTrue("echoCredentials should echo a non-null SubjectInfo", 
-                subjInfo != null);
-            
-            boolean personSubjectFound = false;
-            boolean personSubject1Found = false;
-            boolean personSubject2Found = false;
-            boolean personSubject3Found = false;
-            for (Person person : subjInfo.getPersonList()) {
-                if (person.getSubject().getValue().equals("CN=testPerson,DC=dataone,DC=org"))
-                    personSubjectFound = true;
-                if (person.getSubject().getValue().equals("CN=testEQPerson1,DC=dataone,DC=org"))
-                    personSubject1Found = true;
-                if (person.getSubject().getValue().equals("CN=testEQPerson2,DC=dataone,DC=org"))
-                    personSubject2Found = true;
-                if (person.getSubject().getValue().equals("CN=testEQPerson3,DC=dataone,DC=org"))
-                    personSubject3Found = true;
-            }
-            assertTrue("echoCredentials() with the person certificate "
-                    + "should return SubjectInfo containing the correct subjects", 
-                    personSubjectFound && personSubject1Found &&
-                    personSubject2Found && personSubject3Found);
         }
         catch (BaseException e) {
             handleFail(callAdapter.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
@@ -122,7 +87,7 @@ public class CNDiagnosticTestImplementations extends ContextAwareAdapter {
     
     @WebTestName("echoSystemMetadata - tests if the echoSystemMetadata call succeeds")
     @WebTestDescription("this test calls echoSystemMetadata() and verifies that "
-            + "an equivalent SystemMetadata object is sent back, "
+            + "a valid SystemMetadata object is sent back, "
             + "and that no exception is thrown")
     public void testEchoSystemMetadata(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
@@ -147,9 +112,6 @@ public class CNDiagnosticTestImplementations extends ContextAwareAdapter {
           
           SystemMetadata echoedSysmeta = callAdapter.echoSystemMetadata(null, sysmeta);
           assertTrue("echoSystemMetadata() should send back a valid SystemMetadata object", echoedSysmeta != null);
-          assertTrue("echoSystemMetadata() - echoed system metadata identifier should match", sysmeta.getIdentifier().equals(echoedSysmeta.getIdentifier()));
-          assertTrue("echoSystemMetadata() - echoed system metadata serialVersion should match", sysmeta.getSerialVersion().equals(echoedSysmeta.getSerialVersion()));
-          assertTrue("echoSystemMetadata() - echoed system metadata checksum should match", sysmeta.getChecksum().equals(echoedSysmeta.getChecksum()));
       }
       catch (BaseException e) {
           handleFail(callAdapter.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
@@ -794,8 +756,9 @@ public class CNDiagnosticTestImplementations extends ContextAwareAdapter {
             }
     }
     
-    @WebTestName("echoIndexedObject - tests if the echoIndexedObject call ")
-    @WebTestDescription("this test calls echoIndexedObject()   ...   ")
+    @WebTestName("echoIndexedObject - tests if the echoIndexedObject call succeeds")
+    @WebTestDescription("this test calls echoIndexedObject() and verifies that a "
+            + "valid stream is returned and that no exceptions are thrown")
     public void testEchoIndexedObject(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testEchoIndexedObject(nodeIterator.next(), version);        
@@ -808,6 +771,7 @@ public class CNDiagnosticTestImplementations extends ContextAwareAdapter {
         printTestHeader("testEchoIndexedObject(...) vs. node: " + currentUrl);
         
         InputStream is = null;
+        InputStream objStream = null;
         try {
             AccessRule accessRule = new AccessRule();
             getSession("testRightsHolder");
@@ -820,63 +784,9 @@ public class CNDiagnosticTestImplementations extends ContextAwareAdapter {
             Thread.sleep(METACAT_WAIT);
             SystemMetadata sysmeta = callAdapter.getSystemMetadata(null, pid);
             
-            InputStream objStream = callAdapter.get(null, pid);
-            
-            //-------------------------
-            // prints out the document to System.out:
-            
-//            Document docO = null;
-//            try {
-//                DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-//                docO = builder.parse(new InputSource(objStream));
-//                Transformer transformer = TransformerFactory.newInstance().newTransformer();
-//                DOMSource source = new DOMSource(docO);
-//                StreamResult result = new StreamResult(System.out);
-//                transformer.transform(source, result);
-//            } catch (Exception e) {
-//                handleFail(currentUrl, e.getClass().getName() + ": " + e.getMessage());
-//            }
-            //-------------------------
-            
+            objStream = callAdapter.get(null, pid);
             is = callAdapter.echoIndexedObject(null, "solr", sysmeta, objStream);
             assertTrue("testEchoIndexedObject() should return a non-null InputStream", is != null);
-            
-            Document doc = null;
-            try {
-                DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-                doc = builder.parse(new InputSource(objStream));
-            } catch (Exception e) {
-                handleFail(currentUrl, "echoIndexedObject() should return document representing the parsed object "
-                        + "as it would be prior to being added to a search index. " + e.getClass().getName()
-                        + ": " + e.getMessage());
-            }
-            
-            XPath xPath =  XPathFactory.newInstance().newXPath();
-            String abstractExp = "/response/result/doc/str[@name='abstract']";
-            String abstractVal = xPath.compile(abstractExp).evaluate(doc);
-            assertTrue("returned document should contain the same abstract as the metadata sent", 
-                    abstractVal.startsWith("PISCO is a large-scale marine research program"));
-            
-            String authorGivenNameExp = "/response/result/doc/str[@name='authorGivenName']";
-            String authorGivenNameVal = xPath.compile(authorGivenNameExp).evaluate(doc);
-            assertTrue("returned document should contain the same authorGivenName as the metadata sent", 
-                    authorGivenNameVal.equals("Margaret"));
-            
-            String authorSurNameExp = "/response/result/doc/str[@name='authorSurName']";
-            String authorSurNameVal = xPath.compile(authorSurNameExp).evaluate(doc);
-            assertTrue("returned document should contain the same authorSurName as the metadata sent", 
-                    authorSurNameVal.equals("McManus"));
-            
-            String formatIdExpExp = "/response/result/doc/str[@name='formatId']";
-            String formatIdValVal = xPath.compile(formatIdExpExp).evaluate(doc);
-            assertTrue("returned document should contain the same formatId as the metadata sent", 
-                    formatIdValVal.equals("eml://ecoinformatics.org/eml-2.0.1"));
-            
-            String formatTypeExp = "/response/result/doc/str[@name='formatType']";
-            String formatTypeVal = xPath.compile(formatTypeExp).evaluate(doc);
-            assertTrue("returned document should contain the same formatType as the metadata sent", 
-                    formatTypeVal.equals("METADATA"));
-            
         }
         catch (BaseException e) {
             handleFail(callAdapter.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
@@ -887,6 +797,7 @@ public class CNDiagnosticTestImplementations extends ContextAwareAdapter {
             handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
         } finally {
             IOUtils.closeQuietly(is);
+            IOUtils.closeQuietly(objStream);
         }
     }
     

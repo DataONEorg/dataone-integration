@@ -287,12 +287,14 @@ implements CoreTestDefinitions, CNCoreTestDefinitions, CNv2CoreTestDefinitions, 
 
     @Override
     @Test
+    @Ignore("No MN cert to test with")
     public void testSynchronize_NotAuthorized() {
         syncMetaImpl.testSynchronize_NotAuthorized(getCoordinatingNodeIterator(), "v2");
     }
 
     @Override
     @Test
+    @Ignore("No MN cert to test with")
     public void testSynchronize_NotAuthorized_MN() {
         syncMetaImpl.testSynchronize_NotAuthorized_MN(getCoordinatingNodeIterator(), "v2");
     }
