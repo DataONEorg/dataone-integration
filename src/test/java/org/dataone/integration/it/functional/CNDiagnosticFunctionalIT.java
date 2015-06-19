@@ -2,11 +2,13 @@ package org.dataone.integration.it.functional;
 
 import org.dataone.integration.ContextAwareTestCaseDataone;
 import org.dataone.integration.it.testImplementations.CNDiagnosticFunctionalTestImplementations;
+import org.dataone.integration.webTest.WebTestImplementation;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 public class CNDiagnosticFunctionalIT extends ContextAwareTestCaseDataone {
 
+    @WebTestImplementation
     private CNDiagnosticFunctionalTestImplementations diagImpl;
     
     @Override

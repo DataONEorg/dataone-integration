@@ -21,7 +21,6 @@ public class CNViewFunctionalIT extends ContextAwareTestCaseDataone {
     }
     
     @Test
-    @Ignore("ignoring to test listViews()")
     public void testView() {
         viewImpl.testView(getCoordinatingNodeIterator(), "v2");
     }
@@ -29,6 +28,11 @@ public class CNViewFunctionalIT extends ContextAwareTestCaseDataone {
     @Test
     public void testListViews() {
         viewImpl.testListViews(getCoordinatingNodeIterator(), "v2");
+    }
+    
+    @Test
+    public void testListViewsExist() {
+        viewImpl.testListViewsExist(getCoordinatingNodeIterator(), "v2");
     }
     
 }
