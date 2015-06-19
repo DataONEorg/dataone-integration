@@ -20,6 +20,7 @@ import org.dataone.integration.ContextAwareTestCaseDataone;
 import org.dataone.integration.ExampleUtilities;
 import org.dataone.integration.adapters.CNCallAdapter;
 import org.dataone.integration.adapters.CommonCallAdapter;
+import org.dataone.integration.adapters.MNCallAdapter;
 import org.dataone.integration.webTest.WebTestDescription;
 import org.dataone.integration.webTest.WebTestName;
 import org.dataone.service.exceptions.BaseException;
@@ -42,19 +43,24 @@ import org.junit.Test;
  * This class should prove whether the following series of events is functioning correctly:
  * 
  * <ol>
- *      <li>Some metadata is changed on an MN</li>
- *      <li>The MN calls CN.updateSystemMetadata() to update its version of the system metadata. (Synchronous call.)</li>
- *      <li>The MN also calls MN.updateSystemMetadata() on other replica-holding MNs, to update their system metadata. (Synchronous call.)</li>
+ *      <li>An object is created on an MN.</li>
+ *      <li>The system metadata is changed on the MN. - we call MN.updateSystemMetadata(). This is a synchronous call.</li>
+ *      <li>Under the hood, the MN will call CN.synchronize() to push the change out. This is a synchronous call but only tells us the request for synchronize was successful</li>
+ *      <li>Under the hood, the CN REST will call CNStorage.updateSystemMetadata() to update the CN's sysmeta</li>
+ *      <li>CN REST will also call MN.systemMetadataChanged() on notify them of new metadata.</li>
+ *      <li>The replica MNs will then call getSystemMetadata() on the authoritative MN to update their copy.</li>
  * </ol>
  * 
  * Assumptions made:
  * </p>
  * <ul>
- *      <li>It's the originating MN's responsibility to update replica-holder MNs of sysmeta changes (as opposed to the CN's).</li>
  *      <li>We have one or more working CNs in the environment</li>
- *      <li>We have two or more working MNs in the environment</li>
- *      <li>The MNs/CNs are properly registered.</li>
- *      <li>We know how long it takes the CN to sync MN data (if using newly-created data).</li>
+ *      <li>We have two or more working v2 MNs in the environment</li>
+ *      <li>At least one of the MNs has synchronization disabled 
+ *      (this is so we can test if CN.synchronize() works on its own correctly, as opposed to the harbest sync task).</li>
+ *      <li>The MNs/CNs are properly registered with each other.</li>
+ *      <li>We know how long it takes the CN to sync MN data and how long it takes MNs to replicate authoritative sysmeta. 
+ *      <b>NOTE: currently hard-coded to 30 minutes.</b></li>
  * </ul>
  * 
  * @author Andrei
@@ -95,6 +101,9 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
 
         log.info("CNs available: " + cnList.size());
         log.info("MNs available: " + mnList.size());
+        
+        assertTrue("This test requires at least two MNs to work.", mnList.size() >= 2);
+        assertTrue("This test requires at least one CN to work.", cnList.size() >= 1);
     }
     
     @Override
@@ -103,7 +112,9 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
     }
 
     @WebTestName("systemMetadataChanged: tests that changes made to system metadata by an MN are propegated")
-    @WebTestDescription("This test checks whether the following events on the MN trigger the correct changes: "
+    @WebTestDescription("This test needs to be run in an environment with two or more MNs, one of which must "
+            + "have synchronization disabled (so we can test if CN.synchronize() works on its own correctly)."
+            + "The test checks whether the following events on the MN trigger the correct changes: "
             + "Some metadata is changed on an MN"
             + "The MN calls CN.synchronizeObject() to notify the CN to update its version of the object. (Asynchronous call.)"
             + "We then need to wait for the CN to synchronize."
@@ -112,13 +123,38 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
     @Test
     public void testSystemMetadataChanged() {
         
-        assertTrue("This test requires at least two MNs to work.", mnList.size() >= 2);
-        assertTrue("This test requires at least one CN to work.", cnList.size() >= 1);
-        
         Identifier createdPid = null;
-        Node mnNode = mnList.get(0);
+        
+        // we need to test against an MN that has synchronize disabled
+        // so we can be sure that the MN->CN synchronize() call is working
+        // instead of the harvesting sync job
+        
+        Node mnNode = null;
+        for (Node mn : mnList) {
+            MNCallAdapter mnCallAdapter = new MNCallAdapter(getSession(cnSubmitter), mn, "v2");
+            Node capabilities = null;
+            try {
+                capabilities = mnCallAdapter.getCapabilities();
+            } catch (NotImplemented | ServiceFailure | ClientSideException e) {
+                e.printStackTrace();
+                handleFail(mnCallAdapter.getLatestRequestUrl(), "Unable to get MN capabilities. "
+                        + "Error: " + e.getClass().getSimpleName() + " : " + e.getMessage());
+            }
+            
+            boolean synchronize = capabilities.isSynchronize();
+            if (!synchronize) {
+                mnNode = mn;
+                break;
+            }
+        }
+        assertTrue("Environment for test must have at least one v2 MN with synchronize disabled "
+                + "(so we can test if CN.synchronize() works on its own correctly).", mnNode != null);
+        
         CommonCallAdapter mn = new CommonCallAdapter(getSession("testRightsHolder"), mnNode, "v2");
         try {
+            
+            // create a test object
+            
             AccessRule accessRule = APITestUtils.buildAccessRule("testRightsHolder", Permission.CHANGE_PERMISSION);
             Identifier pid = new Identifier();
             pid.setValue("testSystemMetadataChanged_" + ExampleUtilities.generateIdentifier());
@@ -128,7 +164,8 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
                 handleFail(mn.getLatestRequestUrl(), "Unable to create a test object: " + pid);
             }
             
-            // modify the data
+            // modify the sysmeta
+            
             SystemMetadata sysmeta = mn.getSystemMetadata(null, createdPid);
             BigInteger newSerialVersion = sysmeta.getSerialVersion().add(BigInteger.ONE);
             sysmeta.setSerialVersion(newSerialVersion);
@@ -143,21 +180,18 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
             }
             assertTrue("MN should have modified its own system metadata successfully.", success);
             
-            // notify CN of the MN's change
+            // MN.updateSystemMetadata() call should trigger a 
+            // CN.synchronize() call under the hood
+            
             Node cnNode = cnList.get(0);
             CNCallAdapter cn = new CNCallAdapter(getSession(cnSubmitter), cnNode, "v2");
-            try {
-                success = cn.updateSystemMetadata(null, createdPid, sysmeta);
-            } catch (BaseException be) {
-                handleFail(mn.getLatestRequestUrl(), "Call to CN updateSystemMetadata failed: " + be.getMessage());
-                be.printStackTrace();
-            }
-            assertTrue("CN should have been notified to synchronize object: " + createdPid, success);
 
             // CN needs time to synchronize
+            
             Thread.sleep(SYNC_TIME);
             
             // verify that sysmeta fetched from CN is updated
+            
             SystemMetadata fetchedCNSysmeta = cn.getSystemMetadata(null, createdPid);
             boolean serialVersionMatches = fetchedCNSysmeta.getSerialVersion().equals(newSerialVersion);
             boolean dateModifiedMatches = fetchedCNSysmeta.getDateSysMetadataModified().equals(nowIsh);
@@ -165,7 +199,9 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
             assertTrue("System metadata fetched from CN should now have updated dateSysMetadataModified.", dateModifiedMatches );
             
             // CN needs to run replication in order for sysmeta to contain replica info
-            // so we can test if we can update the sysmeta on the replica-holding MNs
+            // we need replica info in the sysmeta
+            // so we can then verify that the sysmeta on the replica-holding MNs is updated
+            
             Thread.sleep(REPLICATION_TIME);
             
             fetchedCNSysmeta = cn.getSystemMetadata(null, createdPid);
@@ -185,12 +221,9 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
                 assertTrue("Should be able to find another MN that holds a replica.", replicaHolderNode != null);
                 
                 CommonCallAdapter replicaHolderMN = new CommonCallAdapter(getSession("testRightsHolder"), replicaHolderNode, "v2");
-                // it's not the MN's responsibility to update replica-holders
-                // this should happen as part of CN sync / replication
+                // it's not the MN's responsibility to update replica-holders 
+                // (it's the CN's, as part of synchronize() and ensuing replication)
                 // so here we just check if the replicas have the updated version of sysmeta 
-                
-                // success = replicaHolderMN.updateSystemMetadata(null, createdPid, sysmeta);
-                // assertTrue("Replica-holder MN (" + replica.getReplicaMemberNode().getValue() + ") should have had its system metadata updated successfully.", success);
                 
                 SystemMetadata replicaSysmeta = replicaHolderMN.getSystemMetadata(null, createdPid);
                 serialVersionMatches = replicaSysmeta.getSerialVersion().equals(newSerialVersion);
