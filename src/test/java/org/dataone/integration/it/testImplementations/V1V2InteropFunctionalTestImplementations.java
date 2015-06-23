@@ -3,9 +3,7 @@ package org.dataone.integration.it.testImplementations;
 import static org.junit.Assert.assertTrue;
 
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.InvocationTargetException;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -21,7 +19,6 @@ import org.apache.commons.collections.IteratorUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.dataone.client.exception.ClientSideException;
 import org.dataone.client.v1.itk.D1Object;
 import org.dataone.client.v1.types.D1TypeBuilder;
 import org.dataone.configuration.Settings;
@@ -34,17 +31,16 @@ import org.dataone.integration.webTest.WebTestName;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.InvalidRequest;
 import org.dataone.service.exceptions.NotFound;
-import org.dataone.service.exceptions.NotImplemented;
-import org.dataone.service.exceptions.ServiceFailure;
 import org.dataone.service.types.v1.AccessRule;
 import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Node;
 import org.dataone.service.types.v1.NodeType;
+import org.dataone.service.types.v1.ObjectInfo;
+import org.dataone.service.types.v1.ObjectList;
 import org.dataone.service.types.v1.Permission;
 import org.dataone.service.types.v1.Subject;
 import org.dataone.service.types.v2.SystemMetadata;
 import org.dataone.service.util.TypeMarshaller;
-import org.jibx.runtime.JiBXException;
 import org.junit.Test;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
@@ -90,10 +86,8 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
                 for(Node n : cn.listNodes().getNodeList())
                     if(n.getType() == NodeType.MN)
                         mnList.add(n);
-            } catch (NotImplemented | ServiceFailure | InstantiationException
-                    | IllegalAccessException | InvocationTargetException | ClientSideException
-                    | JiBXException | IOException e) {
-                log.warn("Unable to fetch node list from CN: " + cn.getNodeBaseServiceUrl(), e);
+            } catch (Exception e) {
+                log.fatal("Unable to fetch node list from CN: " + cn.getNodeBaseServiceUrl(), e);
             }
         }
         
@@ -359,7 +353,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         }
     }
     
-    @WebTestName("v2 create, replicate")
+    @WebTestName("v2 create, v1 getSystemMetadata")
     @WebTestDescription(
      "Test operates on two MNs - one that supports the v2 APIs, one that supports ONLY v1." +
      "It does a create on the v2 endpoint, then sleeps for some time, " + 
@@ -367,7 +361,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
      "This check should fail since v2-created data should NOT be replicated " +
      "down to v1 nodes.")
     @Test
-    public void testV2CreateReplicate() {
+    public void testV2CreateV1GetSysMeta() {
         AccessRule accessRule = new AccessRule();
         getSession("testRightsHolder");
         Subject subject = ContextAwareTestCaseDataone.getSubject("testRightsHolder");
@@ -463,9 +457,9 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         MNCallAdapter v1CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v1Endpoint, "v1");
         
         try {
-            v1CallAdapter.getSystemMetadata(null, pid);
-        } catch (NotFound e) {
-            // expected, shouldn't have been replicated to a v1 node
+            SystemMetadata sysmeta = v1CallAdapter.getSystemMetadata(null, pid);
+            assertTrue("v1 getSystemMetadata() after a v2 create() on the same node should succeed, "
+                    + "returning a non-null SystemMetadata", sysmeta != null);
         } catch (BaseException e) {
             e.printStackTrace();
             handleFail(v1CallAdapter.getLatestRequestUrl(), "testV2CreateV1GetSysmeta() couldn't create update object: " 
@@ -476,6 +470,133 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             e.printStackTrace();
             handleFail(v1CallAdapter.getLatestRequestUrl(), "testV2CreateV1GetSysmeta() couldn't create update object: " 
             + e.getClass().getName() + ": " + e.getMessage());
+        }
+    }
+    
+    @WebTestName("v1 create, v2 get, different nodes")
+    @WebTestDescription(
+     "Test operates on two MNs - one that supports ONLY the v1 API and a node " + 
+     "that supports the v2 API. " +
+     "It does a create on the v1 MN, then waits for replication to happen, " +
+     "then attempts a get() on the v2 MN. " +
+     "The get() should succeed")
+    @Test
+    public void testV1CreateV2Get() {
+        
+        AccessRule accessRule = new AccessRule();
+        getSession("testRightsHolder");
+        Subject subject = ContextAwareTestCaseDataone.getSubject("testRightsHolder");
+        accessRule.addSubject(subject);
+        accessRule.addPermission(Permission.CHANGE_PERMISSION);
+        
+        Node v1MNode = v1mns.get(0);
+        MNCallAdapter v1CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v1MNode, "v1");
+        
+        // v1 create
+        
+        Identifier pid = null;
+        try {
+            pid = createTestObject(v1CallAdapter, "testV1CreateV2Get_", accessRule);
+        } catch (BaseException e) {
+            e.printStackTrace();
+            handleFail(v1CallAdapter.getLatestRequestUrl(), "testV1CreateV2Get() couldn't create test object: " 
+                    + e.getClass().getSimpleName() + ": " 
+                    + e.getDetail_code() + ":: " + e.getDescription());
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+            handleFail(v1CallAdapter.getLatestRequestUrl(), "testV1CreateV2Get() couldn't create test object: " 
+            + e.getClass().getName() + ": " + e.getMessage());
+        }
+        
+        // take a nap
+        try {
+            Thread.sleep(REPLICATION_TIME);
+        } catch (InterruptedException e1) {
+            e1.printStackTrace();
+        }
+        
+        // v2 get
+
+        Node v2MNode = v2mns.get(0);
+        MNCallAdapter v2CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v2MNode, "v2");
+        
+        InputStream is = null;
+        try {
+            is = v2CallAdapter.get(null, pid);
+            assertTrue("a v2 get() after a v1 create() on a different node should "
+                    + "(given enough time for replication) "
+                    + "return a non-null InputStream", 
+                    is != null);
+        } catch (BaseException e) {
+            e.printStackTrace();
+            handleFail(v2CallAdapter.getLatestRequestUrl(), "testV1CreateV2Get() couldn't create update object: " 
+                    + e.getClass().getSimpleName() + ": " 
+                    + e.getDetail_code() + ":: " + e.getDescription());
+        } catch(Exception e) {
+            e.printStackTrace();
+            handleFail(v2CallAdapter.getLatestRequestUrl(), "testV2CreateV1Update() couldn't create update object: " 
+            + e.getClass().getName() + ": " + e.getMessage());
+        } finally {
+            IOUtils.closeQuietly(is);
+        }
+    }
+    
+    @WebTestName("v2 create, v1 get, same node")
+    @WebTestDescription(
+     "Test operates on a single MN - one that supports BOTH the v1 and v2 APIs. " +
+     "It does a create on the v2 endpoint, then attempts a get() on the v1 endpoint. " +
+     "The get() should succeed since we're on the same node.")
+    @Test
+    public void testV2CreateV1GetSameNode() {
+        AccessRule accessRule = new AccessRule();
+        getSession("testRightsHolder");
+        Subject subject = ContextAwareTestCaseDataone.getSubject("testRightsHolder");
+        accessRule.addSubject(subject);
+        accessRule.addPermission(Permission.CHANGE_PERMISSION);
+        
+        Node v2Endpoint = v1v2mns.get(0);
+        MNCallAdapter v2CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v2Endpoint, "v2");
+        
+        // v2 create
+        
+        Identifier pid = null;
+        try {
+            pid = createTestObject(v2CallAdapter, "testV2CreateV1GetSameNode_", accessRule);
+        } catch (BaseException e) {
+            e.printStackTrace();
+            handleFail(v2CallAdapter.getLatestRequestUrl(), "testV2CreateV1GetSameNode() couldn't create test object: " 
+                    + e.getClass().getSimpleName() + ": " 
+                    + e.getDetail_code() + ":: " + e.getDescription());
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+            handleFail(v2CallAdapter.getLatestRequestUrl(), "testV2CreateV1GetSameNode() couldn't create test object: " 
+            + e.getClass().getName() + ": " + e.getMessage());
+        }
+        
+        // v1 get
+
+        Node v1Endpoint = v1v2mns.get(0);
+        MNCallAdapter v1CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v1Endpoint, "v1");
+        
+        InputStream is = null;
+        try {
+            is = v1CallAdapter.get(null, pid);
+            assertTrue("A get on the v1 endpoint after a v2 endpoint create on the same node "
+                    + "should return a non-null InputStream.", is != null);
+        } catch (BaseException e) {
+            e.printStackTrace();
+            handleFail(v1CallAdapter.getLatestRequestUrl(), "testV2CreateV1GetSameNode() couldn't create update object: " 
+                    + e.getClass().getSimpleName() + ": " 
+                    + e.getDetail_code() + ":: " + e.getDescription());
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+            handleFail(v1CallAdapter.getLatestRequestUrl(), "testV2CreateV1GetSameNode() couldn't create update object: " 
+            + e.getClass().getName() + ": " + e.getMessage());
+        } finally {
+            IOUtils.closeQuietly(is);
         }
     }
     
@@ -545,16 +666,14 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         }
     }
     
-    @WebTestName("v1 create, replication")
+    @WebTestName("v1 create, v2 getSystemMetadata")
     @WebTestDescription(
-     "Test operates on two MNs - one that supports ONLY the v1 API and a node" + 
-     "that supports the v2 API." +
-     "It does a create on the v1 MN, then waits for replication to happen," +
-     "then attempts a getSystemMetadata on the v2 MN." +
+     "Test operates on one MN which supports BOTH the v1 API and the v2 API" +
+     "It does a create on the v1 endpoint, then attempts a getSystemMetadata on the v2 endpoint." +
      "The getSystemMetadata should succeed; the SystemMetadata will just be" + 
      "upcasted to the v2 version.")
     @Test
-    public void testV1CreateReplicate() {
+    public void testV1CreateV2GetSysmetaSameNode() {
         
         AccessRule accessRule = new AccessRule();
         getSession("testRightsHolder");
@@ -580,13 +699,6 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             e.printStackTrace();
             handleFail(v1CallAdapter.getLatestRequestUrl(), "testV1CreateV2GetSysmeta() couldn't create test object: " 
             + e.getClass().getName() + ": " + e.getMessage());
-        }
-        
-        // take a nap
-        try {
-            Thread.sleep(REPLICATION_TIME);
-        } catch (InterruptedException e1) {
-            e1.printStackTrace();
         }
         
         // v2 getSysmeta
@@ -760,7 +872,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             handleFail(v1CallAdapter.getLatestRequestUrl(), "testV2CreateV1Query(): "
                     + "query() on the v1 MN should fail.");
         } catch (InvalidRequest e) {
-            // expected - query() on v1 endpoint should fail
+            // expected - query() on v1 MN should fail
         } catch (BaseException e) {
             e.printStackTrace();
             handleFail(v1CallAdapter.getLatestRequestUrl(), "testV2CreateV1Query() couldn't create update object: " 
@@ -773,6 +885,515 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             + e.getClass().getName() + ": " + e.getMessage());
         } finally {
             IOUtils.closeQuietly(is);
+        }
+    }
+    
+    @WebTestName("v2 create, v1 delete, same node")
+    @WebTestDescription(
+     "Test operates on one MN that supports BOTH the v1 and v2 APIs " +
+     "It does a create on the v2 endpoint, then attempts to delete the object " +
+     "for that pid on the v1 endpoint. The delete should succeed.")
+    @Test
+    public void testV2CreateV1DeleteSameNode() {
+        
+        AccessRule accessRule = new AccessRule();
+        getSession("testRightsHolder");
+        Subject subject = ContextAwareTestCaseDataone.getSubject("testRightsHolder");
+        accessRule.addSubject(subject);
+        accessRule.addPermission(Permission.CHANGE_PERMISSION);
+        
+        Node v1v2MNode = v1v2mns.get(0);
+        MNCallAdapter v2CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v1v2MNode, "v2");
+        
+        // v2 create
+        
+        Identifier pid = null;
+        try {
+            pid = createTestObject(v2CallAdapter, "testV2CreateV1DeleteSameNode_", accessRule);
+        } catch (BaseException e) {
+            e.printStackTrace();
+            handleFail(v2CallAdapter.getLatestRequestUrl(), "testV2CreateV1DeleteSameNode() couldn't create test object: " 
+                    + e.getClass().getSimpleName() + ": " 
+                    + e.getDetail_code() + ":: " + e.getDescription());
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+            handleFail(v2CallAdapter.getLatestRequestUrl(), "testV2CreateV1DeleteSameNode() couldn't create test object: " 
+            + e.getClass().getName() + ": " + e.getMessage());
+        }
+        
+        // v1 delete
+
+        MNCallAdapter v1CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v1v2MNode, "v1");
+        
+        try {
+            Identifier deleteId = v1CallAdapter.delete(null, pid);
+            assertTrue("testV1CreateV2DeleteSameNode() - v2 delete should have succeeded and returned "
+                    + "the pid of the deleted object.", deleteId != null);
+        } catch (BaseException e) {
+            e.printStackTrace();
+            handleFail(v1CallAdapter.getLatestRequestUrl(), "testV2CreateV1DeleteSameNode() couldn't create update object: " 
+                    + e.getClass().getSimpleName() + ": " 
+                    + e.getDetail_code() + ":: " + e.getDescription());
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+            handleFail(v1CallAdapter.getLatestRequestUrl(), "testV2CreateV1DeleteSameNode() couldn't create update object: " 
+            + e.getClass().getName() + ": " + e.getMessage());
+        }
+    }
+    
+    @WebTestName("v1 create, v2 delete, same node")
+    @WebTestDescription(
+     "Test operates on one MN that supports BOTH the v1 and v2 APIs " +
+     "It does a create on the v1 endpoint, then attempts to delete the object " +
+     "for that pid on the v2 endpoint. The delete should succeed since we're on " +
+     "the same node.")
+    @Test
+    public void testV1CreateV2DeleteSameNode() {
+        
+        AccessRule accessRule = new AccessRule();
+        getSession("testRightsHolder");
+        Subject subject = ContextAwareTestCaseDataone.getSubject("testRightsHolder");
+        accessRule.addSubject(subject);
+        accessRule.addPermission(Permission.CHANGE_PERMISSION);
+        
+        Node v1v2MNode = v1v2mns.get(0);
+        MNCallAdapter v1CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v1v2MNode, "v1");
+        
+        // v1 create
+        
+        Identifier pid = null;
+        try {
+            pid = createTestObject(v1CallAdapter, "testV1CreateV2DeleteSameNode_", accessRule);
+        } catch (BaseException e) {
+            e.printStackTrace();
+            handleFail(v1CallAdapter.getLatestRequestUrl(), "testV1CreateV2DeleteSameNode() couldn't create test object: " 
+                    + e.getClass().getSimpleName() + ": " 
+                    + e.getDetail_code() + ":: " + e.getDescription());
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+            handleFail(v1CallAdapter.getLatestRequestUrl(), "testV1CreateV2DeleteSameNode() couldn't create test object: " 
+            + e.getClass().getName() + ": " + e.getMessage());
+        }
+        
+        // v2 delete
+
+        MNCallAdapter v2CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v1v2MNode, "v2");
+        
+        try {
+            Identifier deleteId = v2CallAdapter.delete(null, pid);
+            assertTrue("testV1CreateV2DeleteSameNode() - v2 delete should have succeeded and returned "
+                    + "the pid of the deleted object.", deleteId != null);
+        } catch (BaseException e) {
+            e.printStackTrace();
+            handleFail(v2CallAdapter.getLatestRequestUrl(), "testV1CreateV2DeleteSameNode() couldn't create update object: " 
+                    + e.getClass().getSimpleName() + ": " 
+                    + e.getDetail_code() + ":: " + e.getDescription());
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+            handleFail(v2CallAdapter.getLatestRequestUrl(), "testV1CreateV2DeleteSameNode() couldn't create update object: " 
+            + e.getClass().getName() + ": " + e.getMessage());
+        }
+    }
+    
+    @WebTestName("v2 create, v1 delete")
+    @WebTestDescription(
+     "Test operates on two MNs - one that supports ONLY the v1 API and a node " +
+     "that supports the v2 API. " +
+     "It does a create on the v2 MN, then attempts to delete the object " +
+     "for that pid on the v1 MN. The delete should fail because replication from " +
+     "a v2 MN to a v1 MN shouldn't happen for v2 objects.")
+    @Test
+    public void testV2CreateV1Delete() {
+        
+        AccessRule accessRule = new AccessRule();
+        getSession("testRightsHolder");
+        Subject subject = ContextAwareTestCaseDataone.getSubject("testRightsHolder");
+        accessRule.addSubject(subject);
+        accessRule.addPermission(Permission.CHANGE_PERMISSION);
+        
+        Node v2MNode = v2mns.get(0);
+        MNCallAdapter v2CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v2MNode, "v2");
+        
+        // v2 create
+        
+        Identifier pid = null;
+        try {
+            pid = createTestObject(v2CallAdapter, "testV2CreateV1Delete_", accessRule);
+        } catch (BaseException e) {
+            e.printStackTrace();
+            handleFail(v2CallAdapter.getLatestRequestUrl(), "testV2CreateV1Delete() couldn't create test object: " 
+                    + e.getClass().getSimpleName() + ": " 
+                    + e.getDetail_code() + ":: " + e.getDescription());
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+            handleFail(v2CallAdapter.getLatestRequestUrl(), "testV2CreateV1Delete() couldn't create test object: " 
+            + e.getClass().getName() + ": " + e.getMessage());
+        }
+        
+        // wait for replication
+        try {
+            Thread.sleep(REPLICATION_TIME);
+        } catch (InterruptedException e1) {
+            e1.printStackTrace();
+        }
+        
+        // v1 delete
+
+        Node v1MNode = v1mns.get(0);
+        MNCallAdapter v1CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v1MNode, "v1");
+        
+        try {
+            v1CallAdapter.delete(null, pid);
+            handleFail(v1CallAdapter.getLatestRequestUrl(), "testV2CreateV1Delete(): "
+                    + "delete() on the v1 MN should fail.");
+        } catch (NotFound e) {
+            // expected - not available on this node
+        } catch (BaseException e) {
+            e.printStackTrace();
+            handleFail(v1CallAdapter.getLatestRequestUrl(), "testV2CreateV1Delete() couldn't create update object: " 
+                    + e.getClass().getSimpleName() + ": " 
+                    + e.getDetail_code() + ":: " + e.getDescription());
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+            handleFail(v1CallAdapter.getLatestRequestUrl(), "testV2CreateV1Delete() couldn't create update object: " 
+            + e.getClass().getName() + ": " + e.getMessage());
+        }
+    }
+    
+    @WebTestName("v1 create, v2 delete")
+    @WebTestDescription(
+     "Test operates on two MNs - one that supports ONLY the v1 API and a node " +
+     "that supports the v2 API. " +
+     "It does a create on the v1 MN, then attempts to delete the object " +
+     "for that pid on the v2 MN. The delete should succeed because the object should " +
+     "have been replicated from the v1 MN to the v2 MN.")
+    @Test
+    public void testV1CreateV2Delete() {
+        
+        AccessRule accessRule = new AccessRule();
+        getSession("testRightsHolder");
+        Subject subject = ContextAwareTestCaseDataone.getSubject("testRightsHolder");
+        accessRule.addSubject(subject);
+        accessRule.addPermission(Permission.CHANGE_PERMISSION);
+        
+        Node v1MNode = v1mns.get(0);
+        MNCallAdapter v1CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v1MNode, "v1");
+        
+        // v1 create
+        
+        Identifier pid = null;
+        try {
+            pid = createTestObject(v1CallAdapter, "testV1CreateV2Delete_", accessRule);
+        } catch (BaseException e) {
+            e.printStackTrace();
+            handleFail(v1CallAdapter.getLatestRequestUrl(), "testV1CreateV2Delete() couldn't create test object: " 
+                    + e.getClass().getSimpleName() + ": " 
+                    + e.getDetail_code() + ":: " + e.getDescription());
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+            handleFail(v1CallAdapter.getLatestRequestUrl(), "testV1CreateV2Delete() couldn't create test object: " 
+            + e.getClass().getName() + ": " + e.getMessage());
+        }
+        
+        // wait for replication
+        try {
+            Thread.sleep(REPLICATION_TIME);
+        } catch (InterruptedException e1) {
+            e1.printStackTrace();
+        }
+        
+        // v2 delete
+
+        Node v2MNode = v2mns.get(0);
+        MNCallAdapter v2CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v2MNode, "v2");
+        
+        try {
+            Identifier deleteId = v2CallAdapter.delete(null, pid);
+            assertTrue("testV1CreateV2Delete() - v2 delete should have succeeded and returned "
+                    + "the pid of the deleted object.", deleteId != null);
+        } catch (BaseException e) {
+            e.printStackTrace();
+            handleFail(v2CallAdapter.getLatestRequestUrl(), "testV1CreateV2Delete() couldn't create update object: " 
+                    + e.getClass().getSimpleName() + ": " 
+                    + e.getDetail_code() + ":: " + e.getDescription());
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+            handleFail(v2CallAdapter.getLatestRequestUrl(), "testV1CreateV2Delete() couldn't create update object: " 
+            + e.getClass().getName() + ": " + e.getMessage());
+        }
+    }
+    
+    @WebTestName("v2 create, v1 listObjects, same node")
+    @WebTestDescription(
+     "Test operates on one MN that supports BOTH the v1 and v2 APIs " +
+     "It does a create on the v2 endpoint, then attempts to locate the object " +
+     "for that pid using listObjects() on the v1 endpoint. It should be found.")
+    @Test
+    public void testV2CreateV1ListObjectsSameNode() {
+        
+        AccessRule accessRule = new AccessRule();
+        getSession("testRightsHolder");
+        Subject subject = ContextAwareTestCaseDataone.getSubject("testRightsHolder");
+        accessRule.addSubject(subject);
+        accessRule.addPermission(Permission.CHANGE_PERMISSION);
+        
+        Node v1v2MNode = v1v2mns.get(0);
+        MNCallAdapter v2CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v1v2MNode, "v2");
+        
+        // v2 create
+        
+        Identifier pid = null;
+        try {
+            pid = createTestObject(v2CallAdapter, "testV2CreateV1ListObjectsSameNode_", accessRule);
+        } catch (BaseException e) {
+            e.printStackTrace();
+            handleFail(v2CallAdapter.getLatestRequestUrl(), "testV2CreateV1ListObjectsSameNode() couldn't create test object: " 
+                    + e.getClass().getSimpleName() + ": " 
+                    + e.getDetail_code() + ":: " + e.getDescription());
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+            handleFail(v2CallAdapter.getLatestRequestUrl(), "testV2CreateV1ListObjectsSameNode() couldn't create test object: " 
+            + e.getClass().getName() + ": " + e.getMessage());
+        }
+        
+        // v1 delete
+
+        MNCallAdapter v1CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v1v2MNode, "v1");
+        
+        try {
+            ObjectList objList = v1CallAdapter.listObjects(null, null, null, null, null, null, null);
+            boolean objFound = false;
+            for(ObjectInfo objInfo : objList.getObjectInfoList())
+                if(pid.getValue().equals(objInfo.getIdentifier().getValue())){
+                    objFound = true;
+                    break;
+                }
+            assertTrue("testV2CreateV1ListObjectsSameNode() - v1 listObjects() results "
+                    + "should include the created object.", objFound );
+        } catch (BaseException e) {
+            e.printStackTrace();
+            handleFail(v1CallAdapter.getLatestRequestUrl(), "testV2CreateV1ListObjectsSameNode() couldn't create update object: " 
+                    + e.getClass().getSimpleName() + ": " 
+                    + e.getDetail_code() + ":: " + e.getDescription());
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+            handleFail(v1CallAdapter.getLatestRequestUrl(), "testV2CreateV1ListObjectsSameNode() couldn't create update object: " 
+            + e.getClass().getName() + ": " + e.getMessage());
+        }
+    }
+    
+    @WebTestName("v1 create, v2 listObjects, same node")
+    @WebTestDescription(
+     "Test operates on one MN that supports BOTH the v1 and v2 APIs " +
+     "It does a create on the v1 endpoint, then attempts to locate the object " +
+     "for that pid using listObjects() on the v2 endpoint. The pid should be found.")
+    @Test
+    public void testV1CreateV2ListObjectsSameNode() {
+        
+        AccessRule accessRule = new AccessRule();
+        getSession("testRightsHolder");
+        Subject subject = ContextAwareTestCaseDataone.getSubject("testRightsHolder");
+        accessRule.addSubject(subject);
+        accessRule.addPermission(Permission.CHANGE_PERMISSION);
+        
+        Node v1v2MNode = v1v2mns.get(0);
+        MNCallAdapter v1CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v1v2MNode, "v1");
+        
+        // v1 create
+        
+        Identifier pid = null;
+        try {
+            pid = createTestObject(v1CallAdapter, "testV1CreateV2ListObjectsSameNode_", accessRule);
+        } catch (BaseException e) {
+            e.printStackTrace();
+            handleFail(v1CallAdapter.getLatestRequestUrl(), "testV1CreateV2ListObjectsSameNode() couldn't create test object: " 
+                    + e.getClass().getSimpleName() + ": " 
+                    + e.getDetail_code() + ":: " + e.getDescription());
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+            handleFail(v1CallAdapter.getLatestRequestUrl(), "testV1CreateV2ListObjectsSameNode() couldn't create test object: " 
+            + e.getClass().getName() + ": " + e.getMessage());
+        }
+        
+        // v2 delete
+
+        MNCallAdapter v2CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v1v2MNode, "v2");
+        
+        try {
+            ObjectList objList = v2CallAdapter.listObjects(null, null, null, null, null, null, null);
+            boolean objFound = false;
+            for(ObjectInfo objInfo : objList.getObjectInfoList())
+                if(pid.getValue().equals(objInfo.getIdentifier().getValue())){
+                    objFound = true;
+                    break;
+                }
+            assertTrue("testV1CreateV2ListObjectsSameNode() - v2 listObjects() results "
+                    + "should include the created object.", objFound );
+        } catch (BaseException e) {
+            e.printStackTrace();
+            handleFail(v2CallAdapter.getLatestRequestUrl(), "testV1CreateV2ListObjectsSameNode() couldn't create update object: " 
+                    + e.getClass().getSimpleName() + ": " 
+                    + e.getDetail_code() + ":: " + e.getDescription());
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+            handleFail(v2CallAdapter.getLatestRequestUrl(), "testV1CreateV2ListObjectsSameNode() couldn't create update object: " 
+            + e.getClass().getName() + ": " + e.getMessage());
+        }
+    }
+    
+    @WebTestName("v2 create, v1 listObjects")
+    @WebTestDescription(
+     "Test operates on two MNs - one that supports ONLY the v1 API and a node " +
+     "that supports the v2 API. " +
+     "It does a create on the v2 MN, then attempts to locate the object " +
+     "for that pid using listObjects() on the v1 MN. The listObjects results " +
+     "should not contain the pid created because replication from " +
+     "a v2 MN to a v1 MN shouldn't happen for v2 objects.")
+    @Test
+    public void testV2CreateV1ListObjects() {
+        
+        AccessRule accessRule = new AccessRule();
+        getSession("testRightsHolder");
+        Subject subject = ContextAwareTestCaseDataone.getSubject("testRightsHolder");
+        accessRule.addSubject(subject);
+        accessRule.addPermission(Permission.CHANGE_PERMISSION);
+        
+        Node v2MNode = v2mns.get(0);
+        MNCallAdapter v2CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v2MNode, "v2");
+        
+        // v2 create
+        
+        Identifier pid = null;
+        try {
+            pid = createTestObject(v2CallAdapter, "testV2CreateV1ListObjects_", accessRule);
+        } catch (BaseException e) {
+            e.printStackTrace();
+            handleFail(v2CallAdapter.getLatestRequestUrl(), "testV2CreateV1ListObjects() couldn't create test object: " 
+                    + e.getClass().getSimpleName() + ": " 
+                    + e.getDetail_code() + ":: " + e.getDescription());
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+            handleFail(v2CallAdapter.getLatestRequestUrl(), "testV2CreateV1ListObjects() couldn't create test object: " 
+            + e.getClass().getName() + ": " + e.getMessage());
+        }
+        
+        // wait for replication
+        try {
+            Thread.sleep(REPLICATION_TIME);
+        } catch (InterruptedException e1) {
+            e1.printStackTrace();
+        }
+        
+        // v1 listObjects
+
+        Node v1MNode = v1mns.get(0);
+        MNCallAdapter v1CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v1MNode, "v1");
+        
+        try {
+            ObjectList objList = v1CallAdapter.listObjects(null, null, null, null, null, null, null);
+            boolean objFound = false;
+            for(ObjectInfo objInfo : objList.getObjectInfoList())
+                if(pid.getValue().equals(objInfo.getIdentifier().getValue())){
+                    objFound = true;
+                    break;
+                }
+            assertTrue("testV2CreateV1ListObjects() - v2 listObjects() results "
+                    + "should NOT include the created object.", !objFound );
+        } catch (BaseException e) {
+            e.printStackTrace();
+            handleFail(v1CallAdapter.getLatestRequestUrl(), "testV2CreateV1ListObjects() couldn't create update object: " 
+                    + e.getClass().getSimpleName() + ": " 
+                    + e.getDetail_code() + ":: " + e.getDescription());
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+            handleFail(v1CallAdapter.getLatestRequestUrl(), "testV2CreateV1ListObjects() couldn't create update object: " 
+            + e.getClass().getName() + ": " + e.getMessage());
+        }
+    }
+    
+    @WebTestName("v1 create, v2 listObjects")
+    @WebTestDescription(
+     "Test operates on two MNs - one that supports ONLY the v1 API and a node " +
+     "that supports the v2 API. " +
+     "It does a create on the v1 MN, then attempts to delete the object " +
+     "for that pid on the v2 MN. The listObjects call should return results containing " +
+     "the created pid because the object should have been replicated " +
+     "from the v1 MN to the v2 MN.")
+    @Test
+    public void testV1CreateV2ListObjects() {
+        
+        AccessRule accessRule = new AccessRule();
+        getSession("testRightsHolder");
+        Subject subject = ContextAwareTestCaseDataone.getSubject("testRightsHolder");
+        accessRule.addSubject(subject);
+        accessRule.addPermission(Permission.CHANGE_PERMISSION);
+        
+        Node v1MNode = v1mns.get(0);
+        MNCallAdapter v1CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v1MNode, "v1");
+        
+        // v1 create
+        
+        Identifier pid = null;
+        try {
+            pid = createTestObject(v1CallAdapter, "testV1CreateV2ListObjects_", accessRule);
+        } catch (BaseException e) {
+            e.printStackTrace();
+            handleFail(v1CallAdapter.getLatestRequestUrl(), "testV1CreateV2ListObjects() couldn't create test object: " 
+                    + e.getClass().getSimpleName() + ": " 
+                    + e.getDetail_code() + ":: " + e.getDescription());
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+            handleFail(v1CallAdapter.getLatestRequestUrl(), "testV1CreateV2ListObjects() couldn't create test object: " 
+            + e.getClass().getName() + ": " + e.getMessage());
+        }
+        
+        // wait for replication
+        try {
+            Thread.sleep(REPLICATION_TIME);
+        } catch (InterruptedException e1) {
+            e1.printStackTrace();
+        }
+        
+        // v2 listObjects
+
+        Node v2MNode = v2mns.get(0);
+        MNCallAdapter v2CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v2MNode, "v2");
+        
+        try {
+            ObjectList objList = v1CallAdapter.listObjects(null, null, null, null, null, null, null);
+            boolean objFound = false;
+            for(ObjectInfo objInfo : objList.getObjectInfoList())
+                if(pid.getValue().equals(objInfo.getIdentifier().getValue())){
+                    objFound = true;
+                    break;
+                }
+            assertTrue("testV1CreateV2ListObjects() - v2 listObjects() results "
+                    + "should include the created object.", objFound );
+        } catch (BaseException e) {
+            e.printStackTrace();
+            handleFail(v2CallAdapter.getLatestRequestUrl(), "testV1CreateV2ListObjects() couldn't create update object: " 
+                    + e.getClass().getSimpleName() + ": " 
+                    + e.getDetail_code() + ":: " + e.getDescription());
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+            handleFail(v2CallAdapter.getLatestRequestUrl(), "testV1CreateV2ListObjects() couldn't create update object: " 
+            + e.getClass().getName() + ": " + e.getMessage());
         }
     }
 }

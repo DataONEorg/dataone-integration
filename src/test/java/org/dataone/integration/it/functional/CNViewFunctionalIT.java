@@ -21,8 +21,18 @@ public class CNViewFunctionalIT extends ContextAwareTestCaseDataone {
     }
     
     @Test
-    public void testView() {
-        viewImpl.testView(getCoordinatingNodeIterator(), "v2");
+    public void testView_Scimeta() {
+        viewImpl.testView_Scimeta(getCoordinatingNodeIterator(), "v2");
+    }
+    
+    @Test
+    public void testView_ResMap() {
+        viewImpl.testView_ResMap(getCoordinatingNodeIterator(), "v2");
+    }
+    
+    @Test
+    public void testView_Data() {
+        viewImpl.testView_Data(getCoordinatingNodeIterator(), "v2");
     }
     
     @Test

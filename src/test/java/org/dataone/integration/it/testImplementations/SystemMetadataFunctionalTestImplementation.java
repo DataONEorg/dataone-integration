@@ -129,7 +129,7 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
         // so we can be sure that the MN->CN synchronize() call is working
         // instead of the harvesting sync job
         
-        Node mnNode = null;
+        Node mNode = null;
         for (Node mn : mnList) {
             MNCallAdapter mnCallAdapter = new MNCallAdapter(getSession(cnSubmitter), mn, "v2");
             Node capabilities = null;
@@ -143,14 +143,14 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
             
             boolean synchronize = capabilities.isSynchronize();
             if (!synchronize) {
-                mnNode = mn;
+                mNode = mn;
                 break;
             }
         }
         assertTrue("Environment for test must have at least one v2 MN with synchronize disabled "
-                + "(so we can test if CN.synchronize() works on its own correctly).", mnNode != null);
+                + "(so we can test if CN.synchronize() works on its own correctly).", mNode != null);
         
-        CommonCallAdapter mn = new CommonCallAdapter(getSession("testRightsHolder"), mnNode, "v2");
+        CommonCallAdapter mn = new CommonCallAdapter(getSession("testRightsHolder"), mNode, "v2");
         try {
             
             // create a test object

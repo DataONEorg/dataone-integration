@@ -37,6 +37,12 @@ public class MNPackageV2IT extends ContextAwareTestCaseDataone implements MNPack
     
     @Override
     @Test
+    public void testGetPackage_UnsupportedType() {
+        packageTestImpl.testGetPackage_UnsupportedType(getMemberNodeIterator(), "v2");
+    }
+    
+    @Override
+    @Test
     public void testGetPackage() {
         packageTestImpl.testGetPackage(getMemberNodeIterator(), "v2");
     }

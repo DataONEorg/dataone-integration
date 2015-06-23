@@ -23,6 +23,8 @@ import org.dataone.integration.webTest.WebTestName;
 import org.dataone.service.types.v1.AccessRule;
 import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Node;
+import org.dataone.service.types.v1.ObjectInfo;
+import org.dataone.service.types.v1.ObjectList;
 import org.dataone.service.types.v1.Permission;
 import org.dataone.service.types.v1.Subject;
 import org.dataone.service.types.v2.OptionList;
@@ -37,19 +39,19 @@ public class ViewFunctionalTestImplementations extends ContextAwareAdapter {
         super(catc);
     }
     
-    public void testView(Iterator<Node> nodeIterator, String version) {
+    @WebTestName("view - tests if the view call returns an html document for science metadata")
+    @WebTestDescription("this test calls view() with the 'default' theme and the pid of a science "
+            + "metadata object, then verifies that it returns an html document")
+    public void testView_Scimeta(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
-            testView(nodeIterator.next(), version);        
+            testView_Scimeta(nodeIterator.next(), version);        
     }
     
-    @WebTestName("view - tests if the view call returns an html document for the default theme")
-    @WebTestDescription("this test calls view() with the 'default' theme and verifies that it "
-            + "returns an html document")
-    private void testView(Node node, String version) {
+    private void testView_Scimeta(Node node, String version) {
         
         CommonCallAdapter callAdapter = new CommonCallAdapter(getSession(cnSubmitter), node, "v2");
         
-        Identifier pid = D1TypeBuilder.buildIdentifier("testView_" + ExampleUtilities.generateIdentifier());
+        Identifier pid = D1TypeBuilder.buildIdentifier("testView_Scimeta_" + ExampleUtilities.generateIdentifier());
         AccessRule accessRule = new AccessRule();
         getSession("testRightsHolder");
         Subject subject = ContextAwareTestCaseDataone.getSubject("testRightsHolder");
@@ -61,7 +63,7 @@ public class ViewFunctionalTestImplementations extends ContextAwareAdapter {
         } catch (Exception e) {
             e.printStackTrace();
             handleFail(callAdapter.getNodeBaseServiceUrl(), 
-                    "Unable to create a test object for testView functional test: " 
+                    "Unable to create a test object for testView_Scimeta functional test: " 
                     + e.getCause().getMessage());
         }
         
@@ -97,13 +99,142 @@ public class ViewFunctionalTestImplementations extends ContextAwareAdapter {
         } catch (Exception e) {
             e.printStackTrace();
             handleFail(callAdapter.getNodeBaseServiceUrl(), 
-                    "Unable to run testView functional test: " 
+                    "Unable to run testView_Scimeta functional test: " 
                     + e.getCause().getMessage());
         } finally {
             IOUtils.closeQuietly(is);
         }
     }
 
+    @WebTestName("view - tests if the view call returns an html document for a resource map")
+    @WebTestDescription("this test calls view() with the 'default' theme and the pid of a resource "
+            + "map object, then verifies that it returns an html document")
+    public void testView_ResMap(Iterator<Node> nodeIterator, String version) {
+        while (nodeIterator.hasNext())
+            testView_ResMap(nodeIterator.next(), version);        
+    }
+    
+    private void testView_ResMap(Node node, String version) {
+        
+        CommonCallAdapter callAdapter = new CommonCallAdapter(getSession(cnSubmitter), node, "v2");
+        
+        Identifier pid = null;
+        try {
+            pid = catc.procureResourceMap(callAdapter);
+        } catch (Exception e) {
+            e.printStackTrace();
+            handleFail(callAdapter.getNodeBaseServiceUrl(), 
+                    "Unable to create a test object for testView_ResMap functional test: " 
+                    + e.getCause().getMessage());
+        }
+        
+        InputStream is = null;
+        try {
+            is = callAdapter.view(null, "default", pid);
+        
+            Document doc = null;
+            try {
+                DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+                doc = builder.parse(new InputSource(is));
+            } catch (Exception e) {
+                handleFail(callAdapter.getLatestRequestUrl(), "view() should return an InputStream"
+                        + "that can be parsed into a document. Error: " 
+                        + e.getClass().getName() + ": " + e.getMessage());
+            }
+            
+            XPath xPath =  XPathFactory.newInstance().newXPath();
+            String headerExp = "/html";
+            org.w3c.dom.Node headerNode = null;
+            
+            try {
+                headerNode = (org.w3c.dom.Node) xPath.compile(headerExp).evaluate(doc, XPathConstants.NODE);
+            } catch (XPathExpressionException e) {
+                handleFail(callAdapter.getLatestRequestUrl(), "view() should return an InputStream"
+                        + "that represents an HTML document. Error: " 
+                        + e.getClass().getName() + ": " + e.getMessage());
+            }
+            
+            if (headerNode == null)
+                handleFail(callAdapter.getLatestRequestUrl(), "view() did not return an HTML document.");
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            handleFail(callAdapter.getNodeBaseServiceUrl(), 
+                    "Unable to run testView_ResMap functional test: " 
+                    + e.getCause().getMessage());
+        } finally {
+            IOUtils.closeQuietly(is);
+        }
+    }
+    
+    @WebTestName("view - tests if the view call returns an html document for a data object")
+    @WebTestDescription("this test calls locates a data object of type text/csv, then "
+            + "calls view() with the 'default' theme and the pid of a data "
+            + "object, then verifies that it returns an html document")
+    public void testView_Data(Iterator<Node> nodeIterator, String version) {
+        while (nodeIterator.hasNext())
+            testView_Data(nodeIterator.next(), version);        
+    }
+    
+    private void testView_Data(Node node, String version) {
+        
+        CommonCallAdapter callAdapter = new CommonCallAdapter(getSession(cnSubmitter), node, "v2");
+        
+        Identifier pid = null;
+        try {
+            ObjectList csvDataFiles = callAdapter.listObjects(null, null, null, D1TypeBuilder.buildFormatIdentifier("text/csv"), null, null, null);
+            assertTrue("testView_Data() needs to be able to locate a \"text/csv\" data file to test with.", 
+                    csvDataFiles.sizeObjectInfoList() > 0);
+            
+            ObjectInfo objInfo = csvDataFiles.getObjectInfo(0); 
+            pid = objInfo.getIdentifier();
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            handleFail(callAdapter.getNodeBaseServiceUrl(), 
+                    "Unable to find a test object for testView_Data functional test: " 
+                    + e.getCause().getMessage());
+        }
+        
+        InputStream is = null;
+        try {
+            is = callAdapter.view(null, "default", pid);
+        
+            Document doc = null;
+            try {
+                DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+                doc = builder.parse(new InputSource(is));
+            } catch (Exception e) {
+                handleFail(callAdapter.getLatestRequestUrl(), "view() should return an InputStream"
+                        + "that can be parsed into a document. Error: " 
+                        + e.getClass().getName() + ": " + e.getMessage());
+            }
+            
+            XPath xPath =  XPathFactory.newInstance().newXPath();
+            String headerExp = "/html";
+            org.w3c.dom.Node headerNode = null;
+            
+            try {
+                headerNode = (org.w3c.dom.Node) xPath.compile(headerExp).evaluate(doc, XPathConstants.NODE);
+            } catch (XPathExpressionException e) {
+                handleFail(callAdapter.getLatestRequestUrl(), "view() should return an InputStream"
+                        + "that represents an HTML document. Error: " 
+                        + e.getClass().getName() + ": " + e.getMessage());
+            }
+            
+            if (headerNode == null)
+                handleFail(callAdapter.getLatestRequestUrl(), "view() did not return an HTML document.");
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            handleFail(callAdapter.getNodeBaseServiceUrl(), 
+                    "Unable to run testView_Data functional test: " 
+                    + e.getCause().getMessage());
+        } finally {
+            IOUtils.closeQuietly(is);
+        }
+    }
+    
     @WebTestName("listViews - tests if the listViews call returns valid themes, including 'default'")
     @WebTestDescription("this test calls listViews() and verifies that it returns a valid list of themes "
             + "including the required 'default' theme")

@@ -14,6 +14,7 @@ import org.dataone.integration.webTest.WebTestName;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.InvalidRequest;
 import org.dataone.service.exceptions.NotFound;
+import org.dataone.service.exceptions.UnsupportedType;
 import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Node;
 import org.dataone.service.types.v1.ObjectFormatIdentifier;
@@ -164,6 +165,57 @@ public class MNPackageTestImplementations extends ContextAwareAdapter {
                     + " (" + pid + ")");
         } 
         catch (NotFound e) {
+            // expected outcome
+        }
+        catch (BaseException e) {
+            handleFail(callAdapter.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
+                    e.getDetail_code() + ":: " + e.getDescription());
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+            handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+        }
+        finally {
+            IOUtils.closeQuietly(is);
+        }
+    }
+    
+    @WebTestName("getPackage - tests if the getPackage call fails with an unsupported format type")
+    @WebTestDescription("this test calls getPackage() with a packageType format that is not supported "
+            + "(video/mp4), expecting a NotFound exception")
+    public void testGetPackage_UnsupportedType(Iterator<Node> nodeIterator, String version) {
+        while (nodeIterator.hasNext())
+            testGetPackage_UnsupportedType(nodeIterator.next(), version);
+    }
+
+    private void testGetPackage_UnsupportedType(Node node, String version) {
+        MNCallAdapter callAdapter = new MNCallAdapter(getSession(cnSubmitter), node, version);
+        MNCallAdapter rightsHolderCallAdapter = new MNCallAdapter(getSession("testRightsHolder"), node, version);
+        String currentUrl = node.getBaseURL();
+        printTestHeader("testGetPackage_UnsupportedType(...) vs. node: " + currentUrl);
+        
+        InputStream is = null;
+        try {
+            Identifier pid = new Identifier();
+            pid.setValue("bogusPid");
+            
+            ObjectFormatIdentifier formatID = new ObjectFormatIdentifier();
+            formatID.setValue("video/mp4");
+            
+            is = rightsHolderCallAdapter.getPackage(null, formatID, pid);
+            handleFail(callAdapter.getLatestRequestUrl(),"getPackage() should fail with an UnsupportedType "
+                    + "when given \"video/mp4\"");
+        } 
+        catch (InvalidRequest e) {
+
+        // FIXME switch ^^^ to UnsupportedType and add UnsupportedType to the API
+        
+        //              ^
+        
+        //              ^
+        
+        //              ^
+            
             // expected outcome
         }
         catch (BaseException e) {
