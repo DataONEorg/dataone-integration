@@ -196,7 +196,7 @@ public class MNCallAdapter extends CommonCallAdapter {
 
     public InputStream getPackage(Session session, ObjectFormatIdentifier packageType, Identifier id)
             throws InvalidToken, ServiceFailure, NotAuthorized, InvalidRequest, NotImplemented,
-            NotFound, ClientSideException {
+            NotFound, ClientSideException, UnsupportedType {
 
         if (this.version.toLowerCase().equals("v2") && this.node.getType().equals(NodeType.MN)) {
                 MNPackage mnPkg = D1NodeFactory.buildNode(MNPackage.class, this.mrc, URI.create(this.node.getBaseURL()));
