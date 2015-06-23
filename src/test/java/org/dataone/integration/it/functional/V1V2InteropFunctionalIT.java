@@ -37,8 +37,8 @@ public class V1V2InteropFunctionalIT extends ContextAwareTestCaseDataone {
     }
     
     @Test
-    public void testV2CreateReplicate() {
-        interopImpl.testV2CreateReplicate();
+    public void testV2CreateV1GetSysmeta() {
+        interopImpl.testV2CreateV1GetSysMeta();
     }
     
     @Test
@@ -52,8 +52,8 @@ public class V1V2InteropFunctionalIT extends ContextAwareTestCaseDataone {
     }
     
     @Test
-    public void testV1CreateReplicate() {
-        interopImpl.testV1CreateReplicate();
+    public void testV1CreateV2GetSysMeta() {
+        interopImpl.testV1CreateV2GetSysmeta();
     }
     
     @Test
