@@ -206,16 +206,7 @@ public class MNPackageTestImplementations extends ContextAwareAdapter {
             handleFail(callAdapter.getLatestRequestUrl(),"getPackage() should fail with an UnsupportedType "
                     + "when given \"video/mp4\"");
         } 
-        catch (InvalidRequest e) {
-
-        // FIXME switch ^^^ to UnsupportedType and add UnsupportedType to the API
-        
-        //              ^
-        
-        //              ^
-        
-        //              ^
-            
+        catch (UnsupportedType e) {
             // expected outcome
         }
         catch (BaseException e) {
