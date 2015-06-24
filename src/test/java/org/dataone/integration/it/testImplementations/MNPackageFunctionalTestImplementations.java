@@ -2,8 +2,12 @@ package org.dataone.integration.it.testImplementations;
 
 import static org.junit.Assert.assertTrue;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -28,7 +32,9 @@ public class MNPackageFunctionalTestImplementations extends ContextAwareTestCase
     @WebTestName("getPackage - zip")
     @WebTestDescription(
      "The test calls getPackage() with application/zip as the requested packageType "
-     + "and verifies that the returned InputStream does in fact contain a zip file")
+     + "and verifies that the returned InputStream does in fact contain a zip file, "
+     + "then checks the zip file to make sure that it contains only one top-level "
+     + "directory, and that it contains a bagit.txt and a manifest file.")
     public void testGetPackage_Zip(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testGetPackage_Zip(nodeIterator.next(), version);        
@@ -55,30 +61,47 @@ public class MNPackageFunctionalTestImplementations extends ContextAwareTestCase
             
             // check if it did in fact return application/zip
             
+            ZipInputStream zis = null;
+            boolean bagitFound = false;
+            boolean manifestFound = false;
+            List<String> topLevelDirs = new ArrayList<String>();
+            
             try {
-                boolean zipContainsEntry = false;
-                
-                ZipInputStream zis = new ZipInputStream(is);
+                zis = new ZipInputStream(is);
                 ZipEntry zipEntry;
 
                 while ((zipEntry = zis.getNextEntry()) != null) {
-                    log.info("ore pid: " + resourceMapPid + "     " 
-                            + "zip entry: " + zipEntry.getName() + "     "
-                            + "size: " + zipEntry.getSize());
-                    zipContainsEntry = true;
-                    break;
-                }
+                    String name = zipEntry.getName();
+                    System.out.println("zip entry: " + name + "     " + "size: " + zipEntry.getSize());
 
-                assertTrue("The \"application/zip\" returned from getPackage() "
-                        + "should contain at least one entry in the zip.", zipContainsEntry);
-                
-            } catch (Exception e1) {
-                e1.printStackTrace();
-                handleFail(currentUrl, "getPackage() did not return an InputStream containing "
-                        + "a package of type \"application/zip\"" 
-                        + e1.getClass().getName() + ": " + e1.getMessage());
+                    zipEntry.isDirectory();
+                    
+                    if (!zipEntry.isDirectory()) {
+                        if (name.endsWith("bagit.txt")) {
+                            bagitFound = true;
+                            continue;
+                        }
+                        if (name.matches(".*manifest.*\\.txt")) {
+                            manifestFound = true;
+                            continue;
+                        }
+                    } else if (!zipEntry.getName().substring(0, zipEntry.getName().length() - 1).contains("/"))
+                        topLevelDirs.add(name);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                IOUtils.closeQuietly(zis);
             }
+
+            assertTrue("The \"application/zip\" returned from getPackage() "
+                    + "should contain only ONE top level directory.", 
+                    topLevelDirs.size() == 1);
             
+            assertTrue("The \"application/zip\" returned from getPackage() "
+                    + "should contain a bagit.txt file.", bagitFound);
+            assertTrue("The \"application/zip\" returned from getPackage() "
+                    + "should contain a manifest file.", manifestFound);
         }
         catch (BaseException e) {
             handleFail(callAdapter.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
@@ -96,7 +119,9 @@ public class MNPackageFunctionalTestImplementations extends ContextAwareTestCase
     @WebTestName("getPackage - gzip")
     @WebTestDescription(
      "The test calls getPackage() with application/x-gzip as the requested packageType "
-     + "and verifies that the returned InputStream does in fact contain a gzip file")
+     + "and verifies that the returned InputStream does in fact contain a gzip file"
+     + "then checks the gzip file to make sure that it contains a top-level "
+     + "directory, and that it contains a bagit.txt and a manifest file.")
     public void testGetPackage_Gzip(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testGetPackage_Gzip(nodeIterator.next(), version);        
@@ -123,22 +148,55 @@ public class MNPackageFunctionalTestImplementations extends ContextAwareTestCase
             
             // check if it did in fact return application/x-gzip
             
+            String tempDirProperty = "java.io.tmpdir";
+            String tempDir = System.getProperty(tempDirProperty);
+            String outDir = tempDir + File.pathSeparator +  "tempBagItContent";
+            
+            GZIPInputStream gzis = null;
+            FileOutputStream fout = null;
+            boolean bagitFound = false;
+            boolean manifestFound = false;
+            
             try {
-                GZIPInputStream gzis = new GZIPInputStream(is);
-
-                assertTrue("The InputStream returned from getPackage() "
-                      + "should be in gzip format (application/x-gzip).", gzis != null);
+                gzis = new GZIPInputStream(is);
+                fout = new FileOutputStream(outDir);
                 
-                // gzip won't contain multiple entries
-                // (unless it contains a tar file, 
-                // which we can't assume given the "application/x-gzip" request)
-                
-            } catch (Exception e1) {
-                e1.printStackTrace();
-                handleFail(currentUrl, "getPackage() did not return an InputStream containing "
-                        + "a package of type \"application/x-gzip\"" 
-                        + e1.getClass().getName() + ": " + e1.getMessage());
+                byte[] buffer = new byte[1024];
+                int len;
+                while ((len = gzis.read(buffer)) > 0) {
+                    fout.write(buffer, 0, len);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                IOUtils.closeQuietly(gzis);
+                IOUtils.closeQuietly(fout);
             }
+            
+            File tempBagItContent = new File(outDir);
+
+            assertTrue("The \"application/x-gzip\" returned from getPackage() "
+                    + "should contain one top level directory.", 
+                    tempBagItContent.isDirectory());
+            
+            for (File file : tempBagItContent.listFiles()) {
+                
+                String name = file.getName();
+                
+                if (name.equals("bagit.txt")) {
+                    bagitFound = true;
+                    continue;
+                }
+                if (name.matches("manifest.*\\.txt")) {
+                    manifestFound = true;
+                    continue;
+                }
+            }
+            
+            assertTrue("The \"application/x-gzip\" returned from getPackage() "
+                    + "should contain a bagit.txt file.", bagitFound);
+            assertTrue("The \"application/x-gzip\" returned from getPackage() "
+                    + "should contain a manifest file.", manifestFound);
         }
         catch (BaseException e) {
             handleFail(callAdapter.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
