@@ -31,6 +31,7 @@ import org.dataone.integration.webTest.WebTestName;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.InvalidRequest;
 import org.dataone.service.exceptions.NotFound;
+import org.dataone.service.types.v1.AccessPolicy;
 import org.dataone.service.types.v1.AccessRule;
 import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Node;
@@ -58,6 +59,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
     
     private static final long SYNC_TIME = 300000;           // FIXME is there a reliable way to know these?
     private static final long REPLICATION_TIME = 300000;    // FIXME "
+    private static final long METACAT_INDEX_TIME = 10000;
     
     private static Log log = LogFactory.getLog(SystemMetadataFunctionalTestImplementation.class);
     
@@ -199,8 +201,8 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
     @WebTestDescription(
      "Test operates on a single MN that supports both v1 & v2 APIs." +
      "It does a create on the v2 endpoint, then an update on the v1 endpoint." +
-     "The update operation should yield an exception since it could be erasing" +
-     "v2-specific data from the create.")
+     "The update operation should be successful, BUT we check that it has not " + 
+     "erased any v2-specific data from the existing system metadata (meaning the sid).")
     @Test
     public void testV2CreateV1Update() {
         
@@ -209,6 +211,8 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         Subject subject = ContextAwareTestCaseDataone.getSubject("testRightsHolder");
         accessRule.addSubject(subject);
         accessRule.addPermission(Permission.CHANGE_PERMISSION);
+        AccessPolicy policy = new AccessPolicy();
+        policy.addAllow(accessRule);
         
         Node mNode = v1v2mns.get(0);
         MNCallAdapter v1CallAdapter = new MNCallAdapter(getSession(cnSubmitter), mNode, "v1");
@@ -216,9 +220,10 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         
         // v2 create
         
-        Identifier pid = null;
+        Identifier oldPid = D1TypeBuilder.buildIdentifier("testV2CreateV1Update_pid_" + ExampleUtilities.generateIdentifier());
+        Identifier oldSid = D1TypeBuilder.buildIdentifier("testV2CreateV1Update_sid_" + ExampleUtilities.generateIdentifier());
         try {
-            pid = createTestObject(v2CallAdapter, "testV2CreateV1Update_1_", accessRule);
+            createTestObject(v2CallAdapter, oldPid, oldSid, null, null, policy, "testRightsHolder", "testRightsHolder");
         } catch (BaseException e) {
             e.printStackTrace();
             handleFail(v2CallAdapter.getLatestRequestUrl(), "testV2CreateV1Update() couldn't create test object: " 
@@ -231,10 +236,20 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             + e.getClass().getName() + ": " + e.getMessage());
         }
         
+        // grab the old sysmeta
+        
+        SystemMetadata oldSysmeta = null;
+        try {
+            oldSysmeta = v2CallAdapter.getSystemMetadata(null, oldPid);
+        } catch (Exception e) {
+            handleFail(v2CallAdapter.getLatestRequestUrl(), "testV2CreateV1Update() couldn't fetch old sysmeta: " 
+                    + e.getClass().getName() + ": " + e.getMessage());
+        }
+        
         // v1 update
         
         Identifier newPid = null;
-        SystemMetadata sysmeta = null;
+        SystemMetadata newSysmeta = null;
         InputStream objectInputStream = null;
         
         try {
@@ -244,7 +259,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
                     D1TypeBuilder.buildFormatIdentifier(DEFAULT_TEST_OBJECTFORMAT),
                     D1TypeBuilder.buildSubject(getSubject(cnSubmitter).getValue()),
                     D1TypeBuilder.buildNodeReference("bogusAuthoritativeNode"));
-            sysmeta = TypeMarshaller.convertTypeFromType(d1o.getSystemMetadata(), SystemMetadata.class);
+            newSysmeta = TypeMarshaller.convertTypeFromType(d1o.getSystemMetadata(), SystemMetadata.class);
             objectInputStream = new ByteArrayInputStream(contentBytes);
         } catch (BaseException e) {
             e.printStackTrace();
@@ -259,9 +274,18 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         }
         
         try {
-            v1CallAdapter.update(null, pid, objectInputStream, newPid, sysmeta);
-        } catch (InvalidRequest e) {
-            // expected v1 update() to fail
+            v1CallAdapter.update(null, oldPid, objectInputStream, newPid, newSysmeta);
+            
+            Thread.sleep(METACAT_INDEX_TIME);
+            
+            newSysmeta = v1CallAdapter.getSystemMetadata(null, oldPid);
+            
+            assertTrue("The system metadata associated with a v2 object, "
+                    + "after doing a v1 update(), should still contain the "
+                    + "seriesId from the old system metadata. It should not have "
+                    + "been erased by the update on the v1 endpoint!",
+                    newSysmeta.getSeriesId().getValue().equals(oldSid.getValue()));
+            
         } catch (BaseException e) {
             e.printStackTrace();
             handleFail(v1CallAdapter.getLatestRequestUrl(), "testV2CreateV1Update() expected InvalidRequest, got: " 
