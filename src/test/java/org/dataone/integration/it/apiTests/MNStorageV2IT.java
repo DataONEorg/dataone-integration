@@ -31,6 +31,7 @@ public class MNStorageV2IT extends ContextAwareTestCaseDataone
         mnStorageTestImpl = new MNStorageTestImplementations(this);
         sidImpl = new SidMNTestImplementations();
         updSysmetaImpl = new MNUpdateSystemMetadataTestImplementations(this);
+        updSysmetaImpl.setup(getCoordinatingNodeIterator().next());
     }
 
     @After

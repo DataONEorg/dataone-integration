@@ -3,7 +3,6 @@ package org.dataone.integration.it.functional;
 import org.dataone.integration.ContextAwareTestCaseDataone;
 import org.dataone.integration.it.testImplementations.ViewFunctionalTestImplementations;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 public class CNViewFunctionalIT extends ContextAwareTestCaseDataone {

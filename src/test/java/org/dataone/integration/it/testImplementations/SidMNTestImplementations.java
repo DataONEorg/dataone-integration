@@ -550,11 +550,13 @@ public class SidMNTestImplementations extends SidCommonTestImplementations {
                 ObjectFormatIdentifier formatID = new ObjectFormatIdentifier();
                 
                 formatID.setValue("application/zip");
-                InputStream sidPkg = callAdapter.getPackage(null, formatID, sid);
-                InputStream pidPkg = callAdapter.getPackage(null, formatID, pid);
+                InputStream sidPkg = null;
+                InputStream pidPkg = null;
                 try {
+                    sidPkg = callAdapter.getPackage(null, formatID, sid);
+                    pidPkg = callAdapter.getPackage(null, formatID, pid);
                     assertTrue("getPackage() Case " + caseNum, IOUtils.contentEquals(sidPkg, pidPkg));
-                } catch (IOException e) {
+                } catch (Exception e) {
                     e.printStackTrace();
                     handleFail(callAdapter.getNodeBaseServiceUrl(), "Case: " + caseNum + " : " + e.getMessage());
                 } finally {

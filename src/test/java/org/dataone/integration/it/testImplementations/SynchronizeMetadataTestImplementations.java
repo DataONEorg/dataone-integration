@@ -35,8 +35,6 @@ public class SynchronizeMetadataTestImplementations extends ContextAwareAdapter 
     
     public void testSynchronize_NotAuthorized(Node node, String version) {
         
-        assertTrue("Test should be @Ignore'd. No MN cert to test with", false);
-        
         CommonCallAdapter cnCertCallAdapter = new CommonCallAdapter(getSession(cnSubmitter), node, version);
         CNCallAdapter rightsHolderCallAdapter = new CNCallAdapter(getSession("testRightsHolder"), node, version);
         String currentUrl = node.getBaseURL();
