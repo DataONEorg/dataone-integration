@@ -1,5 +1,7 @@
 package org.dataone.integration.it.testDefinitions;
 
+import org.junit.Test;
+
 
 
 public interface MNUpdateSystemMetadataTestDefinitions {
@@ -33,5 +35,17 @@ public interface MNUpdateSystemMetadataTestDefinitions {
     public void testUpdateSystemMetadata_InvalidRequest_ModifiedSeriesId();
     
     public void testUpdateSystemMetadata_RightsHolder();
-
+    
+    public void testUpdateSystemMetadata_MutableRightsHolder();
+    
+    public void testUpdateSystemMetadata_MutableFormat();
+    
+    public void testUpdateSystemMetadata_MutableAccessPolicy();
+    
+    public void testUpdateSystemMetadata_MutableReplPolicy();
+    
+    public void testUpdateSystemMetadata_MutableAuthMN();
+    
+    public void testUpdateSystemMetadata_RightsHolderNonAuthMN();
+    
 }

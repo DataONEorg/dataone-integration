@@ -173,6 +173,42 @@ public class MNStorageV2IT extends ContextAwareTestCaseDataone
     
     @Override
     @Test
+    public void testUpdateSystemMetadata_MutableRightsHolder() {
+        updSysmetaImpl.testUpdateSystemMetadata_MutableRightsHolder(getMemberNodeIterator(), "v2");
+    }
+    
+    @Override
+    @Test
+    public void testUpdateSystemMetadata_MutableFormat() {
+        updSysmetaImpl.testUpdateSystemMetadata_MutableFormat(getMemberNodeIterator(), "v2");
+    }
+    
+    @Override
+    @Test
+    public void testUpdateSystemMetadata_MutableAccessPolicy() {
+        updSysmetaImpl.testUpdateSystemMetadata_MutableAccessPolicy(getMemberNodeIterator(), "v2");
+    }
+    
+    @Override
+    @Test
+    public void testUpdateSystemMetadata_MutableReplPolicy() {
+        updSysmetaImpl.testUpdateSystemMetadata_MutableReplPolicy(getMemberNodeIterator(), "v2");
+    }
+    
+    @Override
+    @Test
+    public void testUpdateSystemMetadata_MutableAuthMN() {
+        updSysmetaImpl.testUpdateSystemMetadata_MutableAuthMN(getMemberNodeIterator(), "v2");
+    }
+    
+    @Override
+    @Test
+    public void testUpdateSystemMetadata_RightsHolderNonAuthMN() {
+        updSysmetaImpl.testUpdateSystemMetadata_RightsHolderNonAuthMN(getMemberNodeIterator(), "v2");
+    }
+    
+    @Override
+    @Test
     public void testSidCreate() {
         sidImpl.testCreate();
     }
