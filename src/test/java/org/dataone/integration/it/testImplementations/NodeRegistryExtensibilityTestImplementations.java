@@ -49,9 +49,9 @@ public class NodeRegistryExtensibilityTestImplementations extends ContextAwareAd
         org.dataone.service.types.v2.Node newNode = new org.dataone.service.types.v2.Node();
         newNode.setBaseURL("https://fake.node.org");
         newNode.setContactSubjectList(new ArrayList<Subject>());
-        newNode.setDescription("Node made of pizza");
+        newNode.setDescription("Node made for Register API testing");
         NodeReference nodeRef = new NodeReference();
-        nodeRef.setValue("PizzaNode");
+        nodeRef.setValue("TestNode");
         newNode.setIdentifier(nodeRef);
         NodeReplicationPolicy replPolicy = new NodeReplicationPolicy();
         replPolicy.setAllowedNodeList(new ArrayList<NodeReference>());
@@ -88,7 +88,8 @@ public class NodeRegistryExtensibilityTestImplementations extends ContextAwareAd
             cn.register(null, newNode);
         } catch (Exception e) {
             e.printStackTrace();
-            handleFail(cn.getLatestRequestUrl(), "testRegister() : "
+            throw new AssertionError(cn.getNodeBaseServiceUrl() + ":   "
+                    + "testRegister() : "
                     + "CN.register() call failed with exception: " 
                     + e.getClass().getSimpleName() + " : " + e.getMessage());
         }
@@ -99,8 +100,11 @@ public class NodeRegistryExtensibilityTestImplementations extends ContextAwareAd
             fetchedNode = cn.getNodeCapabilities(nodeRef);
         } catch (Exception e) {
             e.printStackTrace();
-            handleFail(cn.getLatestRequestUrl(), "testRegister() : "
+            throw new AssertionError(cn.getNodeBaseServiceUrl() + ":   "
+                    + "testRegister() : "
                     + "unable to fetch updated Node capabilities!");
+        } finally {
+            // ideally... unregister(newNode);
         }
         
         // check if node has properties we set
@@ -140,13 +144,16 @@ public class NodeRegistryExtensibilityTestImplementations extends ContextAwareAd
         CNCallAdapter cn = new CNCallAdapter(getSession(cnSubmitter), node, "v2");
         
         NodeList knownNodes = null;
+        List<Property> oldPropertyListBackup = null;
         
         try {
             knownNodes = cn.listNodes();
         } catch (Exception e) {
             e.printStackTrace();
-            handleFail(cn.getLatestRequestUrl(), "testUpdateNodeCapabilities() : "
-                    + "unable to perform test setup, call to CN.listNodes() failed!");
+            throw new AssertionError(cn.getNodeBaseServiceUrl() + ":   "
+                    + "testUpdateNodeCapabilities() : "
+                    + "unable to perform test setup, call to CN.listNodes() failed! : "
+                    + e.getMessage() + ", " + e.getCause() == null ? "" : e.getCause().getMessage());
         }
         List<Node> mNodes = new ArrayList<Node>();
         for (Node n : knownNodes.getNodeList())
@@ -163,8 +170,10 @@ public class NodeRegistryExtensibilityTestImplementations extends ContextAwareAd
             v2MN = TypeMarshaller.convertTypeFromType(v1MN, org.dataone.service.types.v2.Node.class);
         } catch (Exception e) {
             e.printStackTrace();
-            handleFail(cn.getLatestRequestUrl(), "testUpdateNodeCapabilities() : "
-                    + "unable to convert between v1 and v2 Node types!");
+            throw new AssertionError(cn.getNodeBaseServiceUrl() + ":   "
+                    + "testUpdateNodeCapabilities() : "
+                    + "unable to convert between v1 and v2 Node types! : "
+                    + e.getMessage() + ", " + e.getCause() == null ? "" : e.getCause().getMessage());
         }
         
         // add to Node properties
@@ -178,16 +187,33 @@ public class NodeRegistryExtensibilityTestImplementations extends ContextAwareAd
         p2.setValue("Pepperoni");
         propertyList.add(p2);
         
+        // backup old node properties
+        
+        try {
+            org.dataone.service.types.v2.Node oldNodeCapabilities = cn.getNodeCapabilities(mnRef);
+            oldPropertyListBackup = oldNodeCapabilities.getPropertyList();
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new AssertionError(cn.getNodeBaseServiceUrl() + ":   "
+                    + "testUpdateNodeCapabilities() : "
+                    + "couldn't backup existing node property list : "
+                    + e.getMessage() + ", " + e.getCause() == null ? "" : e.getCause().getMessage());
+        }
+        
         // update node properties on CN
+        
         try {
             cn.updateNodeCapabilities(null, mnRef, v2MN);
         } catch (Exception e) {
             e.printStackTrace();
-            handleFail(cn.getLatestRequestUrl(), "testUpdateNodeCapabilities() : "
-                    + "failed - unable to updateNodeCapabilities()");
+            throw new AssertionError(cn.getNodeBaseServiceUrl() + ":   "
+                    + "testUpdateNodeCapabilities() : "
+                    + "failed - unable to updateNodeCapabilities() : "
+                    + e.getMessage() + ", " + e.getCause() == null ? "" : e.getCause().getMessage());
         }
         
         // get the node info
+        
         org.dataone.service.types.v2.Node fetchedNode = null;
         try {
             fetchedNode = cn.getNodeCapabilities(mnRef);
@@ -197,7 +223,20 @@ public class NodeRegistryExtensibilityTestImplementations extends ContextAwareAd
                     + "unable to fetch updated Node capabilities!");
         }
         
+        // reset properties we changed on the node
+        try {
+            v2MN.setPropertyList(oldPropertyListBackup);
+            cn.updateNodeCapabilities(null, mnRef, v2MN);
+        } catch (Exception e) {
+            e.printStackTrace();
+            handleFail(cn.getNodeBaseServiceUrl(), "testUpdateNodeCapabilities() : "
+                    + "Unable to reset Node properties on: " + cn.getNodeBaseServiceUrl() 
+                    + " to backed-up properties! : " + e.getMessage() + ", " 
+                    + e.getCause() == null ? "" : e.getCause().getMessage());
+        }
+        
         // check if node is updated
+        
         List<Property> fetchedPropertyList = fetchedNode.getPropertyList();
         assertTrue("testUpdateNodeCapabilities(): fetched Node property list "
                 + "should contain two properties. Number of properties: " + 
@@ -218,7 +257,6 @@ public class NodeRegistryExtensibilityTestImplementations extends ContextAwareAd
         assertTrue("testUpdateNodeCapabilities(): fetched Node property 2 value "
                 + "should match the property we gave it.", 
                 fetchedP2.getValue().equals(p2.getValue()));
-        
     }
     
 }

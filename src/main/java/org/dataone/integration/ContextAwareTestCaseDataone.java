@@ -1509,7 +1509,8 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
         } catch (InvalidRequest | InvalidToken | NotAuthorized | NotImplemented | ServiceFailure
                 | ClientSideException e) {
             e.printStackTrace();
-            throw new ClientSideException("Unable to fetch a list of resource objects for MNPackage testing.", e);
+            throw new ClientSideException("Unable to fetch a list of resource objects for MNPackage testing. "
+                    + "Call to listObjects() failed on :" + cca.getNodeBaseServiceUrl(), e);
         }
         
         Identifier resourceMapPid = null;

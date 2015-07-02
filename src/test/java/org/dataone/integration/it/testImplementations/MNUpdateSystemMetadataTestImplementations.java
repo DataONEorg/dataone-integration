@@ -2,11 +2,13 @@ package org.dataone.integration.it.testImplementations;
 
 import static org.junit.Assert.assertTrue;
 
+import java.io.ByteArrayInputStream;
 import java.math.BigInteger;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
+import org.dataone.client.v1.itk.D1Object;
 import org.dataone.client.v1.types.D1TypeBuilder;
 import org.dataone.integration.APITestUtils;
 import org.dataone.integration.ContextAwareTestCaseDataone;
@@ -18,6 +20,7 @@ import org.dataone.integration.webTest.WebTestDescription;
 import org.dataone.integration.webTest.WebTestName;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.InvalidRequest;
+import org.dataone.service.exceptions.InvalidSystemMetadata;
 import org.dataone.service.exceptions.ServiceFailure;
 import org.dataone.service.exceptions.SynchronizationFailed;
 import org.dataone.service.types.v1.AccessPolicy;
@@ -29,6 +32,7 @@ import org.dataone.service.types.v1.Permission;
 import org.dataone.service.types.v1.ReplicationPolicy;
 import org.dataone.service.types.v2.NodeList;
 import org.dataone.service.types.v2.SystemMetadata;
+import org.dataone.service.util.TypeMarshaller;
 
 public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetadataTestImplementations {
 
@@ -460,9 +464,60 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
         }
     }
     
-    // TODO can updateSystemMetadata change the following?
-    // obsoletes/obsoletedBy (as opposed to update()? changing individually can mess chain up badly)
-    // archived (as opposed to archive()?)
+    @WebTestName("updateSystemMetadata - tests that the rights holder can change the archived field with updateSystemMetadata")
+    @WebTestDescription("this test calls updateSystemMetadata() using an object's rights-holder "
+            + "as the certificate subject to update the system metadata. "
+            + "It modifies the archived field in the system metadata when making the "
+            + "getSystemMetadata() call and verifies that no exception is thrown "
+            + "(that the mutable field can be modified by the rights holder). ")
+    public void testUpdateSystemMetadata_MutableArchived(Iterator<Node> nodeIterator, String version) {
+        while (nodeIterator.hasNext())
+            testUpdateSystemMetadata_MutableArchived(nodeIterator.next(), version);
+    }
+    
+    public void testUpdateSystemMetadata_MutableArchived(Node node, String version) {
+        
+        CommonCallAdapter callAdapter = getCallAdapter(node, version);
+        String currentUrl = node.getBaseURL();
+        printTestHeader("testUpdateSystemMetadata_MutableArchived(...) vs. node: " + currentUrl);
+        currentUrl = callAdapter.getNodeBaseServiceUrl();
+        
+        try {
+            getSession("testRightsHolder");
+            String rightsHolderSubjStr = catc.getSubject("testRightsHolder").getValue();
+            AccessRule accessRule = APITestUtils.buildAccessRule(rightsHolderSubjStr, Permission.CHANGE_PERMISSION);
+            Identifier pid = new Identifier();
+            pid.setValue("testUpdateSystemMetadata_MutableArchived_" + ExampleUtilities.generateIdentifier());
+            Identifier testObjPid = catc.procureTestObject(callAdapter, accessRule, pid);
+            
+            SystemMetadata sysmeta = callAdapter.getSystemMetadata(null, testObjPid);
+            BigInteger newSerialVersion = sysmeta.getSerialVersion().add(BigInteger.ONE);
+            sysmeta.setArchived(true);
+            
+            boolean success = callAdapter.updateSystemMetadata(null, testObjPid , sysmeta);
+            assertTrue("Call to updateSystemMetadata() should be successful.", success);
+            
+            SystemMetadata fetchedSysmeta = callAdapter.getSystemMetadata(null, testObjPid);
+            boolean serialVersionMatches = fetchedSysmeta.getSerialVersion().equals(newSerialVersion);
+            boolean archivedMatches = fetchedSysmeta.getArchived().equals(true);
+            assertTrue("System metadata should now have updated serialVersion", serialVersionMatches);
+            assertTrue("System metadata should now have updated archived", archivedMatches );
+        
+        } catch (ServiceFailure e) {
+            // ServiceFailure is an allowed outcome for the MN.updateSystemMetadata()
+            log.warn("MN.updateSystemMetadata() returned a ServiceFailure.");
+        } catch (SynchronizationFailed e) {
+            handleFail(callAdapter.getLatestRequestUrl(), e.getClass().getSimpleName() + ": " +
+               "CN may throw SynchronizationFailed on a valid call to updateSystemMetadata. MN should not. " +
+                e.getDetail_code() + ": " + e.getDescription());
+        } catch (BaseException e) {
+            handleFail(callAdapter.getLatestRequestUrl(), e.getClass().getSimpleName() + ": " + 
+                    e.getDetail_code() + ": " + e.getDescription());
+        } catch(Exception e) {
+            e.printStackTrace();
+            handleFail(currentUrl, e.getClass().getName() + ": " + e.getMessage());
+        }
+    }
     
     @WebTestName("updateSystemMetadata - tests that the rights holder cannot updateSystemMetadata on non-authoritative MN")
     @WebTestDescription("this test calls updateSystemMetadata() using an object's rights-holder "
@@ -524,6 +579,252 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
         } catch(Exception e) {
             e.printStackTrace();
             handleFail(currentUrl, e.getClass().getName() + ": " + e.getMessage());
+        }
+    }
+    
+    @WebTestName("updateSystemMetadata - tests that the rights holder can't change the obsoletes field if it causes an inconsistency")
+    @WebTestDescription("this test calls updateSystemMetadata() using an object's rights-holder "
+            + "as the certificate subject to update the system metadata. "
+            + "It sets up a 2-pid chain (in which they both point to each other) "
+            + "and modifies the obsoletes field in the system metadata "
+            + "of the first one and verifies that an exception is thrown - "
+            + "since this would create an inconsistency in the chain.")
+    public void testUpdateSystemMetadata_ObsoletesFail(Iterator<Node> nodeIterator, String version) {
+        while (nodeIterator.hasNext())
+            testUpdateSystemMetadata_ObsoletesFail(nodeIterator.next(), version);
+    }
+    
+    public void testUpdateSystemMetadata_ObsoletesFail(Node node, String version) {
+        
+        MNCallAdapter callAdapter = getCallAdapter(node, version);
+        String currentUrl = node.getBaseURL();
+        printTestHeader("testUpdateSystemMetadata_ObsoletesFail(...) vs. node: " + currentUrl);
+        currentUrl = callAdapter.getNodeBaseServiceUrl();
+        
+        SystemMetadata v2sysmeta = null;
+        Identifier p1 = D1TypeBuilder.buildIdentifier("testUpdateSystemMetadata_ObsoletesFail_" + ExampleUtilities.generateIdentifier());
+        Identifier p2 = D1TypeBuilder.buildIdentifier("testUpdateSystemMetadata_ObsoletesFail_" + ExampleUtilities.generateIdentifier());
+        Identifier p3 = D1TypeBuilder.buildIdentifier("testUpdateSystemMetadata_ObsoletesFail_" + ExampleUtilities.generateIdentifier());
+        
+        try {
+            getSession("testRightsHolder");
+            String rightsHolderSubjStr = catc.getSubject("testRightsHolder").getValue();
+            AccessRule accessRule = APITestUtils.buildAccessRule(rightsHolderSubjStr, Permission.CHANGE_PERMISSION);
+            p1 = catc.createTestObject(callAdapter, p1, accessRule);
+            
+            byte[] contentBytes = ExampleUtilities.getExampleObjectOfType(ExampleUtilities.FORMAT_EML_2_0_1);
+            ByteArrayInputStream objectInputStream = new ByteArrayInputStream(contentBytes);
+            D1Object d1o = new D1Object(p2, contentBytes,
+                    D1TypeBuilder.buildFormatIdentifier(ExampleUtilities.FORMAT_EML_2_0_1),
+                    catc.getSubject("testRightsHolder"),
+                    D1TypeBuilder.buildNodeReference("bogusAuthoritativeNode"));
+            
+            v2sysmeta = TypeMarshaller.convertTypeFromType(d1o.getSystemMetadata(), SystemMetadata.class);
+            p2 = d1o.getIdentifier();
+            callAdapter.update(null, p1, objectInputStream, p2, v2sysmeta);
+            p3 = catc.createTestObject(callAdapter, p3, accessRule);
+
+        } catch (BaseException e) {
+            handleFail(callAdapter.getLatestRequestUrl(), 
+                    "testUpdateSystemMetadata_ObsoletesFail() setup steps failed! " 
+                    + e.getClass().getSimpleName() + ": " + e.getDetail_code() + ": " + e.getDescription());
+        } catch(Exception e) {
+            handleFail(currentUrl, "testUpdateSystemMetadata_ObsoletesFail() setup steps failed! "  
+                    + e.getClass().getName() + ": " + e.getMessage());
+        }
+        
+        try {
+            v2sysmeta.setObsoletes(p3);
+            callAdapter.updateSystemMetadata(null, p2 , v2sysmeta);
+            
+        } catch (InvalidSystemMetadata e) {
+            // expected
+        } catch (BaseException e) {
+            handleFail(callAdapter.getLatestRequestUrl(), 
+                    "testUpdateSystemMetadata_ObsoletesFail() expected InvalidSystemMetadata but got: " 
+                    + e.getClass().getSimpleName() + ": " + e.getDetail_code() + ": " + e.getDescription());
+        } catch(Exception e) {
+            handleFail(currentUrl, "testUpdateSystemMetadata_ObsoletesFail() expected InvalidSystemMetadata but got: " 
+                    + e.getClass().getName() + ": " + e.getMessage());
+        }
+    }
+    
+    @WebTestName("updateSystemMetadata - tests that the rights holder can't change the obsoletedBy field if it causes an inconsistency")
+    @WebTestDescription("this test calls updateSystemMetadata() using an object's rights-holder "
+            + "as the certificate subject to update the system metadata. "
+            + "It sets up a 2-pid chain (in which they both point to each other) "
+            + "and modifies the obsoletedBy field in the system metadata "
+            + "of the second pid and verifies that an exception is thrown - "
+            + "since this would create an inconsistency in the chain.")
+    public void testUpdateSystemMetadata_ObsoletedByFail(Iterator<Node> nodeIterator, String version) {
+        while (nodeIterator.hasNext())
+            testUpdateSystemMetadata_ObsoletedByFail(nodeIterator.next(), version);
+    }
+    
+    public void testUpdateSystemMetadata_ObsoletedByFail(Node node, String version) {
+        
+        MNCallAdapter callAdapter = getCallAdapter(node, version);
+        String currentUrl = node.getBaseURL();
+        printTestHeader("testUpdateSystemMetadata_ObsoletedByFail(...) vs. node: " + currentUrl);
+        currentUrl = callAdapter.getNodeBaseServiceUrl();
+        
+        SystemMetadata v2sysmeta = null;
+        Identifier p1 = D1TypeBuilder.buildIdentifier("testUpdateSystemMetadata_ObsoletedByFail_" + ExampleUtilities.generateIdentifier());
+        Identifier p2 = D1TypeBuilder.buildIdentifier("testUpdateSystemMetadata_ObsoletedByFail_" + ExampleUtilities.generateIdentifier());
+        Identifier p3 = D1TypeBuilder.buildIdentifier("testUpdateSystemMetadata_ObsoletedByFail_" + ExampleUtilities.generateIdentifier());
+        SystemMetadata p1sysmeta = null;
+        
+        try {
+            getSession("testRightsHolder");
+            String rightsHolderSubjStr = catc.getSubject("testRightsHolder").getValue();
+            AccessRule accessRule = APITestUtils.buildAccessRule(rightsHolderSubjStr, Permission.CHANGE_PERMISSION);
+            p1 = catc.createTestObject(callAdapter, p1, accessRule);
+            
+            byte[] contentBytes = ExampleUtilities.getExampleObjectOfType(ExampleUtilities.FORMAT_EML_2_0_1);
+            ByteArrayInputStream objectInputStream = new ByteArrayInputStream(contentBytes);
+            D1Object d1o = new D1Object(p2, contentBytes,
+                    D1TypeBuilder.buildFormatIdentifier(ExampleUtilities.FORMAT_EML_2_0_1),
+                    catc.getSubject("testRightsHolder"),
+                    D1TypeBuilder.buildNodeReference("bogusAuthoritativeNode"));
+            
+            v2sysmeta = TypeMarshaller.convertTypeFromType(d1o.getSystemMetadata(), SystemMetadata.class);
+            p2 = d1o.getIdentifier();
+            callAdapter.update(null, p1, objectInputStream, p2, v2sysmeta);
+            p3 = catc.createTestObject(callAdapter, p3, accessRule);
+
+            p1sysmeta = callAdapter.getSystemMetadata(null, p1);
+        } catch (BaseException e) {
+            handleFail(callAdapter.getLatestRequestUrl(), 
+                    "testUpdateSystemMetadata_ObsoletedByFail() setup steps failed! " 
+                    + e.getClass().getSimpleName() + ": " + e.getDetail_code() + ": " + e.getDescription());
+        } catch(Exception e) {
+            handleFail(currentUrl, "testUpdateSystemMetadata_ObsoletedByFail() setup steps failed! "  
+                    + e.getClass().getName() + ": " + e.getMessage());
+        }
+        
+        try {
+            p1sysmeta.setObsoletedBy(p3);
+            callAdapter.updateSystemMetadata(null, p1 , p1sysmeta);
+            
+        } catch (InvalidSystemMetadata e) {
+            // expected
+        } catch (BaseException e) {
+            handleFail(callAdapter.getLatestRequestUrl(), 
+                    "testUpdateSystemMetadata_ObsoletedByFail() expected InvalidSystemMetadata but got: " 
+                    + e.getClass().getSimpleName() + ": " + e.getDetail_code() + ": " + e.getDescription());
+        } catch(Exception e) {
+            handleFail(currentUrl, "testUpdateSystemMetadata_ObsoletedByFail() expected InvalidSystemMetadata but got: " 
+                    + e.getClass().getName() + ": " + e.getMessage());
+        }
+    }
+    
+    @WebTestName("updateSystemMetadata - tests that the rights holder can't change the obsoletes field if it causes an inconsistency")
+    @WebTestDescription("this test calls updateSystemMetadata() using an object's rights-holder "
+            + "as the certificate subject to update the system metadata. "
+            + "It creates two objects (not related to each other through obsoletes / obsoletedBy) "
+            + "and modifies the obsoletedBy field in the system metadata "
+            + "of the first one (to point to the second) and verifies that no exception is thrown.")
+    public void testUpdateSystemMetadata_MutableObsoletedBy(Iterator<Node> nodeIterator, String version) {
+        while (nodeIterator.hasNext())
+            testUpdateSystemMetadata_MutableObsoletedBy(nodeIterator.next(), version);
+    }
+    
+    public void testUpdateSystemMetadata_MutableObsoletedBy(Node node, String version) {
+        
+        MNCallAdapter callAdapter = getCallAdapter(node, version);
+        String currentUrl = node.getBaseURL();
+        printTestHeader("testUpdateSystemMetadata_MutableObsoletedBy(...) vs. node: " + currentUrl);
+        currentUrl = callAdapter.getNodeBaseServiceUrl();
+        
+        SystemMetadata p1sysmeta = null;
+        Identifier p1 = D1TypeBuilder.buildIdentifier("testUpdateSystemMetadata_MutableObsoletedBy_" + ExampleUtilities.generateIdentifier());
+        Identifier p2 = D1TypeBuilder.buildIdentifier("testUpdateSystemMetadata_MutableObsoletedBy_" + ExampleUtilities.generateIdentifier());
+        
+        try {
+            getSession("testRightsHolder");
+            String rightsHolderSubjStr = catc.getSubject("testRightsHolder").getValue();
+            AccessRule accessRule = APITestUtils.buildAccessRule(rightsHolderSubjStr, Permission.CHANGE_PERMISSION);
+            p1 = catc.createTestObject(callAdapter, p1, accessRule);
+            p2 = catc.createTestObject(callAdapter, p2, accessRule);
+        
+            p1sysmeta = callAdapter.getSystemMetadata(null, p1);
+        } catch (BaseException e) {
+            handleFail(callAdapter.getLatestRequestUrl(), 
+                    "testUpdateSystemMetadata_MutableObsoletedBy() setup steps failed! " 
+                    + e.getClass().getSimpleName() + ": " + e.getDetail_code() + ": " + e.getDescription());
+        } catch(Exception e) {
+            handleFail(currentUrl, "testUpdateSystemMetadata_MutableObsoletedBy() setup steps failed! "  
+                    + e.getClass().getName() + ": " + e.getMessage());
+        }
+        
+        try {
+            p1sysmeta.setObsoletedBy(p2);
+            callAdapter.updateSystemMetadata(null, p1 , p1sysmeta);
+            
+        } catch (InvalidSystemMetadata e) {
+            // expected
+        } catch (BaseException e) {
+            handleFail(callAdapter.getLatestRequestUrl(), 
+                    "testUpdateSystemMetadata_MutableObsoletedBy() expected InvalidSystemMetadata but got: " 
+                    + e.getClass().getSimpleName() + ": " + e.getDetail_code() + ": " + e.getDescription());
+        } catch(Exception e) {
+            handleFail(currentUrl, "testUpdateSystemMetadata_MutableObsoletedBy() expected InvalidSystemMetadata but got: " 
+                    + e.getClass().getName() + ": " + e.getMessage());
+        }
+    }
+    
+    @WebTestName("updateSystemMetadata - tests that the rights holder can't change the obsoletes field if it causes an inconsistency")
+    @WebTestDescription("this test calls updateSystemMetadata() using an object's rights-holder "
+            + "as the certificate subject to update the system metadata. "
+            + "It creates two objects (not related to each other through obsoletes / obsoletedBy) "
+            + "and modifies the obsoletes field in the system metadata "
+            + "of the second one (to point to the first) and verifies that no exception is thrown.")
+    public void testUpdateSystemMetadata_MutableObsoletes(Iterator<Node> nodeIterator, String version) {
+        while (nodeIterator.hasNext())
+            testUpdateSystemMetadata_MutableObsoletes(nodeIterator.next(), version);
+    }
+    
+    public void testUpdateSystemMetadata_MutableObsoletes(Node node, String version) {
+        
+        MNCallAdapter callAdapter = getCallAdapter(node, version);
+        String currentUrl = node.getBaseURL();
+        printTestHeader("testUpdateSystemMetadata_MutableObsoletes(...) vs. node: " + currentUrl);
+        currentUrl = callAdapter.getNodeBaseServiceUrl();
+        
+        SystemMetadata p2sysmeta = null;
+        Identifier p1 = D1TypeBuilder.buildIdentifier("testUpdateSystemMetadata_MutableObsoletes_" + ExampleUtilities.generateIdentifier());
+        Identifier p2 = D1TypeBuilder.buildIdentifier("testUpdateSystemMetadata_MutableObsoletes_" + ExampleUtilities.generateIdentifier());
+        
+        try {
+            getSession("testRightsHolder");
+            String rightsHolderSubjStr = catc.getSubject("testRightsHolder").getValue();
+            AccessRule accessRule = APITestUtils.buildAccessRule(rightsHolderSubjStr, Permission.CHANGE_PERMISSION);
+            p1 = catc.createTestObject(callAdapter, p1, accessRule);
+            p2 = catc.createTestObject(callAdapter, p2, accessRule);
+        
+            p2sysmeta = callAdapter.getSystemMetadata(null, p2);
+        } catch (BaseException e) {
+            handleFail(callAdapter.getLatestRequestUrl(), 
+                    "testUpdateSystemMetadata_MutableObsoletes() setup steps failed! " 
+                    + e.getClass().getSimpleName() + ": " + e.getDetail_code() + ": " + e.getDescription());
+        } catch(Exception e) {
+            handleFail(currentUrl, "testUpdateSystemMetadata_MutableObsoletes() setup steps failed! "  
+                    + e.getClass().getName() + ": " + e.getMessage());
+        }
+        
+        try {
+            p2sysmeta.setObsoletes(p1);
+            callAdapter.updateSystemMetadata(null, p2 , p2sysmeta);
+            
+        } catch (InvalidSystemMetadata e) {
+            // expected
+        } catch (BaseException e) {
+            handleFail(callAdapter.getLatestRequestUrl(),
+                    "testUpdateSystemMetadata_MutableObsoletes() expected InvalidSystemMetadata but got: " 
+                    + e.getClass().getSimpleName() + ": " + e.getDetail_code() + ": " + e.getDescription());
+        } catch(Exception e) {
+            handleFail(currentUrl, "testUpdateSystemMetadata_MutableObsoletes() expected InvalidSystemMetadata but got: " 
+                    + e.getClass().getName() + ": " + e.getMessage());
         }
     }
 }

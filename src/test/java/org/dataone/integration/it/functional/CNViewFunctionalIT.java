@@ -3,6 +3,7 @@ package org.dataone.integration.it.functional;
 import org.dataone.integration.ContextAwareTestCaseDataone;
 import org.dataone.integration.it.testImplementations.ViewFunctionalTestImplementations;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class CNViewFunctionalIT extends ContextAwareTestCaseDataone {
@@ -16,7 +17,7 @@ public class CNViewFunctionalIT extends ContextAwareTestCaseDataone {
 
     @Before
     public void setup() {
-        viewImpl = new ViewFunctionalTestImplementations(this);
+        viewImpl = new ViewFunctionalTestImplementations(this, getCoordinatingNodeIterator(), getMemberNodeIterator());
     }
     
     @Test
@@ -30,6 +31,7 @@ public class CNViewFunctionalIT extends ContextAwareTestCaseDataone {
     }
     
     @Test
+    @Ignore("Data won't be available on the CN - skip this type of test on CN? Or does CN call delegate to MN?")
     public void testView_Data() {
         viewImpl.testView_Data(getCoordinatingNodeIterator(), "v2");
     }

@@ -135,7 +135,11 @@
       <version>3.7</version>
       <scope>test</scope>
     </dependency>
-
+	<dependency>
+		<groupId>org.apache.commons</groupId>
+		<artifactId>commons-compress</artifactId>
+		<version>1.2</version>
+	</dependency>
     <dependency>
             <groupId>org.apache.solr</groupId>
             <artifactId>solr-solrj</artifactId>

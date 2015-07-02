@@ -3,7 +3,7 @@ package org.dataone.integration.it.functional;
 import org.dataone.integration.ContextAwareTestCaseDataone;
 import org.dataone.integration.it.testImplementations.ViewFunctionalTestImplementations;
 import org.dataone.integration.webTest.WebTestImplementation;
-import org.junit.BeforeClass;
+import org.junit.Before;
 import org.junit.Test;
 
 public class MNViewFunctionalIT extends ContextAwareTestCaseDataone {
@@ -16,9 +16,9 @@ public class MNViewFunctionalIT extends ContextAwareTestCaseDataone {
         return "Test Case that runs MN view API methods and checks results for correctness.";
     }
 
-    @BeforeClass
+    @Before
     public void setup() {
-        viewImpl = new ViewFunctionalTestImplementations(this);
+        viewImpl = new ViewFunctionalTestImplementations(this, getCoordinatingNodeIterator(), getMemberNodeIterator());
     }
     
     @Test
