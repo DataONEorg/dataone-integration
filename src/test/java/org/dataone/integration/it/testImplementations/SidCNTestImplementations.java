@@ -646,7 +646,9 @@ public class SidCNTestImplementations extends SidCommonTestImplementations {
                     try {
                         objectList = callAdapter.search(null, QUERYTYPE_SOLR, query);
                     } catch (Exception e) {
-                        assertTrue("testArchive() Case " + caseNum + ", should be able to call search(). Query: " + query, false);
+                        assertTrue("testArchive() Case " + caseNum + ", should be able to call search(). Query: " + query + " " 
+                                + "But got error: " + e.getMessage() + ", " + (e.getCause() == null ? "" : e.getCause().getMessage()), 
+                                false);
                     }
                     assertTrue("testArchive() Case " + caseNum + " search() for archived object shouldn't return results",
                             objectList.getObjectInfoList().size() == 0);

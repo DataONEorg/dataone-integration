@@ -7,15 +7,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathExpressionException;
-import javax.xml.xpath.XPathFactory;
-
 import org.apache.commons.collections.IteratorUtils;
-import org.apache.commons.collections.ListUtils;
 import org.apache.commons.io.IOUtils;
 import org.dataone.client.v1.types.D1TypeBuilder;
 import org.dataone.integration.ContextAwareTestCaseDataone;
@@ -34,20 +26,18 @@ import org.dataone.service.types.v1.Permission;
 import org.dataone.service.types.v1.Subject;
 import org.dataone.service.types.v2.OptionList;
 import org.dataone.service.util.Constants;
-import org.w3c.dom.Document;
-import org.xml.sax.InputSource;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Element;
 
 public class ViewFunctionalTestImplementations extends ContextAwareAdapter {
 
     private long METACAT_INDEXING_TIME = 10000;
     List<Node> cns;
-    List<Node> mns;
     
-    public ViewFunctionalTestImplementations(ContextAwareTestCaseDataone catc, Iterator<Node> cNodes, Iterator<Node> mNodes) {
+    public ViewFunctionalTestImplementations(ContextAwareTestCaseDataone catc, Iterator<Node> cNodes) {
         super(catc);
         
         cns = IteratorUtils.toList(cNodes);
-        mns = IteratorUtils.toList(mNodes);
     }
     
     @WebTestName("view - tests if the view call returns an html document for science metadata")
@@ -79,34 +69,19 @@ public class ViewFunctionalTestImplementations extends ContextAwareAdapter {
         try {
             is = callAdapter.view(null, "default", pid);
         
-            Document doc = null;
+            org.jsoup.nodes.Document doc = null;
             try {
-                DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-                // output to file for debugging:
-//                FileOutputStream fout = new FileOutputStream(new File("C:\\Users\\Andrei\\stuff\\viewScimeta.txt"));
-//                IOUtils.copy(is, fout);
-                doc = builder.parse(new InputSource(is));
+                doc = Jsoup.parse(is, null, "");
+                
             } catch (Exception e) {
                 throw new AssertionError(callAdapter.getNodeBaseServiceUrl() + ":   "
                         + "view() should return an InputStream "
-                        + "that contains a valid Document for the default theme "
+                        + "that contains a valid HTML Document for the default theme "
                         + "and pid: " + pid.getValue() + ". Error: " + e.getClass().getName() + ": " + e.getMessage(), e);
             }
             
-            XPath xPath =  XPathFactory.newInstance().newXPath();
-            String headerExp = "/html";
-            org.w3c.dom.Node headerNode = null;
-            
-            try {
-                headerNode = (org.w3c.dom.Node) xPath.compile(headerExp).evaluate(doc, XPathConstants.NODE);
-            } catch (XPathExpressionException e) {
-                throw new AssertionError(callAdapter.getNodeBaseServiceUrl() + ":   "
-                        + "view() should return an InputStream"
-                        + "that represents an HTML document for the default theme "
-                        + "and pid: " + pid.getValue() + ". Error: " + e.getClass().getName() + ": " + e.getMessage(), e);
-            }
-            
-            if (headerNode == null)
+            Element htmlRoot = doc.select(":root").first();
+            if (htmlRoot == null)
                 throw new AssertionError(callAdapter.getNodeBaseServiceUrl() + ":   "
                         + "view() did not return an HTML document with a header node for the default theme "
                         + "and pid: " + pid.getValue() + "" );
@@ -147,13 +122,10 @@ public class ViewFunctionalTestImplementations extends ContextAwareAdapter {
         try {
             is = callAdapter.view(null, "default", pid);
         
-            Document doc = null;
+            org.jsoup.nodes.Document doc = null;
             try {
-                DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-                // output to file for debugging:
-//                FileOutputStream fout = new FileOutputStream(new File("C:\\Users\\Andrei\\stuff\\viewScimeta.txt"));
-//                IOUtils.copy(is, fout);
-                doc = builder.parse(new InputSource(is));
+                doc = Jsoup.parse(is, null, "");
+                
             } catch (Exception e) {
                 throw new AssertionError(callAdapter.getNodeBaseServiceUrl() + ":   "
                         + "view() should return an InputStream"
@@ -162,21 +134,8 @@ public class ViewFunctionalTestImplementations extends ContextAwareAdapter {
                         + e.getClass().getName() + ": " + e.getMessage());
             }
             
-            XPath xPath =  XPathFactory.newInstance().newXPath();
-            String headerExp = "/html";
-            org.w3c.dom.Node headerNode = null;
-            
-            try {
-                headerNode = (org.w3c.dom.Node) xPath.compile(headerExp).evaluate(doc, XPathConstants.NODE);
-            } catch (XPathExpressionException e) {
-                throw new AssertionError(callAdapter.getNodeBaseServiceUrl() + ":   "
-                        + "view() did not return an InputStream "
-                        + "that represents an HTML document for the default theme "
-                        + "and pid: " + pid.getValue() + ". Error: " 
-                        + e.getClass().getName() + ": " + e.getMessage());
-            }
-            
-            if (headerNode == null)
+            Element htmlRoot = doc.select(":root").first();
+            if (htmlRoot == null)
                 throw new AssertionError(callAdapter.getNodeBaseServiceUrl() + ":   "
                         + "view() either did not return an HTML document, or did not return "
                         + "an HTML document with a header, for the default theme "
@@ -281,31 +240,17 @@ public class ViewFunctionalTestImplementations extends ContextAwareAdapter {
         try {
             is = callAdapter.view(null, "default", pid);
         
-            Document doc = null;
+            org.jsoup.nodes.Document doc = null;
             try {
-                DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-                doc = builder.parse(new InputSource(is));
+                doc = Jsoup.parse(is, null, "");
             } catch (Exception e) {
                 throw new AssertionError(callAdapter.getNodeBaseServiceUrl() + ":   "
                         + "view() should return an InputStream"
                         + "that can be parsed into a document. Error: " 
                         + e.getClass().getName() + ": " + e.getMessage());
             }
-            
-            XPath xPath =  XPathFactory.newInstance().newXPath();
-            String headerExp = "/html";
-            org.w3c.dom.Node headerNode = null;
-            
-            try {
-                headerNode = (org.w3c.dom.Node) xPath.compile(headerExp).evaluate(doc, XPathConstants.NODE);
-            } catch (XPathExpressionException e) {
-                throw new AssertionError(callAdapter.getNodeBaseServiceUrl() + ":   "
-                        + "view() should return an InputStream"
-                        + "that represents an HTML document. Error: " 
-                        + e.getClass().getName() + ": " + e.getMessage());
-            }
-            
-            if (headerNode == null)
+            Element htmlRoot = doc.select(":root").first();
+            if (htmlRoot == null)
                 throw new AssertionError(callAdapter.getNodeBaseServiceUrl() + ":   "
                         + "view() did not return an HTML document.");
             

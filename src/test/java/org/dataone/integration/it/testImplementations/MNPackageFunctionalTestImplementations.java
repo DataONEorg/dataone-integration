@@ -29,6 +29,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.dataone.integration.ContextAwareTestCaseDataone;
 import org.dataone.integration.adapters.MNCallAdapter;
+import org.dataone.integration.it.ContextAwareAdapter;
 import org.dataone.integration.webTest.WebTestDescription;
 import org.dataone.integration.webTest.WebTestName;
 import org.dataone.service.exceptions.BaseException;
@@ -36,15 +37,17 @@ import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Node;
 import org.dataone.service.types.v1.ObjectFormatIdentifier;
 
-public class MNPackageFunctionalTestImplementations extends ContextAwareTestCaseDataone {
+import com.github.junrar.Archive;
+import com.github.junrar.rarfile.FileHeader;
+
+public class MNPackageFunctionalTestImplementations extends ContextAwareAdapter {
+
+    public MNPackageFunctionalTestImplementations(ContextAwareTestCaseDataone catc) {
+        super(catc);
+    }
 
     private static Log log = LogFactory.getLog(MNPackageFunctionalTestImplementations.class);
     
-    @Override
-    protected String getTestDescription() {
-        return "Test Case that runs MN package API methods and checks results for correctness.";
-    }
-
     @WebTestName("getPackage - zip")
     @WebTestDescription(
      "The test calls getPackage() with application/zip as the requested packageType "
@@ -68,7 +71,7 @@ public class MNPackageFunctionalTestImplementations extends ContextAwareTestCase
             ObjectFormatIdentifier formatID = new ObjectFormatIdentifier();
             formatID.setValue("application/zip");
             
-            Identifier resourceMapPid = procureResourceMap(callAdapter);
+            Identifier resourceMapPid = catc.procureResourceMap(callAdapter);
             is = testRightsHolderCallAdapter.getPackage(null, formatID, resourceMapPid);
             
             // check for valid InputStream
@@ -174,7 +177,7 @@ public class MNPackageFunctionalTestImplementations extends ContextAwareTestCase
             ObjectFormatIdentifier formatID = new ObjectFormatIdentifier();
             formatID.setValue("application/x-gzip");
             
-            Identifier resourceMapPid = procureResourceMap(callAdapter);
+            Identifier resourceMapPid = catc.procureResourceMap(callAdapter);
             pkgInStream = testRightsHolderCallAdapter.getPackage(null, formatID, resourceMapPid);
             
             // check for valid InputStream
@@ -252,7 +255,7 @@ public class MNPackageFunctionalTestImplementations extends ContextAwareTestCase
             ObjectFormatIdentifier formatID = new ObjectFormatIdentifier();
             formatID.setValue("application/x-bzip2");
             
-            Identifier resourceMapPid = procureResourceMap(callAdapter);
+            Identifier resourceMapPid = catc.procureResourceMap(callAdapter);
             pkgInStream = testRightsHolderCallAdapter.getPackage(null, formatID, resourceMapPid);
             
             // check for valid InputStream
@@ -306,21 +309,49 @@ public class MNPackageFunctionalTestImplementations extends ContextAwareTestCase
 
     private void checkTar(String formatId, String currentUrl, File rootDir, File tarFile) {
         
-        List<File> untarredFiles = new ArrayList<>();
         try {
-            untarredFiles = unTar(tarFile, rootDir);
+            unTar(tarFile, rootDir);
         } catch (IOException | ArchiveException e) {
             e.printStackTrace();
             handleFail(currentUrl, "Unable to un-tar the file!"
                     + e.getClass().getName() + ": " + e.getMessage());
         }
         
+        checkBagItContent(formatId, rootDir);
+    }
+
+    /**
+     * Checks that the BagIt content we extracted does in fact match the 
+     * BagIt requirements. Should be given the folder we extracted to,
+     * where we're expecting one top-level directory containing the rest
+     * of the content.
+     */
+    private void checkBagItContent(String formatId, File extractDir) {
+        
+        if (!extractDir.exists())
+            throw new AssertionError("Directory does not exist: " + extractDir.getParent());
+        
+        File[] listFiles = extractDir.listFiles();
+        
+        assertTrue("The \"" + formatId + "\" returned from getPackage() "
+                + "should contain only ONE top level directory.", 
+                listFiles.length != 1);
+        
+        checkBagItRootDir(formatId, listFiles[0]);
+    }
+    
+    /**
+     * Checks that the top-level BagIt directory given contains the 
+     * files required by the BagIt spec: a manifest, a bagit.txt file, 
+     * and a /data directory.
+     */
+    private void checkBagItRootDir(String formatId, File rootDir) {
+        
         boolean bagitFound = false;
         boolean manifestFound = false;
         boolean dataDirFound = false;
-        boolean topLevelDirFound = false;
         
-        for (File f : untarredFiles) {
+        for (File f : rootDir.listFiles()) {
             String path = f.getPath();
             path = path.replaceAll("\\\\", "/");
             
@@ -336,17 +367,11 @@ public class MNPackageFunctionalTestImplementations extends ContextAwareTestCase
             String remove = rootDir.getPath().replaceAll("\\\\", "/");
             String pathFromRoot = path.replaceAll(remove, "");
             
-            if (StringUtils.countMatches(pathFromRoot, "/") == 1)
-                topLevelDirFound = true;
-                
-            if (StringUtils.countMatches(pathFromRoot, "/") == 2 &&
+            if (StringUtils.countMatches(pathFromRoot, "/") == 1 &&
                     pathFromRoot.endsWith("/data"))
                 dataDirFound = true;
         }
         
-        assertTrue("The \"" + formatId + "\" returned from getPackage() "
-                + "should contain only ONE top level directory.", 
-                topLevelDirFound);
         assertTrue("The \"" + formatId + "\" returned from getPackage() "
                 + "should contain a bagit.txt file.", bagitFound);
         assertTrue("The \"" + formatId + "\" returned from getPackage() "
@@ -382,7 +407,7 @@ public class MNPackageFunctionalTestImplementations extends ContextAwareTestCase
             ObjectFormatIdentifier formatID = new ObjectFormatIdentifier();
             formatID.setValue("application/x-tar");
             
-            Identifier resourceMapPid = procureResourceMap(callAdapter);
+            Identifier resourceMapPid = catc.procureResourceMap(callAdapter);
             pkgInStream = testRightsHolderCallAdapter.getPackage(null, formatID, resourceMapPid);
             
             // check for valid InputStream
@@ -460,7 +485,7 @@ public class MNPackageFunctionalTestImplementations extends ContextAwareTestCase
         return outFile;
     }
     
-    private static List<File> unTar(final File inFile, final File outDir) throws FileNotFoundException, IOException, ArchiveException {
+    private static List<File> unTar(File inFile, File outDir) throws FileNotFoundException, IOException, ArchiveException {
         log.info(String.format("Un-taring %s to dir %s.", inFile.getAbsolutePath(), outDir.getAbsolutePath()));
 
         final List<File> resultFiles = new LinkedList<File>();
@@ -488,8 +513,189 @@ public class MNPackageFunctionalTestImplementations extends ContextAwareTestCase
 
         return resultFiles;
     }
+
+    @WebTestName("getPackage - rar")
+    @WebTestDescription(
+     "The test calls getPackage() with application/x-rar-compressed as the requested packageType "
+     + "and verifies that the returned InputStream does in fact contain a rar file"
+     + "then checks the rar file to make sure that it contains a top-level "
+     + "directory, and that it contains a bagit.txt, a manifest file, and a data directory.")
+    public void testGetPackage_Rar(Iterator<Node> nodeIterator, String version) {
+        while (nodeIterator.hasNext())
+            testGetPackage_Rar(nodeIterator.next(), version);   
+    }
     
-    
-    // TODO application/x-rar-compressed
-    
+    private void testGetPackage_Rar(Node node, String version) {
+        
+        MNCallAdapter callAdapter = new MNCallAdapter(getSession(cnSubmitter), node, version);
+        MNCallAdapter testRightsHolderCallAdapter = new MNCallAdapter(getSession("testRightsHolder"), node, version);
+        String currentUrl = node.getBaseURL();
+        printTestHeader("testGetPackage(...) vs. node: " + currentUrl);
+        
+        InputStream pkgInStream = null;
+        OutputStream rarOutFile = null;
+        File tempBagItContent = null;
+        
+        try {
+            ObjectFormatIdentifier formatID = new ObjectFormatIdentifier();
+            formatID.setValue("application/x-rar-compressed");
+            
+            Identifier resourceMapPid = catc.procureResourceMap(callAdapter);
+            pkgInStream = testRightsHolderCallAdapter.getPackage(null, formatID, resourceMapPid);
+            
+            // check for valid InputStream
+            
+            assertTrue("getPackage() should return a non-null InputStream", pkgInStream != null);
+            
+            String tempDirProperty = "java.io.tmpdir";
+            String tempDir = System.getProperty(tempDirProperty);
+            String rootDirPath = tempDir + File.pathSeparator + "tempBagItContent";
+            String rarFilePath = rootDirPath + File.pathSeparator + "TempRar.rar";
+            
+            try {
+                rarOutFile = new FileOutputStream(rarFilePath);
+                IOUtils.copy(pkgInStream, rarOutFile);
+            } catch (Exception e) {
+                e.printStackTrace();
+                handleFail(currentUrl, "testGetPackage_Rar : Unable to write rar stream to file!"
+                        + e.getClass().getName() + ": " + e.getMessage());
+            }
+            
+            File rootDir = new File(rootDirPath);
+            File rarFile = new File(rarFilePath);
+
+            try {
+                unRar(rarFile, rootDir);
+            } catch (Exception e) {
+                e.printStackTrace();
+                handleFail(currentUrl, "testGetPackage_Rar : Unable to un-rar the file!"
+                + e.getClass().getName() + ": " + e.getMessage());
+            }
+            
+            checkBagItContent("application/x-rar-compressed", rootDir);
+        }
+        catch (BaseException e) {
+            handleFail(callAdapter.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
+                    e.getDetail_code() + ":: " + e.getDescription());
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+            handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+        }
+        finally {
+            IOUtils.closeQuietly(pkgInStream);
+            try {
+                FileUtils.deleteDirectory(tempBagItContent);
+            } catch (Exception e) {}
+        }
+    }
+
+    private static void unRar(File inFile, final File outDir) {
+        
+        Archive archive = null;
+        try {
+            archive = new Archive(inFile);
+        } catch (Exception e) {
+            log.error("Unable to read in RAR archive file: " + inFile.getAbsolutePath(), e);
+        }
+        
+        if (archive == null)
+            throw new AssertionError("Unable to create Archive from file: " + inFile.getAbsolutePath());
+        if (archive.isEncrypted())
+            throw new AssertionError("RAR archive is encrypted! Can't be decompressed!");
+        
+        FileHeader fileHeader = null;
+        
+        while ( (fileHeader = archive.nextFileHeader()) != null )
+            if (archive.isEncrypted()) {
+                log.error("RAR file header (" + fileHeader.getFileNameString() 
+                        + ") is encrypted! Can't be decompressed!");
+                continue;
+            }
+        
+        log.info("Extracting file: " + fileHeader.getFileNameString());
+        try {
+            if (fileHeader.isDirectory())
+                createDirectory(fileHeader, outDir);
+            else {
+                File f = createFile(fileHeader, outDir);
+                OutputStream stream = new FileOutputStream(f);
+                archive.extractFile(fileHeader, stream);
+                stream.close();
+            }
+        } catch (Exception e) {
+            log.error("Error extracting file!", e);
+        }      
+    }
+
+    private static File createFile(FileHeader fh, File destination) {
+        File f = null;
+        String name = null;
+        if (fh.isFileHeader() && fh.isUnicode()) {
+            name = fh.getFileNameW();
+        } else {
+            name = fh.getFileNameString();
+        }
+        f = new File(destination, name);
+        if (!f.exists()) {
+            try {
+                f = makeFile(destination, name);
+            } catch (IOException e) {
+                log.error("Error creating new file: " + f.getName(), e);
+            }
+        }
+        return f;
+    }
+
+    private static File makeFile(File destination, String name) throws IOException {
+        String[] dirs = name.split("\\\\");
+        if (dirs == null) {
+            return null;
+        }
+        String path = "";
+        int size = dirs.length;
+        if (size == 1) {
+            return new File(destination, name);
+        } else if (size > 1) {
+            for (int i = 0; i < dirs.length - 1; i++) {
+                path = path + File.separator + dirs[i];
+                new File(destination, path).mkdir();
+            }
+            path = path + File.separator + dirs[dirs.length - 1];
+            File f = new File(destination, path);
+            f.createNewFile();
+            return f;
+        } else {
+            return null;
+        }
+    }
+
+    private static void createDirectory(FileHeader fh, File destination) {
+        File f = null;
+        if (fh.isDirectory() && fh.isUnicode()) {
+            f = new File(destination, fh.getFileNameW());
+            if (!f.exists()) {
+                makeDirectory(destination, fh.getFileNameW());
+            }
+        } else if (fh.isDirectory() && !fh.isUnicode()) {
+            f = new File(destination, fh.getFileNameString());
+            if (!f.exists()) {
+                makeDirectory(destination, fh.getFileNameString());
+            }
+        }
+    }
+
+    private static void makeDirectory(File destination, String fileName) {
+        String[] dirs = fileName.split("\\\\");
+        if (dirs == null) {
+            return;
+        }
+        String path = "";
+        for (String dir : dirs) {
+            path = path + File.separator + dir;
+            new File(destination, path).mkdir();
+        }
+
+    }
+
 }

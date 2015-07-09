@@ -141,6 +141,11 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
                         + "Error: " + e.getClass().getSimpleName() + " : " + e.getMessage());
             }
             
+            if (capabilities == null) {
+                log.error("MN returned NULL capabilities from getCapabilities(). MN: " 
+                        + mn.getBaseURL());
+                continue;
+            }
             boolean synchronize = capabilities.isSynchronize();
             if (!synchronize) {
                 mNode = mn;
