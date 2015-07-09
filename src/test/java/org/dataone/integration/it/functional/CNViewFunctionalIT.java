@@ -17,7 +17,7 @@ public class CNViewFunctionalIT extends ContextAwareTestCaseDataone {
 
     @Before
     public void setup() {
-        viewImpl = new ViewFunctionalTestImplementations(this, getCoordinatingNodeIterator(), getMemberNodeIterator());
+        viewImpl = new ViewFunctionalTestImplementations(this, getCoordinatingNodeIterator());
     }
     
     @Test

@@ -3,7 +3,7 @@ package org.dataone.integration.it.functional;
 import org.dataone.integration.ContextAwareTestCaseDataone;
 import org.dataone.integration.it.testImplementations.CNDiagnosticFunctionalTestImplementations;
 import org.dataone.integration.webTest.WebTestImplementation;
-import org.junit.BeforeClass;
+import org.junit.Before;
 import org.junit.Test;
 
 public class CNDiagnosticFunctionalIT extends ContextAwareTestCaseDataone {
@@ -16,7 +16,7 @@ public class CNDiagnosticFunctionalIT extends ContextAwareTestCaseDataone {
         return "Test Case that runs CN diagnostic API methods and checks results for correctness.";
     }
 
-    @BeforeClass
+    @Before
     public void setup() {
         diagImpl = new CNDiagnosticFunctionalTestImplementations(this);
     }
