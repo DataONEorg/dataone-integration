@@ -58,8 +58,9 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
     private List<Node> v1v2mns;
     
     private static final long SYNC_TIME = 300000;           // FIXME is there a reliable way to know these?
-    private static final long REPLICATION_TIME = 300000;    // FIXME "
-    private static final long METACAT_INDEX_TIME = 10000;
+//    private static final long REPLICATION_TIME = 300000;    // FIXME "
+    private static final long REPLICATION_TIME = 100;
+    private static final long METACAT_INDEX_TIME = 1000;
     
     private static Log log = LogFactory.getLog(SystemMetadataFunctionalTestImplementation.class);
     
@@ -70,16 +71,14 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
                 + "checking for invalid interoperation.";
         }
 
-    public void setup() {
+    public void setup(Iterator<Node> cnIter) {
         List<Node> cnList = new ArrayList<Node>();
         List<Node> mnList = new ArrayList<Node>();
         v1mns = new ArrayList<Node>();
         v2mns = new ArrayList<Node>();
         v1v2mns = new ArrayList<Node>();
         
-        Iterator<Node> cnIter = getCoordinatingNodeIterator();
-        if(cnIter != null)
-            cnList = IteratorUtils.toList(cnIter);
+        cnList = IteratorUtils.toList(cnIter);
         
         if(cnList.size() > 0)
             cn = new CNCallAdapter(getSession(cnSubmitter), cnList.get(0), "v2");
@@ -119,12 +118,9 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
                 v1v2mns.add(mNode);
         }
 
-        log.info("v1 MNs available: " + v1mns.size());
-        log.info("v2 MNs available: " + v2mns.size());
-
-        assertTrue("Tests require at least 1 MN that supports ONLY the v1 API", v1mns.size() >= 1);
-        assertTrue("Tests require at least 1 MN that supports the v2 API", v2mns.size() >= 1);
-        assertTrue("Tests require at least 1 MN that supports BOTH v1 & v2 APIs", v1v2mns.size() >= 1);
+        log.info("v1-ONLY MNs available:     " + v1mns.size());
+        log.info("v2 MNs available:          " + v2mns.size());
+        log.info("v1 & v2 MNs available:     " + v1v2mns.size());
     }
     
     @WebTestName("v2 create, v1 updateSystemMetadata")
@@ -132,8 +128,9 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             "It does a create on the v2 endpoint, then an updateSystemMetadata on the v1 endpoint." +
             "The updateSystemMetadata operation should yield an exception since it could be erasing " +
             "v2-specific data from the create.")
-    @Test
     public void testV2CreateV1UpdateSysmeta() {
+        
+        assertTrue("Tests require at least 1 MN that supports BOTH v1 & v2 APIs", v1v2mns.size() >= 1);
         
         AccessRule accessRule = new AccessRule();
         getSession("testRightsHolder");
@@ -152,13 +149,13 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             pid = createTestObject(v2CallAdapter, "testV2CreateV1UpdateSysmeta_", accessRule);
         } catch (BaseException e) {
             e.printStackTrace();
-            handleFail(v2CallAdapter.getLatestRequestUrl(), "testV2CreateV1UpdateSysmeta() couldn't create test object: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV2CreateV1UpdateSysmeta() couldn't create test object: " 
                     + e.getClass().getSimpleName() + ": " 
                     + e.getDetail_code() + ":: " + e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
-            handleFail(v2CallAdapter.getLatestRequestUrl(), "testV2CreateV1UpdateSysmeta() couldn't create test object: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV2CreateV1UpdateSysmeta() couldn't create test object: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
         
@@ -170,13 +167,13 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             sysmeta.setSerialVersion(sysmeta.getSerialVersion().add(BigInteger.ONE));
         } catch (BaseException e) {
             e.printStackTrace();
-            handleFail(v2CallAdapter.getLatestRequestUrl(), "testV2CreateV1UpdateSysmeta() couldn't create update object: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV2CreateV1UpdateSysmeta() couldn't create update object: " 
                     + e.getClass().getSimpleName() + ": " 
                     + e.getDetail_code() + ":: " + e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
-            handleFail(v2CallAdapter.getLatestRequestUrl(), "testV2CreateV1UpdateSysmeta() couldn't create update object: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV2CreateV1UpdateSysmeta() couldn't create update object: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
         
@@ -186,13 +183,13 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             // expected v1 updateSystemMetadata() to fail
         } catch (BaseException e) {
             e.printStackTrace();
-            handleFail(v1CallAdapter.getLatestRequestUrl(), "testV2CreateV1UpdateSysmeta() expected InvalidRequest, got: " 
+            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV2CreateV1UpdateSysmeta() expected InvalidRequest, got: " 
                     + e.getClass().getSimpleName() + ": " 
                     + e.getDetail_code() + ":: " + e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
-            handleFail(v1CallAdapter.getLatestRequestUrl(), "testV2CreateV1UpdateSysmeta() expected InvalidRequest, got: " 
+            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV2CreateV1UpdateSysmeta() expected InvalidRequest, got: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
     }
@@ -203,8 +200,9 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
      "It does a create on the v2 endpoint, then an update on the v1 endpoint." +
      "The update operation should be successful, BUT we check that it has not " + 
      "erased any v2-specific data from the existing system metadata (meaning the sid).")
-    @Test
     public void testV2CreateV1Update() {
+
+        assertTrue("Tests require at least 1 MN that supports BOTH v1 & v2 APIs", v1v2mns.size() >= 1);
         
         AccessRule accessRule = new AccessRule();
         getSession("testRightsHolder");
@@ -226,13 +224,13 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             createTestObject(v2CallAdapter, oldPid, oldSid, null, null, policy, "testRightsHolder", "testRightsHolder");
         } catch (BaseException e) {
             e.printStackTrace();
-            handleFail(v2CallAdapter.getLatestRequestUrl(), "testV2CreateV1Update() couldn't create test object: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV2CreateV1Update() couldn't create test object: " 
                     + e.getClass().getSimpleName() + ": " 
                     + e.getDetail_code() + ":: " + e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
-            handleFail(v2CallAdapter.getLatestRequestUrl(), "testV2CreateV1Update() couldn't create test object: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV2CreateV1Update() couldn't create test object: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
         
@@ -242,7 +240,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         try {
             oldSysmeta = v2CallAdapter.getSystemMetadata(null, oldPid);
         } catch (Exception e) {
-            handleFail(v2CallAdapter.getLatestRequestUrl(), "testV2CreateV1Update() couldn't fetch old sysmeta: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV2CreateV1Update() couldn't fetch old sysmeta: " 
                     + e.getClass().getName() + ": " + e.getMessage());
         }
         
@@ -263,13 +261,13 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             objectInputStream = new ByteArrayInputStream(contentBytes);
         } catch (BaseException e) {
             e.printStackTrace();
-            handleFail(v2CallAdapter.getLatestRequestUrl(), "testV2CreateV1Update() couldn't create update object: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV2CreateV1Update() couldn't create update object: " 
                     + e.getClass().getSimpleName() + ": " 
                     + e.getDetail_code() + ":: " + e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
-            handleFail(v2CallAdapter.getLatestRequestUrl(), "testV2CreateV1Update() couldn't create update object: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV2CreateV1Update() couldn't create update object: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
         
@@ -288,13 +286,13 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             
         } catch (BaseException e) {
             e.printStackTrace();
-            handleFail(v1CallAdapter.getLatestRequestUrl(), "testV2CreateV1Update() expected InvalidRequest, got: " 
+            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV2CreateV1Update() expected InvalidRequest, got: " 
                     + e.getClass().getSimpleName() + ": " 
                     + e.getDetail_code() + ":: " + e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
-            handleFail(v1CallAdapter.getLatestRequestUrl(), "testV2CreateV1Update() expected InvalidRequest, got: " 
+            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV2CreateV1Update() expected InvalidRequest, got: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
     }
@@ -304,8 +302,9 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
      "Test operates on a single MN that supports both v1 & v2 APIs." +
      "It does a create on the v1 endpoint, then an update on the v2 endpoint." +
      "The update operation should succeed.")
-    @Test
     public void testV1CreateV2Update() {
+
+        assertTrue("Tests require at least 1 MN that supports BOTH v1 & v2 APIs", v1v2mns.size() >= 1);
         
         AccessRule accessRule = new AccessRule();
         getSession("testRightsHolder");
@@ -321,16 +320,16 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         
         Identifier pid = null;
         try {
-            pid = createTestObject(v1CallAdapter, "testV1CreateV2Update_1_", accessRule);
+            pid = createTestObject(v1CallAdapter, "testV1CreateV2Update_1_" + ExampleUtilities.generateIdentifier(), accessRule);
         } catch (BaseException e) {
             e.printStackTrace();
-            handleFail(v1CallAdapter.getLatestRequestUrl(), "testV1CreateV2Update() couldn't create test object: " 
+            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV1CreateV2Update() couldn't create test object: " 
                     + e.getClass().getSimpleName() + ": " 
                     + e.getDetail_code() + ":: " + e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
-            handleFail(v1CallAdapter.getLatestRequestUrl(), "testV1CreateV2Update() couldn't create test object: " 
+            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV1CreateV2Update() couldn't create test object: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
         
@@ -341,7 +340,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         InputStream objectInputStream = null;
         
         try {
-            newPid = D1TypeBuilder.buildIdentifier("testV1CreateV2Update_2_");
+            newPid = D1TypeBuilder.buildIdentifier("testV1CreateV2Update_2_" + ExampleUtilities.generateIdentifier());
             byte[] contentBytes = ExampleUtilities.getExampleObjectOfType(DEFAULT_TEST_OBJECTFORMAT);
             D1Object d1o = new D1Object(newPid, contentBytes,
                     D1TypeBuilder.buildFormatIdentifier(DEFAULT_TEST_OBJECTFORMAT),
@@ -351,13 +350,13 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             objectInputStream = new ByteArrayInputStream(contentBytes);
         } catch (BaseException e) {
             e.printStackTrace();
-            handleFail(v1CallAdapter.getLatestRequestUrl(), "testV1CreateV2Update() couldn't create update object: " 
+            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV1CreateV2Update() couldn't create update object: " 
                     + e.getClass().getSimpleName() + ": " 
                     + e.getDetail_code() + ":: " + e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
-            handleFail(v1CallAdapter.getLatestRequestUrl(), "testV1CreateV2Update() couldn't create update object: " 
+            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV1CreateV2Update() couldn't create update object: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
         
@@ -366,13 +365,13 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             assertTrue("testV2CreateV1Update: update on v2 endpoint should succeed", updPid != null);
         } catch (BaseException e) {
             e.printStackTrace();
-            handleFail(v1CallAdapter.getLatestRequestUrl(), "testV2CreateV1Update: update on v2 endpoint should succeed; got: " 
+            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV2CreateV1Update: update on v2 endpoint should succeed; got: " 
                     + e.getClass().getSimpleName() + ": " 
                     + e.getDetail_code() + ":: " + e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
-            handleFail(v1CallAdapter.getLatestRequestUrl(), "testV2CreateV1Update: update on v2 endpoint should succeed; got: " 
+            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV2CreateV1Update: update on v2 endpoint should succeed; got: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
     }
@@ -384,8 +383,11 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
      "then checks the v1 MN whether replication has moved anything to it." + 
      "This check should fail since v2-created data should NOT be replicated " +
      "down to v1 nodes.")
-    @Test
     public void testV2CreateV1GetSysMeta() {
+        
+        assertTrue("Tests require at least 1 MN that supports ONLY the v1 API", v1mns.size() >= 1);
+        assertTrue("Tests require at least 1 MN that supports the v2 API", v2mns.size() >= 1);
+        
         AccessRule accessRule = new AccessRule();
         getSession("testRightsHolder");
         Subject subject = ContextAwareTestCaseDataone.getSubject("testRightsHolder");
@@ -402,13 +404,13 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             pid = createTestObject(v2CallAdapter, "testV2CreateReplicate_", accessRule);
         } catch (BaseException e) {
             e.printStackTrace();
-            handleFail(v2CallAdapter.getLatestRequestUrl(), "testV2CreateReplicate() couldn't create test object: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV2CreateReplicate() couldn't create test object: " 
                     + e.getClass().getSimpleName() + ": " 
                     + e.getDetail_code() + ":: " + e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
-            handleFail(v2CallAdapter.getLatestRequestUrl(), "testV2CreateReplicate() couldn't create test object: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV2CreateReplicate() couldn't create test object: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
         
@@ -430,13 +432,13 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             // expected, shouldn't have been replicated to a v1 node
         } catch (BaseException e) {
             e.printStackTrace();
-            handleFail(v2CallAdapter.getLatestRequestUrl(), "testV2CreateReplicate() couldn't create update object: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV2CreateReplicate() couldn't create update object: " 
                     + e.getClass().getSimpleName() + ": " 
                     + e.getDetail_code() + ":: " + e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
-            handleFail(v2CallAdapter.getLatestRequestUrl(), "testV2CreateReplicate() couldn't create update object: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV2CreateReplicate() couldn't create update object: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
     }
@@ -447,16 +449,18 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
      "It does a create on the v2 endpoint, then attempts a getSystemMetadata on the v1 endpoint. " +
      "The getSystemMetadata should succeed since we're on the same node; " +
      "the SystemMetadata will just be downcasted from the v2 version.")
-    @Test
     public void testV2CreateV1GetSysmetaSameNode() {
+        
+        assertTrue("Tests require at least 1 MN that supports BOTH v1 & v2 APIs", v1v2mns.size() >= 1);
+        
         AccessRule accessRule = new AccessRule();
         getSession("testRightsHolder");
         Subject subject = ContextAwareTestCaseDataone.getSubject("testRightsHolder");
         accessRule.addSubject(subject);
         accessRule.addPermission(Permission.CHANGE_PERMISSION);
         
-        Node v2Endpoint = v1v2mns.get(0);
-        MNCallAdapter v2CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v2Endpoint, "v2");
+        Node v1v2Node = v1v2mns.get(0);
+        MNCallAdapter v2CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v1v2Node, "v2");
         
         // v2 create
         
@@ -465,20 +469,19 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             pid = createTestObject(v2CallAdapter, "testV2CreateV1GetSysmeta_", accessRule);
         } catch (BaseException e) {
             e.printStackTrace();
-            handleFail(v2CallAdapter.getLatestRequestUrl(), "testV2CreateV1GetSysmeta() couldn't create test object: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV2CreateV1GetSysmeta() couldn't create test object: " 
                     + e.getClass().getSimpleName() + ": " 
                     + e.getDetail_code() + ":: " + e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
-            handleFail(v2CallAdapter.getLatestRequestUrl(), "testV2CreateV1GetSysmeta() couldn't create test object: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV2CreateV1GetSysmeta() couldn't create test object: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
         
         // v1 getSysmeta
 
-        Node v1Endpoint = v1v2mns.get(0);
-        MNCallAdapter v1CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v1Endpoint, "v1");
+        MNCallAdapter v1CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v1v2Node, "v1");
         
         try {
             SystemMetadata sysmeta = v1CallAdapter.getSystemMetadata(null, pid);
@@ -486,13 +489,13 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
                     + "returning a non-null SystemMetadata", sysmeta != null);
         } catch (BaseException e) {
             e.printStackTrace();
-            handleFail(v1CallAdapter.getLatestRequestUrl(), "testV2CreateV1GetSysmeta() couldn't create update object: " 
+            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV2CreateV1GetSysmeta() couldn't create update object: " 
                     + e.getClass().getSimpleName() + ": " 
                     + e.getDetail_code() + ":: " + e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
-            handleFail(v1CallAdapter.getLatestRequestUrl(), "testV2CreateV1GetSysmeta() couldn't create update object: " 
+            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV2CreateV1GetSysmeta() couldn't create update object: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
     }
@@ -504,8 +507,10 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
      "It does a create on the v1 MN, then waits for replication to happen, " +
      "then attempts a get() on the v2 MN. " +
      "The get() should succeed")
-    @Test
     public void testV1CreateV2Get() {
+
+        assertTrue("Tests require at least 1 MN that supports ONLY the v1 API", v1mns.size() >= 1);
+        assertTrue("Tests require at least 1 MN that supports the v2 API", v2mns.size() >= 1);
         
         AccessRule accessRule = new AccessRule();
         getSession("testRightsHolder");
@@ -523,13 +528,13 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             pid = createTestObject(v1CallAdapter, "testV1CreateV2Get_", accessRule);
         } catch (BaseException e) {
             e.printStackTrace();
-            handleFail(v1CallAdapter.getLatestRequestUrl(), "testV1CreateV2Get() couldn't create test object: " 
+            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV1CreateV2Get() couldn't create test object: " 
                     + e.getClass().getSimpleName() + ": " 
                     + e.getDetail_code() + ":: " + e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
-            handleFail(v1CallAdapter.getLatestRequestUrl(), "testV1CreateV2Get() couldn't create test object: " 
+            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV1CreateV2Get() couldn't create test object: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
         
@@ -554,12 +559,12 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
                     is != null);
         } catch (BaseException e) {
             e.printStackTrace();
-            handleFail(v2CallAdapter.getLatestRequestUrl(), "testV1CreateV2Get() couldn't create update object: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV1CreateV2Get() couldn't create update object: " 
                     + e.getClass().getSimpleName() + ": " 
                     + e.getDetail_code() + ":: " + e.getDescription());
         } catch(Exception e) {
             e.printStackTrace();
-            handleFail(v2CallAdapter.getLatestRequestUrl(), "testV2CreateV1Update() couldn't create update object: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV2CreateV1Update() couldn't create update object: " 
             + e.getClass().getName() + ": " + e.getMessage());
         } finally {
             IOUtils.closeQuietly(is);
@@ -571,16 +576,18 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
      "Test operates on a single MN - one that supports BOTH the v1 and v2 APIs. " +
      "It does a create on the v2 endpoint, then attempts a get() on the v1 endpoint. " +
      "The get() should succeed since we're on the same node.")
-    @Test
     public void testV2CreateV1GetSameNode() {
+
+        assertTrue("Tests require at least 1 MN that supports BOTH v1 & v2 APIs", v1v2mns.size() >= 1);
+        
         AccessRule accessRule = new AccessRule();
         getSession("testRightsHolder");
         Subject subject = ContextAwareTestCaseDataone.getSubject("testRightsHolder");
         accessRule.addSubject(subject);
         accessRule.addPermission(Permission.CHANGE_PERMISSION);
         
-        Node v2Endpoint = v1v2mns.get(0);
-        MNCallAdapter v2CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v2Endpoint, "v2");
+        Node v1v2Node = v1v2mns.get(0);
+        MNCallAdapter v2CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v1v2Node, "v2");
         
         // v2 create
         
@@ -589,20 +596,19 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             pid = createTestObject(v2CallAdapter, "testV2CreateV1GetSameNode_", accessRule);
         } catch (BaseException e) {
             e.printStackTrace();
-            handleFail(v2CallAdapter.getLatestRequestUrl(), "testV2CreateV1GetSameNode() couldn't create test object: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV2CreateV1GetSameNode() couldn't create test object: " 
                     + e.getClass().getSimpleName() + ": " 
                     + e.getDetail_code() + ":: " + e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
-            handleFail(v2CallAdapter.getLatestRequestUrl(), "testV2CreateV1GetSameNode() couldn't create test object: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV2CreateV1GetSameNode() couldn't create test object: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
         
         // v1 get
 
-        Node v1Endpoint = v1v2mns.get(0);
-        MNCallAdapter v1CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v1Endpoint, "v1");
+        MNCallAdapter v1CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v1v2Node, "v1");
         
         InputStream is = null;
         try {
@@ -611,13 +617,13 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
                     + "should return a non-null InputStream.", is != null);
         } catch (BaseException e) {
             e.printStackTrace();
-            handleFail(v1CallAdapter.getLatestRequestUrl(), "testV2CreateV1GetSameNode() couldn't create update object: " 
+            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV2CreateV1GetSameNode() couldn't create update object: " 
                     + e.getClass().getSimpleName() + ": " 
                     + e.getDetail_code() + ":: " + e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
-            handleFail(v1CallAdapter.getLatestRequestUrl(), "testV2CreateV1GetSameNode() couldn't create update object: " 
+            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV2CreateV1GetSameNode() couldn't create update object: " 
             + e.getClass().getName() + ": " + e.getMessage());
         } finally {
             IOUtils.closeQuietly(is);
@@ -632,8 +638,10 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
      "then attempts a getSystemMetadata on the v2 MN. " +
      "The getSystemMetadata should succeed; the SystemMetadata will just be " + 
      "upcasted to the v2 version.")
-    @Test
     public void testV1CreateV2GetSysmeta() {
+
+        assertTrue("Tests require at least 1 MN that supports ONLY the v1 API", v1mns.size() >= 1);
+        assertTrue("Tests require at least 1 MN that supports the v2 API", v2mns.size() >= 1);
         
         AccessRule accessRule = new AccessRule();
         getSession("testRightsHolder");
@@ -651,13 +659,13 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             pid = createTestObject(v1CallAdapter, "testV1CreateV2GetSysmeta_", accessRule);
         } catch (BaseException e) {
             e.printStackTrace();
-            handleFail(v1CallAdapter.getLatestRequestUrl(), "testV1CreateV2GetSysmeta() couldn't create test object: " 
+            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV1CreateV2GetSysmeta() couldn't create test object: " 
                     + e.getClass().getSimpleName() + ": " 
                     + e.getDetail_code() + ":: " + e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
-            handleFail(v1CallAdapter.getLatestRequestUrl(), "testV1CreateV2GetSysmeta() couldn't create test object: " 
+            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV1CreateV2GetSysmeta() couldn't create test object: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
         
@@ -679,13 +687,13 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
                     sysmeta != null);
         } catch (BaseException e) {
             e.printStackTrace();
-            handleFail(v2CallAdapter.getLatestRequestUrl(), "testV2CreateV1Update() couldn't create update object: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV2CreateV1Update() couldn't create update object: " 
                     + e.getClass().getSimpleName() + ": " 
                     + e.getDetail_code() + ":: " + e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
-            handleFail(v2CallAdapter.getLatestRequestUrl(), "testV2CreateV1Update() couldn't create update object: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV2CreateV1Update() couldn't create update object: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
     }
@@ -696,8 +704,10 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
      "It does a create on the v1 endpoint, then attempts a getSystemMetadata on the v2 endpoint." +
      "The getSystemMetadata should succeed; the SystemMetadata will just be" + 
      "upcasted to the v2 version.")
-    @Test
     public void testV1CreateV2GetSysmetaSameNode() {
+
+        assertTrue("Tests require at least 1 MN that supports ONLY the v1 API", v1mns.size() >= 1);
+        assertTrue("Tests require at least 1 MN that supports the v2 API", v2mns.size() >= 1);
         
         AccessRule accessRule = new AccessRule();
         getSession("testRightsHolder");
@@ -715,13 +725,13 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             pid = createTestObject(v1CallAdapter, "testV1CreateV2GetSysmeta_", accessRule);
         } catch (BaseException e) {
             e.printStackTrace();
-            handleFail(v1CallAdapter.getLatestRequestUrl(), "testV1CreateV2GetSysmeta() couldn't create test object: " 
+            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV1CreateV2GetSysmeta() couldn't create test object: " 
                     + e.getClass().getSimpleName() + ": " 
                     + e.getDetail_code() + ":: " + e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
-            handleFail(v1CallAdapter.getLatestRequestUrl(), "testV1CreateV2GetSysmeta() couldn't create test object: " 
+            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV1CreateV2GetSysmeta() couldn't create test object: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
         
@@ -736,13 +746,13 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
                     sysmeta != null);
         } catch (BaseException e) {
             e.printStackTrace();
-            handleFail(v2CallAdapter.getLatestRequestUrl(), "testV2CreateV1Update() couldn't create update object: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV2CreateV1Update() couldn't create update object: " 
                     + e.getClass().getSimpleName() + ": " 
                     + e.getDetail_code() + ":: " + e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
-            handleFail(v2CallAdapter.getLatestRequestUrl(), "testV2CreateV1Update() couldn't create update object: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV2CreateV1Update() couldn't create update object: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
     }
@@ -754,8 +764,10 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
      "It does a create on the v1 MN, then waits for replication to happen, " +
      "then attempts a query for the created pid on the v2 MN. " +
      "The query should succeed, returning a non-empty result.")
-    @Test
     public void testV1CreateV2Query() {
+
+        assertTrue("Tests require at least 1 MN that supports ONLY the v1 API", v1mns.size() >= 1);
+        assertTrue("Tests require at least 1 MN that supports the v2 API", v2mns.size() >= 1);
         
         AccessRule accessRule = new AccessRule();
         getSession("testRightsHolder");
@@ -773,13 +785,13 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             pid = createTestObject(v1CallAdapter, "testV1CreateV2Query_", accessRule);
         } catch (BaseException e) {
             e.printStackTrace();
-            handleFail(v1CallAdapter.getLatestRequestUrl(), "testV1CreateV2Query() couldn't create test object: " 
+            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV1CreateV2Query() couldn't create test object: " 
                     + e.getClass().getSimpleName() + ": " 
                     + e.getDetail_code() + ":: " + e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
-            handleFail(v1CallAdapter.getLatestRequestUrl(), "testV1CreateV2Query() couldn't create test object: " 
+            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV1CreateV2Query() couldn't create test object: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
         
@@ -805,7 +817,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
                 DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
                 doc = builder.parse(new InputSource(is));
             } catch (Exception e) {
-                handleFail(v2CallAdapter.getLatestRequestUrl(), 
+                throw new AssertionError(v2CallAdapter.getLatestRequestUrl() +
                         "testV1CreateV2Query: unable to convert response to document: " 
                         + e.getClass().getName() + ": " + e.getMessage());
             }
@@ -828,13 +840,13 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             
         } catch (BaseException e) {
             e.printStackTrace();
-            handleFail(v2CallAdapter.getLatestRequestUrl(), "testV1CreateV2Query() couldn't create update object: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV1CreateV2Query() couldn't create update object: " 
                     + e.getClass().getSimpleName() + ": " 
                     + e.getDetail_code() + ":: " + e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
-            handleFail(v2CallAdapter.getLatestRequestUrl(), "testV1CreateV2Query() couldn't create update object: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV1CreateV2Query() couldn't create update object: " 
             + e.getClass().getName() + ": " + e.getMessage());
         } finally {
             IOUtils.closeQuietly(is);
@@ -849,8 +861,10 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
      "then attempts a query for the created pid on the v1 MN. " +
      "The query should fail with an exception, since replication shouldn't " + 
      "have happened upward for a v1 object to a v2 node.")
-    @Test
     public void testV2CreateV1Query() {
+
+        assertTrue("Tests require at least 1 MN that supports ONLY the v1 API", v1mns.size() >= 1);
+        assertTrue("Tests require at least 1 MN that supports the v2 API", v2mns.size() >= 1);
         
         AccessRule accessRule = new AccessRule();
         getSession("testRightsHolder");
@@ -868,13 +882,13 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             pid = createTestObject(v2CallAdapter, "testV2CreateV1Query_", accessRule);
         } catch (BaseException e) {
             e.printStackTrace();
-            handleFail(v2CallAdapter.getLatestRequestUrl(), "testV2CreateV1Query() couldn't create test object: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV2CreateV1Query() couldn't create test object: " 
                     + e.getClass().getSimpleName() + ": " 
                     + e.getDetail_code() + ":: " + e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
-            handleFail(v2CallAdapter.getLatestRequestUrl(), "testV2CreateV1Query() couldn't create test object: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV2CreateV1Query() couldn't create test object: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
         
@@ -893,19 +907,19 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         InputStream is = null;
         try {
             is = v1CallAdapter.query(null, "solr", "");
-            handleFail(v1CallAdapter.getLatestRequestUrl(), "testV2CreateV1Query(): "
+            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV2CreateV1Query(): "
                     + "query() on the v1 MN should fail.");
         } catch (InvalidRequest e) {
             // expected - query() on v1 MN should fail
         } catch (BaseException e) {
             e.printStackTrace();
-            handleFail(v1CallAdapter.getLatestRequestUrl(), "testV2CreateV1Query() couldn't create update object: " 
+            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV2CreateV1Query() couldn't create update object: " 
                     + e.getClass().getSimpleName() + ": " 
                     + e.getDetail_code() + ":: " + e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
-            handleFail(v1CallAdapter.getLatestRequestUrl(), "testV2CreateV1Query() couldn't create update object: " 
+            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV2CreateV1Query() couldn't create update object: " 
             + e.getClass().getName() + ": " + e.getMessage());
         } finally {
             IOUtils.closeQuietly(is);
@@ -917,8 +931,9 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
      "Test operates on one MN that supports BOTH the v1 and v2 APIs " +
      "It does a create on the v2 endpoint, then attempts to delete the object " +
      "for that pid on the v1 endpoint. The delete should succeed.")
-    @Test
     public void testV2CreateV1DeleteSameNode() {
+
+        assertTrue("Tests require at least 1 MN that supports BOTH v1 & v2 APIs", v1v2mns.size() >= 1);
         
         AccessRule accessRule = new AccessRule();
         getSession("testRightsHolder");
@@ -936,13 +951,13 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             pid = createTestObject(v2CallAdapter, "testV2CreateV1DeleteSameNode_", accessRule);
         } catch (BaseException e) {
             e.printStackTrace();
-            handleFail(v2CallAdapter.getLatestRequestUrl(), "testV2CreateV1DeleteSameNode() couldn't create test object: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV2CreateV1DeleteSameNode() couldn't create test object: " 
                     + e.getClass().getSimpleName() + ": " 
                     + e.getDetail_code() + ":: " + e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
-            handleFail(v2CallAdapter.getLatestRequestUrl(), "testV2CreateV1DeleteSameNode() couldn't create test object: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV2CreateV1DeleteSameNode() couldn't create test object: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
         
@@ -956,13 +971,13 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
                     + "the pid of the deleted object.", deleteId != null);
         } catch (BaseException e) {
             e.printStackTrace();
-            handleFail(v1CallAdapter.getLatestRequestUrl(), "testV2CreateV1DeleteSameNode() couldn't create update object: " 
+            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV2CreateV1DeleteSameNode() couldn't create update object: " 
                     + e.getClass().getSimpleName() + ": " 
                     + e.getDetail_code() + ":: " + e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
-            handleFail(v1CallAdapter.getLatestRequestUrl(), "testV2CreateV1DeleteSameNode() couldn't create update object: " 
+            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV2CreateV1DeleteSameNode() couldn't create update object: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
     }
@@ -973,8 +988,9 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
      "It does a create on the v1 endpoint, then attempts to delete the object " +
      "for that pid on the v2 endpoint. The delete should succeed since we're on " +
      "the same node.")
-    @Test
     public void testV1CreateV2DeleteSameNode() {
+
+        assertTrue("Tests require at least 1 MN that supports BOTH v1 & v2 APIs", v1v2mns.size() >= 1);
         
         AccessRule accessRule = new AccessRule();
         getSession("testRightsHolder");
@@ -992,13 +1008,13 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             pid = createTestObject(v1CallAdapter, "testV1CreateV2DeleteSameNode_", accessRule);
         } catch (BaseException e) {
             e.printStackTrace();
-            handleFail(v1CallAdapter.getLatestRequestUrl(), "testV1CreateV2DeleteSameNode() couldn't create test object: " 
+            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV1CreateV2DeleteSameNode() couldn't create test object: " 
                     + e.getClass().getSimpleName() + ": " 
                     + e.getDetail_code() + ":: " + e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
-            handleFail(v1CallAdapter.getLatestRequestUrl(), "testV1CreateV2DeleteSameNode() couldn't create test object: " 
+            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV1CreateV2DeleteSameNode() couldn't create test object: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
         
@@ -1012,13 +1028,13 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
                     + "the pid of the deleted object.", deleteId != null);
         } catch (BaseException e) {
             e.printStackTrace();
-            handleFail(v2CallAdapter.getLatestRequestUrl(), "testV1CreateV2DeleteSameNode() couldn't create update object: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV1CreateV2DeleteSameNode() couldn't create update object: " 
                     + e.getClass().getSimpleName() + ": " 
                     + e.getDetail_code() + ":: " + e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
-            handleFail(v2CallAdapter.getLatestRequestUrl(), "testV1CreateV2DeleteSameNode() couldn't create update object: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV1CreateV2DeleteSameNode() couldn't create update object: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
     }
@@ -1030,8 +1046,10 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
      "It does a create on the v2 MN, then attempts to delete the object " +
      "for that pid on the v1 MN. The delete should fail because replication from " +
      "a v2 MN to a v1 MN shouldn't happen for v2 objects.")
-    @Test
     public void testV2CreateV1Delete() {
+
+        assertTrue("Tests require at least 1 MN that supports ONLY the v1 API", v1mns.size() >= 1);
+        assertTrue("Tests require at least 1 MN that supports the v2 API", v2mns.size() >= 1);
         
         AccessRule accessRule = new AccessRule();
         getSession("testRightsHolder");
@@ -1049,13 +1067,13 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             pid = createTestObject(v2CallAdapter, "testV2CreateV1Delete_", accessRule);
         } catch (BaseException e) {
             e.printStackTrace();
-            handleFail(v2CallAdapter.getLatestRequestUrl(), "testV2CreateV1Delete() couldn't create test object: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV2CreateV1Delete() couldn't create test object: " 
                     + e.getClass().getSimpleName() + ": " 
                     + e.getDetail_code() + ":: " + e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
-            handleFail(v2CallAdapter.getLatestRequestUrl(), "testV2CreateV1Delete() couldn't create test object: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV2CreateV1Delete() couldn't create test object: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
         
@@ -1073,19 +1091,19 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         
         try {
             v1CallAdapter.delete(null, pid);
-            handleFail(v1CallAdapter.getLatestRequestUrl(), "testV2CreateV1Delete(): "
+            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV2CreateV1Delete(): "
                     + "delete() on the v1 MN should fail.");
         } catch (NotFound e) {
             // expected - not available on this node
         } catch (BaseException e) {
             e.printStackTrace();
-            handleFail(v1CallAdapter.getLatestRequestUrl(), "testV2CreateV1Delete() couldn't create update object: " 
+            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV2CreateV1Delete() couldn't create update object: " 
                     + e.getClass().getSimpleName() + ": " 
                     + e.getDetail_code() + ":: " + e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
-            handleFail(v1CallAdapter.getLatestRequestUrl(), "testV2CreateV1Delete() couldn't create update object: " 
+            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV2CreateV1Delete() couldn't create update object: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
     }
@@ -1097,8 +1115,10 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
      "It does a create on the v1 MN, then attempts to delete the object " +
      "for that pid on the v2 MN. The delete should succeed because the object should " +
      "have been replicated from the v1 MN to the v2 MN.")
-    @Test
     public void testV1CreateV2Delete() {
+
+        assertTrue("Tests require at least 1 MN that supports ONLY the v1 API", v1mns.size() >= 1);
+        assertTrue("Tests require at least 1 MN that supports the v2 API", v2mns.size() >= 1);
         
         AccessRule accessRule = new AccessRule();
         getSession("testRightsHolder");
@@ -1116,13 +1136,13 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             pid = createTestObject(v1CallAdapter, "testV1CreateV2Delete_", accessRule);
         } catch (BaseException e) {
             e.printStackTrace();
-            handleFail(v1CallAdapter.getLatestRequestUrl(), "testV1CreateV2Delete() couldn't create test object: " 
+            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV1CreateV2Delete() couldn't create test object: " 
                     + e.getClass().getSimpleName() + ": " 
                     + e.getDetail_code() + ":: " + e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
-            handleFail(v1CallAdapter.getLatestRequestUrl(), "testV1CreateV2Delete() couldn't create test object: " 
+            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV1CreateV2Delete() couldn't create test object: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
         
@@ -1144,13 +1164,13 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
                     + "the pid of the deleted object.", deleteId != null);
         } catch (BaseException e) {
             e.printStackTrace();
-            handleFail(v2CallAdapter.getLatestRequestUrl(), "testV1CreateV2Delete() couldn't create update object: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV1CreateV2Delete() couldn't create update object: " 
                     + e.getClass().getSimpleName() + ": " 
                     + e.getDetail_code() + ":: " + e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
-            handleFail(v2CallAdapter.getLatestRequestUrl(), "testV1CreateV2Delete() couldn't create update object: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV1CreateV2Delete() couldn't create update object: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
     }
@@ -1160,8 +1180,9 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
      "Test operates on one MN that supports BOTH the v1 and v2 APIs " +
      "It does a create on the v2 endpoint, then attempts to locate the object " +
      "for that pid using listObjects() on the v1 endpoint. It should be found.")
-    @Test
     public void testV2CreateV1ListObjectsSameNode() {
+
+        assertTrue("Tests require at least 1 MN that supports BOTH v1 & v2 APIs", v1v2mns.size() >= 1);
         
         AccessRule accessRule = new AccessRule();
         getSession("testRightsHolder");
@@ -1179,13 +1200,13 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             pid = createTestObject(v2CallAdapter, "testV2CreateV1ListObjectsSameNode_", accessRule);
         } catch (BaseException e) {
             e.printStackTrace();
-            handleFail(v2CallAdapter.getLatestRequestUrl(), "testV2CreateV1ListObjectsSameNode() couldn't create test object: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV2CreateV1ListObjectsSameNode() couldn't create test object: " 
                     + e.getClass().getSimpleName() + ": " 
                     + e.getDetail_code() + ":: " + e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
-            handleFail(v2CallAdapter.getLatestRequestUrl(), "testV2CreateV1ListObjectsSameNode() couldn't create test object: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV2CreateV1ListObjectsSameNode() couldn't create test object: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
         
@@ -1205,13 +1226,13 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
                     + "should include the created object.", objFound );
         } catch (BaseException e) {
             e.printStackTrace();
-            handleFail(v1CallAdapter.getLatestRequestUrl(), "testV2CreateV1ListObjectsSameNode() couldn't create update object: " 
+            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV2CreateV1ListObjectsSameNode() couldn't create update object: " 
                     + e.getClass().getSimpleName() + ": " 
                     + e.getDetail_code() + ":: " + e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
-            handleFail(v1CallAdapter.getLatestRequestUrl(), "testV2CreateV1ListObjectsSameNode() couldn't create update object: " 
+            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV2CreateV1ListObjectsSameNode() couldn't create update object: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
     }
@@ -1221,8 +1242,9 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
      "Test operates on one MN that supports BOTH the v1 and v2 APIs " +
      "It does a create on the v1 endpoint, then attempts to locate the object " +
      "for that pid using listObjects() on the v2 endpoint. The pid should be found.")
-    @Test
     public void testV1CreateV2ListObjectsSameNode() {
+
+        assertTrue("Tests require at least 1 MN that supports BOTH v1 & v2 APIs", v1v2mns.size() >= 1);
         
         AccessRule accessRule = new AccessRule();
         getSession("testRightsHolder");
@@ -1240,13 +1262,13 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             pid = createTestObject(v1CallAdapter, "testV1CreateV2ListObjectsSameNode_", accessRule);
         } catch (BaseException e) {
             e.printStackTrace();
-            handleFail(v1CallAdapter.getLatestRequestUrl(), "testV1CreateV2ListObjectsSameNode() couldn't create test object: " 
+            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV1CreateV2ListObjectsSameNode() couldn't create test object: " 
                     + e.getClass().getSimpleName() + ": " 
                     + e.getDetail_code() + ":: " + e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
-            handleFail(v1CallAdapter.getLatestRequestUrl(), "testV1CreateV2ListObjectsSameNode() couldn't create test object: " 
+            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV1CreateV2ListObjectsSameNode() couldn't create test object: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
         
@@ -1266,13 +1288,13 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
                     + "should include the created object.", objFound );
         } catch (BaseException e) {
             e.printStackTrace();
-            handleFail(v2CallAdapter.getLatestRequestUrl(), "testV1CreateV2ListObjectsSameNode() couldn't create update object: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV1CreateV2ListObjectsSameNode() couldn't create update object: " 
                     + e.getClass().getSimpleName() + ": " 
                     + e.getDetail_code() + ":: " + e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
-            handleFail(v2CallAdapter.getLatestRequestUrl(), "testV1CreateV2ListObjectsSameNode() couldn't create update object: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV1CreateV2ListObjectsSameNode() couldn't create update object: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
     }
@@ -1285,8 +1307,10 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
      "for that pid using listObjects() on the v1 MN. The listObjects results " +
      "should not contain the pid created because replication from " +
      "a v2 MN to a v1 MN shouldn't happen for v2 objects.")
-    @Test
     public void testV2CreateV1ListObjects() {
+
+        assertTrue("Tests require at least 1 MN that supports ONLY the v1 API", v1mns.size() >= 1);
+        assertTrue("Tests require at least 1 MN that supports the v2 API", v2mns.size() >= 1);
         
         AccessRule accessRule = new AccessRule();
         getSession("testRightsHolder");
@@ -1304,13 +1328,13 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             pid = createTestObject(v2CallAdapter, "testV2CreateV1ListObjects_", accessRule);
         } catch (BaseException e) {
             e.printStackTrace();
-            handleFail(v2CallAdapter.getLatestRequestUrl(), "testV2CreateV1ListObjects() couldn't create test object: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV2CreateV1ListObjects() couldn't create test object: " 
                     + e.getClass().getSimpleName() + ": " 
                     + e.getDetail_code() + ":: " + e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
-            handleFail(v2CallAdapter.getLatestRequestUrl(), "testV2CreateV1ListObjects() couldn't create test object: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV2CreateV1ListObjects() couldn't create test object: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
         
@@ -1338,13 +1362,13 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
                     + "should NOT include the created object.", !objFound );
         } catch (BaseException e) {
             e.printStackTrace();
-            handleFail(v1CallAdapter.getLatestRequestUrl(), "testV2CreateV1ListObjects() couldn't create update object: " 
+            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV2CreateV1ListObjects() couldn't create update object: " 
                     + e.getClass().getSimpleName() + ": " 
                     + e.getDetail_code() + ":: " + e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
-            handleFail(v1CallAdapter.getLatestRequestUrl(), "testV2CreateV1ListObjects() couldn't create update object: " 
+            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV2CreateV1ListObjects() couldn't create update object: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
     }
@@ -1357,8 +1381,10 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
      "for that pid on the v2 MN. The listObjects call should return results containing " +
      "the created pid because the object should have been replicated " +
      "from the v1 MN to the v2 MN.")
-    @Test
     public void testV1CreateV2ListObjects() {
+
+        assertTrue("Tests require at least 1 MN that supports ONLY the v1 API", v1mns.size() >= 1);
+        assertTrue("Tests require at least 1 MN that supports the v2 API", v2mns.size() >= 1);
         
         AccessRule accessRule = new AccessRule();
         getSession("testRightsHolder");
@@ -1376,13 +1402,13 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             pid = createTestObject(v1CallAdapter, "testV1CreateV2ListObjects_", accessRule);
         } catch (BaseException e) {
             e.printStackTrace();
-            handleFail(v1CallAdapter.getLatestRequestUrl(), "testV1CreateV2ListObjects() couldn't create test object: " 
+            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV1CreateV2ListObjects() couldn't create test object: " 
                     + e.getClass().getSimpleName() + ": " 
                     + e.getDetail_code() + ":: " + e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
-            handleFail(v1CallAdapter.getLatestRequestUrl(), "testV1CreateV2ListObjects() couldn't create test object: " 
+            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV1CreateV2ListObjects() couldn't create test object: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
         
@@ -1410,13 +1436,13 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
                     + "should include the created object.", objFound );
         } catch (BaseException e) {
             e.printStackTrace();
-            handleFail(v2CallAdapter.getLatestRequestUrl(), "testV1CreateV2ListObjects() couldn't create update object: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV1CreateV2ListObjects() couldn't create update object: " 
                     + e.getClass().getSimpleName() + ": " 
                     + e.getDetail_code() + ":: " + e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
-            handleFail(v2CallAdapter.getLatestRequestUrl(), "testV1CreateV2ListObjects() couldn't create update object: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV1CreateV2ListObjects() couldn't create update object: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
     }

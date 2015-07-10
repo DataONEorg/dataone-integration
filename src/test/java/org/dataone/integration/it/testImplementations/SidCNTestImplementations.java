@@ -3,12 +3,23 @@ package org.dataone.integration.it.testImplementations;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import java.io.IOException;
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Iterator;
 
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpression;
+import javax.xml.xpath.XPathFactory;
+
+import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 import org.dataone.client.exception.ClientSideException;
 import org.dataone.integration.adapters.CNCallAdapter;
@@ -26,13 +37,11 @@ import org.dataone.service.exceptions.NotFound;
 import org.dataone.service.exceptions.NotImplemented;
 import org.dataone.service.exceptions.ServiceFailure;
 import org.dataone.service.exceptions.UnsupportedType;
-import org.dataone.service.exceptions.VersionMismatch;
 import org.dataone.service.types.v1.AccessPolicy;
 import org.dataone.service.types.v1.AccessRule;
 import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Node;
 import org.dataone.service.types.v1.NodeReference;
-import org.dataone.service.types.v1.ObjectList;
 import org.dataone.service.types.v1.ObjectLocation;
 import org.dataone.service.types.v1.ObjectLocationList;
 import org.dataone.service.types.v1.Permission;
@@ -42,6 +51,8 @@ import org.dataone.service.types.v1.util.AccessUtil;
 import org.dataone.service.types.v2.SystemMetadata;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.w3c.dom.Document;
+import org.xml.sax.InputSource;
 
 public class SidCNTestImplementations extends SidCommonTestImplementations {
 
@@ -640,18 +651,36 @@ public class SidCNTestImplementations extends SidCommonTestImplementations {
                     assertTrue("testArchive() Case " + caseNum + ", object should be archived", 
                             sysmeta.getArchived());
                     
-                    // test search
-                    ObjectList objectList = null;
+                    // test archive with solr query
+                    InputStream is = null;
+                    Document doc = null;
+                    int numFound = 1;
                     String query = "?q=identifier:" + pid.getValue();
                     try {
-                        objectList = callAdapter.search(null, QUERYTYPE_SOLR, query);
+                        is = callAdapter.query(null, QUERYTYPE_SOLR, query);
+                        DocumentBuilder factory = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+                        doc = factory.parse(new InputSource(is));
+                        
+//                        Transformer transformer = TransformerFactory.newInstance().newTransformer();
+//                        DOMSource source = new DOMSource(doc);
+//                        StreamResult result = new StreamResult(System.out);
+//                        transformer.transform(source, result);
+                        
+                        XPath xpath = XPathFactory.newInstance().newXPath();
+                        XPathExpression expr = xpath.compile("response/result/@numFound");
+                        
+                        String numFoundStr = expr.evaluate(doc);
+                        numFound = Integer.parseInt(numFoundStr);
+                        
                     } catch (Exception e) {
-                        assertTrue("testArchive() Case " + caseNum + ", should be able to call search(). Query: " + query + " " 
-                                + "But got error: " + e.getMessage() + ", " + (e.getCause() == null ? "" : e.getCause().getMessage()), 
-                                false);
+                        throw new AssertionError("testArchive() Case " + caseNum + ", should be able to call query() and get "
+                                + "a valid document. Query: " + query + " But got error: " 
+                                + e.getClass().getSimpleName() + ": " +  e.getMessage() + ", " + (e.getCause() == null ? "" : e.getCause().getMessage()));
+                    } finally {
+                        IOUtils.closeQuietly(is);
                     }
-                    assertTrue("testArchive() Case " + caseNum + " search() for archived object shouldn't return results",
-                            objectList.getObjectInfoList().size() == 0);
+                    assertTrue("testArchive() Case " + caseNum + " query() for archived object should return zero results",
+                            numFound == 0);
     
                     // test resolve()-able
                     ObjectLocationList locationList = null;

@@ -70,6 +70,7 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
     private static final String cnSubmitter = Settings.getConfiguration().getString("dataone.it.cnode.submitter.cn", "cnDevUNM1");
     private List<Node> mnList;
     private List<Node> cnList;
+    private Node mnV2NoSync;
     private static final long SYNC_TIME = 300000;           // FIXME is there a reliable way to know these?
     private static final long REPLICATION_TIME = 300000;    // FIXME "
     
@@ -104,26 +105,6 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
         
         assertTrue("This test requires at least two MNs to work.", mnList.size() >= 2);
         assertTrue("This test requires at least one CN to work.", cnList.size() >= 1);
-    }
-    
-    @Override
-    protected String getTestDescription() {
-        return "Tests the MN-triggered system metadata updating.";
-    }
-
-    @WebTestName("systemMetadataChanged: tests that changes made to system metadata by an MN are propegated")
-    @WebTestDescription("This test needs to be run in an environment with two or more MNs, one of which must "
-            + "have synchronization disabled (so we can test if CN.synchronize() works on its own correctly)."
-            + "The test checks whether the following events on the MN trigger the correct changes: "
-            + "Some metadata is changed on an MN"
-            + "The MN calls CN.synchronizeObject() to notify the CN to update its version of the object. (Asynchronous call.)"
-            + "We then need to wait for the CN to synchronize."
-            + "When that happens, the CN should update its own copy, then propegate the change to "
-            + "the replica MNs. We check that the CN's as well as the other MNs' copies are up to date.")
-    @Test
-    public void testSystemMetadataChanged() {
-        
-        Identifier createdPid = null;
         
         // we need to test against an MN that has synchronize disabled
         // so we can be sure that the MN->CN synchronize() call is working
@@ -152,10 +133,32 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
                 break;
             }
         }
-        assertTrue("Environment for test must have at least one v2 MN with synchronize disabled "
-                + "(so we can test if CN.synchronize() works on its own correctly).", mNode != null);
         
-        CommonCallAdapter mn = new CommonCallAdapter(getSession("testRightsHolder"), mNode, "v2");
+        mnV2NoSync = mNode;
+        assertTrue("Environment for test must have at least one v2 MN with synchronize disabled "
+                + "(so we can test if CN.synchronize() works on its own correctly).", mnV2NoSync != null);
+        
+    }
+    
+    @Override
+    protected String getTestDescription() {
+        return "Tests the MN-triggered system metadata updating.";
+    }
+
+    @WebTestName("systemMetadataChanged: tests that changes made to system metadata by an MN are propegated")
+    @WebTestDescription("This test needs to be run in an environment with two or more MNs, one of which must "
+            + "have synchronization disabled (so we can test if CN.synchronize() works on its own correctly)."
+            + "The test checks whether the following events on the MN trigger the correct changes: "
+            + "Some metadata is changed on an MN"
+            + "The MN calls CN.synchronizeObject() to notify the CN to update its version of the object. (Asynchronous call.)"
+            + "We then need to wait for the CN to synchronize."
+            + "When that happens, the CN should update its own copy, then propegate the change to "
+            + "the replica MNs. We check that the CN's as well as the other MNs' copies are up to date.")
+    @Test
+    public void testSystemMetadataChanged() {
+        
+        Identifier createdPid = null;
+        CommonCallAdapter mn = new CommonCallAdapter(getSession("testRightsHolder"), mnV2NoSync, "v2");
         try {
             
             // create a test object

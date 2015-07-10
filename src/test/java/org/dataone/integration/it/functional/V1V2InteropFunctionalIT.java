@@ -18,9 +18,45 @@ public class V1V2InteropFunctionalIT extends ContextAwareTestCaseDataone {
 
     @Before
     public void setup() {
-        interopImpl.setup();
+        interopImpl = new V1V2InteropFunctionalTestImplementations();
+        interopImpl.setup(getCoordinatingNodeIterator());
     }
     
+    @Test
+    public void testV2CreateV1GetSysmetaSameNode() {
+        interopImpl.testV2CreateV1GetSysmetaSameNode();
+    }
+
+    @Test
+    public void testV1CreateV2GetSysmetaSameNode() {
+        interopImpl.testV1CreateV2GetSysmetaSameNode();
+    }
+
+    @Test
+    public void testV2CreateV1DeleteSameNode() {
+        interopImpl.testV2CreateV1DeleteSameNode();
+    }
+
+    @Test
+    public void testV1CreateV2DeleteSameNode() {
+        interopImpl.testV1CreateV2DeleteSameNode();
+    }
+
+    @Test
+    public void testV2CreateV1ListObjectsSameNode() {
+        interopImpl.testV2CreateV1ListObjectsSameNode();
+    }
+
+    @Test
+    public void testV1CreateV2ListObjectsSameNode() {
+        interopImpl.testV1CreateV2ListObjectsSameNode();
+    }
+
+    @Test
+    public void testV2CreateV1GetSameNode() {
+        interopImpl.testV2CreateV1GetSameNode();
+    }
+
     @Test
     public void testV2CreateV1UpdateSysmeta() {
         interopImpl.testV2CreateV1UpdateSysmeta();
@@ -42,11 +78,6 @@ public class V1V2InteropFunctionalIT extends ContextAwareTestCaseDataone {
     }
     
     @Test
-    public void testV2CreateV1GetSysmetaSameNode() {
-        interopImpl.testV2CreateV1GetSysmetaSameNode();
-    }
-    
-    @Test
     public void testV1CreateV2GetSysmeta() {
         interopImpl.testV1CreateV2GetSysmeta();
     }
@@ -64,5 +95,35 @@ public class V1V2InteropFunctionalIT extends ContextAwareTestCaseDataone {
     @Test
     public void testV2CreateV1Query() {
         interopImpl.testV2CreateV1Query();
+    }
+    
+    @Test
+    public void testV2CreateV1GetSysMeta() {
+        interopImpl.testV2CreateV1GetSysMeta();
+    }
+
+    @Test
+    public void testV1CreateV2Get() {
+        interopImpl.testV1CreateV2Get();
+    }
+
+    @Test
+    public void testV2CreateV1Delete() {
+        interopImpl.testV2CreateV1Delete();
+    }
+
+    @Test
+    public void testV1CreateV2Delete() {
+        interopImpl.testV1CreateV2Delete();
+    }
+
+    @Test
+    public void testV2CreateV1ListObjects() {
+        interopImpl.testV2CreateV1ListObjects();
+    }
+
+    @Test
+    public void testV1CreateV2ListObjects() {
+        interopImpl.testV1CreateV2ListObjects();
     }
 }

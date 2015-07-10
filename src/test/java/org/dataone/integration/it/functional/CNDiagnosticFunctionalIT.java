@@ -22,8 +22,13 @@ public class CNDiagnosticFunctionalIT extends ContextAwareTestCaseDataone {
     }
     
     @Test
-    public void testEchoCredentials() {
-        diagImpl.testEchoCredentials(getCoordinatingNodeIterator(), "v2");
+    public void testEchoCredentials_RightsHolder() {
+        diagImpl.testEchoCredentials_RightsHolder(getCoordinatingNodeIterator(), "v2");
+    }
+    
+    @Test
+    public void testEchoCredentials_TestPerson() {
+        diagImpl.testEchoCredentials_TestPerson(getCoordinatingNodeIterator(), "v2");
     }
     
     @Test
