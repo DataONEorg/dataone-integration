@@ -1,10 +1,12 @@
 package org.dataone.integration.it.testImplementations;
 
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.math.BigInteger;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -57,10 +59,8 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
     /** MNs supporting BOTH the V1 & V2 APIs */
     private List<Node> v1v2mns;
     
-    private static final long SYNC_TIME = 300000;           // FIXME is there a reliable way to know these?
-//    private static final long REPLICATION_TIME = 300000;    // FIXME "
-    private static final long REPLICATION_TIME = 100;
-    private static final long METACAT_INDEX_TIME = 1000;
+    private static final long REPLICATION_WAIT = 30 * 60000;    // 30 minutes
+    private static final long METACAT_INDEX_WAIT = 5000;
     
     private static Log log = LogFactory.getLog(SystemMetadataFunctionalTestImplementation.class);
     
@@ -179,13 +179,8 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         
         try {
             v1CallAdapter.updateSystemMetadata(null, pid, sysmeta);
-        } catch (InvalidRequest e) {
-            // expected v1 updateSystemMetadata() to fail
         } catch (BaseException e) {
-            e.printStackTrace();
-            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV2CreateV1UpdateSysmeta() expected InvalidRequest, got: " 
-                    + e.getClass().getSimpleName() + ": " 
-                    + e.getDetail_code() + ":: " + e.getDescription());
+            // expected v1 updateSystemMetadata() to fail
         }
         catch(Exception e) {
             e.printStackTrace();
@@ -274,7 +269,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         try {
             v1CallAdapter.update(null, oldPid, objectInputStream, newPid, newSysmeta);
             
-            Thread.sleep(METACAT_INDEX_TIME);
+            Thread.sleep(METACAT_INDEX_WAIT);
             
             newSysmeta = v1CallAdapter.getSystemMetadata(null, oldPid);
             
@@ -416,7 +411,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         
         // go have a sandwich or ten
         try {
-            Thread.sleep(REPLICATION_TIME);
+            Thread.sleep(REPLICATION_WAIT);
         } catch (InterruptedException e1) {
             e1.printStackTrace();
         }
@@ -540,7 +535,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         
         // take a nap
         try {
-            Thread.sleep(REPLICATION_TIME);
+            Thread.sleep(REPLICATION_WAIT);
         } catch (InterruptedException e1) {
             e1.printStackTrace();
         }
@@ -671,7 +666,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         
         // take a nap
         try {
-            Thread.sleep(REPLICATION_TIME);
+            Thread.sleep(REPLICATION_WAIT);
         } catch (InterruptedException e1) {
             e1.printStackTrace();
         }
@@ -797,7 +792,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         
         // wait for replication
         try {
-            Thread.sleep(REPLICATION_TIME);
+            Thread.sleep(REPLICATION_WAIT);
         } catch (InterruptedException e1) {
             e1.printStackTrace();
         }
@@ -809,7 +804,8 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         
         InputStream is = null;
         try {
-            is = v2CallAdapter.query(null, "solr", "");
+            String encodedPid = URLEncoder.encode(pid.getValue(), "UTF-8");
+            is = v2CallAdapter.query(null, "solr", "?q=identifier:" + encodedPid);
             assertTrue("query() should return a non-null stream", is != null);
             
             Document doc = null;
@@ -894,7 +890,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         
         // wait for replication
         try {
-            Thread.sleep(REPLICATION_TIME);
+            Thread.sleep(REPLICATION_WAIT);
         } catch (InterruptedException e1) {
             e1.printStackTrace();
         }
@@ -906,7 +902,8 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         
         InputStream is = null;
         try {
-            is = v1CallAdapter.query(null, "solr", "");
+            String encodedPid = URLEncoder.encode(pid.getValue(), "UTF-8");
+            is = v1CallAdapter.query(null, "solr", "?q=identifier:" + encodedPid);
             throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV2CreateV1Query(): "
                     + "query() on the v1 MN should fail.");
         } catch (InvalidRequest e) {
@@ -959,6 +956,12 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             e.printStackTrace();
             throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV2CreateV1DeleteSameNode() couldn't create test object: " 
             + e.getClass().getName() + ": " + e.getMessage());
+        }
+        
+        try {
+            Thread.sleep(METACAT_INDEX_WAIT);
+        } catch (InterruptedException e1) {
+            e1.printStackTrace();
         }
         
         // v1 delete
@@ -1016,6 +1019,12 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             e.printStackTrace();
             throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV1CreateV2DeleteSameNode() couldn't create test object: " 
             + e.getClass().getName() + ": " + e.getMessage());
+        }
+        
+        try {
+            Thread.sleep(METACAT_INDEX_WAIT);
+        } catch (InterruptedException e1) {
+            e1.printStackTrace();
         }
         
         // v2 delete
@@ -1079,7 +1088,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         
         // wait for replication
         try {
-            Thread.sleep(REPLICATION_TIME);
+            Thread.sleep(REPLICATION_WAIT);
         } catch (InterruptedException e1) {
             e1.printStackTrace();
         }
@@ -1148,7 +1157,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         
         // wait for replication
         try {
-            Thread.sleep(REPLICATION_TIME);
+            Thread.sleep(REPLICATION_WAIT);
         } catch (InterruptedException e1) {
             e1.printStackTrace();
         }
@@ -1272,7 +1281,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             + e.getClass().getName() + ": " + e.getMessage());
         }
         
-        // v2 delete
+        // v2 listObjects
 
         MNCallAdapter v2CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v1v2MNode, "v2");
         
@@ -1340,7 +1349,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         
         // wait for replication
         try {
-            Thread.sleep(REPLICATION_TIME);
+            Thread.sleep(REPLICATION_WAIT);
         } catch (InterruptedException e1) {
             e1.printStackTrace();
         }
@@ -1358,8 +1367,8 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
                     objFound = true;
                     break;
                 }
-            assertTrue("testV2CreateV1ListObjects() - v2 listObjects() results "
-                    + "should NOT include the created object.", !objFound );
+            assertFalse("testV2CreateV1ListObjects() - v2 listObjects() results "
+                    + "should NOT include the created object.", objFound );
         } catch (BaseException e) {
             e.printStackTrace();
             throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV2CreateV1ListObjects() couldn't create update object: " 
@@ -1414,7 +1423,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         
         // wait for replication
         try {
-            Thread.sleep(REPLICATION_TIME);
+            Thread.sleep(REPLICATION_WAIT);
         } catch (InterruptedException e1) {
             e1.printStackTrace();
         }

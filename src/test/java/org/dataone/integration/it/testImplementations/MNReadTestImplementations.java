@@ -90,8 +90,7 @@ public class MNReadTestImplementations extends ContextAwareAdapter {
 
     public void testGetReplica_PublicObject(Node node, String version) {
 
-        String clientSubject = "cnStageUNM1";
-        MNCallAdapter callAdapter = new MNCallAdapter(getSession(clientSubject), node, version);
+        MNCallAdapter callAdapter = new MNCallAdapter(getSession(cnSubmitter), node, version);
         String currentUrl = callAdapter.getNodeBaseServiceUrl();
         printTestHeader("testGetReplica() vs. node: " + currentUrl);
 
@@ -110,7 +109,7 @@ public class MNReadTestImplementations extends ContextAwareAdapter {
         } catch (BaseException e) {
             handleFail(
                     callAdapter.getLatestRequestUrl(),
-                    "Should be able to retrieve " + "a public object (as subject " + clientSubject
+                    "Should be able to retrieve " + "a public object (as subject " + cnSubmitter
                             + ").  If the node is checking the client subject against the "
                             + "CN for all getReplica requests, and the node is not "
                             + "registered to an environment, this failure can be ignored.  Got:"
@@ -248,7 +247,7 @@ public class MNReadTestImplementations extends ContextAwareAdapter {
 
 	public void testGetReplica_IdentifierEncoding(Node node, String version){
 	    
-        MNCallAdapter callAdapter = new MNCallAdapter(getSession(Constants.SUBJECT_PUBLIC), node, version);
+        MNCallAdapter callAdapter = new MNCallAdapter(getSession("testRightsHolder"), node, version);
         String currentUrl = callAdapter.getNodeBaseServiceUrl();
         printTestHeader("testGetReplica_IdentifierEncoding() vs. node: " + currentUrl);
 

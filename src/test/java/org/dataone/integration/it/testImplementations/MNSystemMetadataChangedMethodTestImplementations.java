@@ -163,7 +163,7 @@ public class MNSystemMetadataChangedMethodTestImplementations extends ContextAwa
      */
     public void testSystemMetadataChanged_authenticatedITKuser(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
-            testSystemMetadataChanged(nodeIterator.next(), version);
+            testSystemMetadataChanged_authenticatedITKuser(nodeIterator.next(), version);
     }
     
     public void testSystemMetadataChanged_authenticatedITKuser(Node node, String version) {
@@ -176,7 +176,7 @@ public class MNSystemMetadataChangedMethodTestImplementations extends ContextAwa
             Object[] dataPackage = ExampleUtilities.generateTestSciDataPackage("mNodeTier3",true);
 
             Identifier pid = mn.create(null,(Identifier) dataPackage[0],
-                    (InputStream) dataPackage[1], (SystemMetadata) dataPackage[2]);
+                    (InputStream) dataPackage[1], (org.dataone.service.types.v1.SystemMetadata) dataPackage[2]);
 
             Date afterCreate = new Date();
             mn.systemMetadataChanged(null, pid, 10, afterCreate);
@@ -201,7 +201,7 @@ public class MNSystemMetadataChangedMethodTestImplementations extends ContextAwa
             + "making sure no exception is thrown")
     public void testSystemMetadataChanged_withCreate(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
-            testSystemMetadataChanged(nodeIterator.next(), version);
+            testSystemMetadataChanged_withCreate(nodeIterator.next(), version);
     }
     
     public void testSystemMetadataChanged_withCreate(Node node, String version) 
@@ -215,8 +215,9 @@ public class MNSystemMetadataChangedMethodTestImplementations extends ContextAwa
             Object[] dataPackage = ExampleUtilities.generateTestSciDataPackage("mNodeTier3TestDelete",true);
 
             Identifier pid = cca.create(null,(Identifier) dataPackage[0],
-                    (InputStream) dataPackage[1], (SystemMetadata) dataPackage[2]);
+                    (InputStream) dataPackage[1], (org.dataone.service.types.v1.SystemMetadata) dataPackage[2]);
 
+            Thread.sleep(5000);
             Date afterCreate = new Date();
             cca.systemMetadataChanged(null, pid, 10, afterCreate);
         }
