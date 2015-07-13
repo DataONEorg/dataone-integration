@@ -293,8 +293,7 @@ public class ViewFunctionalTestImplementations extends ContextAwareAdapter {
             e.printStackTrace();
             throw new AssertionError(callAdapter.getNodeBaseServiceUrl() + ":   "
                     + "Unable to run testListViews functional test: " 
-                    + e.getMessage() + ", "
-                    + e.getCause() == null ? "" : e.getCause().getMessage());
+                    + e.getClass().getSimpleName() + " : " + e.getMessage() );
         }
     }
     
@@ -340,8 +339,7 @@ public class ViewFunctionalTestImplementations extends ContextAwareAdapter {
             e.printStackTrace();
             throw new AssertionError(callAdapter.getNodeBaseServiceUrl() + ":   "
                     + "Unable to run testListViewsExist functional test: " 
-                    + e.getMessage() + ", "
-                    + e.getCause() == null ? "" : e.getCause().getMessage());
+                    + e.getClass().getSimpleName() + " : " + e.getMessage() );
         }
     }
 }
