@@ -4,6 +4,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.Iterator;
 
+import org.dataone.client.v1.types.D1TypeBuilder;
 import org.dataone.integration.APITestUtils;
 import org.dataone.integration.ContextAwareTestCaseDataone;
 import org.dataone.integration.ExampleUtilities;
@@ -14,6 +15,7 @@ import org.dataone.integration.webTest.WebTestDescription;
 import org.dataone.integration.webTest.WebTestName;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.NotAuthorized;
+import org.dataone.service.exceptions.NotFound;
 import org.dataone.service.types.v1.AccessRule;
 import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Node;
@@ -141,4 +143,38 @@ public class SynchronizeMetadataTestImplementations extends ContextAwareAdapter 
         }
     }
     
+    @WebTestName("testSynchronizeObject - tests if the call fails with a bogus pid")
+    @WebTestDescription("this test calls testSynchronizeObject() with a bogus pid "
+            + "and expects a NotFound exception to be thrown")
+    public void testSynchronize_NotFound(Iterator<Node> nodeIterator, String version) {
+        while (nodeIterator.hasNext())
+            testSynchronize_NotFound(nodeIterator.next(), version);
+    }
+    
+    public void testSynchronize_NotFound(Node node, String version) {
+        
+        CNCallAdapter cn = new CNCallAdapter(getSession("testRightsHolder"), node, version);
+        String currentUrl = node.getBaseURL();
+        printTestHeader("testSynchronizeObject_NotFound(...) vs. node: " + currentUrl);
+        currentUrl = cn.getNodeBaseServiceUrl();
+        
+        try {
+            Identifier testObjPid = D1TypeBuilder.buildIdentifier("supercalifragilisticexpialidocious");
+            cn.synchronize(null, testObjPid);
+            
+            handleFail(cn.getLatestRequestUrl(), "Expected a NotFound exception.");
+        }
+        catch (NotFound e) {
+            // expected
+        }
+        catch (BaseException e) {
+            handleFail(cn.getLatestRequestUrl(), "Expected a NotFound exception. Got: " + 
+                    e.getClass().getSimpleName() + ": " + e.getDetail_code() + ": " + e.getDescription());
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+            handleFail(currentUrl, "Expected a NotFound exception. Got: " + e.getClass().getName() + 
+                    ": " + e.getMessage());
+        }
+    }
 }

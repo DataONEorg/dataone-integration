@@ -12,6 +12,7 @@ import org.apache.commons.collections.IteratorUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.dataone.client.exception.ClientSideException;
+import org.dataone.client.v1.types.D1TypeBuilder;
 import org.dataone.configuration.Settings;
 import org.dataone.integration.APITestUtils;
 import org.dataone.integration.ContextAwareTestCaseDataone;
@@ -75,135 +76,6 @@ public class SynchronizeObjectTestImplementations extends ContextAwareAdapter {
         log.info("MNs available: " + mnList.size());
     }
     
-    @WebTestName("testSynchronizeObject - tests if the call fails with an unauthorized certificate subject")
-    @WebTestDescription("this test calls testSynchronizeObject() with the \"testPerson\" certificate subject "
-            + "and expects a NotAuthorized exception to be thrown")
-    public void testSynchronizeObject_NotAuthorized(Iterator<Node> nodeIterator, String version) {
-        setup(nodeIterator);
-        while (nodeIterator.hasNext())
-            testSynchronizeObject_NotAuthorized(nodeIterator.next(), version);
-    }
-    
-    public void testSynchronizeObject_NotAuthorized(Node node, String version) {
-        
-        CNCallAdapter cnCallAdapter = new CNCallAdapter(getSession("testPerson"), node, version);
-        MNCallAdapter mnCallAdapter = new MNCallAdapter(getSession("testRightsHolder"), node, version);
-        String currentUrl = node.getBaseURL();
-        printTestHeader("testSynchronizeObject_NotAuthorized(...) vs. node: " + currentUrl);
-        currentUrl = cnCallAdapter.getNodeBaseServiceUrl();
-        
-        try {
-            // MN should have the object
-            AccessRule accessRule = APITestUtils.buildAccessRule("testRightsHolder", Permission.CHANGE_PERMISSION);
-            Identifier pid = new Identifier();
-            pid.setValue("testSynchronizeObject_NotAuthorized_" + ExampleUtilities.generateIdentifier());
-            Identifier testObjPid = catc.procureTestObject(mnCallAdapter, accessRule, pid);
-            
-            // try CN.synchronizeObject() with mnCallAdapter cert is "testPerson"
-            cnCallAdapter.synchronize(null, testObjPid);
-            
-            handleFail(cnCallAdapter.getLatestRequestUrl(), "Expected a NotAuthorized exception.");
-        }
-        catch (NotAuthorized e) {
-            // expected
-        }
-        catch (BaseException e) {
-            handleFail(cnCallAdapter.getLatestRequestUrl(), "Expected a NotAuthorized exception. Got: " + 
-                    e.getClass().getSimpleName() + ": " + e.getDetail_code() + ": " + e.getDescription());
-        }
-        catch(Exception e) {
-            e.printStackTrace();
-            handleFail(currentUrl, "Expected a NotAuthorized exception. Got: " + e.getClass().getName() + 
-                    ": " + e.getMessage());
-        }
-    }
-    
-    @WebTestName("testSynchronizeObject - tests if the call fails with a call from non-authoritative MN")
-    @WebTestDescription("this test calls testSynchronizeObject() with a certificate from an non-authoritative MN "
-            + "and expects a NotAuthorized exception to be thrown")
-    public void testSynchronizeObject_NotAuthorizedMN(Iterator<Node> nodeIterator, String version) {
-        setup(nodeIterator);
-        while (nodeIterator.hasNext())
-            testSynchronizeObject_NotAuthorizedMN(nodeIterator.next(), version);
-    }
-    
-    public void testSynchronizeObject_NotAuthorizedMN(Node node, String version) {
-        
-        CNCallAdapter cnCallAdapter = new CNCallAdapter(getSession("mnCertSubject"), node, version);
-        MNCallAdapter mnCallAdapter = new MNCallAdapter(getSession("testRightsHolder"), node, version);
-        String currentUrl = node.getBaseURL();
-        printTestHeader("testSynchronizeObject_NotAuthorized(...) vs. node: " + currentUrl);
-        currentUrl = cnCallAdapter.getNodeBaseServiceUrl();
-        
-        try {
-            // MN should have the object
-            AccessRule accessRule = APITestUtils.buildAccessRule("testRightsHolder", Permission.CHANGE_PERMISSION);
-            Identifier pid = new Identifier();
-            pid.setValue("testSynchronizeObject_NotAuthorized_" + ExampleUtilities.generateIdentifier());
-            Identifier testObjPid = catc.procureTestObject(mnCallAdapter, accessRule, pid);
-            
-            // try CN.synchronizeObject() with mnCallAdapter cert that isn't the authoritative MN  
-            cnCallAdapter.synchronize(null, testObjPid);
-            
-            handleFail(cnCallAdapter.getLatestRequestUrl(), "Expected a NotAuthorized exception.");
-        }
-        catch (NotAuthorized e) {
-            // expected
-        }
-        catch (BaseException e) {
-            handleFail(cnCallAdapter.getLatestRequestUrl(), "Expected a NotAuthorized exception. Got: " + 
-                    e.getClass().getSimpleName() + ": " + e.getDetail_code() + ": " + e.getDescription());
-        }
-        catch(Exception e) {
-            e.printStackTrace();
-            handleFail(currentUrl, "Expected a NotAuthorized exception. Got: " + e.getClass().getName() + 
-                    ": " + e.getMessage());
-        }
-    }
-    
-    @WebTestName("testSynchronizeObject - tests if the call fails with a bogus pid")
-    @WebTestDescription("this test calls testSynchronizeObject() with a bogus pid "
-            + "and expects a NotFound exception to be thrown")
-    public void testSynchronizeObject_NotFound(Iterator<Node> nodeIterator, String version) {
-        setup(nodeIterator);
-        while (nodeIterator.hasNext())
-            testSynchronizeObject_NotFound(nodeIterator.next(), version);
-    }
-    
-    public void testSynchronizeObject_NotFound(Node node, String version) {
-        
-        CNCallAdapter cnCallAdapter = new CNCallAdapter(getSession("testPerson"), node, version);
-        MNCallAdapter mnCallAdapter = new MNCallAdapter(getSession("testRightsHolder"), node, version);
-        String currentUrl = node.getBaseURL();
-        printTestHeader("testSynchronizeObject_NotFound(...) vs. node: " + currentUrl);
-        currentUrl = cnCallAdapter.getNodeBaseServiceUrl();
-        
-        try {
-            // MN should have the object
-            AccessRule accessRule = APITestUtils.buildAccessRule("testRightsHolder", Permission.CHANGE_PERMISSION);
-            Identifier pid = new Identifier();
-            pid.setValue("testSynchronizeObject_NotFound_" + ExampleUtilities.generateIdentifier());
-            Identifier testObjPid = catc.procureTestObject(mnCallAdapter, accessRule, pid);
-            
-            // try CN.synchronizeObject() with a bogus pid
-            testObjPid.setValue("supercalifragilisticexpialidocious");
-            cnCallAdapter.synchronize(null, testObjPid);
-            
-            handleFail(cnCallAdapter.getLatestRequestUrl(), "Expected a NotFound exception.");
-        }
-        catch (NotFound e) {
-            // expected
-        }
-        catch (BaseException e) {
-            handleFail(cnCallAdapter.getLatestRequestUrl(), "Expected a NotFound exception. Got: " + 
-                    e.getClass().getSimpleName() + ": " + e.getDetail_code() + ": " + e.getDescription());
-        }
-        catch(Exception e) {
-            e.printStackTrace();
-            handleFail(currentUrl, "Expected a NotFound exception. Got: " + e.getClass().getName() + 
-                    ": " + e.getMessage());
-        }
-    }
     
     @WebTestName("updateSystemMetadata - tests if the call fails if the pid and system metadata don't match")
     @WebTestDescription("this test calls updateSystemMetadata() with a pid and system matadata whose identifier "

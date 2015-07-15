@@ -8,4 +8,5 @@ public interface SynchronizeMetadataTestDefinition {
     
     public void testSynchronize_AuthorizedMN();
     
+    public void testSynchronize_NotFound();
 }

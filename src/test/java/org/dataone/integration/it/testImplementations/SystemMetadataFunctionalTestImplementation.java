@@ -78,7 +78,7 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
     private List<Node> cnList;
     private Node mnV2NoSync;
     private static final long SYNC_TIME = 30 * 60000;       // FIXME is there a reliable way to know these?
-    private static final long REPLICATION_TIME = 300000;    // FIXME "
+    private static final long REPLICATION_TIME = 5 * 60000;    // FIXME "
     
     private static Log log = LogFactory.getLog(SystemMetadataFunctionalTestImplementation.class);
     

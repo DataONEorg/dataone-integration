@@ -306,6 +306,11 @@ implements CoreTestDefinitions, CNCoreTestDefinitions, CNv2CoreTestDefinitions, 
         syncMetaImpl.testSynchronize_AuthorizedMN(getCoordinatingNodeIterator(), "v2");
     }
 
+    @Override
+    @Test
+    public void testSynchronize_NotFound() {
+        syncMetaImpl.testSynchronize_NotFound(getCoordinatingNodeIterator(), "v2");
+    }
 
     
 }

@@ -764,7 +764,7 @@ public class CNCallAdapter extends CommonCallAdapter {
 
     public boolean synchronize(Session session, Identifier pid)
             throws NotImplemented, NotAuthorized, ServiceFailure, InvalidRequest,
-            InvalidSystemMetadata, InvalidToken, ClientSideException {
+            InvalidSystemMetadata, InvalidToken, ClientSideException, NotFound {
         
         if (this.node.getType().equals(NodeType.CN) 
                 && this.version.toLowerCase().equals("v2")) {
