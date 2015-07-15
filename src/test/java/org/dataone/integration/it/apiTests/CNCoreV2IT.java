@@ -301,9 +301,11 @@ implements CoreTestDefinitions, CNCoreTestDefinitions, CNv2CoreTestDefinitions, 
 
     @Override
     @Test
-    @Ignore("Not yet implemented")
-    public void testSynchronize_InvalidToken() {
-        syncMetaImpl.testSynchronize_InvalidToken(getCoordinatingNodeIterator(), "v2");
+    @Ignore("No MN cert to test with")
+    public void testSynchronize_AuthorizedMN() {
+        syncMetaImpl.testSynchronize_AuthorizedMN(getCoordinatingNodeIterator(), "v2");
     }
 
+
+    
 }

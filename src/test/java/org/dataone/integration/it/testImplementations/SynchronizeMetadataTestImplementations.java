@@ -77,7 +77,7 @@ public class SynchronizeMetadataTestImplementations extends ContextAwareAdapter 
         assertTrue("Test should be @Ignore'd. No MN cert to test with", false);
         
         CommonCallAdapter cnCertCallAdapter = new CommonCallAdapter(getSession(cnSubmitter), node, version);
-        CNCallAdapter mnCertCallAdapter = new CNCallAdapter(getSession("mnCertSubject"), node, version);
+        CNCallAdapter mnCertCallAdapter = new CNCallAdapter(getSession("mnCertSubject - NOT corresponding to node -->"), node, version);
         String currentUrl = node.getBaseURL();
         printTestHeader("testSynchronize_NotAuthorized_MN(...) vs. node: " + currentUrl);
         currentUrl = cnCertCallAdapter.getNodeBaseServiceUrl();
@@ -105,17 +105,40 @@ public class SynchronizeMetadataTestImplementations extends ContextAwareAdapter 
         }
     }
     
-    @WebTestName("synchronize - tests if the call fails when an invalid authentication token is passed")
-    @WebTestDescription("this test calls synchronize() with an invalid authentication token ")
-    public void testSynchronize_InvalidToken(Iterator<Node> nodeIterator, String version) {
+    @WebTestName("synchronize - tests if the call succeeds when made by an authoritative MN")
+    @WebTestDescription("this test calls synchronize() with the authoritative MN certificate")
+    public void testSynchronize_AuthorizedMN(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
-            testSynchronize_InvalidToken(nodeIterator.next(), version);
+            testSynchronize_AuthorizedMN(nodeIterator.next(), version);
     }
     
-    public void testSynchronize_InvalidToken(Node node, String version) {
+    public void testSynchronize_AuthorizedMN(Node node, String version) {
         
-        assertTrue("Not yet implemented.", false);
+        assertTrue("Test should be @Ignore'd. No MN cert to test with", false);
         
+        CommonCallAdapter cnCertCallAdapter = new CommonCallAdapter(getSession(cnSubmitter), node, version);
+        CNCallAdapter mnCertCallAdapter = new CNCallAdapter(getSession("mnCertSubject - corresponding to node -->"), node, version);
+        String currentUrl = node.getBaseURL();
+        printTestHeader("testSynchronize_NotAuthorized_MN(...) vs. node: " + currentUrl);
+        currentUrl = cnCertCallAdapter.getNodeBaseServiceUrl();
+        
+        try {
+            AccessRule accessRule = APITestUtils.buildAccessRule("testRightsHolder", Permission.CHANGE_PERMISSION);
+            Identifier pid = new Identifier();
+            pid.setValue("testSynchronize_NotAuthorized_MN" + ExampleUtilities.generateIdentifier());
+            Identifier testObjPid = catc.procureTestObject(cnCertCallAdapter, accessRule, pid);
+            
+            boolean success = mnCertCallAdapter.synchronize(null, testObjPid);
+            assertTrue(mnCertCallAdapter.getLatestRequestUrl() + "synchronize call should succeed for authoritative MN certificate", success);
+        } 
+        catch (BaseException e) {
+            handleFail(cnCertCallAdapter.getLatestRequestUrl(), 
+                    e.getClass().getSimpleName() + ": " + e.getDetail_code() + ": " + e.getDescription());
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+            handleFail(currentUrl, e.getClass().getName() + ": " + e.getMessage());
+        }
     }
     
 }

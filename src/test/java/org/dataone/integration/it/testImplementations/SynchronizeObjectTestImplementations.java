@@ -209,6 +209,7 @@ public class SynchronizeObjectTestImplementations extends ContextAwareAdapter {
     @WebTestDescription("this test calls updateSystemMetadata() with a pid and system matadata whose identifier "
             + "doesn't match, expecting an InvalidRequest exception to be thrown")
     public void testUpdateSystemMetadata_InvalidRequest_PidMismatch(Iterator<Node> nodeIterator, String version) {
+        setup(nodeIterator);
         while (nodeIterator.hasNext())
             testUpdateSystemMetadata_InvalidRequest_PidMismatch(nodeIterator.next(), version);
     }
