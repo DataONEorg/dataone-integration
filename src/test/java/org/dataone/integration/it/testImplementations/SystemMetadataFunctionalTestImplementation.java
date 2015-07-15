@@ -37,6 +37,7 @@ import org.dataone.service.types.v1.NodeReference;
 import org.dataone.service.types.v1.NodeType;
 import org.dataone.service.types.v1.Permission;
 import org.dataone.service.types.v1.Replica;
+import org.dataone.service.types.v1.Service;
 import org.dataone.service.types.v2.SystemMetadata;
 import org.dataone.service.util.TypeMarshaller;
 import org.jibx.runtime.JiBXException;
@@ -94,28 +95,35 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
         assertTrue("Test requires at least one CN to function!", cnList.size() > 0);
         CNCallAdapter cn = new CNCallAdapter(getSession(cnSubmitter), cnList.get(0), "v2");
         
-        // check node list, add all MNs that support v2 to mnList
+        // check node list, add an MN to mnList if:
+        //      it supports v2 calls
+        //      it supports MNReplication
         try {
-            for(Node n : cn.listNodes().getNodeList())
+            for(Node n : cn.listNodes().getNodeList()) {
                 if(n.getType() == NodeType.MN)
                     try {
                         MNCallAdapter mnCallAdapter = new MNCallAdapter(getSession(cnSubmitter), n, "v2");
-                        mnCallAdapter.ping();   // FIXME wish there was a better way to check for v2 support
-                        mnList.add(n);
+                        Node capabilities = mnCallAdapter.getCapabilities();    // also doubles as a v2 ping
+                        
+                        List<Service> serviceList = capabilities.getServices().getServiceList();
+                        for (Service service : serviceList)
+                            if(service.getName().equalsIgnoreCase("MNReplication")) {
+                                mnList.add(n);
+                                break;
+                            }
                     }
                     catch (Exception e1) {
-                        log.warn("MN failed V2 ping(), skipping : " + n.getIdentifier().getValue());
+                        log.warn("MN failed V2 getCapabilities(), skipping : " + n.getIdentifier().getValue());
                     }
-        } catch (NotImplemented | ServiceFailure | InstantiationException
-                | IllegalAccessException | InvocationTargetException | ClientSideException
-                | JiBXException | IOException e) {
+            }
+        } catch (Exception e) {
             log.error("Unable to fetch node list from CN: " + cn.getNodeBaseServiceUrl(), e);
         }
 
-        log.info("CNs available: " + cnList.size());
-        log.info("MNs available: " + mnList.size());
+        log.info("v2 CNs available:                         " + cnList.size());
+        log.info("v2 MNs available supporting replication:  " + mnList.size());
         
-        assertTrue("This test requires at least two v2 MNs to work.", mnList.size() >= 2);
+        assertTrue("This test requires at least two v2 MNs that are tier 4 (support replication) to work.", mnList.size() >= 2);
         assertTrue("This test requires at least one CN to work.", cnList.size() >= 1);
         
         // we need to test against an MN that has synchronize disabled
