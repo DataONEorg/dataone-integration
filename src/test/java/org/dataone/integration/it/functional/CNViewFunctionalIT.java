@@ -31,12 +31,6 @@ public class CNViewFunctionalIT extends ContextAwareTestCaseDataone {
     }
     
     @Test
-    @Ignore("Data won't be available on the CN - skip this type of test on CN? Or does CN call delegate to MN?")
-    public void testView_Data() {
-        viewImpl.testView_Data(getCoordinatingNodeIterator(), "v2");
-    }
-    
-    @Test
     public void testListViews() {
         viewImpl.testListViews(getCoordinatingNodeIterator(), "v2");
     }

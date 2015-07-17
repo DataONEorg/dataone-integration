@@ -93,6 +93,7 @@ import org.dataone.service.types.v1.AccessRule;
 import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Node;
 import org.dataone.service.types.v1.NodeList;
+import org.dataone.service.types.v1.NodeReference;
 import org.dataone.service.types.v1.NodeType;
 import org.dataone.service.types.v1.ObjectFormatIdentifier;
 import org.dataone.service.types.v1.ObjectInfo;
@@ -1193,10 +1194,13 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
                 //			} else {
                 byte[] contentBytes = ExampleUtilities.getExampleObjectOfType(DEFAULT_TEST_OBJECTFORMAT);
                 objectInputStream = new ByteArrayInputStream(contentBytes);
+                NodeReference nodeReference = D1TypeBuilder.buildNodeReference("bogusAuthoritativeNode");
+                if(d1Node instanceof MNCallAdapter)
+                    nodeReference = ((MNCallAdapter) d1Node).getNode().getIdentifier();
                 d1o = new D1Object(pid, contentBytes,
                         D1TypeBuilder.buildFormatIdentifier(DEFAULT_TEST_OBJECTFORMAT),
                         D1TypeBuilder.buildSubject(submitterX500),
-                        D1TypeBuilder.buildNodeReference("bogusAuthoritativeNode"));
+                        nodeReference);
                 //			}
                 sysMeta = TypeMarshaller.convertTypeFromType(d1o.getSystemMetadata(), SystemMetadata.class);
                 sysMeta.setSeriesId(sid);

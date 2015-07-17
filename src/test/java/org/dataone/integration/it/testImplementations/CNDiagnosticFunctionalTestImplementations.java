@@ -2,6 +2,8 @@ package org.dataone.integration.it.testImplementations;
 
 import static org.junit.Assert.assertTrue;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.util.Iterator;
 
@@ -31,6 +33,7 @@ import org.dataone.service.types.v1.Person;
 import org.dataone.service.types.v1.Subject;
 import org.dataone.service.types.v1.SubjectInfo;
 import org.dataone.service.types.v2.SystemMetadata;
+import org.dataone.service.util.TypeMarshaller;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 
@@ -238,22 +241,6 @@ public class CNDiagnosticFunctionalTestImplementations extends ContextAwareAdapt
             
             objStream = callAdapter.get(null, pid);
             
-            //-------------------------
-            // prints out the document to System.out:
-            
-//            Document docO = null;
-//            try {
-//                DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-//                docO = builder.parse(new InputSource(objStream));
-//                Transformer transformer = TransformerFactory.newInstance().newTransformer();
-//                DOMSource source = new DOMSource(docO);
-//                StreamResult result = new StreamResult(System.out);
-//                transformer.transform(source, result);
-//            } catch (Exception e) {
-//                handleFail(currentUrl, e.getClass().getName() + ": " + e.getMessage());
-//            }
-            //-------------------------
-            
             is = callAdapter.echoIndexedObject(null, "solr", sysmeta, objStream);
             assertTrue("testEchoIndexedObject() should return a non-null InputStream", is != null);
             
@@ -261,6 +248,13 @@ public class CNDiagnosticFunctionalTestImplementations extends ContextAwareAdapt
             try {
                 DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
                 doc = builder.parse(new InputSource(is));
+                
+                // outputs to sysout
+//                Transformer transformer = TransformerFactory.newInstance().newTransformer();
+//                DOMSource source = new DOMSource(doc);
+//                StreamResult result = new StreamResult(new FileOutputStream(new File("C:\\Users\\Andrei\\stuff\\indexedObjResult.xml")));
+//                transformer.transform(source, result);
+                
             } catch (Exception e) {
                 handleFail(currentUrl, "echoIndexedObject() should return document representing the parsed object "
                         + "as it would be prior to being added to a search index. " + e.getClass().getName()
@@ -268,35 +262,35 @@ public class CNDiagnosticFunctionalTestImplementations extends ContextAwareAdapt
             }
             
             XPath xPath =  XPathFactory.newInstance().newXPath();
-            String abstractExp = "/response/result/doc/str[@name='abstract']";
+            String abstractExp = "/add/doc/field[@name='abstract']";
             String abstractVal = xPath.compile(abstractExp).evaluate(doc);
             if(StringUtils.isBlank(abstractVal))
                 handleFail(callAdapter.getLatestRequestUrl(), "returned document has no abstract");
-            if(!abstractVal.startsWith("PISCO is a large-scale marine research program"))
+            if(!abstractVal.startsWith("This metadata record describes moored seawater temperature data"))
                 handleFail(callAdapter.getLatestRequestUrl(), "returned document should contain the same abstract as the metadata sent");
             
-            String authorGivenNameExp = "/response/result/doc/str[@name='authorGivenName']";
+            String authorGivenNameExp = "/add/doc/field[@name='author']";
             String authorGivenNameVal = xPath.compile(authorGivenNameExp).evaluate(doc);
             if(StringUtils.isBlank(authorGivenNameVal))
                 handleFail(callAdapter.getLatestRequestUrl(), "returned document has no author given name");
-            if(!authorGivenNameVal.equals("Margaret"))
+            if(!authorGivenNameVal.equals("Margaret McManus"))
                 handleFail(callAdapter.getLatestRequestUrl(), "returned document should contain the same authorGivenName as the metadata sent");
             
-            String authorSurNameExp = "/response/result/doc/str[@name='authorSurName']";
-            String authorSurNameVal = xPath.compile(authorSurNameExp).evaluate(doc);
-            if(StringUtils.isBlank(authorSurNameVal))
-                handleFail(callAdapter.getLatestRequestUrl(), "returned document has no author surname");
-            if(!authorSurNameVal.equals("McManus"))
-                handleFail(callAdapter.getLatestRequestUrl(), "returned document should contain the same authorSurName as the metadata sent");
+            String titleExp = "/add/doc/field[@name='title']";
+            String titleVal = xPath.compile(titleExp).evaluate(doc);
+            if(StringUtils.isBlank(titleVal))
+                handleFail(callAdapter.getLatestRequestUrl(), "returned document has no title");
+            if(!titleVal.startsWith("PISCO: Physical Oceanography: moored temperature data"))
+                handleFail(callAdapter.getLatestRequestUrl(), "returned document should contain the same title as the metadata sent");
             
-            String formatIdExpExp = "/response/result/doc/str[@name='formatId']";
+            String formatIdExpExp = "/add/doc/field[@name='formatId']";
             String formatIdValVal = xPath.compile(formatIdExpExp).evaluate(doc);
             if(StringUtils.isBlank(formatIdValVal))
                 handleFail(callAdapter.getLatestRequestUrl(), "returned document has no format ID");
             if(!formatIdValVal.equals("eml://ecoinformatics.org/eml-2.0.1"))
                 handleFail(callAdapter.getLatestRequestUrl(), "returned document should contain the same formatId as the metadata sent");
             
-            String formatTypeExp = "/response/result/doc/str[@name='formatType']";
+            String formatTypeExp = "/add/doc/field[@name='formatType']";
             String formatTypeVal = xPath.compile(formatTypeExp).evaluate(doc);
             if(StringUtils.isBlank(formatTypeVal))
                 handleFail(callAdapter.getLatestRequestUrl(), "returned document has no format type");

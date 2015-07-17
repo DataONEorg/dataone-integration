@@ -39,6 +39,7 @@ import org.dataone.service.types.v1.Permission;
 import org.dataone.service.types.v1.Replica;
 import org.dataone.service.types.v1.Service;
 import org.dataone.service.types.v2.SystemMetadata;
+import org.dataone.service.util.Constants;
 import org.dataone.service.util.TypeMarshaller;
 import org.jibx.runtime.JiBXException;
 import org.junit.After;
@@ -78,8 +79,8 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
     private List<Node> mnList;
     private List<Node> cnList;
     private Node mnV2NoSync;
-    private static final long SYNC_TIME = 30 * 60000;       // FIXME is there a reliable way to know these?
-    private static final long REPLICATION_TIME = 5 * 60000;    // FIXME "
+    private static final long SYNC_WAIT = 5 * 60000;       // FIXME this is based on manually setting sync time on MNs
+    private static final long REPLICATION_WAIT = 1 * 60000;
     
     private static Log log = LogFactory.getLog(SystemMetadataFunctionalTestImplementation.class);
     
@@ -174,7 +175,8 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
                 mnV2NoSync = capabilities;
                 break;
             } catch (Exception e) {
-                log.error("Unable to disable synchronization on MN! : " + n.getBaseURL());
+                log.error("Unable to disable synchronization on MN! : " + n.getBaseURL() + "\n"
+                        + e.getClass().getSimpleName() + " : " + e.getMessage());
             }
         }
         
@@ -184,6 +186,9 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
     
     @After
     public void tearDown() {
+        if(mnV2NoSync == null)
+            return;
+        
         Node cNode = cnList.get(0);
         CNCallAdapter cn = new CNCallAdapter(getSession(cnSubmitter), cNode, "v2");
         
@@ -215,28 +220,42 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
     public void testSystemMetadataChanged() {
         
         Identifier createdPid = null;
-        CommonCallAdapter mn = new CommonCallAdapter(getSession("testRightsHolder"), mnV2NoSync, "v2");
+        MNCallAdapter mn = new MNCallAdapter(getSession("testRightsHolder"), mnV2NoSync, "v2");
         try {
             
             // create a test object
+            log.info("testSystemMetadataChanged_ExistingObj:   "
+                    + "creating test object");
             
-            AccessRule accessRule = APITestUtils.buildAccessRule("testRightsHolder", Permission.CHANGE_PERMISSION);
+            AccessRule accessRule = APITestUtils.buildAccessRule(Constants.SUBJECT_PUBLIC, Permission.CHANGE_PERMISSION);
             Identifier pid = new Identifier();
             pid.setValue("testSystemMetadataChanged_" + ExampleUtilities.generateIdentifier());
+            
+                   
             try {
-                createdPid = procureTestObject(mn, accessRule, pid);
+                createdPid = createTestObject(mn, pid, accessRule);
             } catch (BaseException be) {
                 throw new AssertionError(mn.getLatestRequestUrl() +  "Unable to create a test object: " + pid);
             }
             
+            log.info("testSystemMetadataChanged_ExistingObj:   "
+                    + "created test object: " + createdPid.getValue());
+            
             // modify the sysmeta
             
+            log.info("testSystemMetadataChanged_ExistingObj:   "
+                    + "fetching sysmeta from auth MN");
+                    
             SystemMetadata sysmeta = mn.getSystemMetadata(null, createdPid);
             BigInteger newSerialVersion = sysmeta.getSerialVersion().add(BigInteger.ONE);
             sysmeta.setSerialVersion(newSerialVersion);
             Date nowIsh = new Date();
             sysmeta.setDateSysMetadataModified(nowIsh);
-            boolean success = false;
+            
+            log.info("testSystemMetadataChanged_ExistingObj:   "
+                    + "updating sysmeta on auth MN");
+                    
+			boolean success = false;
             try {
                 success = mn.updateSystemMetadata(null, createdPid, sysmeta);
             } catch (BaseException be) {
@@ -244,6 +263,9 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
             }
             assertTrue("MN should have modified its own system metadata successfully.", success);
             
+            log.info("testSystemMetadataChanged_ExistingObj:   "
+                    + "updated sysmeta on auth MN successfully");
+                    
             // MN.updateSystemMetadata() call should trigger a 
             // CN.synchronize() call under the hood
             
@@ -252,9 +274,15 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
 
             // CN needs time to synchronize
             
-            Thread.sleep(SYNC_TIME);
+            log.info("testSystemMetadataChanged_ExistingObj:   "
+                    + "waiting for CN.synchronize() to run (" + ((double)SYNC_WAIT / 60000) + " minutes)");
+            // TODO not the same as CN sync task wait time
+            Thread.sleep(SYNC_WAIT);
             
             // verify that sysmeta fetched from CN is updated
+            
+            log.info("testSystemMetadataChanged_ExistingObj:   "
+                    + "done waiting for CN.synchronize(), verifying CN has correct sysmeta");
             
             SystemMetadata fetchedCNSysmeta = cn.getSystemMetadata(null, createdPid);
             boolean serialVersionMatches = fetchedCNSysmeta.getSerialVersion().equals(newSerialVersion);
@@ -262,16 +290,33 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
             assertTrue("System metadata fetched from CN should now have updated serialVersion.", serialVersionMatches);
             assertTrue("System metadata fetched from CN should now have updated dateSysMetadataModified.", dateModifiedMatches );
             
+            log.info("testSystemMetadataChanged_ExistingObj:   "
+                    + "CN sysmeta matches updates made on MN");
+                    
+            // TODO could also inspect the system metadata on the CN 
+            //      for a replica in 'requested' status 
+            //      and wait for it to move to 'completed' or 'failed'
+            
             // CN needs to run replication in order for sysmeta to contain replica info
             // we need replica info in the sysmeta
             // so we can then verify that the sysmeta on the replica-holding MNs is updated
             
-            Thread.sleep(REPLICATION_TIME);
+            log.info("testSystemMetadataChanged_ExistingObj:   "
+                    + "waiting for CN to trigger replication "
+                    + "so we have replica info in sysmeta (" + ((double)SYNC_WAIT / 60000) + " minutes)");
             
+            Thread.sleep(REPLICATION_WAIT);
+            
+            log.info("testSystemMetadataChanged_ExistingObj:   "
+                    + "done waiting for replication, fetching sysmeta from CN");
+                    
             fetchedCNSysmeta = cn.getSystemMetadata(null, createdPid);
             List<Replica> replicaList = fetchedCNSysmeta.getReplicaList();
             assertTrue("System metadata fetched from CN should now have a non-empty replica list", replicaList.size() > 0);
             
+            log.info("testSystemMetadataChanged_ExistingObj:   "
+                    + "looking at MNs that have a replica");
+                    
             // notify replica-holding MNs of the sysmeta change
             for (Replica replica : replicaList) {
                 NodeReference replicaNodeRef = replica.getReplicaMemberNode();
@@ -280,6 +325,8 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
                 for (Node n : mnList)
                     if (n.getIdentifier().getValue().equals(replicaNodeRef.getValue())) {
                         replicaHolderNode = n;
+                        log.info("testSystemMetadataChanged_ExistingObj:   "
+                                + "found replica MN: " + replicaNodeRef.getValue());
                         break;
                     }
                 assertTrue("Should be able to find another MN that holds a replica.", replicaHolderNode != null);
@@ -289,11 +336,21 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
                 // (it's the CN's, as part of synchronize() and ensuing replication)
                 // so here we just check if the replicas have the updated version of sysmeta 
                 
+                log.info("testSystemMetadataChanged_ExistingObj:   "
+                        + "checking if replica MN holds updated sysmeta");
+                        
                 SystemMetadata replicaSysmeta = replicaHolderMN.getSystemMetadata(null, createdPid);
+                
+                log.info("testSystemMetadataChanged_ExistingObj:   "
+                        + "sysmeta found on replica MN, checking contents");
+                
                 serialVersionMatches = replicaSysmeta.getSerialVersion().equals(newSerialVersion);
                 dateModifiedMatches = replicaSysmeta.getDateSysMetadataModified().equals(nowIsh);
                 assertTrue("System metadata fetched from replica-holder MN should now have updated serialVersion", serialVersionMatches);
                 assertTrue("System metadata fetched from replica-holder MN should now have updated dateSysMetadataModified", dateModifiedMatches );
+                
+                log.info("testSystemMetadataChanged_ExistingObj:   "
+                        + "sysmeta contents are updated");
             }
             
         } catch (Exception e) {
@@ -324,28 +381,39 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
     public void testSystemMetadataChanged_ExistingObj() {
         
         Identifier createdPid = null;
-        CommonCallAdapter mn = new CommonCallAdapter(getSession("testRightsHolder"), mnV2NoSync, "v2");
+        MNCallAdapter mn = new MNCallAdapter(getSession("testRightsHolder"), mnV2NoSync, "v2");
         Node cnNode = cnList.get(0);
         CNCallAdapter cn = new CNCallAdapter(getSession(cnSubmitter), cnNode, "v2");
 
         try {
             
             // create a test object
+            log.info("testSystemMetadataChanged_ExistingObj:   "
+                    + "creating test object");
             
-            AccessRule accessRule = APITestUtils.buildAccessRule("testRightsHolder", Permission.CHANGE_PERMISSION);
+            AccessRule accessRule = APITestUtils.buildAccessRule(Constants.SUBJECT_PUBLIC, Permission.CHANGE_PERMISSION);
             Identifier pid = new Identifier();
             pid.setValue("testSystemMetadataChanged_ExistingObj_" + ExampleUtilities.generateIdentifier());
             try {
-                createdPid = procureTestObject(mn, accessRule, pid);
+                createdPid = createTestObject(mn, pid, accessRule);
             } catch (BaseException be) {
                 throw new AssertionError(mn.getLatestRequestUrl() + "Unable to create a test object: " + pid);
             }
+            
+            log.info("testSystemMetadataChanged_ExistingObj:   "
+                    + "created test object: " + createdPid.getValue());
             
             // wait for CN to synchronize
             //  - we're testing the case where the object already exists on the CN
             //    at the time when CN.synchronize() gets called
             
-            Thread.sleep(SYNC_TIME);
+            log.info("testSystemMetadataChanged_ExistingObj:   "
+                    + "waiting for CN sync (" + ((double)SYNC_WAIT / 60000) + " minutes)");
+            
+            Thread.sleep(SYNC_WAIT);
+            
+            log.info("testSystemMetadataChanged_ExistingObj:   "
+                    + "done waiting for CN sync, fetching sysmeta");
             
             try {
                 SystemMetadata fetchedSysmeta = cn.getSystemMetadata(null, createdPid);
@@ -354,13 +422,23 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
                 throw new AssertionError("cn.getSystemMetadata() should successfully fetch the sysmeta");
             }
             
+            log.info("testSystemMetadataChanged_ExistingObj:   "
+                    + "fetched sysmeta from CN successfully");
+            
             // modify the sysmeta
+            
+            log.info("testSystemMetadataChanged_ExistingObj:   "
+                    + "fetching sysmeta from auth MN");
             
             SystemMetadata sysmeta = mn.getSystemMetadata(null, createdPid);
             BigInteger newSerialVersion = sysmeta.getSerialVersion().add(BigInteger.ONE);
             sysmeta.setSerialVersion(newSerialVersion);
             Date nowIsh = new Date();
             sysmeta.setDateSysMetadataModified(nowIsh);
+            
+            log.info("testSystemMetadataChanged_ExistingObj:   "
+                    + "updating sysmeta on auth MN");
+            
             boolean success = false;
             try {
                 success = mn.updateSystemMetadata(null, createdPid, sysmeta);
@@ -369,14 +447,23 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
             }
             assertTrue("MN should have modified its own system metadata successfully.", success);
             
+            log.info("testSystemMetadataChanged_ExistingObj:   "
+                    + "updated sysmeta on auth MN successfully");
+            
             // MN.updateSystemMetadata() call should trigger a 
             // CN.synchronize() call under the hood
             
             // CN needs time to synchronize
             
-            Thread.sleep(SYNC_TIME);
+            log.info("testSystemMetadataChanged_ExistingObj:   "
+                    + "waiting for CN.synchronize() to run (" + ((double)SYNC_WAIT / 60000) + " minutes)");
+            // TODO not the same as CN sync task wait time
+            Thread.sleep(SYNC_WAIT);
             
             // verify that sysmeta fetched from CN is updated
+            
+            log.info("testSystemMetadataChanged_ExistingObj:   "
+                    + "done waiting for CN.synchronize(), verifying CN has correct sysmeta");
             
             SystemMetadata fetchedCNSysmeta = cn.getSystemMetadata(null, createdPid);
             boolean serialVersionMatches = fetchedCNSysmeta.getSerialVersion().equals(newSerialVersion);
@@ -384,15 +471,32 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
             assertTrue("System metadata fetched from CN should now have updated serialVersion.", serialVersionMatches);
             assertTrue("System metadata fetched from CN should now have updated dateSysMetadataModified.", dateModifiedMatches );
             
+            log.info("testSystemMetadataChanged_ExistingObj:   "
+                    + "CN sysmeta matches updates made on MN");
+            
+            // TODO could also inspect the system metadata on the CN 
+            //      for a replica in 'requested' status 
+            //      and wait for it to move to 'completed' or 'failed'
+            
             // CN needs to run replication in order for sysmeta to contain replica info
             // we need replica info in the sysmeta
             // so we can then verify that the sysmeta on the replica-holding MNs is updated
             
-            Thread.sleep(REPLICATION_TIME);
+            log.info("testSystemMetadataChanged_ExistingObj:   "
+                    + "waiting for CN to trigger replication "
+                    + "so we have replica info in sysmeta (" + ((double)SYNC_WAIT / 60000) + " minutes)");
+            
+            Thread.sleep(REPLICATION_WAIT);
+            
+            log.info("testSystemMetadataChanged_ExistingObj:   "
+                    + "done waiting for replication, fetching sysmeta from CN");
             
             fetchedCNSysmeta = cn.getSystemMetadata(null, createdPid);
             List<Replica> replicaList = fetchedCNSysmeta.getReplicaList();
             assertTrue("System metadata fetched from CN should now have a non-empty replica list", replicaList.size() > 0);
+            
+            log.info("testSystemMetadataChanged_ExistingObj:   "
+                    + "looking at MNs that have a replica");
             
             // notify replica-holding MNs of the sysmeta change
             for (Replica replica : replicaList) {
@@ -402,6 +506,8 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
                 for (Node n : mnList)
                     if (n.getIdentifier().getValue().equals(replicaNodeRef.getValue())) {
                         replicaHolderNode = n;
+                        log.info("testSystemMetadataChanged_ExistingObj:   "
+                                + "found replica MN: " + replicaNodeRef.getValue());
                         break;
                     }
                 assertTrue("Should be able to find another MN that holds a replica.", replicaHolderNode != null);
@@ -411,11 +517,21 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
                 // (it's the CN's, as part of synchronize() and ensuing replication)
                 // so here we just check if the replicas have the updated version of sysmeta 
                 
+                log.info("testSystemMetadataChanged_ExistingObj:   "
+                        + "checking if replica MN holds updated sysmeta");
+                
                 SystemMetadata replicaSysmeta = replicaHolderMN.getSystemMetadata(null, createdPid);
+                
+                log.info("testSystemMetadataChanged_ExistingObj:   "
+                        + "sysmeta found on replica MN, checking contents");
+                
                 serialVersionMatches = replicaSysmeta.getSerialVersion().equals(newSerialVersion);
                 dateModifiedMatches = replicaSysmeta.getDateSysMetadataModified().equals(nowIsh);
                 assertTrue("System metadata fetched from replica-holder MN should now have updated serialVersion", serialVersionMatches);
                 assertTrue("System metadata fetched from replica-holder MN should now have updated dateSysMetadataModified", dateModifiedMatches );
+                
+                log.info("testSystemMetadataChanged_ExistingObj:   "
+                        + "sysmeta contents are updated");
             }
             
         } catch (Exception e) {

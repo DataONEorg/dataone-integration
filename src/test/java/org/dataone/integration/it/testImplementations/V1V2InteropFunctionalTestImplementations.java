@@ -59,7 +59,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
     /** MNs supporting BOTH the V1 & V2 APIs */
     private List<Node> v1v2mns;
     
-    private static final long REPLICATION_WAIT = 30 * 60000;    // 30 minutes
+    private static final long REPLICATION_WAIT = 5 * 60000;    // 30 minutes
     private static final long METACAT_INDEXING_WAIT = 10000;
     
     private static Log log = LogFactory.getLog(SystemMetadataFunctionalTestImplementation.class);
@@ -121,6 +121,13 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         log.info("v1-ONLY MNs available:     " + v1mns.size());
         log.info("v2 MNs available:          " + v2mns.size());
         log.info("v1 & v2 MNs available:     " + v1v2mns.size());
+        
+        for (Node n : v1mns)
+            log.info("v1-ONLY MN:   " + n.getIdentifier().getValue());
+        for (Node n : v2mns)
+            log.info("v2 MN     :   " + n.getIdentifier().getValue());
+        for (Node n : v1v2mns)
+            log.info("v1 & v2 MN:   " + n.getIdentifier().getValue());
     }
     
     @WebTestName("v2 create, v1 updateSystemMetadata")
@@ -376,6 +383,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
                     D1TypeBuilder.buildSubject(getSubject(cnSubmitter).getValue()),
                     D1TypeBuilder.buildNodeReference("bogusAuthoritativeNode"));
             sysmeta = TypeMarshaller.convertTypeFromType(d1o.getSystemMetadata(), SystemMetadata.class);
+            
             objectInputStream = new ByteArrayInputStream(contentBytes);
         } catch (BaseException e) {
             e.printStackTrace();

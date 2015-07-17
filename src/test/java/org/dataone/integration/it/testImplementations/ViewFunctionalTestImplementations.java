@@ -151,119 +151,6 @@ public class ViewFunctionalTestImplementations extends ContextAwareAdapter {
         }
     }
     
-    @WebTestName("view - tests if the view call returns an html document for a data object")
-    @WebTestDescription("this test calls locates a data object of type text/csv, then "
-            + "calls view() with the 'default' theme and the pid of a data "
-            + "object, then verifies that it returns an html document")
-    public void testView_Data(Iterator<Node> nodeIterator, String version) {
-        while (nodeIterator.hasNext())
-            testView_Data(nodeIterator.next(), version);
-    }
-    
-    private void testView_Data(Node node, String version) {
-        
-        CommonCallAdapter callAdapter = new CommonCallAdapter(getSession(cnSubmitter), node, "v2");
-        
-        Identifier pid = null;
-        InputStream viewIS = null;
-        try {
-            List<ObjectInfo> dataFiles = new ArrayList<>();
-            
-            if (cns != null && cns.size() > 0) {
-                CNCallAdapter cn = new CNCallAdapter(getSession("testRightsHolder"), cns.get(0), "v2");
-                try {
-                    ObjectList objs = cn.search(null, "solr", "?q=formatType:DATA");
-                    dataFiles = objs.getObjectInfoList();
-                } catch (Exception e) {
-                    throw new AssertionError(callAdapter.getNodeBaseServiceUrl() + ":   "
-                            + "Unable to find a test object for testView_Data functional test! "
-                            + "Call to search() failed on " + callAdapter.getNodeBaseServiceUrl() + " : " 
-                            + e.getMessage() + ", " + e.getCause() == null ? "" : e.getCause().getMessage());
-                }
-            } else {
-                try {
-                    ObjectList textDataFiles = callAdapter.listObjects(null, null, null, D1TypeBuilder.buildFormatIdentifier("text/plain"), null, null, null);
-                    ObjectList csvDataFiles = callAdapter.listObjects(null, null, null, D1TypeBuilder.buildFormatIdentifier("text/csv"), null, null, null);
-//                    ObjectList xmlDataFiles = callAdapter.listObjects(null, null, null, D1TypeBuilder.buildFormatIdentifier("text/xml"), null, null, null);
-//                    ObjectList htmlDataFiles = callAdapter.listObjects(null, null, null, D1TypeBuilder.buildFormatIdentifier("text/html"), null, null, null);
-//                    ObjectList bmpDataFiles = callAdapter.listObjects(null, null, null, D1TypeBuilder.buildFormatIdentifier("image/bmp"), null, null, null);
-//                    ObjectList jpegDataFiles = callAdapter.listObjects(null, null, null, D1TypeBuilder.buildFormatIdentifier("image/jpeg"), null, null, null);
-//                    ObjectList gifDataFiles = callAdapter.listObjects(null, null, null, D1TypeBuilder.buildFormatIdentifier("image/gif"), null, null, null);
-                    if(textDataFiles.getTotal() > 0)
-                        dataFiles.addAll(textDataFiles.getObjectInfoList());
-                    if(csvDataFiles.getObjectInfoList().size() > 0)
-                        dataFiles.addAll(csvDataFiles.getObjectInfoList());
-//                    if(xmlDataFiles.getObjectInfoList().size() > 0)
-//                        dataFiles.addAll(xmlDataFiles.getObjectInfoList());
-//                    if(htmlDataFiles.getObjectInfoList().size() > 0)
-//                        dataFiles.addAll(htmlDataFiles.getObjectInfoList());
-//                    if(bmpDataFiles.getObjectInfoList().size() > 0)
-//                        dataFiles.addAll(bmpDataFiles.getObjectInfoList());
-//                    if(jpegDataFiles.getObjectInfoList().size() > 0)
-//                        dataFiles.addAll(jpegDataFiles.getObjectInfoList());
-//                    if(gifDataFiles.getObjectInfoList().size() > 0)
-//                        dataFiles.addAll(gifDataFiles.getObjectInfoList());
-                } catch (Exception e) {
-                    throw new AssertionError(callAdapter.getNodeBaseServiceUrl() + ":   "
-                            + "Unable to find a test object for testView_Data functional test! "
-                            + "Call to listObjects() failed on " + callAdapter.getNodeBaseServiceUrl() + " : " 
-                            + e.getMessage() + ", " + e.getCause() == null ? "" : e.getCause().getMessage());
-                }
-            }
-            assertTrue("testView_Data() needs to be able to locate a \"text/csv\" data file to test with.", 
-                    dataFiles.size() > 0);
-            
-            for (ObjectInfo objInfo : dataFiles) {
-                Identifier csvPid = objInfo.getIdentifier();
-                try {
-                    viewIS = callAdapter.get(null, csvPid);
-                    if (viewIS != null) {
-                        pid = objInfo.getIdentifier();
-                        break;
-                    }
-                } catch (Exception e) {}
-                finally {
-                    IOUtils.closeQuietly(viewIS);
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new AssertionError(callAdapter.getNodeBaseServiceUrl() + ":   "
-                    + "Unable to find a test object for testView_Data functional test: " 
-                    + e.getMessage() + ", " + e.getCause() == null ? "" : e.getCause().getMessage());
-        }
-        
-        assertTrue("testView_Data() needs to be able to locate a \"text/csv\" data file to test with; "
-                + "found none on the current node.", pid != null);
-        
-        InputStream is = null;
-        try {
-            is = callAdapter.view(null, "default", pid);
-        
-            org.jsoup.nodes.Document doc = null;
-            try {
-                doc = Jsoup.parse(is, null, "");
-            } catch (Exception e) {
-                throw new AssertionError(callAdapter.getNodeBaseServiceUrl() + ":   "
-                        + "view() should return an InputStream"
-                        + "that can be parsed into a document. Error: " 
-                        + e.getClass().getName() + ": " + e.getMessage());
-            }
-            Element htmlRoot = doc.select(":root").first();
-            if (htmlRoot == null)
-                throw new AssertionError(callAdapter.getNodeBaseServiceUrl() + ":   "
-                        + "view() did not return an HTML document.");
-            
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new AssertionError(callAdapter.getNodeBaseServiceUrl() + ":   "
-                    + "Unable to run testView_Data functional test: " 
-                    + e.getMessage());
-        } finally {
-            IOUtils.closeQuietly(is);
-        }
-    }
-    
     @WebTestName("listViews - tests if the listViews call returns valid themes, including 'default'")
     @WebTestDescription("this test calls listViews() and verifies that it returns a valid list of themes "
             + "including the required 'default' theme")
@@ -314,6 +201,7 @@ public class ViewFunctionalTestImplementations extends ContextAwareAdapter {
         
             for (String viewType : views.getOptionList()) {
 
+                InputStream is = null;
                 try {
                     AccessRule accessRule = new AccessRule();
                     getSession("testRightsHolder");
@@ -325,13 +213,15 @@ public class ViewFunctionalTestImplementations extends ContextAwareAdapter {
                     
                     Thread.sleep(METACAT_INDEXING_TIME);
                     
-                    callAdapter.view(null, viewType, pid);
+                    is = callAdapter.view(null, viewType, pid);
                     
                 } catch (Exception e1) {
                     handleFail(callAdapter.getNodeBaseServiceUrl(), 
                             "listViews() returned a theme \"" + viewType 
                             + "\", which does not seem to be supported. Yielded exception: "  
                             + e1.getMessage() + " : " + e1.getCause() == null ? "" : e1.getCause().getMessage());
+                } finally {
+                    IOUtils.closeQuietly(is);
                 }
             }
             
