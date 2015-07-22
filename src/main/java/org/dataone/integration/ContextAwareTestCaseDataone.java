@@ -1260,8 +1260,11 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
                 byte[] contentBytes = ExampleUtilities.getExampleObjectOfType(DEFAULT_TEST_OBJECTFORMAT);
                 objectInputStream = new ByteArrayInputStream(contentBytes);
                 NodeReference nodeReference = D1TypeBuilder.buildNodeReference("bogusAuthoritativeNode");
-                if(d1Node instanceof MNCallAdapter)
-                    nodeReference = ((MNCallAdapter) d1Node).getNode().getIdentifier();
+                if(d1Node instanceof MNCallAdapter) {
+                    NodeReference nodeIdentifier = ((MNCallAdapter) d1Node).getNode().getIdentifier();
+                    if (nodeIdentifier != null)
+                        nodeReference = nodeIdentifier;
+                }
                 d1o = new D1Object(pid, contentBytes,
                         D1TypeBuilder.buildFormatIdentifier(DEFAULT_TEST_OBJECTFORMAT),
                         D1TypeBuilder.buildSubject(submitterX500),
