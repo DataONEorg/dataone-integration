@@ -20,17 +20,17 @@ public class MNPackageFunctionalIT extends ContextAwareTestCaseDataone {
     }
     
     @Test
-    private void testGetPackage_Zip() {
+    public void testGetPackage_Zip() { 
         pkgImpl.testGetPackage_Zip(getMemberNodeIterator(), "v2");
     }
     
     @Test
-    private void testGetPackage_Gzip() {
+    public void testGetPackage_Gzip() {
         pkgImpl.testGetPackage_Gzip(getMemberNodeIterator(), "v2");
     }
     
     @Test
-    private void testGetPackage_Bzip2() {
+    public void testGetPackage_Bzip2() {
         pkgImpl.testGetPackage_Bzip2(getMemberNodeIterator(), "v2");
     }
 

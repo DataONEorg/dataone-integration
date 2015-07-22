@@ -24,7 +24,6 @@ package org.dataone.integration;
 
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
@@ -69,11 +68,9 @@ import org.dataone.client.rest.RestClient;
 import org.dataone.client.v1.CNode;
 import org.dataone.client.v1.MNode;
 import org.dataone.client.v1.itk.D1Object;
-import org.dataone.client.v1.itk.DataPackage;
 import org.dataone.client.v1.types.D1TypeBuilder;
 import org.dataone.configuration.Settings;
 import org.dataone.configuration.TestSettings;
-import org.dataone.integration.adapters.CNCallAdapter;
 import org.dataone.integration.adapters.CommonCallAdapter;
 import org.dataone.integration.adapters.MNCallAdapter;
 import org.dataone.ore.ResourceMapFactory;
@@ -99,6 +96,7 @@ import org.dataone.service.types.v1.ObjectFormatIdentifier;
 import org.dataone.service.types.v1.ObjectInfo;
 import org.dataone.service.types.v1.ObjectList;
 import org.dataone.service.types.v1.Permission;
+import org.dataone.service.types.v1.ReplicationPolicy;
 import org.dataone.service.types.v1.Subject;
 import org.dataone.service.types.v1.util.AccessUtil;
 import org.dataone.service.types.v2.SystemMetadata;
@@ -1025,6 +1023,27 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 //		return createTestObject(d1Node, pid, accessRule);
 //	}
 
+    public Identifier createTestObject(D1Node d1Node, String idSuffix, AccessRule accessRule, ReplicationPolicy replPolicy)
+        throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique,
+        UnsupportedType, InsufficientResources, InvalidSystemMetadata, NotImplemented,
+        InvalidRequest, UnsupportedEncodingException, NotFound, ClientSideException
+    {
+        // create the identifier for the test object
+        Identifier pid = new Identifier();
+
+        String nodeAbbrev = createNodeAbbreviation(d1Node.getNodeBaseServiceUrl());
+
+        String prefix = d1Node.getClass().getSimpleName() +  "TierTests." + nodeAbbrev + ".";
+        if (idSuffix != null) {
+            pid.setValue(prefix + ExampleUtilities.generateIdentifier() +
+                    "." + idSuffix);
+        } else {
+            pid.setValue(prefix + ExampleUtilities.generateIdentifier());
+        }
+
+        return createTestObject(d1Node, pid, accessRule, replPolicy);
+    }
+    
     public Identifier createTestObject(D1Node d1Node, String idSuffix, AccessRule accessRule)
     throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique,
     UnsupportedType, InsufficientResources, InvalidSystemMetadata, NotImplemented,
@@ -1043,7 +1062,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
             pid.setValue(prefix + ExampleUtilities.generateIdentifier());
         }
 
-        return createTestObject(d1Node, pid, accessRule);
+        return createTestObject(d1Node, idSuffix, accessRule, null);
     }
 
 
@@ -1072,7 +1091,8 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
      * @throws NotFound
      * @throws ClientSideException
      */
-    public Identifier createTestObject(D1Node d1Node, Identifier pid, AccessRule accessRule, String submitterSubject)
+    public Identifier createTestObject(D1Node d1Node, Identifier pid, AccessRule accessRule, String submitterSubject,
+            ReplicationPolicy replPolicy)
     throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique, UnsupportedType,
     InsufficientResources, InvalidSystemMetadata, NotImplemented, InvalidRequest,
     UnsupportedEncodingException, NotFound, ClientSideException
@@ -1080,18 +1100,40 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
         // the default is to do all of the creates under the testSubmitter subject
         // and assign rights to testRightsHolder
         if (d1Node instanceof MNode) {
-            return createTestObject(d1Node, pid, accessRule, "testSubmitter", "CN=testRightsHolder,DC=dataone,DC=org");
+            return createTestObject(d1Node, pid, accessRule, "testSubmitter", "CN=testRightsHolder,DC=dataone,DC=org", replPolicy);
         } else {
-            return createTestObject(d1Node, pid, accessRule, submitterSubject, "CN=testRightsHolder,DC=dataone,DC=org");
+            return createTestObject(d1Node, pid, accessRule, submitterSubject, "CN=testRightsHolder,DC=dataone,DC=org", replPolicy);
         }
     }
 
+    public Identifier createTestObject(D1Node d1Node, Identifier pid, AccessRule accessRule, String submitterSubject)
+    throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique, UnsupportedType,
+    InsufficientResources, InvalidSystemMetadata, NotImplemented, InvalidRequest,
+    UnsupportedEncodingException, NotFound, ClientSideException
+    {
+        return createTestObject(d1Node, pid, accessRule, submitterSubject, (ReplicationPolicy) null);
+    }
+    
+    public Identifier createTestObject(D1Node d1Node, Identifier pid, AccessRule accessRule, ReplicationPolicy replPolicy) throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique, UnsupportedType, InsufficientResources, InvalidSystemMetadata, NotImplemented, InvalidRequest, UnsupportedEncodingException, NotFound, ClientSideException {
+        return createTestObject(d1Node, pid, accessRule, cnSubmitter, replPolicy);
+    }
+    
     public Identifier createTestObject(D1Node d1Node, Identifier pid, AccessRule accessRule) throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique, UnsupportedType, InsufficientResources, InvalidSystemMetadata, NotImplemented, InvalidRequest, UnsupportedEncodingException, NotFound, ClientSideException {
-        return createTestObject(d1Node, pid, accessRule, cnSubmitter);
+        return createTestObject(d1Node, pid, accessRule, cnSubmitter, (ReplicationPolicy) null);
     }
 
     public Identifier createTestObject(D1Node d1Node, Identifier pid,
             AccessRule accessRule, String submitterSubjectLabel, String rightsHolderSubjectName)
+    throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique, UnsupportedType,
+    InsufficientResources, InvalidSystemMetadata, NotImplemented, InvalidRequest,
+    UnsupportedEncodingException, NotFound, ClientSideException
+    {
+        return createTestObject(d1Node, pid, accessRule, submitterSubjectLabel, rightsHolderSubjectName, null);
+    }
+
+    public Identifier createTestObject(D1Node d1Node, Identifier pid,
+            AccessRule accessRule, String submitterSubjectLabel, String rightsHolderSubjectName,
+            ReplicationPolicy replPolicy)
     throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique, UnsupportedType,
     InsufficientResources, InvalidSystemMetadata, NotImplemented, InvalidRequest,
     UnsupportedEncodingException, NotFound, ClientSideException
@@ -1101,9 +1143,9 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
             policy = new AccessPolicy();
             policy.addAllow(accessRule);
         }
-        return createTestObject( d1Node, pid, policy, submitterSubjectLabel, rightsHolderSubjectName);
+        return createTestObject(d1Node, pid, policy, submitterSubjectLabel, rightsHolderSubjectName, replPolicy);
     }
-
+    
     /**
      * Creates a test object according to the parameters provided.  The method becomes
      * the submitter client for the create, and restores the client subject/certificate
@@ -1138,7 +1180,29 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
     UnsupportedEncodingException, NotFound, ClientSideException
     {
         return createTestObject(d1Node, pid, null, null, null, policy, submitterSubjectLabel,
-                rightsHolderSubjectName);
+                rightsHolderSubjectName, null);
+    }
+    
+    public Identifier createTestObject(D1Node d1Node, Identifier pid,
+            AccessPolicy policy, String submitterSubjectLabel, String rightsHolderSubjectName,
+            ReplicationPolicy replPolicy)
+    throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique, UnsupportedType,
+    InsufficientResources, InvalidSystemMetadata, NotImplemented, InvalidRequest,
+    UnsupportedEncodingException, NotFound, ClientSideException
+    {
+        return createTestObject(d1Node, pid, null, null, null, policy, submitterSubjectLabel,
+                rightsHolderSubjectName, replPolicy);
+    }
+    
+    public Identifier createTestObject(D1Node d1Node, Identifier pid, Identifier sid, 
+            Identifier obsoletesId, Identifier obsoletedById,
+            AccessPolicy policy, String submitterSubjectLabel, String rightsHolderSubjectName)
+    throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique, UnsupportedType,
+    InsufficientResources, InvalidSystemMetadata, NotImplemented, InvalidRequest,
+    UnsupportedEncodingException, NotFound, ClientSideException
+    {
+        return createTestObject(d1Node, pid, sid, obsoletesId, obsoletedById, policy,
+                submitterSubjectLabel, rightsHolderSubjectName, null);
     }
     
     /**
@@ -1161,7 +1225,8 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
      */
     public Identifier createTestObject(D1Node d1Node, Identifier pid, Identifier sid, 
             Identifier obsoletesId, Identifier obsoletedById,
-            AccessPolicy policy, String submitterSubjectLabel, String rightsHolderSubjectName)
+            AccessPolicy policy, String submitterSubjectLabel, String rightsHolderSubjectName,
+            ReplicationPolicy replPolicy)
     throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique, UnsupportedType,
     InsufficientResources, InvalidSystemMetadata, NotImplemented, InvalidRequest,
     UnsupportedEncodingException, NotFound, ClientSideException
@@ -1204,6 +1269,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
                 //			}
                 sysMeta = TypeMarshaller.convertTypeFromType(d1o.getSystemMetadata(), SystemMetadata.class);
                 sysMeta.setSeriesId(sid);
+                sysMeta.setReplicationPolicy(replPolicy);
             } catch (NoSuchAlgorithmException e) {
                 e.printStackTrace();
                 throw new ServiceFailure("0000","client misconfiguration related to checksum algorithms");

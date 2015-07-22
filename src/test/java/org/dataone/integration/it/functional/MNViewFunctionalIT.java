@@ -32,11 +32,6 @@ public class MNViewFunctionalIT extends ContextAwareTestCaseDataone {
     }
     
     @Test
-    public void testView_Data() {
-        viewImpl.testView_Data(getMemberNodeIterator(), "v2");
-    }
-    
-    @Test
     public void testListViews() {
         viewImpl.testListViews(getMemberNodeIterator(), "v2");
     }

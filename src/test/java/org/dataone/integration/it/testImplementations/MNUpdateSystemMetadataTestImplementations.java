@@ -37,6 +37,7 @@ import org.dataone.service.util.TypeMarshaller;
 public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetadataTestImplementations {
 
     private CNCallAdapter cn;
+    private static final long METACAT_INDEXING_WAIT = 10000;
     
     public MNUpdateSystemMetadataTestImplementations(ContextAwareTestCaseDataone catc) {
         super(catc);
@@ -60,6 +61,8 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
     
     // @Ignore'd in test class: No MN test certificates to test with at the moment
     public void testUpdateSystemMetadata_NotAuthorizedMN(Node node, String version) {
+        
+        assertTrue("Should be @Ignore'd", false);
         
 //        String mnSubject = no MN test certs to use;
 //        CommonCallAdapter cnCertCallAdapter = new CommonCallAdapter(getSession(cnSubmitter), node, version);
@@ -123,15 +126,18 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
             SystemMetadata sysmeta = callAdapter.getSystemMetadata(null, testObjPid);
             BigInteger newSerialVersion = sysmeta.getSerialVersion().add(BigInteger.ONE);
             Date nowIsh = new Date();
+            Date originalDate = sysmeta.getDateSysMetadataModified();
             sysmeta.setSerialVersion(newSerialVersion);
             sysmeta.setDateSysMetadataModified(nowIsh);
             
             boolean success = callAdapter.updateSystemMetadata(null, testObjPid , sysmeta);
             assertTrue("Call to updateSystemMetadata() should be successful.", success);
             
+            Thread.sleep(METACAT_INDEXING_WAIT);
+            
             SystemMetadata fetchedSysmeta = callAdapter.getSystemMetadata(null, testObjPid);
             boolean serialVersionMatches = fetchedSysmeta.getSerialVersion().equals(newSerialVersion);
-            boolean dateModifiedMatches = fetchedSysmeta.getDateSysMetadataModified().equals(nowIsh);
+            boolean dateModifiedMatches = fetchedSysmeta.getDateSysMetadataModified().after(originalDate);
             assertTrue("System metadata should now have updated serialVersion", serialVersionMatches);
             assertTrue("System metadata should now have updated dateSysMetadataModified", dateModifiedMatches );
         
@@ -185,6 +191,8 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
             
             boolean success = callAdapter.updateSystemMetadata(null, testObjPid , sysmeta);
             assertTrue("Call to updateSystemMetadata() should be successful.", success);
+            
+            Thread.sleep(METACAT_INDEXING_WAIT);
             
             SystemMetadata fetchedSysmeta = callAdapter.getSystemMetadata(null, testObjPid);
             boolean serialVersionMatches = fetchedSysmeta.getSerialVersion().equals(newSerialVersion);
@@ -241,6 +249,8 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
             
             boolean success = callAdapter.updateSystemMetadata(null, testObjPid , sysmeta);
             assertTrue("Call to updateSystemMetadata() should be successful.", success);
+            
+            Thread.sleep(METACAT_INDEXING_WAIT);
             
             SystemMetadata fetchedSysmeta = callAdapter.getSystemMetadata(null, testObjPid);
             boolean serialVersionMatches = fetchedSysmeta.getSerialVersion().equals(newSerialVersion);
@@ -303,6 +313,8 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
             
             boolean success = callAdapter.updateSystemMetadata(null, testObjPid , sysmeta);
             assertTrue("Call to updateSystemMetadata() should be successful.", success);
+            
+            Thread.sleep(METACAT_INDEXING_WAIT);
             
             SystemMetadata fetchedSysmeta = callAdapter.getSystemMetadata(null, testObjPid);
             boolean serialVersionMatches = fetchedSysmeta.getSerialVersion().equals(newSerialVersion);
@@ -373,6 +385,8 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
             boolean success = callAdapter.updateSystemMetadata(null, testObjPid , sysmeta);
             assertTrue("Call to updateSystemMetadata() should be successful.", success);
             
+            Thread.sleep(METACAT_INDEXING_WAIT);
+            
             SystemMetadata fetchedSysmeta = callAdapter.getSystemMetadata(null, testObjPid);
             boolean serialVersionMatches = fetchedSysmeta.getSerialVersion().equals(newSerialVersion);
             ReplicationPolicy fetchedReplPolicy = fetchedSysmeta.getReplicationPolicy();
@@ -426,7 +440,7 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
             
             SystemMetadata sysmeta = callAdapter.getSystemMetadata(null, testObjPid);
             BigInteger newSerialVersion = sysmeta.getSerialVersion().add(BigInteger.ONE);
-            Date nowIsh = new Date();
+            sysmeta.setSerialVersion(newSerialVersion);
             
             NodeList nodes = cn.listNodes();
             Node diffMN = null;
@@ -441,6 +455,8 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
             
             boolean success = callAdapter.updateSystemMetadata(null, testObjPid , sysmeta);
             assertTrue("Call to updateSystemMetadata() should be successful.", success);
+            
+            Thread.sleep(METACAT_INDEXING_WAIT);
             
             SystemMetadata fetchedSysmeta = callAdapter.getSystemMetadata(null, testObjPid);
             boolean serialVersionMatches = fetchedSysmeta.getSerialVersion().equals(newSerialVersion);
@@ -492,10 +508,13 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
             
             SystemMetadata sysmeta = callAdapter.getSystemMetadata(null, testObjPid);
             BigInteger newSerialVersion = sysmeta.getSerialVersion().add(BigInteger.ONE);
+            sysmeta.setSerialVersion(newSerialVersion);
             sysmeta.setArchived(true);
             
             boolean success = callAdapter.updateSystemMetadata(null, testObjPid , sysmeta);
             assertTrue("Call to updateSystemMetadata() should be successful.", success);
+            
+            Thread.sleep(METACAT_INDEXING_WAIT);
             
             SystemMetadata fetchedSysmeta = callAdapter.getSystemMetadata(null, testObjPid);
             boolean serialVersionMatches = fetchedSysmeta.getSerialVersion().equals(newSerialVersion);
@@ -602,15 +621,16 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
         currentUrl = callAdapter.getNodeBaseServiceUrl();
         
         SystemMetadata v2sysmeta = null;
-        Identifier p1 = D1TypeBuilder.buildIdentifier("testUpdateSystemMetadata_ObsoletesFail_" + ExampleUtilities.generateIdentifier());
-        Identifier p2 = D1TypeBuilder.buildIdentifier("testUpdateSystemMetadata_ObsoletesFail_" + ExampleUtilities.generateIdentifier());
-        Identifier p3 = D1TypeBuilder.buildIdentifier("testUpdateSystemMetadata_ObsoletesFail_" + ExampleUtilities.generateIdentifier());
+        Identifier p1 = createPid("testUpdateSystemMetadata_ObsoletesFail_" + ExampleUtilities.generateIdentifier());
+        Identifier p2 = createPid("testUpdateSystemMetadata_ObsoletesFail_" + ExampleUtilities.generateIdentifier());
+        Identifier p3 = createPid("testUpdateSystemMetadata_ObsoletesFail_" + ExampleUtilities.generateIdentifier());
         
         try {
             getSession("testRightsHolder");
             String rightsHolderSubjStr = catc.getSubject("testRightsHolder").getValue();
             AccessRule accessRule = APITestUtils.buildAccessRule(rightsHolderSubjStr, Permission.CHANGE_PERMISSION);
             p1 = catc.createTestObject(callAdapter, p1, accessRule);
+            Thread.sleep(METACAT_INDEXING_WAIT);
             
             byte[] contentBytes = ExampleUtilities.getExampleObjectOfType(ExampleUtilities.FORMAT_EML_2_0_1);
             ByteArrayInputStream objectInputStream = new ByteArrayInputStream(contentBytes);
@@ -620,22 +640,30 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
                     D1TypeBuilder.buildNodeReference("bogusAuthoritativeNode"));
             
             v2sysmeta = TypeMarshaller.convertTypeFromType(d1o.getSystemMetadata(), SystemMetadata.class);
+            v2sysmeta.setAuthoritativeMemberNode(node.getIdentifier());
             p2 = d1o.getIdentifier();
+            
             callAdapter.update(null, p1, objectInputStream, p2, v2sysmeta);
             p3 = catc.createTestObject(callAdapter, p3, accessRule);
-
+            Thread.sleep(METACAT_INDEXING_WAIT);
+            
         } catch (BaseException e) {
-            handleFail(callAdapter.getLatestRequestUrl(), 
-                    "testUpdateSystemMetadata_ObsoletesFail() setup steps failed! " 
+            throw new AssertionError(currentUrl + " testUpdateSystemMetadata_ObsoletesFail() setup steps failed! " 
                     + e.getClass().getSimpleName() + ": " + e.getDetail_code() + ": " + e.getDescription());
         } catch(Exception e) {
-            handleFail(currentUrl, "testUpdateSystemMetadata_ObsoletesFail() setup steps failed! "  
+            throw new AssertionError(currentUrl + " testUpdateSystemMetadata_ObsoletesFail() setup steps failed! "  
                     + e.getClass().getName() + ": " + e.getMessage());
         }
         
         try {
+            v2sysmeta = callAdapter.getSystemMetadata(null, p2);
             v2sysmeta.setObsoletes(p3);
             callAdapter.updateSystemMetadata(null, p2 , v2sysmeta);
+            
+            handleFail(callAdapter.getLatestRequestUrl(), 
+                    "testUpdateSystemMetadata_ObsoletesFail() expected InvalidSystemMetadata since "
+                    + "changing the obsoletes field on one sysmeta without clearing out the corresponding "
+                    + "sysmeta's obsoletedBy first would create a contradiction in the pid chain");
             
         } catch (InvalidSystemMetadata e) {
             // expected
@@ -669,9 +697,9 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
         currentUrl = callAdapter.getNodeBaseServiceUrl();
         
         SystemMetadata v2sysmeta = null;
-        Identifier p1 = D1TypeBuilder.buildIdentifier("testUpdateSystemMetadata_ObsoletedByFail_" + ExampleUtilities.generateIdentifier());
-        Identifier p2 = D1TypeBuilder.buildIdentifier("testUpdateSystemMetadata_ObsoletedByFail_" + ExampleUtilities.generateIdentifier());
-        Identifier p3 = D1TypeBuilder.buildIdentifier("testUpdateSystemMetadata_ObsoletedByFail_" + ExampleUtilities.generateIdentifier());
+        Identifier p1 = createPid("testUpdateSystemMetadata_ObsoletedByFail_" + ExampleUtilities.generateIdentifier());
+        Identifier p2 = createPid("testUpdateSystemMetadata_ObsoletedByFail_" + ExampleUtilities.generateIdentifier());
+        Identifier p3 = createPid("testUpdateSystemMetadata_ObsoletedByFail_" + ExampleUtilities.generateIdentifier());
         SystemMetadata p1sysmeta = null;
         
         try {
@@ -679,6 +707,7 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
             String rightsHolderSubjStr = catc.getSubject("testRightsHolder").getValue();
             AccessRule accessRule = APITestUtils.buildAccessRule(rightsHolderSubjStr, Permission.CHANGE_PERMISSION);
             p1 = catc.createTestObject(callAdapter, p1, accessRule);
+            Thread.sleep(METACAT_INDEXING_WAIT);
             
             byte[] contentBytes = ExampleUtilities.getExampleObjectOfType(ExampleUtilities.FORMAT_EML_2_0_1);
             ByteArrayInputStream objectInputStream = new ByteArrayInputStream(contentBytes);
@@ -691,14 +720,14 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
             p2 = d1o.getIdentifier();
             callAdapter.update(null, p1, objectInputStream, p2, v2sysmeta);
             p3 = catc.createTestObject(callAdapter, p3, accessRule);
-
+            Thread.sleep(METACAT_INDEXING_WAIT);
+            
             p1sysmeta = callAdapter.getSystemMetadata(null, p1);
         } catch (BaseException e) {
-            handleFail(callAdapter.getLatestRequestUrl(), 
-                    "testUpdateSystemMetadata_ObsoletedByFail() setup steps failed! " 
+            throw new AssertionError(currentUrl + " testUpdateSystemMetadata_ObsoletedByFail() setup steps failed! " 
                     + e.getClass().getSimpleName() + ": " + e.getDetail_code() + ": " + e.getDescription());
         } catch(Exception e) {
-            handleFail(currentUrl, "testUpdateSystemMetadata_ObsoletedByFail() setup steps failed! "  
+            throw new AssertionError(currentUrl + " testUpdateSystemMetadata_ObsoletedByFail() setup steps failed! "  
                     + e.getClass().getName() + ": " + e.getMessage());
         }
         
@@ -737,8 +766,8 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
         currentUrl = callAdapter.getNodeBaseServiceUrl();
         
         SystemMetadata p1sysmeta = null;
-        Identifier p1 = D1TypeBuilder.buildIdentifier("testUpdateSystemMetadata_MutableObsoletedBy_" + ExampleUtilities.generateIdentifier());
-        Identifier p2 = D1TypeBuilder.buildIdentifier("testUpdateSystemMetadata_MutableObsoletedBy_" + ExampleUtilities.generateIdentifier());
+        Identifier p1 = createPid("testUpdateSystemMetadata_MutableObsoletedBy_" + ExampleUtilities.generateIdentifier());
+        Identifier p2 = createPid("testUpdateSystemMetadata_MutableObsoletedBy_" + ExampleUtilities.generateIdentifier());
         
         try {
             getSession("testRightsHolder");
@@ -746,14 +775,14 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
             AccessRule accessRule = APITestUtils.buildAccessRule(rightsHolderSubjStr, Permission.CHANGE_PERMISSION);
             p1 = catc.createTestObject(callAdapter, p1, accessRule);
             p2 = catc.createTestObject(callAdapter, p2, accessRule);
-        
+            Thread.sleep(METACAT_INDEXING_WAIT);
+            
             p1sysmeta = callAdapter.getSystemMetadata(null, p1);
         } catch (BaseException e) {
-            handleFail(callAdapter.getLatestRequestUrl(), 
-                    "testUpdateSystemMetadata_MutableObsoletedBy() setup steps failed! " 
+            throw new AssertionError(currentUrl + " testUpdateSystemMetadata_MutableObsoletedBy() setup steps failed! " 
                     + e.getClass().getSimpleName() + ": " + e.getDetail_code() + ": " + e.getDescription());
         } catch(Exception e) {
-            handleFail(currentUrl, "testUpdateSystemMetadata_MutableObsoletedBy() setup steps failed! "  
+            throw new AssertionError(currentUrl + " testUpdateSystemMetadata_MutableObsoletedBy() setup steps failed! "  
                     + e.getClass().getName() + ": " + e.getMessage());
         }
         
@@ -792,8 +821,8 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
         currentUrl = callAdapter.getNodeBaseServiceUrl();
         
         SystemMetadata p2sysmeta = null;
-        Identifier p1 = D1TypeBuilder.buildIdentifier("testUpdateSystemMetadata_MutableObsoletes_" + ExampleUtilities.generateIdentifier());
-        Identifier p2 = D1TypeBuilder.buildIdentifier("testUpdateSystemMetadata_MutableObsoletes_" + ExampleUtilities.generateIdentifier());
+        Identifier p1 = createPid("testUpdateSystemMetadata_MutableObsoletes_" + ExampleUtilities.generateIdentifier());
+        Identifier p2 = createPid("testUpdateSystemMetadata_MutableObsoletes_" + ExampleUtilities.generateIdentifier());
         
         try {
             getSession("testRightsHolder");
@@ -801,14 +830,14 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
             AccessRule accessRule = APITestUtils.buildAccessRule(rightsHolderSubjStr, Permission.CHANGE_PERMISSION);
             p1 = catc.createTestObject(callAdapter, p1, accessRule);
             p2 = catc.createTestObject(callAdapter, p2, accessRule);
-        
+            Thread.sleep(METACAT_INDEXING_WAIT);
+            
             p2sysmeta = callAdapter.getSystemMetadata(null, p2);
         } catch (BaseException e) {
-            handleFail(callAdapter.getLatestRequestUrl(), 
-                    "testUpdateSystemMetadata_MutableObsoletes() setup steps failed! " 
+            throw new AssertionError(currentUrl + " testUpdateSystemMetadata_MutableObsoletes() setup steps failed! " 
                     + e.getClass().getSimpleName() + ": " + e.getDetail_code() + ": " + e.getDescription());
         } catch(Exception e) {
-            handleFail(currentUrl, "testUpdateSystemMetadata_MutableObsoletes() setup steps failed! "  
+            throw new AssertionError(currentUrl + " testUpdateSystemMetadata_MutableObsoletes() setup steps failed! "  
                     + e.getClass().getName() + ": " + e.getMessage());
         }
         
@@ -826,5 +855,12 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
             handleFail(currentUrl, "testUpdateSystemMetadata_MutableObsoletes() expected InvalidSystemMetadata but got: " 
                     + e.getClass().getName() + ": " + e.getMessage());
         }
+    }
+
+    private Identifier createPid(String string) {
+        try {
+            Thread.sleep(1);    // millisecond granularity isn't enough - was getting overlapping pids
+        } catch (InterruptedException e) {}
+        return D1TypeBuilder.buildIdentifier(string);
     }
 }

@@ -1,7 +1,7 @@
 package org.dataone.integration.it.testImplementations;
 
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -37,14 +37,17 @@ import org.dataone.service.types.v1.AccessPolicy;
 import org.dataone.service.types.v1.AccessRule;
 import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Node;
+import org.dataone.service.types.v1.NodeReference;
+import org.dataone.service.types.v1.NodeState;
 import org.dataone.service.types.v1.NodeType;
 import org.dataone.service.types.v1.ObjectInfo;
 import org.dataone.service.types.v1.ObjectList;
 import org.dataone.service.types.v1.Permission;
+import org.dataone.service.types.v1.ReplicationPolicy;
 import org.dataone.service.types.v1.Subject;
 import org.dataone.service.types.v2.SystemMetadata;
+import org.dataone.service.util.Constants;
 import org.dataone.service.util.TypeMarshaller;
-import org.junit.Test;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 
@@ -123,11 +126,11 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         log.info("v1 & v2 MNs available:     " + v1v2mns.size());
         
         for (Node n : v1mns)
-            log.info("v1-ONLY MN:   " + n.getIdentifier().getValue());
+            log.info("v1-ONLY MN:   " + n.getBaseURL());
         for (Node n : v2mns)
-            log.info("v2 MN     :   " + n.getIdentifier().getValue());
+            log.info("v2 MN     :   " + n.getBaseURL());
         for (Node n : v1v2mns)
-            log.info("v1 & v2 MN:   " + n.getIdentifier().getValue());
+            log.info("v1 & v2 MN:   " + n.getBaseURL());
     }
     
     @WebTestName("v2 create, v1 updateSystemMetadata")
@@ -141,7 +144,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         
         AccessRule accessRule = new AccessRule();
         getSession("testRightsHolder");
-        Subject subject = ContextAwareTestCaseDataone.getSubject("testRightsHolder");
+        Subject subject = D1TypeBuilder.buildSubject(Constants.SUBJECT_PUBLIC);
         accessRule.addSubject(subject);
         accessRule.addPermission(Permission.CHANGE_PERMISSION);
         
@@ -212,7 +215,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         
         AccessRule accessRule = new AccessRule();
         getSession("testRightsHolder");
-        Subject subject = ContextAwareTestCaseDataone.getSubject("testRightsHolder");
+        Subject subject = D1TypeBuilder.buildSubject(Constants.SUBJECT_PUBLIC);
         accessRule.addSubject(subject);
         accessRule.addPermission(Permission.CHANGE_PERMISSION);
         AccessPolicy policy = new AccessPolicy();
@@ -338,7 +341,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         
         AccessRule accessRule = new AccessRule();
         getSession("testRightsHolder");
-        Subject subject = ContextAwareTestCaseDataone.getSubject("testRightsHolder");
+        Subject subject = D1TypeBuilder.buildSubject(Constants.SUBJECT_PUBLIC);
         accessRule.addSubject(subject);
         accessRule.addPermission(Permission.CHANGE_PERMISSION);
         
@@ -427,27 +430,30 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         
         AccessRule accessRule = new AccessRule();
         getSession("testRightsHolder");
-        Subject subject = ContextAwareTestCaseDataone.getSubject("testRightsHolder");
+        Subject subject = D1TypeBuilder.buildSubject(Constants.SUBJECT_PUBLIC);
         accessRule.addSubject(subject);
         accessRule.addPermission(Permission.CHANGE_PERMISSION);
+        ReplicationPolicy replPolicy = new ReplicationPolicy();
+        replPolicy.setReplicationAllowed(true);
+        replPolicy.setNumberReplicas(3);
         
         Node v2MNode = v2mns.get(0);
         MNCallAdapter v2CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v2MNode, "v2");
         
         // v2 create
         
-        Identifier pid = null;
+        Identifier pid = D1TypeBuilder.buildIdentifier("testV2CreateV1GetSysMeta_" + ExampleUtilities.generateIdentifier());
         try {
-            pid = createTestObject(v2CallAdapter, "testV2CreateReplicate_", accessRule);
+            pid = createTestObject(v2CallAdapter, pid, accessRule, replPolicy);
         } catch (BaseException e) {
             e.printStackTrace();
-            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV2CreateReplicate() couldn't create test object: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV2CreateV1GetSysMeta() couldn't create test object: " 
                     + e.getClass().getSimpleName() + ": " 
                     + e.getDetail_code() + ":: " + e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
-            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV2CreateReplicate() couldn't create test object: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV2CreateV1GetSysMeta() couldn't create test object: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
         
@@ -469,13 +475,13 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             // expected, shouldn't have been replicated to a v1 node
         } catch (BaseException e) {
             e.printStackTrace();
-            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV2CreateReplicate() couldn't create update object: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV2CreateV1GetSysMeta() couldn't create update object: " 
                     + e.getClass().getSimpleName() + ": " 
                     + e.getDetail_code() + ":: " + e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
-            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV2CreateReplicate() couldn't create update object: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV2CreateV1GetSysMeta() couldn't create update object: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
     }
@@ -492,7 +498,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         
         AccessRule accessRule = new AccessRule();
         getSession("testRightsHolder");
-        Subject subject = ContextAwareTestCaseDataone.getSubject("testRightsHolder");
+        Subject subject = D1TypeBuilder.buildSubject(Constants.SUBJECT_PUBLIC);
         accessRule.addSubject(subject);
         accessRule.addPermission(Permission.CHANGE_PERMISSION);
         
@@ -557,18 +563,23 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         
         AccessRule accessRule = new AccessRule();
         getSession("testRightsHolder");
-        Subject subject = ContextAwareTestCaseDataone.getSubject("testRightsHolder");
+        Subject subject = D1TypeBuilder.buildSubject(Constants.SUBJECT_PUBLIC);
         accessRule.addSubject(subject);
         accessRule.addPermission(Permission.CHANGE_PERMISSION);
+        ReplicationPolicy replPolicy = new ReplicationPolicy();
+        
+        
+        replPolicy.setReplicationAllowed(true);
+        replPolicy.setNumberReplicas(3);
         
         Node v1MNode = v1mns.get(0);
         MNCallAdapter v1CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v1MNode, "v1");
         
         // v1 create
         
-        Identifier pid = null;
+        Identifier pid = D1TypeBuilder.buildIdentifier("testV1CreateV2Get_" + ExampleUtilities.generateIdentifier());
         try {
-            pid = createTestObject(v1CallAdapter, "testV1CreateV2Get_", accessRule);
+            pid = createTestObject(v1CallAdapter, pid, accessRule, replPolicy);
         } catch (BaseException e) {
             e.printStackTrace();
             throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV1CreateV2Get() couldn't create test object: " 
@@ -625,7 +636,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         
         AccessRule accessRule = new AccessRule();
         getSession("testRightsHolder");
-        Subject subject = ContextAwareTestCaseDataone.getSubject("testRightsHolder");
+        Subject subject = D1TypeBuilder.buildSubject(Constants.SUBJECT_PUBLIC);
         accessRule.addSubject(subject);
         accessRule.addPermission(Permission.CHANGE_PERMISSION);
         
@@ -694,18 +705,22 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         
         AccessRule accessRule = new AccessRule();
         getSession("testRightsHolder");
-        Subject subject = ContextAwareTestCaseDataone.getSubject("testRightsHolder");
+        Subject subject = D1TypeBuilder.buildSubject(Constants.SUBJECT_PUBLIC);
         accessRule.addSubject(subject);
         accessRule.addPermission(Permission.CHANGE_PERMISSION);
+        ReplicationPolicy replPolicy = new ReplicationPolicy();
+        replPolicy.setReplicationAllowed(true);
+        replPolicy.setNumberReplicas(3);
         
         Node v1MNode = v1mns.get(0);
         MNCallAdapter v1CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v1MNode, "v1");
         
         // v1 create
         
-        Identifier pid = null;
+        Identifier pid = D1TypeBuilder.buildIdentifier("testV1CreateV2GetSysmeta_" + ExampleUtilities.generateIdentifier());
         try {
-            pid = createTestObject(v1CallAdapter, "testV1CreateV2GetSysmeta_", accessRule);
+            pid = createTestObject(v1CallAdapter, pid, accessRule, replPolicy);
+            log.info("Created test object: " + pid.getValue() + " on MN: " + v1CallAdapter.getNodeBaseServiceUrl());
         } catch (BaseException e) {
             e.printStackTrace();
             throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV1CreateV2GetSysmeta() couldn't create test object: " 
@@ -759,7 +774,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         
         AccessRule accessRule = new AccessRule();
         getSession("testRightsHolder");
-        Subject subject = ContextAwareTestCaseDataone.getSubject("testRightsHolder");
+        Subject subject = D1TypeBuilder.buildSubject(Constants.SUBJECT_PUBLIC);
         accessRule.addSubject(subject);
         accessRule.addPermission(Permission.CHANGE_PERMISSION);
         
@@ -825,7 +840,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         
         AccessRule accessRule = new AccessRule();
         getSession("testRightsHolder");
-        Subject subject = ContextAwareTestCaseDataone.getSubject("testRightsHolder");
+        Subject subject = D1TypeBuilder.buildSubject(Constants.SUBJECT_PUBLIC);
         accessRule.addSubject(subject);
         accessRule.addPermission(Permission.CHANGE_PERMISSION);
         
@@ -923,18 +938,21 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         
         AccessRule accessRule = new AccessRule();
         getSession("testRightsHolder");
-        Subject subject = ContextAwareTestCaseDataone.getSubject("testRightsHolder");
+        Subject subject = D1TypeBuilder.buildSubject(Constants.SUBJECT_PUBLIC);
         accessRule.addSubject(subject);
         accessRule.addPermission(Permission.CHANGE_PERMISSION);
+        ReplicationPolicy replPolicy = new ReplicationPolicy();
+        replPolicy.setReplicationAllowed(true);
+        replPolicy.setNumberReplicas(3);
         
         Node v2MNode = v2mns.get(0);
         MNCallAdapter v2CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v2MNode, "v2");
         
         // v2 create
         
-        Identifier pid = null;
+        Identifier pid = D1TypeBuilder.buildIdentifier("testV2CreateV1Query_" + ExampleUtilities.generateIdentifier());
         try {
-            pid = createTestObject(v2CallAdapter, "testV2CreateV1Query_", accessRule);
+            pid = createTestObject(v2CallAdapter, pid, accessRule, replPolicy);
         } catch (BaseException e) {
             e.printStackTrace();
             throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV2CreateV1Query() couldn't create test object: " 
@@ -993,7 +1011,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         
         AccessRule accessRule = new AccessRule();
         getSession("testRightsHolder");
-        Subject subject = ContextAwareTestCaseDataone.getSubject("testRightsHolder");
+        Subject subject = D1TypeBuilder.buildSubject(Constants.SUBJECT_PUBLIC);
         accessRule.addSubject(subject);
         accessRule.addPermission(Permission.CHANGE_PERMISSION);
         
@@ -1056,7 +1074,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         
         AccessRule accessRule = new AccessRule();
         getSession("testRightsHolder");
-        Subject subject = ContextAwareTestCaseDataone.getSubject("testRightsHolder");
+        Subject subject = D1TypeBuilder.buildSubject(Constants.SUBJECT_PUBLIC);
         accessRule.addSubject(subject);
         accessRule.addPermission(Permission.CHANGE_PERMISSION);
         
@@ -1121,18 +1139,21 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         
         AccessRule accessRule = new AccessRule();
         getSession("testRightsHolder");
-        Subject subject = ContextAwareTestCaseDataone.getSubject("testRightsHolder");
+        Subject subject = D1TypeBuilder.buildSubject(Constants.SUBJECT_PUBLIC);
         accessRule.addSubject(subject);
         accessRule.addPermission(Permission.CHANGE_PERMISSION);
+        ReplicationPolicy replPolicy = new ReplicationPolicy();
+        replPolicy.setReplicationAllowed(true);
+        replPolicy.setNumberReplicas(3);
         
         Node v2MNode = v2mns.get(0);
         MNCallAdapter v2CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v2MNode, "v2");
         
         // v2 create
         
-        Identifier pid = null;
+        Identifier pid = D1TypeBuilder.buildIdentifier("testV2CreateV1Delete_" + ExampleUtilities.generateIdentifier());
         try {
-            pid = createTestObject(v2CallAdapter, "testV2CreateV1Delete_", accessRule);
+            pid = createTestObject(v2CallAdapter, pid, accessRule, replPolicy);
         } catch (BaseException e) {
             e.printStackTrace();
             throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV2CreateV1Delete() couldn't create test object: " 
@@ -1190,18 +1211,21 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         
         AccessRule accessRule = new AccessRule();
         getSession("testRightsHolder");
-        Subject subject = ContextAwareTestCaseDataone.getSubject("testRightsHolder");
+        Subject subject = D1TypeBuilder.buildSubject(Constants.SUBJECT_PUBLIC);
         accessRule.addSubject(subject);
         accessRule.addPermission(Permission.CHANGE_PERMISSION);
+        ReplicationPolicy replPolicy = new ReplicationPolicy();
+        replPolicy.setReplicationAllowed(true);
+        replPolicy.setNumberReplicas(3);
         
         Node v1MNode = v1mns.get(0);
         MNCallAdapter v1CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v1MNode, "v1");
         
         // v1 create
         
-        Identifier pid = null;
+        Identifier pid = D1TypeBuilder.buildIdentifier("testV1CreateV2Delete_" + ExampleUtilities.generateIdentifier());
         try {
-            pid = createTestObject(v1CallAdapter, "testV1CreateV2Delete_", accessRule);
+            pid = createTestObject(v1CallAdapter, pid, accessRule, replPolicy);
         } catch (BaseException e) {
             e.printStackTrace();
             throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV1CreateV2Delete() couldn't create test object: " 
@@ -1254,7 +1278,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         
         AccessRule accessRule = new AccessRule();
         getSession("testRightsHolder");
-        Subject subject = ContextAwareTestCaseDataone.getSubject("testRightsHolder");
+        Subject subject = D1TypeBuilder.buildSubject(Constants.SUBJECT_PUBLIC);
         accessRule.addSubject(subject);
         accessRule.addPermission(Permission.CHANGE_PERMISSION);
         
@@ -1322,7 +1346,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         
         AccessRule accessRule = new AccessRule();
         getSession("testRightsHolder");
-        Subject subject = ContextAwareTestCaseDataone.getSubject("testRightsHolder");
+        Subject subject = D1TypeBuilder.buildSubject(Constants.SUBJECT_PUBLIC);
         accessRule.addSubject(subject);
         accessRule.addPermission(Permission.CHANGE_PERMISSION);
         
@@ -1394,18 +1418,21 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         
         AccessRule accessRule = new AccessRule();
         getSession("testRightsHolder");
-        Subject subject = ContextAwareTestCaseDataone.getSubject("testRightsHolder");
+        Subject subject = D1TypeBuilder.buildSubject(Constants.SUBJECT_PUBLIC);
         accessRule.addSubject(subject);
         accessRule.addPermission(Permission.CHANGE_PERMISSION);
+        ReplicationPolicy replPolicy = new ReplicationPolicy();
+        replPolicy.setReplicationAllowed(true);
+        replPolicy.setNumberReplicas(3);
         
         Node v2MNode = v2mns.get(0);
         MNCallAdapter v2CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v2MNode, "v2");
         
         // v2 create
         
-        Identifier pid = null;
+        Identifier pid = D1TypeBuilder.buildIdentifier("testV2CreateV1ListObjects_" + ExampleUtilities.generateIdentifier());
         try {
-            pid = createTestObject(v2CallAdapter, "testV2CreateV1ListObjects_", accessRule);
+            pid = createTestObject(v2CallAdapter, pid, accessRule, replPolicy);
         } catch (BaseException e) {
             e.printStackTrace();
             throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV2CreateV1ListObjects() couldn't create test object: " 
@@ -1468,18 +1495,21 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         
         AccessRule accessRule = new AccessRule();
         getSession("testRightsHolder");
-        Subject subject = ContextAwareTestCaseDataone.getSubject("testRightsHolder");
+        Subject subject = D1TypeBuilder.buildSubject(Constants.SUBJECT_PUBLIC);
         accessRule.addSubject(subject);
         accessRule.addPermission(Permission.CHANGE_PERMISSION);
+        ReplicationPolicy replPolicy = new ReplicationPolicy();
+        replPolicy.setReplicationAllowed(true);
+        replPolicy.setNumberReplicas(3);
         
         Node v1MNode = v1mns.get(0);
         MNCallAdapter v1CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v1MNode, "v1");
         
         // v1 create
         
-        Identifier pid = null;
+        Identifier pid = D1TypeBuilder.buildIdentifier("testV1CreateV2ListObjects_" + ExampleUtilities.generateIdentifier());
         try {
-            pid = createTestObject(v1CallAdapter, "testV1CreateV2ListObjects_", accessRule);
+            pid = createTestObject(v1CallAdapter, pid, accessRule, replPolicy);
         } catch (BaseException e) {
             e.printStackTrace();
             throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV1CreateV2ListObjects() couldn't create test object: " 
