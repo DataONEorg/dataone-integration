@@ -317,14 +317,14 @@ public class APITestUtils {
      * @throws ClientSideException  - thrown when cannot build the appropriate calling class (MNode, CNode, etc.)
      */
     public static ObjectList pagedListObjects(CommonCallAdapter cca, Date fromDate, Date toDate,
-      ObjectFormatIdentifier formatid, Boolean replicaStatus, Integer start, Integer count)
+      ObjectFormatIdentifier formatid, Integer start, Integer count)
     throws InvalidRequest, InvalidToken, NotAuthorized, NotImplemented, ServiceFailure, ClientSideException
     {
 
         if (count != null && count <= 0) {
-            return cca.listObjects(null, fromDate, toDate, formatid, replicaStatus, start, 0);
+            return cca.listObjects(null, fromDate, toDate, formatid, start, 0);
         }
-        ObjectList ol = cca.listObjects(null, fromDate, toDate, formatid, replicaStatus, start, null);
+        ObjectList ol = cca.listObjects(null, fromDate, toDate, formatid, start, null);
         if (ol.getTotal() == ol.sizeObjectInfoList()) {
             // don't need to ask for more
             if (count != null && ol.sizeObjectInfoList() > count) {
@@ -342,7 +342,7 @@ public class APITestUtils {
         while (remaining > 0) {
             int pageSize = remaining < serverPageSize ? remaining : serverPageSize;
             start = retrieved;
-            ObjectList nextList = cca.listObjects(null, fromDate, toDate, formatid, replicaStatus, start, pageSize);
+            ObjectList nextList = cca.listObjects(null, fromDate, toDate, formatid, start, pageSize);
             retrieved += nextList.sizeObjectInfoList();
             remaining = totalNeeded - retrieved;
             ol.getObjectInfoList().addAll(nextList.getObjectInfoList());

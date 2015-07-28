@@ -607,7 +607,7 @@ public class ReadTestImplementations extends ContextAwareAdapter {
     }
 
     /**
-     * Tests the parameterless and parameterized listObject methods for proper returns.
+     * Tests the parameterless and parameterized listObject methods (common parameters) for proper returns.
      */
     public void testListObjects(Node node, String version) {
 
@@ -624,8 +624,7 @@ public class ReadTestImplementations extends ContextAwareAdapter {
             Date toDate = new Date(System.currentTimeMillis() - 1 * 60 * 1000);
             ObjectFormatIdentifier formatId = new ObjectFormatIdentifier();
             formatId.setValue(format_text_csv);
-            Boolean replicaStatus = true;
-            ol = callAdapter.listObjects(null, fromDate, toDate, formatId, null, replicaStatus, Integer.valueOf(0),
+            ol = callAdapter.listObjects(null, fromDate, toDate, formatId, Integer.valueOf(0),
                     Integer.valueOf(10));
             checkTrue(callAdapter.getLatestRequestUrl(), "listObjects(<parameters>) returns an ObjectList", ol != null);
         } catch (TestIterationEndingException e) {
@@ -666,7 +665,7 @@ public class ReadTestImplementations extends ContextAwareAdapter {
         printTestHeader("testListObjects_Slicing(...) vs. node: " + currentUrl);
 
         try {
-            ObjectList ol = callAdapter.listObjects(null, null, null, null, null, null, null, null);
+            ObjectList ol = callAdapter.listObjects(null, null, null, null, null, null);
             // make sure the count is accurate
             StringBuffer sb = new StringBuffer();
             int i = 0;
@@ -684,7 +683,7 @@ public class ReadTestImplementations extends ContextAwareAdapter {
 
             // test that one can limit the count
             int halfCount = ol.sizeObjectInfoList() / 2; // rounds down
-            ol = callAdapter.listObjects(null, null, null, null, null, null, 0, halfCount);
+            ol = callAdapter.listObjects(null, null, null, null, 0, halfCount);
 
             if (ol.sizeObjectInfoList() != halfCount)
                 sb.append(++i + ". should be able to limit the number of returned ObjectInfos using "
@@ -760,7 +759,7 @@ public class ReadTestImplementations extends ContextAwareAdapter {
             }
 
             // call listObjects with a fromDate
-            ol = callAdapter.listObjects(null, fromDate, null, null, null, null, null, null);
+            ol = callAdapter.listObjects(null, fromDate, null, null, null, null);
 
             if (ol.getObjectInfoList() != null) {
                 // at least some objects returned
@@ -811,7 +810,7 @@ public class ReadTestImplementations extends ContextAwareAdapter {
         try {
             // call listObjects with a fake format
             ObjectList ol = callAdapter.listObjects(null, null, null,
-                    D1TypeBuilder.buildFormatIdentifier("fake_format"), null, null, null, null);
+                    D1TypeBuilder.buildFormatIdentifier("fake_format"), null, null);
             if (ol.getTotal() != 0) {
                 handleFail(callAdapter.getLatestRequestUrl(), "filtering the object list by a fake "
                         + "format should return zero objects");
@@ -852,7 +851,7 @@ public class ReadTestImplementations extends ContextAwareAdapter {
         printTestHeader("testListObjects_FormatIdFiltering() vs. node: " + currentUrl);
 
         try {
-            ObjectList ol = callAdapter.listObjects(null, null, null, null, null, null, null, null);
+            ObjectList ol = callAdapter.listObjects(null, null, null, null, null, null);
             checkTrue(callAdapter.getLatestRequestUrl(), "listObjects() should return an ObjectList", ol != null);
             if (ol == null || ol.getTotal() == 0)
                 throw new TestIterationEndingException("no objects found in listObjects");
@@ -864,7 +863,7 @@ public class ReadTestImplementations extends ContextAwareAdapter {
             boolean foundAnother = false;
             int increment = 200;
             findAnotherFormat: for (int i = 0; i < allTotal; i += increment) {
-                ol = callAdapter.listObjects(null, null, null, null, null, null, i, increment);
+                ol = callAdapter.listObjects(null, null, null, null, i, increment);
                 for (ObjectInfo oi : ol.getObjectInfoList()) {
                     if (!oi.getFormatId().equals(formatA)) {
                         foundAnother = true;
@@ -875,7 +874,7 @@ public class ReadTestImplementations extends ContextAwareAdapter {
             if (!foundAnother) {
                 throw new TestIterationEndingException("only one object format was found.  Can't test format filtering");
             }
-            ol = callAdapter.listObjects(null, null, null, formatA, null, null, null, null);
+            ol = callAdapter.listObjects(null, null, null, formatA, null, null);
             checkTrue(callAdapter.getLatestRequestUrl(), "objectList filtered by " + formatA.getValue()
                     + " should contain fewer objects than unfiltered", ol.getTotal() < allTotal);
 

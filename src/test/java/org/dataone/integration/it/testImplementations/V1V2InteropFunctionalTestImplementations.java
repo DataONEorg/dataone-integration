@@ -1313,7 +1313,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         MNCallAdapter v1CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v1v2MNode, "v1");
         
         try {
-            ObjectList objList = v1CallAdapter.listObjects(null, null, null, null, null, null, null);
+            ObjectList objList = v1CallAdapter.listObjects(null, null, null, null, null, null);
             boolean objFound = false;
             for(ObjectInfo objInfo : objList.getObjectInfoList())
                 if(pid.getValue().equals(objInfo.getIdentifier().getValue())){
@@ -1381,7 +1381,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         MNCallAdapter v2CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v1v2MNode, "v2");
         
         try {
-            ObjectList objList = v2CallAdapter.listObjects(null, null, null, null, null, null, null);
+            ObjectList objList = v2CallAdapter.listObjects(null, null, null, null, null, null);
             boolean objFound = false;
             for(ObjectInfo objInfo : objList.getObjectInfoList())
                 if(pid.getValue().equals(objInfo.getIdentifier().getValue())){
@@ -1458,7 +1458,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         MNCallAdapter v1CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v1MNode, "v1");
         
         try {
-            ObjectList objList = v1CallAdapter.listObjects(null, null, null, null, null, null, null);
+            ObjectList objList = v1CallAdapter.listObjects(null, null, null, null, null, null);
             boolean objFound = false;
             for(ObjectInfo objInfo : objList.getObjectInfoList())
                 if(pid.getValue().equals(objInfo.getIdentifier().getValue())){
@@ -1535,7 +1535,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         MNCallAdapter v2CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v2MNode, "v2");
         
         try {
-            ObjectList objList = v1CallAdapter.listObjects(null, null, null, null, null, null, null);
+            ObjectList objList = v1CallAdapter.listObjects(null, null, null, null, null, null);
             boolean objFound = false;
             for(ObjectInfo objInfo : objList.getObjectInfoList())
                 if(pid.getValue().equals(objInfo.getIdentifier().getValue())){

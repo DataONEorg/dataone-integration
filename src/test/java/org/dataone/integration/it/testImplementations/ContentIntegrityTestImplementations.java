@@ -59,7 +59,7 @@ public class ContentIntegrityTestImplementations extends ContextAwareAdapter
         try {
             ObjectList ol = cca.listObjects(null, null, null,
                     D1TypeBuilder.buildFormatIdentifier("http://www.openarchives.org/ore/terms"),
-                    null, null, null);
+                    null, null);
             if (ol.sizeObjectInfoList() > 0) {
                 ObjectInfo oiResMap = ol.getObjectInfoList().get(0);
 
@@ -125,7 +125,7 @@ public class ContentIntegrityTestImplementations extends ContextAwareAdapter
                     log.info("   looking for objects with format: " + of.getFormatId().getValue());
 
                     ObjectList ol = cca.listObjects(null, null, null,
-                            of.getFormatId(), null, null, null);
+                            of.getFormatId(), null, null);
 
                     //TODO: listObjects returns ids for things that are not readable...
                     if (ol.sizeObjectInfoList() > 0) {
@@ -211,7 +211,7 @@ public class ContentIntegrityTestImplementations extends ContextAwareAdapter
                 if (of.getFormatType().equals("RESOURCE")) {
                     formatsChecked.append("\n" + of.getFormatId().getValue());
 
-                    ObjectList ol = mn.listObjects(null, null, null, of.getFormatId(),null, null, 20);
+                    ObjectList ol = mn.listObjects(null, null, null, of.getFormatId(), null, 20);
                     if (ol.sizeObjectInfoList() > 0) {
                         log.info(ol.sizeObjectInfoList() + " items found of type " +
                                 of.getFormatId().getValue());
@@ -289,7 +289,7 @@ public class ContentIntegrityTestImplementations extends ContextAwareAdapter
                 if (of.getFormatType().equals("RESOURCE")) {
                     formatsChecked.append("\n" + of.getFormatId().getValue());
 
-                    ObjectList ol = mn.listObjects(null, null, null, of.getFormatId(),null, null, 20);
+                    ObjectList ol = mn.listObjects(null, null, null, of.getFormatId(), null, 20);
                     if (ol.sizeObjectInfoList() > 0) {
                         log.info(ol.sizeObjectInfoList() + " items found of type " +
                                 of.getFormatId().getValue());

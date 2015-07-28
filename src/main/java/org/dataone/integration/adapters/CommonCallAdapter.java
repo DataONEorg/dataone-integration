@@ -324,12 +324,12 @@ public class CommonCallAdapter implements D1Node {
 
     /**
      * This method is compatible with v1 and v2 listObjects, but does not have
-     * the Identifier parameter that is added to the v2 method.
+     * the three parameters that are not in common between the two implementations.
+     * (Identifier and NodeReference are v2 only, Boolean replicaStatus is v1 only).
      * @param session
      * @param fromDate
      * @param toDate
      * @param formatID
-     * @param replicaStatus
      * @param start
      * @param count
      * @return
@@ -340,30 +340,36 @@ public class CommonCallAdapter implements D1Node {
      * @throws ServiceFailure
      * @throws ClientSideException
      */
-    public ObjectList listObjects(Session session, Date fromDate, Date toDate, ObjectFormatIdentifier formatID,
-            Boolean replicaStatus, Integer start, Integer count) throws InvalidRequest,
-            InvalidToken, NotAuthorized, NotImplemented, ServiceFailure, ClientSideException {
-        return listObjects(session, fromDate, toDate, formatID, null /* identifier */, 
-                replicaStatus, start, count);
+    public ObjectList listObjects(Session session, Date fromDate, Date toDate, 
+            ObjectFormatIdentifier formatID, Integer start, Integer count) 
+    throws InvalidRequest, InvalidToken, NotAuthorized, NotImplemented, ServiceFailure, ClientSideException {
+        return listObjects(session, fromDate, toDate, formatID, 
+                null /* NodeReference */,
+                null /* Identifier */,
+                null /* replicaStatusBoolean */,
+                start, count);
     }
-    
-    
+
     public ObjectList listObjects(Session session, Date fromDate, Date toDate, ObjectFormatIdentifier formatID,
-            Identifier identifier, Boolean replicaStatus, Integer start, Integer count) throws InvalidRequest,
+            NodeReference nodeId, Identifier identifier, Boolean replicaStatus, Integer start, Integer count) throws InvalidRequest,
             InvalidToken, NotAuthorized, NotImplemented, ServiceFailure, ClientSideException {
         if (this.node.getType().equals(NodeType.MN)) {
             if (this.version.toLowerCase().equals("v1")) {
-                if (identifier == null) {
+                if (identifier == null && nodeId == null) {
                     MNRead mnRead = D1NodeFactory.buildNode(org.dataone.service.mn.tier1.v1.MNRead.class, this.mrc,
                         URI.create(this.node.getBaseURL()));
                     return mnRead.listObjects(session, fromDate, toDate, formatID, replicaStatus, start, count);
                 } else {
-                    throw new InvalidRequest("0000", "The identifier field can only be null for v1.listObject calls");
+                    throw new InvalidRequest("0000", "The identifier and nodeId fields can only be null for v1.listObject calls");
                 }
             } else if (this.version.toLowerCase().equals("v2")) {
-                org.dataone.service.mn.tier1.v2.MNRead mnRead = D1NodeFactory.buildNode(
+                if (replicaStatus == null) {
+                    org.dataone.service.mn.tier1.v2.MNRead mnRead = D1NodeFactory.buildNode(
                         org.dataone.service.mn.tier1.v2.MNRead.class, this.mrc, URI.create(this.node.getBaseURL()));
-                return mnRead.listObjects(session, fromDate, toDate, formatID, identifier, replicaStatus, start, count);
+                    return mnRead.listObjects(session, fromDate, toDate, formatID, identifier, replicaStatus, start, count);
+                } else {
+                    throw new InvalidRequest("0000", "The replicaStatus file can only be null for v2. listObject calls");
+                }
             }
         } else if (this.node.getType().equals(NodeType.CN)) {
             if (this.version.toLowerCase().equals("v1")) {
@@ -376,7 +382,7 @@ public class CommonCallAdapter implements D1Node {
                 }
             } else if (this.version.toLowerCase().equals("v2")) {
                 CNRead cnRead = D1NodeFactory.buildNode(CNRead.class, this.mrc, URI.create(this.node.getBaseURL()));
-                return cnRead.listObjects(session, fromDate, toDate, formatID, identifier, replicaStatus, start, count);
+                return cnRead.listObjects(session, fromDate, toDate, formatID, nodeId, identifier, start, count);
             }
         }
         throw new ClientSideException("Unable to create node of type " + node.getType() + " of version " + version);

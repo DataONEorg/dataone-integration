@@ -60,35 +60,35 @@ public class CNReplicationV1IT extends ContextAwareTestCaseDataone implements
     @Test
     @Ignore("Test exists but claims to not be implemented (see CNReplicationTestImplementation)")
     public void testUpdateReplicationMetadata() {
-        replicationTestImpl.testUpdateReplicationMetadata(getCoordinatingNodeIterator(), "v1");
+//        replicationTestImpl.testUpdateReplicationMetadata(getCoordinatingNodeIterator(), "v1");
     }
 
     @Override
     @Test
     @Ignore("Test exists but claims to not be implemented (see CNReplicationTestImplementation)")
     public void testUpdateReplicationMetadata_NotAuthorized() {
-        replicationTestImpl.testUpdateReplicationMetadata_NotAuthorized(getCoordinatingNodeIterator(), "v1");
+//        replicationTestImpl.testUpdateReplicationMetadata_NotAuthorized(getCoordinatingNodeIterator(), "v1");
     }
 
     @Override
     @Test
     @Ignore("Test exists but claims to not be implemented (see CNReplicationTestImplementation)")
     public void testUpdateReplicationMetadata_NotFound() {
-        replicationTestImpl.testUpdateReplicationMetadata_NotFound(getCoordinatingNodeIterator(), "v1");
+//        replicationTestImpl.testUpdateReplicationMetadata_NotFound(getCoordinatingNodeIterator(), "v1");
     }
 
     @Override
     @Test
     @Ignore("Test exists but claims to not be implemented (see CNReplicationTestImplementation)")
     public void testUpdateReplicationMetadata_InvalidRequest() {
-        replicationTestImpl.testUpdateReplicationMetadata_InvalidRequest(getCoordinatingNodeIterator(), "v1");
+//        replicationTestImpl.testUpdateReplicationMetadata_InvalidRequest(getCoordinatingNodeIterator(), "v1");
     }
 
     @Override
     @Test
     @Ignore("Test exists but claims to not be implemented (see CNReplicationTestImplementation)")
     public void testUpdateReplicationMetadata_VersionMismatch() {
-        replicationTestImpl.testUpdateReplicationMetadata_VersionMismatch(getCoordinatingNodeIterator(), "v1");
+//        replicationTestImpl.testUpdateReplicationMetadata_VersionMismatch(getCoordinatingNodeIterator(), "v1");
     }
 
     @Override

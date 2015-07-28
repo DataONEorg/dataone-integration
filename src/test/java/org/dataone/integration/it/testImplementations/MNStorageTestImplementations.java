@@ -331,7 +331,7 @@ public class MNStorageTestImplementations extends ContextAwareAdapter {
                             .getObsoletedBy().getValue(), updatedPid.getValue());
 
             // the old pid needs to be in a timebound listObject search
-            ObjectList ol = callAdapter.listObjects(null, dateCreated, null, null, null, null, null);
+            ObjectList ol = callAdapter.listObjects(null, dateCreated, null, null, null, null);
             
             checkTrue(callAdapter.getLatestRequestUrl(), "Object info list shouldn't be null."
                     + "This means that the listObjects() call failed.", 

@@ -578,8 +578,8 @@ public abstract class SidCommonTestImplementations extends ContextAwareTestCaseD
                     Identifier sid = idPair.sid;
                     Identifier pid = idPair.headPid;
         
-                    ObjectList pidObjList = callAdapter.listObjects(null, null, null, null, pid, null, null, null);
-                    ObjectList sidObjList = callAdapter.listObjects(null, null, null, null, sid, null, null, null);
+                    ObjectList pidObjList = callAdapter.listObjects(null, null, null, null, null, pid, null, null, null);
+                    ObjectList sidObjList = callAdapter.listObjects(null, null, null, null, null, sid, null, null, null);
                     
                     assertEquals("listObjects() Case " + caseNum + ", filter down to 1 pid", 1, pidObjList.getCount());
                     // calling listObjects() for a SID will return results for every PID under that SID

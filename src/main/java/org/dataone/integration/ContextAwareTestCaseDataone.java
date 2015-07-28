@@ -602,10 +602,10 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
         ObjectList objectList = null;
         try {
             if (getAll) {
-                objectList = cca.listObjects(null, null, null, null, null, null, 0, 0);
-                objectList = cca.listObjects(null, null, null, null, null, null, 0, objectList.getTotal());
+                objectList = cca.listObjects(null, null, null, null, 0, 0);
+                objectList = cca.listObjects(null, null, null, null, 0, objectList.getTotal());
             } else {
-                objectList = cca.listObjects(null, null, null, null, null, null, null, null);
+                objectList = cca.listObjects(null, null, null, null, null, null);
             }
         } catch (BaseException e) {
             throw new TestIterationEndingException("unexpected error thrown by listObjects(): " + e.getMessage(), e);
@@ -615,7 +615,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
         if (objectList.getTotal() == 0) {
             try {
                 createPublicTestObject(cca,"");
-                objectList = cca.listObjects(null, null, null, null, null, null, null, null);
+                objectList = cca.listObjects(null, null, null, null, null, null);
                 if (objectList.getTotal() == 0) {
                     throw new TestIterationEndingException("could not find or create an object for use by listObjects().");
                 }
@@ -681,7 +681,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
         BaseException latestException = null;
         if (identifier == null) {
             try {
-                ObjectList ol = cca.listObjects(null, null, null, null, null, null, null, null);
+                ObjectList ol = cca.listObjects(null, null, null, null, null, null);
                 if (ol != null && ol.getCount() > 0) {
 
                     // start time of this search-loop
@@ -888,7 +888,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
     {
         Identifier id = null;
         try {
-            ObjectList ol = cca.listObjects(null, null, null, null, null, null, null, null);
+            ObjectList ol = cca.listObjects(null, null, null, null, null, null);
             if (ol.getTotal() > 0) {
                 if (subjectFilter != null || (permissionLevel != Permission.READ && checkUsingIsAuthorized == false)) {
                     // will need to pull sysmeta and examine the accessPolicy for both situations
@@ -1578,7 +1578,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
         
         ObjectList resourceObjInfo = new ObjectList();
         try {
-            resourceObjInfo = cca.listObjects(null, null, null, formatID, null, null, null);
+            resourceObjInfo = cca.listObjects(null, null, null, formatID, null, null);
         } catch (InvalidRequest | InvalidToken | NotAuthorized | NotImplemented | ServiceFailure
                 | ClientSideException e) {
             e.printStackTrace();

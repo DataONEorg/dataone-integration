@@ -608,264 +608,267 @@ public class CNReplicationTestImplementations extends ContextAwareAdapter {
         }
     }
 
-    @WebTestName("updateReplicationMetadata - tests with copy of current replica")
-    @WebTestDescription("test makes a call to updateReplicationMetadata using a copy "
-            + "of the current replica")
-    public void testUpdateReplicationMetadata(Iterator<Node> nodeIterator, String version) {
-        while (nodeIterator.hasNext())
-            testUpdateReplicationMetadata(nodeIterator.next(), version);
-    }
-    
-//    @Ignore("test not implemented")
-    public void testUpdateReplicationMetadata(Node node, String version) {
-        //TODO:
-//      ContextAwareTestCaseDataone.setupClientSubject("testMemberNode");
-        CNCallAdapter callAdapter = new CNCallAdapter(getSession("testMemberNode"), node, version);
-        String currentUrl = node.getBaseURL();
-        
-        printTestHeader("testUpdateReplicationMetadata(...) vs. node: " + currentUrl);
-
-        try {
-            // want to get an object already replicated
-            // will apply set logic:  allObjects - unreplicatedObject => replicatedObjects
-            List<ObjectInfo> allObjects = listedObjects.get(currentUrl).getObjectInfoList();
-            List<ObjectInfo> unreplicatedObjects = callAdapter.listObjects(null, null, null, null, false, null, null).getObjectInfoList();
-
-            allObjects.removeAll(unreplicatedObjects);
-            Identifier replicatedObject = allObjects.get(0).getIdentifier();                
-            log.debug("   pid = " + replicatedObject);
-            
-            SystemMetadata smd = callAdapter.getSystemMetadata(null, replicatedObject);
-            long serialVersion = smd.getSerialVersion().longValue();
-            Replica replica = smd.getReplica(0);
-            
-            // try an update to the replica by replacing it with itself... (no changes)
-            boolean response = callAdapter.updateReplicationMetadata(null, replicatedObject, replica, serialVersion);
-
-            checkTrue(callAdapter.getLatestRequestUrl(),"response cannot be false. [Only true or exception].", response);
-        }
-        catch (IndexOutOfBoundsException e) {
-            handleFail(callAdapter.getLatestRequestUrl(),"No Objects available to test against");
-        }
-        catch (BaseException e) {
-            handleFail(callAdapter.getLatestRequestUrl(),e.getDescription());
-        }
-         
-        catch(Exception e) {
-            e.printStackTrace();
-            handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
-        }
-    }
-    
-    @WebTestName("updateReplicationMetadata - tests using a no-rights subject")
-    @WebTestDescription("test makes a call to updateReplicationMetadata using a copy "
-            + "of the current replica but with a subject that is not authorized, "
-            + "expecting a NotAuthorized exception")
-    public void testUpdateReplicationMetadata_NotAuthorized(Iterator<Node> nodeIterator, String version) {
-        while (nodeIterator.hasNext())
-            testUpdateReplicationMetadata_NotAuthorized(nodeIterator.next(), version);
-    }
-    
-//    @Ignore("test not implemented") 
-    public void testUpdateReplicationMetadata_NotAuthorized(Node node, String version) {
-        CNCallAdapter callAdapter = new CNCallAdapter(getSession("testNoRights"), node, version);
-        String currentUrl = node.getBaseURL();
-        
-        printTestHeader("testUpdateReplicationMetadata(...) vs. node: " + currentUrl);
-
-        try {
-            // want to get an object already replicated
-            // will apply set logic:  allObjects - unreplicatedObject => replicatedObjects
-            List<ObjectInfo> allObjects = listedObjects.get(currentUrl).getObjectInfoList();
-            List<ObjectInfo> unreplicatedObjects = callAdapter.listObjects(null, null, null, null, false, null, null).getObjectInfoList();
-
-            allObjects.removeAll(unreplicatedObjects);
-            Identifier replicatedObject = allObjects.get(0).getIdentifier();                
-            log.debug("   pid = " + replicatedObject);
-            
-            
-            SystemMetadata smd = callAdapter.getSystemMetadata(null, replicatedObject);
-            long serialVersion = smd.getSerialVersion().longValue();
-            Replica replica = smd.getReplica(0);
-            
-            // try an update to the replica by replacing it with itself... (no changes)
-            boolean response = callAdapter.updateReplicationMetadata(null, replicatedObject, replica, serialVersion);
-
-            handleFail(callAdapter.getLatestRequestUrl(),"updateReplicaMetadata should fail when using no-rights subject");
-        }
-        catch (IndexOutOfBoundsException e) {
-            handleFail(callAdapter.getLatestRequestUrl(),"No Objects available to test against");
-        }
-        catch (NotAuthorized e) {
-            // the expected outcome
-        }
-        catch (BaseException e) {
-            handleFail(callAdapter.getLatestRequestUrl(),"expected fail with NotAuthorized. Got: " + e.getClass() + 
-                    ":: " + e.getDescription());
-        }
-        catch(Exception e) {
-            e.printStackTrace();
-            handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
-        }
-    }
-    
-    @WebTestName("updateReplicationMetadata - ")
-    @WebTestDescription(" ... not implemented ... "
-            + "seems to be a copy of testUpdateReplicationMetadata_NotAuthorized "
-            + "instead of testing a NotFound exception")
-    public void testUpdateReplicationMetadata_NotFound(Iterator<Node> nodeIterator, String version) {
-        while (nodeIterator.hasNext())
-            testUpdateReplicationMetadata_NotFound(nodeIterator.next(), version);
-    }
-    
-//    @Ignore("test not implemented") 
-    public void testUpdateReplicationMetadata_NotFound(Node node, String version) {
-        //TODO:
-        CNCallAdapter callAdapter = new CNCallAdapter(getSession("testMemberNode"), node, version);
-        String currentUrl = node.getBaseURL();
-        
-        printTestHeader("testUpdateReplicationMetadata(...) vs. node: " + currentUrl);
-
-        try {
-            // want to get an object already replicated
-            // will apply set logic:  allObjects - unreplicatedObject => replicatedObjects
-            List<ObjectInfo> allObjects = listedObjects.get(currentUrl).getObjectInfoList();
-            List<ObjectInfo> unreplicatedObjects = callAdapter.listObjects(null, null, null, null, false, null, null).getObjectInfoList();
-
-            allObjects.removeAll(unreplicatedObjects);
-            Identifier replicatedObject = allObjects.get(0).getIdentifier();                
-            log.debug("   pid = " + replicatedObject);
-
-            Identifier badPid = new Identifier();
-            badPid.setValue("CNodeTier4test: " + ExampleUtilities.generateIdentifier());
-            
-            SystemMetadata smd = callAdapter.getSystemMetadata(null, replicatedObject);
-            long serialVersion = smd.getSerialVersion().longValue();
-            Replica replica = smd.getReplica(0);
-            
-            // try an update to the replica by replacing it with itself... (no changes)
-            boolean response = callAdapter.updateReplicationMetadata(null, badPid, replica, serialVersion);
-
-            handleFail(callAdapter.getLatestRequestUrl(),"updateReplicaMetadata should fail when using no-rights subject");
-        }
-        catch (IndexOutOfBoundsException e) {
-            handleFail(callAdapter.getLatestRequestUrl(),"No Objects available to test against");
-        }
-        catch (NotFound e) {
-            // the expected outcome
-        }
-        catch (BaseException e) {
-            handleFail(callAdapter.getLatestRequestUrl(),"expected fail with NotFound. Got: " + e.getClass() + 
-                    ":: " + e.getDescription());
-        }
-        catch(Exception e) {
-            e.printStackTrace();
-            handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
-        }
-    }
-    
-    @WebTestName("updateReplicationMetadata - tests with a null replica")
-    @WebTestDescription("tests a negative case, calling updateReplicationMetadata with "
-            + "a null value for the replica, expecting an InvalidRequest exception")
-    public void testUpdateReplicationMetadata_InvalidRequest(Iterator<Node> nodeIterator, String version) {
-        while (nodeIterator.hasNext())
-            testUpdateReplicationMetadata_InvalidRequest(nodeIterator.next(), version);
-    }
-    
-//    @Ignore("test not implemented") 
-    public void testUpdateReplicationMetadata_InvalidRequest(Node node, String version) {
-        //TODO:
-//      ContextAwareTestCaseDataone.setupClientSubject("testMemberNode");
-        CNCallAdapter callAdapter = new CNCallAdapter(getSession("testMemberNode"), node, version);
-        String currentUrl = node.getBaseURL();
-        
-        printTestHeader("testUpdateReplicationMetadata(...) vs. node: " + currentUrl);
-
-        try {
-            // want to get an object already replicated
-            // will apply set logic:  allObjects - unreplicatedObject => replicatedObjects
-            List<ObjectInfo> allObjects = listedObjects.get(currentUrl).getObjectInfoList();
-            List<ObjectInfo> unreplicatedObjects = callAdapter.listObjects(null, null, null, null, false, null, null).getObjectInfoList();
-
-            allObjects.removeAll(unreplicatedObjects);
-            Identifier replicatedObject = allObjects.get(0).getIdentifier();                
-            log.debug("   pid = " + replicatedObject);
-
-            
-            SystemMetadata smd = callAdapter.getSystemMetadata(null, replicatedObject);
-            long serialVersion = smd.getSerialVersion().longValue();
-            
-            // try an update to the replica by replacing it with a null value Replica
-            boolean response = callAdapter.updateReplicationMetadata(null, replicatedObject, null, serialVersion);
-
-            handleFail(callAdapter.getLatestRequestUrl(),"updateReplicaMetadata should fail when using a null Replica");
-        }
-        catch (IndexOutOfBoundsException e) {
-            handleFail(callAdapter.getLatestRequestUrl(),"No Objects available to test against");
-        }
-        catch (InvalidRequest e) {
-            // the expected outcome
-        }
-        catch (BaseException e) {
-            handleFail(callAdapter.getLatestRequestUrl(),"expected fail with InvalidRequest. Got: " + e.getClass() + 
-                    ":: " + e.getDescription());
-        }
-        catch(Exception e) {
-            e.printStackTrace();
-            handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
-        }
-    }
-    
-    @WebTestName("updateReplicationMetadata - tests with an bad serialVersion")
-    @WebTestDescription("tests a negative case, calling updateReplicationMetadata with "
-            + "a serialVersion number that's incorrect, expecting a VersionMismatch exception")
-    public void testUpdateReplicationMetadata_VersionMismatch(Iterator<Node> nodeIterator, String version) {
-        while (nodeIterator.hasNext())
-            testUpdateReplicationMetadata_VersionMismatch(nodeIterator.next(), version);
-    }
-    
-//    @Ignore("test not implemented")
-    public void testUpdateReplicationMetadata_VersionMismatch(Node node, String version) {
-        //TODO:
-//      ContextAwareTestCaseDataone.setupClientSubject("testMemberNode");
-        CNCallAdapter callAdapter = new CNCallAdapter(getSession("testMemberNode"), node, version);
-        String currentUrl = node.getBaseURL();
-        
-        printTestHeader("testUpdateReplicationMetadata(...) vs. node: " + currentUrl);
-
-        try {
-            // want to get an object already replicated
-            // will apply set logic:  allObjects - unreplicatedObject => replicatedObjects
-            List<ObjectInfo> allObjects = listedObjects.get(currentUrl).getObjectInfoList();
-            List<ObjectInfo> unreplicatedObjects = callAdapter.listObjects(null, null, null, null, false, null, null).getObjectInfoList();
-
-            allObjects.removeAll(unreplicatedObjects);
-            Identifier replicatedObject = allObjects.get(0).getIdentifier();                
-            log.debug("   pid = " + replicatedObject);
-
-            
-            SystemMetadata smd = callAdapter.getSystemMetadata(null, replicatedObject);
-            long serialVersion = smd.getSerialVersion().longValue();
-            Replica replica = smd.getReplica(0);
-            
-            // try an update to the replica by replacing it with itself... (no changes)
-            boolean response = callAdapter.updateReplicationMetadata(null, replicatedObject, replica, serialVersion + 10);
-
-            handleFail(callAdapter.getLatestRequestUrl(),"updateReplicaMetadata should fail when passing in a bad serialVersion");
-        }
-        catch (IndexOutOfBoundsException e) {
-            handleFail(callAdapter.getLatestRequestUrl(),"No Objects available to test against");
-        }
-        catch (VersionMismatch e) {
-            // the expected outcome
-        }
-        catch (BaseException e) {
-            handleFail(callAdapter.getLatestRequestUrl(),"expected fail with VersionMismatch. Got: " + e.getClass() + 
-                    ":: " + e.getDescription());
-        }
-        catch(Exception e) {
-            e.printStackTrace();
-            handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
-        }
-    }
+//  NOTE: Commenting out the below Ignored tests because they now have bad listObject calls.  The parameter
+//  replicaStatus is not universal anymore, and these tests rely on replicaStatus of false.
+//    
+//    @WebTestName("updateReplicationMetadata - tests with copy of current replica")
+//    @WebTestDescription("test makes a call to updateReplicationMetadata using a copy "
+//            + "of the current replica")
+//    public void testUpdateReplicationMetadata(Iterator<Node> nodeIterator, String version) {
+//        while (nodeIterator.hasNext())
+//            testUpdateReplicationMetadata(nodeIterator.next(), version);
+//    }
+//    
+////    @Ignore("test not implemented")
+//    public void testUpdateReplicationMetadata(Node node, String version) {
+//        //TODO:
+////      ContextAwareTestCaseDataone.setupClientSubject("testMemberNode");
+//        CNCallAdapter callAdapter = new CNCallAdapter(getSession("testMemberNode"), node, version);
+//        String currentUrl = node.getBaseURL();
+//        
+//        printTestHeader("testUpdateReplicationMetadata(...) vs. node: " + currentUrl);
+//
+//        try {
+//            // want to get an object already replicated
+//            // will apply set logic:  allObjects - unreplicatedObject => replicatedObjects
+//            List<ObjectInfo> allObjects = listedObjects.get(currentUrl).getObjectInfoList();
+//            List<ObjectInfo> unreplicatedObjects = callAdapter.listObjects(null, null, null, null, false, null, null).getObjectInfoList();
+//
+//            allObjects.removeAll(unreplicatedObjects);
+//            Identifier replicatedObject = allObjects.get(0).getIdentifier();                
+//            log.debug("   pid = " + replicatedObject);
+//            
+//            SystemMetadata smd = callAdapter.getSystemMetadata(null, replicatedObject);
+//            long serialVersion = smd.getSerialVersion().longValue();
+//            Replica replica = smd.getReplica(0);
+//            
+//            // try an update to the replica by replacing it with itself... (no changes)
+//            boolean response = callAdapter.updateReplicationMetadata(null, replicatedObject, replica, serialVersion);
+//
+//            checkTrue(callAdapter.getLatestRequestUrl(),"response cannot be false. [Only true or exception].", response);
+//        }
+//        catch (IndexOutOfBoundsException e) {
+//            handleFail(callAdapter.getLatestRequestUrl(),"No Objects available to test against");
+//        }
+//        catch (BaseException e) {
+//            handleFail(callAdapter.getLatestRequestUrl(),e.getDescription());
+//        }
+//         
+//        catch(Exception e) {
+//            e.printStackTrace();
+//            handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+//        }
+//    }
+//    
+//    @WebTestName("updateReplicationMetadata - tests using a no-rights subject")
+//    @WebTestDescription("test makes a call to updateReplicationMetadata using a copy "
+//            + "of the current replica but with a subject that is not authorized, "
+//            + "expecting a NotAuthorized exception")
+//    public void testUpdateReplicationMetadata_NotAuthorized(Iterator<Node> nodeIterator, String version) {
+//        while (nodeIterator.hasNext())
+//            testUpdateReplicationMetadata_NotAuthorized(nodeIterator.next(), version);
+//    }
+//    
+////    @Ignore("test not implemented") 
+//    public void testUpdateReplicationMetadata_NotAuthorized(Node node, String version) {
+//        CNCallAdapter callAdapter = new CNCallAdapter(getSession("testNoRights"), node, version);
+//        String currentUrl = node.getBaseURL();
+//        
+//        printTestHeader("testUpdateReplicationMetadata(...) vs. node: " + currentUrl);
+//
+//        try {
+//            // want to get an object already replicated
+//            // will apply set logic:  allObjects - unreplicatedObject => replicatedObjects
+//            List<ObjectInfo> allObjects = listedObjects.get(currentUrl).getObjectInfoList();
+//            List<ObjectInfo> unreplicatedObjects = callAdapter.listObjects(null, null, null, null, false, null, null).getObjectInfoList();
+//
+//            allObjects.removeAll(unreplicatedObjects);
+//            Identifier replicatedObject = allObjects.get(0).getIdentifier();                
+//            log.debug("   pid = " + replicatedObject);
+//            
+//            
+//            SystemMetadata smd = callAdapter.getSystemMetadata(null, replicatedObject);
+//            long serialVersion = smd.getSerialVersion().longValue();
+//            Replica replica = smd.getReplica(0);
+//            
+//            // try an update to the replica by replacing it with itself... (no changes)
+//            boolean response = callAdapter.updateReplicationMetadata(null, replicatedObject, replica, serialVersion);
+//
+//            handleFail(callAdapter.getLatestRequestUrl(),"updateReplicaMetadata should fail when using no-rights subject");
+//        }
+//        catch (IndexOutOfBoundsException e) {
+//            handleFail(callAdapter.getLatestRequestUrl(),"No Objects available to test against");
+//        }
+//        catch (NotAuthorized e) {
+//            // the expected outcome
+//        }
+//        catch (BaseException e) {
+//            handleFail(callAdapter.getLatestRequestUrl(),"expected fail with NotAuthorized. Got: " + e.getClass() + 
+//                    ":: " + e.getDescription());
+//        }
+//        catch(Exception e) {
+//            e.printStackTrace();
+//            handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+//        }
+//    }
+//    
+//    @WebTestName("updateReplicationMetadata - ")
+//    @WebTestDescription(" ... not implemented ... "
+//            + "seems to be a copy of testUpdateReplicationMetadata_NotAuthorized "
+//            + "instead of testing a NotFound exception")
+//    public void testUpdateReplicationMetadata_NotFound(Iterator<Node> nodeIterator, String version) {
+//        while (nodeIterator.hasNext())
+//            testUpdateReplicationMetadata_NotFound(nodeIterator.next(), version);
+//    }
+//    
+////    @Ignore("test not implemented") 
+//    public void testUpdateReplicationMetadata_NotFound(Node node, String version) {
+//        //TODO:
+//        CNCallAdapter callAdapter = new CNCallAdapter(getSession("testMemberNode"), node, version);
+//        String currentUrl = node.getBaseURL();
+//        
+//        printTestHeader("testUpdateReplicationMetadata(...) vs. node: " + currentUrl);
+//
+//        try {
+//            // want to get an object already replicated
+//            // will apply set logic:  allObjects - unreplicatedObject => replicatedObjects
+//            List<ObjectInfo> allObjects = listedObjects.get(currentUrl).getObjectInfoList();
+//            List<ObjectInfo> unreplicatedObjects = callAdapter.listObjects(null, null, null, null, false, null, null).getObjectInfoList();
+//
+//            allObjects.removeAll(unreplicatedObjects);
+//            Identifier replicatedObject = allObjects.get(0).getIdentifier();                
+//            log.debug("   pid = " + replicatedObject);
+//
+//            Identifier badPid = new Identifier();
+//            badPid.setValue("CNodeTier4test: " + ExampleUtilities.generateIdentifier());
+//            
+//            SystemMetadata smd = callAdapter.getSystemMetadata(null, replicatedObject);
+//            long serialVersion = smd.getSerialVersion().longValue();
+//            Replica replica = smd.getReplica(0);
+//            
+//            // try an update to the replica by replacing it with itself... (no changes)
+//            boolean response = callAdapter.updateReplicationMetadata(null, badPid, replica, serialVersion);
+//
+//            handleFail(callAdapter.getLatestRequestUrl(),"updateReplicaMetadata should fail when using no-rights subject");
+//        }
+//        catch (IndexOutOfBoundsException e) {
+//            handleFail(callAdapter.getLatestRequestUrl(),"No Objects available to test against");
+//        }
+//        catch (NotFound e) {
+//            // the expected outcome
+//        }
+//        catch (BaseException e) {
+//            handleFail(callAdapter.getLatestRequestUrl(),"expected fail with NotFound. Got: " + e.getClass() + 
+//                    ":: " + e.getDescription());
+//        }
+//        catch(Exception e) {
+//            e.printStackTrace();
+//            handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+//        }
+//    }
+//    
+//    @WebTestName("updateReplicationMetadata - tests with a null replica")
+//    @WebTestDescription("tests a negative case, calling updateReplicationMetadata with "
+//            + "a null value for the replica, expecting an InvalidRequest exception")
+//    public void testUpdateReplicationMetadata_InvalidRequest(Iterator<Node> nodeIterator, String version) {
+//        while (nodeIterator.hasNext())
+//            testUpdateReplicationMetadata_InvalidRequest(nodeIterator.next(), version);
+//    }
+//    
+////    @Ignore("test not implemented") 
+//    public void testUpdateReplicationMetadata_InvalidRequest(Node node, String version) {
+//        //TODO:
+////      ContextAwareTestCaseDataone.setupClientSubject("testMemberNode");
+//        CNCallAdapter callAdapter = new CNCallAdapter(getSession("testMemberNode"), node, version);
+//        String currentUrl = node.getBaseURL();
+//        
+//        printTestHeader("testUpdateReplicationMetadata(...) vs. node: " + currentUrl);
+//
+//        try {
+//            // want to get an object already replicated
+//            // will apply set logic:  allObjects - unreplicatedObject => replicatedObjects
+//            List<ObjectInfo> allObjects = listedObjects.get(currentUrl).getObjectInfoList();
+//            List<ObjectInfo> unreplicatedObjects = callAdapter.listObjects(null, null, null, null, false, null, null).getObjectInfoList();
+//
+//            allObjects.removeAll(unreplicatedObjects);
+//            Identifier replicatedObject = allObjects.get(0).getIdentifier();                
+//            log.debug("   pid = " + replicatedObject);
+//
+//            
+//            SystemMetadata smd = callAdapter.getSystemMetadata(null, replicatedObject);
+//            long serialVersion = smd.getSerialVersion().longValue();
+//            
+//            // try an update to the replica by replacing it with a null value Replica
+//            boolean response = callAdapter.updateReplicationMetadata(null, replicatedObject, null, serialVersion);
+//
+//            handleFail(callAdapter.getLatestRequestUrl(),"updateReplicaMetadata should fail when using a null Replica");
+//        }
+//        catch (IndexOutOfBoundsException e) {
+//            handleFail(callAdapter.getLatestRequestUrl(),"No Objects available to test against");
+//        }
+//        catch (InvalidRequest e) {
+//            // the expected outcome
+//        }
+//        catch (BaseException e) {
+//            handleFail(callAdapter.getLatestRequestUrl(),"expected fail with InvalidRequest. Got: " + e.getClass() + 
+//                    ":: " + e.getDescription());
+//        }
+//        catch(Exception e) {
+//            e.printStackTrace();
+//            handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+//        }
+//    }
+//    
+//    @WebTestName("updateReplicationMetadata - tests with an bad serialVersion")
+//    @WebTestDescription("tests a negative case, calling updateReplicationMetadata with "
+//            + "a serialVersion number that's incorrect, expecting a VersionMismatch exception")
+//    public void testUpdateReplicationMetadata_VersionMismatch(Iterator<Node> nodeIterator, String version) {
+//        while (nodeIterator.hasNext())
+//            testUpdateReplicationMetadata_VersionMismatch(nodeIterator.next(), version);
+//    }
+//    
+////    @Ignore("test not implemented")
+//    public void testUpdateReplicationMetadata_VersionMismatch(Node node, String version) {
+//        //TODO:
+////      ContextAwareTestCaseDataone.setupClientSubject("testMemberNode");
+//        CNCallAdapter callAdapter = new CNCallAdapter(getSession("testMemberNode"), node, version);
+//        String currentUrl = node.getBaseURL();
+//        
+//        printTestHeader("testUpdateReplicationMetadata(...) vs. node: " + currentUrl);
+//
+//        try {
+//            // want to get an object already replicated
+//            // will apply set logic:  allObjects - unreplicatedObject => replicatedObjects
+//            List<ObjectInfo> allObjects = listedObjects.get(currentUrl).getObjectInfoList();
+//            List<ObjectInfo> unreplicatedObjects = callAdapter.listObjects(null, null, null, null, false, null, null).getObjectInfoList();
+//
+//            allObjects.removeAll(unreplicatedObjects);
+//            Identifier replicatedObject = allObjects.get(0).getIdentifier();                
+//            log.debug("   pid = " + replicatedObject);
+//
+//            
+//            SystemMetadata smd = callAdapter.getSystemMetadata(null, replicatedObject);
+//            long serialVersion = smd.getSerialVersion().longValue();
+//            Replica replica = smd.getReplica(0);
+//            
+//            // try an update to the replica by replacing it with itself... (no changes)
+//            boolean response = callAdapter.updateReplicationMetadata(null, replicatedObject, replica, serialVersion + 10);
+//
+//            handleFail(callAdapter.getLatestRequestUrl(),"updateReplicaMetadata should fail when passing in a bad serialVersion");
+//        }
+//        catch (IndexOutOfBoundsException e) {
+//            handleFail(callAdapter.getLatestRequestUrl(),"No Objects available to test against");
+//        }
+//        catch (VersionMismatch e) {
+//            // the expected outcome
+//        }
+//        catch (BaseException e) {
+//            handleFail(callAdapter.getLatestRequestUrl(),"expected fail with VersionMismatch. Got: " + e.getClass() + 
+//                    ":: " + e.getDescription());
+//        }
+//        catch(Exception e) {
+//            e.printStackTrace();
+//            handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+//        }
+//    }
 }
