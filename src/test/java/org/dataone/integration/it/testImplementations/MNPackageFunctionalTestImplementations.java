@@ -557,7 +557,7 @@ public class MNPackageFunctionalTestImplementations extends ContextAwareAdapter 
                 IOUtils.copy(pkgInStream, rarOutFile);
             } catch (Exception e) {
                 e.printStackTrace();
-                handleFail(currentUrl, "testGetPackage_Rar : Unable to write rar stream to file!"
+                throw new AssertionError(currentUrl + " : testGetPackage_Rar : Unable to write rar stream to file!"
                         + e.getClass().getName() + ": " + e.getMessage());
             }
             
@@ -568,7 +568,7 @@ public class MNPackageFunctionalTestImplementations extends ContextAwareAdapter 
                 unRar(rarFile, rootDir);
             } catch (Exception e) {
                 e.printStackTrace();
-                handleFail(currentUrl, "testGetPackage_Rar : Unable to un-rar the file!"
+                throw new AssertionError(currentUrl + " : testGetPackage_Rar : Unable to un-rar the file!"
                 + e.getClass().getName() + ": " + e.getMessage());
             }
             

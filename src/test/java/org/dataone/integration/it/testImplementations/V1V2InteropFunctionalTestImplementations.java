@@ -751,13 +751,13 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
                     sysmeta != null);
         } catch (BaseException e) {
             e.printStackTrace();
-            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV2CreateV1Update() couldn't create update object: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + " : testV1CreateV2GetSysmeta() couldn't create update object: " 
                     + e.getClass().getSimpleName() + ": " 
                     + e.getDetail_code() + ":: " + e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
-            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV2CreateV1Update() couldn't create update object: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + " : testV1CreateV2GetSysmeta() couldn't create update object: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
     }
