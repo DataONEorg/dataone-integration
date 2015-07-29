@@ -663,7 +663,8 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
             handleFail(callAdapter.getLatestRequestUrl(), 
                     "testUpdateSystemMetadata_ObsoletesFail() expected InvalidSystemMetadata since "
                     + "changing the obsoletes field on one sysmeta without clearing out the corresponding "
-                    + "sysmeta's obsoletedBy first would create a contradiction in the pid chain");
+                    + "sysmeta's obsoletedBy first would create a contradiction in the pid chain, "
+                    + "but updateSystemMetadata() call didn't fail!");
             
         } catch (InvalidSystemMetadata e) {
             // expected

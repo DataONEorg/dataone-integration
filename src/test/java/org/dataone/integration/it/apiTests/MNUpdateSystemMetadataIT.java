@@ -1,9 +1,12 @@
 package org.dataone.integration.it.apiTests;
 
+import static org.junit.Assert.assertTrue;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import org.apache.commons.collections.IteratorUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.dataone.integration.ContextAwareTestCaseDataone;
@@ -31,7 +34,9 @@ public class MNUpdateSystemMetadataIT extends ContextAwareTestCaseDataone {
     @Before
     public void setup() {
         metaImpl = new MNUpdateSystemMetadataTestImplementations(this);
-        metaImpl.setup(getCoordinatingNodeIterator().next());
+        List<Node> cns = IteratorUtils.toList(getCoordinatingNodeIterator());
+        assertTrue("Test requires knowledge of a coordinating node to function!", cns.size() > 0);
+        metaImpl.setup(cns.get(0));
     }
     
     @Override
@@ -56,6 +61,7 @@ public class MNUpdateSystemMetadataIT extends ContextAwareTestCaseDataone {
             log.fatal("Unable to fetch node list from CN: " + cn.getNodeBaseServiceUrl(), e);
         }
         
+        assertTrue("Test requires knowledge of at least one member node to work!", mnList.size() > 0);
         return mnList.iterator();
     }
     

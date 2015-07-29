@@ -558,7 +558,7 @@ public class SidMNTestImplementations extends SidCommonTestImplementations {
                     assertTrue("getPackage() Case " + caseNum, IOUtils.contentEquals(sidPkg, pidPkg));
                 } catch (Exception e) {
                     e.printStackTrace();
-                    handleFail(callAdapter.getNodeBaseServiceUrl(), "Case: " + caseNum + " : " + e.getMessage());
+                    throw new AssertionError(callAdapter.getNodeBaseServiceUrl() + " Case: " + caseNum + " : " + e.getMessage());
                 } finally {
                     IOUtils.closeQuietly(pidPkg);
                     IOUtils.closeQuietly(sidPkg);

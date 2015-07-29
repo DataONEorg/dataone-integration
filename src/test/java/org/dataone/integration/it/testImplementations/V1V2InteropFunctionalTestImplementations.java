@@ -91,7 +91,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
                     if(n.getType() == NodeType.MN)
                         mnList.add(n);
             } catch (Exception e) {
-                log.fatal("Unable to fetch node list from CN: " + cn.getNodeBaseServiceUrl(), e);
+                throw new AssertionError("Unable to fetch node list from CN: " + cn.getNodeBaseServiceUrl(), e);
             }
         }
         
