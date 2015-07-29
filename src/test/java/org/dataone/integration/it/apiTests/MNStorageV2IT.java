@@ -1,5 +1,10 @@
 package org.dataone.integration.it.apiTests;
 
+import java.util.Iterator;
+import java.util.List;
+
+import org.apache.commons.collections.IteratorUtils;
+import org.apache.commons.collections.ListUtils;
 import org.dataone.integration.ContextAwareTestCaseDataone;
 import org.dataone.integration.it.testDefinitions.MNStorageSidTestDefinitions;
 import org.dataone.integration.it.testDefinitions.MNStorageTestDefinitions;
@@ -8,6 +13,7 @@ import org.dataone.integration.it.testImplementations.MNStorageTestImplementatio
 import org.dataone.integration.it.testImplementations.SidMNTestImplementations;
 import org.dataone.integration.it.testImplementations.MNUpdateSystemMetadataTestImplementations;
 import org.dataone.integration.webTest.WebTestImplementation;
+import org.dataone.service.types.v1.Node;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -31,7 +37,8 @@ public class MNStorageV2IT extends ContextAwareTestCaseDataone
         mnStorageTestImpl = new MNStorageTestImplementations(this);
         sidImpl = new SidMNTestImplementations();
         updSysmetaImpl = new MNUpdateSystemMetadataTestImplementations(this);
-        updSysmetaImpl.setup(getCoordinatingNodeIterator().next());
+        List<Node> cns = IteratorUtils.toList(getCoordinatingNodeIterator());
+        updSysmetaImpl.setup(cns.size() > 0 ? cns.get(0) : null);
     }
 
     @After
@@ -193,18 +200,6 @@ public class MNStorageV2IT extends ContextAwareTestCaseDataone
     @Test
     public void testUpdateSystemMetadata_MutableReplPolicy() {
         updSysmetaImpl.testUpdateSystemMetadata_MutableReplPolicy(getMemberNodeIterator(), "v2");
-    }
-    
-    @Override
-    @Test
-    public void testUpdateSystemMetadata_MutableAuthMN() {
-        updSysmetaImpl.testUpdateSystemMetadata_MutableAuthMN(getMemberNodeIterator(), "v2");
-    }
-    
-    @Override
-    @Test
-    public void testUpdateSystemMetadata_RightsHolderNonAuthMN() {
-        updSysmetaImpl.testUpdateSystemMetadata_RightsHolderNonAuthMN(getMemberNodeIterator(), "v2");
     }
     
     @Override

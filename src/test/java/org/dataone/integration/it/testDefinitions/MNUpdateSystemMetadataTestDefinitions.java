@@ -44,8 +44,8 @@ public interface MNUpdateSystemMetadataTestDefinitions {
     
     public void testUpdateSystemMetadata_MutableReplPolicy();
     
-    public void testUpdateSystemMetadata_MutableAuthMN();
-    
-    public void testUpdateSystemMetadata_RightsHolderNonAuthMN();
+//    public void testUpdateSystemMetadata_MutableAuthMN();
+//    
+//    public void testUpdateSystemMetadata_RightsHolderNonAuthMN();
     
 }
