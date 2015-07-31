@@ -2,6 +2,7 @@ package org.dataone.integration.it.testImplementations;
 
 import static org.junit.Assert.assertTrue;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
@@ -18,8 +19,12 @@ import javax.xml.xpath.XPathFactory;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+import org.dataone.client.v1.itk.D1Object;
+import org.dataone.client.v1.types.D1TypeBuilder;
 import org.dataone.integration.ContextAwareTestCaseDataone;
+import org.dataone.integration.ExampleUtilities;
 import org.dataone.integration.adapters.CNCallAdapter;
+import org.dataone.integration.adapters.MNCallAdapter;
 import org.dataone.integration.it.ContextAwareAdapter;
 import org.dataone.integration.webTest.WebTestDescription;
 import org.dataone.integration.webTest.WebTestName;
@@ -28,6 +33,7 @@ import org.dataone.service.types.v1.AccessRule;
 import org.dataone.service.types.v1.Group;
 import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Node;
+import org.dataone.service.types.v1.NodeReference;
 import org.dataone.service.types.v1.Permission;
 import org.dataone.service.types.v1.Person;
 import org.dataone.service.types.v1.Subject;
@@ -187,12 +193,23 @@ public class CNDiagnosticFunctionalTestImplementations extends ContextAwareAdapt
       try {
           AccessRule accessRule = new AccessRule();
           getSession("testRightsHolder");
+          
           Subject subject = ContextAwareTestCaseDataone.getSubject("testRightsHolder");
           accessRule.addSubject(subject);
           accessRule.addPermission(Permission.CHANGE_PERMISSION);
           
-          Identifier pid = catc.createTestObject(callAdapter, "testEchoSystemMetadata", accessRule);
-          SystemMetadata sysmeta = callAdapter.getSystemMetadata(null, pid);
+          Identifier pid = D1TypeBuilder.buildIdentifier("testEchoSystemMetadata_" + ExampleUtilities.generateIdentifier()); 
+          
+          byte[] contentBytes = ExampleUtilities.getExampleObjectOfType(ExampleUtilities.FORMAT_EML_2_0_1);
+          InputStream objectInputStream = new ByteArrayInputStream(contentBytes);
+          NodeReference nodeReference = D1TypeBuilder.buildNodeReference("bogusAuthoritativeNode");
+          D1Object d1o = new D1Object(pid, contentBytes,
+                  D1TypeBuilder.buildFormatIdentifier(ExampleUtilities.FORMAT_EML_2_0_1),
+                  subject, nodeReference);
+          
+          SystemMetadata sysmeta = TypeMarshaller.convertTypeFromType(d1o.getSystemMetadata(), SystemMetadata.class);
+//          Identifier pid = catc.createTestObject(callAdapter, "testEchoSystemMetadata", accessRule);
+//          SystemMetadata sysmeta = callAdapter.getSystemMetadata(null, pid);
           
           SystemMetadata echoedSysmeta = callAdapter.echoSystemMetadata(null, sysmeta);
           assertTrue("echoSystemMetadata() should send back a valid SystemMetadata object", echoedSysmeta != null);
@@ -226,7 +243,7 @@ public class CNDiagnosticFunctionalTestImplementations extends ContextAwareAdapt
         printTestHeader("testEchoIndexedObject(...) vs. node: " + currentUrl);
         
         InputStream is = null;
-        InputStream objStream = null;
+        InputStream objectInputStream = null;
         try {
             AccessRule accessRule = new AccessRule();
             getSession("testRightsHolder");
@@ -234,14 +251,23 @@ public class CNDiagnosticFunctionalTestImplementations extends ContextAwareAdapt
             accessRule.addSubject(subject);
             accessRule.addPermission(Permission.CHANGE_PERMISSION);
             
-            Identifier pid = catc.createTestObject(callAdapter, "testEchoIndexedObject", accessRule);
-            assertTrue("Test object should be created succesfully.", pid != null);
-            Thread.sleep(METACAT_WAIT);
-            SystemMetadata sysmeta = callAdapter.getSystemMetadata(null, pid);
+            Identifier pid = D1TypeBuilder.buildIdentifier("testEchoSystemMetadata_" + ExampleUtilities.generateIdentifier()); 
             
-            objStream = callAdapter.get(null, pid);
+            byte[] contentBytes = ExampleUtilities.getExampleObjectOfType(ExampleUtilities.FORMAT_EML_2_0_1);
+            objectInputStream = new ByteArrayInputStream(contentBytes);
+            NodeReference nodeReference = D1TypeBuilder.buildNodeReference("bogusAuthoritativeNode");
+            D1Object d1o = new D1Object(pid, contentBytes,
+                    D1TypeBuilder.buildFormatIdentifier(ExampleUtilities.FORMAT_EML_2_0_1),
+                    subject, nodeReference);
             
-            is = callAdapter.echoIndexedObject(null, "solr", sysmeta, objStream);
+            SystemMetadata sysmeta = TypeMarshaller.convertTypeFromType(d1o.getSystemMetadata(), SystemMetadata.class);
+//            Identifier pid = catc.createTestObject(callAdapter, "testEchoIndexedObject", accessRule);
+//            assertTrue("Test object should be created succesfully.", pid != null);
+//            Thread.sleep(METACAT_WAIT);
+//            SystemMetadata sysmeta = callAdapter.getSystemMetadata(null, pid);
+//            objStream = callAdapter.get(null, pid);
+            
+            is = callAdapter.echoIndexedObject(null, "solr", sysmeta, objectInputStream);
             assertTrue("testEchoIndexedObject() should return a non-null InputStream", is != null);
             
             Document doc = null;
@@ -307,7 +333,7 @@ public class CNDiagnosticFunctionalTestImplementations extends ContextAwareAdapt
             handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
         } finally {
             IOUtils.closeQuietly(is);
-            IOUtils.closeQuietly(objStream);
+            IOUtils.closeQuietly(objectInputStream);
         }
     }
 }
