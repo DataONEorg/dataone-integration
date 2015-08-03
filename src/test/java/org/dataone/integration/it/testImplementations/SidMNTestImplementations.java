@@ -32,6 +32,7 @@ import org.dataone.service.exceptions.ServiceFailure;
 import org.dataone.service.exceptions.UnsupportedType;
 import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Node;
+import org.dataone.service.types.v1.NodeReference;
 import org.dataone.service.types.v1.ObjectFormatIdentifier;
 import org.dataone.service.types.v2.SystemMetadata;
 import org.dataone.service.util.TypeMarshaller;
@@ -584,11 +585,23 @@ public class SidMNTestImplementations extends SidCommonTestImplementations {
             int caseNum = casesToTest[i];
             logger.info("Testing update(), Case" + caseNum);
             
+            NodeReference nodeId = null;
+            
             Iterator<Node> nodeIter = getNodeIterator();
             while (nodeIter.hasNext()) {
                 Node node = nodeIter.next();
                 MNCallAdapter callAdapter = new MNCallAdapter(getSession("testRightsHolder"), node, "v2");
                 IdPair idPair = null;
+                
+                // will need valid node identifier for update
+                try {
+                    Node nodeCap = callAdapter.getCapabilities();
+                    nodeId = nodeCap.getIdentifier();
+                    node.setIdentifier(nodeId);
+                } catch (Exception e) {
+                    logger.error("Unable to fetch node identifier for node at " 
+                            + node.getBaseURL(), e);
+                }
                 
                 // setup PID chain
                 try {
@@ -621,6 +634,7 @@ public class SidMNTestImplementations extends SidCommonTestImplementations {
                             D1TypeBuilder.buildSubject(subjectLabel),
                             D1TypeBuilder.buildNodeReference("bogusAuthoritativeNode"));
                     SystemMetadata sysmeta = TypeMarshaller.convertTypeFromType(d1o.getSystemMetadata(), SystemMetadata.class);
+                    sysmeta.setAuthoritativeMemberNode(nodeId);
                     sysmeta.setObsoletes(pid);
                     InputStream objectInputStream = new ByteArrayInputStream(contentBytes);
                     callAdapter.update(null, sid, objectInputStream, newPid, sysmeta);
@@ -629,7 +643,7 @@ public class SidMNTestImplementations extends SidCommonTestImplementations {
                     invalidRequestCaught = true;
                 } catch (Exception e) {
                     assertTrue("update() Case " + caseNum + ", an exception occurred while trying to update() : " +
-                            e.getMessage(), false);
+                            e.getClass().getSimpleName() + " : " + e.getMessage(), false);
                     e.printStackTrace();
                 }
                 
