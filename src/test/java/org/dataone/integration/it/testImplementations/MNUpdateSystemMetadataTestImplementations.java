@@ -723,18 +723,18 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
             callAdapter.updateSystemMetadata(null, p2 , v2sysmeta);
             
             handleFail(currentUrl, "testUpdateSystemMetadata_ObsoletesFail() expects the "
-                    + "updateSystemMetadata() call to fail with an InvalidSystemMetadata exception"
+                    + "updateSystemMetadata() call to fail with an InvalidRequest exception"
                     + "since it's trying to overwrite the existing obsoletes field,"
                     + "but the call succeeded! (The obsoletes field can only be set once.)");
             
-        } catch (InvalidSystemMetadata e) {
+        } catch (InvalidRequest e) {
             // expected
         } catch (BaseException e) {
             handleFail(callAdapter.getLatestRequestUrl(), 
-                    "testUpdateSystemMetadata_ObsoletesFail() expected InvalidSystemMetadata but got: " 
+                    "testUpdateSystemMetadata_ObsoletesFail() expected InvalidRequest but got: " 
                     + e.getClass().getSimpleName() + ": " + e.getDetail_code() + ": " + e.getDescription());
         } catch(Exception e) {
-            handleFail(currentUrl, "testUpdateSystemMetadata_ObsoletesFail() expected InvalidSystemMetadata but got: " 
+            handleFail(currentUrl, "testUpdateSystemMetadata_ObsoletesFail() expected InvalidRequest but got: " 
                     + e.getClass().getName() + ": " + e.getMessage());
         }
     }
@@ -803,14 +803,14 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
                     + "since it's trying to overwrite the existing obsoletedBy field, "
                     + "but the call succeeded! (The obsoletes field can only be set once.)");
             
-        } catch (InvalidSystemMetadata e) {
+        } catch (InvalidRequest e) {
             // expected
         } catch (BaseException e) {
             handleFail(callAdapter.getLatestRequestUrl(), 
-                    "testUpdateSystemMetadata_ObsoletedByFail() expected InvalidSystemMetadata but got: " 
+                    "testUpdateSystemMetadata_ObsoletedByFail() expected InvalidRequest but got: " 
                     + e.getClass().getSimpleName() + ": " + e.getDetail_code() + ": " + e.getDescription());
         } catch(Exception e) {
-            handleFail(currentUrl, "testUpdateSystemMetadata_ObsoletedByFail() expected InvalidSystemMetadata but got: " 
+            handleFail(currentUrl, "testUpdateSystemMetadata_ObsoletedByFail() expected InvalidRequest but got: " 
                     + e.getClass().getName() + ": " + e.getMessage());
         }
     }
