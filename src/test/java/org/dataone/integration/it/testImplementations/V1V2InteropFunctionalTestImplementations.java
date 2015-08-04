@@ -718,6 +718,8 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         // v1 create
         
         Identifier pid = D1TypeBuilder.buildIdentifier("testV1CreateV2GetSysmeta_" + ExampleUtilities.generateIdentifier());
+        
+        log.info("Trying to create test object: " + pid.getValue() + " on MN: " + v1CallAdapter.getNodeBaseServiceUrl());
         try {
             pid = createTestObject(v1CallAdapter, pid, accessRule, replPolicy);
             log.info("Created test object: " + pid.getValue() + " on MN: " + v1CallAdapter.getNodeBaseServiceUrl());

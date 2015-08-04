@@ -200,6 +200,14 @@ public abstract class SidCommonTestImplementations extends ContextAwareTestCaseD
             InsufficientResources, InvalidSystemMetadata, NotImplemented, InvalidRequest,
             UnsupportedEncodingException, NotFound, ClientSideException {
 
+        String sidVal = sid == null ? "null" : sid.getValue();
+        String obsoletesVal = obsoletesId == null ? "null" : obsoletesId.getValue();
+        String obsoletedVal = obsoletedById == null ? "null" : obsoletedById.getValue();
+        logger.info("CREATING test object... pid: " + pid.getValue() 
+                + " with a sid: " + sidVal 
+                + " obsoletes: " + obsoletesVal 
+                + " obsoletedBy: " + obsoletedVal);
+        
         Identifier testObjPid = null;
         
         getSession("testRightsHolder");
@@ -227,14 +235,19 @@ public abstract class SidCommonTestImplementations extends ContextAwareTestCaseD
             IdentifierNotUnique, UnsupportedType, InsufficientResources, InvalidSystemMetadata,
             NotImplemented, InvalidRequest, NotFound, ClientSideException, IOException, NoSuchAlgorithmException, InstantiationException, IllegalAccessException, InvocationTargetException, JiBXException {
         
+        logger.info("UPDATING test object... pid: " + oldPid.getValue() + " with pid: " + newPid.getValue() 
+                + " with a sid: " + sid == null ? "null" : sid.getValue());
+        
         if(callAdapter.getNodeType() == NodeType.CN)
             throw new ClientSideException("Not for CN use!");
         
+        getSession("testRightsHolder");
+        Subject subject = getSubject("testRightsHolder");
         MNCallAdapter mnCallAdapter = new MNCallAdapter(getSession(subjectLabel), callAdapter.getNode(), "v2");
         byte[] contentBytes = ExampleUtilities.getExampleObjectOfType(DEFAULT_TEST_OBJECTFORMAT);
         D1Object d1o = new D1Object(newPid, contentBytes,
                 D1TypeBuilder.buildFormatIdentifier(DEFAULT_TEST_OBJECTFORMAT),
-                D1TypeBuilder.buildSubject(subjectLabel),
+                subject,
                 D1TypeBuilder.buildNodeReference("bogusAuthoritativeNode"));
         
         SystemMetadata sysmeta = TypeMarshaller.convertTypeFromType(d1o.getSystemMetadata(), SystemMetadata.class);
@@ -278,9 +291,13 @@ public abstract class SidCommonTestImplementations extends ContextAwareTestCaseD
                     Identifier sid = idPair.sid;
                     Identifier pid = idPair.headPid;
         
+                    Thread.sleep(INDEXING_TIME);
+                    
                     SystemMetadata sysMeta = callAdapter.getSystemMetadata(null, sid);
                     Identifier fetchedID = sysMeta.getIdentifier();
-                    assertTrue("getSystemMetaData() Case " + caseNum, fetchedID.equals(pid));
+                    assertTrue("getSystemMetaData() Case " + caseNum + " : identifier in "
+                            + "sysmeta fetched by the sid should be the head pid ", 
+                            fetchedID.equals(pid));
                     
                 } catch (BaseException e) {
                     e.printStackTrace();
@@ -472,6 +489,7 @@ public abstract class SidCommonTestImplementations extends ContextAwareTestCaseD
                     Identifier pid = idPair.headPid;
                     
                     Thread.sleep(INDEXING_TIME);
+                    
                     Identifier deletedObjectID = callAdapter.delete(null, sid);
 //                    // delete(SID) should return the PID of deleted object
 //                    assertTrue("testDelete(), Case " + caseNum + ", delete() should return the pid of the deleted object.", deletedObjectID.equals(pid));
@@ -482,6 +500,10 @@ public abstract class SidCommonTestImplementations extends ContextAwareTestCaseD
                     } catch (NotFound e) {
                         // expected result
                         notFound = true;
+                    } catch (Exception e1) {
+                        assertTrue("testDelete(), Case " + caseNum + ", expected NotFound "
+                                + "but got: " + e1.getClass().getSimpleName() + " : "
+                                + e1.getMessage(),false);
                     }
                     
                     assertTrue("testDelete(), Case " + caseNum + ", object for the head pid should have been deleted by its sid.", notFound);
@@ -578,6 +600,8 @@ public abstract class SidCommonTestImplementations extends ContextAwareTestCaseD
                     Identifier sid = idPair.sid;
                     Identifier pid = idPair.headPid;
         
+                    Thread.sleep(INDEXING_TIME);
+                    
                     ObjectList pidObjList = callAdapter.listObjects(null, null, null, null, null, pid, null, null, null);
                     ObjectList sidObjList = callAdapter.listObjects(null, null, null, null, null, sid, null, null, null);
                     

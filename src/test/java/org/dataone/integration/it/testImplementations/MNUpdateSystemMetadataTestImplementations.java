@@ -21,6 +21,7 @@ import org.dataone.integration.webTest.WebTestName;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.InvalidRequest;
 import org.dataone.service.exceptions.InvalidSystemMetadata;
+import org.dataone.service.exceptions.NotAuthorized;
 import org.dataone.service.exceptions.ServiceFailure;
 import org.dataone.service.exceptions.SynchronizationFailed;
 import org.dataone.service.types.v1.AccessPolicy;
@@ -573,7 +574,8 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
                 if (n.getType() == NodeType.MN && !n.getIdentifier().getValue().equals(node.getIdentifier().getValue()));
                    diffMN = n;
             }
-            assertTrue("Environment should have at least one other MN so we can test "
+            assertTrue("Environment should have at least one other MN "
+                    + "(fetched through CN.getNodeList()) so we can test "
                     + "changing the authoritativeMemberNode.", diffMN != null);
              
             callAdapter = getCallAdapter(diffMN, version);
@@ -585,9 +587,12 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
             
         } catch (InvalidRequest e) {
             // should fail
+        } catch (NotAuthorized e) {
+            // should fail
         } catch (ServiceFailure e) {
             // ServiceFailure is an allowed outcome for the MN.updateSystemMetadata()
-            log.warn("MN.updateSystemMetadata() returned a ServiceFailure.");
+            log.warn("MN.updateSystemMetadata() returned a ServiceFailure, "
+                    + "was expecting an InvalidRequest or NotAuthorized.");
         } catch (SynchronizationFailed e) {
             handleFail(callAdapter.getLatestRequestUrl(), e.getClass().getSimpleName() + ": " +
                "CN may throw SynchronizationFailed on a valid call to updateSystemMetadata. MN should not. " +
@@ -598,6 +603,62 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
         } catch(Exception e) {
             e.printStackTrace();
             handleFail(currentUrl, e.getClass().getName() + ": " + e.getMessage());
+        }
+    }
+    
+    @WebTestName("updateSystemMetadata - tests that a CN certificate can updateSystemMetadata on a non-authoritative MN")
+    @WebTestDescription("this test calls updateSystemMetadata() using a CN certificate "
+            + "to try to update the system metadata, "
+            + "but it makes the call on a non-authoritative MN, and is expected to succeed ")
+    public void testUpdateSystemMetadata_CNCertNonAuthMN(Iterator<Node> nodeIterator, String version) {
+        while (nodeIterator.hasNext())
+            testUpdateSystemMetadata_CNCertNonAuthMN(nodeIterator.next(), version);
+    }
+    
+    public void testUpdateSystemMetadata_CNCertNonAuthMN(Node node, String version) {
+        
+        MNCallAdapter cnCertAuthMN = new MNCallAdapter(getSession(cnSubmitter), node, version);
+        MNCallAdapter cnCertNonAuthMN = null;
+        String currentUrl = node.getBaseURL();
+        printTestHeader("testUpdateSystemMetadata_CNCertNonAuthMN(...) vs. node: " + currentUrl);
+        currentUrl = cnCertAuthMN.getNodeBaseServiceUrl();
+        
+        try {
+            getSession("testRightsHolder");
+            String rightsHolderSubjStr = catc.getSubject("testRightsHolder").getValue();
+            AccessRule accessRule = APITestUtils.buildAccessRule(rightsHolderSubjStr, Permission.CHANGE_PERMISSION);
+            Identifier pid = new Identifier();
+            pid.setValue("testUpdateSystemMetadata_CNCertNonAuthMN_" + ExampleUtilities.generateIdentifier());
+            Identifier testObjPid = catc.procureTestObject(cnCertAuthMN, accessRule, pid);
+            
+            SystemMetadata sysmeta = cnCertAuthMN.getSystemMetadata(null, testObjPid);
+            sysmeta.getSerialVersion().add(BigInteger.ONE);
+            sysmeta.setDateSysMetadataModified(new Date());
+            
+            NodeList nodes = cn.listNodes();
+            Node nonAuthMN = null;
+            for (Node n : nodes.getNodeList()) {
+                if (n.getType() == NodeType.MN && !n.getIdentifier().getValue().equals(node.getIdentifier().getValue()));
+                   nonAuthMN = n;
+            }
+            assertTrue("Environment should have at least one other MN "
+                    + "(fetched through CN.getNodeList()) so we can test "
+                    + "making the updateSystemMetadata() call against a "
+                    + "non-authoritative MN.", nonAuthMN != null);
+            
+            cnCertNonAuthMN = new MNCallAdapter(getSession(cnSubmitter), nonAuthMN, version);
+            boolean success = cnCertNonAuthMN.updateSystemMetadata(null, testObjPid , sysmeta);
+            
+            assertTrue("testUpdateSystemMetadata_CNCertNonAuthMN: "
+                    + "should succeed with a CN cert making the updateSystemMetadata() call "
+                    + "to a non-authoritative MN.", success);
+            
+        } catch (BaseException e) {
+            handleFail(cnCertNonAuthMN.getLatestRequestUrl(), e.getClass().getSimpleName() + ": " + 
+                    e.getDetail_code() + ": " + e.getDescription());
+        } catch(Exception e) {
+            e.printStackTrace();
+            handleFail(cnCertNonAuthMN.getLatestRequestUrl(), e.getClass().getName() + ": " + e.getMessage());
         }
     }
     
@@ -645,8 +706,10 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
             
             callAdapter.update(null, p1, objectInputStream, p2, v2sysmeta);
             p3 = catc.createTestObject(callAdapter, p3, accessRule);
+            
             Thread.sleep(METACAT_INDEXING_WAIT);
             
+            v2sysmeta = callAdapter.getSystemMetadata(null, p2);
         } catch (BaseException e) {
             throw new AssertionError(currentUrl + " testUpdateSystemMetadata_ObsoletesFail() setup steps failed! " 
                     + e.getClass().getSimpleName() + ": " + e.getDetail_code() + ": " + e.getDescription());
@@ -656,15 +719,13 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
         }
         
         try {
-            v2sysmeta = callAdapter.getSystemMetadata(null, p2);
             v2sysmeta.setObsoletes(p3);
             callAdapter.updateSystemMetadata(null, p2 , v2sysmeta);
             
-            handleFail(callAdapter.getLatestRequestUrl(), 
-                    "testUpdateSystemMetadata_ObsoletesFail() expected InvalidSystemMetadata since "
-                    + "changing the obsoletes field on one sysmeta without clearing out the corresponding "
-                    + "sysmeta's obsoletedBy first would create a contradiction in the pid chain, "
-                    + "but updateSystemMetadata() call didn't fail!");
+            handleFail(currentUrl, "testUpdateSystemMetadata_ObsoletesFail() expects the "
+                    + "updateSystemMetadata() call to fail with an InvalidSystemMetadata exception"
+                    + "since it's trying to overwrite the existing obsoletes field,"
+                    + "but the call succeeded! (The obsoletes field can only be set once.)");
             
         } catch (InvalidSystemMetadata e) {
             // expected
@@ -721,6 +782,7 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
             p2 = d1o.getIdentifier();
             callAdapter.update(null, p1, objectInputStream, p2, v2sysmeta);
             p3 = catc.createTestObject(callAdapter, p3, accessRule);
+            
             Thread.sleep(METACAT_INDEXING_WAIT);
             
             p1sysmeta = callAdapter.getSystemMetadata(null, p1);
@@ -735,6 +797,11 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
         try {
             p1sysmeta.setObsoletedBy(p3);
             callAdapter.updateSystemMetadata(null, p1 , p1sysmeta);
+            
+            handleFail(currentUrl, "testUpdateSystemMetadata_ObsoletedByFail() expects the "
+                    + "updateSystemMetadata() call to fail with an InvalidSystemMetadata exception"
+                    + "since it's trying to overwrite the existing obsoletedBy field, "
+                    + "but the call succeeded! (The obsoletes field can only be set once.)");
             
         } catch (InvalidSystemMetadata e) {
             // expected
