@@ -28,6 +28,7 @@ import org.dataone.service.types.v1.AccessPolicy;
 import org.dataone.service.types.v1.AccessRule;
 import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Node;
+import org.dataone.service.types.v1.NodeState;
 import org.dataone.service.types.v1.NodeType;
 import org.dataone.service.types.v1.Permission;
 import org.dataone.service.types.v1.ReplicationPolicy;
@@ -39,6 +40,7 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
 
     private CNCallAdapter cn;
     private static final long METACAT_INDEXING_WAIT = 10000;
+    private static final long REPLICATION_WAIT = 10 * 60000; 
     
     public MNUpdateSystemMetadataTestImplementations(ContextAwareTestCaseDataone catc) {
         super(catc);
@@ -638,13 +640,18 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
             NodeList nodes = cn.listNodes();
             Node nonAuthMN = null;
             for (Node n : nodes.getNodeList()) {
-                if (n.getType() == NodeType.MN && !n.getIdentifier().getValue().equals(node.getIdentifier().getValue()));
+                if (n.getType() == NodeType.MN 
+                        && !n.getIdentifier().getValue().equals(node.getIdentifier().getValue())
+                        && n.getState() == NodeState.UP) {
                    nonAuthMN = n;
+                }
             }
             assertTrue("Environment should have at least one other MN "
                     + "(fetched through CN.getNodeList()) so we can test "
                     + "making the updateSystemMetadata() call against a "
                     + "non-authoritative MN.", nonAuthMN != null);
+            
+            Thread.sleep(REPLICATION_WAIT);
             
             cnCertNonAuthMN = new MNCallAdapter(getSession(cnSubmitter), nonAuthMN, version);
             boolean success = cnCertNonAuthMN.updateSystemMetadata(null, testObjPid , sysmeta);

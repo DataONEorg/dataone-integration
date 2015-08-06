@@ -212,7 +212,6 @@ public abstract class SidCommonTestImplementations extends ContextAwareTestCaseD
         
         getSession("testRightsHolder");
         Subject rightsHolder = getSubject("testRightsHolder");
-        
         try {
             testObjPid = super.createTestObject(callAdapter, pid, sid, obsoletesId, obsoletedById, policy, subjectLabel, rightsHolder.getValue());
         } catch (BaseException be) {
@@ -236,7 +235,7 @@ public abstract class SidCommonTestImplementations extends ContextAwareTestCaseD
             NotImplemented, InvalidRequest, NotFound, ClientSideException, IOException, NoSuchAlgorithmException, InstantiationException, IllegalAccessException, InvocationTargetException, JiBXException {
         
         logger.info("UPDATING test object... pid: " + oldPid.getValue() + " with pid: " + newPid.getValue() 
-                + " with a sid: " + sid == null ? "null" : sid.getValue());
+                + " with a sid: " + (sid == null ? "null" : sid.getValue()));
         
         if(callAdapter.getNodeType() == NodeType.CN)
             throw new ClientSideException("Not for CN use!");
@@ -252,6 +251,7 @@ public abstract class SidCommonTestImplementations extends ContextAwareTestCaseD
         
         SystemMetadata sysmeta = TypeMarshaller.convertTypeFromType(d1o.getSystemMetadata(), SystemMetadata.class);
         sysmeta.setObsoletes(oldPid);
+        sysmeta.setSeriesId(sid);
         InputStream objectInputStream = null;
         Identifier updatedPid = null;
         
@@ -582,12 +582,12 @@ public abstract class SidCommonTestImplementations extends ContextAwareTestCaseD
             + "returns the expected number of results based on the chain we created")
     @Test
     public void testListObjects() {
-        logger.info("Testing get() method ... ");
+        logger.info("Testing listObjects() method ... ");
         
         int[] casesToTest = getCasesToTest();
         for (int i = 0; i < casesToTest.length; i++) {
             int caseNum = casesToTest[i];
-            logger.info("Testing get(), Case" + caseNum);
+            logger.info("Testing listObjects(), Case" + caseNum);
             
             Iterator<Node> nodeIter = getNodeIterator();
             while (nodeIter.hasNext()) {
