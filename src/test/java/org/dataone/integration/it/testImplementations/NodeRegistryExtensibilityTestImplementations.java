@@ -7,8 +7,10 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
+import org.dataone.client.v1.types.D1TypeBuilder;
 import org.dataone.integration.ContextAwareTestCaseDataone;
 import org.dataone.integration.adapters.CNCallAdapter;
+import org.dataone.integration.adapters.MNCallAdapter;
 import org.dataone.integration.it.ContextAwareAdapter;
 import org.dataone.integration.webTest.WebTestDescription;
 import org.dataone.integration.webTest.WebTestName;
@@ -51,7 +53,8 @@ public class NodeRegistryExtensibilityTestImplementations extends ContextAwareAd
         newNode.setContactSubjectList(new ArrayList<Subject>());
         newNode.setDescription("Node made for Register API testing");
         NodeReference nodeRef = new NodeReference();
-        nodeRef.setValue("TestNode");
+        nodeRef.setValue("urn:node:TestNode");
+        newNode.setName("urn:node:TestNode");
         newNode.setIdentifier(nodeRef);
         NodeReplicationPolicy replPolicy = new NodeReplicationPolicy();
         replPolicy.setAllowedNodeList(new ArrayList<NodeReference>());
@@ -65,9 +68,18 @@ public class NodeRegistryExtensibilityTestImplementations extends ContextAwareAd
         newNode.setServices(services);
         newNode.setState(NodeState.DOWN);
         List<Subject> subjects = new ArrayList<Subject>();
+        subjects.add(D1TypeBuilder.buildSubject("TestSubject"));
         newNode.setSubjectList(subjects);
+        newNode.setContactSubjectList(subjects);
         Synchronization synchronization = new Synchronization();
         Schedule schedule = new Schedule();
+        schedule.setHour("5");
+        schedule.setMday("*");
+        schedule.setMin("H");
+        schedule.setMon("*");
+        schedule.setSec("*");
+        schedule.setWday("*");
+        schedule.setYear("*");
         synchronization.setSchedule(schedule);
         newNode.setSynchronization(synchronization);
         newNode.setSynchronize(false);
@@ -157,8 +169,16 @@ public class NodeRegistryExtensibilityTestImplementations extends ContextAwareAd
         }
         List<Node> mNodes = new ArrayList<Node>();
         for (Node n : knownNodes.getNodeList())
-            if (n.getType() == NodeType.MN)
-                mNodes.add(n);
+            if (n.getType() == NodeType.MN
+                    && n.getState() == NodeState.UP)
+                try {
+                    MNCallAdapter testMN = new MNCallAdapter(getSession(cnSubmitter), n, "v2");
+                    testMN.getCapabilities();
+                    mNodes.add(n);
+                } catch (Exception e) {
+                    // continue
+                }
+                
         
         assertTrue("testUpdateNodeCapabilities() requires CN.listNodes() to contain "
                 + "at least one MN", mNodes.size() > 0);
@@ -178,6 +198,8 @@ public class NodeRegistryExtensibilityTestImplementations extends ContextAwareAd
         
         // add to Node properties
         List<Property> propertyList = v2MN.getPropertyList();
+        if (propertyList == null)
+            propertyList = new ArrayList<Property>();
         Property p1 = new Property();
         p1.setKey("NodeLogo");
         p1.setValue("<(o_O)>");
@@ -238,6 +260,8 @@ public class NodeRegistryExtensibilityTestImplementations extends ContextAwareAd
         // check if node is updated
         
         List<Property> fetchedPropertyList = fetchedNode.getPropertyList();
+        assertTrue("testUpdateNodeCapabilities(): fetched Node property list "
+                + "should not be null", fetchedNode != null);
         assertTrue("testUpdateNodeCapabilities(): fetched Node property list "
                 + "should contain two properties. Number of properties: " + 
                 fetchedPropertyList.size(), fetchedPropertyList.size() == 2);

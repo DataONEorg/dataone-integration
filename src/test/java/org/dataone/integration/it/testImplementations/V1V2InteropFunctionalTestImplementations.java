@@ -62,7 +62,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
     /** MNs supporting BOTH the V1 & V2 APIs */
     private List<Node> v1v2mns;
     
-    private static final long REPLICATION_WAIT = 5 * 60000;    // 30 minutes
+    private static final long REPLICATION_WAIT = 5 * 60000;    // 5 minutes
     private static final long METACAT_INDEXING_WAIT = 10000;
     
     private static Log log = LogFactory.getLog(SystemMetadataFunctionalTestImplementation.class);
@@ -1537,15 +1537,15 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         MNCallAdapter v2CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v2MNode, "v2");
         
         try {
-            ObjectList objList = v1CallAdapter.listObjects(null, null, null, null, null, null);
+            ObjectList objList = v2CallAdapter.listObjects(null, null, null, null, null, null);
             boolean objFound = false;
             for(ObjectInfo objInfo : objList.getObjectInfoList())
                 if(pid.getValue().equals(objInfo.getIdentifier().getValue())){
                     objFound = true;
                     break;
                 }
-            assertTrue("testV1CreateV2ListObjects() - v2 listObjects() results "
-                    + "should include the created object.", objFound );
+            assertTrue("testV1CreateV2ListObjects() - v2 listObjects() on " + v2MNode.getBaseURL() + "results "
+                    + "should include the created object: " + pid.getValue(), objFound );
         } catch (BaseException e) {
             e.printStackTrace();
             throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV1CreateV2ListObjects() couldn't create update object: " 

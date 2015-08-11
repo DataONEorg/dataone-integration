@@ -37,6 +37,7 @@ import org.dataone.service.types.v1.NodeReference;
 import org.dataone.service.types.v1.NodeType;
 import org.dataone.service.types.v1.Permission;
 import org.dataone.service.types.v1.Replica;
+import org.dataone.service.types.v1.ReplicationPolicy;
 import org.dataone.service.types.v1.Service;
 import org.dataone.service.types.v2.SystemMetadata;
 import org.dataone.service.util.Constants;
@@ -233,12 +234,14 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
                     + "creating test object");
             
             AccessRule accessRule = APITestUtils.buildAccessRule(Constants.SUBJECT_PUBLIC, Permission.CHANGE_PERMISSION);
+            ReplicationPolicy replPolicy = new ReplicationPolicy();
+            replPolicy.setNumberReplicas(null);
             Identifier pid = new Identifier();
             pid.setValue("testSystemMetadataChanged_" + ExampleUtilities.generateIdentifier());
             
                    
             try {
-                createdPid = createTestObject(mn, pid, accessRule);
+                createdPid = createTestObject(mn, pid, accessRule, replPolicy);
             } catch (BaseException be) {
                 throw new AssertionError(mn.getLatestRequestUrl() +  "Unable to create a test object: " + pid);
             }
@@ -416,10 +419,12 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
                     + "creating test object");
             
             AccessRule accessRule = APITestUtils.buildAccessRule(Constants.SUBJECT_PUBLIC, Permission.CHANGE_PERMISSION);
+            ReplicationPolicy replPolicy = new ReplicationPolicy();
+            replPolicy.setNumberReplicas(null);
             Identifier pid = new Identifier();
             pid.setValue("testSystemMetadataChanged_ExistingObj_" + ExampleUtilities.generateIdentifier());
             try {
-                createdPid = createTestObject(mn, pid, accessRule);
+                createdPid = createTestObject(mn, pid, accessRule, replPolicy);
             } catch (BaseException be) {
                 throw new AssertionError(mn.getLatestRequestUrl() + "Unable to create a test object: " + pid);
             }
@@ -527,6 +532,7 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
             
             fetchedCNSysmeta = cn.getSystemMetadata(null, createdPid);
             List<Replica> replicaList = fetchedCNSysmeta.getReplicaList();
+            assertTrue("Replica list fetched from CN (after having time to replicate should not be null!", replicaList != null);
             assertTrue("System metadata fetched from CN should now have a non-empty replica list", replicaList.size() > 0);
             
             log.info("testSystemMetadataChanged_ExistingObj:   "
@@ -575,7 +581,7 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
             assertTrue("Should have found at least one replica.", replicasFound > 0);
             
         } catch (Exception e) {
-            assertTrue("Testing failed with exception: " + e.getMessage(), false);
+            assertTrue("Testing failed with exception: " + e.getClass().getSimpleName() + " : " + e.getMessage(), false);
             e.printStackTrace();
         } finally {
             // TODO ideally, purge(pid)

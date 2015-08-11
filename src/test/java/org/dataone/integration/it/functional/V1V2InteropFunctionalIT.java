@@ -10,7 +10,7 @@ public class V1V2InteropFunctionalIT extends ContextAwareTestCaseDataone {
 
     @WebTestImplementation
     V1V2InteropFunctionalTestImplementations interopImpl;
-    
+
     @Override
     protected String getTestDescription() {
         return "Test Case that runs metadata management scenarios including v1 and v2 nodes.";
@@ -21,7 +21,7 @@ public class V1V2InteropFunctionalIT extends ContextAwareTestCaseDataone {
         interopImpl = new V1V2InteropFunctionalTestImplementations();
         interopImpl.setup(getCoordinatingNodeIterator());
     }
-    
+
     @Test
     public void testV2CreateV1GetSysmetaSameNode() {
         interopImpl.testV2CreateV1GetSysmetaSameNode();
@@ -61,37 +61,31 @@ public class V1V2InteropFunctionalIT extends ContextAwareTestCaseDataone {
     public void testV2CreateV1UpdateSysmetaSameNode() {
         interopImpl.testV2CreateV1UpdateSysmetaSameNode();
     }
-    
+
     @Test
     public void testV2CreateV1UpdateSameNode() {
         interopImpl.testV2CreateV1UpdateSameNode();
     }
-    
+
     @Test
     public void testV1CreateV2UpdateSameNode() {
         interopImpl.testV1CreateV2UpdateSameNode();
     }
-    
-    @Test
-    public void testV1CreateV2GetSysmeta() {
-        interopImpl.testV1CreateV2GetSysmeta();
-    }
-    
+
     @Test
     public void testV1CreateV2GetSysMeta() {
         interopImpl.testV1CreateV2GetSysmeta();
     }
-    
+
     @Test
     public void testV1CreateV2Query() {
         interopImpl.testV1CreateV2Query();
     }
 
-    @Test
     public void testV2CreateV1Query() {
         interopImpl.testV2CreateV1Query();
     }
-    
+
     @Test
     public void testV2CreateV1GetSysMeta() {
         interopImpl.testV2CreateV1GetSysMeta();

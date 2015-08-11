@@ -3,8 +3,8 @@ package org.dataone.integration.it.functional;
 import org.dataone.integration.ContextAwareTestCaseDataone;
 import org.dataone.integration.it.testDefinitions.NodeRegistryExtensibilityTestDefinitions;
 import org.dataone.integration.it.testImplementations.NodeRegistryExtensibilityTestImplementations;
-import org.dataone.integration.it.testImplementations.ViewFunctionalTestImplementations;
 import org.junit.Before;
+import org.junit.Test;
 
 public class CNRegisterFunctionalIT extends ContextAwareTestCaseDataone implements NodeRegistryExtensibilityTestDefinitions {
 
@@ -21,11 +21,13 @@ public class CNRegisterFunctionalIT extends ContextAwareTestCaseDataone implemen
     }
 
     @Override
+    @Test
     public void testRegister() {
         extensibilityImpl.testRegister(getCoordinatingNodeIterator(), "v2");
     }
 
     @Override
+    @Test
     public void testUpdateNodeCapabilities() {
         extensibilityImpl.testUpdateNodeCapabilities(getCoordinatingNodeIterator(), "v2");
     }

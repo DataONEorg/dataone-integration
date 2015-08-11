@@ -4,6 +4,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.ByteArrayInputStream;
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
@@ -28,12 +29,17 @@ import org.dataone.service.types.v1.AccessPolicy;
 import org.dataone.service.types.v1.AccessRule;
 import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Node;
+import org.dataone.service.types.v1.NodeReference;
 import org.dataone.service.types.v1.NodeState;
 import org.dataone.service.types.v1.NodeType;
 import org.dataone.service.types.v1.Permission;
+import org.dataone.service.types.v1.Replica;
 import org.dataone.service.types.v1.ReplicationPolicy;
+import org.dataone.service.types.v1.ReplicationStatus;
+import org.dataone.service.types.v1.Subject;
 import org.dataone.service.types.v2.NodeList;
 import org.dataone.service.types.v2.SystemMetadata;
+import org.dataone.service.util.Constants;
 import org.dataone.service.util.TypeMarshaller;
 
 public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetadataTestImplementations {
@@ -626,33 +632,54 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
         currentUrl = cnCertAuthMN.getNodeBaseServiceUrl();
         
         try {
+            AccessRule accessRule = new AccessRule();
             getSession("testRightsHolder");
-            String rightsHolderSubjStr = catc.getSubject("testRightsHolder").getValue();
-            AccessRule accessRule = APITestUtils.buildAccessRule(rightsHolderSubjStr, Permission.CHANGE_PERMISSION);
+            Subject subject = D1TypeBuilder.buildSubject(Constants.SUBJECT_PUBLIC);
+            accessRule.addSubject(subject);
+            accessRule.addPermission(Permission.CHANGE_PERMISSION);
             Identifier pid = new Identifier();
             pid.setValue("testUpdateSystemMetadata_CNCertNonAuthMN_" + ExampleUtilities.generateIdentifier());
-            Identifier testObjPid = catc.procureTestObject(cnCertAuthMN, accessRule, pid);
+            ReplicationPolicy replPolicy = new ReplicationPolicy();
+            replPolicy.setReplicationAllowed(true);
+            replPolicy.setNumberReplicas(2);
+            Identifier testObjPid = catc.createTestObject(cnCertAuthMN, pid, accessRule, replPolicy);
+           
+            Thread.sleep(REPLICATION_WAIT);
             
-            SystemMetadata sysmeta = cnCertAuthMN.getSystemMetadata(null, testObjPid);
+            SystemMetadata sysmeta = cn.getSystemMetadata(null, testObjPid);
             sysmeta.getSerialVersion().add(BigInteger.ONE);
             sysmeta.setDateSysMetadataModified(new Date());
             
-            NodeList nodes = cn.listNodes();
+            List<Replica> replicaList = sysmeta.getReplicaList();
+            assertTrue("testUpdateSystemMetadata_CNCertNonAuthMN : After waiting for replication to occur, "
+                    + "fetched sysmeta should contain a non-empty replica list!", 
+                    replicaList != null && replicaList.size() > 0);
+            
+            List<Replica> successfulReplicas = new ArrayList<Replica>();
+            for (Replica replica : replicaList)
+                if (replica.getReplicationStatus() == ReplicationStatus.COMPLETED 
+                        && !replica.getReplicaMemberNode().getValue().equals(node.getIdentifier().getValue()))
+                    successfulReplicas.add(replica);
+
+            assertTrue("testUpdateSystemMetadata_CNCertNonAuthMN : After waiting for replication to occur, "
+                    + "there should be at least one successful replica MN available!", successfulReplicas.size() > 0);
+            
             Node nonAuthMN = null;
-            for (Node n : nodes.getNodeList()) {
-                if (n.getType() == NodeType.MN 
-                        && !n.getIdentifier().getValue().equals(node.getIdentifier().getValue())
-                        && n.getState() == NodeState.UP) {
-                   nonAuthMN = n;
+            for (Replica replica : successfulReplicas) {
+                NodeReference replicaMN = replica.getReplicaMemberNode();
+                
+                NodeList nodes = cn.listNodes();
+                for (Node n : nodes.getNodeList()) {
+                    if (n.getType() == NodeType.MN
+                            && n.getIdentifier().getValue().equals(replicaMN.getValue())
+                            && n.getState() == NodeState.UP) {
+                        nonAuthMN = n;
+                    }
                 }
             }
-            assertTrue("Environment should have at least one other MN "
-                    + "(fetched through CN.getNodeList()) so we can test "
-                    + "making the updateSystemMetadata() call against a "
-                    + "non-authoritative MN.", nonAuthMN != null);
-            
-            Thread.sleep(REPLICATION_WAIT);
-            
+            assertTrue("Environment should have at least one other MN that is up and "
+                            + "was used to replicate to.", nonAuthMN != null);
+ 
             cnCertNonAuthMN = new MNCallAdapter(getSession(cnSubmitter), nonAuthMN, version);
             boolean success = cnCertNonAuthMN.updateSystemMetadata(null, testObjPid , sysmeta);
             

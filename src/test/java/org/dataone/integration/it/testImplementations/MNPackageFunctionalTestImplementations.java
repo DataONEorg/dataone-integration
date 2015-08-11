@@ -42,11 +42,12 @@ import com.github.junrar.rarfile.FileHeader;
 
 public class MNPackageFunctionalTestImplementations extends ContextAwareAdapter {
 
+    private static Log log = LogFactory.getLog(MNPackageFunctionalTestImplementations.class);
+    private static final String BAGIT_ID = "application/bagit";
+    
     public MNPackageFunctionalTestImplementations(ContextAwareTestCaseDataone catc) {
         super(catc);
     }
-
-    private static Log log = LogFactory.getLog(MNPackageFunctionalTestImplementations.class);
     
     @WebTestName("getPackage - zip")
     @WebTestDescription(
@@ -69,9 +70,12 @@ public class MNPackageFunctionalTestImplementations extends ContextAwareAdapter 
         InputStream is = null;
         try {
             ObjectFormatIdentifier formatID = new ObjectFormatIdentifier();
-            formatID.setValue("application/zip");
+            formatID.setValue(BAGIT_ID);
+            // NOTE:    compression format should default to zip for BagIt type,
+            //          when no content type is specified through the Accept header
             
             Identifier resourceMapPid = catc.procureResourceMap(callAdapter);
+            
             is = testRightsHolderCallAdapter.getPackage(null, formatID, resourceMapPid);
             
             // check for valid InputStream
@@ -121,7 +125,8 @@ public class MNPackageFunctionalTestImplementations extends ContextAwareAdapter 
                     }
                 }
             } catch (Exception e) {
-                e.printStackTrace();
+                throw new AssertionError("Got exception while trying to extract the contents of the input stream "
+                        + "returned from getPackage() as a zip file.", e);
             } finally {
                 IOUtils.closeQuietly(zis);
             }
@@ -175,7 +180,8 @@ public class MNPackageFunctionalTestImplementations extends ContextAwareAdapter 
         
         try {
             ObjectFormatIdentifier formatID = new ObjectFormatIdentifier();
-            formatID.setValue("application/x-gzip");
+            formatID.setValue(BAGIT_ID);
+            String compressionType = "application/x-gzip"; // FIXME through content negotiation
             
             Identifier resourceMapPid = catc.procureResourceMap(callAdapter);
             pkgInStream = testRightsHolderCallAdapter.getPackage(null, formatID, resourceMapPid);
@@ -253,7 +259,8 @@ public class MNPackageFunctionalTestImplementations extends ContextAwareAdapter 
         
         try {
             ObjectFormatIdentifier formatID = new ObjectFormatIdentifier();
-            formatID.setValue("application/x-bzip2");
+            formatID.setValue(BAGIT_ID);
+            String compressionType = "application/x-bzip2"; // FIXME through content negotiation
             
             Identifier resourceMapPid = catc.procureResourceMap(callAdapter);
             pkgInStream = testRightsHolderCallAdapter.getPackage(null, formatID, resourceMapPid);
@@ -405,7 +412,8 @@ public class MNPackageFunctionalTestImplementations extends ContextAwareAdapter 
         
         try {
             ObjectFormatIdentifier formatID = new ObjectFormatIdentifier();
-            formatID.setValue("application/x-tar");
+            formatID.setValue(BAGIT_ID);
+            String compressionType = "application/x-tar"; // FIXME through content negotiation
             
             Identifier resourceMapPid = catc.procureResourceMap(callAdapter);
             pkgInStream = testRightsHolderCallAdapter.getPackage(null, formatID, resourceMapPid);
@@ -538,7 +546,8 @@ public class MNPackageFunctionalTestImplementations extends ContextAwareAdapter 
         
         try {
             ObjectFormatIdentifier formatID = new ObjectFormatIdentifier();
-            formatID.setValue("application/x-rar-compressed");
+            formatID.setValue(BAGIT_ID);
+            String compressionType = "x-rar-compressed"; // FIXME through content negotiation
             
             Identifier resourceMapPid = catc.procureResourceMap(callAdapter);
             pkgInStream = testRightsHolderCallAdapter.getPackage(null, formatID, resourceMapPid);
