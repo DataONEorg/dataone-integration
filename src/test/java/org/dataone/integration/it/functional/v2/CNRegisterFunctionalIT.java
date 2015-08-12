@@ -1,4 +1,4 @@
-package org.dataone.integration.it.functional;
+package org.dataone.integration.it.functional.v2;
 
 import org.dataone.integration.ContextAwareTestCaseDataone;
 import org.dataone.integration.it.testDefinitions.NodeRegistryExtensibilityTestDefinitions;
