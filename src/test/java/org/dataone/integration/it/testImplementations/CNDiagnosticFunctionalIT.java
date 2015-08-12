@@ -1,7 +1,6 @@
-package org.dataone.integration.it.functional;
+package org.dataone.integration.it.testImplementations;
 
 import org.dataone.integration.ContextAwareTestCaseDataone;
-import org.dataone.integration.it.testImplementations.CNDiagnosticFunctionalTestImplementations;
 import org.dataone.integration.webTest.WebTestImplementation;
 import org.junit.Before;
 import org.junit.Test;
