@@ -318,7 +318,8 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
             // use the context specified by D1Client.properties
             String cnBaseUrl = Settings.getConfiguration().getString("D1Client.CN_URL");
             System.out.println("~~~ Context is from d1client.properties: " + cnBaseUrl);
-            allNodesList = getNodeList(cnBaseUrl);
+            if (cnBaseUrl != null) 
+                allNodesList = getNodeList(cnBaseUrl);
         }
         
         // divide into separate lists
