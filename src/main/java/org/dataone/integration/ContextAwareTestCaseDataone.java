@@ -523,7 +523,9 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
     {
         // 1. set up the client certificate
         String testCertDirectory = (String) Settings.getConfiguration().getProperty("d1.test.cert.location");
-
+        log.info("certificate directory: " + testCertDirectory);
+        log.info("certificate filename: " + certificateFilename);
+        
         CertificateManager cm = CertificateManager.getInstance();
         cm.setCertificateLocation(testCertDirectory + certificateFilename + ".crt");
         cm.loadCertificate();
@@ -531,6 +533,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
         // 2. return the subject corresponding to the loaded certificate
         Subject clientSubject = ClientIdentityManager.getCurrentIdentity();
 
+        
         log.info("client setup as Subject: " + clientSubject.getValue());
         return clientSubject;
     }
