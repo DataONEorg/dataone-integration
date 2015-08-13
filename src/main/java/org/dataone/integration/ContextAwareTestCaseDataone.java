@@ -135,6 +135,9 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
     private static Map<String,Subject> subjectMap = new HashMap<String, Subject>();
 
     private static final MultipartRestClient MULTIPART_REST_CLIENT = getSession(null);
+    
+    /* a map that acts as a cache for checking if member nodes are reachable */
+    protected static Map<String,Long> lastAliveMap = new HashMap<>();
 
     // context-related instance variables
     private boolean alreadySetup = false;
@@ -165,7 +168,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
     protected String testObjectSeriesSuffix = "." + "14";
     protected String testObjectSeries = null;
 
-    protected static boolean failOnMissingNodes = true;
+    protected static boolean failOnMissingNodes = false;
 
     protected abstract String getTestDescription();
 
@@ -336,7 +339,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
                 }
                 catch (Exception e) {
                     if (failOnMissingNodes)
-                        handleFail(MULTIPART_REST_CLIENT.getLatestRequestUrl(), "Could not reach node at " +
+                        handleFail(MULTIPART_REST_CLIENT.getLatestRequestUrl(), "Context Setup error: Could not reach node at " +
                                 currentNode.getIdentifier().getValue() +
                                 " for testing. Skipping further test cases for this node");
                     log.warn("*** Failed to add CN to list: " + currentNode.getName() +
@@ -378,17 +381,30 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
      * Returns true or throws an exception
      * Exceptions are thrown if a response cannot be returned from the baseurl
      */
-    private boolean isNodeAlive(RestClient rc, String baseURL)
-    throws IOException, ClientProtocolException
-    {
-        HttpResponse resp = null;
-        try {
-           resp = rc.doGetRequest(baseURL, null);
-        } finally {
-            if (resp != null) 
-                EntityUtils.consumeQuietly(resp.getEntity());
+    private boolean isNodeAlive(RestClient rc, String baseURL) 
+    throws ClientProtocolException, IOException {
+        
+        log.info("isNodeAlive for Node: " + baseURL + " ...");
+        Long latestCheck = lastAliveMap.get(baseURL);
+        Date now = new Date();
+        if (latestCheck == null /* never checked */ || (now.getTime() - latestCheck > 600000 /* >10 min */ )) {
+            // check the node
+            log.info("... calling node ...");
+            HttpResponse resp = null;
+            try {
+               resp = rc.doGetRequest(baseURL, null);
+               lastAliveMap.put(baseURL, new Long(new Date().getTime()));
+               return true;
+            } 
+            finally {
+                if (resp != null) 
+                    EntityUtils.consumeQuietly(resp.getEntity());
+                log.info("... called node");
+            }
+        } else {
+            log.info("... lastAlive still fresh (using cached timestamp)");
+            return true;
         }
-        return true;
     }
 
 
