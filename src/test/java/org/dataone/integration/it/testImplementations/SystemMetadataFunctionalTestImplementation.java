@@ -69,7 +69,6 @@ import org.junit.Test;
  *      (this is so we can test if CN.synchronize() works on its own correctly, as opposed to the harbest sync task).</li>
  *      <li>The MNs/CNs are properly registered with each other.</li>
  *      <li>We know how long it takes the CN to sync MN data and how long it takes MNs to replicate authoritative sysmeta. 
- *      <b>NOTE: currently hard-coded to 30 minutes.</b></li>
  * </ul>
  * 
  * @author Andrei
@@ -82,8 +81,6 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
     private Node mnV2NoSync;
     private static final long SYNC_WAIT = 5 * 60000;       // FIXME this is based on manually setting sync time on MNs
     private static final long REPLICATION_WAIT = 1 * 60000;
-    
-    private static Log log = LogFactory.getLog(SystemMetadataFunctionalTestImplementation.class);
     
     @Before
     public void setup() {
@@ -239,7 +236,6 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
             Identifier pid = new Identifier();
             pid.setValue("testSystemMetadataChanged_" + ExampleUtilities.generateIdentifier());
             
-                   
             try {
                 createdPid = createTestObject(mn, pid, accessRule, replPolicy);
             } catch (BaseException be) {
@@ -388,7 +384,7 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
                 if(createdPid != null)     
                     mn.delete(null, createdPid);
             } catch (Exception e2) {
-                log.error("Unable to delete test pid: " + createdPid, e2);
+                log.error("Unable to delete test pid after running the test: " + createdPid, e2);
                 e2.printStackTrace();
             }
         }
@@ -589,7 +585,7 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
                 if(createdPid != null)     
                     mn.delete(null, createdPid);
             } catch (Exception e2) {
-                log.error("Unable to delete test pid: " + createdPid, e2);
+                log.error("Unable to delete test pid after running the test: " + createdPid, e2);
                 e2.printStackTrace();
             }
         }
