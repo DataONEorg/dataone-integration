@@ -393,6 +393,10 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 
     private List<Node> getNodeList(String baseURL)
     throws ClientSideException, NotImplemented, ServiceFailure {
+        
+        if (baseURL == null) 
+            throw new ClientSideException("baseURL parameter to getNodeList cannot be null.");
+
         try {
             org.dataone.client.v1.CNode cnv1 =
                     D1NodeFactory.buildNode(org.dataone.client.v1.CNode.class,
