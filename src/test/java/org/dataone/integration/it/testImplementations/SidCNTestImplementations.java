@@ -75,7 +75,7 @@ public class SidCNTestImplementations extends SidCommonTestImplementations {
     
     @Override
     protected int[] getCasesToTest() {
-        return new int[] {  1 };//, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18};
+        return new int[] { 1 };//, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18};
     }
     
     @Override
@@ -395,8 +395,8 @@ public class SidCNTestImplementations extends SidCommonTestImplementations {
                     Identifier sid = idPair.sid;
                     Identifier pid = idPair.headPid;
         
-                    ObjectLocationList sidLocationList = callAdapter.resolve(null, sid);
                     ObjectLocationList pidLocationList = callAdapter.resolve(null, pid);
+                    ObjectLocationList sidLocationList = callAdapter.resolve(null, sid);
                     
                     if(sidLocationList.getObjectLocationList().size() == 0)
                         assertTrue("resolve() Case " + caseNum + ", resolve() on SID should yield non-empty location list", 

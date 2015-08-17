@@ -133,76 +133,6 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             log.info("v1 & v2 MN:   " + n.getBaseURL());
     }
     
-    @WebTestName("v2 create, v1 updateSystemMetadata")
-    @WebTestDescription("Test operates on a single MN that supports both v1 & v2 APIs." +
-            "It does a create on the v2 endpoint, then an updateSystemMetadata on the v1 endpoint." +
-            "The updateSystemMetadata operation should yield an exception since it could be erasing " +
-            "v2-specific data from the create.")
-    public void testV2CreateV1UpdateSysmetaSameNode() {
-        
-        assertTrue("Tests require at least 1 MN that supports BOTH v1 & v2 APIs", v1v2mns.size() >= 1);
-        
-        AccessRule accessRule = new AccessRule();
-        getSession("testRightsHolder");
-        Subject subject = D1TypeBuilder.buildSubject(Constants.SUBJECT_PUBLIC);
-        accessRule.addSubject(subject);
-        accessRule.addPermission(Permission.CHANGE_PERMISSION);
-        
-        Node mNode = v1v2mns.get(0);
-        MNCallAdapter v1CallAdapter = new MNCallAdapter(getSession(cnSubmitter), mNode, "v1");
-        MNCallAdapter v2CallAdapter = new MNCallAdapter(getSession(cnSubmitter), mNode, "v2");
-        
-        // v2 create
-        
-        Identifier pid = null;
-        try {
-            pid = createTestObject(v2CallAdapter, "testV2CreateV1UpdateSysmeta_", accessRule);
-        } catch (BaseException e) {
-            e.printStackTrace();
-            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV2CreateV1UpdateSysmeta() couldn't create test object: " 
-                    + e.getClass().getSimpleName() + ": " 
-                    + e.getDetail_code() + ":: " + e.getDescription());
-        }
-        catch(Exception e) {
-            e.printStackTrace();
-            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV2CreateV1UpdateSysmeta() couldn't create test object: " 
-            + e.getClass().getName() + ": " + e.getMessage());
-        }
-        
-        try {
-            Thread.sleep(METACAT_INDEXING_WAIT);
-        } catch (InterruptedException e1) {
-            e1.printStackTrace();
-        }
-        
-        // v1 updateSystemMetadata
-        
-        SystemMetadata sysmeta = null;
-        try {
-            sysmeta = v2CallAdapter.getSystemMetadata(null, pid);
-            sysmeta.setSerialVersion(sysmeta.getSerialVersion().add(BigInteger.ONE));
-        } catch (BaseException e) {
-            e.printStackTrace();
-            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV2CreateV1UpdateSysmeta() couldn't create update object: " 
-                    + e.getClass().getSimpleName() + ": " 
-                    + e.getDetail_code() + ":: " + e.getDescription());
-        }
-        catch(Exception e) {
-            e.printStackTrace();
-            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV2CreateV1UpdateSysmeta() couldn't create update object: " 
-            + e.getClass().getName() + ": " + e.getMessage());
-        }
-        
-        try {
-            v1CallAdapter.updateSystemMetadata(null, pid, sysmeta);
-            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() 
-                    + "testV2CreateV1UpdateSysmeta() : updateSystemMetadata() should fail " 
-                    + "for v2 create() followed by v1 updateSystemMetadata()");
-        } catch (Exception e) {
-            // expected v1 updateSystemMetadata() to fail
-        }
-    }
-    
     @WebTestName("v2 create, v1 update")
     @WebTestDescription(
      "Test operates on a single MN that supports both v1 & v2 APIs." +
@@ -1556,6 +1486,318 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             e.printStackTrace();
             throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV1CreateV2ListObjects() couldn't create update object: " 
             + e.getClass().getName() + ": " + e.getMessage());
+        }
+    }
+    
+    @WebTestName("v2 create, v1 archive")
+    @WebTestDescription(
+     "Test operates on a v2 MN and a CN." +
+     "It does a create on the v2 MN, then attempts to archive the object on the CN. " +
+     "The archive call should fail since the object is a v2 object - its authoritative " +
+     "MN is a v2 MN, so the v2 API should be used to do the update.")
+    public void testV2CreateV1CnArchive() {
+
+        assertTrue("Tests require at least 1 MN that supports the v2 API", v2mns.size() >= 1);
+        
+        AccessRule accessRule = new AccessRule();
+        Subject subject = D1TypeBuilder.buildSubject(Constants.SUBJECT_PUBLIC);
+        accessRule.addSubject(subject);
+        accessRule.addPermission(Permission.CHANGE_PERMISSION);
+        ReplicationPolicy replPolicy = new ReplicationPolicy();
+        replPolicy.setReplicationAllowed(true);
+        replPolicy.setNumberReplicas(2);
+        
+        Node v2MNode = v2mns.get(0);
+        MNCallAdapter v2CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v2MNode, "v2");
+        
+        // v2 create
+        
+        Identifier pid = D1TypeBuilder.buildIdentifier("testV2CreateV1Archive_" + ExampleUtilities.generateIdentifier());
+        try {
+            pid = createTestObject(v2CallAdapter, pid, accessRule, replPolicy);
+        } catch (BaseException e) {
+            e.printStackTrace();
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV2CreateV1Archive() couldn't create test object: " 
+                    + e.getClass().getSimpleName() + ": " 
+                    + e.getDetail_code() + ":: " + e.getDescription());
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV2CreateV1Archive() couldn't create test object: " 
+            + e.getClass().getName() + ": " + e.getMessage());
+        }
+        
+        // wait for replication
+        try {
+            Thread.sleep(REPLICATION_WAIT);
+        } catch (InterruptedException e1) {
+            e1.printStackTrace();
+        }
+        
+        // CN archive
+        
+        try {
+            cn.archive(null, pid);
+            handleFail(cn.getLatestRequestUrl(), "testV2CreateV1Archive() : archive call to CN should fail because "
+                    + "object being archived has a v2 node as its authoritative MN" );
+        } catch (InvalidRequest e) {
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            handleFail(cn.getLatestRequestUrl(), "testV2CreateV1Archive() : expected archive call to CN should fail "
+                    + "with an InvalidRequest exception because object being archived has a v2 node as its "
+                    + "authoritative MN. Got: " + e.getClass().getSimpleName() + " : " + e.getMessage() );
+        }
+    }
+    
+    @WebTestName("v2 create, v1 setReplicationPolicy")
+    @WebTestDescription(
+     "Test operates on a v2 MN and a CN." +
+     "It does a create on the v2 MN, then attempts to setReplicationPolicy on the object on the CN. " +
+     "The archive call should fail since the object is a v2 object - its authoritative " +
+     "MN is a v2 MN, so the v2 API should be used to do the update.")
+    public void testV2CreateV1CnSetReplicationPolicy() {
+
+        assertTrue("Tests require at least 1 MN that supports the v2 API", v2mns.size() >= 1);
+        
+        AccessRule accessRule = new AccessRule();
+        Subject subject = D1TypeBuilder.buildSubject(Constants.SUBJECT_PUBLIC);
+        accessRule.addSubject(subject);
+        accessRule.addPermission(Permission.CHANGE_PERMISSION);
+        ReplicationPolicy replPolicy = new ReplicationPolicy();
+        replPolicy.setReplicationAllowed(true);
+        replPolicy.setNumberReplicas(2);
+        
+        Node v2MNode = v2mns.get(0);
+        MNCallAdapter v2CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v2MNode, "v2");
+        
+        // v2 create
+        
+        Identifier pid = D1TypeBuilder.buildIdentifier("testV2CreateV1CnSetReplicationPolicy_" + ExampleUtilities.generateIdentifier());
+        try {
+            pid = createTestObject(v2CallAdapter, pid, accessRule, replPolicy);
+        } catch (BaseException e) {
+            e.printStackTrace();
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV2CreateV1CnSetReplicationPolicy() couldn't create test object: " 
+                    + e.getClass().getSimpleName() + ": " 
+                    + e.getDetail_code() + ":: " + e.getDescription());
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV2CreateV1CnSetReplicationPolicy() couldn't create test object: " 
+            + e.getClass().getName() + ": " + e.getMessage());
+        }
+        
+        // wait for replication
+        try {
+            Thread.sleep(REPLICATION_WAIT);
+        } catch (InterruptedException e1) {
+            e1.printStackTrace();
+        }
+        
+        // CN setReplicationPolicy
+        
+        try {
+            replPolicy.setNumberReplicas(replPolicy.getNumberReplicas() + 1);
+            cn.setReplicationPolicy(null, pid, replPolicy, 2);
+            handleFail(cn.getLatestRequestUrl(), "testV2CreateV1CnSetReplicationPolicy() : setReplicationPolicy "
+                    + "call to CN should fail because object has a v2 node as its authoritative MN" );
+        } catch (InvalidRequest e) {
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            handleFail(cn.getLatestRequestUrl(), "testV2CreateV1CnSetReplicationPolicy() : expected setReplicationPolicy "
+                    + "call to CN should fail with an InvalidRequest exception because object has a v2 node as its "
+                    + "authoritative MN. Got: " + e.getClass().getSimpleName() + " : " + e.getMessage() );
+        }
+    }
+    
+    @WebTestName("v2 create, v1 setAccessPolicy")
+    @WebTestDescription(
+     "Test operates on a v2 MN and a CN." +
+     "It does a create on the v2 MN, then attempts to setAccessPolicy on the object on the CN. " +
+     "The archive call should fail since the object is a v2 object - its authoritative " +
+     "MN is a v2 MN, so the v2 API should be used to do the update.")
+    public void testV2CreateV1CnSetAccessPolicy() {
+
+        assertTrue("Tests require at least 1 MN that supports the v2 API", v2mns.size() >= 1);
+        
+        AccessRule accessRule = new AccessRule();
+        Subject subject = D1TypeBuilder.buildSubject(Constants.SUBJECT_PUBLIC);
+        accessRule.addSubject(subject);
+        accessRule.addPermission(Permission.CHANGE_PERMISSION);
+        ReplicationPolicy replPolicy = new ReplicationPolicy();
+        replPolicy.setReplicationAllowed(true);
+        replPolicy.setNumberReplicas(2);
+        
+        Node v2MNode = v2mns.get(0);
+        MNCallAdapter v2CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v2MNode, "v2");
+        
+        // v2 create
+        
+        Identifier pid = D1TypeBuilder.buildIdentifier("testV2CreateV1CnSetAccessPolicy_" + ExampleUtilities.generateIdentifier());
+        try {
+            pid = createTestObject(v2CallAdapter, pid, accessRule, replPolicy);
+        } catch (BaseException e) {
+            e.printStackTrace();
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV2CreateV1CnSetAccessPolicy() couldn't create test object: " 
+                    + e.getClass().getSimpleName() + ": " 
+                    + e.getDetail_code() + ":: " + e.getDescription());
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV2CreateV1CnSetAccessPolicy() couldn't create test object: " 
+            + e.getClass().getName() + ": " + e.getMessage());
+        }
+        
+        // wait for replication
+        try {
+            Thread.sleep(REPLICATION_WAIT);
+        } catch (InterruptedException e1) {
+            e1.printStackTrace();
+        }
+        
+        // CN setAccessPolicy
+        
+        try {
+            AccessPolicy accessPolicy = new AccessPolicy();
+            accessPolicy.addAllow(accessRule);
+            cn.setAccessPolicy(null, pid, null, 2);
+            handleFail(cn.getLatestRequestUrl(), "testV2CreateV1CnSetAccessPolicy() : setAccessPolicy "
+                    + "call to CN should fail because object has a v2 node as its authoritative MN" );
+        } catch (InvalidRequest e) {
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            handleFail(cn.getLatestRequestUrl(), "testV2CreateV1CnSetAccessPolicy() : expected setAccessPolicy "
+                    + "call to CN should fail with an InvalidRequest exception because object has a v2 node as its "
+                    + "authoritative MN. Got: " + e.getClass().getSimpleName() + " : " + e.getMessage() );
+        }
+    }
+    
+    @WebTestName("v2 create, v1 setRightsHolder")
+    @WebTestDescription(
+     "Test operates on a v2 MN and a CN." +
+     "It does a create on the v2 MN, then attempts to setRightsHolder the object on the CN. " +
+     "The archive call should fail since the object is a v2 object - its authoritative " +
+     "MN is a v2 MN, so the v2 API should be used to do the update.")
+    public void testV2CreateV1CnSetRightsHolder() {
+
+        assertTrue("Tests require at least 1 MN that supports the v2 API", v2mns.size() >= 1);
+        
+        AccessRule accessRule = new AccessRule();
+        Subject subject = D1TypeBuilder.buildSubject(Constants.SUBJECT_PUBLIC);
+        accessRule.addSubject(subject);
+        accessRule.addPermission(Permission.CHANGE_PERMISSION);
+        ReplicationPolicy replPolicy = new ReplicationPolicy();
+        replPolicy.setReplicationAllowed(true);
+        replPolicy.setNumberReplicas(2);
+        
+        Node v2MNode = v2mns.get(0);
+        MNCallAdapter v2CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v2MNode, "v2");
+        
+        // v2 create
+        
+        Identifier pid = D1TypeBuilder.buildIdentifier("testV2CreateV1CnSetRightsHolder_" + ExampleUtilities.generateIdentifier());
+        try {
+            pid = createTestObject(v2CallAdapter, pid, accessRule, replPolicy);
+        } catch (BaseException e) {
+            e.printStackTrace();
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV2CreateV1CnSetRightsHolder() couldn't create test object: " 
+                    + e.getClass().getSimpleName() + ": " 
+                    + e.getDetail_code() + ":: " + e.getDescription());
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV2CreateV1CnSetRightsHolder() couldn't create test object: " 
+            + e.getClass().getName() + ": " + e.getMessage());
+        }
+        
+        // wait for replication
+        try {
+            Thread.sleep(REPLICATION_WAIT);
+        } catch (InterruptedException e1) {
+            e1.printStackTrace();
+        }
+        
+        // CN setRightsHolder
+        
+        try {
+            getSession("testRightsHolder");
+            Subject newSubject = D1TypeBuilder.buildSubject("testRightsHolder");
+            cn.setRightsHolder(null, pid, newSubject, 2);
+            handleFail(cn.getLatestRequestUrl(), "testV2CreateV1CnSetRightsHolder() : setRightsHolder "
+                    + "call to CN should fail because object has a v2 node as its authoritative MN" );
+        } catch (InvalidRequest e) {
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            handleFail(cn.getLatestRequestUrl(), "testV2CreateV1CnSetRightsHolder() : expected setRightsHolder "
+                    + "call to CN should fail with an InvalidRequest exception because object has a v2 node as its "
+                    + "authoritative MN. Got: " + e.getClass().getSimpleName() + " : " + e.getMessage() );
+        }
+    }
+    
+    @WebTestName("v2 create, v1 setObsoletedBy")
+    @WebTestDescription(
+     "Test operates on a v2 MN and a CN." +
+     "It does a create on the v2 MN, then attempts to setObsoletedBy on the object on the CN. " +
+     "The archive call should fail since the object is a v2 object - its authoritative " +
+     "MN is a v2 MN, so the v2 API should be used to do the update.")
+    public void testV2CreateV1CnSetObsoletedBy() {
+
+        assertTrue("Tests require at least 1 MN that supports the v2 API", v2mns.size() >= 1);
+        
+        AccessRule accessRule = new AccessRule();
+        Subject subject = D1TypeBuilder.buildSubject(Constants.SUBJECT_PUBLIC);
+        accessRule.addSubject(subject);
+        accessRule.addPermission(Permission.CHANGE_PERMISSION);
+        ReplicationPolicy replPolicy = new ReplicationPolicy();
+        replPolicy.setReplicationAllowed(true);
+        replPolicy.setNumberReplicas(2);
+        
+        Node v2MNode = v2mns.get(0);
+        MNCallAdapter v2CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v2MNode, "v2");
+        
+        // v2 create
+        
+        Identifier pid = D1TypeBuilder.buildIdentifier("testV2CreateV1CnSetObsoletedBy_" + ExampleUtilities.generateIdentifier());
+        Identifier obsoletedByPid = D1TypeBuilder.buildIdentifier("testV2CreateV1CnSetObsoletedBy_obs_" + ExampleUtilities.generateIdentifier());
+        try {
+            pid = createTestObject(v2CallAdapter, pid, accessRule, replPolicy);
+            obsoletedByPid = createTestObject(v2CallAdapter, obsoletedByPid, accessRule, replPolicy);
+        } catch (BaseException e) {
+            e.printStackTrace();
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV2CreateV1CnSetObsoletedBy() couldn't create test object: " 
+                    + e.getClass().getSimpleName() + ": " 
+                    + e.getDetail_code() + ":: " + e.getDescription());
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV2CreateV1CnSetObsoletedBy() couldn't create test object: " 
+            + e.getClass().getName() + ": " + e.getMessage());
+        }
+        
+        // wait for replication
+        try {
+            Thread.sleep(REPLICATION_WAIT);
+        } catch (InterruptedException e1) {
+            e1.printStackTrace();
+        }
+        
+        // CN setObsoletedBy
+        
+        try {
+            cn.setObsoletedBy(null, pid, obsoletedByPid, 2);
+            handleFail(cn.getLatestRequestUrl(), "testV2CreateV1CnSetObsoletedBy() : setObsoletedBy "
+                    + "call to CN should fail because object has a v2 node as its authoritative MN" );
+        } catch (InvalidRequest e) {
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            handleFail(cn.getLatestRequestUrl(), "testV2CreateV1CnSetObsoletedBy() : expected setObsoletedBy "
+                    + "call to CN should fail with an InvalidRequest exception because object has a v2 node as its "
+                    + "authoritative MN. Got: " + e.getClass().getSimpleName() + " : " + e.getMessage() );
         }
     }
 }

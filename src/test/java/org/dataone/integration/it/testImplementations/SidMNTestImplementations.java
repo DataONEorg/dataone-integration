@@ -60,7 +60,7 @@ public class SidMNTestImplementations extends SidCommonTestImplementations {
     }
     
     protected int[] getCasesToTest() {
-        return new int[] {  1 };//, 2 , 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
+        return new int[] { 1 };//  1 , 2 , 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
     }
     
     @Override
@@ -559,7 +559,8 @@ public class SidMNTestImplementations extends SidCommonTestImplementations {
                     assertTrue("getPackage() Case " + caseNum, IOUtils.contentEquals(sidPkg, pidPkg));
                 } catch (Exception e) {
                     e.printStackTrace();
-                    throw new AssertionError(callAdapter.getNodeBaseServiceUrl() + " Case: " + caseNum + " : " + e.getMessage());
+                    throw new AssertionError(callAdapter.getNodeBaseServiceUrl() + " Case: " + caseNum + 
+                            " : " + e.getClass().getSimpleName() + " : " + e.getMessage());
                 } finally {
                     IOUtils.closeQuietly(pidPkg);
                     IOUtils.closeQuietly(sidPkg);
@@ -609,7 +610,8 @@ public class SidMNTestImplementations extends SidCommonTestImplementations {
                     idPair = (IdPair) setupMethod.invoke(this, callAdapter, node);
                 } catch (Exception e) {
                     e.printStackTrace();
-                    handleFail(callAdapter.getNodeBaseServiceUrl(), e.getMessage());
+                    throw new AssertionError("testUpdate unable to set up : " + callAdapter.getNodeBaseServiceUrl() 
+                            + " : " + e.getClass().getSimpleName() + " : " + e.getMessage());
                 }
                 
                 Identifier sid = idPair.sid;
@@ -677,12 +679,20 @@ public class SidMNTestImplementations extends SidCommonTestImplementations {
                     // TODO test systemMetadataChanged() ...
                     
                     // systemMetadataChanged() implies authoritative sysmeta was updated
-                    // on another MN (and probably on the CN too, since authMN should'be notified it)
+                    // on another MN (and probably on the CN too, since authMN should've notified it)
                     // so update sysmeta on another MN
                     // call MN.systemMetadataChanged() - impl should be grabbing from CN using SID
                     //                              so CN does resolving, so this tests CN =/
                     // wait ... an unknown amount of time (no way to guarantee correctness here ...)
                     // check MN sysmeta against sysmeta updated to CN
+                    
+                    // need an existing object on authMN and anotherMN
+                    //      create obj on authMN
+                    //      wait or CN sync & MN replication
+                    // update obj on authMN
+                    // wait for CN sync
+                    // call anotherMN . systemMetadataChanged(sid)
+                    // verify 
                     
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -692,5 +702,106 @@ public class SidMNTestImplementations extends SidCommonTestImplementations {
         }
     }
         
+    @WebTestName("sid reuse not allowed")
+    @WebTestDescription("this test checks that reusing a sid in a pid chain yields an "
+            + "InvalidSystemMetadata exception if the chain containing that sid has been"
+            + "ended (obsoleted by another sid). Scenario: P1(S1) <-> P2(S2) <-> P3(S1)")
+    @Test
+    public void testSidReuse() {
+        logger.info("testSidReuse() method ... ");
         
+        Iterator<Node> nodeIter = getNodeIterator();
+        while (nodeIter.hasNext()) {
+            
+            Node node = nodeIter.next();
+            CommonCallAdapter callAdapter = new CommonCallAdapter(getSession(subjectLabel), node, "v2");
+            
+            Identifier p1 = createIdentifier("P1_", node);
+            Identifier p2 = createIdentifier("P2_", node);
+            Identifier p3 = createIdentifier("P3_", node);
+            Identifier s1 = createIdentifier("S1_", node);
+            Identifier s2 = createIdentifier("S2_", node);
+            
+            // set up   P1(S1) <-> P2(S2) 
+            try {
+                createTestObject(callAdapter, p1, s1, null, p2);
+                updateTestObject(callAdapter, p1, p2, s2);
+            } catch (Exception e) {
+                throw new AssertionError("testSidReuse() : unable to set up test! : " + e.getClass().getSimpleName() 
+                        + " : " + e.getMessage());
+            }
+
+            // try to update, adding P3(S1), to create  P1(S1) <-> P2(S2) <-> P3(S1)
+            try {
+                updateTestObject(callAdapter, p2, p3, s1);
+                throw new AssertionError("testSidReuse() : should not be able to reuse a sid "
+                        + "in a pid chain if it was used earlier but obsoleted by another sid! "
+                        + "However, the update() call succeeded. "
+                        + "Scenario: P1(S1) <-> P2(S2) <-> P3(S1)");
+            } catch (InvalidSystemMetadata e) {
+                // expected
+                log.info("testSidReuse() : yielded an exception on update() as expected : "
+                        + e.getClass().getSimpleName() + " : " + e.getMessage());
+            } catch (Exception e) {
+                throw new AssertionError("testSidReuseDiffChain() : expected an InvalidSystemMetadata "
+                        + "exception but got : " + e.getClass().getSimpleName() + " : " + e.getMessage());
+            }
+        }
+    }
+    
+    @WebTestName("sid reuse not allowed - different pid chains")
+    @WebTestDescription("this test checks that reusing a sid, even in a different pid chain, "
+            + "yields an InvalidSystemMetadata exception if the chain containing that sid has been "
+            + "ended (obsoleted by another sid). "
+            + "Scenario: P1(S1) <-> P2(S2), separate chain:  P3(S3) <-> P4(S1)")
+    @Test
+    public void testSidReuseDiffChain() {
+        logger.info("testSidReuseDiffChain() method ... ");
+        
+        Iterator<Node> nodeIter = getNodeIterator();
+        while (nodeIter.hasNext()) {
+            
+            Node node = nodeIter.next();
+            CommonCallAdapter callAdapter = new CommonCallAdapter(getSession(subjectLabel), node, "v2");
+            
+            Identifier p1 = createIdentifier("P1_", node);
+            Identifier p2 = createIdentifier("P2_", node);
+            Identifier p3 = createIdentifier("P3_", node);
+            Identifier p4 = createIdentifier("P4_", node);
+            Identifier s1 = createIdentifier("S1_", node);
+            Identifier s2 = createIdentifier("S2_", node);
+            Identifier s3 = createIdentifier("S3_", node);
+            
+            // set up   P1(S1) <-> P2(S2)
+            //          P3(S3)
+            try {
+                createTestObject(callAdapter, p1, s1, null, p2);
+                updateTestObject(callAdapter, p1, p2, s2);
+                createTestObject(callAdapter, p3, s3, null, p2);
+                
+            } catch (Exception e) {
+                throw new AssertionError("testSidReuseDiffChain() : unable to set up test! : " + e.getClass().getSimpleName() 
+                        + " : " + e.getMessage());
+            }
+
+            // try to update, adding P4(S1)
+            // to create:   P1(S1) <-> P2(S2)
+            //              P3(S3) <-> P4(S1)
+            try {
+                updateTestObject(callAdapter, p3, p4, s1);
+                throw new AssertionError("testSidReuseDiffChain() : should not be able to reuse a sid "
+                        + "in a different pid chain if it was used in another pid chain and obsoleted "
+                        + "by a different sid! "
+                        + "However, the update() call succeeded. "
+                        + "Scenario: P1(S1) <-> P2(S2),   P3(S3) <-> P4(S1)");
+            } catch (InvalidSystemMetadata e) {
+                // expected
+                log.info("testSidReuseDiffChain() : yielded an exception on update() as expected : "
+                        + e.getClass().getSimpleName() + " : " + e.getMessage());
+            } catch (Exception e) {
+                throw new AssertionError("testSidReuseDiffChain() : expected an InvalidSystemMetadata "
+                        + "exception but got : " + e.getClass().getSimpleName() + " : " + e.getMessage());
+            }
+        }
+    }
 }

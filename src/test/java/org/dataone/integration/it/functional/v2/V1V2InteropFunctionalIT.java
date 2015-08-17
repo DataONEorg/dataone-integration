@@ -58,11 +58,6 @@ public class V1V2InteropFunctionalIT extends ContextAwareTestCaseDataone {
     }
 
     @Test
-    public void testV2CreateV1UpdateSysmetaSameNode() {
-        interopImpl.testV2CreateV1UpdateSysmetaSameNode();
-    }
-
-    @Test
     public void testV2CreateV1UpdateSameNode() {
         interopImpl.testV2CreateV1UpdateSameNode();
     }

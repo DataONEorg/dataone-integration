@@ -50,7 +50,10 @@ public class MNUpdateSystemMetadataIT extends ContextAwareTestCaseDataone {
                 if(n.getType() == NodeType.MN)
                     try {
                         MNCallAdapter mn = new MNCallAdapter(getSession(cnSubmitter), n, "v2");
-                        mn.ping();  // make sure the MN is up
+                        // mn.ping();
+                        mn.getCapabilities();   // ping call seems to be broken
+                        if(n.getBaseURL().contains("8"))
+                            continue;
                         mnList.add(n);
                     } catch (Exception e) {
                         log.warn("Couldn't ping MN at " + n.getBaseURL() + ". Skipping it.", e);
@@ -129,5 +132,10 @@ public class MNUpdateSystemMetadataIT extends ContextAwareTestCaseDataone {
     @Test 
     public void testUpdateSystemMetadata_MutableObsoletes() {
         metaImpl.testUpdateSystemMetadata_MutableObsoletes(getMemberNodeIterator(), "v2");
+    }
+    
+    @Test 
+    public void testUpdateSystemMetadata_CNCertNonAuthMN() {
+        metaImpl.testUpdateSystemMetadata_CNCertNonAuthMN(getMemberNodeIterator(), "v2");
     }
 }

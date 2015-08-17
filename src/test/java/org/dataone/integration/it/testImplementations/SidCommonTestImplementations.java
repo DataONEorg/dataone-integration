@@ -221,6 +221,11 @@ public abstract class SidCommonTestImplementations extends ContextAwareTestCaseD
         }
         
         markForCleanUp(callAdapter.getNode(), pid);
+        
+        try {
+            Thread.sleep(INDEXING_TIME);
+        } catch (InterruptedException e) {}
+        
         return testObjPid;
     }
 
@@ -259,6 +264,11 @@ public abstract class SidCommonTestImplementations extends ContextAwareTestCaseD
         updatedPid = mnCallAdapter.update(null, oldPid, objectInputStream, newPid, sysmeta);
 
         markForCleanUp(callAdapter.getNode(), newPid);
+        
+        try {
+            Thread.sleep(INDEXING_TIME);
+        } catch (InterruptedException e) {}
+        
         return updatedPid;
     }
     
