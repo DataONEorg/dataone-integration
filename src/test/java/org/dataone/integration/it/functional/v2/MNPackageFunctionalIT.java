@@ -21,6 +21,11 @@ public class MNPackageFunctionalIT extends ContextAwareTestCaseDataone {
     }
     
     @Test
+    public void testGetPackage_EscapeChars() { 
+        pkgImpl.testGetPackage_EscapeChars(getMemberNodeIterator(), "v2");
+    }
+    
+    @Test
     public void testGetPackage_Zip() { 
         pkgImpl.testGetPackage_Zip(getMemberNodeIterator(), "v2");
     }

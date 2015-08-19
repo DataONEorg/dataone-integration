@@ -27,7 +27,9 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.dataone.client.v1.types.D1TypeBuilder;
 import org.dataone.integration.ContextAwareTestCaseDataone;
+import org.dataone.integration.ExampleUtilities;
 import org.dataone.integration.adapters.MNCallAdapter;
 import org.dataone.integration.it.ContextAwareAdapter;
 import org.dataone.integration.webTest.WebTestDescription;
@@ -47,6 +49,52 @@ public class MNPackageFunctionalTestImplementations extends ContextAwareAdapter 
     
     public MNPackageFunctionalTestImplementations(ContextAwareTestCaseDataone catc) {
         super(catc);
+    }
+    
+    @WebTestName("getPackage - escape characters in packageType and pid")
+    @WebTestDescription(
+     "The test calls getPackage() with application/zip as the requested packageType "
+     + "and a pid (also created in this test) that contains a slash as well. "
+     + "It verifies that a valid result is returned.")
+    public void testGetPackage_EscapeChars(Iterator<Node> nodeIterator, String version) {
+        while (nodeIterator.hasNext())
+            testGetPackage_EscapeChars(nodeIterator.next(), version);        
+    }
+    
+    private void testGetPackage_EscapeChars(Node node, String version) {
+
+        MNCallAdapter callAdapter = new MNCallAdapter(getSession(cnSubmitter), node, version);
+        MNCallAdapter testRightsHolderCallAdapter = new MNCallAdapter(getSession("testRightsHolder"), node, version);
+        String currentUrl = node.getBaseURL();
+        printTestHeader("testGetPackage_EscapeChars(...) vs. node: " + currentUrl);
+        
+        InputStream is = null;
+        try {
+            ObjectFormatIdentifier formatID = new ObjectFormatIdentifier();
+            formatID.setValue(BAGIT_ID);
+            
+            Identifier pkgPid = D1TypeBuilder.buildIdentifier("testGetPackage/EscapeChars_" + ExampleUtilities.generateIdentifier());
+            Identifier resourceMapPid = catc.procureResourceMap(callAdapter, pkgPid);
+            
+            is = testRightsHolderCallAdapter.getPackage(null, formatID, resourceMapPid);
+            
+            // check for valid InputStream
+            
+            assertTrue("getPackage() should return a non-null InputStream", is != null);
+        }
+        catch (BaseException e) {
+            handleFail(callAdapter.getLatestRequestUrl(), "testGetPackage_EscapeChars failed: " 
+                    + e.getClass().getSimpleName() + " : " + e.getDetail_code() + " :: " 
+                    + e.getDescription());
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+            handleFail(currentUrl, "testGetPackage_EscapeChars failed: " + e.getClass().getName() 
+                    + " : " + e.getMessage());
+        }
+        finally {
+            IOUtils.closeQuietly(is);
+        }
     }
     
     @WebTestName("getPackage - zip")
