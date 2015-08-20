@@ -13,6 +13,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -25,8 +27,6 @@ import org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.dataone.client.v1.types.D1TypeBuilder;
 import org.dataone.integration.ContextAwareTestCaseDataone;
 import org.dataone.integration.ExampleUtilities;
@@ -44,7 +44,6 @@ import com.github.junrar.rarfile.FileHeader;
 
 public class MNPackageFunctionalTestImplementations extends ContextAwareAdapter {
 
-    private static Log log = LogFactory.getLog(MNPackageFunctionalTestImplementations.class);
     private static final String BAGIT_ID = "application/bagit";
     
     public MNPackageFunctionalTestImplementations(ContextAwareTestCaseDataone catc) {
@@ -129,6 +128,7 @@ public class MNPackageFunctionalTestImplementations extends ContextAwareAdapter 
             // check for valid InputStream
             
             assertTrue("getPackage() should return a non-null InputStream", is != null);
+            log.info("getPackage() returned a non-null InputStream");
             
             // check if it did in fact return application/zip
             
@@ -136,7 +136,7 @@ public class MNPackageFunctionalTestImplementations extends ContextAwareAdapter 
             boolean bagitFound = false;
             boolean manifestFound = false;
             boolean dataDirFound = false;
-            List<String> topLevelDirs = new ArrayList<String>();
+            String nonDataDir = null;
             
             try {
                 zis = new ZipInputStream(is);
@@ -144,31 +144,38 @@ public class MNPackageFunctionalTestImplementations extends ContextAwareAdapter 
 
                 while ((zipEntry = zis.getNextEntry()) != null) {
                     String name = zipEntry.getName();
-                    System.out.println("zip entry: " + name + "     " + "size: " + zipEntry.getSize());
+                    log.info("zip entry: " + name + "     " + "size: " + zipEntry.getSize());
 
-                    zipEntry.isDirectory();
-                    
                     if (!zipEntry.isDirectory()) {
                         if (name.endsWith("bagit.txt")) {
                             bagitFound = true;
+                            log.info("found bagit.txt");
                             continue;
                         }
                         if (name.matches(".*manifest.*\\.txt")) {
                             manifestFound = true;
+                            log.info("found manifest file");
                             continue;
                         }
-                    } else { // directory
-                        String substr = zipEntry.getName().substring(0, zipEntry.getName().length() - 1);
                         
-                        // check if the zipEntry is a top-level directory
-                        if (!substr.contains("/")) {
-                            topLevelDirs.add(name);
-                        
-                        // check if it's the /data/ directory (in top-level dir)
-                        } else if (StringUtils.countMatches(substr, "/") == 1 &&
-                                zipEntry.getName().matches(".*/data/")) {
-                            
-                            dataDirFound = true;
+                        int separatorLoc = name.indexOf('/');
+                        if (separatorLoc > 0) {
+                            Pattern p = Pattern.compile(".+\\/(.+)\\/.*");
+                            Matcher m = p.matcher(name);
+                            boolean matches = m.matches();
+                            if (matches) {
+                                String g1 = m.group(1);
+                                if (g1 != null && g1.equals("data")) {
+                                    dataDirFound = true;
+                                    log.info("found /data directory");
+                                } else if (g1 != null && !g1.equals("data")) {
+                                    p = Pattern.compile("(.+\\/.+)\\/.*");
+                                    m = p.matcher(name);
+                                    if (m.matches())
+                                        nonDataDir = m.group(1);
+                                    log.info("found extra top-level directory!");
+                                }
+                            }
                         }
                     }
                 }
@@ -180,8 +187,9 @@ public class MNPackageFunctionalTestImplementations extends ContextAwareAdapter 
             }
 
             assertTrue("The \"application/zip\" returned from getPackage() "
-                    + "should contain only ONE top level directory.", 
-                    topLevelDirs.size() == 1);
+                    + "should contain only ONE top level directory \"data\". "
+                    + "Also found: " + nonDataDir, 
+                    nonDataDir == null);
             
             assertTrue("The \"application/zip\" returned from getPackage() "
                     + "should contain a bagit.txt file.", bagitFound);

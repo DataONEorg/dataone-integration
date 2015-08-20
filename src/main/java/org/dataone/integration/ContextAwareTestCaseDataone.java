@@ -1589,13 +1589,28 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
      * that existed in the system, or one that was newly-created. 
      * ({@link ObjectFormatIdentifier} type: RESOURCE, id: "http://www.openarchives.org/ore/terms")
      * 
-     * @param mnPackageTestImplementations TODO
      * @param cca the {@link CommonCallAdapter} to use for making the listObjects() call
      * @return the Identifier of a resource map
      * 
      * @throws ClientSideException if no resource map identifier could be located
      */
     public Identifier procureResourceMap(CommonCallAdapter cca) throws ClientSideException {
+        return procureResourceMap(cca, null);
+    }
+    
+    /**
+     * Returns the {@link Identifier} for a resource map document, either one 
+     * that existed in the system, or one that was newly-created. 
+     * ({@link ObjectFormatIdentifier} type: RESOURCE, id: "http://www.openarchives.org/ore/terms")
+     * 
+     * @param cca the {@link CommonCallAdapter} to use for making the listObjects() call
+     * @param packagePid if specified, will skip looking for an existing resource map and try to create 
+     *              one with this given {@link Identifier} 
+     * @return the Identifier of a resource map
+     * 
+     * @throws ClientSideException if no resource map identifier could be located
+     */
+    public Identifier procureResourceMap(CommonCallAdapter cca, Identifier packagePid) throws ClientSideException {
         
         ObjectFormatIdentifier formatID = new ObjectFormatIdentifier();
         formatID.setValue(RESOURCE_MAP_FORMAT_ID);
@@ -1612,24 +1627,27 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
         
         Identifier resourceMapPid = null;
         
-        List<ObjectInfo> objectInfoList = resourceObjInfo.getObjectInfoList();
-        for (ObjectInfo objectInfo : objectInfoList) {
-            Identifier id = objectInfo.getIdentifier();
-            
-            InputStream is = null;
-            try {
-                is = cca.get(null, id);
-                break;
-            } catch (Exception e) {
-                continue;
-            } finally {
-                IOUtils.closeQuietly(is);
+        if(packagePid == null) {
+            List<ObjectInfo> objectInfoList = resourceObjInfo.getObjectInfoList();
+            for (ObjectInfo objectInfo : objectInfoList) {
+                Identifier id = objectInfo.getIdentifier();
+                
+                InputStream is = null;
+                try {
+                    is = cca.get(null, id);
+                    break;
+                } catch (Exception e) {
+                    continue;
+                } finally {
+                    IOUtils.closeQuietly(is);
+                }
             }
         }
         
         // no existing resource map? create a package
-        if (resourceMapPid == null)
-            resourceMapPid = createPackage(cca, null, null, null, null);
+        if (resourceMapPid == null) {
+            resourceMapPid = createPackage(cca, packagePid, null, null, null);
+        }
         
         if (resourceMapPid == null)
             throw new ClientSideException("Unable to fetch a resource map for MNPackage testing.");
@@ -1668,12 +1686,12 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
         if(packagePid != null)
             resourceMapPid = packagePid;
         else
-            resourceMapPid = D1TypeBuilder.buildIdentifier("testGetPackage_resourceMap_" + ExampleUtilities.generateIdentifier());
+            resourceMapPid = D1TypeBuilder.buildIdentifier("testPackage_resourceMap_" + ExampleUtilities.generateIdentifier());
         
         
         // create science metadata object
         try {
-            scimetaPid = createTestObject(cca, "testGetPackage_scimeta_", accessRule);
+            scimetaPid = createTestObject(cca, "testPackage_scimeta_", accessRule);
         } catch (Exception e) {
             e.printStackTrace();
             throw new ClientSideException("Unable to create object for MNPackage testing.", e);
@@ -1681,7 +1699,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
         
         // create data object
         try {
-            dataObjPid = createTestObject(cca, "testGetPackage_dataObj_", accessRule);
+            dataObjPid = createTestObject(cca, "testPackage_dataObj_", accessRule);
         } catch (Exception e) {
             e.printStackTrace();
             throw new ClientSideException("Unable to create metadata for MNPackage testing.", e);
