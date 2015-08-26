@@ -18,6 +18,7 @@ import org.dataone.service.types.v2.TypeFactory;
  * by {@link TypeMarshaller} (most likely due to being composite
  * objects, containing further d1 types which also need conversion).
  * Makes use of {@link TypeMarshaller}.
+ * @deprecated Use TypeFactory instead!
  * 
  * @author Andrei
  */
