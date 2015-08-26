@@ -39,8 +39,8 @@ import org.dataone.service.types.v1.ReplicationStatus;
 import org.dataone.service.types.v1.Subject;
 import org.dataone.service.types.v2.NodeList;
 import org.dataone.service.types.v2.SystemMetadata;
+import org.dataone.service.types.v2.TypeFactory;
 import org.dataone.service.util.Constants;
-import org.dataone.service.util.TypeMarshaller;
 
 public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetadataTestImplementations {
 
@@ -734,7 +734,7 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
                     catc.getSubject("testRightsHolder"),
                     D1TypeBuilder.buildNodeReference("bogusAuthoritativeNode"));
             
-            v2sysmeta = TypeMarshaller.convertTypeFromType(d1o.getSystemMetadata(), SystemMetadata.class);
+            v2sysmeta = TypeFactory.convertTypeFromType(d1o.getSystemMetadata(), SystemMetadata.class);
             v2sysmeta.setAuthoritativeMemberNode(node.getIdentifier());
             p2 = d1o.getIdentifier();
             
@@ -812,7 +812,7 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
                     catc.getSubject("testRightsHolder"),
                     D1TypeBuilder.buildNodeReference("bogusAuthoritativeNode"));
             
-            v2sysmeta = TypeMarshaller.convertTypeFromType(d1o.getSystemMetadata(), SystemMetadata.class);
+            v2sysmeta = TypeFactory.convertTypeFromType(d1o.getSystemMetadata(), SystemMetadata.class);
             p2 = d1o.getIdentifier();
             callAdapter.update(null, p1, objectInputStream, p2, v2sysmeta);
             p3 = catc.createTestObject(callAdapter, p3, accessRule);

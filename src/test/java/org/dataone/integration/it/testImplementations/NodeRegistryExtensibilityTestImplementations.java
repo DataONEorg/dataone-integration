@@ -26,6 +26,7 @@ import org.dataone.service.types.v1.Subject;
 import org.dataone.service.types.v1.Synchronization;
 import org.dataone.service.types.v2.NodeList;
 import org.dataone.service.types.v2.Property;
+import org.dataone.service.types.v2.TypeFactory;
 import org.dataone.service.util.TypeMarshaller;
 
 public class NodeRegistryExtensibilityTestImplementations extends ContextAwareAdapter {
@@ -187,7 +188,7 @@ public class NodeRegistryExtensibilityTestImplementations extends ContextAwareAd
         
         org.dataone.service.types.v2.Node v2MN = null;
         try {
-            v2MN = TypeMarshaller.convertTypeFromType(v1MN, org.dataone.service.types.v2.Node.class);
+            v2MN = TypeFactory.convertTypeFromType(v1MN, org.dataone.service.types.v2.Node.class);
         } catch (Exception e) {
             e.printStackTrace();
             throw new AssertionError(cn.getNodeBaseServiceUrl() + ":   "

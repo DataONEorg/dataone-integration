@@ -5,7 +5,6 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import java.math.BigInteger;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -37,8 +36,6 @@ import org.dataone.service.types.v1.AccessPolicy;
 import org.dataone.service.types.v1.AccessRule;
 import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Node;
-import org.dataone.service.types.v1.NodeReference;
-import org.dataone.service.types.v1.NodeState;
 import org.dataone.service.types.v1.NodeType;
 import org.dataone.service.types.v1.ObjectInfo;
 import org.dataone.service.types.v1.ObjectList;
@@ -46,8 +43,8 @@ import org.dataone.service.types.v1.Permission;
 import org.dataone.service.types.v1.ReplicationPolicy;
 import org.dataone.service.types.v1.Subject;
 import org.dataone.service.types.v2.SystemMetadata;
+import org.dataone.service.types.v2.TypeFactory;
 import org.dataone.service.util.Constants;
-import org.dataone.service.util.TypeMarshaller;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 
@@ -202,7 +199,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
                     D1TypeBuilder.buildFormatIdentifier(DEFAULT_TEST_OBJECTFORMAT),
                     D1TypeBuilder.buildSubject(getSubject(cnSubmitter).getValue()),
                     D1TypeBuilder.buildNodeReference("bogusAuthoritativeNode"));
-            newSysmeta = TypeMarshaller.convertTypeFromType(d1o.getSystemMetadata(), SystemMetadata.class);
+            newSysmeta = TypeFactory.convertTypeFromType(d1o.getSystemMetadata(), SystemMetadata.class);
             objectInputStream = new ByteArrayInputStream(contentBytes);
         } catch (BaseException e) {
             e.printStackTrace();
@@ -315,7 +312,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
                     D1TypeBuilder.buildFormatIdentifier(DEFAULT_TEST_OBJECTFORMAT),
                     D1TypeBuilder.buildSubject(getSubject(cnSubmitter).getValue()),
                     D1TypeBuilder.buildNodeReference("bogusAuthoritativeNode"));
-            sysmeta = TypeMarshaller.convertTypeFromType(d1o.getSystemMetadata(), SystemMetadata.class);
+            sysmeta = TypeFactory.convertTypeFromType(d1o.getSystemMetadata(), SystemMetadata.class);
             
             objectInputStream = new ByteArrayInputStream(contentBytes);
         } catch (BaseException e) {

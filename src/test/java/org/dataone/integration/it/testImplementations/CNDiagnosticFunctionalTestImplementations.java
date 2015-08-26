@@ -39,6 +39,7 @@ import org.dataone.service.types.v1.Person;
 import org.dataone.service.types.v1.Subject;
 import org.dataone.service.types.v1.SubjectInfo;
 import org.dataone.service.types.v2.SystemMetadata;
+import org.dataone.service.types.v2.TypeFactory;
 import org.dataone.service.util.TypeMarshaller;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
@@ -207,7 +208,7 @@ public class CNDiagnosticFunctionalTestImplementations extends ContextAwareAdapt
                   D1TypeBuilder.buildFormatIdentifier(ExampleUtilities.FORMAT_EML_2_0_1),
                   subject, nodeReference);
           
-          SystemMetadata sysmeta = TypeMarshaller.convertTypeFromType(d1o.getSystemMetadata(), SystemMetadata.class);
+          SystemMetadata sysmeta = TypeFactory.convertTypeFromType(d1o.getSystemMetadata(), SystemMetadata.class);
 //          Identifier pid = catc.createTestObject(callAdapter, "testEchoSystemMetadata", accessRule);
 //          SystemMetadata sysmeta = callAdapter.getSystemMetadata(null, pid);
           
@@ -260,7 +261,7 @@ public class CNDiagnosticFunctionalTestImplementations extends ContextAwareAdapt
                     D1TypeBuilder.buildFormatIdentifier(ExampleUtilities.FORMAT_EML_2_0_1),
                     subject, nodeReference);
             
-            SystemMetadata sysmeta = TypeMarshaller.convertTypeFromType(d1o.getSystemMetadata(), SystemMetadata.class);
+            SystemMetadata sysmeta = TypeFactory.convertTypeFromType(d1o.getSystemMetadata(), SystemMetadata.class);
 //            Identifier pid = catc.createTestObject(callAdapter, "testEchoIndexedObject", accessRule);
 //            assertTrue("Test object should be created succesfully.", pid != null);
 //            Thread.sleep(METACAT_WAIT);

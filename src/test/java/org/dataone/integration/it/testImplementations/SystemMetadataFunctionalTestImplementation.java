@@ -40,6 +40,7 @@ import org.dataone.service.types.v1.Replica;
 import org.dataone.service.types.v1.ReplicationPolicy;
 import org.dataone.service.types.v1.Service;
 import org.dataone.service.types.v2.SystemMetadata;
+import org.dataone.service.types.v2.TypeFactory;
 import org.dataone.service.util.Constants;
 import org.dataone.service.util.TypeMarshaller;
 import org.jibx.runtime.JiBXException;
@@ -173,7 +174,7 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
             try {
                 capabilities = mnCallAdapter.getCapabilities();
                 capabilities.setSynchronize(false);
-                org.dataone.service.types.v2.Node v2Capabilities = TypeMarshaller.convertTypeFromType(capabilities, org.dataone.service.types.v2.Node.class);
+                org.dataone.service.types.v2.Node v2Capabilities = TypeFactory.convertTypeFromType(capabilities, org.dataone.service.types.v2.Node.class);
                 cn.updateNodeCapabilities(null, v2Capabilities.getIdentifier(), v2Capabilities);
                 mnV2NoSync = capabilities;
                 break;
@@ -198,7 +199,7 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
         try {
             NodeReference nodeRef = mnV2NoSync.getIdentifier();
             mnV2NoSync.setSynchronize(true);
-            org.dataone.service.types.v2.Node v2Capabilities = TypeMarshaller.convertTypeFromType(mnV2NoSync, org.dataone.service.types.v2.Node.class);
+            org.dataone.service.types.v2.Node v2Capabilities = TypeFactory.convertTypeFromType(mnV2NoSync, org.dataone.service.types.v2.Node.class);
             cn.updateNodeCapabilities(null, nodeRef, v2Capabilities);
         } catch (Exception e) {
             throw new AssertionError("Unable to update MN capabilities to re-enable synchronization on: " + mnV2NoSync.getIdentifier());

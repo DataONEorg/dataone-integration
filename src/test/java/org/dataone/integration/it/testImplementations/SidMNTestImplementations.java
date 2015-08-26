@@ -35,6 +35,7 @@ import org.dataone.service.types.v1.Node;
 import org.dataone.service.types.v1.NodeReference;
 import org.dataone.service.types.v1.ObjectFormatIdentifier;
 import org.dataone.service.types.v2.SystemMetadata;
+import org.dataone.service.types.v2.TypeFactory;
 import org.dataone.service.util.TypeMarshaller;
 import org.jibx.runtime.JiBXException;
 import org.junit.Ignore;
@@ -80,7 +81,12 @@ public class SidMNTestImplementations extends SidCommonTestImplementations {
         return new IdPair(s1, p1);
     }
     
-    protected IdPair setupMNCase2(CommonCallAdapter callAdapter, Node node) throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique, UnsupportedType, InsufficientResources, InvalidSystemMetadata, NotImplemented, InvalidRequest, NotFound, ClientSideException, NoSuchAlgorithmException, InstantiationException, IllegalAccessException, InvocationTargetException, IOException, JiBXException {
+    protected IdPair setupMNCase2(CommonCallAdapter callAdapter, Node node) 
+            throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique, 
+            UnsupportedType, InsufficientResources, InvalidSystemMetadata, 
+            NotImplemented, InvalidRequest, NotFound, ClientSideException, 
+            NoSuchAlgorithmException, InstantiationException, IllegalAccessException, 
+            InvocationTargetException, IOException, NoSuchMethodException {
         
         // Case 2   P1(S1) <-> P2(S1)   S1 = P2
         Identifier p1 = createIdentifier("P1_", node);
@@ -93,8 +99,13 @@ public class SidMNTestImplementations extends SidCommonTestImplementations {
         return new IdPair(s1, p2);
     }
 
-    protected IdPair setupMNCase3(CommonCallAdapter callAdapter, Node node) throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique, UnsupportedType, InsufficientResources, InvalidSystemMetadata, NotImplemented, InvalidRequest, NotFound, ClientSideException, NoSuchAlgorithmException, InstantiationException, IllegalAccessException, InvocationTargetException, IOException, JiBXException {
-    
+    protected IdPair setupMNCase3(CommonCallAdapter callAdapter, Node node) 
+            throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique, 
+            UnsupportedType, InsufficientResources, InvalidSystemMetadata, 
+            NotImplemented, InvalidRequest, NotFound, ClientSideException, 
+            NoSuchAlgorithmException, InstantiationException, IllegalAccessException, 
+            InvocationTargetException, IOException, NoSuchMethodException {
+        
         // Case 5   P1(S1) <-> P2(S2)  S1 = P1
         Identifier p1 = createIdentifier("P1_", node);
         Identifier p2 = createIdentifier("P2_", node);
@@ -107,8 +118,13 @@ public class SidMNTestImplementations extends SidCommonTestImplementations {
         return new IdPair(s1, p1);
     }
 
-    protected IdPair setupMNCase4(CommonCallAdapter callAdapter, Node node) throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique, UnsupportedType, InsufficientResources, InvalidSystemMetadata, NotImplemented, InvalidRequest, NotFound, ClientSideException, NoSuchAlgorithmException, InstantiationException, IllegalAccessException, InvocationTargetException, IOException, JiBXException {
-    
+    protected IdPair setupMNCase4(CommonCallAdapter callAdapter, Node node) 
+            throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique, 
+            UnsupportedType, InsufficientResources, InvalidSystemMetadata, 
+            NotImplemented, InvalidRequest, NotFound, ClientSideException, 
+            NoSuchAlgorithmException, InstantiationException, IllegalAccessException, 
+            InvocationTargetException, IOException, NoSuchMethodException {
+        
         // Case 6   P1(S1) <-> P2(S2)  S2 = P2
         Identifier p1 = createIdentifier("P1_", node);
         Identifier p2 = createIdentifier("P2_", node);
@@ -121,8 +137,13 @@ public class SidMNTestImplementations extends SidCommonTestImplementations {
         return new IdPair(s2, p2);
     }
 
-    protected IdPair setupMNCase5(CommonCallAdapter callAdapter, Node node) throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique, UnsupportedType, InsufficientResources, InvalidSystemMetadata, NotImplemented, InvalidRequest, NotFound, ClientSideException, NoSuchAlgorithmException, InstantiationException, IllegalAccessException, InvocationTargetException, IOException, JiBXException {
-    
+    protected IdPair setupMNCase5(CommonCallAdapter callAdapter, Node node) 
+            throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique, 
+            UnsupportedType, InsufficientResources, InvalidSystemMetadata, 
+            NotImplemented, InvalidRequest, NotFound, ClientSideException, 
+            NoSuchAlgorithmException, InstantiationException, IllegalAccessException, 
+            InvocationTargetException, IOException, NoSuchMethodException {
+        
         // Case 7   [deleted] <- P2(S2)  S2 = P2
         Identifier p1 = createIdentifier("P1_", node);
         Identifier p2 = createIdentifier("P2_", node);
@@ -136,8 +157,13 @@ public class SidMNTestImplementations extends SidCommonTestImplementations {
         return new IdPair(s2, p2);
     }
 
-    protected IdPair setupMNCase6(CommonCallAdapter callAdapter, Node node) throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique, UnsupportedType, InsufficientResources, InvalidSystemMetadata, NotImplemented, InvalidRequest, NotFound, ClientSideException, NoSuchAlgorithmException, InstantiationException, IllegalAccessException, InvocationTargetException, IOException, JiBXException {
-    
+    protected IdPair setupMNCase6(CommonCallAdapter callAdapter, Node node) 
+            throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique, 
+            UnsupportedType, InsufficientResources, InvalidSystemMetadata, 
+            NotImplemented, InvalidRequest, NotFound, ClientSideException, 
+            NoSuchAlgorithmException, InstantiationException, IllegalAccessException, 
+            InvocationTargetException, IOException, NoSuchMethodException {
+        
         // Case 8   P1(S1) -> [deleted]  S1 = P1
         Identifier p1 = createIdentifier("P1_", node);
         Identifier p2 = createIdentifier("P2_", node);
@@ -151,8 +177,13 @@ public class SidMNTestImplementations extends SidCommonTestImplementations {
         return new IdPair(s1, p1);
     }
 
-    protected IdPair setupMNCase7(CommonCallAdapter callAdapter, Node node) throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique, UnsupportedType, InsufficientResources, InvalidSystemMetadata, NotImplemented, InvalidRequest, NotFound, ClientSideException, NoSuchAlgorithmException, InstantiationException, IllegalAccessException, InvocationTargetException, IOException, JiBXException {
-    
+    protected IdPair setupMNCase7(CommonCallAdapter callAdapter, Node node) 
+            throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique, 
+            UnsupportedType, InsufficientResources, InvalidSystemMetadata, 
+            NotImplemented, InvalidRequest, NotFound, ClientSideException, 
+            NoSuchAlgorithmException, InstantiationException, IllegalAccessException, 
+            InvocationTargetException, IOException, NoSuchMethodException {
+        
         // Case 9   P1(S1) <-> P2(S1) <-> P3(S1)   S1 = P3
         Identifier p1 = createIdentifier("P1_", node);
         Identifier p2 = createIdentifier("P2_", node);
@@ -166,8 +197,13 @@ public class SidMNTestImplementations extends SidCommonTestImplementations {
         return new IdPair(s1, p3);
     }
 
-    protected IdPair setupMNCase8(CommonCallAdapter callAdapter, Node node) throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique, UnsupportedType, InsufficientResources, InvalidSystemMetadata, NotImplemented, InvalidRequest, NotFound, ClientSideException, NoSuchAlgorithmException, InstantiationException, IllegalAccessException, InvocationTargetException, IOException, JiBXException {
-    
+    protected IdPair setupMNCase8(CommonCallAdapter callAdapter, Node node) 
+            throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique, 
+            UnsupportedType, InsufficientResources, InvalidSystemMetadata, 
+            NotImplemented, InvalidRequest, NotFound, ClientSideException, 
+            NoSuchAlgorithmException, InstantiationException, IllegalAccessException, 
+            InvocationTargetException, IOException, NoSuchMethodException {
+        
         // Case 10   P1(S1) -> [deleted] <- P3(S1)   S1 = P3
         Identifier p1 = createIdentifier("P1_", node);
         Identifier p2 = createIdentifier("P2_", node);
@@ -182,8 +218,13 @@ public class SidMNTestImplementations extends SidCommonTestImplementations {
         return new IdPair(s1, p3);
     }
 
-    protected IdPair setupMNCase9(CommonCallAdapter callAdapter, Node node) throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique, UnsupportedType, InsufficientResources, InvalidSystemMetadata, NotImplemented, InvalidRequest, NotFound, ClientSideException, NoSuchAlgorithmException, InstantiationException, IllegalAccessException, InvocationTargetException, IOException, JiBXException {
-
+    protected IdPair setupMNCase9(CommonCallAdapter callAdapter, Node node) 
+            throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique, 
+            UnsupportedType, InsufficientResources, InvalidSystemMetadata, 
+            NotImplemented, InvalidRequest, NotFound, ClientSideException, 
+            NoSuchAlgorithmException, InstantiationException, IllegalAccessException, 
+            InvocationTargetException, IOException, NoSuchMethodException {
+        
         // Case 11   P1(S1) <-> P2(S1) -> [deleted]   S1 = P2
         Identifier p1 = createIdentifier("P1_", node);
         Identifier p2 = createIdentifier("P2_", node);
@@ -198,8 +239,13 @@ public class SidMNTestImplementations extends SidCommonTestImplementations {
         return new IdPair(s1, p2);
     }
 
-    protected IdPair setupMNCase10(CommonCallAdapter callAdapter, Node node) throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique, UnsupportedType, InsufficientResources, InvalidSystemMetadata, NotImplemented, InvalidRequest, NotFound, ClientSideException, NoSuchAlgorithmException, InstantiationException, IllegalAccessException, InvocationTargetException, IOException, JiBXException {
-    
+    protected IdPair setupMNCase10(CommonCallAdapter callAdapter, Node node) 
+            throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique, 
+            UnsupportedType, InsufficientResources, InvalidSystemMetadata, 
+            NotImplemented, InvalidRequest, NotFound, ClientSideException, 
+            NoSuchAlgorithmException, InstantiationException, IllegalAccessException, 
+            InvocationTargetException, IOException, NoSuchMethodException {
+        
         // Case 12   P1(S1) <-> P2(S1) <-> P3(S2)   S2 = P3
         Identifier p1 = createIdentifier("P1_", node);
         Identifier p2 = createIdentifier("P2_", node);
@@ -214,7 +260,12 @@ public class SidMNTestImplementations extends SidCommonTestImplementations {
         return new IdPair(s2, p3);
     }
     
-    protected IdPair setupMNCase11(CommonCallAdapter callAdapter, Node node) throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique, UnsupportedType, InsufficientResources, InvalidSystemMetadata, NotImplemented, InvalidRequest, NotFound, ClientSideException, NoSuchAlgorithmException, InstantiationException, IllegalAccessException, InvocationTargetException, IOException, JiBXException {
+    protected IdPair setupMNCase11(CommonCallAdapter callAdapter, Node node) 
+            throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique, 
+            UnsupportedType, InsufficientResources, InvalidSystemMetadata, 
+            NotImplemented, InvalidRequest, NotFound, ClientSideException, 
+            NoSuchAlgorithmException, InstantiationException, IllegalAccessException, 
+            InvocationTargetException, IOException, NoSuchMethodException {
         
         // Case 13   P1(S1) <-> P2(S2) <-> P3(S2)   S2 = P3
         Identifier p1 = createIdentifier("P1_", node);
@@ -230,7 +281,12 @@ public class SidMNTestImplementations extends SidCommonTestImplementations {
         return new IdPair(s2, p3);
     }
 
-    protected IdPair setupMNCase12(CommonCallAdapter callAdapter, Node node) throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique, UnsupportedType, InsufficientResources, InvalidSystemMetadata, NotImplemented, InvalidRequest, NotFound, ClientSideException, NoSuchAlgorithmException, InstantiationException, IllegalAccessException, InvocationTargetException, IOException, JiBXException {
+    protected IdPair setupMNCase12(CommonCallAdapter callAdapter, Node node) 
+            throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique, 
+            UnsupportedType, InsufficientResources, InvalidSystemMetadata, 
+            NotImplemented, InvalidRequest, NotFound, ClientSideException, 
+            NoSuchAlgorithmException, InstantiationException, IllegalAccessException, 
+            InvocationTargetException, IOException, NoSuchMethodException {
         
         // Case 14   P1(S1) <-> [deleted] <- P3(S2)  S1 = P1
         Identifier p1 = createIdentifier("P1_", node);
@@ -247,8 +303,13 @@ public class SidMNTestImplementations extends SidCommonTestImplementations {
         return new IdPair(s1, p1);
     }
 
-    protected IdPair setupMNCase13(CommonCallAdapter callAdapter, Node node) throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique, UnsupportedType, InsufficientResources, InvalidSystemMetadata, NotImplemented, InvalidRequest, NotFound, ClientSideException, NoSuchAlgorithmException, InstantiationException, IllegalAccessException, InvocationTargetException, IOException, JiBXException {
-
+    protected IdPair setupMNCase13(CommonCallAdapter callAdapter, Node node) 
+            throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique, 
+            UnsupportedType, InsufficientResources, InvalidSystemMetadata, 
+            NotImplemented, InvalidRequest, NotFound, ClientSideException, 
+            NoSuchAlgorithmException, InstantiationException, IllegalAccessException, 
+            InvocationTargetException, IOException, NoSuchMethodException {
+        
         // Case 15   P1(S1) <-> P2(S1) -> [deleted]   S1 = P2
         Identifier p1 = createIdentifier("P1_", node);
         Identifier p2 = createIdentifier("P2_", node);
@@ -264,8 +325,13 @@ public class SidMNTestImplementations extends SidCommonTestImplementations {
         return new IdPair(s1, p2);
     }
 
-    protected IdPair setupMNCase14(CommonCallAdapter callAdapter, Node node) throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique, UnsupportedType, InsufficientResources, InvalidSystemMetadata, NotImplemented, InvalidRequest, NotFound, ClientSideException, NoSuchAlgorithmException, InstantiationException, IllegalAccessException, InvocationTargetException, IOException, JiBXException {
-
+    protected IdPair setupMNCase14(CommonCallAdapter callAdapter, Node node) 
+            throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique, 
+            UnsupportedType, InsufficientResources, InvalidSystemMetadata, 
+            NotImplemented, InvalidRequest, NotFound, ClientSideException, 
+            NoSuchAlgorithmException, InstantiationException, IllegalAccessException, 
+            InvocationTargetException, IOException, NoSuchMethodException {
+        
         // Case 13   P1(S1) -> [deleted] <- P3(S2)   S2 = P3
         Identifier p1 = createIdentifier("P1_", node);
         Identifier p2 = createIdentifier("P2_", node);
@@ -281,8 +347,13 @@ public class SidMNTestImplementations extends SidCommonTestImplementations {
         return new IdPair(s2, p3);
     }
 
-    protected IdPair setupMNCase15(CommonCallAdapter callAdapter, Node node) throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique, UnsupportedType, InsufficientResources, InvalidSystemMetadata, NotImplemented, InvalidRequest, NotFound, ClientSideException, NoSuchAlgorithmException, InstantiationException, IllegalAccessException, InvocationTargetException, IOException, JiBXException {
-
+    protected IdPair setupMNCase15(CommonCallAdapter callAdapter, Node node) 
+            throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique, 
+            UnsupportedType, InsufficientResources, InvalidSystemMetadata, 
+            NotImplemented, InvalidRequest, NotFound, ClientSideException, 
+            NoSuchAlgorithmException, InstantiationException, IllegalAccessException, 
+            InvocationTargetException, IOException, NoSuchMethodException {
+        
         // Case 13   P1(S1) <-> P2(S2) <-> [deleted]   S2 = P2
         Identifier p1 = createIdentifier("P1_", node);
         Identifier p2 = createIdentifier("P2_", node);
@@ -635,7 +706,7 @@ public class SidMNTestImplementations extends SidCommonTestImplementations {
                             D1TypeBuilder.buildFormatIdentifier(DEFAULT_TEST_OBJECTFORMAT),
                             D1TypeBuilder.buildSubject(subjectLabel),
                             D1TypeBuilder.buildNodeReference("bogusAuthoritativeNode"));
-                    SystemMetadata sysmeta = TypeMarshaller.convertTypeFromType(d1o.getSystemMetadata(), SystemMetadata.class);
+                    SystemMetadata sysmeta = TypeFactory.convertTypeFromType(d1o.getSystemMetadata(), SystemMetadata.class);
                     sysmeta.setAuthoritativeMemberNode(nodeId);
                     sysmeta.setObsoletes(pid);
                     InputStream objectInputStream = new ByteArrayInputStream(contentBytes);

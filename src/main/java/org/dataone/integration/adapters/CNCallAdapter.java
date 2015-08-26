@@ -53,6 +53,7 @@ import org.dataone.service.types.v2.NodeList;
 import org.dataone.service.types.v2.ObjectFormat;
 import org.dataone.service.types.v2.ObjectFormatList;
 import org.dataone.service.types.v2.SystemMetadata;
+import org.dataone.service.types.v2.TypeFactory;
 import org.dataone.service.util.TypeConverter;
 import org.dataone.service.util.TypeMarshaller;
 import org.jibx.runtime.JiBXException;
@@ -428,7 +429,7 @@ public class CNCallAdapter extends CommonCallAdapter {
 
     public ObjectFormatList listFormats() throws ServiceFailure, NotImplemented,
             ClientSideException, InstantiationException, IllegalAccessException,
-            InvocationTargetException, JiBXException, IOException {
+            InvocationTargetException, NoSuchMethodException {
         if (this.node.getType().equals(NodeType.CN)) {
             if (this.version.toLowerCase().equals("v1")) {
                 org.dataone.service.cn.v1.CNCore cnCore = D1NodeFactory.buildNode(
@@ -448,14 +449,14 @@ public class CNCallAdapter extends CommonCallAdapter {
 
     public ObjectFormat getFormat(ObjectFormatIdentifier formatid) throws ServiceFailure, NotFound,
             NotImplemented, InvalidRequest, ClientSideException, InstantiationException,
-            IllegalAccessException, InvocationTargetException, JiBXException, IOException {
+            IllegalAccessException, InvocationTargetException, IOException, NoSuchMethodException {
         if (this.node.getType().equals(NodeType.CN)) {
             if (this.version.toLowerCase().equals("v1")) {
                 org.dataone.service.cn.v1.CNCore cnCore = D1NodeFactory.buildNode(
                         org.dataone.service.cn.v1.CNCore.class, this.mrc,
                         URI.create(this.node.getBaseURL()));
                 org.dataone.service.types.v1.ObjectFormat formatV1 = cnCore.getFormat(formatid);
-                ObjectFormat formatV2 = TypeMarshaller.convertTypeFromType(formatV1,
+                ObjectFormat formatV2 = TypeFactory.convertTypeFromType(formatV1,
                         ObjectFormat.class);
                 return formatV2;
             } else if (this.version.toLowerCase().equals("v2")) {
@@ -489,7 +490,7 @@ public class CNCallAdapter extends CommonCallAdapter {
 
     public NodeList listNodes() throws NotImplemented, ServiceFailure, ClientSideException,
             InstantiationException, IllegalAccessException, InvocationTargetException,
-            JiBXException, IOException {
+            NoSuchMethodException {
         if (this.node.getType().equals(NodeType.CN)) {
             if (this.version.toLowerCase().equals("v1")) {
                 org.dataone.service.cn.v1.CNCore cnCore = D1NodeFactory.buildNode(
@@ -579,13 +580,15 @@ public class CNCallAdapter extends CommonCallAdapter {
 
     public Identifier registerSystemMetadata(Session session, Identifier pid, SystemMetadata sysmeta)
             throws NotImplemented, NotAuthorized, ServiceFailure, InvalidRequest,
-            InvalidSystemMetadata, InvalidToken, ClientSideException, InstantiationException, IllegalAccessException, InvocationTargetException, JiBXException, IOException {
+            InvalidSystemMetadata, InvalidToken, ClientSideException, InstantiationException, 
+            IllegalAccessException, InvocationTargetException, NoSuchMethodException {
         if (this.node.getType().equals(NodeType.CN)) {
             if (this.version.toLowerCase().equals("v1")) {
                 org.dataone.service.cn.v1.CNCore cnCore = D1NodeFactory.buildNode(
                         org.dataone.service.cn.v1.CNCore.class, this.mrc,
                         URI.create(this.node.getBaseURL()));
-                org.dataone.service.types.v1.SystemMetadata v1SysMeta = TypeMarshaller.convertTypeFromType(sysmeta, org.dataone.service.types.v1.SystemMetadata.class);
+                org.dataone.service.types.v1.SystemMetadata v1SysMeta = 
+                        TypeFactory.convertTypeFromType(sysmeta, org.dataone.service.types.v1.SystemMetadata.class);
                 return cnCore.registerSystemMetadata(session, pid, v1SysMeta);
             } else if (this.version.toLowerCase().equals("v2")) {
                 CNCore cnCore = D1NodeFactory.buildNode(CNCore.class, this.mrc,
@@ -618,13 +621,14 @@ public class CNCallAdapter extends CommonCallAdapter {
 
     public boolean updateNodeCapabilities(Session session, NodeReference nodeid,
             org.dataone.service.types.v2.Node node) throws NotImplemented, NotAuthorized,
-            ServiceFailure, InvalidRequest, NotFound, InvalidToken, ClientSideException, InstantiationException, IllegalAccessException, InvocationTargetException, JiBXException, IOException {
+            ServiceFailure, InvalidRequest, NotFound, InvalidToken, ClientSideException, 
+            InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException  {
         if (this.node.getType().equals(NodeType.CN)) {
             if (this.version.toLowerCase().equals("v1")) {
                 org.dataone.service.cn.v1.CNRegister cnRegister = D1NodeFactory.buildNode(
                         org.dataone.service.cn.v1.CNRegister.class, this.mrc,
                         URI.create(this.node.getBaseURL()));
-                Node v1Node = TypeMarshaller.convertTypeFromType(node, Node.class);
+                Node v1Node = TypeFactory.convertTypeFromType(node, Node.class);
                 return cnRegister.updateNodeCapabilities(session, nodeid, v1Node);
             } else if (this.version.toLowerCase().equals("v2")) {
                 CNRegister cnRegister = D1NodeFactory.buildNode(CNRegister.class, this.mrc,
@@ -638,13 +642,14 @@ public class CNCallAdapter extends CommonCallAdapter {
 
     public NodeReference register(Session session, org.dataone.service.types.v2.Node node)
             throws NotImplemented, NotAuthorized, ServiceFailure, InvalidRequest, InvalidToken,
-            IdentifierNotUnique, ClientSideException, InstantiationException, IllegalAccessException, InvocationTargetException, JiBXException, IOException {
+            IdentifierNotUnique, ClientSideException, InstantiationException, IllegalAccessException, 
+            InvocationTargetException, NoSuchMethodException {
         if (this.node.getType().equals(NodeType.CN)) {
             if (this.version.toLowerCase().equals("v1")) {
                 org.dataone.service.cn.v1.CNRegister cnRegister = D1NodeFactory.buildNode(
                         org.dataone.service.cn.v1.CNRegister.class, this.mrc,
                         URI.create(this.node.getBaseURL()));
-                Node v1Node = TypeMarshaller.convertTypeFromType(node, Node.class);
+                Node v1Node = TypeFactory.convertTypeFromType(node, Node.class);
                 return cnRegister.register(session, v1Node);
             } else if (this.version.toLowerCase().equals("v2")) {
                 CNRegister cnRegister = D1NodeFactory.buildNode(CNRegister.class, this.mrc,

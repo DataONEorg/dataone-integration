@@ -26,6 +26,7 @@ import org.dataone.service.types.v1.Services;
 import org.dataone.service.types.v1.Subject;
 import org.dataone.service.types.v1.Node;
 import org.dataone.service.types.v2.NodeList;
+import org.dataone.service.types.v2.TypeFactory;
 import org.dataone.service.util.Constants;
 import org.dataone.service.util.TypeMarshaller;
 
@@ -68,7 +69,7 @@ public class CNRegisterTestImplementations extends ContextAwareAdapter {
                 ping.setLastSuccess(new Date());
                 node0.setPing(ping);
 
-                org.dataone.service.types.v2.Node nodeV2 = TypeMarshaller.convertTypeFromType(node0, org.dataone.service.types.v2.Node.class);
+                org.dataone.service.types.v2.Node nodeV2 = TypeFactory.convertTypeFromType(node0, org.dataone.service.types.v2.Node.class);
                 boolean response = callAdapter.updateNodeCapabilities(null, nodeRef, nodeV2);
                 checkTrue(callAdapter.getLatestRequestUrl(),
                         "response cannot be false. [Only true or exception].", response);
@@ -118,7 +119,7 @@ public class CNRegisterTestImplementations extends ContextAwareAdapter {
                 ping.setLastSuccess(new Date());
                 node0.setPing(ping);
 
-                org.dataone.service.types.v2.Node nodeV2 = TypeMarshaller.convertTypeFromType(node0, org.dataone.service.types.v2.Node.class);
+                org.dataone.service.types.v2.Node nodeV2 = TypeFactory.convertTypeFromType(node0, org.dataone.service.types.v2.Node.class);
                 boolean response = callAdapter.updateNodeCapabilities(null, nodeRef, nodeV2);
                 handleFail(callAdapter.getLatestRequestUrl(),
                         "updateNodeCapabilities on fictitious node should fail");
@@ -168,7 +169,7 @@ public class CNRegisterTestImplementations extends ContextAwareAdapter {
                 ping.setLastSuccess(new Date());
                 node0.setPing(ping);
 
-                org.dataone.service.types.v2.Node nodeV2 = TypeMarshaller.convertTypeFromType(node0, org.dataone.service.types.v2.Node.class);
+                org.dataone.service.types.v2.Node nodeV2 = TypeFactory.convertTypeFromType(node0, org.dataone.service.types.v2.Node.class);
                 boolean response = callAdapter.updateNodeCapabilities(null, nodeRef, nodeV2);
                 handleFail(callAdapter.getLatestRequestUrl(),
                         "updateNodeCapabilities with unauthorized subject should fail");
@@ -224,7 +225,7 @@ public class CNRegisterTestImplementations extends ContextAwareAdapter {
                 ping.setLastSuccess(new Date());
                 node0.setPing(ping);
 
-                org.dataone.service.types.v2.Node nodeV2 = TypeMarshaller.convertTypeFromType(node0, org.dataone.service.types.v2.Node.class);
+                org.dataone.service.types.v2.Node nodeV2 = TypeFactory.convertTypeFromType(node0, org.dataone.service.types.v2.Node.class);
                 boolean response = callAdapter.updateNodeCapabilities(null, nodeRef, nodeV2);
                 handleFail(callAdapter.getLatestRequestUrl(),
                         "updateNodeCapabilities to update other fields should fail");
@@ -270,7 +271,7 @@ public class CNRegisterTestImplementations extends ContextAwareAdapter {
                 newRef.setValue(nr + "abcdefghij");
                 mNode.setIdentifier(newRef);
                 mNode.setBaseURL(mNode.getBaseURL() + "/fakeBaseUrlThatIsDifferent");
-                org.dataone.service.types.v2.Node nodeV2 = TypeMarshaller.convertTypeFromType(mNode, org.dataone.service.types.v2.Node.class);
+                org.dataone.service.types.v2.Node nodeV2 = TypeFactory.convertTypeFromType(mNode, org.dataone.service.types.v2.Node.class);
                 NodeReference response = callAdapter.register(null, nodeV2);
                 checkTrue(callAdapter.getLatestRequestUrl(),
                         "register(...) returns a NodeReference object", response != null);
@@ -306,7 +307,7 @@ public class CNRegisterTestImplementations extends ContextAwareAdapter {
                         "Cannot test cn.register() unless there is a Member Node in the NodeList");
             } else {
                 // attempt to re-register a node...
-                org.dataone.service.types.v2.Node nodeV2 = TypeMarshaller.convertTypeFromType(mNodeList.get(0), org.dataone.service.types.v2.Node.class);
+                org.dataone.service.types.v2.Node nodeV2 = TypeFactory.convertTypeFromType(mNodeList.get(0), org.dataone.service.types.v2.Node.class);
                 NodeReference response = callAdapter.register(null, nodeV2);
                 handleFail(callAdapter.getLatestRequestUrl(),
                         "register(...) should throw IndentifierNotUnique exception when"
@@ -358,7 +359,7 @@ public class CNRegisterTestImplementations extends ContextAwareAdapter {
                 handleFail(callAdapter.getLatestRequestUrl(),
                         "Cannot test cn.getNodeCapabilities() unless there is a Member Node in the NodeList");
             } else {
-                org.dataone.service.types.v2.Node nodeV2 = TypeMarshaller.convertTypeFromType(mNodeList.get(0), org.dataone.service.types.v2.Node.class);
+                org.dataone.service.types.v2.Node nodeV2 = TypeFactory.convertTypeFromType(mNodeList.get(0), org.dataone.service.types.v2.Node.class);
                 NodeReference nodeRef = nodeV2.getIdentifier();
                 org.dataone.service.types.v2.Node capabilities = callAdapter.getNodeCapabilities(nodeRef);
                 Assert.assertTrue("getNodeCapabilities call should return a non-null Node", capabilities != null);
@@ -395,7 +396,7 @@ public class CNRegisterTestImplementations extends ContextAwareAdapter {
                 handleFail(callAdapter.getLatestRequestUrl(),
                         "Cannot test cn.getNodeCapabilities() unless there is a Member Node in the NodeList");
             } else {
-                org.dataone.service.types.v2.Node nodeV2 = TypeMarshaller.convertTypeFromType(mNodeList.get(0), org.dataone.service.types.v2.Node.class);
+                org.dataone.service.types.v2.Node nodeV2 = TypeFactory.convertTypeFromType(mNodeList.get(0), org.dataone.service.types.v2.Node.class);
                 NodeReference nodeRef = new NodeReference();
                 nodeRef.setValue("urn:node:bogus");
                 callAdapter.getNodeCapabilities(nodeRef);

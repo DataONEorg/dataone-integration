@@ -28,8 +28,8 @@ import org.dataone.service.types.v1.ObjectInfo;
 import org.dataone.service.types.v1.ObjectList;
 import org.dataone.service.types.v1.Subject;
 import org.dataone.service.types.v2.SystemMetadata;
+import org.dataone.service.types.v2.TypeFactory;
 import org.dataone.service.util.Constants;
-import org.dataone.service.util.TypeMarshaller;
 
 public class MNStorageTestImplementations extends ContextAwareAdapter {
 
@@ -68,7 +68,7 @@ public class MNStorageTestImplementations extends ContextAwareAdapter {
             Object[] dataPackage = ExampleUtilities.generateTestSciDataPackage(
                     "mNodeTier3TestCreate", true, subjectRH.getValue());
             org.dataone.service.types.v1.SystemMetadata sysMetaV1 = (org.dataone.service.types.v1.SystemMetadata) dataPackage[2];
-            SystemMetadata sysMetaV2 = TypeMarshaller.convertTypeFromType(sysMetaV1, SystemMetadata.class);
+            SystemMetadata sysMetaV2 = TypeFactory.convertTypeFromType(sysMetaV1, SystemMetadata.class);
             Identifier pid = callAdapter.create(null, (Identifier) dataPackage[0],
                     (InputStream) dataPackage[1], sysMetaV2);
 
@@ -118,7 +118,7 @@ public class MNStorageTestImplementations extends ContextAwareAdapter {
                     "mNodeTier3TestCreate", true, Constants.SUBJECT_PUBLIC);
 
             org.dataone.service.types.v1.SystemMetadata sysMetaV1 = (org.dataone.service.types.v1.SystemMetadata) dataPackage[2];
-            SystemMetadata sysMetaV2 = TypeMarshaller.convertTypeFromType(sysMetaV1, SystemMetadata.class);
+            SystemMetadata sysMetaV2 = TypeFactory.convertTypeFromType(sysMetaV1, SystemMetadata.class);
             callAdapter.create(null, (Identifier) dataPackage[0], (InputStream) dataPackage[1],
                     sysMetaV2);
             handleFail(callAdapter.getLatestRequestUrl(),
@@ -221,7 +221,7 @@ public class MNStorageTestImplementations extends ContextAwareAdapter {
                 testLoc = "create";
                 // rGuid is either going to be the escaped ID or the non-escaped ID
                 org.dataone.service.types.v1.SystemMetadata sysMetaV1 = (org.dataone.service.types.v1.SystemMetadata) dataPackage[2];
-                SystemMetadata sysMetaV2 = TypeMarshaller.convertTypeFromType(sysMetaV1, SystemMetadata.class);
+                SystemMetadata sysMetaV2 = TypeFactory.convertTypeFromType(sysMetaV1, SystemMetadata.class);
                 Identifier rPid = callAdapter.create(null, (Identifier) dataPackage[0],
                         (InputStream) dataPackage[1], sysMetaV2);
                 log.info("    == returned Guid (rPid): " + rPid.getValue());
@@ -293,7 +293,7 @@ public class MNStorageTestImplementations extends ContextAwareAdapter {
                     "mNodeTier3TestUpdate", true, subject.getValue());
 
             org.dataone.service.types.v1.SystemMetadata sysMetaV1 = (org.dataone.service.types.v1.SystemMetadata) dataPackage[2];
-            SystemMetadata sysMetaV2 = TypeMarshaller.convertTypeFromType(sysMetaV1, SystemMetadata.class);
+            SystemMetadata sysMetaV2 = TypeFactory.convertTypeFromType(sysMetaV1, SystemMetadata.class);
             Identifier originalPid = callAdapter.create(null, (Identifier) dataPackage[0],
                     (InputStream) dataPackage[1], sysMetaV2);
 
@@ -305,7 +305,7 @@ public class MNStorageTestImplementations extends ContextAwareAdapter {
             Identifier newPid = (Identifier) dataPackage[0];
 
             // do the update
-            sysMetaV2 = TypeMarshaller.convertTypeFromType((org.dataone.service.types.v1.SystemMetadata) dataPackage[2], SystemMetadata.class);
+            sysMetaV2 = TypeFactory.convertTypeFromType((org.dataone.service.types.v1.SystemMetadata) dataPackage[2], SystemMetadata.class);
             Identifier updatedPid = callAdapter.update(null, originalPid,
                     (InputStream) dataPackage[1], // new data
                     newPid, sysMetaV2 // new sysmeta
@@ -380,7 +380,7 @@ public class MNStorageTestImplementations extends ContextAwareAdapter {
                     "mNodeTier3TestUpdate", true, subject.getValue());
 
             org.dataone.service.types.v1.SystemMetadata sysMetaV1 = (org.dataone.service.types.v1.SystemMetadata) dataPackage[2];
-            SystemMetadata sysMetaV2 = TypeMarshaller.convertTypeFromType(sysMetaV1, SystemMetadata.class);
+            SystemMetadata sysMetaV2 = TypeFactory.convertTypeFromType(sysMetaV1, SystemMetadata.class);
             Identifier originalPid = callAdapter.create(null, (Identifier) dataPackage[0],
                     (InputStream) dataPackage[1], sysMetaV2);
 
@@ -393,7 +393,7 @@ public class MNStorageTestImplementations extends ContextAwareAdapter {
             smd.setObsoletedBy(originalPid);
             
             // do the update
-            sysMetaV2 = TypeMarshaller.convertTypeFromType(smd, SystemMetadata.class);
+            sysMetaV2 = TypeFactory.convertTypeFromType(smd, SystemMetadata.class);
             Identifier updatedPid = callAdapter.update(null, originalPid,
                     (InputStream) dataPackage[1], // new data
                     newPid, sysMetaV2);
@@ -436,7 +436,7 @@ public class MNStorageTestImplementations extends ContextAwareAdapter {
                     "mNodeTier3TestUpdate", true, subject.getValue());
 
             org.dataone.service.types.v1.SystemMetadata sysMetaV1 = (org.dataone.service.types.v1.SystemMetadata) dataPackage[2];
-            SystemMetadata sysMetaV2 = TypeMarshaller.convertTypeFromType(sysMetaV1, SystemMetadata.class);
+            SystemMetadata sysMetaV2 = TypeFactory.convertTypeFromType(sysMetaV1, SystemMetadata.class);
             Identifier originalPid = callAdapter.create(null, (Identifier) dataPackage[0],
                     (InputStream) dataPackage[1], sysMetaV2);
             
@@ -451,7 +451,7 @@ public class MNStorageTestImplementations extends ContextAwareAdapter {
             smd.setObsoletes(phonyId);
             
             // do the update
-            SystemMetadata smdV2 = TypeMarshaller.convertTypeFromType(smd, SystemMetadata.class);
+            SystemMetadata smdV2 = TypeFactory.convertTypeFromType(smd, SystemMetadata.class);
             Identifier updatedPid = callAdapter.update(null, originalPid,
                     (InputStream) dataPackage[1], // new data
                     newPid, smdV2);
@@ -492,7 +492,7 @@ public class MNStorageTestImplementations extends ContextAwareAdapter {
                     "mNodeTier3TestUpdate", true, subject.getValue());
 
             org.dataone.service.types.v1.SystemMetadata sysMetaV1 = (org.dataone.service.types.v1.SystemMetadata) dataPackage[2];
-            SystemMetadata sysMetaV2 = TypeMarshaller.convertTypeFromType(sysMetaV1, SystemMetadata.class);
+            SystemMetadata sysMetaV2 = TypeFactory.convertTypeFromType(sysMetaV1, SystemMetadata.class);
            Identifier pid = callAdapter.create(null, (Identifier) dataPackage[0],
                     (InputStream) dataPackage[1], sysMetaV2);
 
@@ -568,7 +568,7 @@ public class MNStorageTestImplementations extends ContextAwareAdapter {
                     "mNodeTier3TestUpdate", true, subjectRH.getValue());
             
             org.dataone.service.types.v1.SystemMetadata sysMetaV1 = (org.dataone.service.types.v1.SystemMetadata) dataPackage[2];
-            SystemMetadata sysMetaV2 = TypeMarshaller.convertTypeFromType(sysMetaV1,SystemMetadata.class);
+            SystemMetadata sysMetaV2 = TypeFactory.convertTypeFromType(sysMetaV1,SystemMetadata.class);
             Identifier originalPid = callAdapterRH.create(null, (Identifier) dataPackage[0],
                     (InputStream) dataPackage[1], sysMetaV2);
 
@@ -578,7 +578,7 @@ public class MNStorageTestImplementations extends ContextAwareAdapter {
 
             try {
                 // do the update
-                SystemMetadata smdV2 = TypeMarshaller.convertTypeFromType((org.dataone.service.types.v1.SystemMetadata) dataPackage[2], SystemMetadata.class);
+                SystemMetadata smdV2 = TypeFactory.convertTypeFromType((org.dataone.service.types.v1.SystemMetadata) dataPackage[2], SystemMetadata.class);
                 callAdapterSubmitter.update(null, originalPid,
                         (InputStream) dataPackage[1], // new data
                         newPid, smdV2 // new sysmeta
@@ -631,7 +631,7 @@ public class MNStorageTestImplementations extends ContextAwareAdapter {
             Object[] dataPackage = ExampleUtilities.generateTestSciDataPackage(
                     "mNodeTier3TestDelete", true, subjectRH.getValue());
             org.dataone.service.types.v1.SystemMetadata sysMetaV1 = (org.dataone.service.types.v1.SystemMetadata) dataPackage[2];
-            SystemMetadata sysMetaV2 = TypeMarshaller.convertTypeFromType(sysMetaV1,SystemMetadata.class);
+            SystemMetadata sysMetaV2 = TypeFactory.convertTypeFromType(sysMetaV1,SystemMetadata.class);
             pid = callAdapterRH.create(null, (Identifier) dataPackage[0],
                     (InputStream) dataPackage[1], sysMetaV2);
 
@@ -718,7 +718,7 @@ public class MNStorageTestImplementations extends ContextAwareAdapter {
             Object[] dataPackage = ExampleUtilities.generateTestSciDataPackage(
                     "mNodeTier3TestArchive", true, subjectRH.getValue());
             org.dataone.service.types.v1.SystemMetadata sysMetaV1 = (org.dataone.service.types.v1.SystemMetadata) dataPackage[2];
-            SystemMetadata sysMetaV2 = TypeMarshaller.convertTypeFromType(sysMetaV1, SystemMetadata.class);
+            SystemMetadata sysMetaV2 = TypeFactory.convertTypeFromType(sysMetaV1, SystemMetadata.class);
             pid = callAdapterRH.create(null, (Identifier) dataPackage[0],
                     (InputStream) dataPackage[1], sysMetaV2);
 
@@ -796,7 +796,7 @@ public class MNStorageTestImplementations extends ContextAwareAdapter {
             Object[] dataPackage = ExampleUtilities.generateTestSciDataPackage(
                     "mNodeTier3TestDelete", true, subjectRH.getValue());
             org.dataone.service.types.v1.SystemMetadata sysMetaV1 = (org.dataone.service.types.v1.SystemMetadata) dataPackage[2];
-            SystemMetadata sysMetaV2 = TypeMarshaller.convertTypeFromType(sysMetaV1,SystemMetadata.class);
+            SystemMetadata sysMetaV2 = TypeFactory.convertTypeFromType(sysMetaV1,SystemMetadata.class);
             pid = callAdapterRH.create(null, (Identifier) dataPackage[0],
                     (InputStream) dataPackage[1], sysMetaV2);
 

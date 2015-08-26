@@ -34,6 +34,7 @@ import org.dataone.service.types.v2.NodeList;
 import org.dataone.service.types.v2.ObjectFormat;
 import org.dataone.service.types.v2.ObjectFormatList;
 import org.dataone.service.types.v2.SystemMetadata;
+import org.dataone.service.types.v2.TypeFactory;
 import org.dataone.service.util.Constants;
 import org.dataone.service.util.TypeMarshaller;
 import org.springframework.util.StringUtils;
@@ -70,7 +71,7 @@ public class CNCoreTestImplementations extends ContextAwareAdapter {
         try {
             Object[] dataPackage = ExampleUtilities.generateTestSciMetaDataPackage("cNodeTier1TestCreate",true);
             org.dataone.service.types.v1.SystemMetadata sysMetaV1 = (org.dataone.service.types.v1.SystemMetadata) dataPackage[2];
-            SystemMetadata sysMetaV2 = TypeMarshaller.convertTypeFromType(sysMetaV1, SystemMetadata.class);
+            SystemMetadata sysMetaV2 = TypeFactory.convertTypeFromType(sysMetaV1, SystemMetadata.class);
             Identifier pid = callAdapter.create(null,(Identifier) dataPackage[0],
                     (InputStream) dataPackage[1], sysMetaV2 ); 
             
@@ -135,7 +136,7 @@ public class CNCoreTestImplementations extends ContextAwareAdapter {
                 Identifier rGuid = null;
 
                 org.dataone.service.types.v1.SystemMetadata sysMetaV1 = (org.dataone.service.types.v1.SystemMetadata) dataPackage[2];
-                SystemMetadata sysMetaV2 = TypeMarshaller.convertTypeFromType(sysMetaV1, SystemMetadata.class);
+                SystemMetadata sysMetaV2 = TypeFactory.convertTypeFromType(sysMetaV1, SystemMetadata.class);
                 rGuid = callAdapter.create(null, (Identifier) dataPackage[0], 
                         (InputStream)dataPackage[1], sysMetaV2);
                 
@@ -526,7 +527,7 @@ public class CNCoreTestImplementations extends ContextAwareAdapter {
         try {
             Object[] dataPackage = ExampleUtilities.generateTestSciMetaDataPackage("cNodeTier1TestCreate",true);
             org.dataone.service.types.v1.SystemMetadata smdV1 = (org.dataone.service.types.v1.SystemMetadata) dataPackage[2];
-            SystemMetadata smdV2 = TypeMarshaller.convertTypeFromType(smdV1, SystemMetadata.class);
+            SystemMetadata smdV2 = TypeFactory.convertTypeFromType(smdV1, SystemMetadata.class);
             Identifier pid = callAdapter.registerSystemMetadata(null,(Identifier) dataPackage[0], smdV2);  
             
             checkEquals(callAdapter.getLatestRequestUrl(),"pid of registered sysmetadata should equal that given",

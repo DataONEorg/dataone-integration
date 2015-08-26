@@ -48,6 +48,7 @@ import org.dataone.service.types.v1_1.QueryEngineDescription;
 import org.dataone.service.types.v1_1.QueryEngineList;
 import org.dataone.service.types.v2.Log;
 import org.dataone.service.types.v2.OptionList;
+import org.dataone.service.types.v2.TypeFactory;
 import org.dataone.service.util.TypeConverter;
 import org.dataone.service.util.TypeMarshaller;
 import org.jibx.runtime.JiBXException;
@@ -141,7 +142,7 @@ public class CommonCallAdapter implements D1Node {
             }
         }
         } catch (InstantiationException | IllegalAccessException
-                | InvocationTargetException | JiBXException | IOException e) {
+                | InvocationTargetException | NoSuchMethodException e) {
             
             throw new ClientSideException("Unable to convert a v1.Log to a v2.Log", e);
         }
@@ -239,7 +240,7 @@ public class CommonCallAdapter implements D1Node {
                         org.dataone.service.mn.tier1.v1.MNRead.class, this.mrc,
                         URI.create(this.node.getBaseURL()));
                 SystemMetadata systemMetadata = mnRead.getSystemMetadata(session, pid);
-                return TypeMarshaller.convertTypeFromType(systemMetadata,
+                return TypeFactory.convertTypeFromType(systemMetadata,
                         org.dataone.service.types.v2.SystemMetadata.class);
             } else if (this.version.toLowerCase().equals("v2")) {
                 org.dataone.service.mn.tier1.v2.MNRead mnRead = D1NodeFactory.buildNode(
@@ -253,7 +254,7 @@ public class CommonCallAdapter implements D1Node {
                         org.dataone.service.cn.v1.CNRead.class, this.mrc,
                         URI.create(this.node.getBaseURL()));
                 SystemMetadata systemMetadata = cnRead.getSystemMetadata(session, pid);
-                return TypeMarshaller.convertTypeFromType(systemMetadata,
+                return TypeFactory.convertTypeFromType(systemMetadata,
                         org.dataone.service.types.v2.SystemMetadata.class);
             } else if (this.version.toLowerCase().equals("v2")) {
                 CNRead cnRead = D1NodeFactory.buildNode(CNRead.class, this.mrc,
@@ -262,7 +263,7 @@ public class CommonCallAdapter implements D1Node {
             }
         }
         } catch (InstantiationException | IllegalAccessException
-                | InvocationTargetException | JiBXException | IOException e) 
+                | InvocationTargetException | NoSuchMethodException e) 
         {
             throw new ClientSideException("Unable to convert SystemMetadata from type to type");
         }
@@ -478,18 +479,19 @@ public class CommonCallAdapter implements D1Node {
     public Identifier create(Session session, Identifier pid, InputStream object,
             SystemMetadata sysmeta) throws ClientSideException, InvalidToken, ServiceFailure,
             NotAuthorized, IdentifierNotUnique, UnsupportedType, InsufficientResources,
-            InvalidSystemMetadata, NotImplemented, InvalidRequest, InstantiationException, IllegalAccessException, InvocationTargetException, JiBXException, IOException {
+            InvalidSystemMetadata, NotImplemented, InvalidRequest, InstantiationException, 
+            IllegalAccessException, InvocationTargetException, NoSuchMethodException {
         if (this.node.getType().equals(NodeType.CN)) {
             if (this.version.toLowerCase().equals("v1")) {
                 CNCore cnCore = D1NodeFactory.buildNode(
                         org.dataone.service.cn.v1.CNCore.class, this.mrc,
                         URI.create(this.node.getBaseURL()));
-                org.dataone.service.types.v1.SystemMetadata v1SysMeta = TypeMarshaller.convertTypeFromType(sysmeta, org.dataone.service.types.v1.SystemMetadata.class);
+                org.dataone.service.types.v1.SystemMetadata v1SysMeta = TypeFactory.convertTypeFromType(sysmeta, org.dataone.service.types.v1.SystemMetadata.class);
                 return cnCore.create(session, pid, object, v1SysMeta);
             } else if (this.version.toLowerCase().equals("v2")) {
                 org.dataone.service.cn.v2.CNCore cnCore = D1NodeFactory.buildNode(org.dataone.service.cn.v2.CNCore.class, this.mrc,
                         URI.create(this.node.getBaseURL()));
-                org.dataone.service.types.v2.SystemMetadata sysmetaV2 = TypeMarshaller.convertTypeFromType(sysmeta, org.dataone.service.types.v2.SystemMetadata.class);
+                org.dataone.service.types.v2.SystemMetadata sysmetaV2 = TypeFactory.convertTypeFromType(sysmeta, org.dataone.service.types.v2.SystemMetadata.class);
                 return cnCore.create(session, pid, object, sysmetaV2);
             }
         } else if (this.node.getType().equals(NodeType.MN)) {
@@ -497,12 +499,12 @@ public class CommonCallAdapter implements D1Node {
                 org.dataone.service.mn.tier3.v1.MNStorage mnStorage = D1NodeFactory.buildNode(
                         org.dataone.service.mn.tier3.v1.MNStorage.class, this.mrc,
                         URI.create(this.node.getBaseURL()));
-                org.dataone.service.types.v1.SystemMetadata v1SysMeta = TypeMarshaller.convertTypeFromType(sysmeta, org.dataone.service.types.v1.SystemMetadata.class);
+                org.dataone.service.types.v1.SystemMetadata v1SysMeta = TypeFactory.convertTypeFromType(sysmeta, org.dataone.service.types.v1.SystemMetadata.class);
                 return mnStorage.create(session, pid, object, v1SysMeta);
             } else if (this.version.toLowerCase().equals("v2")) {
                 MNStorage mnStorage = D1NodeFactory.buildNode(MNStorage.class, this.mrc,
                         URI.create(this.node.getBaseURL()));
-                org.dataone.service.types.v2.SystemMetadata sysmetaV2 = TypeMarshaller.convertTypeFromType(sysmeta, org.dataone.service.types.v2.SystemMetadata.class);
+                org.dataone.service.types.v2.SystemMetadata sysmetaV2 = TypeFactory.convertTypeFromType(sysmeta, org.dataone.service.types.v2.SystemMetadata.class);
                 return mnStorage.create(session, pid, object, sysmetaV2);
             }
         }

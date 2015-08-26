@@ -763,6 +763,8 @@ public class CNDiagnosticTestImplementations extends ContextAwareAdapter {
         InputStream is = null;
         InputStream objStream = null;
         try {
+            // Question  - why do we create an object?  shouldn't the echo method
+            // work on unregistered objects?
             AccessRule accessRule = new AccessRule();
             getSession("testRightsHolder");
             Subject subject = ContextAwareTestCaseDataone.getSubject("testRightsHolder");

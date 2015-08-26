@@ -100,6 +100,7 @@ import org.dataone.service.types.v1.ReplicationPolicy;
 import org.dataone.service.types.v1.Subject;
 import org.dataone.service.types.v1.util.AccessUtil;
 import org.dataone.service.types.v2.SystemMetadata;
+import org.dataone.service.types.v2.TypeFactory;
 import org.dataone.service.util.Constants;
 import org.dataone.service.util.TypeMarshaller;
 import org.dspace.foresite.ResourceMap;
@@ -425,33 +426,14 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
                 org.dataone.client.v2.CNode cnv2 =
                     D1NodeFactory.buildNode(org.dataone.client.v2.CNode.class,
                             MULTIPART_REST_CLIENT, URI.create(baseURL));
-                List<org.dataone.service.types.v2.Node> v2nodes  = cnv2.listNodes().getNodeList();
-                List<Node> v1Nodes = new LinkedList<Node>();
-
-                for (Node n: v2nodes) {
-                    v1Nodes.add(TypeMarshaller.convertTypeFromType(n,Node.class));
-                }
-                return v1Nodes;
-            } catch (InstantiationException e1) {
-                // TODO Auto-generated catch block
+                NodeList v1nodelist = TypeFactory.convertTypeFromType(cnv2.listNodes(),NodeList.class);
+                
+                return v1nodelist.getNodeList();
+            } 
+            catch (InstantiationException | IllegalAccessException | 
+                    InvocationTargetException | NoSuchMethodException e1) {
                 e1.printStackTrace();
-                throw new ClientSideException("Error converting v2.Node to v1.Node",e1);
-            } catch (IllegalAccessException e1) {
-                // TODO Auto-generated catch block
-                e1.printStackTrace();
-                throw new ClientSideException("Error converting v2.Node to v1.Node",e1);
-            } catch (InvocationTargetException e1) {
-                // TODO Auto-generated catch block
-                e1.printStackTrace();
-                throw new ClientSideException("Error converting v2.Node to v1.Node",e1);
-            } catch (JiBXException e1) {
-                // TODO Auto-generated catch block
-                e1.printStackTrace();
-                throw new ClientSideException("Error converting v2.Node to v1.Node",e1);
-            } catch (IOException e1) {
-                // TODO Auto-generated catch block
-                e1.printStackTrace();
-                throw new ClientSideException("Error converting v2.Node to v1.Node",e1);
+                throw new ClientSideException("Error converting v2.NodeList to v1.NodeList",e1);
             }
         }
     }
@@ -1294,7 +1276,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
                         D1TypeBuilder.buildSubject(submitterX500),
                         nodeReference);
                 //			}
-                sysMeta = TypeMarshaller.convertTypeFromType(d1o.getSystemMetadata(), SystemMetadata.class);
+                sysMeta = TypeFactory.convertTypeFromType(d1o.getSystemMetadata(), SystemMetadata.class);
                 sysMeta.setSeriesId(sid);
                 sysMeta.setReplicationPolicy(replPolicy);
             } catch (NoSuchAlgorithmException e) {
@@ -1308,7 +1290,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
                 e.printStackTrace();
                 throw new ServiceFailure("0000","client misconfiguration related to reading of content byte[]");
             } catch (InstantiationException | IllegalAccessException |
-                    InvocationTargetException | JiBXException e) {
+                    InvocationTargetException e) {
                 log.error("Unable to convert v1 SystemMetadata to v2 SystemMetadata.");
                 e.printStackTrace();
             }
@@ -1403,7 +1385,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
                         D1TypeBuilder.buildFormatIdentifier(DEFAULT_TEST_OBJECTFORMAT),
                         D1TypeBuilder.buildSubject(submitterX500),
                         D1TypeBuilder.buildNodeReference("bogusAuthoritativeNode"));
-                sysMeta = TypeMarshaller.convertTypeFromType(d1o.getSystemMetadata(), SystemMetadata.class);
+                sysMeta = TypeFactory.convertTypeFromType(d1o.getSystemMetadata(), SystemMetadata.class);
                 sysMeta.setSeriesId(sid);
             } catch (NoSuchAlgorithmException e) {
                 e.printStackTrace();
@@ -1415,7 +1397,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
                 e.printStackTrace();
                 throw new ServiceFailure("0000","client misconfiguration related to reading of content byte[]");
             } catch (InstantiationException | IllegalAccessException |
-                    InvocationTargetException | JiBXException e) {
+                    InvocationTargetException e) {
                 log.error("Unable to convert v1 SystemMetadata to v2 SystemMetadata.");
                 e.printStackTrace();
             }
@@ -1734,7 +1716,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
                     D1TypeBuilder.buildSubject(subject.getValue()),
                     D1TypeBuilder.buildNodeReference("bogusAuthoritativeNode"));
             
-            SystemMetadata sysmeta = TypeMarshaller.convertTypeFromType(d1o.getSystemMetadata(), SystemMetadata.class);
+            SystemMetadata sysmeta = TypeFactory.convertTypeFromType(d1o.getSystemMetadata(), SystemMetadata.class);
             sysmeta.setSeriesId(packageSid);
             sysmeta.setObsoletes(obsoletes);
             sysmeta.setObsoletedBy(obsoletedBy);

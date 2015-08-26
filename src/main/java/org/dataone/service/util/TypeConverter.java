@@ -10,8 +10,8 @@ import org.dataone.service.types.v2.Node;
 import org.dataone.service.types.v2.NodeList;
 import org.dataone.service.types.v2.ObjectFormat;
 import org.dataone.service.types.v2.ObjectFormatList;
-import org.dataone.service.util.TypeMarshaller;
-import org.jibx.runtime.JiBXException;
+import org.dataone.service.types.v2.TypeFactory;
+
 
 /**
  * Handles conversion of types that cannot be directly converted
@@ -25,11 +25,11 @@ public class TypeConverter {
 
 
     public static Log convertLog(org.dataone.service.types.v1.Log v1Log) throws InstantiationException,
-            IllegalAccessException, InvocationTargetException, JiBXException, IOException {
+            IllegalAccessException, InvocationTargetException, NoSuchMethodException {
         Log v2Log = new Log();
         if (v1Log.getLogEntryList() != null && v1Log.getLogEntryList().size() > 0)
             for (org.dataone.service.types.v1.LogEntry v1entry : v1Log.getLogEntryList()) {
-                LogEntry v2LogEntry = TypeMarshaller.convertTypeFromType(v1entry, LogEntry.class);
+                LogEntry v2LogEntry = TypeFactory.convertTypeFromType(v1entry, LogEntry.class);
                 v2Log.addLogEntry(v2LogEntry);
             }
         
@@ -40,11 +40,11 @@ public class TypeConverter {
     }
 
     public static org.dataone.service.types.v1.Log convertLog(Log v2Log) throws InstantiationException,
-            IllegalAccessException, InvocationTargetException, JiBXException, IOException {
+            IllegalAccessException, InvocationTargetException, NoSuchMethodException {
         org.dataone.service.types.v1.Log v1Log = new org.dataone.service.types.v1.Log();
         if (v2Log.getLogEntryList() != null && v2Log.getLogEntryList().size() > 0)
             for (LogEntry v2entry : v2Log.getLogEntryList()) {
-                org.dataone.service.types.v1.LogEntry v1LogEntry = TypeMarshaller.convertTypeFromType(v2entry, org.dataone.service.types.v1.LogEntry.class);
+                org.dataone.service.types.v1.LogEntry v1LogEntry = TypeFactory.convertTypeFromType(v2entry, org.dataone.service.types.v1.LogEntry.class);
                 v1Log.addLogEntry(v1LogEntry);
             }
 
@@ -56,13 +56,13 @@ public class TypeConverter {
 
     public static ObjectFormatList convertObjectFormatList(org.dataone.service.types.v1.ObjectFormatList v1FormatList)
             throws InstantiationException, IllegalAccessException, InvocationTargetException,
-            JiBXException, IOException {
+            NoSuchMethodException {
         ObjectFormatList v2FormatList = new ObjectFormatList();
         List<org.dataone.service.types.v1.ObjectFormat> innerList = v1FormatList
                 .getObjectFormatList();
         if (innerList != null && innerList.size() > 0)
             for (org.dataone.service.types.v1.ObjectFormat v1Format : innerList) {
-                ObjectFormat v2ObjectFormat = TypeMarshaller.convertTypeFromType(v1Format,
+                ObjectFormat v2ObjectFormat = TypeFactory.convertTypeFromType(v1Format,
                         ObjectFormat.class);
                 v2FormatList.addObjectFormat(v2ObjectFormat);
             }
@@ -75,12 +75,12 @@ public class TypeConverter {
     
     public static org.dataone.service.types.v1.ObjectFormatList convertObjectFormatList(
             ObjectFormatList v2FormatList) throws InstantiationException, IllegalAccessException,
-            InvocationTargetException, JiBXException, IOException {
+            InvocationTargetException, NoSuchMethodException {
         org.dataone.service.types.v1.ObjectFormatList v1FormatList = new org.dataone.service.types.v1.ObjectFormatList();
         List<ObjectFormat> innerList = v2FormatList.getObjectFormatList();
         if (innerList != null && innerList.size() > 0)
             for (ObjectFormat v2Format : innerList) {
-                org.dataone.service.types.v1.ObjectFormat v1ObjectFormat = TypeMarshaller
+                org.dataone.service.types.v1.ObjectFormat v1ObjectFormat = TypeFactory
                         .convertTypeFromType(v2Format, org.dataone.service.types.v1.ObjectFormat.class);
                 v1FormatList.addObjectFormat(v1ObjectFormat);
             }
@@ -93,13 +93,13 @@ public class TypeConverter {
 
     public static NodeList convertNodeList(org.dataone.service.types.v1.NodeList v1NodeList)
             throws InstantiationException, IllegalAccessException, InvocationTargetException,
-            JiBXException, IOException {
-        NodeList v2NodeList = TypeMarshaller.convertTypeFromType(v1NodeList, NodeList.class);
+            NoSuchMethodException {
+        NodeList v2NodeList = TypeFactory.convertTypeFromType(v1NodeList, NodeList.class);
         List<org.dataone.service.types.v1.Node> innerList = v1NodeList.getNodeList();
         if (innerList != null && innerList.size() > 0) {
             v2NodeList.clearNodeList();
             for (org.dataone.service.types.v1.Node v1Node : innerList) {
-                org.dataone.service.types.v2.Node v2Node = TypeMarshaller.convertTypeFromType(
+                org.dataone.service.types.v2.Node v2Node = TypeFactory.convertTypeFromType(
                         v1Node, org.dataone.service.types.v2.Node.class);
                 v2NodeList.addNode(v2Node);
             }
@@ -109,13 +109,13 @@ public class TypeConverter {
     
     public static org.dataone.service.types.v1.NodeList convertNodeList(NodeList v2NodeList)
             throws InstantiationException, IllegalAccessException, InvocationTargetException,
-            JiBXException, IOException {
-        org.dataone.service.types.v1.NodeList v1NodeList = TypeMarshaller.convertTypeFromType(v2NodeList, org.dataone.service.types.v1.NodeList.class);
+            NoSuchMethodException {
+        org.dataone.service.types.v1.NodeList v1NodeList = TypeFactory.convertTypeFromType(v2NodeList, org.dataone.service.types.v1.NodeList.class);
         List<Node> innerList = v2NodeList.getNodeList();
         if (innerList != null && innerList.size() > 0) {
             v1NodeList.clearNodeList();
             for (Node v2Node : innerList) {
-                org.dataone.service.types.v1.Node v1Node = TypeMarshaller.convertTypeFromType(
+                org.dataone.service.types.v1.Node v1Node = TypeFactory.convertTypeFromType(
                         v2Node, org.dataone.service.types.v1.Node.class);
                 v1NodeList.addNode(v1Node);
             }

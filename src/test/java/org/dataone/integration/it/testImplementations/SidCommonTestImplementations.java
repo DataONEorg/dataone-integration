@@ -51,6 +51,7 @@ import org.dataone.service.types.v1.Permission;
 import org.dataone.service.types.v1.Subject;
 import org.dataone.service.types.v2.Log;
 import org.dataone.service.types.v2.SystemMetadata;
+import org.dataone.service.types.v2.TypeFactory;
 import org.dataone.service.util.Constants;
 import org.dataone.service.util.TypeMarshaller;
 import org.jibx.runtime.JiBXException;
@@ -233,11 +234,13 @@ public abstract class SidCommonTestImplementations extends ContextAwareTestCaseD
      * For MN cases. The first object in a series can be created with 
      * {@link #createTestObject(CommonCallAdapter, Identifier, Identifier, Identifier, Identifier)}
      * but following objects should be updated with this method, which uses MN.update().
+     * @throws NoSuchMethodException 
      */
     public Identifier updateTestObject(CommonCallAdapter callAdapter, Identifier oldPid,
             Identifier newPid, Identifier sid) throws InvalidToken, ServiceFailure, NotAuthorized,
             IdentifierNotUnique, UnsupportedType, InsufficientResources, InvalidSystemMetadata,
-            NotImplemented, InvalidRequest, NotFound, ClientSideException, IOException, NoSuchAlgorithmException, InstantiationException, IllegalAccessException, InvocationTargetException, JiBXException {
+            NotImplemented, InvalidRequest, NotFound, ClientSideException, IOException, NoSuchAlgorithmException, 
+            InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
         
         logger.info("UPDATING test object... pid: " + oldPid.getValue() + " with pid: " + newPid.getValue() 
                 + " with a sid: " + (sid == null ? "null" : sid.getValue()));
@@ -254,7 +257,7 @@ public abstract class SidCommonTestImplementations extends ContextAwareTestCaseD
                 subject,
                 D1TypeBuilder.buildNodeReference("bogusAuthoritativeNode"));
         
-        SystemMetadata sysmeta = TypeMarshaller.convertTypeFromType(d1o.getSystemMetadata(), SystemMetadata.class);
+        SystemMetadata sysmeta = TypeFactory.convertTypeFromType(d1o.getSystemMetadata(), SystemMetadata.class);
         sysmeta.setObsoletes(oldPid);
         sysmeta.setSeriesId(sid);
         InputStream objectInputStream = null;
@@ -446,7 +449,7 @@ public abstract class SidCommonTestImplementations extends ContextAwareTestCaseD
                         D1TypeBuilder.buildSubject(subjectLabel),
                         D1TypeBuilder.buildNodeReference("bogusAuthoritativeNode"));
                 
-                SystemMetadata sysmeta = TypeMarshaller.convertTypeFromType(d1o.getSystemMetadata(), SystemMetadata.class);
+                SystemMetadata sysmeta = TypeFactory.convertTypeFromType(d1o.getSystemMetadata(), SystemMetadata.class);
                 sysmeta.setSeriesId(sid);
                 objectInputStream = new ByteArrayInputStream(contentBytes);
                 
