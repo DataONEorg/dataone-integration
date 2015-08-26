@@ -173,7 +173,7 @@ public abstract class SidCommonTestImplementations extends ContextAwareTestCaseD
      * @param node the the Node from which the object will need to be deleted 
      * @param pid the PID of the object to delete
      */
-    private void markForCleanUp(Node node, Identifier pid) {
+    protected void markForCleanUp(Node node, Identifier pid) {
         if(!createdIDs.containsKey(node))
             createdIDs.put(node, new HashSet<String>());
         Set<String> idsForNode = createdIDs.get(node);
@@ -274,8 +274,6 @@ public abstract class SidCommonTestImplementations extends ContextAwareTestCaseD
         
         return updatedPid;
     }
-    
-    
 
     /**
      * Sets up each pid chain scenario, then calls getSystemMetadata() with the 

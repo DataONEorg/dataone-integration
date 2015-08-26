@@ -1,7 +1,6 @@
 package org.dataone.integration.adapters;
 
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
@@ -49,9 +48,6 @@ import org.dataone.service.types.v1_1.QueryEngineList;
 import org.dataone.service.types.v2.Log;
 import org.dataone.service.types.v2.OptionList;
 import org.dataone.service.types.v2.TypeFactory;
-import org.dataone.service.util.TypeConverter;
-import org.dataone.service.util.TypeMarshaller;
-import org.jibx.runtime.JiBXException;
 
 
 /**
@@ -118,8 +114,7 @@ public class CommonCallAdapter implements D1Node {
                 // TODO use deprecated call with Session? or no?
                 org.dataone.service.types.v1.Log log = mnCore.getLogRecords(session, fromDate, toDate,
                         Event.convert(event), pidFilter, start, count);
-//                return TypeMarshaller.convertTypeFromType(log, Log.class);
-                return TypeConverter.convertLog(log);
+                return TypeFactory.convertTypeFromType(log, Log.class);
             } else if (this.version.toLowerCase().equals("v2")) {
                 org.dataone.service.mn.tier1.v2.MNCore mnCore = D1NodeFactory.buildNode(
                         org.dataone.service.mn.tier1.v2.MNCore.class, this.mrc, URI.create(this.node.getBaseURL()));
@@ -132,8 +127,7 @@ public class CommonCallAdapter implements D1Node {
                         URI.create(this.node.getBaseURL()));
                 org.dataone.service.types.v1.Log log = cnCore.getLogRecords(session, fromDate, toDate,
                         Event.convert(event), pidFilter, start, count);
-//                return TypeMarshaller.convertTypeFromType(log, Log.class);
-                return TypeConverter.convertLog(log);
+                return TypeFactory.convertTypeFromType(log, Log.class);
             } else if (this.version.toLowerCase().equals("v2")) {
                 org.dataone.service.mn.tier1.v2.MNCore cnCore = D1NodeFactory.buildNode(
                         org.dataone.service.mn.tier1.v2.MNCore.class, this.mrc, URI.create(this.node.getBaseURL()));

@@ -3,27 +3,30 @@ package org.dataone.integration.it.testImplementations;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.security.NoSuchAlgorithmException;
 import java.util.Iterator;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
 import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathFactory;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 import org.dataone.client.exception.ClientSideException;
+import org.dataone.client.v1.itk.D1Object;
+import org.dataone.client.v1.types.D1TypeBuilder;
+import org.dataone.integration.ExampleUtilities;
 import org.dataone.integration.adapters.CNCallAdapter;
 import org.dataone.integration.adapters.CommonCallAdapter;
+import org.dataone.integration.adapters.MNCallAdapter;
 import org.dataone.integration.webTest.WebTestDescription;
 import org.dataone.integration.webTest.WebTestName;
 import org.dataone.service.exceptions.BaseException;
@@ -42,13 +45,19 @@ import org.dataone.service.types.v1.AccessRule;
 import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Node;
 import org.dataone.service.types.v1.NodeReference;
+import org.dataone.service.types.v1.NodeType;
 import org.dataone.service.types.v1.ObjectLocation;
 import org.dataone.service.types.v1.ObjectLocationList;
 import org.dataone.service.types.v1.Permission;
 import org.dataone.service.types.v1.ReplicationPolicy;
 import org.dataone.service.types.v1.Subject;
 import org.dataone.service.types.v1.util.AccessUtil;
+import org.dataone.service.types.v2.Log;
+import org.dataone.service.types.v2.NodeList;
 import org.dataone.service.types.v2.SystemMetadata;
+import org.dataone.service.types.v2.TypeFactory;
+import org.dataone.service.util.TypeMarshaller;
+import org.jibx.runtime.JiBXException;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.w3c.dom.Document;
@@ -57,6 +66,9 @@ import org.xml.sax.InputSource;
 public class SidCNTestImplementations extends SidCommonTestImplementations {
 
     private Logger logger = Logger.getLogger(SidCNTestImplementations.class);
+    
+    /** expected time it takes for an object to sync from MN to CN - should be set configured to be lower on actual node */
+    long SYNC_TIME = 5 * 60 * 1000;
     
     @Override
     protected String getTestDescription() {
@@ -379,46 +391,47 @@ public class SidCNTestImplementations extends SidCommonTestImplementations {
 
         logger.info("Testing resolve() method ... ");
         
-        int[] casesToTest = getCasesToTest();
-        for (int i = 0; i < casesToTest.length; i++) {
-            int caseNum = casesToTest[i];
-            logger.info("Testing resolve(), case " + caseNum);
+        Iterator<Node> cnIter = getCoordinatingNodeIterator();
+        while (cnIter.hasNext()) {
+            Node node = cnIter.next();
+            CNCallAdapter callAdapter = new CNCallAdapter(getSession(subjectLabel), node, "v2");
             
-            Iterator<Node> cnIter = getCoordinatingNodeIterator();
-            while (cnIter.hasNext()) {
-                Node node = cnIter.next();
-                CNCallAdapter callAdapter = new CNCallAdapter(getSession(subjectLabel), node, "v2");
-                String setupMethodName = "setup" + node.getType() + "Case" + caseNum;
-                try {
-                    Method setupMethod = getSetupClass().getClass().getDeclaredMethod(setupMethodName, CommonCallAdapter.class, Node.class);
-                    IdPair idPair = (IdPair) setupMethod.invoke(this, callAdapter, node);
-                    Identifier sid = idPair.sid;
-                    Identifier pid = idPair.headPid;
-        
-                    ObjectLocationList pidLocationList = callAdapter.resolve(null, pid);
-                    ObjectLocationList sidLocationList = callAdapter.resolve(null, sid);
-                    
-                    if(sidLocationList.getObjectLocationList().size() == 0)
-                        assertTrue("resolve() Case " + caseNum + ", resolve() on SID should yield non-empty location list", 
-                                false);
-                    if(pidLocationList.getObjectLocationList().size() == 0)
-                        assertTrue("resolve() Case " + caseNum + ", resolve() on head PID should yield non-empty location list", 
-                                false);
-                    
-                    ObjectLocation sidLoc = sidLocationList.getObjectLocation(0);
-                    ObjectLocation pidLoc = pidLocationList.getObjectLocation(0);
-                    
-                    String sidResolveURL = sidLoc.getUrl();
-                    String pidResolveURL = pidLoc.getUrl();
-                    assertEquals("resolve() Case " + caseNum + ", SID and head PID should resolve() to same URL",
-                            sidResolveURL, pidResolveURL);
-                } catch (BaseException e) {
-                    e.printStackTrace();
-                    handleFail( callAdapter.getNodeBaseServiceUrl(), "Case: " + i + " : " + e.getDescription());
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    handleFail( callAdapter.getNodeBaseServiceUrl(), "Case: " + i + " : " + e.getMessage() + ", " + (e.getCause() == null ? "" : e.getCause().getMessage()));
-                }
+            try {
+                // Case 1. P1(S1) <-> P2(S1),  S1 = P2 (Rule 1)
+                Identifier p1 = createIdentifier("P1_", node);
+                Identifier p2 = createIdentifier("P2_", node);
+                Identifier s1 = createIdentifier("S1_", node);
+                
+                createTestObject(callAdapter, p1, s1, null, p2, true);
+                createTestObject(callAdapter, p2, s1, p1, null, true);
+
+                Identifier sid = s1;
+                Identifier pid = p2;
+    
+                ObjectLocationList pidLocationList = callAdapter.resolve(null, pid);
+                ObjectLocationList sidLocationList = callAdapter.resolve(null, sid);
+                
+                if(sidLocationList.getObjectLocationList().size() == 0)
+                    assertTrue("resolve() on SID should yield non-empty location list", 
+                            false);
+                if(pidLocationList.getObjectLocationList().size() == 0)
+                    assertTrue("resolve() on head PID should yield non-empty location list", 
+                            false);
+                
+                ObjectLocation sidLoc = sidLocationList.getObjectLocation(0);
+                ObjectLocation pidLoc = pidLocationList.getObjectLocation(0);
+                
+                String sidResolveURL = sidLoc.getUrl();
+                String pidResolveURL = pidLoc.getUrl();
+                assertEquals("resolve() : SID and head PID should resolve() to same URL",
+                        sidResolveURL, pidResolveURL);
+            } catch (BaseException e) {
+                e.printStackTrace();
+                handleFail( callAdapter.getNodeBaseServiceUrl(), e.getClass().getSimpleName() + " : " + e.getMessage() 
+                        + " : " + e.getDescription());
+            } catch (Exception e) {
+                e.printStackTrace();
+                handleFail( callAdapter.getNodeBaseServiceUrl(), " : " + e.getMessage() + ", " + (e.getCause() == null ? "" : e.getCause().getMessage()));
             }
         }
     }
@@ -682,17 +695,6 @@ public class SidCNTestImplementations extends SidCommonTestImplementations {
                     assertTrue("testArchive() Case " + caseNum + " query() for archived object should return zero results",
                             numFound == 0);
     
-                    // test resolve()-able
-                    ObjectLocationList locationList = null;
-                    try {
-                        locationList = callAdapter.resolve(null, sid);
-                    } catch (NotFound e) {
-                        assertTrue("testArchive() Case " + caseNum + ", should be able to resolve() an archived object", 
-                                false);
-                    }
-                    
-                    assertTrue("testArchive() Case " + caseNum + ", should be able to resolve() an archived object to a location list", 
-                            locationList != null && locationList.getObjectLocationList().size() > 0);
                 } catch (BaseException e) {
                     e.printStackTrace();
                     handleFail( callAdapter.getNodeBaseServiceUrl(), "Case: " + i + " : " + e.getDescription());
@@ -702,6 +704,169 @@ public class SidCNTestImplementations extends SidCommonTestImplementations {
                 }
             }
         }
+    }
+    
+    /**
+     * Creates a test object according to the parameters provided.  
+     * Also allows setting the SID and the obsoletes / obsoletedBy chain.
+     * If <code>obsoletesId</code> or <code>obsoletedById</code> are set, we need to
+     * make multiple calls - to create() and to updateSystemMetadata() since setting
+     * obsoletes or obsoletedBy on system metadata on create is invalid.
+     * Holds some special logic for the CN tests: If the <tt>createOnMN</tt> parameter is set, 
+     * it'll do a listNodes call, look for a working MN, create the object there, 
+     * then wait for sync to happen. This is necessary for testing resolve() at the moment.
+     * 
+     * @param callAdapter - the adapter for the node we're creating the object on
+     * @param pid - the identifier for the create object
+     * @param sid - the series identifier for the given pid
+     * @param obsoletesId - an {@link Identifier} for the previous object in the chain (optional)
+     * @param obsoletedById an {@link Identifier} for the next object in the chain (optional)
+     * @param createOnMN whether the created test object needs to exist and therefore be created on
+     *              an MN, not just on the CN (we'll need to wait for it to sync to the CN)
+     * @return the Identifier for the created object
+     */
+    public Identifier createTestObject(CNCallAdapter callAdapter, Identifier pid,
+            Identifier sid, Identifier obsoletesId, Identifier obsoletedById, boolean createOnMN) throws InvalidToken,
+            ServiceFailure, NotAuthorized, IdentifierNotUnique, UnsupportedType,
+            InsufficientResources, InvalidSystemMetadata, NotImplemented, InvalidRequest,
+            UnsupportedEncodingException, NotFound, ClientSideException {
+
+        if(!createOnMN)
+            return super.createTestObject(callAdapter, pid, sid, obsoletesId, obsoletedById);
+        
+        String sidVal = sid == null ? "null" : sid.getValue();
+        String obsoletesVal = obsoletesId == null ? "null" : obsoletesId.getValue();
+        String obsoletedVal = obsoletedById == null ? "null" : obsoletedById.getValue();
+        logger.info("CREATING test object (on MN)... pid: " + pid.getValue() 
+                + " with a sid: " + sidVal 
+                + " obsoletes: " + obsoletesVal 
+                + " obsoletedBy: " + obsoletedVal);
+        
+        Identifier testObjPid = null;
+        
+        getSession("testRightsHolder");
+        Subject rightsHolder = getSubject("testRightsHolder");
+        
+        // get MN to create on
+        Node mn = null;
+        try {
+            NodeList listOfNodes = callAdapter.listNodes();
+            for (Node n : listOfNodes.getNodeList()) {
+                if(n.getType() == NodeType.MN) {
+                    try {
+                        log.info("checking MN " + n.getBaseURL());
+                        
+                        MNCallAdapter mnCallAdapter = new MNCallAdapter(getSession(cnSubmitter), n, "v2");
+                        Node mnCapabilities = mnCallAdapter.getCapabilities();
+                        
+                        if(mnCapabilities.isSynchronize()) {
+                            mn = n;
+                            break;
+                        }
+                    } catch (Exception e1) {
+                        log.info("skipping MN " + n == null ? "null" : n.getBaseURL() + " because: "
+                                + e1.getClass().getSimpleName() + " : " + e1.getMessage());
+                        continue;
+                    }
+                }
+            }
+            assertTrue("Should be able to find a v2 MN that responds to getCapabilities() "
+                    + "and supports synchronize.", mn != null);
+            log.info("creating a test object on MN " + mn.getBaseURL() + " with pid: "
+                    + pid.getValue() + " ..... ");
+            
+            MNCallAdapter mnCallAdapter = new MNCallAdapter(getSession(cnSubmitter), mn, "v2");
+            try {
+                super.createTestObject(mnCallAdapter, pid, sid, obsoletesId, obsoletedById);
+            } catch (Exception maybeBogusTimeout) {
+                log.warn("pid possibly not created: " + pid.getValue());
+            }
+            
+//            SystemMetadata checkIfCreatedSysmeta = mnCallAdapter.getSystemMetadata(null, pid);
+            
+            log.info("created a test object on MN " + mn.getBaseURL() + " with pid: "
+                    + pid.getValue());
+            log.info("waiting for object (" + pid.getValue() + ") to sync from " + mn.getBaseURL() 
+                    + " to " + callAdapter.getNodeBaseServiceUrl());
+            
+            Thread.sleep(SYNC_TIME);
+            
+            log.info("test object should be synchronized to CN...");
+            try {
+                callAdapter.getSystemMetadata(null, pid);
+            } catch (NotFound nf) {
+                log.error("test object not synchronized to CN! pid: "
+                        + pid.getValue() + " : " + nf.getClass().getSimpleName() 
+                        + " : " + nf.getMessage());
+                throw nf;
+            }
+        } catch (BaseException be) {
+            throw new AssertionError("Unable to create test object. " + be.getClass().getSimpleName() + " : "
+                    + be.getMessage() + " " + be.getDescription(), be);
+        } catch (Exception e) {
+            throw new AssertionError("Unable to create test object. " + e.getClass().getSimpleName() + " : "
+                    + e.getMessage() + " ", e);
+        }
+        
+        try {
+            testObjPid = super.createTestObject(callAdapter, pid, sid, obsoletesId, obsoletedById, policy, subjectLabel, rightsHolder.getValue());
+        } catch (BaseException be) {
+            logger.error("Unable to create test object. "
+                    + be.getMessage() + " " + be.getDescription(), be);
+            throw be;
+        }
+        
+        markForCleanUp(callAdapter.getNode(), pid);
+        
+        try {
+            Thread.sleep(INDEXING_TIME);
+        } catch (InterruptedException e) {}
+        
+        return testObjPid;
+    }
+
+    /**
+     * For MN cases. The first object in a series can be created with 
+     * {@link #createTestObject(CommonCallAdapter, Identifier, Identifier, Identifier, Identifier)}
+     * but following objects should be updated with this method, which uses MN.update().
+     * @throws NoSuchMethodException 
+     */
+    public Identifier updateTestObject(CommonCallAdapter callAdapter, Identifier oldPid,
+            Identifier newPid, Identifier sid) throws InvalidToken, ServiceFailure, NotAuthorized,
+            IdentifierNotUnique, UnsupportedType, InsufficientResources, InvalidSystemMetadata,
+            NotImplemented, InvalidRequest, NotFound, ClientSideException, IOException, NoSuchAlgorithmException, InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
+        
+        logger.info("UPDATING test object... pid: " + oldPid.getValue() + " with pid: " + newPid.getValue() 
+                + " with a sid: " + (sid == null ? "null" : sid.getValue()));
+        
+        if(callAdapter.getNodeType() == NodeType.CN)
+            throw new ClientSideException("Not for CN use!");
+        
+        getSession("testRightsHolder");
+        Subject subject = getSubject("testRightsHolder");
+        MNCallAdapter mnCallAdapter = new MNCallAdapter(getSession(subjectLabel), callAdapter.getNode(), "v2");
+        byte[] contentBytes = ExampleUtilities.getExampleObjectOfType(DEFAULT_TEST_OBJECTFORMAT);
+        D1Object d1o = new D1Object(newPid, contentBytes,
+                D1TypeBuilder.buildFormatIdentifier(DEFAULT_TEST_OBJECTFORMAT),
+                subject,
+                D1TypeBuilder.buildNodeReference("bogusAuthoritativeNode"));
+        
+        SystemMetadata sysmeta = TypeFactory.convertTypeFromType(d1o.getSystemMetadata(), SystemMetadata.class);
+        sysmeta.setObsoletes(oldPid);
+        sysmeta.setSeriesId(sid);
+        InputStream objectInputStream = null;
+        Identifier updatedPid = null;
+        
+        objectInputStream = new ByteArrayInputStream(contentBytes);
+        updatedPid = mnCallAdapter.update(null, oldPid, objectInputStream, newPid, sysmeta);
+
+        markForCleanUp(callAdapter.getNode(), newPid);
+        
+        try {
+            Thread.sleep(INDEXING_TIME);
+        } catch (InterruptedException e) {}
+        
+        return updatedPid;
     }
     
 }
