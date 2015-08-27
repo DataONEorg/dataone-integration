@@ -510,9 +510,45 @@ public class CNCoreTestImplementations extends ContextAwareAdapter {
         }
     }
     
+    @WebTestName("registerSystemMetadata: fails with non-CN cert")
+    @WebTestDescription("tests that calling registerSystemMetadata with a non-CN certificate "
+            + "will fail with a NotAuthorized exception because the registerSystemMetadata call should only "
+            + "be used by the CN internally.")
+    public void testRegisterSystemMetadata_NotAuthorized(Iterator<Node> nodeIterator, String version) {
+        while (nodeIterator.hasNext())
+            testRegisterSystemMetadata_NotAuthorized(nodeIterator.next(), version);
+    }
+    
+    public void testRegisterSystemMetadata_NotAuthorized(Node node, String version) {
+        
+        CNCallAdapter callAdapter = new CNCallAdapter(getSession("testRightsHolder"), node, version);
+        String currentUrl = callAdapter.getNodeBaseServiceUrl();
+        printTestHeader("testCreate() vs. node: " + currentUrl);
+
+        try {
+            Object[] dataPackage = ExampleUtilities.generateTestSciMetaDataPackage("cNodeTier1TestCreate",true);
+            org.dataone.service.types.v1.SystemMetadata smdV1 = (org.dataone.service.types.v1.SystemMetadata) dataPackage[2];
+            SystemMetadata smdV2 = TypeFactory.convertTypeFromType(smdV1, SystemMetadata.class);
+            callAdapter.registerSystemMetadata(null,(Identifier) dataPackage[0], smdV2);  
+            
+            handleFail(callAdapter.getLatestRequestUrl(), "registerSystemMetadata call with non-CN certificate should fail.");
+        }
+        catch (NotAuthorized e) {
+            // expected
+        } 
+        catch (BaseException e) {
+            handleFail(callAdapter.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " 
+                    + e.getDetail_code() + ": " + e.getDescription());
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+            handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+        }   
+    }
+
     @WebTestName("registerSystemMetadata: tests that the registerSystemMetadata call works")
     @WebTestDescription("tests that calling registerSystemMetadata returns the same pid it was given, "
-            + "and that we can then fetch the system metadata after it's been registered")
+            + "and that we can then fetch the system metadata after it's been registered.")
     public void testRegisterSystemMetadata(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testRegisterSystemMetadata(nodeIterator.next(), version);
@@ -520,7 +556,7 @@ public class CNCoreTestImplementations extends ContextAwareAdapter {
     
     public void testRegisterSystemMetadata(Node node, String version) {
         
-        CNCallAdapter callAdapter = new CNCallAdapter(getSession("testRightsHolder"), node, version);
+        CNCallAdapter callAdapter = new CNCallAdapter(getSession(cnSubmitter), node, version);
         String currentUrl = callAdapter.getNodeBaseServiceUrl();
         printTestHeader("testCreate() vs. node: " + currentUrl);
 
@@ -547,7 +583,7 @@ public class CNCoreTestImplementations extends ContextAwareAdapter {
             handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
         }   
     }
-
+    
     @WebTestName("hasReservation: tests that the hasReservation call works")
     @WebTestDescription("tests that calling hasReservation after having registered the identifier "
             + "returns true")

@@ -148,6 +148,11 @@ implements CoreTestDefinitions, CNCoreTestDefinitions, CNv2CoreTestDefinitions, 
         cnCoreTestImpl.testRegisterSystemMetadata(getCoordinatingNodeIterator(), "v2");
     }
 
+    @Test
+    public void testRegisterSystemMetadata_NotAuthorized() {
+        cnCoreTestImpl.testRegisterSystemMetadata_NotAuthorized(getCoordinatingNodeIterator(), "v2");
+    }
+    
     @Override
     @Test
     public void testHasReservation() {
