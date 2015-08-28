@@ -99,7 +99,7 @@ public class CNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
             
             SystemMetadata sysmeta = callAdapter.getSystemMetadata(null, testObjPid);
             BigInteger newSerialVersion = sysmeta.getSerialVersion().add(BigInteger.ONE);
-            Date nowIsh = new Date();
+            Date nowIsh = callAdapter.ping();
             sysmeta.setSerialVersion(newSerialVersion);
             sysmeta.setDateSysMetadataModified(nowIsh);
             callAdapter.updateSystemMetadata(null, testObjPid , sysmeta);
@@ -141,7 +141,7 @@ public class CNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
             
             SystemMetadata sysmeta = callAdapter.getSystemMetadata(null, testObjPid);
             BigInteger newSerialVersion = sysmeta.getSerialVersion().add(BigInteger.ONE);
-            Date nowIsh = new Date();
+            Date nowIsh = callAdapter.ping();
             sysmeta.setSerialVersion(newSerialVersion);
             sysmeta.setDateSysMetadataModified(nowIsh);
             boolean success = callAdapter.updateSystemMetadata(null, testObjPid , sysmeta);
@@ -149,7 +149,7 @@ public class CNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
             
             SystemMetadata fetchedSysmeta = callAdapter.getSystemMetadata(null, testObjPid);
             boolean serialVersionMatches = fetchedSysmeta.getSerialVersion().equals(newSerialVersion);
-            boolean dateModifiedMatches = fetchedSysmeta.getDateSysMetadataModified().equals(nowIsh);
+            boolean dateModifiedMatches = fetchedSysmeta.getDateSysMetadataModified().after(nowIsh);
             assertTrue("System metadata should now have updated serialVersion", serialVersionMatches);
             assertTrue("System metadata should now have updated dateSysMetadataModified", dateModifiedMatches );
         } 

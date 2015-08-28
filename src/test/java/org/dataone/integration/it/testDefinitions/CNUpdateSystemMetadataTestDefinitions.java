@@ -14,21 +14,21 @@ public interface CNUpdateSystemMetadataTestDefinitions {
     
     public void testUpdateSystemMetadata_InvalidRequest_PidMismatch();
     
-    public void testUpdateSystemMetadata_InvalidRequest_SysmetaUnmodified();
+    public void testUpdateSystemMetadata_InvalidSystemMetadata_SysmetaUnmodified();
     
-    public void testUpdateSystemMetadata_InvalidRequest_ModifiedIdentifier();
+    public void testUpdateSystemMetadata_InvalidSystemMetadata_ModifiedIdentifier();
     
-    public void testUpdateSystemMetadata_InvalidRequest_ModifiedSize();
+    public void testUpdateSystemMetadata_InvalidSystemMetadata_ModifiedSize();
     
-    public void testUpdateSystemMetadata_InvalidRequest_ModifiedChecksum();
+    public void testUpdateSystemMetadata_InvalidSystemMetadata_ModifiedChecksum();
     
-    public void testUpdateSystemMetadata_InvalidRequest_ModifiedSubmitter();
+    public void testUpdateSystemMetadata_InvalidSystemMetadata_ModifiedSubmitter();
     
-    public void testUpdateSystemMetadata_InvalidRequest_ModifiedDateUploaded();
+    public void testUpdateSystemMetadata_InvalidSystemMetadata_ModifiedDateUploaded();
     
-    public void testUpdateSystemMetadata_InvalidRequest_ModifiedOriginMN();
+    public void testUpdateSystemMetadata_InvalidSystemMetadata_ModifiedOriginMN();
     
-    public void testUpdateSystemMetadata_InvalidRequest_ModifiedSeriesId();
+    public void testUpdateSystemMetadata_InvalidSysmeta_ModifiedSeriesId();
     
     public void testUpdateSystemMetadata_NotAuthorized_RightsHolder();
 

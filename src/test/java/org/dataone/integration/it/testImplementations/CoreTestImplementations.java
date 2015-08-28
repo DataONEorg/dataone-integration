@@ -328,7 +328,7 @@ public class CoreTestImplementations extends ContextAwareAdapter {
         //TODO: change to use a testCNAdmin certificate
         Settings.getConfiguration().setProperty("D1Client.D1Node.getLogRecords.timeout", "60000");
         String cnSubject = Settings.getConfiguration().getString("dataone.it.cnode.submitter.cn",
-                "cnStageUNM1");
+                "cnDevUNM1");
 
         CommonCallAdapter callAdapter = new CommonCallAdapter(getSession(cnSubject), node, version);
         String currentUrl = node.getBaseURL();
@@ -378,7 +378,7 @@ public class CoreTestImplementations extends ContextAwareAdapter {
         Settings.getConfiguration().setProperty("D1Client.D1Node.getLogRecords.timeout", "60000");
         // TODO: change to testCnAdmin subject when obtained
         String cnSubject = Settings.getConfiguration().getString("dataone.it.cnode.submitter.cn",
-                "cnStageUNM1");
+                "cnDevUNM1");
         CommonCallAdapter callAdapter = new CommonCallAdapter(getSession(cnSubject), node, version);
         String currentUrl = node.getBaseURL();
         printTestHeader("testGetLogRecords_Slicing(...) vs. node: " + currentUrl);
@@ -451,7 +451,7 @@ public class CoreTestImplementations extends ContextAwareAdapter {
         Settings.getConfiguration().setProperty("D1Client.D1Node.getLogRecords.timeout", "60000");
         // TODO: change to testCnAdmin subject when obtained
         String cnSubject = Settings.getConfiguration().getString("dataone.it.cnode.submitter.cn",
-                 "cnStageUNM1");
+                 "cnDevUNM1");
         CommonCallAdapter callAdapter = new CommonCallAdapter(getSession(cnSubject), node, version);
         String currentUrl = node.getBaseURL();
         printTestHeader("testGetLogRecords_eventFiltering() vs. node: " + currentUrl);
@@ -542,7 +542,7 @@ public class CoreTestImplementations extends ContextAwareAdapter {
         Settings.getConfiguration().setProperty("D1Client.D1Node.getLogRecords.timeout", "60000");
         // TODO: change to testCnAdmin subject when obtained
         String cnSubject = Settings.getConfiguration().getString("dataone.it.cnode.submitter.cn",
-                "cnStageUNM1");
+                "cnDevUNM1");
         CommonCallAdapter callAdapter = new CommonCallAdapter(getSession(cnSubject), node, version);
         String currentUrl = node.getBaseURL();
         currentUrl = callAdapter.getNodeBaseServiceUrl();
@@ -636,7 +636,7 @@ public class CoreTestImplementations extends ContextAwareAdapter {
         Settings.getConfiguration().setProperty("D1Client.D1Node.getLogRecords.timeout", "60000");
         // TODO: change to testCnAdmin subject when obtained
         String cnSubject = Settings.getConfiguration().getString("dataone.it.cnode.submitter.cn",
-                "cnStageUNM1");
+                "cnDevUNM1");
         CommonCallAdapter callAdapter = new CommonCallAdapter(getSession(cnSubject), node, version);
         String currentUrl = node.getBaseURL();
         printTestHeader("testGetLogRecords_DateFiltering(...) vs. node: " + currentUrl);
