@@ -175,7 +175,7 @@ public class MNStorageV2IT extends ContextAwareTestCaseDataone
     @Override
     @Test
     public void testUpdateSystemMetadata_InvalidRequest_SysmetaUnmodified() {
-        updSysmetaImpl.testUpdateSystemMetadata_InvalidRequest_SysmetaUnmodified(getMemberNodeIterator(), "v2");
+        updSysmetaImpl.testUpdateSystemMetadata_InvalidSystemMetadata_SysmetaUnmodified(getMemberNodeIterator(), "v2");
     }
     
     @Override
@@ -228,37 +228,37 @@ public class MNStorageV2IT extends ContextAwareTestCaseDataone
 
     @Override
     public void testUpdateSystemMetadata_InvalidRequest_ModifiedIdentifier() {
-        updSysmetaImpl.testUpdateSystemMetadata_InvalidRequest_ModifiedIdentifier(getMemberNodeIterator(), "v2");
+        updSysmetaImpl.testUpdateSystemMetadata_InvalidSystemMetadata_ModifiedIdentifier(getMemberNodeIterator(), "v2");
     }
 
     @Override
     public void testUpdateSystemMetadata_InvalidRequest_ModifiedSize() {
-        updSysmetaImpl.testUpdateSystemMetadata_InvalidRequest_ModifiedSize(getMemberNodeIterator(), "v2");
+        updSysmetaImpl.testUpdateSystemMetadata_InvalidSystemMetadata_ModifiedSize(getMemberNodeIterator(), "v2");
     }
 
     @Override
     public void testUpdateSystemMetadata_InvalidRequest_ModifiedChecksum() {
-        updSysmetaImpl.testUpdateSystemMetadata_InvalidRequest_ModifiedChecksum(getMemberNodeIterator(), "v2");
+        updSysmetaImpl.testUpdateSystemMetadata_InvalidSystemMetadata_ModifiedChecksum(getMemberNodeIterator(), "v2");
     }
 
     @Override
     public void testUpdateSystemMetadata_InvalidRequest_ModifiedSubmitter() {
-        updSysmetaImpl.testUpdateSystemMetadata_InvalidRequest_ModifiedSubmitter(getMemberNodeIterator(), "v2");
+        updSysmetaImpl.testUpdateSystemMetadata_InvalidSystemMetadata_ModifiedSubmitter(getMemberNodeIterator(), "v2");
     }
 
     @Override
     public void testUpdateSystemMetadata_InvalidRequest_ModifiedDateUploaded() {
-        updSysmetaImpl.testUpdateSystemMetadata_InvalidRequest_ModifiedDateUploaded(getMemberNodeIterator(), "v2");
+        updSysmetaImpl.testUpdateSystemMetadata_InvalidSystemMetadata_ModifiedDateUploaded(getMemberNodeIterator(), "v2");
     }
 
     @Override
     public void testUpdateSystemMetadata_InvalidRequest_ModifiedOriginMN() {
-        updSysmetaImpl.testUpdateSystemMetadata_InvalidRequest_ModifiedOriginMN(getMemberNodeIterator(), "v2");
+        updSysmetaImpl.testUpdateSystemMetadata_InvalidSystemMetadata_ModifiedOriginMN(getMemberNodeIterator(), "v2");
     }
 
     @Override
     public void testUpdateSystemMetadata_InvalidRequest_ModifiedSeriesId() {
-        updSysmetaImpl.testUpdateSystemMetadata_InvalidRequest_ModifiedSeriesId(getMemberNodeIterator(), "v2");
+        updSysmetaImpl.testUpdateSystemMetadata_InvalidSystemMetadata_ModifiedSeriesId(getMemberNodeIterator(), "v2");
     }
 
 }

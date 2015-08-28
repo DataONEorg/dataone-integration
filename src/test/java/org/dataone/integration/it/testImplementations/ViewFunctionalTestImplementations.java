@@ -17,6 +17,7 @@ import org.dataone.integration.adapters.CommonCallAdapter;
 import org.dataone.integration.it.ContextAwareAdapter;
 import org.dataone.integration.webTest.WebTestDescription;
 import org.dataone.integration.webTest.WebTestName;
+import org.dataone.service.types.v1.AccessPolicy;
 import org.dataone.service.types.v1.AccessRule;
 import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Node;
@@ -204,12 +205,14 @@ public class ViewFunctionalTestImplementations extends ContextAwareAdapter {
                 InputStream is = null;
                 try {
                     AccessRule accessRule = new AccessRule();
-                    getSession("testRightsHolder");
-                    Subject subject = ContextAwareTestCaseDataone.getSubject("testRightsHolder");
+                    Subject subject = D1TypeBuilder.buildSubject(Constants.SUBJECT_PUBLIC);
                     accessRule.addSubject(subject);
                     accessRule.addPermission(Permission.CHANGE_PERMISSION);
+                    AccessPolicy policy = new AccessPolicy();
+                    policy.addAllow(accessRule);
                     
-                    Identifier pid = catc.createTestObject(callAdapter, "testEchoSystemMetadata", accessRule);
+                    Identifier pid = D1TypeBuilder.buildIdentifier("testListViewsExist_" + ExampleUtilities.generateIdentifier()); 
+                    pid = catc.createTestObject(callAdapter, pid, policy, cnSubmitter, Constants.SUBJECT_PUBLIC);
                     
                     Thread.sleep(METACAT_INDEXING_TIME);
                     

@@ -130,7 +130,7 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
             AccessRule accessRule = APITestUtils.buildAccessRule(rightsHolderSubjStr, Permission.CHANGE_PERMISSION);
             Identifier pid = new Identifier();
             pid.setValue("testUpdateSystemMetadata_RightsHolder_" + ExampleUtilities.generateIdentifier());
-            Identifier testObjPid = catc.procureTestObject(callAdapter, accessRule, pid);
+            Identifier testObjPid = catc.createTestObject(callAdapter, pid, accessRule);
             
             SystemMetadata sysmeta = callAdapter.getSystemMetadata(null, testObjPid);
             BigInteger newSerialVersion = sysmeta.getSerialVersion().add(BigInteger.ONE);
@@ -190,7 +190,7 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
             AccessRule accessRule = APITestUtils.buildAccessRule(rightsHolderSubjStr, Permission.CHANGE_PERMISSION);
             Identifier pid = new Identifier();
             pid.setValue("testUpdateSystemMetadata_MutableRightsHolder_" + ExampleUtilities.generateIdentifier());
-            Identifier testObjPid = catc.procureTestObject(callAdapter, accessRule, pid);
+            Identifier testObjPid = catc.createTestObject(callAdapter, pid, accessRule);
             
             SystemMetadata sysmeta = callAdapter.getSystemMetadata(null, testObjPid);
             BigInteger newSerialVersion = sysmeta.getSerialVersion().add(BigInteger.ONE);
@@ -249,7 +249,7 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
             AccessRule accessRule = APITestUtils.buildAccessRule(rightsHolderSubjStr, Permission.CHANGE_PERMISSION);
             Identifier pid = new Identifier();
             pid.setValue("testUpdateSystemMetadata_MutableFormat_" + ExampleUtilities.generateIdentifier());
-            Identifier testObjPid = catc.procureTestObject(callAdapter, accessRule, pid);
+            Identifier testObjPid = catc.createTestObject(callAdapter, pid, accessRule);
             
             SystemMetadata sysmeta = callAdapter.getSystemMetadata(null, testObjPid);
             BigInteger newSerialVersion = sysmeta.getSerialVersion().add(BigInteger.ONE);
@@ -307,7 +307,7 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
             AccessRule accessRule = APITestUtils.buildAccessRule(rightsHolderSubjStr, Permission.CHANGE_PERMISSION);
             Identifier pid = new Identifier();
             pid.setValue("testUpdateSystemMetadata_MutableAccessPolicy_" + ExampleUtilities.generateIdentifier());
-            Identifier testObjPid = catc.procureTestObject(callAdapter, accessRule, pid);
+            Identifier testObjPid = catc.createTestObject(callAdapter, pid, accessRule);
             
             SystemMetadata sysmeta = callAdapter.getSystemMetadata(null, testObjPid);
             BigInteger newSerialVersion = sysmeta.getSerialVersion().add(BigInteger.ONE);
@@ -379,7 +379,7 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
             AccessRule accessRule = APITestUtils.buildAccessRule(rightsHolderSubjStr, Permission.CHANGE_PERMISSION);
             Identifier pid = new Identifier();
             pid.setValue("testUpdateSystemMetadata_MutableReplPolicy_" + ExampleUtilities.generateIdentifier());
-            Identifier testObjPid = catc.procureTestObject(callAdapter, accessRule, pid);
+            Identifier testObjPid = catc.createTestObject(callAdapter, pid, accessRule);
             
             SystemMetadata sysmeta = callAdapter.getSystemMetadata(null, testObjPid);
             BigInteger newSerialVersion = sysmeta.getSerialVersion().add(BigInteger.ONE);
@@ -445,7 +445,7 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
             AccessRule accessRule = APITestUtils.buildAccessRule(rightsHolderSubjStr, Permission.CHANGE_PERMISSION);
             Identifier pid = new Identifier();
             pid.setValue("testUpdateSystemMetadata_MutableAuthMN_" + ExampleUtilities.generateIdentifier());
-            Identifier testObjPid = catc.procureTestObject(callAdapter, accessRule, pid);
+            Identifier testObjPid = catc.createTestObject(callAdapter, pid, accessRule);
             
             SystemMetadata sysmeta = callAdapter.getSystemMetadata(null, testObjPid);
             BigInteger newSerialVersion = sysmeta.getSerialVersion().add(BigInteger.ONE);
@@ -513,7 +513,7 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
             AccessRule accessRule = APITestUtils.buildAccessRule(rightsHolderSubjStr, Permission.CHANGE_PERMISSION);
             Identifier pid = new Identifier();
             pid.setValue("testUpdateSystemMetadata_MutableArchived_" + ExampleUtilities.generateIdentifier());
-            Identifier testObjPid = catc.procureTestObject(callAdapter, accessRule, pid);
+            Identifier testObjPid = catc.createTestObject(callAdapter, pid, accessRule);
             
             SystemMetadata sysmeta = callAdapter.getSystemMetadata(null, testObjPid);
             BigInteger newSerialVersion = sysmeta.getSerialVersion().add(BigInteger.ONE);
@@ -570,7 +570,7 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
             AccessRule accessRule = APITestUtils.buildAccessRule(rightsHolderSubjStr, Permission.CHANGE_PERMISSION);
             Identifier pid = new Identifier();
             pid.setValue("testUpdateSystemMetadata_MutableAuthMN_" + ExampleUtilities.generateIdentifier());
-            Identifier testObjPid = catc.procureTestObject(callAdapter, accessRule, pid);
+            Identifier testObjPid = catc.createTestObject(callAdapter, pid, accessRule);
             
             SystemMetadata sysmeta = callAdapter.getSystemMetadata(null, testObjPid);
             sysmeta.getSerialVersion().add(BigInteger.ONE);

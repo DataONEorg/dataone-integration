@@ -1270,6 +1270,16 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
                     NodeReference nodeIdentifier = ((MNCallAdapter) d1Node).getNode().getIdentifier();
                     if (nodeIdentifier != null)
                         nodeReference = nodeIdentifier;
+                    else {
+                        try {
+                            Node capabilities = ((MNCallAdapter) d1Node).getCapabilities();
+                            nodeReference = capabilities.getIdentifier();
+                        } catch (Exception e) {
+                            log.warn("Unable to get a valid NodeReference for node at: " + d1Node.getNodeBaseServiceUrl() +
+                                    " to use as the system metadata's authoritativeMemberNode for created object: " + 
+                                    pid + " because the getCapabilities() call failed.", e);
+                        }
+                    }
                 }
                 d1o = new D1Object(pid, contentBytes,
                         D1TypeBuilder.buildFormatIdentifier(DEFAULT_TEST_OBJECTFORMAT),
