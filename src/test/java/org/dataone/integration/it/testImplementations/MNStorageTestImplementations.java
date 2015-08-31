@@ -64,6 +64,7 @@ public class MNStorageTestImplementations extends ContextAwareAdapter {
         currentUrl = callAdapter.getNodeBaseServiceUrl();
         printTestHeader("testCreate() vs. node: " + currentUrl);
         
+        InputStream theDataObject = null;
         try {
             Object[] dataPackage = ExampleUtilities.generateTestSciDataPackage(
                     "mNodeTier3TestCreate", true, subjectRH.getValue());
@@ -76,7 +77,7 @@ public class MNStorageTestImplementations extends ContextAwareAdapter {
                     "pid of created object should equal that given",
                     ((Identifier) dataPackage[0]).getValue(), pid.getValue());
 
-            InputStream theDataObject = callAdapter.get(null, pid);
+            theDataObject = callAdapter.get(null, pid);
             String objectData = IOUtils.toString(theDataObject);
             checkTrue(
                     callAdapter.getLatestRequestUrl(),
@@ -91,6 +92,8 @@ public class MNStorageTestImplementations extends ContextAwareAdapter {
         } catch (Exception e) {
             e.printStackTrace();
             handleFail(currentUrl, e.getClass().getName() + ": " + e.getMessage());
+        } finally {
+            IOUtils.closeQuietly(theDataObject);
         }
     }
 
@@ -200,6 +203,7 @@ public class MNStorageTestImplementations extends ContextAwareAdapter {
         for (int j = 0; j < unicodeString.size(); j++) {
             String status = "OK   ";
             String testLoc = "      ";
+            InputStream data = null;
             try {
                 //              String unicode = unicodeString.get(j);
                 log.info("");
@@ -231,14 +235,13 @@ public class MNStorageTestImplementations extends ContextAwareAdapter {
                         ((Identifier) dataPackage[0]).getValue(), rPid.getValue());
 
                 testLoc = "get   ";
-                Thread.sleep(1000);
-                InputStream data = callAdapter.get(null, rPid);
+                Thread.sleep(2000);
+                data = callAdapter.get(null, rPid);
                 checkTrue(callAdapter.getLatestRequestUrl(),
                         "get against the object should not equal null", null != data);
                 //                  String str = IOUtils.toString(data);
                 //                  checkTrue(callAdapter.getLatestRequestUrl(),"should be able to read the content as created ('" + str.substring(0,100) + "...')",
                 //                          str.indexOf("IPCC Data Distribution Centre Results ") != -1);
-                data.close();
                 testLoc = "      ";
             } catch (BaseException e) {
                 status = "Error";
@@ -248,6 +251,8 @@ public class MNStorageTestImplementations extends ContextAwareAdapter {
                 status = "Error";
                 e.printStackTrace();
                 handleFail(currentUrl, e.getClass().getName() + ": " + e.getMessage());
+            } finally {
+                IOUtils.closeQuietly(data);
             }
 
             nodeSummary.add("Test " + j + ": " + status + ": " + testLoc + ": "
@@ -727,12 +732,9 @@ public class MNStorageTestImplementations extends ContextAwareAdapter {
             handleFail(callAdapterPublic.getLatestRequestUrl(),
                     "should not be able to archive an object if no certificate");
         } catch (InvalidToken na) {
+            InputStream is = null;
             try {
-                InputStream is = callAdapterRH.get(null, pid);
-                try {
-                    is.close();
-                } catch (IOException e) {
-                }
+                is = callAdapterRH.get(null, pid);
             } catch (BaseException e) {
                 handleFail(callAdapterRH.getLatestRequestUrl(),
                         "Got InvalidToken, but couldn't perform subsequent get(). Instead: "
@@ -742,15 +744,14 @@ public class MNStorageTestImplementations extends ContextAwareAdapter {
                 handleFail(callAdapterRH.getLatestRequestUrl(),
                         "Got InvalidToken, but couldn't perform subsequent get(). Instead: "
                                 + e1.getClass().getSimpleName() + ": " + e1.getMessage());
+            } finally {
+                IOUtils.closeQuietly(is);
             }
 
         } catch (NotAuthorized na) {
+            InputStream is = null;
             try {
-                InputStream is = callAdapterRH.get(null, pid);
-                try {
-                    is.close();
-                } catch (IOException e) {
-                }
+                is = callAdapterRH.get(null, pid);
             } catch (BaseException e) {
                 handleFail(callAdapterRH.getLatestRequestUrl(),
                         "Got InvalidToken, but couldn't perform subsequent get(). Instead: "
@@ -760,6 +761,8 @@ public class MNStorageTestImplementations extends ContextAwareAdapter {
                 handleFail(callAdapterRH.getLatestRequestUrl(),
                         "Got InvalidToken, but couldn't perform subsequent get(). Instead: "
                                 + e1.getClass().getSimpleName() + ": " + e1.getMessage());
+            } finally {
+                IOUtils.closeQuietly(is);
             }
 
         } catch (BaseException e) {
@@ -805,12 +808,9 @@ public class MNStorageTestImplementations extends ContextAwareAdapter {
             handleFail(callAdapterPublic.getLatestRequestUrl(),
                     "should not be able to delete an object if no certificate");
         } catch (InvalidToken na) {
+            InputStream is = null;
             try {
-                InputStream is = callAdapterRH.get(null, pid);
-                try {
-                    is.close();
-                } catch (IOException e) {
-                }
+                is = callAdapterRH.get(null, pid);
             } catch (BaseException e) {
                 handleFail(callAdapterRH.getLatestRequestUrl(),
                         "Got InvalidToken, but couldn't perform subsequent get(). Instead: "
@@ -820,15 +820,14 @@ public class MNStorageTestImplementations extends ContextAwareAdapter {
                 handleFail(callAdapterRH.getLatestRequestUrl(),
                         "Got InvalidToken, but couldn't perform subsequent get(). Instead: "
                                 + e1.getClass().getSimpleName() + ": " + e1.getMessage());
+            } finally {
+                IOUtils.closeQuietly(is);
             }
 
         } catch (NotAuthorized na) {
+            InputStream is = null; 
             try {
-                InputStream is = callAdapterRH.get(null, pid);
-                try {
-                    is.close();
-                } catch (IOException e) {
-                }
+                is = callAdapterRH.get(null, pid);
             } catch (BaseException e) {
                 handleFail(callAdapterRH.getLatestRequestUrl(),
                         "Got NotAuthorized, but couldn't perform subsequent get(). Instead: "
@@ -838,6 +837,8 @@ public class MNStorageTestImplementations extends ContextAwareAdapter {
                 handleFail(callAdapterRH.getLatestRequestUrl(),
                         "Got NotAuthorized, but couldn't perform subsequent get(). Instead: "
                                 + e1.getClass().getSimpleName() + ": " + e1.getMessage());
+            } finally {
+                IOUtils.closeQuietly(is);
             }
 
         } catch (BaseException e) {
