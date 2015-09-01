@@ -195,11 +195,11 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 					String idStringEscaped = idPrefix  + ExampleUtilities.generateIdentifier() + "_" + escapedString.get(j);
 
 					testLoc = "generate";
-					Object[] dataPackage = ExampleUtilities.generateTestSciDataPackage(idString,false);
+					Object[] dataPackage = ExampleUtilities.generateTestSciDataPackage(idStringEscaped,false);
 
 					checkEquals(mn.getLatestRequestUrl(), "ExampleUtilities.generateTestSciDataPackage() should produce" +
 							"identifier same as the one provided", ((Identifier) dataPackage[0]).getValue(),
-							idString);
+							idStringEscaped);
 
 					testLoc = "create";
 					// rGuid is either going to be the escaped ID or the non-escaped ID

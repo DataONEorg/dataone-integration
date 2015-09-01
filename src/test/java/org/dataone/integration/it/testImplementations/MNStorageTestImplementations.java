@@ -214,13 +214,13 @@ public class MNStorageTestImplementations extends ContextAwareAdapter {
                         + escapedString.get(j);
 
                 testLoc = "generate";
-                Object[] dataPackage = ExampleUtilities.generateTestSciDataPackage(idString,
+                Object[] dataPackage = ExampleUtilities.generateTestSciDataPackage(idStringEscaped,
                         false, subjectRH.getValue());
 
                 checkEquals(callAdapter.getLatestRequestUrl(),
                         "ExampleUtilities.generateTestSciDataPackage() should produce"
                                 + "identifier same as the one provided",
-                        ((Identifier) dataPackage[0]).getValue(), idString);
+                        ((Identifier) dataPackage[0]).getValue(), idStringEscaped);
 
                 testLoc = "create";
                 // rGuid is either going to be the escaped ID or the non-escaped ID
