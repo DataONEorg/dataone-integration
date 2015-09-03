@@ -27,9 +27,9 @@ public class SynchronizeMetadataTestImplementations extends ContextAwareAdapter 
         super(catc);
     }
 
-    @WebTestName("synchronize - tests if the call fails when made with a non-authorized certificate")
-    @WebTestDescription("this test calls synchronize() with an unauthorized certificate, "
-            + "expecting a NotAuthorized exception")
+    @WebTestName("synchronize - tests if the call fails when made with a non-authorized CN certificate")
+    @WebTestDescription("this test calls synchronize() with a CN certificate (synchronize should only be "
+            + "called by the authoritative MN), and expects a NotAuthorized exception")
     public void testSynchronize_NotAuthorized(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testSynchronize_NotAuthorized(nodeIterator.next(), version);
@@ -37,8 +37,7 @@ public class SynchronizeMetadataTestImplementations extends ContextAwareAdapter 
     
     public void testSynchronize_NotAuthorized(Node node, String version) {
         
-        CommonCallAdapter cnCertCallAdapter = new CommonCallAdapter(getSession(cnSubmitter), node, version);
-        CNCallAdapter rightsHolderCallAdapter = new CNCallAdapter(getSession("testRightsHolder"), node, version);
+        CNCallAdapter cnCertCallAdapter = new CNCallAdapter(getSession(cnSubmitter), node, version);
         String currentUrl = node.getBaseURL();
         printTestHeader("testSynchronize_NotAuthorized(...) vs. node: " + currentUrl);
         currentUrl = cnCertCallAdapter.getNodeBaseServiceUrl();
@@ -49,8 +48,8 @@ public class SynchronizeMetadataTestImplementations extends ContextAwareAdapter 
             pid.setValue("testSynchronize_NotAuthorized" + ExampleUtilities.generateIdentifier());
             Identifier testObjPid = catc.procureTestObject(cnCertCallAdapter, accessRule, pid);
             
-            rightsHolderCallAdapter.synchronize(null, testObjPid);
-            handleFail(rightsHolderCallAdapter.getLatestRequestUrl(), "synchronize call should fail for non-authorized certificate");
+            cnCertCallAdapter.synchronize(null, testObjPid);
+            handleFail(cnCertCallAdapter.getLatestRequestUrl(), "synchronize call should fail for non-authorized certificate");
         } 
         catch (NotAuthorized e) {
             // expected

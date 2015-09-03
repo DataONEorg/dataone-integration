@@ -11,6 +11,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.dataone.client.exception.ClientSideException;
+import org.dataone.client.v1.types.D1TypeBuilder;
 import org.dataone.integration.ContextAwareTestCaseDataone;
 import org.dataone.integration.ExampleUtilities;
 import org.dataone.integration.adapters.MNCallAdapter;
@@ -22,10 +23,13 @@ import org.dataone.service.exceptions.InvalidSystemMetadata;
 import org.dataone.service.exceptions.InvalidToken;
 import org.dataone.service.exceptions.NotAuthorized;
 import org.dataone.service.exceptions.NotFound;
+import org.dataone.service.types.v1.AccessPolicy;
+import org.dataone.service.types.v1.AccessRule;
 import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Node;
 import org.dataone.service.types.v1.ObjectInfo;
 import org.dataone.service.types.v1.ObjectList;
+import org.dataone.service.types.v1.Permission;
 import org.dataone.service.types.v1.Subject;
 import org.dataone.service.types.v2.SystemMetadata;
 import org.dataone.service.types.v2.TypeFactory;
@@ -289,31 +293,33 @@ public class MNStorageTestImplementations extends ContextAwareAdapter {
     public void testUpdate(Node node, String version) {
 
         MNCallAdapter callAdapter = new MNCallAdapter(getSession("testRightsHolder"), node, version);
-        Subject subject = ContextAwareTestCaseDataone.getSubject("testRightsHolder");
         String currentUrl = callAdapter.getNodeBaseServiceUrl();
         printTestHeader("testUpdate() vs. node: " + currentUrl);
 
         try {
-            Object[] dataPackage = ExampleUtilities.generateTestSciDataPackage(
-                    "mNodeTier3TestUpdate", true, subject.getValue());
-
-            org.dataone.service.types.v1.SystemMetadata sysMetaV1 = (org.dataone.service.types.v1.SystemMetadata) dataPackage[2];
-            SystemMetadata sysMetaV2 = TypeFactory.convertTypeFromType(sysMetaV1, SystemMetadata.class);
-            Identifier originalPid = callAdapter.create(null, (Identifier) dataPackage[0],
-                    (InputStream) dataPackage[1], sysMetaV2);
-
+            Identifier originalPid = D1TypeBuilder.buildIdentifier("testUpdate_" + ExampleUtilities.generateIdentifier());
+            AccessRule accessRule = new AccessRule();
+            getSession("testRightsHolder");
+            Subject subject = ContextAwareTestCaseDataone.getSubject("testRightsHolder");
+            accessRule.addSubject(subject);
+            accessRule.addPermission(Permission.CHANGE_PERMISSION);
+            
+            catc.createTestObject(callAdapter, originalPid, accessRule);
+            
             SystemMetadata createdObjSysMeta = callAdapter.getSystemMetadata(null, originalPid);
             Date dateCreated = createdObjSysMeta.getDateSysMetadataModified();
 
             // create the new data package to update with. 
-            dataPackage = ExampleUtilities.generateTestSciDataPackage("mNodeTier3TestUpdate", true, subject.getValue());
+            Object[] dataPackage = ExampleUtilities.generateTestSciDataPackage("testUpdate_", true, subject.getValue());
             Identifier newPid = (Identifier) dataPackage[0];
 
             // do the update
-            sysMetaV2 = TypeFactory.convertTypeFromType((org.dataone.service.types.v1.SystemMetadata) dataPackage[2], SystemMetadata.class);
+            SystemMetadata updateSysmeta = TypeFactory.convertTypeFromType((org.dataone.service.types.v1.SystemMetadata) dataPackage[2], SystemMetadata.class);
+            updateSysmeta.setAuthoritativeMemberNode(createdObjSysMeta.getAuthoritativeMemberNode());
+            updateSysmeta.setOriginMemberNode(createdObjSysMeta.getOriginMemberNode());
             Identifier updatedPid = callAdapter.update(null, originalPid,
                     (InputStream) dataPackage[1], // new data
-                    newPid, sysMetaV2 // new sysmeta
+                    newPid, updateSysmeta // new sysmeta
                     );
 
             checkEquals(callAdapter.getLatestRequestUrl(),
@@ -376,21 +382,23 @@ public class MNStorageTestImplementations extends ContextAwareAdapter {
     public void testUpdate_badObsoletedByInfo(Node node, String version) {
 
         MNCallAdapter callAdapter = new MNCallAdapter(getSession("testRightsHolder"), node, version);
-        Subject subject = ContextAwareTestCaseDataone.getSubject("testRightsHolder");
         String currentUrl = callAdapter.getNodeBaseServiceUrl();
         printTestHeader("testUpdate_badObsoletedByInfo() vs. node: " + currentUrl);
 
         try {
-            Object[] dataPackage = ExampleUtilities.generateTestSciDataPackage(
-                    "mNodeTier3TestUpdate", true, subject.getValue());
-
-            org.dataone.service.types.v1.SystemMetadata sysMetaV1 = (org.dataone.service.types.v1.SystemMetadata) dataPackage[2];
-            SystemMetadata sysMetaV2 = TypeFactory.convertTypeFromType(sysMetaV1, SystemMetadata.class);
-            Identifier originalPid = callAdapter.create(null, (Identifier) dataPackage[0],
-                    (InputStream) dataPackage[1], sysMetaV2);
-
+            Identifier originalPid = D1TypeBuilder.buildIdentifier("testUpdate_" + ExampleUtilities.generateIdentifier());
+            AccessRule accessRule = new AccessRule();
+            getSession("testRightsHolder");
+            Subject subject = ContextAwareTestCaseDataone.getSubject("testRightsHolder");
+            accessRule.addSubject(subject);
+            accessRule.addPermission(Permission.CHANGE_PERMISSION);
+            
+            catc.createTestObject(callAdapter, originalPid, accessRule);
+            
+            SystemMetadata createdObjSysMeta = callAdapter.getSystemMetadata(null, originalPid);
+            
             // create the new data package to update with. 
-            dataPackage = ExampleUtilities.generateTestSciDataPackage("mNodeTier3TestUpdate", true, subject.getValue());
+            Object[] dataPackage = ExampleUtilities.generateTestSciDataPackage("mNodeTier3TestUpdate", true, subject.getValue());
             Identifier newPid = (Identifier) dataPackage[0];
 
             //  incorrectly set the obsoletedBy property instead of obsoletes
@@ -398,12 +406,16 @@ public class MNStorageTestImplementations extends ContextAwareAdapter {
             smd.setObsoletedBy(originalPid);
             
             // do the update
-            sysMetaV2 = TypeFactory.convertTypeFromType(smd, SystemMetadata.class);
+            SystemMetadata updateSysmeta = TypeFactory.convertTypeFromType((org.dataone.service.types.v1.SystemMetadata) dataPackage[2], SystemMetadata.class);
+            updateSysmeta.setAuthoritativeMemberNode(createdObjSysMeta.getAuthoritativeMemberNode());
+            updateSysmeta.setOriginMemberNode(createdObjSysMeta.getOriginMemberNode());
+            
             Identifier updatedPid = callAdapter.update(null, originalPid,
                     (InputStream) dataPackage[1], // new data
-                    newPid, sysMetaV2);
-            sysMetaV2 = callAdapter.getSystemMetadata(null, updatedPid);
-            if (sysMetaV2.getObsoletedBy() != null) {
+                    newPid, updateSysmeta);
+            
+            updateSysmeta = callAdapter.getSystemMetadata(null, updatedPid);
+            if (updateSysmeta.getObsoletedBy() != null) {
                 handleFail(callAdapter.getLatestRequestUrl(),
                         "should not be able to update with obsoletedBy " + "field set (for pid = "
                                 + updatedPid.getValue() + ")");
@@ -432,34 +444,38 @@ public class MNStorageTestImplementations extends ContextAwareAdapter {
     public void testUpdate_badObsoletesInfo(Node node, String version) {
 
         MNCallAdapter callAdapter = new MNCallAdapter(getSession("testRightsHolder"), node, version);
-        Subject subject = ContextAwareTestCaseDataone.getSubject("testRightsHolder");
         String currentUrl = callAdapter.getNodeBaseServiceUrl();
         printTestHeader("testUpdate_badObsoletesInfo() vs. node: " + currentUrl);
 
         try {
-            Object[] dataPackage = ExampleUtilities.generateTestSciDataPackage(
-                    "mNodeTier3TestUpdate", true, subject.getValue());
-
-            org.dataone.service.types.v1.SystemMetadata sysMetaV1 = (org.dataone.service.types.v1.SystemMetadata) dataPackage[2];
-            SystemMetadata sysMetaV2 = TypeFactory.convertTypeFromType(sysMetaV1, SystemMetadata.class);
-            Identifier originalPid = callAdapter.create(null, (Identifier) dataPackage[0],
-                    (InputStream) dataPackage[1], sysMetaV2);
+            Identifier originalPid = D1TypeBuilder.buildIdentifier("testUpdate_" + ExampleUtilities.generateIdentifier());
+            AccessRule accessRule = new AccessRule();
+            getSession("testRightsHolder");
+            Subject subject = ContextAwareTestCaseDataone.getSubject("testRightsHolder");
+            accessRule.addSubject(subject);
+            accessRule.addPermission(Permission.CHANGE_PERMISSION);
+            
+            catc.createTestObject(callAdapter, originalPid, accessRule);
+            
+            SystemMetadata createdObjSysMeta = callAdapter.getSystemMetadata(null, originalPid);
             
             // create the new data package to update with. 
-            dataPackage = ExampleUtilities.generateTestSciDataPackage("mNodeTier3TestUpdate", true, subject.getValue());
+            Object []dataPackage = ExampleUtilities.generateTestSciDataPackage("testUpdate_badObsoletesInfo_", true, subject.getValue());
             Identifier newPid = (Identifier) dataPackage[0];
 
             //  incorrectly set the obsoletes property
-            org.dataone.service.types.v1.SystemMetadata smd = (org.dataone.service.types.v1.SystemMetadata) dataPackage[2];
+            SystemMetadata updateSysmeta = TypeFactory.convertTypeFromType((org.dataone.service.types.v1.SystemMetadata) dataPackage[2], SystemMetadata.class);
+            updateSysmeta.setAuthoritativeMemberNode(createdObjSysMeta.getAuthoritativeMemberNode());
+            updateSysmeta.setOriginMemberNode(createdObjSysMeta.getOriginMemberNode());
+            
             Identifier phonyId = new Identifier();
             phonyId.setValue("phonyId");
-            smd.setObsoletes(phonyId);
+            updateSysmeta.setObsoletes(phonyId);
             
             // do the update
-            SystemMetadata smdV2 = TypeFactory.convertTypeFromType(smd, SystemMetadata.class);
             Identifier updatedPid = callAdapter.update(null, originalPid,
                     (InputStream) dataPackage[1], // new data
-                    newPid, smdV2);
+                    newPid, updateSysmeta);
             handleFail(callAdapter.getLatestRequestUrl(),
                     "should not be able to update with faulty "
                             + "obsoletes information (for pid = " + updatedPid.getValue() + ")");

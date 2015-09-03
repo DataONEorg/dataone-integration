@@ -68,6 +68,7 @@ public class CNRegisterV2IT extends ContextAwareTestCaseDataone
 
     @Override
     @Test
+    @Ignore("not many values it will refuse change on")
     public void testUpdateNodeCapabilities_updatingOtherField() {
         registerTestImpl.testUpdateNodeCapabilities_updatingOtherField(getCoordinatingNodeIterator(), "v2");
     }

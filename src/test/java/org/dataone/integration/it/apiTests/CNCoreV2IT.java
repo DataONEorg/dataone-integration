@@ -234,45 +234,45 @@ implements CoreTestDefinitions, CNCoreTestDefinitions, CNv2CoreTestDefinitions, 
 
     @Override
     @Test
-    public void testUpdateSystemMetadata_InvalidSystemMetadata_ModifiedIdentifier() {
-        updateSysMetaImpl.testUpdateSystemMetadata_InvalidSystemMetadata_ModifiedIdentifier(getCoordinatingNodeIterator(), "v2");       
+    public void testUpdateSystemMetadata_InvalidRequest_ModifiedIdentifier() {
+        updateSysMetaImpl.testUpdateSystemMetadata_InvalidRequest_ModifiedIdentifier(getCoordinatingNodeIterator(), "v2");       
     }
 
     @Override
     @Test
-    public void testUpdateSystemMetadata_InvalidSystemMetadata_ModifiedSize() {
-        updateSysMetaImpl.testUpdateSystemMetadata_InvalidSystemMetadata_ModifiedSize(getCoordinatingNodeIterator(), "v2");       
+    public void testUpdateSystemMetadata_InvalidRequest_ModifiedSize() {
+        updateSysMetaImpl.testUpdateSystemMetadata_InvalidRequest_ModifiedSize(getCoordinatingNodeIterator(), "v2");       
     }
 
     @Override
     @Test
-    public void testUpdateSystemMetadata_InvalidSystemMetadata_ModifiedChecksum() {
-        updateSysMetaImpl.testUpdateSystemMetadata_InvalidSystemMetadata_ModifiedChecksum(getCoordinatingNodeIterator(), "v2");        
+    public void testUpdateSystemMetadata_InvalidRequest_ModifiedChecksum() {
+        updateSysMetaImpl.testUpdateSystemMetadata_InvalidRequest_ModifiedChecksum(getCoordinatingNodeIterator(), "v2");        
     }
 
     @Override
     @Test
-    public void testUpdateSystemMetadata_InvalidSystemMetadata_ModifiedSubmitter() {
-        updateSysMetaImpl.testUpdateSystemMetadata_InvalidSystemMetadata_ModifiedSubmitter(getCoordinatingNodeIterator(), "v2");
+    public void testUpdateSystemMetadata_InvalidRequest_ModifiedSubmitter() {
+        updateSysMetaImpl.testUpdateSystemMetadata_InvalidRequest_ModifiedSubmitter(getCoordinatingNodeIterator(), "v2");
     }
 
     @Override
     @Test
-    public void testUpdateSystemMetadata_InvalidSystemMetadata_ModifiedDateUploaded() {
-        updateSysMetaImpl.testUpdateSystemMetadata_InvalidSystemMetadata_ModifiedDateUploaded(getCoordinatingNodeIterator(), "v2");
+    public void testUpdateSystemMetadata_InvalidRequest_ModifiedDateUploaded() {
+        updateSysMetaImpl.testUpdateSystemMetadata_InvalidRequest_ModifiedDateUploaded(getCoordinatingNodeIterator(), "v2");
     }
 
     @Override
     @Test
-    public void testUpdateSystemMetadata_InvalidSystemMetadata_ModifiedOriginMN() {
-        updateSysMetaImpl.testUpdateSystemMetadata_InvalidSystemMetadata_ModifiedOriginMN(getCoordinatingNodeIterator(), "v2");
+    public void testUpdateSystemMetadata_InvalidRequest_ModifiedOriginMN() {
+        updateSysMetaImpl.testUpdateSystemMetadata_InvalidRequest_ModifiedOriginMN(getCoordinatingNodeIterator(), "v2");
         
     }
 
     @Override
     @Test
-    public void testUpdateSystemMetadata_InvalidSysmeta_ModifiedSeriesId() {
-        updateSysMetaImpl.testUpdateSystemMetadata_InvalidSystemMetadata_ModifiedSeriesId(getCoordinatingNodeIterator(), "v2");
+    public void testUpdateSystemMetadata_InvalidRequest_ModifiedSeriesId() {
+        updateSysMetaImpl.testUpdateSystemMetadata_InvalidRequest_ModifiedSeriesId(getCoordinatingNodeIterator(), "v2");
         
     }
 
@@ -292,7 +292,6 @@ implements CoreTestDefinitions, CNCoreTestDefinitions, CNv2CoreTestDefinitions, 
 
     @Override
     @Test
-    @Ignore("No MN cert to test with")
     public void testSynchronize_NotAuthorized() {
         syncMetaImpl.testSynchronize_NotAuthorized(getCoordinatingNodeIterator(), "v2");
     }
@@ -313,6 +312,7 @@ implements CoreTestDefinitions, CNCoreTestDefinitions, CNv2CoreTestDefinitions, 
 
     @Override
     @Test
+    @Ignore("No MN cert to test with")
     public void testSynchronize_NotFound() {
         syncMetaImpl.testSynchronize_NotFound(getCoordinatingNodeIterator(), "v2");
     }
