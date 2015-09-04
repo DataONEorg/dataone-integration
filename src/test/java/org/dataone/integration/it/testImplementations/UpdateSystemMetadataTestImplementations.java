@@ -536,7 +536,7 @@ public abstract class UpdateSystemMetadataTestImplementations extends ContextAwa
             SystemMetadata sysmeta = callAdapter.getSystemMetadata(null, testObjPid);
             // try to updateSystemMetadata with the modified seriesId
             Identifier seriesId = new Identifier();
-            seriesId.setValue("bogusSeriesId");
+            seriesId.setValue("bogusSeriesId" + ExampleUtilities.generateIdentifier());
             sysmeta.setSeriesId(seriesId);
             sysmeta.setSerialVersion(sysmeta.getSerialVersion().add(BigInteger.ONE));
             
