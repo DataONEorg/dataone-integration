@@ -4,6 +4,7 @@ import java.math.BigInteger;
 import java.util.Date;
 import java.util.Iterator;
 
+import org.dataone.client.v1.types.D1TypeBuilder;
 import org.dataone.integration.APITestUtils;
 import org.dataone.integration.ContextAwareTestCaseDataone;
 import org.dataone.integration.ExampleUtilities;
@@ -80,43 +81,43 @@ public abstract class UpdateSystemMetadataTestImplementations extends ContextAwa
     
     @WebTestName("updateSystemMetadata - tests if the call fails with system metadata containing no identifier")
     @WebTestDescription("this test calls updateSystemMetadata() with invalid system metadata "
-            + "(because the identifier is null) and expects an InvalidSystemMetadata exception to be thrown")
-    public void testUpdateSystemMetadata_InvalidSystemMetadata_NoPid(Iterator<Node> nodeIterator, String version) {
+            + "(because the identifier is empty) and expects an InvalidRequest exception to be thrown")
+    public void testUpdateSystemMetadata_InvalidRequest_NoPid(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
-            testUpdateSystemMetadata_InvalidSystemMetadata_NoPid(nodeIterator.next(), version);
+            testUpdateSystemMetadata_InvalidRequest_NoPid(nodeIterator.next(), version);
     }
     
-    public void testUpdateSystemMetadata_InvalidSystemMetadata_NoPid(Node node, String version) {
+    public void testUpdateSystemMetadata_InvalidRequest_NoPid(Node node, String version) {
         
         CommonCallAdapter callAdapter = getCallAdapter(node, version);
         String currentUrl = node.getBaseURL();
-        printTestHeader("testUpdateSystemMetadata_InvalidSystemMetadata(...) vs. node: " + currentUrl);
+        printTestHeader("testUpdateSystemMetadata_InvalidRequest_NoPid(...) vs. node: " + currentUrl);
         currentUrl = callAdapter.getNodeBaseServiceUrl();
         
         try {
             AccessRule accessRule = APITestUtils.buildAccessRule("testRightsHolder", Permission.CHANGE_PERMISSION);
             Identifier pid = new Identifier();
-            pid.setValue("testUpdateSystemMetadata_InvalidSystemMetadata_" + ExampleUtilities.generateIdentifier());
+            pid.setValue("testUpdateSystemMetadata_InvalidRequest_NoPid_" + ExampleUtilities.generateIdentifier());
             Identifier testObjPid = catc.procureTestObject(callAdapter, accessRule, pid);
             
             SystemMetadata sysmeta = callAdapter.getSystemMetadata(null, testObjPid);
             sysmeta.setSerialVersion(sysmeta.getSerialVersion().add(BigInteger.ONE));
-            sysmeta.setIdentifier(null);
+            sysmeta.setIdentifier(D1TypeBuilder.buildIdentifier(""));
             sysmeta.setDateSysMetadataModified(new Date());
             
             callAdapter.updateSystemMetadata(null, testObjPid , sysmeta);
             handleFail(callAdapter.getLatestRequestUrl(), "updateSystemMetadata call should fail for invalid metadata");
         } 
-        catch (InvalidSystemMetadata e) {
+        catch (InvalidRequest e) {
             // expected
         }
         catch (BaseException e) {
-            handleFail(callAdapter.getLatestRequestUrl(), "Expected an InvalidSystemMetadata exception. Got: " + 
+            handleFail(callAdapter.getLatestRequestUrl(), "Expected an InvalidRequest exception. Got: " + 
                     e.getClass().getSimpleName() + ": " + e.getDetail_code() + ": " + e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
-            handleFail(currentUrl, "Expected an InvalidSystemMetadata exception. Got: " + e.getClass().getName() + 
+            handleFail(currentUrl, "Expected an InvalidRequest exception. Got: " + e.getClass().getName() + 
                     ": " + e.getMessage());
         }
     }

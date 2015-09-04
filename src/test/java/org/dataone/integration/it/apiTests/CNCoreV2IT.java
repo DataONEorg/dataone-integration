@@ -216,8 +216,8 @@ implements CoreTestDefinitions, CNCoreTestDefinitions, CNv2CoreTestDefinitions, 
 
     @Override
     @Test
-    public void testUpdateSystemMetadata_InvalidSystemMetadata_NoPid() {
-        updateSysMetaImpl.testUpdateSystemMetadata_InvalidSystemMetadata_NoPid(getCoordinatingNodeIterator(), "v2");        
+    public void testUpdateSystemMetadata_InvalidRequest_NoPid() {
+        updateSysMetaImpl.testUpdateSystemMetadata_InvalidRequest_NoPid(getCoordinatingNodeIterator(), "v2");        
     }
 
     @Override

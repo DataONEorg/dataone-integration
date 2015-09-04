@@ -156,8 +156,8 @@ public class MNStorageV2IT extends ContextAwareTestCaseDataone
     
     @Override
     @Test
-    public void testUpdateSystemMetadata_InvalidSystemMetadata_NoPid() {
-        updSysmetaImpl.testUpdateSystemMetadata_InvalidSystemMetadata_NoPid(getMemberNodeIterator(), "v2");
+    public void testUpdateSystemMetadata_InvalidRequest_NoPid() {
+        updSysmetaImpl.testUpdateSystemMetadata_InvalidRequest_NoPid(getMemberNodeIterator(), "v2");
     }
     
     @Override

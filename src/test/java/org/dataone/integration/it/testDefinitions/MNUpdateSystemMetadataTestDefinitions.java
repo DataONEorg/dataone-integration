@@ -13,7 +13,7 @@ public interface MNUpdateSystemMetadataTestDefinitions {
     
     public void testUpdateSystemMetadata_InvalidSystemMetadata_NoSerialVersion();
 
-    public void testUpdateSystemMetadata_InvalidSystemMetadata_NoPid();
+    public void testUpdateSystemMetadata_InvalidRequest_NoPid();
     
     public void testUpdateSystemMetadata_InvalidRequest_PidMismatch();
     
