@@ -14,9 +14,11 @@ import org.dataone.integration.webTest.WebTestName;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.InvalidRequest;
 import org.dataone.service.exceptions.NotAuthorized;
+import org.dataone.service.exceptions.NotFound;
 import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Node;
 import org.dataone.service.types.v2.SystemMetadata;
+import org.dataone.service.util.Constants;
 
 public class MNSystemMetadataChangedMethodTestImplementations extends ContextAwareAdapter
 {
@@ -231,5 +233,103 @@ public class MNSystemMetadataChangedMethodTestImplementations extends ContextAwa
             handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
         }
     }
+    
+    @WebTestName("systemMetadataChanged - NotAuthorized without certificate")
+    @WebTestDescription("this test systemMetadataChanged without a certificate, "
+            + "making sure a NotAuthorized exception is thrown")
+    public void testSystemMetadataChanged_NotAuthPuplic(Iterator<Node> nodeIterator, String version) {
+        while (nodeIterator.hasNext())
+            testSystemMetadataChanged_NotAuthPuplic(nodeIterator.next(), version);
+    }
+    
+    public void testSystemMetadataChanged_NotAuthPuplic(Node node, String version) 
+    {
+        String currentUrl = node.getBaseURL();
+        MNCallAdapter mn = new MNCallAdapter(getSession(Constants.SUBJECT_PUBLIC), node, version);
+        currentUrl = mn.getNodeBaseServiceUrl();
+        printTestHeader("testSystemMetadataChanged_NotAuthPuplic() vs. node: " + currentUrl);
 
+        try {
+            mn.systemMetadataChanged(null, D1TypeBuilder.buildIdentifier("bogusPid"), 10, new Date());
+        }
+        catch (NotAuthorized e) {
+            // expected
+        }
+        catch (BaseException e) {
+            handleFail(mn.getLatestRequestUrl(),"This call to systemMetadataChanged should throw a "
+                    + "NotAuthorized exception if called without a certificate. Got: " 
+                    +  e.getClass().getSimpleName() + ": " + e.getDetail_code() + ": " + e.getDescription());
+        }
+        catch(Exception e) {
+            handleFail(mn.getLatestRequestUrl(),"This call to systemMetadataChanged should throw a "
+                    + "NotAuthorized exception if called without a certificate. Got: " 
+                    +  e.getClass().getSimpleName() + ": " + e.getMessage());
+        }
+    }
+    
+    @WebTestName("systemMetadataChanged - NotAuthorized with the rightsHolder certificate")
+    @WebTestDescription("this test systemMetadataChanged with the rightsHolder certificate, "
+            + "making sure a NotAuthorized exception is thrown")
+    public void testSystemMetadataChanged_NotAuthRightsHolder(Iterator<Node> nodeIterator, String version) {
+        while (nodeIterator.hasNext())
+            testSystemMetadataChanged_NotAuthRightsHolder(nodeIterator.next(), version);
+    }
+    
+    public void testSystemMetadataChanged_NotAuthRightsHolder(Node node, String version) 
+    {
+        String currentUrl = node.getBaseURL();
+        MNCallAdapter mn = new MNCallAdapter(getSession("testRightsHolder"), node, version);
+        currentUrl = mn.getNodeBaseServiceUrl();
+        printTestHeader("testSystemMetadataChanged_NotAuthRightsHolder() vs. node: " + currentUrl);
+
+        try {
+            mn.systemMetadataChanged(null, D1TypeBuilder.buildIdentifier("bogusPid"), 10, new Date());
+        }
+        catch (NotAuthorized e) {
+            // expected
+        }
+        catch (BaseException e) {
+            handleFail(mn.getLatestRequestUrl(),"This call to systemMetadataChanged should throw a "
+                    + "NotAuthorized exception if called with the rightsHolder certificate. Got: " 
+                    +  e.getClass().getSimpleName() + ": " + e.getDetail_code() + ": " + e.getDescription());
+        }
+        catch(Exception e) {
+            handleFail(mn.getLatestRequestUrl(),"This call to systemMetadataChanged should throw a "
+                    + "NotAuthorized exception if called with the rightsHolder certificate. Got: " 
+                    +  e.getClass().getSimpleName() + ": " + e.getMessage());
+        }
+    }
+
+    @WebTestName("systemMetadataChanged - NotFound with bogus pid")
+    @WebTestDescription("this test systemMetadataChanged with a bogus pid, "
+            + "making sure a NotFound exception is thrown")
+    public void testSystemMetadataChanged_NotFoundAuthCN(Iterator<Node> nodeIterator, String version) {
+        while (nodeIterator.hasNext())
+            testSystemMetadataChanged_NotFoundAuthCN(nodeIterator.next(), version);
+    }
+    
+    public void testSystemMetadataChanged_NotFoundAuthCN(Node node, String version) 
+    {
+        String currentUrl = node.getBaseURL();
+        MNCallAdapter mn = new MNCallAdapter(getSession(cnSubmitter), node, version);
+        currentUrl = mn.getNodeBaseServiceUrl();
+        printTestHeader("testSystemMetadataChanged_NotFoundAuthCN() vs. node: " + currentUrl);
+
+        try {
+            mn.systemMetadataChanged(null, D1TypeBuilder.buildIdentifier("bogusPid"), 10, new Date());
+        }
+        catch (NotFound e) {
+            // expected
+        }
+        catch (BaseException e) {
+            handleFail(mn.getLatestRequestUrl(),"This call to systemMetadataChanged should throw a "
+                    + "NotFound exception if called with a bogus pid. Got: " 
+                    +  e.getClass().getSimpleName() + ": " + e.getDetail_code() + ": " + e.getDescription());
+        }
+        catch(Exception e) {
+            handleFail(mn.getLatestRequestUrl(),"This call to systemMetadataChanged should throw a "
+                    + "NotFound exception if called with a bogus pid. Got: "  
+                    +  e.getClass().getSimpleName() + ": " + e.getMessage());
+        }
+    }
 }

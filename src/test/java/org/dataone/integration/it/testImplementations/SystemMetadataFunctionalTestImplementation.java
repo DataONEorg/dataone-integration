@@ -2,8 +2,6 @@ package org.dataone.integration.it.testImplementations;
 
 import static org.junit.Assert.assertTrue;
 
-import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Date;
@@ -11,8 +9,6 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.apache.commons.collections.IteratorUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.dataone.client.exception.ClientSideException;
 import org.dataone.configuration.Settings;
 import org.dataone.integration.APITestUtils;
@@ -24,12 +20,9 @@ import org.dataone.integration.adapters.MNCallAdapter;
 import org.dataone.integration.webTest.WebTestDescription;
 import org.dataone.integration.webTest.WebTestName;
 import org.dataone.service.exceptions.BaseException;
-import org.dataone.service.exceptions.InvalidRequest;
-import org.dataone.service.exceptions.InvalidToken;
-import org.dataone.service.exceptions.NotAuthorized;
-import org.dataone.service.exceptions.NotFound;
 import org.dataone.service.exceptions.NotImplemented;
 import org.dataone.service.exceptions.ServiceFailure;
+import org.dataone.service.types.v1.AccessPolicy;
 import org.dataone.service.types.v1.AccessRule;
 import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Node;
@@ -38,14 +31,14 @@ import org.dataone.service.types.v1.NodeType;
 import org.dataone.service.types.v1.Permission;
 import org.dataone.service.types.v1.Replica;
 import org.dataone.service.types.v1.ReplicationPolicy;
+import org.dataone.service.types.v1.ReplicationStatus;
 import org.dataone.service.types.v1.Service;
 import org.dataone.service.types.v2.SystemMetadata;
 import org.dataone.service.types.v2.TypeFactory;
 import org.dataone.service.util.Constants;
-import org.dataone.service.util.TypeMarshaller;
-import org.jibx.runtime.JiBXException;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 
@@ -415,7 +408,7 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
             log.info("testSystemMetadataChanged_ExistingObj:   "
                     + "creating test object");
             
-            AccessRule accessRule = APITestUtils.buildAccessRule(Constants.SUBJECT_PUBLIC, Permission.CHANGE_PERMISSION);
+            AccessRule accessRule = APITestUtils.buildAccessRule(getSubject("testRightsHolder").getValue(), Permission.CHANGE_PERMISSION);
             ReplicationPolicy replPolicy = new ReplicationPolicy();
             replPolicy.setNumberReplicas(null);
             Identifier pid = new Identifier();
@@ -466,7 +459,11 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
             sysmeta.setSerialVersion(newSerialVersion);
             Date nowIsh = new Date();
             sysmeta.setDateSysMetadataModified(nowIsh);
-            
+            accessRule = APITestUtils.buildAccessRule(getSubject("testRightsHolder").getValue(), Permission.CHANGE_PERMISSION);
+            AccessPolicy accessPolicy = new AccessPolicy();
+            accessPolicy.addAllow(accessRule);
+            sysmeta.setAccessPolicy(accessPolicy);
+
             log.info("testSystemMetadataChanged_ExistingObj:   "
                     + "new sysmeta.dateSystemMetadataChanged: " + originalSysmetaModified);
             log.info("testSystemMetadataChanged_ExistingObj:   "
@@ -576,6 +573,186 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
             }
             
             assertTrue("Should have found at least one replica.", replicasFound > 0);
+            
+        } catch (Exception e) {
+            assertTrue("Testing failed with exception: " + e.getClass().getSimpleName() + " : " + e.getMessage(), false);
+            e.printStackTrace();
+        } finally {
+            // TODO ideally, purge(pid)
+            try {
+                if(createdPid != null)     
+                    mn.delete(null, createdPid);
+            } catch (Exception e2) {
+                log.error("Unable to delete test pid after running the test: " + createdPid, e2);
+                e2.printStackTrace();
+            }
+        }
+    }
+    
+    @WebTestName("setReplicationStatus: calling CN.setReplicationStatus() doesn't succeed regardless of status")
+    @WebTestDescription("This test needs to be run in an environment ... "
+            + "Calling setReplicaStatus with an unchanging status should not succeed - the update should "
+            + "only be valid if updating the replica status to a new one.")
+    @Test
+    public void testSetReplicationStatus_NoChange() {
+        
+        // documentation says setReplicationStatus can be called by another CN,
+        // using CN cert since no MN certs available ... hope it works ...
+        Identifier createdPid = null;
+        MNCallAdapter mn = new MNCallAdapter(getSession("testRightsHolder"), mnV2NoSync, "v2");
+        Node cnNode = cnList.get(0);
+        CNCallAdapter cn = new CNCallAdapter(getSession(cnSubmitter), cnNode, "v2");
+
+        try {
+            // create a test object
+            
+            log.info("testSetReplicationStatus_NoChange:   "
+                    + "creating test object");
+            
+            AccessRule accessRule = APITestUtils.buildAccessRule(Constants.SUBJECT_PUBLIC, Permission.CHANGE_PERMISSION);
+            ReplicationPolicy replPolicy = new ReplicationPolicy();
+            replPolicy.setNumberReplicas(null);
+            Identifier pid = new Identifier();
+            pid.setValue("testSetReplicationStatus_NoChange" + ExampleUtilities.generateIdentifier());
+            try {
+                createdPid = createTestObject(mn, pid, accessRule, replPolicy);
+                Thread.sleep(10000);
+                SystemMetadata mnSysmeta = mn.getSystemMetadata(null, createdPid);
+                mnSysmeta.setSerialVersion(mnSysmeta.getSerialVersion().add(BigInteger.ONE));
+                mnSysmeta.setRightsHolder(getSubject("testRightsHolder"));
+                mn.updateSystemMetadata(null, createdPid, mnSysmeta);
+            } catch (BaseException be) {
+                throw new AssertionError(mn.getLatestRequestUrl() + "Unable to create a test object: " + pid);
+            }
+            
+            log.info("testSetReplicationStatus_NoChange:   "
+                    + "created test object: " + createdPid.getValue());
+            
+            // wait for CN to synchronize
+            
+            log.info("testSetReplicationStatus_NoChange:   "
+                    + "waiting for CN sync (" + ((double)SYNC_WAIT / 60000) + " minutes)");
+            
+            Thread.sleep(SYNC_WAIT);
+            
+            log.info("testSetReplicationStatus_NoChange:   "
+                    + "done waiting for CN sync, fetching sysmeta");
+            
+            try {
+                SystemMetadata fetchedSysmeta = cn.getSystemMetadata(null, createdPid);
+                assertTrue("cn.getSystemMetadata() should successfully fetch the sysmeta", fetchedSysmeta != null);
+            } catch (Exception e) {
+                throw new AssertionError("cn.getSystemMetadata() should successfully fetch the sysmeta");
+            }
+            
+            log.info("testSetReplicationStatus_NoChange:   "
+                    + "fetched sysmeta from CN successfully");
+            
+            // modify the sysmeta
+            
+            log.info("testSetReplicationStatus_NoChange:   "
+                    + "fetching sysmeta from auth MN");
+            
+            SystemMetadata sysmeta = mn.getSystemMetadata(null, createdPid);
+            Date originalSysmetaModified = sysmeta.getDateSysMetadataModified();
+            log.info("testSetReplicationStatus_NoChange:   "
+                    + "original sysmeta.dateSystemMetadataChanged: " + sysmeta.getDateSysMetadataModified());
+            log.info("testSetReplicationStatus_NoChange:   "
+                    + "original sysmeta.serialVersion      : " + sysmeta.getSerialVersion());
+            BigInteger newSerialVersion = sysmeta.getSerialVersion().add(BigInteger.ONE);
+            sysmeta.setSerialVersion(newSerialVersion);
+            Date nowIsh = new Date();
+            sysmeta.setDateSysMetadataModified(nowIsh);
+            
+            log.info("testSetReplicationStatus_NoChange:   "
+                    + "new sysmeta.dateSystemMetadataChanged: " + originalSysmetaModified);
+            log.info("testSetReplicationStatus_NoChange:   "
+                    + "new sysmeta.serialVersion      : " + sysmeta.getSerialVersion());
+            
+            log.info("testSetReplicationStatus_NoChange:   "
+                    + "updating sysmeta on auth MN");
+            
+            boolean success = false;
+            try {
+                success = mn.updateSystemMetadata(null, createdPid, sysmeta);
+            } catch (BaseException be) {
+                throw new AssertionError(mn.getLatestRequestUrl() + "Call to MN updateSystemMetadata failed: " + be.getMessage());
+            }
+            assertTrue("MN should have modified its own system metadata successfully.", success);
+            
+            log.info("testSetReplicationStatus_NoChange:   "
+                    + "updated sysmeta on auth MN successfully");
+            
+            // MN.updateSystemMetadata() call should trigger a 
+            // CN.synchronize() call under the hood
+            
+            // CN needs time to synchronize
+            
+            log.info("testSetReplicationStatus_NoChange:   "
+                    + "waiting for CN.synchronize() to run (" + ((double)SYNC_WAIT / 60000) + " minutes)");
+            // TODO not the same as CN sync task wait time
+            Thread.sleep(SYNC_WAIT);
+            
+            // verify that sysmeta fetched from CN is updated
+            
+            log.info("testSetReplicationStatus_NoChange:   "
+                    + "done waiting for CN.synchronize(), verifying CN has correct sysmeta");
+            
+            SystemMetadata fetchedCNSysmeta = cn.getSystemMetadata(null, createdPid);
+            boolean serialVersionMatches = fetchedCNSysmeta.getSerialVersion().equals(newSerialVersion);
+            boolean dateModifiedMatches = fetchedCNSysmeta.getDateSysMetadataModified().after(originalSysmetaModified);
+            assertTrue("System metadata fetched from CN should now have updated serialVersion.", serialVersionMatches);
+            assertTrue("System metadata fetched from CN should now have updated dateSysMetadataModified.", dateModifiedMatches );
+            
+            log.info("testSetReplicationStatus_NoChange:   "
+                    + "CN sysmeta matches updates made on MN");
+            
+            // TODO could also inspect the system metadata on the CN 
+            //      for a replica in 'requested' status 
+            //      and wait for it to move to 'completed' or 'failed'
+            
+            // CN needs to run replication in order for sysmeta to contain replica info
+            // we need replica info in the sysmeta
+            
+            log.info("testSetReplicationStatus_NoChange:   "
+                    + "waiting for CN to trigger replication "
+                    + "so we have replica info in sysmeta (" + ((double)SYNC_WAIT / 60000) + " minutes)");
+            
+            Thread.sleep(REPLICATION_WAIT);
+            
+            log.info("testSetReplicationStatus_NoChange:   "
+                    + "done waiting for replication, fetching sysmeta from CN");
+            
+            fetchedCNSysmeta = cn.getSystemMetadata(null, createdPid);
+            List<Replica> replicaList = fetchedCNSysmeta.getReplicaList();
+            assertTrue("Test can't continue if replica list fetched from CN (after having time to replicate) is null!", replicaList != null);
+            assertTrue("Test can't continue if system metadata fetched from CN does not have a non-empty replica list", replicaList.size() > 0);
+
+            // request replication a bunch
+            int statusUpdateFailures = 0; 
+            for (int i = 0; i < 10; i++) {
+                try {
+                    log.info("testSetReplicationStatus_NoChange:   "
+                            + "calling setReplicationStatus (iteration " + i + ")");
+                    cn.setReplicationStatus(null, createdPid, mn.getNodeId(), ReplicationStatus.REQUESTED, new ServiceFailure("0101", "Setting replication status to INVALIDATED failed"));
+                } catch (BaseException e) {
+                    statusUpdateFailures++;
+                    log.info("testSetReplicationStatus_NoChange:   "
+                            + "status update failure (iteration " + i + ") " 
+                            + e.getClass().getSimpleName() + " : " + e.getMessage());
+                    e.printStackTrace();
+                }
+            }
+            
+            log.info("testSetReplicationStatus_NoChange:   "
+                    + "status update failures: " + statusUpdateFailures);
+            
+            fetchedCNSysmeta = cn.getSystemMetadata(null, createdPid);
+            BigInteger serialVersion = fetchedCNSysmeta.getSerialVersion();
+            
+            assertTrue("", serialVersion.intValue() < 10);
+            log.info("testSetReplicationStatus_NoChange:   "
+                    + "status update failures: " + statusUpdateFailures);
             
         } catch (Exception e) {
             assertTrue("Testing failed with exception: " + e.getClass().getSimpleName() + " : " + e.getMessage(), false);

@@ -3,7 +3,7 @@ package org.dataone.integration.it.apiTests;
 import org.dataone.integration.ContextAwareTestCaseDataone;
 import org.dataone.integration.it.testDefinitions.MNReadSidTestDefinitions;
 import org.dataone.integration.it.testDefinitions.MNReadTestDefinitions;
-import org.dataone.integration.it.testDefinitions.MNSystemMetadataChangedTestDefinitions;
+import org.dataone.integration.it.testDefinitions.MNv2SystemMetadataChangedTestDefinitions;
 import org.dataone.integration.it.testDefinitions.ReadTestDefinitions;
 import org.dataone.integration.it.testImplementations.MNReadTestImplementations;
 import org.dataone.integration.it.testImplementations.MNSystemMetadataChangedMethodTestImplementations;
@@ -18,7 +18,7 @@ import org.junit.Test;
  * Tests MNRead functionality for v2 of the API 
  */
 public class MNReadV2IT extends ContextAwareTestCaseDataone 
-        implements ReadTestDefinitions, MNReadTestDefinitions, MNReadSidTestDefinitions, MNSystemMetadataChangedTestDefinitions {
+        implements ReadTestDefinitions, MNReadTestDefinitions, MNReadSidTestDefinitions, MNv2SystemMetadataChangedTestDefinitions {
 
     @WebTestImplementation
     private ReadTestImplementations readTestImpl;
@@ -229,7 +229,20 @@ public class MNReadV2IT extends ContextAwareTestCaseDataone
 
     @Override
     @Test
-    public void testSystemMetadataChanged_withCreate() {
-        mnSysmetaChangedImpl.testSystemMetadataChanged_withCreate(getMemberNodeIterator(), "v2");
+    public void testSystemMetadataChanged_NotAuthPuplic() {
+        mnSysmetaChangedImpl.testSystemMetadataChanged_NotAuthPuplic(getMemberNodeIterator(), "v2");
     }
+    
+    @Override
+    @Test
+    public void testSystemMetadataChanged_NotAuthRightsHolder() {
+        mnSysmetaChangedImpl.testSystemMetadataChanged_NotAuthRightsHolder(getMemberNodeIterator(), "v2");
+    }
+    
+    @Override
+    @Test
+    public void testSystemMetadataChanged_NotFoundAuthCN() {
+        mnSysmetaChangedImpl.testSystemMetadataChanged_NotFoundAuthCN(getMemberNodeIterator(), "v2");
+    }
+    
 }
