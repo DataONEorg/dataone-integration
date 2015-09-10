@@ -13,6 +13,7 @@ import org.dataone.integration.webTest.WebTestDescription;
 import org.dataone.integration.webTest.WebTestName;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.InvalidRequest;
+import org.dataone.service.exceptions.InvalidToken;
 import org.dataone.service.exceptions.NotAuthorized;
 import org.dataone.service.exceptions.NotFound;
 import org.dataone.service.types.v1.Identifier;
@@ -236,7 +237,7 @@ public class MNSystemMetadataChangedMethodTestImplementations extends ContextAwa
     
     @WebTestName("systemMetadataChanged - NotAuthorized without certificate")
     @WebTestDescription("this test systemMetadataChanged without a certificate, "
-            + "making sure a NotAuthorized exception is thrown")
+            + "making sure a NotAuthorized or InvalidToken exception is thrown")
     public void testSystemMetadataChanged_NotAuthPuplic(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testSystemMetadataChanged_NotAuthPuplic(nodeIterator.next(), version);
@@ -252,17 +253,17 @@ public class MNSystemMetadataChangedMethodTestImplementations extends ContextAwa
         try {
             mn.systemMetadataChanged(null, D1TypeBuilder.buildIdentifier("bogusPid"), 10, new Date());
         }
-        catch (NotAuthorized e) {
+        catch (InvalidToken | NotAuthorized e) {
             // expected
         }
         catch (BaseException e) {
             handleFail(mn.getLatestRequestUrl(),"This call to systemMetadataChanged should throw a "
-                    + "NotAuthorized exception if called without a certificate. Got: " 
+                    + "NotAuthorized or InvalidToken exception if called without a certificate. Got: " 
                     +  e.getClass().getSimpleName() + ": " + e.getDetail_code() + ": " + e.getDescription());
         }
         catch(Exception e) {
             handleFail(mn.getLatestRequestUrl(),"This call to systemMetadataChanged should throw a "
-                    + "NotAuthorized exception if called without a certificate. Got: " 
+                    + "NotAuthorized or InvalidToken exception if called without a certificate. Got: " 
                     +  e.getClass().getSimpleName() + ": " + e.getMessage());
         }
     }

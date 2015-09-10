@@ -1,8 +1,5 @@
 package org.dataone.integration.it.testDefinitions;
 
-
-
-
 public interface MNUpdateSystemMetadataTestDefinitions {
 
     public void testUpdateSystemMetadata_NotFound();
@@ -31,6 +28,8 @@ public interface MNUpdateSystemMetadataTestDefinitions {
     
     public void testUpdateSystemMetadata_InvalidRequest_ModifiedOriginMN();
     
+    public void testUpdateSystemMetadata_InvalidRequest_NullOriginMN();
+    
     public void testUpdateSystemMetadata_InvalidRequest_ModifiedSeriesId();
     
     public void testUpdateSystemMetadata_RightsHolder();
@@ -42,7 +41,7 @@ public interface MNUpdateSystemMetadataTestDefinitions {
     public void testUpdateSystemMetadata_MutableAccessPolicy();
     
     public void testUpdateSystemMetadata_MutableReplPolicy();
-    
+
 //    public void testUpdateSystemMetadata_MutableAuthMN();
 //    
 //    public void testUpdateSystemMetadata_RightsHolderNonAuthMN();

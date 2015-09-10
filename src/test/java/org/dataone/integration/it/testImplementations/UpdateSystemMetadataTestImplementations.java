@@ -265,12 +265,12 @@ public abstract class UpdateSystemMetadataTestImplementations extends ContextAwa
             AccessRule accessRule = APITestUtils.buildAccessRule("testRightsHolder", Permission.CHANGE_PERMISSION);
             Identifier pid = new Identifier();
             pid.setValue("testUpdateSystemMetadata_InvalidRequest_ModifiedIdentifier_" + ExampleUtilities.generateIdentifier());
-            Identifier testObjPid = catc.procureTestObject(callAdapter, accessRule, pid);
+            Identifier testObjPid = catc.createTestObject(callAdapter, pid, accessRule);
             
             SystemMetadata sysmeta = callAdapter.getSystemMetadata(null, testObjPid);
             // try to updateSystemMetadata with the modified pid
-            testObjPid.setValue(testObjPid.getValue() + "_MODIFIED");
-            sysmeta.setIdentifier(testObjPid);
+            Identifier modifiedPid = D1TypeBuilder.buildIdentifier(testObjPid.getValue() + "_MODIFIED");
+            sysmeta.setIdentifier(modifiedPid);
             sysmeta.setSerialVersion(sysmeta.getSerialVersion().add(BigInteger.ONE));
             
             callAdapter.updateSystemMetadata(null, testObjPid , sysmeta);
@@ -313,7 +313,7 @@ public abstract class UpdateSystemMetadataTestImplementations extends ContextAwa
             
             SystemMetadata sysmeta = callAdapter.getSystemMetadata(null, testObjPid);
             // try to updateSystemMetadata with the modified pid
-            testObjPid.setValue(testObjPid.getValue() + "_MODIFIED");
+            
             sysmeta.setSize(BigInteger.ONE);
             sysmeta.setSerialVersion(sysmeta.getSerialVersion().add(BigInteger.ONE));
             
@@ -492,12 +492,55 @@ public abstract class UpdateSystemMetadataTestImplementations extends ContextAwa
             
             SystemMetadata sysmeta = callAdapter.getSystemMetadata(null, testObjPid);
             // try to updateSystemMetadata with the modified originMemberNode
-            sysmeta.setOriginMemberNode(node.getIdentifier());
+            sysmeta.setOriginMemberNode(D1TypeBuilder.buildNodeReference("bogusNode"));
             sysmeta.setSerialVersion(sysmeta.getSerialVersion().add(BigInteger.ONE));
             
             callAdapter.updateSystemMetadata(null, testObjPid , sysmeta);
             handleFail(callAdapter.getLatestRequestUrl(), "updateSystemMetadata call should fail "
                     + "if trying to modify the originMemberNode in system metadata");
+        } 
+        catch (InvalidRequest e) {
+            // expected
+        }
+        catch (BaseException e) {
+            handleFail(callAdapter.getLatestRequestUrl(), "Expected an InvalidRequest. Got: " + 
+                    e.getClass().getSimpleName() + ": " + e.getDetail_code() + ": " + e.getDescription());
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+            handleFail(currentUrl, "Expected an InvalidRequest exception. Got: " + e.getClass().getName() + 
+                    ": " + e.getMessage());
+        }
+    }
+    
+    @WebTestName("updateSystemMetadata - tests if the call fails if trying to set the originMemberNode to null")
+    @WebTestDescription("this test calls updateSystemMetadata() with one of the unmodifiable fields modified "
+            + "(originMemberNode) and set to null, expecting an InvalidRequest exception to be thrown")
+    public void testUpdateSystemMetadata_InvalidRequest_NullOriginMN(Iterator<Node> nodeIterator, String version) {
+        while (nodeIterator.hasNext())
+            testUpdateSystemMetadata_InvalidRequest_NullOriginMN(nodeIterator.next(), version);
+    }
+    
+    public void testUpdateSystemMetadata_InvalidRequest_NullOriginMN(Node node, String version) {
+        CommonCallAdapter callAdapter = getCallAdapter(node, version);
+        String currentUrl = node.getBaseURL();
+        printTestHeader("testUpdateSystemMetadata_InvalidRequest_NullOriginMN(...) vs. node: " + currentUrl);
+        currentUrl = callAdapter.getNodeBaseServiceUrl();
+        
+        try {
+            AccessRule accessRule = APITestUtils.buildAccessRule("testRightsHolder", Permission.CHANGE_PERMISSION);
+            Identifier pid = new Identifier();
+            pid.setValue("testUpdateSystemMetadata_InvalidRequest_NullOriginMN" + ExampleUtilities.generateIdentifier());
+            Identifier testObjPid = catc.procureTestObject(callAdapter, accessRule, pid);
+            
+            SystemMetadata sysmeta = callAdapter.getSystemMetadata(null, testObjPid);
+            // try to updateSystemMetadata with the modified originMemberNode
+            sysmeta.setOriginMemberNode(null);
+            sysmeta.setSerialVersion(sysmeta.getSerialVersion().add(BigInteger.ONE));
+            
+            callAdapter.updateSystemMetadata(null, testObjPid , sysmeta);
+            handleFail(callAdapter.getLatestRequestUrl(), "updateSystemMetadata call should fail "
+                    + "if trying to set the originMemberNode to null in system metadata");
         } 
         catch (InvalidRequest e) {
             // expected
@@ -531,7 +574,7 @@ public abstract class UpdateSystemMetadataTestImplementations extends ContextAwa
             AccessRule accessRule = APITestUtils.buildAccessRule("testRightsHolder", Permission.CHANGE_PERMISSION);
             Identifier pid = new Identifier();
             pid.setValue("testUpdateSystemMetadata_InvalidRequest_ModifiedSeriesId_" + ExampleUtilities.generateIdentifier());
-            Identifier testObjPid = catc.procureTestObject(callAdapter, accessRule, pid);
+            Identifier testObjPid = catc.createTestObject(callAdapter, pid, accessRule);
             
             SystemMetadata sysmeta = callAdapter.getSystemMetadata(null, testObjPid);
             // try to updateSystemMetadata with the modified seriesId
@@ -540,9 +583,22 @@ public abstract class UpdateSystemMetadataTestImplementations extends ContextAwa
             sysmeta.setSeriesId(seriesId);
             sysmeta.setSerialVersion(sysmeta.getSerialVersion().add(BigInteger.ONE));
             
+            try {
+                callAdapter.updateSystemMetadata(null, testObjPid , sysmeta);
+            } catch (Exception e) {
+                handleFail(callAdapter.getLatestRequestUrl(), "updateSystemMetadata with a new seriesId should "
+                        + "succeed the first time. Got: " + e.getClass().getSimpleName() + " : " + e.getMessage());
+            }
+            
+            // try to updateSystemMetadata with the modified seriesId a second time
+            seriesId = new Identifier();
+            seriesId.setValue("bogusSeriesId" + ExampleUtilities.generateIdentifier());
+            sysmeta.setSeriesId(seriesId);
+            sysmeta.setSerialVersion(sysmeta.getSerialVersion().add(BigInteger.ONE));
+            
             callAdapter.updateSystemMetadata(null, testObjPid , sysmeta);
             handleFail(callAdapter.getLatestRequestUrl(), "updateSystemMetadata call should fail "
-                    + "if trying to modify the seriesId in system metadata");
+                    + "if trying to modify the seriesId in system metadata a second time");
         } 
         catch (InvalidRequest e) {
             // expected
