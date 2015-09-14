@@ -3,8 +3,7 @@ package org.dataone.integration.it.apiTests;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 /**
- * Runs all MN v1 API tests.
- * Set the context.mn.baseurl variable before running (ex: https://mn-demo-6.test.dataone.org/knb/d1/mn).
+ * Runs all CN v2 API tests.
  */
 @RunWith(Suite.class)
 @Suite.SuiteClasses({ 
@@ -14,6 +13,7 @@ import org.junit.runners.Suite;
     CNIdentityV2IT.class,
     CNReplicationV2IT.class, 
     CNRegisterV2IT.class, 
+    CNViewV2IT.class,
     CNAuthenticationV1V2IT.class, 
     })
 public class CNv2TestSuite {
