@@ -14,6 +14,7 @@ import org.dataone.integration.webTest.WebTestName;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.InvalidRequest;
 import org.dataone.service.exceptions.NotFound;
+import org.dataone.service.exceptions.NotImplemented;
 import org.dataone.service.exceptions.UnsupportedType;
 import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Node;
@@ -78,7 +79,7 @@ public class MNPackageTestImplementations extends ContextAwareAdapter {
         InputStream is = null;
         try {
             ObjectFormatIdentifier formatID = new ObjectFormatIdentifier();
-            formatID.setValue("application/zip");
+            formatID.setValue("application/bagit");
             
             is = personCallAdapter.getPackage(null, formatID, catc.procureResourceMap(callAdapter));
             handleFail(callAdapter.getLatestRequestUrl(),"getPackage() should fail with a NotAuthorized subject");
@@ -182,7 +183,7 @@ public class MNPackageTestImplementations extends ContextAwareAdapter {
     
     @WebTestName("getPackage - tests if the getPackage call fails with an unsupported format type")
     @WebTestDescription("this test calls getPackage() with a packageType format that is not supported "
-            + "(video/mp4), expecting a NotFound exception")
+            + "(video/mp4), expecting an NotImplemented exception")
     public void testGetPackage_UnsupportedType(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testGetPackage_UnsupportedType(nodeIterator.next(), version);
@@ -203,10 +204,10 @@ public class MNPackageTestImplementations extends ContextAwareAdapter {
             formatID.setValue("video/mp4");
             
             is = rightsHolderCallAdapter.getPackage(null, formatID, pid);
-            handleFail(callAdapter.getLatestRequestUrl(),"getPackage() should fail with an UnsupportedType "
+            handleFail(callAdapter.getLatestRequestUrl(),"getPackage() should fail with a NotImplemented exception "
                     + "when given \"video/mp4\"");
         } 
-        catch (UnsupportedType e) {
+        catch (NotImplemented e) {
             // expected outcome
         }
         catch (BaseException e) {
