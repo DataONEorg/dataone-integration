@@ -7,6 +7,7 @@ import java.math.BigInteger;
 import java.util.Date;
 import java.util.Iterator;
 
+import org.apache.commons.io.IOUtils;
 import org.dataone.integration.APITestUtils;
 import org.dataone.integration.ContextAwareTestCaseDataone;
 import org.dataone.integration.ExampleUtilities;
@@ -49,13 +50,14 @@ public class ViewTestImplementations extends ContextAwareAdapter {
         printTestHeader("testView_NotAuthorized(...) vs. node: " + currentUrl);
         currentUrl = cnCertCallAdapter.getNodeBaseServiceUrl();
         
+        InputStream resultStream = null;
         try {
             AccessRule accessRule = APITestUtils.buildAccessRule("testRightsHolder", Permission.CHANGE_PERMISSION);
             Identifier pid = new Identifier();
             pid.setValue("testView_NotAuthorized_" + ExampleUtilities.generateIdentifier());
             Identifier testObjPid = catc.procureTestObject(cnCertCallAdapter, accessRule, pid);
             
-            InputStream resultStream = personCallAdapter.view(null, "default", testObjPid);
+            resultStream = personCallAdapter.view(null, "default", testObjPid);
             handleFail(personCallAdapter.getLatestRequestUrl(), "view call should fail for a connection with unauthorized certificate");
         } 
         catch (NotAuthorized e) {
@@ -69,6 +71,9 @@ public class ViewTestImplementations extends ContextAwareAdapter {
             e.printStackTrace();
             handleFail(currentUrl, "Expected a NotAuthorized exception. Got: " + e.getClass().getName() + 
                     ": " + e.getMessage());
+        }
+        finally {
+            IOUtils.closeQuietly(resultStream);
         }
     }
     
@@ -87,13 +92,14 @@ public class ViewTestImplementations extends ContextAwareAdapter {
         printTestHeader("testView_InvalidTheme(...) vs. node: " + currentUrl);
         currentUrl = callAdapter.getNodeBaseServiceUrl();
         
+        InputStream resultStream = null;
         try {
             AccessRule accessRule = APITestUtils.buildAccessRule("testRightsHolder", Permission.CHANGE_PERMISSION);
             Identifier pid = new Identifier();
             pid.setValue("testView_InvalidTheme_" + ExampleUtilities.generateIdentifier());
             Identifier testObjPid = catc.procureTestObject(callAdapter, accessRule, pid);
             
-            callAdapter.view(null, "bogus_theme_yaaaay", testObjPid);
+            resultStream = callAdapter.view(null, "bogus_theme_yaaaay", testObjPid);
         } 
         catch (BaseException e) {
             handleFail(callAdapter.getLatestRequestUrl(), "Expected an InvalidRequest exception. Got: " + 
@@ -103,6 +109,8 @@ public class ViewTestImplementations extends ContextAwareAdapter {
             e.printStackTrace();
             handleFail(currentUrl, "Expected an InvalidRequest exception. Got: " + e.getClass().getName() + 
                     ": " + e.getMessage());
+        } finally {
+            IOUtils.closeQuietly(resultStream);
         }
     }
     
@@ -121,6 +129,7 @@ public class ViewTestImplementations extends ContextAwareAdapter {
         printTestHeader("testView_InvalidSystemMetadata(...) vs. node: " + currentUrl);
         currentUrl = callAdapter.getNodeBaseServiceUrl();
         
+        InputStream resultStream = null;
         try {
             AccessRule accessRule = APITestUtils.buildAccessRule("testRightsHolder", Permission.CHANGE_PERMISSION);
             Identifier pid = new Identifier();
@@ -131,7 +140,7 @@ public class ViewTestImplementations extends ContextAwareAdapter {
             sysmeta.setSerialVersion(sysmeta.getSerialVersion().add(BigInteger.ONE));
             sysmeta.setDateSysMetadataModified(new Date());
             
-            callAdapter.view(null, "default", pid);
+            resultStream = callAdapter.view(null, "default", pid);
             handleFail(callAdapter.getLatestRequestUrl(), "view call should fail for bogus pid");
         } 
         catch (NotFound e) {
@@ -145,6 +154,8 @@ public class ViewTestImplementations extends ContextAwareAdapter {
             e.printStackTrace();
             handleFail(currentUrl, "Expected a NotFound exception. Got: " + e.getClass().getName() + 
                     ": " + e.getMessage());
+        } finally {
+            IOUtils.closeQuietly(resultStream);
         }
     }
     
