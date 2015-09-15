@@ -210,8 +210,8 @@ implements CoreTestDefinitions, CNCoreTestDefinitions, CNv2CoreTestDefinitions, 
 
     @Override
     @Test
-    public void testUpdateSystemMetadata_InvalidSystemMetadata_NoSerialVersion() {
-        updateSysMetaImpl.testUpdateSystemMetadata_InvalidSystemMetadata_NoSerialVersion(getCoordinatingNodeIterator(), "v2");        
+    public void testUpdateSystemMetadata_InvalidRequest_NoSerialVersion() {
+        updateSysMetaImpl.testUpdateSystemMetadata_InvalidRequest_NoSerialVersion(getCoordinatingNodeIterator(), "v2");        
     }
 
     @Override
