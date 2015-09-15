@@ -43,7 +43,7 @@ public class MNPackageTestImplementations extends ContextAwareAdapter {
         InputStream is = null;
         try {
             ObjectFormatIdentifier formatID = new ObjectFormatIdentifier();
-            formatID.setValue("application/zip");
+            formatID.setValue("application/bagit");
             
             is = testRightsHolderCallAdapter.getPackage(null, formatID, catc.procureResourceMap(callAdapter));
             assertTrue("getPackage() should return a non-null InputStream", is != null);
