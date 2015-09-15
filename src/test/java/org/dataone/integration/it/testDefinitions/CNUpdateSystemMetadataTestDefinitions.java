@@ -28,6 +28,8 @@ public interface CNUpdateSystemMetadataTestDefinitions {
     
     public void testUpdateSystemMetadata_InvalidRequest_ModifiedOriginMN();
     
+    public void testUpdateSystemMetadata_InvalidRequest_NullOriginMN();
+    
     public void testUpdateSystemMetadata_InvalidRequest_ModifiedSeriesId();
     
     public void testUpdateSystemMetadata_NotAuthorized_RightsHolder();

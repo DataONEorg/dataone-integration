@@ -271,6 +271,12 @@ implements CoreTestDefinitions, CNCoreTestDefinitions, CNv2CoreTestDefinitions, 
 
     @Override
     @Test
+    public void testUpdateSystemMetadata_InvalidRequest_NullOriginMN() {
+        updateSysMetaImpl.testUpdateSystemMetadata_InvalidRequest_NullOriginMN(getMemberNodeIterator(), "v2");
+    }
+    
+    @Override
+    @Test
     public void testUpdateSystemMetadata_InvalidRequest_ModifiedSeriesId() {
         updateSysMetaImpl.testUpdateSystemMetadata_InvalidRequest_ModifiedSeriesId(getCoordinatingNodeIterator(), "v2");
         

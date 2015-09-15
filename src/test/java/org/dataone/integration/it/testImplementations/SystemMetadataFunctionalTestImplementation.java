@@ -619,7 +619,7 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
                 Thread.sleep(10000);
                 SystemMetadata mnSysmeta = mn.getSystemMetadata(null, createdPid);
                 mnSysmeta.setSerialVersion(mnSysmeta.getSerialVersion().add(BigInteger.ONE));
-                mnSysmeta.setRightsHolder(getSubject("testRightsHolder"));
+                mnSysmeta.getAccessPolicy().addAllow(APITestUtils.buildAccessRule(Constants.SUBJECT_PUBLIC + "-2", Permission.READ));
                 mn.updateSystemMetadata(null, createdPid, mnSysmeta);
             } catch (BaseException be) {
                 throw new AssertionError(mn.getLatestRequestUrl() + "Unable to create a test object: " + pid);
