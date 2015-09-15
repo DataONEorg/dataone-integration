@@ -74,7 +74,7 @@ public class ViewTestImplementations extends ContextAwareAdapter {
     
     @WebTestName("view - tests if the call fails if given a non-existent theme")
     @WebTestDescription("this test calls view() with a bogus theme "
-            + "and expects an InvalidRequest exception to be thrown")
+            + "and expects no exception to be thrown - should use the default theme instead")
     public void testView_InvalidTheme(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testView_InvalidTheme(nodeIterator.next(), version);
@@ -94,11 +94,7 @@ public class ViewTestImplementations extends ContextAwareAdapter {
             Identifier testObjPid = catc.procureTestObject(callAdapter, accessRule, pid);
             
             callAdapter.view(null, "bogus_theme_yaaaay", testObjPid);
-            handleFail(callAdapter.getLatestRequestUrl(), "view call should fail for invalid theme");
         } 
-        catch (InvalidRequest e) {
-            // expected
-        }
         catch (BaseException e) {
             handleFail(callAdapter.getLatestRequestUrl(), "Expected an InvalidRequest exception. Got: " + 
                     e.getClass().getSimpleName() + ": " + e.getDetail_code() + ": " + e.getDescription());
