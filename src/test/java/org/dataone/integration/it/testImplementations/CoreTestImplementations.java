@@ -31,6 +31,7 @@ import org.dataone.service.types.v2.Log;
 import org.dataone.service.types.v2.LogEntry;
 import org.dataone.service.util.Constants;
 //import org.dataone.integration.ExampleUtilities;
+import org.dataone.service.util.TypeMarshaller;
 
 
 public class CoreTestImplementations extends ContextAwareAdapter {
@@ -501,14 +502,14 @@ public class CoreTestImplementations extends ContextAwareAdapter {
                 entries = APITestUtils.pagedGetLogRecords(callAdapter, null, toDate, targetType, null, null, null);
                 boolean oneTypeOnly = true;
                 String unfilteredType = null;
-                for (LogEntry le : logEntryList) {
+                for (LogEntry le : entries.getLogEntryList()) {
                     if (!le.getEvent().equals(targetType)) {
                         oneTypeOnly = false;
                         unfilteredType = le.getEvent();
                         break;
                     }
                 }
-
+                
                 checkTrue(callAdapter.getLatestRequestUrl(), "Filtered log for the time period should contain only "
                         + "logs of type " + targetType + ". Got " + unfilteredType, oneTypeOnly);
             }
