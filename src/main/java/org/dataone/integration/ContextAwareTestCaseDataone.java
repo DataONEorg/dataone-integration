@@ -1607,19 +1607,19 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
         ObjectFormatIdentifier formatID = new ObjectFormatIdentifier();
         formatID.setValue(RESOURCE_MAP_FORMAT_ID);
         
-        ObjectList resourceObjInfo = new ObjectList();
-        try {
-            resourceObjInfo = cca.listObjects(null, null, null, formatID, null, null);
-        } catch (InvalidRequest | InvalidToken | NotAuthorized | NotImplemented | ServiceFailure
-                | ClientSideException e) {
-            e.printStackTrace();
-            throw new ClientSideException("Unable to fetch a list of resource objects for MNPackage testing. "
-                    + "Call to listObjects() failed on :" + cca.getNodeBaseServiceUrl(), e);
-        }
-        
         Identifier resourceMapPid = null;
         
         if(packagePid == null) {
+            ObjectList resourceObjInfo = new ObjectList();
+            try {
+                resourceObjInfo = cca.listObjects(null, null, null, formatID, null, null);
+            } catch (InvalidRequest | InvalidToken | NotAuthorized | NotImplemented | ServiceFailure
+                    | ClientSideException e) {
+                e.printStackTrace();
+                throw new ClientSideException("Unable to fetch a list of resource objects for MNPackage testing. "
+                        + "Call to listObjects() failed on :" + cca.getNodeBaseServiceUrl(), e);
+            }
+            
             List<ObjectInfo> objectInfoList = resourceObjInfo.getObjectInfoList();
             for (ObjectInfo objectInfo : objectInfoList) {
                 Identifier id = objectInfo.getIdentifier();
@@ -1627,6 +1627,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
                 InputStream is = null;
                 try {
                     is = cca.get(null, id);
+                    resourceMapPid = objectInfo.getIdentifier();
                     break;
                 } catch (Exception e) {
                     continue;
@@ -1667,8 +1668,11 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
         ObjectFormatIdentifier formatID = new ObjectFormatIdentifier();
         formatID.setValue(RESOURCE_MAP_FORMAT_ID);
         AccessRule accessRule = new AccessRule();
-        getSession("testRightsHolder");
-        Subject subject = getSubject("testRightsHolder");
+//        getSession("testRightsHolder");
+//        Subject subject = getSubject("testRightsHolder");
+        Subject subject = new Subject();
+        subject.setValue(Constants.SUBJECT_PUBLIC);
+        
         accessRule.addSubject(subject);
         accessRule.addPermission(Permission.CHANGE_PERMISSION);
         
