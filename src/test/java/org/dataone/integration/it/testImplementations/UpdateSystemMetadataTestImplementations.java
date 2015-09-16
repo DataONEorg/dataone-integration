@@ -4,6 +4,7 @@ import java.math.BigInteger;
 import java.util.Date;
 import java.util.Iterator;
 
+import org.dataone.client.rest.MultipartRestClient;
 import org.dataone.client.v1.types.D1TypeBuilder;
 import org.dataone.integration.APITestUtils;
 import org.dataone.integration.ContextAwareTestCaseDataone;
@@ -399,8 +400,9 @@ public abstract class UpdateSystemMetadataTestImplementations extends ContextAwa
             AccessRule accessRule = APITestUtils.buildAccessRule("testRightsHolder", Permission.CHANGE_PERMISSION);
             Identifier pid = new Identifier();
             pid.setValue("testUpdateSystemMetadata_InvalidRequest_ModifiedSubmitter" + ExampleUtilities.generateIdentifier());
-            Identifier testObjPid = catc.createTestObject(callAdapter, pid, accessRule);
-            
+//            Identifier testObjPid = catc.createTestObject(callAdapter, pid, accessRule);
+            getSession("testRightsHolder");
+            Identifier testObjPid = catc.createTestObject(callAdapter, pid, accessRule, "testRightsHolder");
             SystemMetadata sysmeta = callAdapter.getSystemMetadata(null, testObjPid);
             // try to updateSystemMetadata with the modified submitter
             Subject submitter = new Subject();
