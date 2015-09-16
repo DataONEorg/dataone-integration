@@ -631,6 +631,8 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
         printTestHeader("testUpdateSystemMetadata_CNCertNonAuthMN(...) vs. node: " + currentUrl);
         currentUrl = cnCertAuthMN.getNodeBaseServiceUrl();
         
+        Identifier testObjPid = null;
+        SystemMetadata sysmeta = null;
         try {
             AccessRule accessRule = new AccessRule();
             getSession("testRightsHolder");
@@ -642,14 +644,23 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
             ReplicationPolicy replPolicy = new ReplicationPolicy();
             replPolicy.setReplicationAllowed(true);
             replPolicy.setNumberReplicas(2);
-            Identifier testObjPid = catc.createTestObject(cnCertAuthMN, pid, accessRule, replPolicy);
+            testObjPid = catc.createTestObject(cnCertAuthMN, pid, accessRule, replPolicy);
            
             Thread.sleep(REPLICATION_WAIT);
             
-            SystemMetadata sysmeta = cn.getSystemMetadata(null, testObjPid);
+            sysmeta = cn.getSystemMetadata(null, testObjPid);
             sysmeta.getSerialVersion().add(BigInteger.ONE);
             sysmeta.setDateSysMetadataModified(new Date());
             
+        } catch (BaseException e) {
+            throw new AssertionError("Test setup failed: " + cnCertAuthMN.getLatestRequestUrl() + " : " + e.getClass().getSimpleName() + ": " + 
+                    e.getDetail_code() + ": " + e.getDescription());
+        } catch(Exception e) {
+            e.printStackTrace();
+            throw new AssertionError("Test setup failed: " + cnCertAuthMN.getLatestRequestUrl() + " : " + e.getClass().getName() + ": " + e.getMessage());
+        }
+        
+        try {
             List<Replica> replicaList = sysmeta.getReplicaList();
             assertTrue("testUpdateSystemMetadata_CNCertNonAuthMN : After waiting for replication to occur, "
                     + "fetched sysmeta should contain a non-empty replica list!", 
