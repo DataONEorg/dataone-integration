@@ -890,6 +890,7 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
         
         try {
             p1sysmeta.setObsoletedBy(p2);
+            p1sysmeta.setSerialVersion(p1sysmeta.getSerialVersion().add(BigInteger.ONE));
             callAdapter.updateSystemMetadata(null, p1 , p1sysmeta);
             
         } catch (InvalidSystemMetadata e) {
@@ -945,6 +946,7 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
         
         try {
             p2sysmeta.setObsoletes(p1);
+            p2sysmeta.setSerialVersion(p2sysmeta.getSerialVersion().add(BigInteger.ONE));
             callAdapter.updateSystemMetadata(null, p2 , p2sysmeta);
             
         } catch (InvalidSystemMetadata e) {
