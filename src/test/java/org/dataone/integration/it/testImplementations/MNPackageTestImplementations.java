@@ -6,7 +6,9 @@ import java.io.InputStream;
 import java.util.Iterator;
 
 import org.apache.commons.io.IOUtils;
+import org.dataone.client.v1.types.D1TypeBuilder;
 import org.dataone.integration.ContextAwareTestCaseDataone;
+import org.dataone.integration.ExampleUtilities;
 import org.dataone.integration.adapters.MNCallAdapter;
 import org.dataone.integration.it.ContextAwareAdapter;
 import org.dataone.integration.webTest.WebTestDescription;
@@ -22,6 +24,8 @@ import org.dataone.service.types.v1.ObjectFormatIdentifier;
 
 public class MNPackageTestImplementations extends ContextAwareAdapter {
 
+    private static final String BAGIT_ID = "application/bagit-097";
+    
     public MNPackageTestImplementations(ContextAwareTestCaseDataone catc) {
         super(catc);
     }
@@ -43,9 +47,11 @@ public class MNPackageTestImplementations extends ContextAwareAdapter {
         InputStream is = null;
         try {
             ObjectFormatIdentifier formatID = new ObjectFormatIdentifier();
-            formatID.setValue("application/bagit");
+            formatID.setValue(BAGIT_ID);
             
-            is = testRightsHolderCallAdapter.getPackage(null, formatID, catc.procureResourceMap(callAdapter));
+            Identifier resMapPid = catc.procureResourceMap(callAdapter, D1TypeBuilder.buildIdentifier(
+                    "testGetPackage_" + ExampleUtilities.generateIdentifier()));
+            is = testRightsHolderCallAdapter.getPackage(null, formatID, resMapPid);
             assertTrue("getPackage() should return a non-null InputStream", is != null);
         }
         catch (BaseException e) {
@@ -79,9 +85,11 @@ public class MNPackageTestImplementations extends ContextAwareAdapter {
         InputStream is = null;
         try {
             ObjectFormatIdentifier formatID = new ObjectFormatIdentifier();
-            formatID.setValue("application/bagit");
+            formatID.setValue(BAGIT_ID);
             
-            is = personCallAdapter.getPackage(null, formatID, catc.procureResourceMap(callAdapter));
+            Identifier resMapPid = catc.procureResourceMap(callAdapter, D1TypeBuilder.buildIdentifier(
+                    "testGetPackage_NotAuthorized_" + ExampleUtilities.generateIdentifier()));
+            is = personCallAdapter.getPackage(null, formatID, resMapPid);
             handleFail(callAdapter.getLatestRequestUrl(),"getPackage() should fail with a NotAuthorized subject");
         } 
         catch (NotFound e) {
@@ -101,7 +109,7 @@ public class MNPackageTestImplementations extends ContextAwareAdapter {
     }
     
     @WebTestName("getPackage - tests if the getPackage call fails with an invalid packageType")
-    @WebTestDescription("this test calls getPackage() with a bogus packageType, "
+    @WebTestDescription("this test calls getPackage() with a bogus / invalid packageType, "
             + "expecting an InvalidRequest exception")
     public void testGetPackage_InvalidRequest(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
@@ -119,7 +127,9 @@ public class MNPackageTestImplementations extends ContextAwareAdapter {
             ObjectFormatIdentifier formatID = new ObjectFormatIdentifier();
             formatID.setValue("bogus/format");
             
-            is = rightsHolderCallAdapter.getPackage(null, formatID, catc.procureResourceMap(callAdapter));
+            Identifier resMapPid = catc.procureResourceMap(callAdapter, D1TypeBuilder.buildIdentifier(
+                    "testGetPackage_InvalidRequest_" + ExampleUtilities.generateIdentifier()));
+            is = rightsHolderCallAdapter.getPackage(null, formatID, resMapPid);
             handleFail(callAdapter.getLatestRequestUrl(),"getPackage() should fail with an InvalidRequest for a bogus ObjectFormatIdentifier"
                     + " (" + formatID + ")");
         } 
@@ -182,8 +192,8 @@ public class MNPackageTestImplementations extends ContextAwareAdapter {
     }
     
     @WebTestName("getPackage - tests if the getPackage call fails with an unsupported format type")
-    @WebTestDescription("this test calls getPackage() with a packageType format that is not supported "
-            + "(video/mp4), expecting an NotImplemented exception")
+    @WebTestDescription("this test calls getPackage() with a valid packageType format, but one that "
+            + "does not make sense for getPackage (video/mp4), expecting a NotImplemented exception")
     public void testGetPackage_UnsupportedType(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testGetPackage_UnsupportedType(nodeIterator.next(), version);

@@ -242,7 +242,7 @@ public class MNReadV2IT extends ContextAwareTestCaseDataone
     @Override
     @Test
     public void testSystemMetadataChanged_NotFoundAuthCN() {
-        mnSysmetaChangedImpl.testSystemMetadataChanged_NotFoundAuthCN(getMemberNodeIterator(), "v2");
+        mnSysmetaChangedImpl.testSystemMetadataChanged_InvalidPid(getMemberNodeIterator(), "v2");
     }
     
 }

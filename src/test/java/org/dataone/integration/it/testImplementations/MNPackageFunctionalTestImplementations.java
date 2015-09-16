@@ -44,7 +44,7 @@ import com.github.junrar.rarfile.FileHeader;
 
 public class MNPackageFunctionalTestImplementations extends ContextAwareAdapter {
 
-    private static final String BAGIT_ID = "application/bagit";
+    private static final String BAGIT_ID = "application/bagit-097";
     
     public MNPackageFunctionalTestImplementations(ContextAwareTestCaseDataone catc) {
         super(catc);
@@ -121,7 +121,8 @@ public class MNPackageFunctionalTestImplementations extends ContextAwareAdapter 
             // NOTE:    compression format should default to zip for BagIt type,
             //          when no content type is specified through the Accept header
             
-            Identifier resourceMapPid = catc.procureResourceMap(callAdapter);
+            Identifier resourceMapPid = catc.procureResourceMap(callAdapter, 
+                    D1TypeBuilder.buildIdentifier("testGetPackage_Zip_" + ExampleUtilities.generateIdentifier()));
             
             is = testRightsHolderCallAdapter.getPackage(null, formatID, resourceMapPid);
             

@@ -621,7 +621,7 @@ public class SidMNTestImplementations extends SidCommonTestImplementations {
                 
                 ObjectFormatIdentifier formatID = new ObjectFormatIdentifier();
                 
-                formatID.setValue("application/bagit");
+                formatID.setValue("application/bagit-097");
                 InputStream sidPkg = null;
                 InputStream pidPkg = null;
                 try {

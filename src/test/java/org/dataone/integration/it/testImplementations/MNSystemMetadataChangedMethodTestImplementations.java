@@ -303,33 +303,33 @@ public class MNSystemMetadataChangedMethodTestImplementations extends ContextAwa
 
     @WebTestName("systemMetadataChanged - NotFound with bogus pid")
     @WebTestDescription("this test systemMetadataChanged with a bogus pid, "
-            + "making sure a NotFound exception is thrown")
-    public void testSystemMetadataChanged_NotFoundAuthCN(Iterator<Node> nodeIterator, String version) {
+            + "making sure a InvalidRequest exception is thrown")
+    public void testSystemMetadataChanged_InvalidPid(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
-            testSystemMetadataChanged_NotFoundAuthCN(nodeIterator.next(), version);
+            testSystemMetadataChanged_InvalidPid(nodeIterator.next(), version);
     }
     
-    public void testSystemMetadataChanged_NotFoundAuthCN(Node node, String version) 
+    public void testSystemMetadataChanged_InvalidPid(Node node, String version) 
     {
         String currentUrl = node.getBaseURL();
         MNCallAdapter mn = new MNCallAdapter(getSession(cnSubmitter), node, version);
         currentUrl = mn.getNodeBaseServiceUrl();
-        printTestHeader("testSystemMetadataChanged_NotFoundAuthCN() vs. node: " + currentUrl);
+        printTestHeader("testSystemMetadataChanged_InvalidPid() vs. node: " + currentUrl);
 
         try {
             mn.systemMetadataChanged(null, D1TypeBuilder.buildIdentifier("bogusPid"), 10, new Date());
         }
-        catch (NotFound e) {
+        catch (InvalidRequest e) {
             // expected
         }
         catch (BaseException e) {
             handleFail(mn.getLatestRequestUrl(),"This call to systemMetadataChanged should throw a "
-                    + "NotFound exception if called with a bogus pid. Got: " 
+                    + "InvalidRequest exception if called with a bogus pid. Got: " 
                     +  e.getClass().getSimpleName() + ": " + e.getDetail_code() + ": " + e.getDescription());
         }
         catch(Exception e) {
             handleFail(mn.getLatestRequestUrl(),"This call to systemMetadataChanged should throw a "
-                    + "NotFound exception if called with a bogus pid. Got: "  
+                    + "InvalidRequest exception if called with a bogus pid. Got: "  
                     +  e.getClass().getSimpleName() + ": " + e.getMessage());
         }
     }
