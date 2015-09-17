@@ -134,8 +134,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
     @WebTestDescription(
      "Test operates on a single MN that supports both v1 & v2 APIs." +
      "It does a create on the v2 endpoint, then an update on the v1 endpoint." +
-     "The update operation should be successful, BUT we check that it has not " + 
-     "erased any v2-specific data from the existing system metadata (meaning the sid).")
+     "The update operation should be successful.")
     public void testV2CreateV1UpdateSameNode() {
 
         assertTrue("Tests require at least 1 MN that supports BOTH v1 & v2 APIs", v1v2mns.size() >= 1);
@@ -219,40 +218,6 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         catch(Exception e) {
             e.printStackTrace();
             throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV2CreateV1Update() update call failed! : " 
-            + e.getClass().getName() + ": " + e.getMessage());
-        }
-        
-        try {
-            Thread.sleep(METACAT_INDEXING_WAIT);
-        } catch (InterruptedException e1) {
-            e1.printStackTrace();
-        }
-        
-        try {    
-            newSysmeta = v1CallAdapter.getSystemMetadata(null, newPid);
-            
-            boolean sidsMatch = false;
-            if(newSysmeta.getSeriesId() == null && oldSid == null)
-                sidsMatch = true;
-            if(newSysmeta.getSeriesId() != null && oldSid != null 
-                    && newSysmeta.getSeriesId().getValue().equals(oldSid.getValue()))
-                sidsMatch = true;
-            
-            assertTrue("The system metadata associated with a v2 object, "
-                    + "after doing a v1 update(), should still contain the "
-                    + "seriesId from the old system metadata. It should not have "
-                    + "been erased by the update on the v1 endpoint!",
-                    sidsMatch);
-            
-        } catch (BaseException e) {
-            e.printStackTrace();
-            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV2CreateV1Update() expected InvalidRequest, got: " 
-                    + e.getClass().getSimpleName() + ": " 
-                    + e.getDetail_code() + ":: " + e.getDescription());
-        }
-        catch(Exception e) {
-            e.printStackTrace();
-            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV2CreateV1Update() expected InvalidRequest, got: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
     }
