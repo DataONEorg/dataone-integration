@@ -1281,11 +1281,12 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
                         }
                     }
                 }
+                Subject submitterSubject = D1TypeBuilder.buildSubject(submitterX500);
                 d1o = new D1Object(pid, contentBytes,
                         D1TypeBuilder.buildFormatIdentifier(DEFAULT_TEST_OBJECTFORMAT),
-                        D1TypeBuilder.buildSubject(submitterX500),
+                        submitterSubject,
                         nodeReference);
-                //			}
+                d1o.getSystemMetadata().setSubmitter(submitterSubject);
                 sysMeta = TypeFactory.convertTypeFromType(d1o.getSystemMetadata(), SystemMetadata.class);
                 sysMeta.setSeriesId(sid);
                 sysMeta.setReplicationPolicy(replPolicy);
