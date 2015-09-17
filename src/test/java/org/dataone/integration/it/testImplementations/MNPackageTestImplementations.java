@@ -15,9 +15,9 @@ import org.dataone.integration.webTest.WebTestDescription;
 import org.dataone.integration.webTest.WebTestName;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.InvalidRequest;
+import org.dataone.service.exceptions.NotAuthorized;
 import org.dataone.service.exceptions.NotFound;
 import org.dataone.service.exceptions.NotImplemented;
-import org.dataone.service.exceptions.UnsupportedType;
 import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Node;
 import org.dataone.service.types.v1.ObjectFormatIdentifier;
@@ -90,9 +90,9 @@ public class MNPackageTestImplementations extends ContextAwareAdapter {
             Identifier resMapPid = catc.procureResourceMap(callAdapter, D1TypeBuilder.buildIdentifier(
                     "testGetPackage_NotAuthorized_" + ExampleUtilities.generateIdentifier()));
             is = personCallAdapter.getPackage(null, formatID, resMapPid);
-            handleFail(callAdapter.getLatestRequestUrl(),"getPackage() should fail with a NotAuthorized subject");
+            handleFail(personCallAdapter.getLatestRequestUrl(),"getPackage() should fail with a NotAuthorized subject");
         } 
-        catch (NotFound e) {
+        catch (NotAuthorized e) {
             // expected outcome
         }
         catch (BaseException e) {
@@ -154,7 +154,7 @@ public class MNPackageTestImplementations extends ContextAwareAdapter {
             + "expecting a NotFound exception")
     public void testGetPackage_NotFound(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
-            testGetPackage_NotAuthorized(nodeIterator.next(), version);
+            testGetPackage_NotFound(nodeIterator.next(), version);
     }
 
     private void testGetPackage_NotFound(Node node, String version) {
@@ -169,7 +169,7 @@ public class MNPackageTestImplementations extends ContextAwareAdapter {
             pid.setValue("bogusPid");
             
             ObjectFormatIdentifier formatID = new ObjectFormatIdentifier();
-            formatID.setValue("application/zip");
+            formatID.setValue(BAGIT_ID);
             
             is = rightsHolderCallAdapter.getPackage(null, formatID, pid);
             handleFail(callAdapter.getLatestRequestUrl(),"getPackage() should fail with a NotFound for a bogus pid"
