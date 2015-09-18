@@ -460,8 +460,6 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         accessRule.addSubject(subject);
         accessRule.addPermission(Permission.CHANGE_PERMISSION);
         ReplicationPolicy replPolicy = new ReplicationPolicy();
-        
-        
         replPolicy.setReplicationAllowed(true);
         replPolicy.setNumberReplicas(2);
         
@@ -739,6 +737,10 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         accessRule.addSubject(subject);
         accessRule.addPermission(Permission.CHANGE_PERMISSION);
         
+        ReplicationPolicy replPolicy = new ReplicationPolicy();
+        replPolicy.setReplicationAllowed(true);
+        replPolicy.setNumberReplicas(2);
+        
         Node v1MNode = v1mns.get(0);
         MNCallAdapter v1CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v1MNode, "v1");
         
@@ -746,7 +748,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         
         Identifier pid = null;
         try {
-            pid = createTestObject(v1CallAdapter, "testV1CreateV2Query_", accessRule);
+            pid = createTestObject(v1CallAdapter, "testV1CreateV2Query_", accessRule, replPolicy);
         } catch (BaseException e) {
             e.printStackTrace();
             throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV1CreateV2Query() couldn't create test object: " 
