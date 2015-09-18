@@ -673,13 +673,13 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
                     sysmeta != null);
         } catch (BaseException e) {
             e.printStackTrace();
-            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + " : testV1CreateV2GetSysmeta() couldn't create update object: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + " : testV1CreateV2GetSysmeta() couldn't fetch sysmeta from replica target: " 
                     + e.getClass().getSimpleName() + ": " 
                     + e.getDetail_code() + ":: " + e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
-            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + " : testV1CreateV2GetSysmeta() couldn't create update object: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + " : testV1CreateV2GetSysmeta() couldn't fetch sysmeta from replica target: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
     }
@@ -737,13 +737,13 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
                     sysmeta != null);
         } catch (BaseException e) {
             e.printStackTrace();
-            throw new AssertionError(v2Endpoint.getLatestRequestUrl() + "testV2CreateV1Update() couldn't create update object: " 
+            throw new AssertionError(v2Endpoint.getLatestRequestUrl() + "testV2CreateV1Update() couldn't fetch sysmeta from replica target: " 
                     + e.getClass().getSimpleName() + ": " 
                     + e.getDetail_code() + ":: " + e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
-            throw new AssertionError(v2Endpoint.getLatestRequestUrl() + "testV2CreateV1Update() couldn't create update object: " 
+            throw new AssertionError(v2Endpoint.getLatestRequestUrl() + "testV2CreateV1Update() couldn't fetch sysmeta from replica target: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
     }
@@ -836,13 +836,13 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             
         } catch (BaseException e) {
             e.printStackTrace();
-            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV1CreateV2Query() couldn't create update object: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV1CreateV2Query() query failed on replica target: " 
                     + e.getClass().getSimpleName() + ": " 
                     + e.getDetail_code() + ":: " + e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
-            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV1CreateV2Query() couldn't create update object: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV1CreateV2Query() query failed on replica target: " 
             + e.getClass().getName() + ": " + e.getMessage());
         } finally {
             IOUtils.closeQuietly(is);
@@ -913,13 +913,13 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             // expected - query() on v1 MN should fail
         } catch (BaseException e) {
             e.printStackTrace();
-            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV2CreateV1Query() couldn't create update object: " 
+            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV2CreateV1Query() query failed on replica target: " 
                     + e.getClass().getSimpleName() + ": " 
                     + e.getDetail_code() + ":: " + e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
-            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV2CreateV1Query() couldn't create update object: " 
+            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV2CreateV1Query() query failed on replica target: " 
             + e.getClass().getName() + ": " + e.getMessage());
         } finally {
             IOUtils.closeQuietly(is);
@@ -977,13 +977,13 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
                     + "the pid of the deleted object.", deleteId != null);
         } catch (BaseException e) {
             e.printStackTrace();
-            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV2CreateV1DeleteSameNode() couldn't create update object: " 
+            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV2CreateV1DeleteSameNode() delete failed: " 
                     + e.getClass().getSimpleName() + ": " 
                     + e.getDetail_code() + ":: " + e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
-            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV2CreateV1DeleteSameNode() couldn't create update object: " 
+            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV2CreateV1DeleteSameNode() delete failed: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
     }
@@ -1040,13 +1040,13 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
                     + "the pid of the deleted object.", deleteId != null);
         } catch (BaseException e) {
             e.printStackTrace();
-            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV1CreateV2DeleteSameNode() couldn't create update object: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV1CreateV2DeleteSameNode() delete failed: " 
                     + e.getClass().getSimpleName() + ": " 
                     + e.getDetail_code() + ":: " + e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
-            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV1CreateV2DeleteSameNode() couldn't create update object: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV1CreateV2DeleteSameNode() delete failed: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
     }
@@ -1112,13 +1112,13 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             // expected - not available on this node
         } catch (BaseException e) {
             e.printStackTrace();
-            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV2CreateV1Delete() couldn't create update object: " 
+            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV2CreateV1Delete() delete failed on replica target: " 
                     + e.getClass().getSimpleName() + ": " 
                     + e.getDetail_code() + ":: " + e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
-            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV2CreateV1Delete() couldn't create update object: " 
+            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV2CreateV1Delete() delete failed on replica target: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
     }
@@ -1182,13 +1182,13 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
                     + "the pid of the deleted object.", deleteId != null);
         } catch (BaseException e) {
             e.printStackTrace();
-            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV1CreateV2Delete() couldn't create update object: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV1CreateV2Delete() delete failed on replica target: " 
                     + e.getClass().getSimpleName() + ": " 
                     + e.getDetail_code() + ":: " + e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
-            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV1CreateV2Delete() couldn't create update object: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV1CreateV2Delete() delete failed on replica target: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
     }
@@ -1250,13 +1250,13 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
                     + "should include the created object.", objFound );
         } catch (BaseException e) {
             e.printStackTrace();
-            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV2CreateV1ListObjectsSameNode() couldn't create update object: " 
+            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV2CreateV1ListObjectsSameNode() listObjects failed: " 
                     + e.getClass().getSimpleName() + ": " 
                     + e.getDetail_code() + ":: " + e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
-            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV2CreateV1ListObjectsSameNode() couldn't create update object: " 
+            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV2CreateV1ListObjectsSameNode() listObjects failed: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
     }
@@ -1318,13 +1318,13 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
                     + "should include the created object.", objFound );
         } catch (BaseException e) {
             e.printStackTrace();
-            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV1CreateV2ListObjectsSameNode() couldn't create update object: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV1CreateV2ListObjectsSameNode() listObjects failed: " 
                     + e.getClass().getSimpleName() + ": " 
                     + e.getDetail_code() + ":: " + e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
-            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV1CreateV2ListObjectsSameNode() couldn't create update object: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV1CreateV2ListObjectsSameNode() listObjects failed: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
     }
@@ -1395,13 +1395,13 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
                     + "should NOT include the created object.", objFound );
         } catch (BaseException e) {
             e.printStackTrace();
-            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV2CreateV1ListObjects() couldn't create update object: " 
+            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV2CreateV1ListObjects() listObjects failed on replica target: " 
                     + e.getClass().getSimpleName() + ": " 
                     + e.getDetail_code() + ":: " + e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
-            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV2CreateV1ListObjects() couldn't create update object: " 
+            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV2CreateV1ListObjects() listObjects failed on replica target: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
     }
@@ -1472,13 +1472,13 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
                     + "should include the created object: " + pid.getValue(), objFound );
         } catch (BaseException e) {
             e.printStackTrace();
-            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV1CreateV2ListObjects() couldn't create update object: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV1CreateV2ListObjects() listObjects failed on replica target: " 
                     + e.getClass().getSimpleName() + ": " 
                     + e.getDetail_code() + ":: " + e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
-            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV1CreateV2ListObjects() couldn't create update object: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV1CreateV2ListObjects() listObjects failed on replica target: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
     }
