@@ -262,7 +262,7 @@ public class NodeRegistryExtensibilityTestImplementations extends ContextAwareAd
         
         List<Property> fetchedPropertyList = fetchedNode.getPropertyList();
         assertTrue("testUpdateNodeCapabilities(): fetched Node property list "
-                + "should not be null", fetchedNode != null);
+                + "should not be null", fetchedPropertyList != null);
         assertTrue("testUpdateNodeCapabilities(): fetched Node property list "
                 + "should contain two properties. Number of properties: " + 
                 fetchedPropertyList.size(), fetchedPropertyList.size() == 2);
