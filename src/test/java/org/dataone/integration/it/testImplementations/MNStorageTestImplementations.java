@@ -12,6 +12,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.dataone.client.exception.ClientSideException;
 import org.dataone.client.v1.types.D1TypeBuilder;
+import org.dataone.integration.APITestUtils;
 import org.dataone.integration.ContextAwareTestCaseDataone;
 import org.dataone.integration.ExampleUtilities;
 import org.dataone.integration.adapters.MNCallAdapter;
@@ -342,7 +343,7 @@ public class MNStorageTestImplementations extends ContextAwareAdapter {
                             .getObsoletedBy().getValue(), updatedPid.getValue());
 
             // the old pid needs to be in a timebound listObject search
-            ObjectList ol = callAdapter.listObjects(null, dateCreated, null, null, null, null);
+            ObjectList ol = APITestUtils.pagedListObjects(callAdapter, dateCreated, null, null, null, null);
             
             checkTrue(callAdapter.getLatestRequestUrl(), "Object info list shouldn't be null."
                     + "This means that the listObjects() call failed.", 

@@ -23,6 +23,7 @@ import org.apache.commons.logging.LogFactory;
 import org.dataone.client.v1.itk.D1Object;
 import org.dataone.client.v1.types.D1TypeBuilder;
 import org.dataone.configuration.Settings;
+import org.dataone.integration.APITestUtils;
 import org.dataone.integration.ContextAwareTestCaseDataone;
 import org.dataone.integration.ExampleUtilities;
 import org.dataone.integration.adapters.CNCallAdapter;
@@ -1207,7 +1208,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         MNCallAdapter v1CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v1v2MNode, "v1");
         
         try {
-            ObjectList objList = v1CallAdapter.listObjects(null, null, null, null, null, null);
+            ObjectList objList = APITestUtils.pagedListObjects(v1CallAdapter, null, null, null, null, null);
             boolean objFound = false;
             for(ObjectInfo objInfo : objList.getObjectInfoList())
                 if(pid.getValue().equals(objInfo.getIdentifier().getValue())){
@@ -1275,7 +1276,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         MNCallAdapter v2CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v1v2MNode, "v2");
         
         try {
-            ObjectList objList = v2CallAdapter.listObjects(null, null, null, null, null, null);
+            ObjectList objList = APITestUtils.pagedListObjects(v2CallAdapter, null, null, null, null, null);
             boolean objFound = false;
             for(ObjectInfo objInfo : objList.getObjectInfoList())
                 if(pid.getValue().equals(objInfo.getIdentifier().getValue())){
@@ -1352,7 +1353,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         MNCallAdapter v1CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v1MNode, "v1");
         
         try {
-            ObjectList objList = v1CallAdapter.listObjects(null, null, null, null, null, null);
+            ObjectList objList = APITestUtils.pagedListObjects(v1CallAdapter, null, null, null, null, null);
             boolean objFound = false;
             for(ObjectInfo objInfo : objList.getObjectInfoList())
                 if(pid.getValue().equals(objInfo.getIdentifier().getValue())){
@@ -1429,7 +1430,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         MNCallAdapter v2CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v2MNode, "v2");
         
         try {
-            ObjectList objList = v2CallAdapter.listObjects(null, null, null, null, null, null);
+            ObjectList objList = APITestUtils.pagedListObjects(v2CallAdapter, null, null, null, null, null);
             boolean objFound = false;
             for(ObjectInfo objInfo : objList.getObjectInfoList())
                 if(pid.getValue().equals(objInfo.getIdentifier().getValue())){
