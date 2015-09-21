@@ -402,7 +402,7 @@ public class SidCNTestImplementations extends SidCommonTestImplementations {
                 
                 createTestObject(callAdapter, p1, s1, null, p2, true);
                 createTestObject(callAdapter, p2, s1, p1, null, true);
-
+                
                 Identifier sid = s1;
                 Identifier pid = p2;
     
@@ -783,10 +783,14 @@ public class SidCNTestImplementations extends SidCommonTestImplementations {
                     + pid.getValue() + " ..... ");
             
             MNCallAdapter mnCallAdapter = new MNCallAdapter(getSession(cnSubmitter), mn, "v2");
+            
             try {
-                super.createTestObject(mnCallAdapter, pid, sid, obsoletesId, obsoletedById);
+                if (obsoletesId == null)
+                    super.createTestObject(mnCallAdapter, pid, sid, obsoletesId, obsoletedById);
+                else
+                    super.updateTestObject(mnCallAdapter, obsoletesId, pid, sid);
             } catch (Exception maybeBogusTimeout) {
-                log.warn("pid possibly not created: " + pid.getValue());
+                log.warn("pid not created: " + pid.getValue());
             }
             
             log.info("created a test object on MN " + mn.getBaseURL() + " with pid: "

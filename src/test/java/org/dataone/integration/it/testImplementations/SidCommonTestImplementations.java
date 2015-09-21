@@ -157,7 +157,7 @@ public abstract class SidCommonTestImplementations extends ContextAwareTestCaseD
     protected Identifier createIdentifier(String prefix, Node node) {
         
         try {
-            Thread.sleep(1);    // avoid identical Identifiers
+            Thread.sleep(2);    // avoid identical Identifiers
         } catch (InterruptedException e) {
             // I'd be surprised
         }
@@ -241,6 +241,20 @@ public abstract class SidCommonTestImplementations extends ContextAwareTestCaseD
             IdentifierNotUnique, UnsupportedType, InsufficientResources, InvalidSystemMetadata,
             NotImplemented, InvalidRequest, NotFound, ClientSideException, IOException, NoSuchAlgorithmException, 
             InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
+        return updateTestObject(callAdapter, oldPid, newPid, sid, null);
+    }
+    
+    /**
+     * For MN cases. The first object in a series can be created with 
+     * {@link #createTestObject(CommonCallAdapter, Identifier, Identifier, Identifier, Identifier)}
+     * but following objects should be updated with this method, which uses MN.update().
+     * @throws NoSuchMethodException 
+     */
+    public Identifier updateTestObject(CommonCallAdapter callAdapter, Identifier oldPid,
+            Identifier newPid, Identifier sid, Identifier obsoletedBy) throws InvalidToken, ServiceFailure, NotAuthorized,
+            IdentifierNotUnique, UnsupportedType, InsufficientResources, InvalidSystemMetadata,
+            NotImplemented, InvalidRequest, NotFound, ClientSideException, IOException, NoSuchAlgorithmException, 
+            InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
         
         logger.info("UPDATING test object... pid: " + oldPid.getValue() + " with pid: " + newPid.getValue() 
                 + " with a sid: " + (sid == null ? "null" : sid.getValue()));
@@ -259,6 +273,7 @@ public abstract class SidCommonTestImplementations extends ContextAwareTestCaseD
         
         SystemMetadata sysmeta = TypeFactory.convertTypeFromType(d1o.getSystemMetadata(), SystemMetadata.class);
         sysmeta.setObsoletes(oldPid);
+        sysmeta.setObsoletedBy(obsoletedBy);
         sysmeta.setSeriesId(sid);
         InputStream objectInputStream = null;
         Identifier updatedPid = null;
