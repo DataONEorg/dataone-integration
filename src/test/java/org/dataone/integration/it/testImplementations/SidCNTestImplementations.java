@@ -731,13 +731,13 @@ public class SidCNTestImplementations extends SidCommonTestImplementations {
             InsufficientResources, InvalidSystemMetadata, NotImplemented, InvalidRequest,
             UnsupportedEncodingException, NotFound, ClientSideException {
 
-        if(!createOnMN)
+        if(!createOnMN) // CN.create() is simple
             return super.createTestObject(callAdapter, pid, sid, obsoletesId, obsoletedById);
         
         String sidVal = sid == null ? "null" : sid.getValue();
         String obsoletesVal = obsoletesId == null ? "null" : obsoletesId.getValue();
         String obsoletedVal = obsoletedById == null ? "null" : obsoletedById.getValue();
-        logger.info("CREATING test object (on MN)... pid: " + pid.getValue() 
+        logger.info("creating test object (on MN)... pid: " + pid.getValue() 
                 + " with a sid: " + sidVal 
                 + " obsoletes: " + obsoletesVal 
                 + " obsoletedBy: " + obsoletedVal);
@@ -782,8 +782,6 @@ public class SidCNTestImplementations extends SidCommonTestImplementations {
                 log.warn("pid possibly not created: " + pid.getValue());
             }
             
-//            SystemMetadata checkIfCreatedSysmeta = mnCallAdapter.getSystemMetadata(null, pid);
-            
             log.info("created a test object on MN " + mn.getBaseURL() + " with pid: "
                     + pid.getValue());
             log.info("waiting for object (" + pid.getValue() + ") to sync from " + mn.getBaseURL() 
@@ -806,14 +804,6 @@ public class SidCNTestImplementations extends SidCommonTestImplementations {
         } catch (Exception e) {
             throw new AssertionError("Unable to create test object. " + e.getClass().getSimpleName() + " : "
                     + e.getMessage() + " ", e);
-        }
-        
-        try {
-            testObjPid = super.createTestObject(callAdapter, pid, sid, obsoletesId, obsoletedById, policy, subjectLabel, rightsHolder.getValue());
-        } catch (BaseException be) {
-            logger.error("Unable to create test object. "
-                    + be.getMessage() + " " + be.getDescription(), be);
-            throw be;
         }
         
         markForCleanUp(callAdapter.getNode(), pid);
