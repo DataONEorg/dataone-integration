@@ -50,14 +50,12 @@ import org.dataone.service.types.v1.ObjectLocation;
 import org.dataone.service.types.v1.ObjectLocationList;
 import org.dataone.service.types.v1.Permission;
 import org.dataone.service.types.v1.ReplicationPolicy;
+import org.dataone.service.types.v1.Service;
 import org.dataone.service.types.v1.Subject;
 import org.dataone.service.types.v1.util.AccessUtil;
-import org.dataone.service.types.v2.Log;
 import org.dataone.service.types.v2.NodeList;
 import org.dataone.service.types.v2.SystemMetadata;
 import org.dataone.service.types.v2.TypeFactory;
-import org.dataone.service.util.TypeMarshaller;
-import org.jibx.runtime.JiBXException;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.w3c.dom.Document;
@@ -707,7 +705,8 @@ public class SidCNTestImplementations extends SidCommonTestImplementations {
     }
     
     /**
-     * Creates a test object according to the parameters provided.  
+     * Creates a test object according to the parameters provided. If createOnMN is specified,
+     * will only create on a v2 MN.
      * Also allows setting the SID and the obsoletes / obsoletedBy chain.
      * If <code>obsoletesId</code> or <code>obsoletedById</code> are set, we need to
      * make multiple calls - to create() and to updateSystemMetadata() since setting
@@ -745,30 +744,38 @@ public class SidCNTestImplementations extends SidCommonTestImplementations {
         Identifier testObjPid = null;
         
         getSession("testRightsHolder");
-        Subject rightsHolder = getSubject("testRightsHolder");
         
         // get MN to create on
         Node mn = null;
         try {
             NodeList listOfNodes = callAdapter.listNodes();
             for (Node n : listOfNodes.getNodeList()) {
-                if(n.getType() == NodeType.MN) {
-                    try {
-                        log.info("checking MN " + n.getBaseURL());
-                        
-                        MNCallAdapter mnCallAdapter = new MNCallAdapter(getSession(cnSubmitter), n, "v2");
-                        Node mnCapabilities = mnCallAdapter.getCapabilities();
-                        
-                        if(mnCapabilities.isSynchronize()) {
-                            mn = n;
-                            break;
-                        }
-                    } catch (Exception e1) {
-                        log.info("skipping MN " + n == null ? "null" : n.getBaseURL() + " because: "
-                                + e1.getClass().getSimpleName() + " : " + e1.getMessage());
-                        continue;
-                    }
+                // must be MN
+                if (n.getType() != NodeType.MN)
+                    continue;
+                
+                // must support v2
+                MNCallAdapter mnCallAdapter = new MNCallAdapter(getSession(cnSubmitter), n, "v2");
+                try {
+                    mnCallAdapter.ping();
+                } catch (BaseException be) {
+                    continue;
                 }
+                
+                try {
+                    log.info("checking MN " + n.getBaseURL());
+                    Node mnCapabilities = mnCallAdapter.getCapabilities();
+                    
+                    if(mnCapabilities.isSynchronize()) {
+                        mn = n;
+                        break;
+                    }
+                } catch (Exception e1) {
+                    log.info("skipping MN " + n == null ? "null" : n.getBaseURL() + " because: "
+                            + e1.getClass().getSimpleName() + " : " + e1.getMessage());
+                    continue;
+                }
+                
             }
             assertTrue("Should be able to find a v2 MN that responds to getCapabilities() "
                     + "and supports synchronize.", mn != null);
