@@ -272,7 +272,7 @@ implements CoreTestDefinitions, CNCoreTestDefinitions, CNv2CoreTestDefinitions, 
     @Override
     @Test
     public void testUpdateSystemMetadata_InvalidRequest_NullOriginMN() {
-        updateSysMetaImpl.testUpdateSystemMetadata_InvalidRequest_NullOriginMN(getMemberNodeIterator(), "v2");
+        updateSysMetaImpl.testUpdateSystemMetadata_InvalidRequest_NullOriginMN(getCoordinatingNodeIterator(), "v2");
     }
     
     @Override
