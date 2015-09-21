@@ -1324,7 +1324,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
             
             // create the test object on the given mNode
             if (log.isInfoEnabled()) {
-                log.info("creating a test object.  pid = " + pid.getValue());
+                log.info("creating a test object.  pid = " + pid.getValue() + " on " + d1Node.getNodeBaseServiceUrl());
                 ByteArrayOutputStream os = new ByteArrayOutputStream();
                 try {
                     TypeMarshaller.marshalTypeToOutputStream(sysMeta, os);
