@@ -41,6 +41,7 @@ import org.dataone.service.types.v1.NodeType;
 import org.dataone.service.types.v1.ObjectInfo;
 import org.dataone.service.types.v1.ObjectList;
 import org.dataone.service.types.v1.Permission;
+import org.dataone.service.types.v1.Replica;
 import org.dataone.service.types.v1.ReplicationPolicy;
 import org.dataone.service.types.v1.Service;
 import org.dataone.service.types.v1.Subject;
@@ -183,19 +184,19 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         
         // v2 create
         
-        Identifier oldPid = D1TypeBuilder.buildIdentifier("testV2CreateV1Update_pid_" + ExampleUtilities.generateIdentifier());
-        Identifier oldSid = D1TypeBuilder.buildIdentifier("testV2CreateV1Update_sid_" + ExampleUtilities.generateIdentifier());
+        Identifier oldPid = D1TypeBuilder.buildIdentifier("testV2CreateV1UpdateSameNode_pid_" + ExampleUtilities.generateIdentifier());
+        Identifier oldSid = D1TypeBuilder.buildIdentifier("testV2CreateV1UpdateSameNode_sid_" + ExampleUtilities.generateIdentifier());
         try {
             createTestObject(v2CallAdapter, oldPid, oldSid, null, null, policy, "testRightsHolder", "testRightsHolder");
         } catch (BaseException e) {
             e.printStackTrace();
-            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV2CreateV1Update() couldn't create test object: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + " testV2CreateV1UpdateSameNode() couldn't create test object: " 
                     + e.getClass().getSimpleName() + ": " 
                     + e.getDetail_code() + ":: " + e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
-            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV2CreateV1Update() couldn't create test object: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + " testV2CreateV1UpdateSameNode() couldn't create test object: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
         
@@ -211,7 +212,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         try {
             oldSysmeta = v2CallAdapter.getSystemMetadata(null, oldPid);
         } catch (Exception e) {
-            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV2CreateV1Update() couldn't fetch old sysmeta: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + " testV2CreateV1UpdateSameNode() couldn't fetch old sysmeta: " 
                     + e.getClass().getName() + ": " + e.getMessage());
         }
         
@@ -222,7 +223,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         InputStream objectInputStream = null;
         
         try {
-            newPid = D1TypeBuilder.buildIdentifier("testV2CreateV1Update_2_" + ExampleUtilities.generateIdentifier());
+            newPid = D1TypeBuilder.buildIdentifier("testV2CreateV1UpdateSameNode_2_" + ExampleUtilities.generateIdentifier());
             byte[] contentBytes = ExampleUtilities.getExampleObjectOfType(DEFAULT_TEST_OBJECTFORMAT);
             D1Object d1o = new D1Object(newPid, contentBytes,
                     D1TypeBuilder.buildFormatIdentifier(DEFAULT_TEST_OBJECTFORMAT),
@@ -232,13 +233,13 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             objectInputStream = new ByteArrayInputStream(contentBytes);
         } catch (BaseException e) {
             e.printStackTrace();
-            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV2CreateV1Update() couldn't create update object: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + " testV2CreateV1UpdateSameNode() couldn't create update object: " 
                     + e.getClass().getSimpleName() + ": " 
                     + e.getDetail_code() + ":: " + e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
-            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV2CreateV1Update() couldn't create update object: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + " testV2CreateV1UpdateSameNode() couldn't create update object: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
         
@@ -247,7 +248,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         }
         catch(Exception e) {
             e.printStackTrace();
-            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV2CreateV1Update() update call failed! : " 
+            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + " testV2CreateV1UpdateSameNode() update call failed! : " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
     }
@@ -275,16 +276,16 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         
         Identifier pid = null;
         try {
-            pid = createTestObject(v1CallAdapter, "testV1CreateV2Update_1_" + ExampleUtilities.generateIdentifier(), accessRule);
+            pid = createTestObject(v1CallAdapter, "testV1CreateV2UpdateSameNode_1_" + ExampleUtilities.generateIdentifier(), accessRule);
         } catch (BaseException e) {
             e.printStackTrace();
-            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV1CreateV2Update() couldn't create test object: " 
+            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + " testV1CreateV2UpdateSameNode() couldn't create test object: " 
                     + e.getClass().getSimpleName() + ": " 
                     + e.getDetail_code() + ":: " + e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
-            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV1CreateV2Update() couldn't create test object: " 
+            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + " testV1CreateV2UpdateSameNode() couldn't create test object: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
         
@@ -301,7 +302,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         InputStream objectInputStream = null;
         
         try {
-            newPid = D1TypeBuilder.buildIdentifier("testV1CreateV2Update_2_" + ExampleUtilities.generateIdentifier());
+            newPid = D1TypeBuilder.buildIdentifier("testV1CreateV2UpdateSameNode_2_" + ExampleUtilities.generateIdentifier());
             byte[] contentBytes = ExampleUtilities.getExampleObjectOfType(DEFAULT_TEST_OBJECTFORMAT);
             D1Object d1o = new D1Object(newPid, contentBytes,
                     D1TypeBuilder.buildFormatIdentifier(DEFAULT_TEST_OBJECTFORMAT),
@@ -312,13 +313,13 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             objectInputStream = new ByteArrayInputStream(contentBytes);
         } catch (BaseException e) {
             e.printStackTrace();
-            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV1CreateV2Update() couldn't create update object: " 
+            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + " testV1CreateV2UpdateSameNode() couldn't create update object: " 
                     + e.getClass().getSimpleName() + ": " 
                     + e.getDetail_code() + ":: " + e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
-            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV1CreateV2Update() couldn't create update object: " 
+            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + " testV1CreateV2UpdateSameNode() couldn't create update object: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
         
@@ -327,13 +328,13 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             assertTrue("testV2CreateV1Update: update on v2 endpoint should succeed", updPid != null);
         } catch (BaseException e) {
             e.printStackTrace();
-            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV2CreateV1Update: update on v2 endpoint should succeed; got: " 
+            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + " testV1CreateV2UpdateSameNode: update on v2 endpoint should succeed; got: " 
                     + e.getClass().getSimpleName() + ": " 
                     + e.getDetail_code() + ":: " + e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
-            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV2CreateV1Update: update on v2 endpoint should succeed; got: " 
+            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + " testV1CreateV2UpdateSameNode: update on v2 endpoint should succeed; got: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
     }
@@ -369,13 +370,13 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             pid = createTestObject(v2CallAdapter, pid, accessRule, replPolicy);
         } catch (BaseException e) {
             e.printStackTrace();
-            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV2CreateV1GetSysMeta() couldn't create test object: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + " testV2CreateV1GetSysMeta() couldn't create test object: " 
                     + e.getClass().getSimpleName() + ": " 
                     + e.getDetail_code() + ":: " + e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
-            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV2CreateV1GetSysMeta() couldn't create test object: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + " testV2CreateV1GetSysMeta() couldn't create test object: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
         
@@ -386,9 +387,32 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             e1.printStackTrace();
         }
         
+        Node replicaMN = null;
+        try {
+            SystemMetadata cnSysmeta = cn.getSystemMetadata(null, pid);
+            List<Replica> replicaList = cnSysmeta.getReplicaList();
+            outerloop:
+            for (Replica rep : replicaList) {
+                for (Node availMN : v1mns) {
+                    if (availMN.getIdentifier().getValue().equals( rep.getReplicaMemberNode().getValue() )) {
+                        replicaMN = availMN;
+                        break outerloop;
+                    }
+                }
+            }
+        } catch (NotFound e) {
+            throw new AssertionError(cn.getLatestRequestUrl() + " testV2CreateV1GetSysMeta() : unable to fetch sysmeta from CN! Check status of CN sync. "
+                    + ": NotFound " + e.getDetail_code() + ", " + e.getDescription() + ":" + e.getMessage());
+        } catch (Exception e) {
+            throw new AssertionError(cn.getLatestRequestUrl() + " testV2CreateV1GetSysMeta() : unable to fetch sysmeta from CN! Check status of CN sync.");
+        }
+        
+        if(replicaMN == null)
+            throw new AssertionError("Unable to locate a replica MN for pid: " + pid.getValue());
+        
         // v1 getSysmeta
 
-        Node v1MNode = v1mns.get(0);
+        Node v1MNode = replicaMN;
         MNCallAdapter v1CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v1MNode, "v1");
         
         try {
@@ -397,13 +421,13 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             // expected, shouldn't have been replicated to a v1 node
         } catch (BaseException e) {
             e.printStackTrace();
-            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV2CreateV1GetSysMeta() couldn't create update object: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + " testV2CreateV1GetSysMeta() couldn't create update object: " 
                     + e.getClass().getSimpleName() + ": " 
                     + e.getDetail_code() + ":: " + e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
-            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV2CreateV1GetSysMeta() couldn't create update object: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + " testV2CreateV1GetSysMeta() couldn't create update object: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
     }
@@ -431,16 +455,16 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         
         Identifier pid = null;
         try {
-            pid = createTestObject(v2CallAdapter, "testV2CreateV1GetSysmeta_", accessRule);
+            pid = createTestObject(v2CallAdapter, "testV2CreateV1GetSysmetaSameNode_", accessRule);
         } catch (BaseException e) {
             e.printStackTrace();
-            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV2CreateV1GetSysmeta() couldn't create test object: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + " testV2CreateV1GetSysmetaSameNode() couldn't create test object: " 
                     + e.getClass().getSimpleName() + ": " 
                     + e.getDetail_code() + ":: " + e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
-            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV2CreateV1GetSysmeta() couldn't create test object: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + " testV2CreateV1GetSysmetaSameNode() couldn't create test object: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
         
@@ -460,13 +484,13 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
                     + "returning a non-null SystemMetadata", sysmeta != null);
         } catch (BaseException e) {
             e.printStackTrace();
-            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV2CreateV1GetSysmeta() couldn't create update object: " 
+            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + " testV2CreateV1GetSysmetaSameNode() couldn't create update object: " 
                     + e.getClass().getSimpleName() + ": " 
                     + e.getDetail_code() + ":: " + e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
-            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV2CreateV1GetSysmeta() couldn't create update object: " 
+            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + " testV2CreateV1GetSysmetaSameNode() couldn't create update object: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
     }
@@ -502,13 +526,13 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             pid = createTestObject(v1CallAdapter, pid, accessRule, replPolicy);
         } catch (BaseException e) {
             e.printStackTrace();
-            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV1CreateV2Get() couldn't create test object: " 
+            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + " testV1CreateV2Get() couldn't create test object: " 
                     + e.getClass().getSimpleName() + ": " 
                     + e.getDetail_code() + ":: " + e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
-            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV1CreateV2Get() couldn't create test object: " 
+            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + " testV1CreateV2Get() couldn't create test object: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
         
@@ -521,7 +545,31 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         
         // v2 get
 
-        Node v2MNode = v2mns.get(0);
+        Node replicaMN = null;
+        try {
+            SystemMetadata cnSysmeta = cn.getSystemMetadata(null, pid);
+            List<Replica> replicaList = cnSysmeta.getReplicaList();
+            outerloop:
+            for (Replica rep : replicaList) {
+                for (Node availMN : v2mns) {
+                    if (availMN.getIdentifier().getValue().equals( rep.getReplicaMemberNode().getValue() )) {
+                        replicaMN = availMN;
+                        break outerloop;
+                    }
+                }
+            }
+        } catch (NotFound e) {
+            throw new AssertionError(cn.getLatestRequestUrl() + " testV1CreateV2Get() : unable to fetch sysmeta from CN! Check status of CN sync. "
+                    + ": NotFound " + e.getDetail_code() + ", " + e.getDescription() + ":" + e.getMessage());
+        } catch (Exception e) {
+            throw new AssertionError(cn.getLatestRequestUrl() + " testV1CreateV2Get() : unable to fetch sysmeta from CN! Check status of CN sync.");
+        }
+        
+        if(replicaMN == null)
+            throw new AssertionError("Unable to locate a replica MN for pid: " + pid.getValue());
+        
+        Node v2MNode = replicaMN;
+        
         MNCallAdapter v2CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v2MNode, "v2");
         
         InputStream is = null;
@@ -533,12 +581,12 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
                     is != null);
         } catch (BaseException e) {
             e.printStackTrace();
-            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV1CreateV2Get() couldn't create update object: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + " testV1CreateV2Get() couldn't create update object: " 
                     + e.getClass().getSimpleName() + ": " 
                     + e.getDetail_code() + ":: " + e.getDescription());
         } catch(Exception e) {
             e.printStackTrace();
-            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV2CreateV1Update() couldn't create update object: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + " testV1CreateV2Get() couldn't create update object: " 
             + e.getClass().getName() + ": " + e.getMessage());
         } finally {
             IOUtils.closeQuietly(is);
@@ -570,13 +618,13 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             pid = createTestObject(v2CallAdapter, "testV2CreateV1GetSameNode_", accessRule);
         } catch (BaseException e) {
             e.printStackTrace();
-            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV2CreateV1GetSameNode() couldn't create test object: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + " testV2CreateV1GetSameNode() couldn't create test object: " 
                     + e.getClass().getSimpleName() + ": " 
                     + e.getDetail_code() + ":: " + e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
-            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV2CreateV1GetSameNode() couldn't create test object: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + " testV2CreateV1GetSameNode() couldn't create test object: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
         
@@ -597,13 +645,13 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
                     + "should return a non-null InputStream.", is != null);
         } catch (BaseException e) {
             e.printStackTrace();
-            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV2CreateV1GetSameNode() couldn't create update object: " 
+            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + " testV2CreateV1GetSameNode() couldn't create update object: " 
                     + e.getClass().getSimpleName() + ": " 
                     + e.getDetail_code() + ":: " + e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
-            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV2CreateV1GetSameNode() couldn't create update object: " 
+            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + " testV2CreateV1GetSameNode() couldn't create update object: " 
             + e.getClass().getName() + ": " + e.getMessage());
         } finally {
             IOUtils.closeQuietly(is);
@@ -645,13 +693,13 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             log.info("Created test object: " + pid.getValue() + " on MN: " + v1CallAdapter.getNodeBaseServiceUrl());
         } catch (BaseException e) {
             e.printStackTrace();
-            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV1CreateV2GetSysmeta() couldn't create test object: " 
+            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + " testV1CreateV2GetSysmeta() couldn't create test object: " 
                     + e.getClass().getSimpleName() + ": " 
                     + e.getDetail_code() + ":: " + e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
-            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV1CreateV2GetSysmeta() couldn't create test object: " 
+            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + " testV1CreateV2GetSysmeta() couldn't create test object: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
         
@@ -662,9 +710,32 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             e1.printStackTrace();
         }
         
+        Node replicaMN = null;
+        try {
+            SystemMetadata cnSysmeta = cn.getSystemMetadata(null, pid);
+            List<Replica> replicaList = cnSysmeta.getReplicaList();
+            outerloop:
+            for (Replica rep : replicaList) {
+                for (Node availMN : v2mns) {
+                    if (availMN.getIdentifier().getValue().equals( rep.getReplicaMemberNode().getValue() )) {
+                        replicaMN = availMN;
+                        break outerloop;
+                    }
+                }
+            }
+        } catch (NotFound e) {
+            throw new AssertionError(cn.getLatestRequestUrl() + " testV1CreateV2GetSysmeta() : unable to fetch sysmeta from CN! Check status of CN sync. "
+                    + ": NotFound " + e.getDetail_code() + ", " + e.getDescription() + ":" + e.getMessage());
+        } catch (Exception e) {
+            throw new AssertionError(cn.getLatestRequestUrl() + " testV1CreateV2GetSysmeta() : unable to fetch sysmeta from CN! Check status of CN sync.");
+        }
+        
+        if(replicaMN == null)
+            throw new AssertionError("Unable to locate a replica MN for pid: " + pid.getValue());
+        
         // v2 getSysmeta
 
-        Node v2MNode = v2mns.get(0);
+        Node v2MNode = replicaMN;
         MNCallAdapter v2CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v2MNode, "v2");
         
         try {
@@ -707,16 +778,16 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         
         Identifier pid = null;
         try {
-            pid = createTestObject(v1Endpoint, "testV1CreateV2GetSysmeta_", accessRule);
+            pid = createTestObject(v1Endpoint, "testV1CreateV2GetSysmetaSameNode_", accessRule);
         } catch (BaseException e) {
             e.printStackTrace();
-            throw new AssertionError(v1Endpoint.getLatestRequestUrl() + "testV1CreateV2GetSysmeta() couldn't create test object: " 
+            throw new AssertionError(v1Endpoint.getLatestRequestUrl() + " testV1CreateV2GetSysmetaSameNode() couldn't create test object: " 
                     + e.getClass().getSimpleName() + ": " 
                     + e.getDetail_code() + ":: " + e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
-            throw new AssertionError(v1Endpoint.getLatestRequestUrl() + "testV1CreateV2GetSysmeta() couldn't create test object: " 
+            throw new AssertionError(v1Endpoint.getLatestRequestUrl() + " testV1CreateV2GetSysmetaSameNode() couldn't create test object: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
         
@@ -737,13 +808,13 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
                     sysmeta != null);
         } catch (BaseException e) {
             e.printStackTrace();
-            throw new AssertionError(v2Endpoint.getLatestRequestUrl() + "testV2CreateV1Update() couldn't fetch sysmeta from replica target: " 
+            throw new AssertionError(v2Endpoint.getLatestRequestUrl() + " testV1CreateV2GetSysmetaSameNode() couldn't fetch sysmeta from replica target: " 
                     + e.getClass().getSimpleName() + ": " 
                     + e.getDetail_code() + ":: " + e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
-            throw new AssertionError(v2Endpoint.getLatestRequestUrl() + "testV2CreateV1Update() couldn't fetch sysmeta from replica target: " 
+            throw new AssertionError(v2Endpoint.getLatestRequestUrl() + " testV1CreateV2GetSysmetaSameNode() couldn't fetch sysmeta from replica target: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
     }
@@ -780,13 +851,13 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             pid = createTestObject(v1CallAdapter, pid, accessRule, replPolicy);
         } catch (BaseException e) {
             e.printStackTrace();
-            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV1CreateV2Query() couldn't create test object: " 
+            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + " testV1CreateV2Query() couldn't create test object: " 
                     + e.getClass().getSimpleName() + ": " 
                     + e.getDetail_code() + ":: " + e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
-            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV1CreateV2Query() couldn't create test object: " 
+            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + " testV1CreateV2Query() couldn't create test object: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
         
@@ -797,9 +868,32 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             e1.printStackTrace();
         }
         
+        Node replicaMN = null;
+        try {
+            SystemMetadata cnSysmeta = cn.getSystemMetadata(null, pid);
+            List<Replica> replicaList = cnSysmeta.getReplicaList();
+            outerloop:
+            for (Replica rep : replicaList) {
+                for (Node availMN : v2mns) {
+                    if (availMN.getIdentifier().getValue().equals( rep.getReplicaMemberNode().getValue() )) {
+                        replicaMN = availMN;
+                        break outerloop;
+                    }
+                }
+            }
+        } catch (NotFound e) {
+            throw new AssertionError(cn.getLatestRequestUrl() + " testV1CreateV2Query() : unable to fetch sysmeta from CN! Check status of CN sync. "
+                    + ": NotFound " + e.getDetail_code() + ", " + e.getDescription() + ":" + e.getMessage());
+        } catch (Exception e) {
+            throw new AssertionError(cn.getLatestRequestUrl() + " testV1CreateV2Query() : unable to fetch sysmeta from CN! Check status of CN sync.");
+        }
+        
+        if(replicaMN == null)
+            throw new AssertionError("Unable to locate a replica MN for pid: " + pid.getValue());
+        
         // v2 query
 
-        Node v2MNode = v2mns.get(0);
+        Node v2MNode = replicaMN;
         MNCallAdapter v2CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v2MNode, "v2");
         
         InputStream is = null;
@@ -836,13 +930,13 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             
         } catch (BaseException e) {
             e.printStackTrace();
-            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV1CreateV2Query() query failed on replica target: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + " testV1CreateV2Query() query failed on replica target: " 
                     + e.getClass().getSimpleName() + ": " 
                     + e.getDetail_code() + ":: " + e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
-            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV1CreateV2Query() query failed on replica target: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + " testV1CreateV2Query() query failed on replica target: " 
             + e.getClass().getName() + ": " + e.getMessage());
         } finally {
             IOUtils.closeQuietly(is);
@@ -881,13 +975,13 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             pid = createTestObject(v2CallAdapter, pid, accessRule, replPolicy);
         } catch (BaseException e) {
             e.printStackTrace();
-            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV2CreateV1Query() couldn't create test object: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + " testV2CreateV1Query() couldn't create test object: " 
                     + e.getClass().getSimpleName() + ": " 
                     + e.getDetail_code() + ":: " + e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
-            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV2CreateV1Query() couldn't create test object: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + " testV2CreateV1Query() couldn't create test object: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
         
@@ -898,28 +992,51 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             e1.printStackTrace();
         }
         
+        Node replicaMN = null;
+        try {
+            SystemMetadata cnSysmeta = cn.getSystemMetadata(null, pid);
+            List<Replica> replicaList = cnSysmeta.getReplicaList();
+            outerloop:
+            for (Replica rep : replicaList) {
+                for (Node availMN : v1mns) {
+                    if (availMN.getIdentifier().getValue().equals( rep.getReplicaMemberNode().getValue() )) {
+                        replicaMN = availMN;
+                        break outerloop;
+                    }
+                }
+            }
+        } catch (NotFound e) {
+            throw new AssertionError(cn.getLatestRequestUrl() + " testV2CreateV1Query() : unable to fetch sysmeta from CN! Check status of CN sync. "
+                    + ": NotFound " + e.getDetail_code() + ", " + e.getDescription() + ":" + e.getMessage());
+        } catch (Exception e) {
+            throw new AssertionError(cn.getLatestRequestUrl() + " testV2CreateV1Query() : unable to fetch sysmeta from CN! Check status of CN sync.");
+        }
+        
+        if(replicaMN == null)
+            throw new AssertionError("Unable to locate a replica MN for pid: " + pid.getValue());
+        
         // v1 query
 
-        Node v1MNode = v1mns.get(0);
+        Node v1MNode = replicaMN;
         MNCallAdapter v1CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v1MNode, "v1");
         
         InputStream is = null;
         try {
             String encodedPid = URLEncoder.encode(pid.getValue(), "UTF-8");
             is = v1CallAdapter.query(null, "solr", "?q=identifier:" + encodedPid);
-            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV2CreateV1Query(): "
+            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + " testV2CreateV1Query(): "
                     + "query() on the v1 MN should fail.");
         } catch (InvalidRequest e) {
             // expected - query() on v1 MN should fail
         } catch (BaseException e) {
             e.printStackTrace();
-            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV2CreateV1Query() query failed on replica target: " 
+            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + " testV2CreateV1Query() query failed on replica target: " 
                     + e.getClass().getSimpleName() + ": " 
                     + e.getDetail_code() + ":: " + e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
-            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV2CreateV1Query() query failed on replica target: " 
+            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + " testV2CreateV1Query() query failed on replica target: " 
             + e.getClass().getName() + ": " + e.getMessage());
         } finally {
             IOUtils.closeQuietly(is);
@@ -951,13 +1068,13 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             pid = createTestObject(v2CallAdapter, "testV2CreateV1DeleteSameNode_", accessRule);
         } catch (BaseException e) {
             e.printStackTrace();
-            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV2CreateV1DeleteSameNode() couldn't create test object: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + " testV2CreateV1DeleteSameNode() couldn't create test object: " 
                     + e.getClass().getSimpleName() + ": " 
                     + e.getDetail_code() + ":: " + e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
-            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV2CreateV1DeleteSameNode() couldn't create test object: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + " testV2CreateV1DeleteSameNode() couldn't create test object: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
         
@@ -977,13 +1094,13 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
                     + "the pid of the deleted object.", deleteId != null);
         } catch (BaseException e) {
             e.printStackTrace();
-            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV2CreateV1DeleteSameNode() delete failed: " 
+            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + " testV2CreateV1DeleteSameNode() delete failed: " 
                     + e.getClass().getSimpleName() + ": " 
                     + e.getDetail_code() + ":: " + e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
-            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV2CreateV1DeleteSameNode() delete failed: " 
+            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + " testV2CreateV1DeleteSameNode() delete failed: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
     }
@@ -1014,13 +1131,13 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             pid = createTestObject(v1CallAdapter, "testV1CreateV2DeleteSameNode_", accessRule);
         } catch (BaseException e) {
             e.printStackTrace();
-            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV1CreateV2DeleteSameNode() couldn't create test object: " 
+            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + " testV1CreateV2DeleteSameNode() couldn't create test object: " 
                     + e.getClass().getSimpleName() + ": " 
                     + e.getDetail_code() + ":: " + e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
-            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV1CreateV2DeleteSameNode() couldn't create test object: " 
+            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + " testV1CreateV2DeleteSameNode() couldn't create test object: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
         
@@ -1040,13 +1157,13 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
                     + "the pid of the deleted object.", deleteId != null);
         } catch (BaseException e) {
             e.printStackTrace();
-            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV1CreateV2DeleteSameNode() delete failed: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + " testV1CreateV2DeleteSameNode() delete failed: " 
                     + e.getClass().getSimpleName() + ": " 
                     + e.getDetail_code() + ":: " + e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
-            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV1CreateV2DeleteSameNode() delete failed: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + " testV1CreateV2DeleteSameNode() delete failed: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
     }
@@ -1082,13 +1199,13 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             pid = createTestObject(v2CallAdapter, pid, accessRule, replPolicy);
         } catch (BaseException e) {
             e.printStackTrace();
-            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV2CreateV1Delete() couldn't create test object: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + " testV2CreateV1Delete() couldn't create test object: " 
                     + e.getClass().getSimpleName() + ": " 
                     + e.getDetail_code() + ":: " + e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
-            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV2CreateV1Delete() couldn't create test object: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + " testV2CreateV1Delete() couldn't create test object: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
         
@@ -1099,26 +1216,49 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             e1.printStackTrace();
         }
         
+        Node replicaMN = null;
+        try {
+            SystemMetadata cnSysmeta = cn.getSystemMetadata(null, pid);
+            List<Replica> replicaList = cnSysmeta.getReplicaList();
+            outerloop:
+            for (Replica rep : replicaList) {
+                for (Node availMN : v1mns) {
+                    if (availMN.getIdentifier().getValue().equals( rep.getReplicaMemberNode().getValue() )) {
+                        replicaMN = availMN;
+                        break outerloop;
+                    }
+                }
+            }
+        } catch (NotFound e) {
+            throw new AssertionError(cn.getLatestRequestUrl() + " testV2CreateV1Delete() : unable to fetch sysmeta from CN! Check status of CN sync. "
+                    + ": NotFound " + e.getDetail_code() + ", " + e.getDescription() + ":" + e.getMessage());
+        } catch (Exception e) {
+            throw new AssertionError(cn.getLatestRequestUrl() + " testV2CreateV1Delete() : unable to fetch sysmeta from CN! Check status of CN sync.");
+        }
+        
+        if(replicaMN == null)
+            throw new AssertionError("Unable to locate a replica MN for pid: " + pid.getValue());
+        
         // v1 delete
 
-        Node v1MNode = v1mns.get(0);
+        Node v1MNode = replicaMN;
         MNCallAdapter v1CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v1MNode, "v1");
         
         try {
             v1CallAdapter.delete(null, pid);
-            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV2CreateV1Delete(): "
+            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + " testV2CreateV1Delete(): "
                     + "delete() on the v1 MN should fail.");
         } catch (NotFound e) {
             // expected - not available on this node
         } catch (BaseException e) {
             e.printStackTrace();
-            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV2CreateV1Delete() delete failed on replica target: " 
+            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + " testV2CreateV1Delete() delete failed on replica target: " 
                     + e.getClass().getSimpleName() + ": " 
                     + e.getDetail_code() + ":: " + e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
-            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV2CreateV1Delete() delete failed on replica target: " 
+            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + " testV2CreateV1Delete() delete failed on replica target: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
     }
@@ -1154,13 +1294,13 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             pid = createTestObject(v1CallAdapter, pid, accessRule, replPolicy);
         } catch (BaseException e) {
             e.printStackTrace();
-            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV1CreateV2Delete() couldn't create test object: " 
+            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + " testV1CreateV2Delete() couldn't create test object: " 
                     + e.getClass().getSimpleName() + ": " 
                     + e.getDetail_code() + ":: " + e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
-            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV1CreateV2Delete() couldn't create test object: " 
+            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + " testV1CreateV2Delete() couldn't create test object: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
         
@@ -1171,9 +1311,32 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             e1.printStackTrace();
         }
         
+        Node replicaMN = null;
+        try {
+            SystemMetadata cnSysmeta = cn.getSystemMetadata(null, pid);
+            List<Replica> replicaList = cnSysmeta.getReplicaList();
+            outerloop:
+            for (Replica rep : replicaList) {
+                for (Node availMN : v2mns) {
+                    if (availMN.getIdentifier().getValue().equals( rep.getReplicaMemberNode().getValue() )) {
+                        replicaMN = availMN;
+                        break outerloop;
+                    }
+                }
+            }
+        } catch (NotFound e) {
+            throw new AssertionError(cn.getLatestRequestUrl() + " testV1CreateV2Delete() : unable to fetch sysmeta from CN! Check status of CN sync. "
+                    + ": NotFound " + e.getDetail_code() + ", " + e.getDescription() + ":" + e.getMessage());
+        } catch (Exception e) {
+            throw new AssertionError(cn.getLatestRequestUrl() + " testV1CreateV2Delete() : unable to fetch sysmeta from CN! Check status of CN sync.");
+        }
+        
+        if(replicaMN == null)
+            throw new AssertionError("Unable to locate a replica MN for pid: " + pid.getValue());
+        
         // v2 delete
 
-        Node v2MNode = v2mns.get(0);
+        Node v2MNode = replicaMN;
         MNCallAdapter v2CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v2MNode, "v2");
         
         try {
@@ -1182,13 +1345,13 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
                     + "the pid of the deleted object.", deleteId != null);
         } catch (BaseException e) {
             e.printStackTrace();
-            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV1CreateV2Delete() delete failed on replica target: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + " testV1CreateV2Delete() delete failed on replica target: " 
                     + e.getClass().getSimpleName() + ": " 
                     + e.getDetail_code() + ":: " + e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
-            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV1CreateV2Delete() delete failed on replica target: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + " testV1CreateV2Delete() delete failed on replica target: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
     }
@@ -1218,13 +1381,13 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             pid = createTestObject(v2CallAdapter, "testV2CreateV1ListObjectsSameNode_", accessRule);
         } catch (BaseException e) {
             e.printStackTrace();
-            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV2CreateV1ListObjectsSameNode() couldn't create test object: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + " testV2CreateV1ListObjectsSameNode() couldn't create test object: " 
                     + e.getClass().getSimpleName() + ": " 
                     + e.getDetail_code() + ":: " + e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
-            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV2CreateV1ListObjectsSameNode() couldn't create test object: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + " testV2CreateV1ListObjectsSameNode() couldn't create test object: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
         
@@ -1250,13 +1413,13 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
                     + "should include the created object.", objFound );
         } catch (BaseException e) {
             e.printStackTrace();
-            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV2CreateV1ListObjectsSameNode() listObjects failed: " 
+            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + " testV2CreateV1ListObjectsSameNode() listObjects failed: " 
                     + e.getClass().getSimpleName() + ": " 
                     + e.getDetail_code() + ":: " + e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
-            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV2CreateV1ListObjectsSameNode() listObjects failed: " 
+            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + " testV2CreateV1ListObjectsSameNode() listObjects failed: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
     }
@@ -1286,13 +1449,13 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             pid = createTestObject(v1CallAdapter, "testV1CreateV2ListObjectsSameNode_", accessRule);
         } catch (BaseException e) {
             e.printStackTrace();
-            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV1CreateV2ListObjectsSameNode() couldn't create test object: " 
+            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + " testV1CreateV2ListObjectsSameNode() couldn't create test object: " 
                     + e.getClass().getSimpleName() + ": " 
                     + e.getDetail_code() + ":: " + e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
-            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV1CreateV2ListObjectsSameNode() couldn't create test object: " 
+            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + " testV1CreateV2ListObjectsSameNode() couldn't create test object: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
         
@@ -1318,13 +1481,13 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
                     + "should include the created object.", objFound );
         } catch (BaseException e) {
             e.printStackTrace();
-            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV1CreateV2ListObjectsSameNode() listObjects failed: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + " testV1CreateV2ListObjectsSameNode() listObjects failed: " 
                     + e.getClass().getSimpleName() + ": " 
                     + e.getDetail_code() + ":: " + e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
-            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV1CreateV2ListObjectsSameNode() listObjects failed: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + " testV1CreateV2ListObjectsSameNode() listObjects failed: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
     }
@@ -1361,13 +1524,13 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             pid = createTestObject(v2CallAdapter, pid, accessRule, replPolicy);
         } catch (BaseException e) {
             e.printStackTrace();
-            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV2CreateV1ListObjects() couldn't create test object: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + " testV2CreateV1ListObjects() couldn't create test object: " 
                     + e.getClass().getSimpleName() + ": " 
                     + e.getDetail_code() + ":: " + e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
-            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV2CreateV1ListObjects() couldn't create test object: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + " testV2CreateV1ListObjects() couldn't create test object: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
         
@@ -1378,9 +1541,32 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             e1.printStackTrace();
         }
         
+        Node replicaMN = null;
+        try {
+            SystemMetadata cnSysmeta = cn.getSystemMetadata(null, pid);
+            List<Replica> replicaList = cnSysmeta.getReplicaList();
+            outerloop:
+            for (Replica rep : replicaList) {
+                for (Node availMN : v1mns) {
+                    if (availMN.getIdentifier().getValue().equals( rep.getReplicaMemberNode().getValue() )) {
+                        replicaMN = availMN;
+                        break outerloop;
+                    }
+                }
+            }
+        } catch (NotFound e) {
+            throw new AssertionError(cn.getLatestRequestUrl() + " testV2CreateV1ListObjects() : unable to fetch sysmeta from CN! Check status of CN sync. "
+                    + ": NotFound " + e.getDetail_code() + ", " + e.getDescription() + ":" + e.getMessage());
+        } catch (Exception e) {
+            throw new AssertionError(cn.getLatestRequestUrl() + " testV2CreateV1ListObjects() : unable to fetch sysmeta from CN! Check status of CN sync.");
+        }
+        
+        if(replicaMN == null)
+            throw new AssertionError("Unable to locate a replica MN for pid: " + pid.getValue());
+        
         // v1 listObjects
 
-        Node v1MNode = v1mns.get(0);
+        Node v1MNode = replicaMN;
         MNCallAdapter v1CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v1MNode, "v1");
         
         try {
@@ -1395,13 +1581,13 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
                     + "should NOT include the created object.", objFound );
         } catch (BaseException e) {
             e.printStackTrace();
-            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV2CreateV1ListObjects() listObjects failed on replica target: " 
+            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + " testV2CreateV1ListObjects() listObjects failed on replica target: " 
                     + e.getClass().getSimpleName() + ": " 
                     + e.getDetail_code() + ":: " + e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
-            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV2CreateV1ListObjects() listObjects failed on replica target: " 
+            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + " testV2CreateV1ListObjects() listObjects failed on replica target: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
     }
@@ -1438,13 +1624,13 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             pid = createTestObject(v1CallAdapter, pid, accessRule, replPolicy);
         } catch (BaseException e) {
             e.printStackTrace();
-            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV1CreateV2ListObjects() couldn't create test object: " 
+            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + " testV1CreateV2ListObjects() couldn't create test object: " 
                     + e.getClass().getSimpleName() + ": " 
                     + e.getDetail_code() + ":: " + e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
-            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + "testV1CreateV2ListObjects() couldn't create test object: " 
+            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + " testV1CreateV2ListObjects() couldn't create test object: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
         
@@ -1455,9 +1641,32 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             e1.printStackTrace();
         }
         
+        Node replicaMN = null;
+        try {
+            SystemMetadata cnSysmeta = cn.getSystemMetadata(null, pid);
+            List<Replica> replicaList = cnSysmeta.getReplicaList();
+            outerloop:
+            for (Replica rep : replicaList) {
+                for (Node availMN : v2mns) {
+                    if (availMN.getIdentifier().getValue().equals( rep.getReplicaMemberNode().getValue() )) {
+                        replicaMN = availMN;
+                        break outerloop;
+                    }
+                }
+            }
+        } catch (NotFound e) {
+            throw new AssertionError(cn.getLatestRequestUrl() + " testV1CreateV2ListObjects() : unable to fetch sysmeta from CN! Check status of CN sync. "
+                    + ": NotFound " + e.getDetail_code() + ", " + e.getDescription() + ":" + e.getMessage());
+        } catch (Exception e) {
+            throw new AssertionError(cn.getLatestRequestUrl() + " testV1CreateV2ListObjects() : unable to fetch sysmeta from CN! Check status of CN sync.");
+        }
+        
+        if(replicaMN == null)
+            throw new AssertionError("Unable to locate a replica MN for pid: " + pid.getValue());
+        
         // v2 listObjects
 
-        Node v2MNode = v2mns.get(0);
+        Node v2MNode = replicaMN;
         MNCallAdapter v2CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v2MNode, "v2");
         
         try {
@@ -1472,13 +1681,13 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
                     + "should include the created object: " + pid.getValue(), objFound );
         } catch (BaseException e) {
             e.printStackTrace();
-            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV1CreateV2ListObjects() listObjects failed on replica target: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + " testV1CreateV2ListObjects() listObjects failed on replica target: " 
                     + e.getClass().getSimpleName() + ": " 
                     + e.getDetail_code() + ":: " + e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
-            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV1CreateV2ListObjects() listObjects failed on replica target: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + " testV1CreateV2ListObjects() listObjects failed on replica target: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
     }
@@ -1511,13 +1720,13 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             pid = createTestObject(v2CallAdapter, pid, accessRule, replPolicy);
         } catch (BaseException e) {
             e.printStackTrace();
-            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV2CreateV1Archive() couldn't create test object: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + " testV2CreateV1Archive() couldn't create test object: " 
                     + e.getClass().getSimpleName() + ": " 
                     + e.getDetail_code() + ":: " + e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
-            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV2CreateV1Archive() couldn't create test object: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + " testV2CreateV1Archive() couldn't create test object: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
         
@@ -1526,6 +1735,15 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             Thread.sleep(REPLICATION_WAIT);
         } catch (InterruptedException e1) {
             e1.printStackTrace();
+        }
+        
+        try {
+            cn.getSystemMetadata(null, pid);
+        } catch (NotFound e) {
+            throw new AssertionError(cn.getLatestRequestUrl() + " testV2CreateV1Archive() : unable to fetch sysmeta from CN! Check status of CN sync. "
+                    + ": NotFound " + e.getDetail_code() + ", " + e.getDescription() + ":" + e.getMessage());
+        } catch (Exception e) {
+            throw new AssertionError(cn.getLatestRequestUrl() + " testV2CreateV1Archive() : unable to fetch sysmeta from CN! Check status of CN sync.");
         }
         
         // CN archive
@@ -1572,13 +1790,13 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             pid = createTestObject(v2CallAdapter, pid, accessRule, replPolicy);
         } catch (BaseException e) {
             e.printStackTrace();
-            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV2CreateV1CnSetReplicationPolicy() couldn't create test object: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + " testV2CreateV1CnSetReplicationPolicy() couldn't create test object: " 
                     + e.getClass().getSimpleName() + ": " 
                     + e.getDetail_code() + ":: " + e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
-            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV2CreateV1CnSetReplicationPolicy() couldn't create test object: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + " testV2CreateV1CnSetReplicationPolicy() couldn't create test object: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
         
@@ -1587,6 +1805,15 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             Thread.sleep(REPLICATION_WAIT);
         } catch (InterruptedException e1) {
             e1.printStackTrace();
+        }
+        
+        try {
+            cn.getSystemMetadata(null, pid);
+        } catch (NotFound e) {
+            throw new AssertionError(cn.getLatestRequestUrl() + " testV2CreateV1CnSetReplicationPolicy() : unable to fetch sysmeta from CN! Check status of CN sync. "
+                    + ": NotFound " + e.getDetail_code() + ", " + e.getDescription() + ":" + e.getMessage());
+        } catch (Exception e) {
+            throw new AssertionError(cn.getLatestRequestUrl() + " testV2CreateV1CnSetReplicationPolicy() : unable to fetch sysmeta from CN! Check status of CN sync.");
         }
         
         // CN setReplicationPolicy
@@ -1634,13 +1861,13 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             pid = createTestObject(v2CallAdapter, pid, accessRule, replPolicy);
         } catch (BaseException e) {
             e.printStackTrace();
-            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV2CreateV1CnSetAccessPolicy() couldn't create test object: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + " testV2CreateV1CnSetAccessPolicy() couldn't create test object: " 
                     + e.getClass().getSimpleName() + ": " 
                     + e.getDetail_code() + ":: " + e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
-            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV2CreateV1CnSetAccessPolicy() couldn't create test object: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + " testV2CreateV1CnSetAccessPolicy() couldn't create test object: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
         
@@ -1649,6 +1876,15 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             Thread.sleep(REPLICATION_WAIT);
         } catch (InterruptedException e1) {
             e1.printStackTrace();
+        }
+        
+        try {
+            cn.getSystemMetadata(null, pid);
+        } catch (NotFound e) {
+            throw new AssertionError(cn.getLatestRequestUrl() + " testV2CreateV1CnSetAccessPolicy() : unable to fetch sysmeta from CN! Check status of CN sync. "
+                    + ": NotFound " + e.getDetail_code() + ", " + e.getDescription() + ":" + e.getMessage());
+        } catch (Exception e) {
+            throw new AssertionError(cn.getLatestRequestUrl() + " testV2CreateV1CnSetAccessPolicy() : unable to fetch sysmeta from CN! Check status of CN sync.");
         }
         
         // CN setAccessPolicy
@@ -1697,13 +1933,13 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             pid = createTestObject(v2CallAdapter, pid, accessRule, replPolicy);
         } catch (BaseException e) {
             e.printStackTrace();
-            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV2CreateV1CnSetRightsHolder() couldn't create test object: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + " testV2CreateV1CnSetRightsHolder() couldn't create test object: " 
                     + e.getClass().getSimpleName() + ": " 
                     + e.getDetail_code() + ":: " + e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
-            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV2CreateV1CnSetRightsHolder() couldn't create test object: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + " testV2CreateV1CnSetRightsHolder() couldn't create test object: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
         
@@ -1712,6 +1948,15 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             Thread.sleep(REPLICATION_WAIT);
         } catch (InterruptedException e1) {
             e1.printStackTrace();
+        }
+        
+        try {
+            cn.getSystemMetadata(null, pid);
+        } catch (NotFound e) {
+            throw new AssertionError(cn.getLatestRequestUrl() + " testV2CreateV1CnSetRightsHolder() : unable to fetch sysmeta from CN! Check status of CN sync. "
+                    + ": NotFound " + e.getDetail_code() + ", " + e.getDescription() + ":" + e.getMessage());
+        } catch (Exception e) {
+            throw new AssertionError(cn.getLatestRequestUrl() + " testV2CreateV1CnSetRightsHolder() : unable to fetch sysmeta from CN! Check status of CN sync.");
         }
         
         // CN setRightsHolder
@@ -1762,13 +2007,13 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             obsoletedByPid = createTestObject(v2CallAdapter, obsoletedByPid, accessRule, replPolicy);
         } catch (BaseException e) {
             e.printStackTrace();
-            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV2CreateV1CnSetObsoletedBy() couldn't create test object: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + " testV2CreateV1CnSetObsoletedBy() couldn't create test object: " 
                     + e.getClass().getSimpleName() + ": " 
                     + e.getDetail_code() + ":: " + e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
-            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + "testV2CreateV1CnSetObsoletedBy() couldn't create test object: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + " testV2CreateV1CnSetObsoletedBy() couldn't create test object: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
         
@@ -1777,6 +2022,15 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             Thread.sleep(REPLICATION_WAIT);
         } catch (InterruptedException e1) {
             e1.printStackTrace();
+        }
+        
+        try {
+            cn.getSystemMetadata(null, pid);
+        } catch (NotFound e) {
+            throw new AssertionError(cn.getLatestRequestUrl() + " testV2CreateV1CnSetObsoletedBy() : unable to fetch sysmeta from CN! Check status of CN sync. "
+                    + ": NotFound " + e.getDetail_code() + ", " + e.getDescription() + ":" + e.getMessage());
+        } catch (Exception e) {
+            throw new AssertionError(cn.getLatestRequestUrl() + " testV2CreateV1CnSetObsoletedBy() : unable to fetch sysmeta from CN! Check status of CN sync.");
         }
         
         // CN setObsoletedBy
