@@ -402,8 +402,8 @@ public class SidCNTestImplementations extends SidCommonTestImplementations {
                 Identifier p2 = createIdentifier("P2_", node);
                 Identifier s1 = createIdentifier("S1_", node);
                 
-                createTestObject(callAdapter, p1, s1, null, p2, true);
-                createTestObject(callAdapter, p2, s1, p1, null, true);
+                createTestObject(callAdapter, p1, s1, null, p2, false);
+                createTestObject(callAdapter, p2, s1, p1, null, false);
 
                 Identifier sid = s1;
                 Identifier pid = p2;
