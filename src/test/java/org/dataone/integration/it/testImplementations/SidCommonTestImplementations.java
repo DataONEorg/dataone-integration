@@ -798,7 +798,7 @@ public abstract class SidCommonTestImplementations extends ContextAwareTestCaseD
         public IdPair(Identifier sid, Identifier headPid) {
             this.sid = sid;
             this.headPid = headPid;
-            logger.fatal("Created SID (" + sid.getValue() + ") and head PID (" + headPid.getValue() + ") pair.");
+            logger.info("Created SID (" + sid.getValue() + ") and head PID (" + headPid.getValue() + ") pair.");
         }
     }
 }
