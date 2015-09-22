@@ -387,32 +387,9 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             e1.printStackTrace();
         }
         
-        Node replicaMN = null;
-        try {
-            SystemMetadata cnSysmeta = cn.getSystemMetadata(null, pid);
-            List<Replica> replicaList = cnSysmeta.getReplicaList();
-            outerloop:
-            for (Replica rep : replicaList) {
-                for (Node availMN : v1mns) {
-                    if (availMN.getIdentifier().getValue().equals( rep.getReplicaMemberNode().getValue() )) {
-                        replicaMN = availMN;
-                        break outerloop;
-                    }
-                }
-            }
-        } catch (NotFound e) {
-            throw new AssertionError(cn.getLatestRequestUrl() + " testV2CreateV1GetSysMeta() : unable to fetch sysmeta from CN! Check status of CN sync. "
-                    + ": NotFound " + e.getDetail_code() + ", " + e.getDescription() + ":" + e.getMessage());
-        } catch (Exception e) {
-            throw new AssertionError(cn.getLatestRequestUrl() + " testV2CreateV1GetSysMeta() : unable to fetch sysmeta from CN! Check status of CN sync.");
-        }
-        
-        if(replicaMN == null)
-            throw new AssertionError("Unable to locate a replica MN for pid: " + pid.getValue());
-        
         // v1 getSysmeta
 
-        Node v1MNode = replicaMN;
+        Node v1MNode = v1mns.get(0);
         MNCallAdapter v1CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v1MNode, "v1");
         
         try {
@@ -992,32 +969,9 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             e1.printStackTrace();
         }
         
-        Node replicaMN = null;
-        try {
-            SystemMetadata cnSysmeta = cn.getSystemMetadata(null, pid);
-            List<Replica> replicaList = cnSysmeta.getReplicaList();
-            outerloop:
-            for (Replica rep : replicaList) {
-                for (Node availMN : v1mns) {
-                    if (availMN.getIdentifier().getValue().equals( rep.getReplicaMemberNode().getValue() )) {
-                        replicaMN = availMN;
-                        break outerloop;
-                    }
-                }
-            }
-        } catch (NotFound e) {
-            throw new AssertionError(cn.getLatestRequestUrl() + " testV2CreateV1Query() : unable to fetch sysmeta from CN! Check status of CN sync. "
-                    + ": NotFound " + e.getDetail_code() + ", " + e.getDescription() + ":" + e.getMessage());
-        } catch (Exception e) {
-            throw new AssertionError(cn.getLatestRequestUrl() + " testV2CreateV1Query() : unable to fetch sysmeta from CN! Check status of CN sync.");
-        }
-        
-        if(replicaMN == null)
-            throw new AssertionError("Unable to locate a replica MN for pid: " + pid.getValue());
-        
         // v1 query
 
-        Node v1MNode = replicaMN;
+        Node v1MNode = v1mns.get(0);
         MNCallAdapter v1CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v1MNode, "v1");
         
         InputStream is = null;
@@ -1216,32 +1170,9 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             e1.printStackTrace();
         }
         
-        Node replicaMN = null;
-        try {
-            SystemMetadata cnSysmeta = cn.getSystemMetadata(null, pid);
-            List<Replica> replicaList = cnSysmeta.getReplicaList();
-            outerloop:
-            for (Replica rep : replicaList) {
-                for (Node availMN : v1mns) {
-                    if (availMN.getIdentifier().getValue().equals( rep.getReplicaMemberNode().getValue() )) {
-                        replicaMN = availMN;
-                        break outerloop;
-                    }
-                }
-            }
-        } catch (NotFound e) {
-            throw new AssertionError(cn.getLatestRequestUrl() + " testV2CreateV1Delete() : unable to fetch sysmeta from CN! Check status of CN sync. "
-                    + ": NotFound " + e.getDetail_code() + ", " + e.getDescription() + ":" + e.getMessage());
-        } catch (Exception e) {
-            throw new AssertionError(cn.getLatestRequestUrl() + " testV2CreateV1Delete() : unable to fetch sysmeta from CN! Check status of CN sync.");
-        }
-        
-        if(replicaMN == null)
-            throw new AssertionError("Unable to locate a replica MN for pid: " + pid.getValue());
-        
         // v1 delete
 
-        Node v1MNode = replicaMN;
+        Node v1MNode = v1mns.get(0);
         MNCallAdapter v1CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v1MNode, "v1");
         
         try {
