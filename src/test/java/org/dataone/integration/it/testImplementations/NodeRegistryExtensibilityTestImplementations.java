@@ -7,6 +7,7 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
+import org.dataone.client.exception.ClientSideException;
 import org.dataone.client.v1.types.D1TypeBuilder;
 import org.dataone.integration.ContextAwareTestCaseDataone;
 import org.dataone.integration.adapters.CNCallAdapter;
@@ -14,20 +15,22 @@ import org.dataone.integration.adapters.MNCallAdapter;
 import org.dataone.integration.it.ContextAwareAdapter;
 import org.dataone.integration.webTest.WebTestDescription;
 import org.dataone.integration.webTest.WebTestName;
+import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.types.v1.Node;
 import org.dataone.service.types.v1.NodeReference;
 import org.dataone.service.types.v1.NodeReplicationPolicy;
 import org.dataone.service.types.v1.NodeState;
 import org.dataone.service.types.v1.NodeType;
+import org.dataone.service.types.v1.Person;
 import org.dataone.service.types.v1.Ping;
 import org.dataone.service.types.v1.Schedule;
 import org.dataone.service.types.v1.Services;
 import org.dataone.service.types.v1.Subject;
+import org.dataone.service.types.v1.SubjectInfo;
 import org.dataone.service.types.v1.Synchronization;
 import org.dataone.service.types.v2.NodeList;
 import org.dataone.service.types.v2.Property;
 import org.dataone.service.types.v2.TypeFactory;
-import org.dataone.service.util.TypeMarshaller;
 
 public class NodeRegistryExtensibilityTestImplementations extends ContextAwareAdapter {
 
@@ -47,6 +50,15 @@ public class NodeRegistryExtensibilityTestImplementations extends ContextAwareAd
     private void testRegister(Node node, String version) {
         
         CNCallAdapter cn = new CNCallAdapter(getSession(cnSubmitter), node, "v2");
+        
+        SubjectInfo verifiedSubjects = null;
+        try {
+            verifiedSubjects = cn.listSubjects(null, null, "verified", null, null);
+        } catch (BaseException | ClientSideException e) {
+            throw new AssertionError("Unable to fetch verified subjects on " + cn.getNodeBaseServiceUrl(), e);
+        }
+        if (verifiedSubjects.getPersonList() == null || verifiedSubjects.getPersonList().size() == 0)
+            throw new AssertionError("No verified subjects on " + cn.getNodeBaseServiceUrl());
         
         // create a new Node
         org.dataone.service.types.v2.Node newNode = new org.dataone.service.types.v2.Node();
@@ -69,7 +81,8 @@ public class NodeRegistryExtensibilityTestImplementations extends ContextAwareAd
         newNode.setServices(services);
         newNode.setState(NodeState.DOWN);
         List<Subject> subjects = new ArrayList<Subject>();
-        subjects.add(D1TypeBuilder.buildSubject("TestSubject"));
+        Subject subj = verifiedSubjects.getPerson(0).getSubject();
+        subjects.add(subj);
         newNode.setSubjectList(subjects);
         newNode.setContactSubjectList(subjects);
         Synchronization synchronization = new Synchronization();
@@ -168,34 +181,26 @@ public class NodeRegistryExtensibilityTestImplementations extends ContextAwareAd
                     + "unable to perform test setup, call to CN.listNodes() failed! : "
                     + e.getMessage() + ", " + e.getCause() == null ? "" : e.getCause().getMessage());
         }
-        List<Node> mNodes = new ArrayList<Node>();
+        List<org.dataone.service.types.v2.Node> v2MNs = new ArrayList<org.dataone.service.types.v2.Node>();
         for (Node n : knownNodes.getNodeList())
             if (n.getType() == NodeType.MN
                     && n.getState() == NodeState.UP)
                 try {
                     MNCallAdapter testMN = new MNCallAdapter(getSession(cnSubmitter), n, "v2");
-                    testMN.getCapabilities();
-                    mNodes.add(n);
+                    Node capabilities = testMN.getCapabilities();
+                    if (capabilities instanceof org.dataone.service.types.v2.Node == false)
+                        throw new AssertionError("v2 getCapabilities() should not be returning v1 Node types");
+                    v2MNs.add((org.dataone.service.types.v2.Node) capabilities);
                 } catch (Exception e) {
                     // continue
                 }
                 
         
         assertTrue("testUpdateNodeCapabilities() requires CN.listNodes() to contain "
-                + "at least one MN", mNodes.size() > 0);
-        Node v1MN = mNodes.get(0);
-        NodeReference mnRef = v1MN.getIdentifier();
+                + "at least one MN", v2MNs.size() > 0);
         
-        org.dataone.service.types.v2.Node v2MN = null;
-        try {
-            v2MN = TypeFactory.convertTypeFromType(v1MN, org.dataone.service.types.v2.Node.class);
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new AssertionError(cn.getNodeBaseServiceUrl() + ":   "
-                    + "testUpdateNodeCapabilities() : "
-                    + "unable to convert between v1 and v2 Node types! : "
-                    + e.getMessage() + ", " + e.getCause() == null ? "" : e.getCause().getMessage());
-        }
+        org.dataone.service.types.v2.Node v2MN = v2MNs.get(0);
+        NodeReference mnRef = v2MN.getIdentifier();
         
         // add to Node properties
         List<Property> propertyList = v2MN.getPropertyList();

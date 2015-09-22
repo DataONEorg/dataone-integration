@@ -1601,7 +1601,8 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         MNCallAdapter v2CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v2MNode, "v2");
         
         try {
-            ObjectList objList = APITestUtils.pagedListObjects(v2CallAdapter, null, null, null, null, null);
+            // ObjectList objList = APITestUtils.pagedListObjects(v2CallAdapter, null, null, null, null, null);
+            ObjectList objList = v2CallAdapter.listObjects(null, null, null, null, null, pid, null, null, null);
             boolean objFound = false;
             for(ObjectInfo objInfo : objList.getObjectInfoList())
                 if(pid.getValue().equals(objInfo.getIdentifier().getValue())){
