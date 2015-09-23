@@ -424,12 +424,13 @@ public class SidCNTestImplementations extends SidCommonTestImplementations {
                 assertEquals("resolve() : SID and head PID should resolve() to same URL",
                         sidResolveURL, pidResolveURL);
             } catch (BaseException e) {
-                e.printStackTrace();
-                handleFail( callAdapter.getNodeBaseServiceUrl(), e.getClass().getSimpleName() + " : " + e.getMessage() 
-                        + " : " + e.getDescription());
+                throw new AssertionError("testResolve() yielded exception: " 
+                        + callAdapter.getLatestRequestUrl() + " : " + e.getDetail_code() + " : " + e.getDescription() 
+                        + e.getClass().getSimpleName() + ": " +  e.getMessage() + ", " + (e.getCause() == null ? "" : e.getCause().getMessage()));
             } catch (Exception e) {
-                e.printStackTrace();
-                handleFail( callAdapter.getNodeBaseServiceUrl(), " : " + e.getMessage() + ", " + (e.getCause() == null ? "" : e.getCause().getMessage()));
+                throw new AssertionError("testResolve() yielded exception: " 
+                        + callAdapter.getLatestRequestUrl() + " : " 
+                        + e.getClass().getSimpleName() + ": " +  e.getMessage() + ", " + (e.getCause() == null ? "" : e.getCause().getMessage()));
             }
         }
     }
@@ -683,9 +684,15 @@ public class SidCNTestImplementations extends SidCommonTestImplementations {
                         String numFoundStr = expr.evaluate(doc);
                         numFound = Integer.parseInt(numFoundStr);
                         
+                    } catch (BaseException e) {
+                        throw new AssertionError("testArchive() Case " + caseNum + ", should be able to call query() and get "
+                                + "a valid document. Query: " + query + " But got error from call on: " 
+                                + callAdapter.getLatestRequestUrl() + " : " + e.getDetail_code() + " : " + e.getDescription() 
+                                + e.getClass().getSimpleName() + ": " +  e.getMessage() + ", " + (e.getCause() == null ? "" : e.getCause().getMessage()));
                     } catch (Exception e) {
                         throw new AssertionError("testArchive() Case " + caseNum + ", should be able to call query() and get "
                                 + "a valid document. Query: " + query + " But got error: " 
+                                + callAdapter.getLatestRequestUrl() + " : " 
                                 + e.getClass().getSimpleName() + ": " +  e.getMessage() + ", " + (e.getCause() == null ? "" : e.getCause().getMessage()));
                     } finally {
                         IOUtils.closeQuietly(is);
