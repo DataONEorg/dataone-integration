@@ -647,7 +647,7 @@ public class CoreTestImplementations extends ContextAwareAdapter {
             Log eventLog = callAdapter.getLogRecords(null, null, null, null, null, null, null);
 
             if (eventLog.getLogEntryList() == null ) {
-                handleFail(callAdapter.getLatestRequestUrl(), "the event log list is null after trying to read an object");
+                throw new AssertionError(callAdapter.getLatestRequestUrl() + " The event log list is null after trying to read an object");
             }
 
             if (eventLog.getLogEntryList().size() == 0) {
@@ -717,10 +717,10 @@ public class CoreTestImplementations extends ContextAwareAdapter {
                             + e.getDetail_code() + ": " + e.getDescription());
         } catch (BaseException e) {
             handleFail(callAdapter.getLatestRequestUrl(),
-                    e.getClass().getSimpleName() + ": " + e.getDetail_code() + ": " + e.getDescription());
+                    e.getClass().getSimpleName() + " : " + e.getDetail_code() + " : " + e.getDescription());
         } catch (Exception e) {
             e.printStackTrace();
-            handleFail(currentUrl, e.getClass().getName() + ": " + e.getMessage());
+            handleFail(callAdapter.getLatestRequestUrl(), e.getClass().getSimpleName() + " : " + e.getMessage());
         }
     }
 }

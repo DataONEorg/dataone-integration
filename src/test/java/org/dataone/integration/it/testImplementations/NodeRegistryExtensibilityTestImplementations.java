@@ -2,13 +2,15 @@ package org.dataone.integration.it.testImplementations;
 
 import static org.junit.Assert.assertTrue;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
 import org.dataone.client.exception.ClientSideException;
-import org.dataone.client.v1.types.D1TypeBuilder;
 import org.dataone.integration.ContextAwareTestCaseDataone;
 import org.dataone.integration.adapters.CNCallAdapter;
 import org.dataone.integration.adapters.MNCallAdapter;
@@ -21,7 +23,6 @@ import org.dataone.service.types.v1.NodeReference;
 import org.dataone.service.types.v1.NodeReplicationPolicy;
 import org.dataone.service.types.v1.NodeState;
 import org.dataone.service.types.v1.NodeType;
-import org.dataone.service.types.v1.Person;
 import org.dataone.service.types.v1.Ping;
 import org.dataone.service.types.v1.Schedule;
 import org.dataone.service.types.v1.Services;
@@ -30,7 +31,7 @@ import org.dataone.service.types.v1.SubjectInfo;
 import org.dataone.service.types.v1.Synchronization;
 import org.dataone.service.types.v2.NodeList;
 import org.dataone.service.types.v2.Property;
-import org.dataone.service.types.v2.TypeFactory;
+import org.dataone.service.util.TypeMarshaller;
 
 public class NodeRegistryExtensibilityTestImplementations extends ContextAwareAdapter {
 
@@ -110,6 +111,17 @@ public class NodeRegistryExtensibilityTestImplementations extends ContextAwareAd
         p2.setValue("Pepperoni");
         propertyList.add(p2);
         
+//        try {
+//            FileOutputStream fos = new FileOutputStream(new File("C:\\Users\\Andrei\\stuff\\nodeToRegister.xml"));
+//            TypeMarshaller.marshalTypeToOutputStream(newNode, fos);
+//            fos.close();
+//            FileInputStream fis = new FileInputStream(new File("C:\\Users\\Andrei\\stuff\\nodeToRegister.xml"));
+//            TypeMarshaller.unmarshalTypeFromStream(org.dataone.service.types.v2.Node.class, fis);
+//            fis.close();
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+        
         try {
             log.info("Attempting to register new node: " + newNode.getName() + " (" + 
                     newNode.getBaseURL() + ") with CN " + cn.getNodeBaseServiceUrl());
@@ -117,13 +129,13 @@ public class NodeRegistryExtensibilityTestImplementations extends ContextAwareAd
         } catch (BaseException e) {
             throw new AssertionError(cn.getNodeBaseServiceUrl() + ":   "
                     + "testRegister() : "
-                    + "CN.register() call failed with exception: " 
+                    + "CN.register() call failed to register new node with exception: " 
                     + e.getClass().getSimpleName() + " : " + e.getDetail_code() + " : " 
                     + e.getDescription() + " : " + e.getMessage(), e);
         } catch (Exception e) {
             throw new AssertionError(cn.getNodeBaseServiceUrl() + ":   "
                     + "testRegister() : "
-                    + "CN.register() call failed with exception: " 
+                    + "CN.register() call failed to register new node with exception: " 
                     + e.getClass().getSimpleName() + " : " + e.getMessage(), e);
         }
         
