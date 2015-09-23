@@ -111,24 +111,37 @@ public class NodeRegistryExtensibilityTestImplementations extends ContextAwareAd
         propertyList.add(p2);
         
         try {
+            log.info("Attempting to register new node: " + newNode.getName() + " (" + 
+                    newNode.getBaseURL() + ") with CN " + cn.getNodeBaseServiceUrl());
             cn.register(null, newNode);
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (BaseException e) {
             throw new AssertionError(cn.getNodeBaseServiceUrl() + ":   "
                     + "testRegister() : "
                     + "CN.register() call failed with exception: " 
-                    + e.getClass().getSimpleName() + " : " + e.getMessage());
+                    + e.getClass().getSimpleName() + " : " + e.getDetail_code() + " : " 
+                    + e.getDescription() + " : " + e.getMessage(), e);
+        } catch (Exception e) {
+            throw new AssertionError(cn.getNodeBaseServiceUrl() + ":   "
+                    + "testRegister() : "
+                    + "CN.register() call failed with exception: " 
+                    + e.getClass().getSimpleName() + " : " + e.getMessage(), e);
         }
         
         // get the node info
         org.dataone.service.types.v2.Node fetchedNode = null;
         try {
             fetchedNode = cn.getNodeCapabilities(nodeRef);
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (BaseException e) {
             throw new AssertionError(cn.getNodeBaseServiceUrl() + ":   "
                     + "testRegister() : "
-                    + "unable to fetch updated Node capabilities!");
+                    + "CN.getNodeCapabilities() call failed with exception: " 
+                    + e.getClass().getSimpleName() + " : " + e.getDetail_code() + " : " 
+                    + e.getDescription() + " : " + e.getMessage(), e);
+        } catch (Exception e) {
+            throw new AssertionError(cn.getNodeBaseServiceUrl() + ":   "
+                    + "testRegister() : "
+                    + "CN.getNodeCapabilities() call failed with exception: " 
+                    + e.getClass().getSimpleName() + " : " + e.getMessage(), e);
         } finally {
             // ideally... unregister(newNode);
         }
@@ -220,24 +233,34 @@ public class NodeRegistryExtensibilityTestImplementations extends ContextAwareAd
         try {
             org.dataone.service.types.v2.Node oldNodeCapabilities = cn.getNodeCapabilities(mnRef);
             oldPropertyListBackup = oldNodeCapabilities.getPropertyList();
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (BaseException e) {
             throw new AssertionError(cn.getNodeBaseServiceUrl() + ":   "
                     + "testUpdateNodeCapabilities() : "
-                    + "couldn't backup existing node property list : "
-                    + e.getMessage() + ", " + e.getCause() == null ? "" : e.getCause().getMessage());
+                    + "CN.getPropertyList() call failed to get old properties with exception: " 
+                    + e.getClass().getSimpleName() + " : " + e.getDetail_code() + " : " 
+                    + e.getDescription() + " : " + e.getMessage(), e);
+        } catch (Exception e) {
+            throw new AssertionError(cn.getNodeBaseServiceUrl() + ":   "
+                    + "testUpdateNodeCapabilities() : "
+                    + "CN.getPropertyList() call failed to get old properties with exception: " 
+                    + e.getClass().getSimpleName() + " : " + e.getMessage(), e);
         }
         
         // update node properties on CN
         
         try {
             cn.updateNodeCapabilities(null, mnRef, v2MN);
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (BaseException e) {
             throw new AssertionError(cn.getNodeBaseServiceUrl() + ":   "
                     + "testUpdateNodeCapabilities() : "
-                    + "failed - unable to updateNodeCapabilities() : "
-                    + e.getMessage() + ", " + e.getCause() == null ? "" : e.getCause().getMessage());
+                    + "CN.updateNodeCapabilities() call failed with exception: " 
+                    + e.getClass().getSimpleName() + " : " + e.getDetail_code() + " : " 
+                    + e.getDescription() + " : " + e.getMessage(), e);
+        } catch (Exception e) {
+            throw new AssertionError(cn.getNodeBaseServiceUrl() + ":   "
+                    + "testUpdateNodeCapabilities() : "
+                    + "CN.updateNodeCapabilities() call failed with exception: " 
+                    + e.getClass().getSimpleName() + " : " + e.getMessage(), e);
         }
         
         // get the node info
@@ -245,22 +268,34 @@ public class NodeRegistryExtensibilityTestImplementations extends ContextAwareAd
         org.dataone.service.types.v2.Node fetchedNode = null;
         try {
             fetchedNode = cn.getNodeCapabilities(mnRef);
+        } catch (BaseException e) {
+            throw new AssertionError(cn.getNodeBaseServiceUrl() + ":   "
+                    + "testUpdateNodeCapabilities() : "
+                    + "CN.getNodeCapabilities() call failed to get updated info with exception: " 
+                    + e.getClass().getSimpleName() + " : " + e.getDetail_code() + " : " 
+                    + e.getDescription() + " : " + e.getMessage(), e);
         } catch (Exception e) {
-            e.printStackTrace();
-            handleFail(cn.getLatestRequestUrl(), "testUpdateNodeCapabilities() : "
-                    + "unable to fetch updated Node capabilities!");
+            throw new AssertionError(cn.getNodeBaseServiceUrl() + ":   "
+                    + "testUpdateNodeCapabilities() : "
+                    + "CN.getNodeCapabilities() call failed to get updated info with exception: " 
+                    + e.getClass().getSimpleName() + " : " + e.getMessage(), e);
         }
         
         // reset properties we changed on the node
         try {
             v2MN.setPropertyList(oldPropertyListBackup);
             cn.updateNodeCapabilities(null, mnRef, v2MN);
+        } catch (BaseException e) {
+            throw new AssertionError(cn.getNodeBaseServiceUrl() + ":   "
+                    + "testUpdateNodeCapabilities() : "
+                    + "CN.updateNodeCapabilities() call failed to reset properties with exception: " 
+                    + e.getClass().getSimpleName() + " : " + e.getDetail_code() + " : " 
+                    + e.getDescription() + " : " + e.getMessage(), e);
         } catch (Exception e) {
-            e.printStackTrace();
-            handleFail(cn.getNodeBaseServiceUrl(), "testUpdateNodeCapabilities() : "
-                    + "Unable to reset Node properties on: " + cn.getNodeBaseServiceUrl() 
-                    + " to backed-up properties! : " + e.getMessage() + ", " 
-                    + e.getCause() == null ? "" : e.getCause().getMessage());
+            throw new AssertionError(cn.getNodeBaseServiceUrl() + ":   "
+                    + "testUpdateNodeCapabilities() : "
+                    + "CN.updateNodeCapabilities() call failed to reset properties with exception: " 
+                    + e.getClass().getSimpleName() + " : " + e.getMessage(), e);
         }
         
         // check if node is updated
