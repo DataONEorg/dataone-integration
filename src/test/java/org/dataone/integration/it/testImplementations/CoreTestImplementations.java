@@ -646,11 +646,7 @@ public class CoreTestImplementations extends ContextAwareAdapter {
         try {
             Log eventLog = callAdapter.getLogRecords(null, null, null, null, null, null, null);
 
-            if (eventLog.getLogEntryList() == null ) {
-                throw new AssertionError(callAdapter.getLatestRequestUrl() + " The event log list is null after trying to read an object");
-            }
-
-            if (eventLog.getLogEntryList().size() == 0) {
+            if (eventLog.getLogEntryList() == null || eventLog.getLogEntryList().size() == 0) {
 
                 // read an existing object
                 InputStream is = null;
@@ -660,7 +656,7 @@ public class CoreTestImplementations extends ContextAwareAdapter {
                     Identifier id = this.catc.procurePublicReadableTestObject(callAdapter, D1TypeBuilder.buildIdentifier(objectIdentifier));
                     is = callAdapter.get(null, id);
                     is.close();
-                    Thread.sleep(1000); // just in case...
+                    Thread.sleep(2000); // just in case...
                     eventLog = callAdapter.getLogRecords(null, null, null, null, null, null, null);
                 } catch (TestIterationEndingException e) {
                     //
@@ -669,7 +665,7 @@ public class CoreTestImplementations extends ContextAwareAdapter {
                 }
             }
 
-            if (eventLog.getLogEntryList().size() == 0) {
+            if (eventLog.getLogEntryList() == null || eventLog.getLogEntryList().size() == 0) {
                 // still zero?  something's probably wrong
                 handleFail(callAdapter.getLatestRequestUrl(), "the event log contains no entries after trying to read an object");
 

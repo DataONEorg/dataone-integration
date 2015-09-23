@@ -76,7 +76,7 @@ public class NodeRegistryExtensibilityTestImplementations extends ContextAwareAd
         newNode.setNodeReplicationPolicy(replPolicy);
         Ping ping = new Ping();
         ping.setLastSuccess(new Date());
-        ping.setSuccess(false);
+        ping.setSuccess(true);
         newNode.setPing(ping);
         newNode.setReplicate(true);
         newNode.setState(NodeState.DOWN);
@@ -239,7 +239,7 @@ public class NodeRegistryExtensibilityTestImplementations extends ContextAwareAd
             propertyList = new ArrayList<Property>();
         Property p1 = new Property();
         p1.setKey("NodeLogo");
-        p1.setValue("<(o_O)>");
+        p1.setValue("(o_O)");
         propertyList.add(p1);
         Property p2 = new Property();
         p2.setKey("NodeTopping");
