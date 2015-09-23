@@ -47,13 +47,21 @@ public abstract class IsAuthorizedAuthorizationTestImplementations extends Abstr
     {
         String outcome = null;
         try {
+            log.info("Running isAuthorized() on " + cca.getLatestRequestUrl() 
+                    + " with pid " + pid.getValue() + " to check for permission: " 
+                    + permission.name() + " ...");
             boolean booleanOutcome = cca.isAuthorized(null, pid, permission);
             outcome = booleanOutcome ? "true" : "false";
         }
         catch (BaseException e) {
             outcome = e.getClass().getSimpleName();
+            log.error("isAuthorized() returned exception: " + e.getClass().getSimpleName() 
+                    + e.getDetail_code() + " : " + e.getMessage() + " : " 
+                    + e.getDescription(), e);
         } catch (ClientSideException e) {
             outcome = e.getClass().getSimpleName();
+            log.error("isAuthorized() returned exception: " + e.getClass().getSimpleName() 
+                    + " : " + e.getMessage());
         }
         return outcome;
     }
