@@ -812,7 +812,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         getSession("testRightsHolder");
         Subject subject = D1TypeBuilder.buildSubject(Constants.SUBJECT_PUBLIC);
         accessRule.addSubject(subject);
-        accessRule.addPermission(Permission.CHANGE_PERMISSION);
+        accessRule.addPermission(Permission.READ);
         
         ReplicationPolicy replPolicy = new ReplicationPolicy();
         replPolicy.setReplicationAllowed(true);
@@ -897,7 +897,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
 
             String numFoundVal = numFoundAttr.getNodeValue(); 
             Integer numFoundInt = Integer.getInteger(numFoundVal);
-            assertTrue("testV1CreateV2Query() query response contain a result.", 
+            assertTrue("testV1CreateV2Query() query response should not contain zero results.", 
                     numFoundInt > 0);
 
             String pidExp = "/response/result/doc/str[@name='identifier']";
@@ -937,7 +937,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         getSession("testRightsHolder");
         Subject subject = D1TypeBuilder.buildSubject(Constants.SUBJECT_PUBLIC);
         accessRule.addSubject(subject);
-        accessRule.addPermission(Permission.CHANGE_PERMISSION);
+        accessRule.addPermission(Permission.READ);
         ReplicationPolicy replPolicy = new ReplicationPolicy();
         replPolicy.setReplicationAllowed(true);
         replPolicy.setNumberReplicas(availableMNs-1);

@@ -42,14 +42,17 @@ public class NodeRegistryExtensibilityTestImplementations extends ContextAwareAd
 
     @WebTestName("register - Node with extra properties")
     @WebTestDescription("this test calls creates a new Node object, adds some properties, "
-            + "and calls register() with it. It then fetches the Node info with "
-            + "getNodeCapabilities() and makes sure the properties match what was added.")
-    public void testRegister(Iterator<Node> nodeIterator, String version) {
-        while (nodeIterator.hasNext())
-            testRegister(nodeIterator.next(), version);        
+            + "(leaving the optional Property.type null) and calls register() with it. "
+            + "It then fetches the Node info with getNodeCapabilities() and makes sure "
+            + "the properties match what was added.")
+    public void testRegister_NoPropType(Iterator<Node> nodeIterator, String version) {
+        if (nodeIterator.hasNext()) // all CNs share LDAP data
+            testRegister_NoPropType(nodeIterator.next(), version);  
+        else
+            throw new AssertionError("No CN to test against!");
     }
     
-    private void testRegister(Node node, String version) {
+    private void testRegister_NoPropType(Node node, String version) {
         
         CNCallAdapter cn = new CNCallAdapter(getSession(cnSubmitter), node, "v2");
         
@@ -71,9 +74,6 @@ public class NodeRegistryExtensibilityTestImplementations extends ContextAwareAd
         nodeRef.setValue("urn:node:TestNode");
         newNode.setName("urn:node:TestNode");
         newNode.setIdentifier(nodeRef);
-        NodeReplicationPolicy replPolicy = new NodeReplicationPolicy();
-        replPolicy.setAllowedNodeList(new ArrayList<NodeReference>());
-        newNode.setNodeReplicationPolicy(replPolicy);
         Ping ping = new Ping();
         ping.setLastSuccess(new Date());
         ping.setSuccess(true);
@@ -116,17 +116,6 @@ public class NodeRegistryExtensibilityTestImplementations extends ContextAwareAd
         p2.setKey("NodeTopping");
         p2.setValue("Pepperoni");
         propertyList.add(p2);
-        
-//        try {
-//            FileOutputStream fos = new FileOutputStream(new File("C:\\Users\\Andrei\\stuff\\nodeToRegister.xml"));
-//            TypeMarshaller.marshalTypeToOutputStream(newNode, fos);
-//            fos.close();
-//            FileInputStream fis = new FileInputStream(new File("C:\\Users\\Andrei\\stuff\\nodeToRegister.xml"));
-//            TypeMarshaller.unmarshalTypeFromStream(org.dataone.service.types.v2.Node.class, fis);
-//            fis.close();
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
         
         try {
             log.info("Attempting to register new node: " + newNode.getName() + " (" + 
@@ -174,6 +163,9 @@ public class NodeRegistryExtensibilityTestImplementations extends ContextAwareAd
         assertTrue("testRegister(): fetched Node property 1 key "
                 + "should match the property we gave it.", 
                 fetchedP1.getKey().equals(p1.getKey()));
+        assertTrue("testRegister(): fetched Node property 1 type "
+                + "should match the type we gave it (null).", 
+                fetchedP1.getType() == null);
         assertTrue("testRegister(): fetched Node property 1 value "
                 + "should match the property we gave it.", 
                 fetchedP1.getValue().equals(p1.getValue()));
@@ -182,6 +174,152 @@ public class NodeRegistryExtensibilityTestImplementations extends ContextAwareAd
         assertTrue("testRegister(): fetched Node property 2 key "
                 + "should match the property we gave it.", 
                 fetchedP2.getKey().equals(p2.getKey()));
+        assertTrue("testRegister(): fetched Node property 2 type "
+                + "should match the type we gave it (null).", 
+                fetchedP2.getType() == null);
+        assertTrue("testRegister(): fetched Node property 2 value "
+                + "should match the property we gave it.", 
+                fetchedP2.getValue().equals(p2.getValue()));
+    }
+    
+    @WebTestName("register - Node with extra properties")
+    @WebTestDescription("this test calls creates a new Node object, adds some properties, "
+            + "and calls register() with it. It then fetches the Node info with "
+            + "getNodeCapabilities() and makes sure the properties match what was added.")
+    public void testRegister(Iterator<Node> nodeIterator, String version) {
+        if (nodeIterator.hasNext()) // all CNs share LDAP data
+            testRegister(nodeIterator.next(), version);  
+        else
+            throw new AssertionError("No CN to test against!");
+    }
+    
+    private void testRegister(Node node, String version) {
+        
+        CNCallAdapter cn = new CNCallAdapter(getSession(cnSubmitter), node, "v2");
+        
+        SubjectInfo verifiedSubjects = null;
+        try {
+            verifiedSubjects = cn.listSubjects(null, null, "verified", null, null);
+        } catch (BaseException | ClientSideException e) {
+            throw new AssertionError("Unable to fetch verified subjects on " + cn.getNodeBaseServiceUrl(), e);
+        }
+        if (verifiedSubjects.getPersonList() == null || verifiedSubjects.getPersonList().size() == 0)
+            throw new AssertionError("No verified subjects on " + cn.getNodeBaseServiceUrl());
+        
+        // create a new Node
+        org.dataone.service.types.v2.Node newNode = new org.dataone.service.types.v2.Node();
+        newNode.setBaseURL("https://fake.node.org");
+        newNode.setContactSubjectList(new ArrayList<Subject>());
+        newNode.setDescription("Node made for Register API testing");
+        NodeReference nodeRef = new NodeReference();
+        nodeRef.setValue("urn:node:TestNode");
+        newNode.setName("urn:node:TestNode");
+        newNode.setIdentifier(nodeRef);
+        Ping ping = new Ping();
+        ping.setLastSuccess(new Date());
+        ping.setSuccess(true);
+        newNode.setPing(ping);
+        newNode.setReplicate(true);
+        newNode.setState(NodeState.DOWN);
+        List<Subject> subjects = new ArrayList<Subject>();
+        Subject subj = verifiedSubjects.getPerson(0).getSubject();
+        subjects.add(subj);
+        newNode.setSubjectList(subjects);
+        newNode.setContactSubjectList(subjects);
+        Synchronization synchronization = new Synchronization();
+        Schedule schedule = new Schedule();
+        schedule.setHour("*");
+        schedule.setMday("*");
+        schedule.setMin("0/3");
+        schedule.setMon("*");
+        schedule.setSec("10");
+        schedule.setWday("?");
+        schedule.setYear("*");
+        synchronization.setSchedule(schedule);
+        newNode.setSynchronization(synchronization);
+        newNode.setSynchronize(false);
+        newNode.setType(NodeType.MN);
+        Services services = new Services();
+        Service service = new Service();
+        service.setName("MNCore");
+        service.setVersion("v2");
+        service.setAvailable(true);
+        services.addService(service);
+        newNode.setServices(services);
+        
+        // add to Node properties
+        List<Property> propertyList = newNode.getPropertyList();
+        Property p1 = new Property();
+        p1.setKey("NodeLogo");
+        p1.setType("propType");
+        p1.setValue("(o_O)");
+        propertyList.add(p1);
+        Property p2 = new Property();
+        p2.setKey("NodeTopping");
+        p2.setType("propType");
+        p2.setValue("Pepperoni");
+        propertyList.add(p2);
+        
+        try {
+            log.info("Attempting to register new node: " + newNode.getName() + " (" + 
+                    newNode.getBaseURL() + ") with CN " + cn.getNodeBaseServiceUrl());
+            cn.register(null, newNode);
+        } catch (BaseException e) {
+            throw new AssertionError(cn.getNodeBaseServiceUrl() + ":   "
+                    + "testRegister() : "
+                    + "CN.register() call failed to register new node with exception: " 
+                    + e.getClass().getSimpleName() + " : " + e.getDetail_code() + " : " 
+                    + e.getDescription() + " : " + e.getMessage(), e);
+        } catch (Exception e) {
+            throw new AssertionError(cn.getNodeBaseServiceUrl() + ":   "
+                    + "testRegister() : "
+                    + "CN.register() call failed to register new node with exception: " 
+                    + e.getClass().getSimpleName() + " : " + e.getMessage(), e);
+        }
+        
+        // get the node info
+        org.dataone.service.types.v2.Node fetchedNode = null;
+        try {
+            fetchedNode = cn.getNodeCapabilities(nodeRef);
+        } catch (BaseException e) {
+            throw new AssertionError(cn.getNodeBaseServiceUrl() + ":   "
+                    + "testRegister() : "
+                    + "CN.getNodeCapabilities() call failed with exception: " 
+                    + e.getClass().getSimpleName() + " : " + e.getDetail_code() + " : " 
+                    + e.getDescription() + " : " + e.getMessage(), e);
+        } catch (Exception e) {
+            throw new AssertionError(cn.getNodeBaseServiceUrl() + ":   "
+                    + "testRegister() : "
+                    + "CN.getNodeCapabilities() call failed with exception: " 
+                    + e.getClass().getSimpleName() + " : " + e.getMessage(), e);
+        } finally {
+            // ideally... unregister(newNode);
+        }
+        
+        // check if node has properties we set
+        List<Property> fetchedPropertyList = fetchedNode.getPropertyList();
+        assertTrue("testRegister(): fetched Node property list "
+                + "should contain two properties. Number of properties: " + 
+                fetchedPropertyList.size(), fetchedPropertyList.size() == 2);
+        
+        Property fetchedP1 = fetchedPropertyList.get(0);
+        assertTrue("testRegister(): fetched Node property 1 key "
+                + "should match the property we gave it.", 
+                fetchedP1.getKey().equals(p1.getKey()));
+        assertTrue("testRegister(): fetched Node property 1 type "
+                + "should match the type we gave it.", 
+                fetchedP1.getType().equals(p1.getType()));
+        assertTrue("testRegister(): fetched Node property 1 value "
+                + "should match the property we gave it.", 
+                fetchedP1.getValue().equals(p1.getValue()));
+        
+        Property fetchedP2 = fetchedPropertyList.get(1);
+        assertTrue("testRegister(): fetched Node property 2 key "
+                + "should match the property we gave it.", 
+                fetchedP2.getKey().equals(p2.getKey()));
+        assertTrue("testRegister(): fetched Node property 2 type "
+                + "should match the type we gave it.", 
+                fetchedP2.getType().equals(p2.getType()));
         assertTrue("testRegister(): fetched Node property 2 value "
                 + "should match the property we gave it.", 
                 fetchedP2.getValue().equals(p2.getValue()));
@@ -192,8 +330,10 @@ public class NodeRegistryExtensibilityTestImplementations extends ContextAwareAd
             + "and calls updateNodeCapabilities(). It then fetches the Node info with "
             + "getNodeCapabilities() and makes sure the properties match what was added.")
     public void testUpdateNodeCapabilities(Iterator<Node> nodeIterator, String version) {
-        while (nodeIterator.hasNext())
-            testUpdateNodeCapabilities(nodeIterator.next(), version);        
+        if (nodeIterator.hasNext()) // all CNs share LDAP data
+            testUpdateNodeCapabilities(nodeIterator.next(), version);
+        else
+            throw new AssertionError("No CN to test against!");
     }
     
     private void testUpdateNodeCapabilities(Node node, String version) {
@@ -239,13 +379,15 @@ public class NodeRegistryExtensibilityTestImplementations extends ContextAwareAd
             propertyList = new ArrayList<Property>();
         Property p1 = new Property();
         p1.setKey("NodeLogo");
+        p1.setType("propType");
         p1.setValue("(o_O)");
         propertyList.add(p1);
         Property p2 = new Property();
         p2.setKey("NodeTopping");
+        p2.setType("propType");
         p2.setValue("Pepperoni");
         propertyList.add(p2);
-        
+        v2MN.setPropertyList(propertyList);
         // backup old node properties
         
         try {

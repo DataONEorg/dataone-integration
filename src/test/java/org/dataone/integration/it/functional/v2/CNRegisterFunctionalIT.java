@@ -28,6 +28,12 @@ public class CNRegisterFunctionalIT extends ContextAwareTestCaseDataone implemen
 
     @Override
     @Test
+    public void testRegister_NoPropType() {
+        extensibilityImpl.testRegister_NoPropType(getCoordinatingNodeIterator(), "v2");
+    }
+    
+    @Override
+    @Test
     public void testUpdateNodeCapabilities() {
         extensibilityImpl.testUpdateNodeCapabilities(getCoordinatingNodeIterator(), "v2");
     }
