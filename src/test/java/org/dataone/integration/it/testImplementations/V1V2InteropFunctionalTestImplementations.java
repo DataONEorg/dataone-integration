@@ -876,7 +876,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         InputStream is = null;
         try {
             String encodedPid = URLEncoder.encode(pid.getValue(), "UTF-8");
-            is = v2CallAdapter.query(null, "solr", "?q=identifier:" + encodedPid);
+            is = v2CallAdapter.query(null, "solr", "q=identifier:" + encodedPid);
             assertTrue("query() should return a non-null stream", is != null);
             
             Document doc = null;
@@ -977,7 +977,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         InputStream is = null;
         try {
             String encodedPid = URLEncoder.encode(pid.getValue(), "UTF-8");
-            is = v1CallAdapter.query(null, "solr", "?q=identifier:" + encodedPid);
+            is = v1CallAdapter.query(null, "solr", "q=identifier:" + encodedPid);
             throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + " testV2CreateV1Query(): "
                     + "query() on the v1 MN should fail.");
         } catch (InvalidRequest e) {
