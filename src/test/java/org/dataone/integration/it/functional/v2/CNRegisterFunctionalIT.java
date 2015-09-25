@@ -20,11 +20,11 @@ public class CNRegisterFunctionalIT extends ContextAwareTestCaseDataone implemen
         return "Test Case that runs CN register API methods to check if Node properties can be modified.";
     }
 
-//    @Override
-//    @Test
-//    public void testRegister() {
-//        extensibilityImpl.testRegister(getCoordinatingNodeIterator(), "v2");
-//    }
+    @Override
+    @Test
+    public void testRegister() {
+        extensibilityImpl.testRegister(getCoordinatingNodeIterator(), "v2");
+    }
 
 //    @Override
 //    @Test

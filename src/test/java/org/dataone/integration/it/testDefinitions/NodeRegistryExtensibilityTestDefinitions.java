@@ -7,7 +7,7 @@ package org.dataone.integration.it.testDefinitions;
  */
 public interface NodeRegistryExtensibilityTestDefinitions {
 
-    //public void testRegister();
+    public void testRegister();
     //public void testRegister_NoPropType();
     public void testUpdateNodeCapabilities();
     
