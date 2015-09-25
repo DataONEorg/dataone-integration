@@ -372,6 +372,7 @@ public class NodeRegistryExtensibilityTestImplementations extends ContextAwareAd
         
         org.dataone.service.types.v2.Node v2MN = v2MNs.get(0);
         NodeReference mnRef = v2MN.getIdentifier();
+        log.info("testing with node: " + mnRef.getValue());
         
         // add to Node properties
         List<Property> propertyList = v2MN.getPropertyList();
