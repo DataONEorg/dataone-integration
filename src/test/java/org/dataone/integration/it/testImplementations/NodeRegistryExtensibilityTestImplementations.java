@@ -442,6 +442,13 @@ public class NodeRegistryExtensibilityTestImplementations extends ContextAwareAd
                     + e.getClass().getSimpleName() + " : " + e.getMessage(), e);
         }
         
+        if (fetchedNode.getPropertyList() != null) {
+        	log.warn("fetchedNode has PropertyList size: " + fetchedNode.getPropertyList().size());
+        } else {
+        	log.warn("fetchedNode has null property list: " + fetchedNode.getPropertyList());
+
+        }
+        
         // reset properties we changed on the node
         try {
             v2MN.setPropertyList(oldPropertyListBackup);
