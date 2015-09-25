@@ -40,6 +40,7 @@ public class NodeRegistryExtensibilityTestImplementations extends ContextAwareAd
         super(catc);
     }
 
+    /*
     @WebTestName("register - Node with extra properties")
     @WebTestDescription("this test calls creates a new Node object, adds some properties, "
             + "(leaving the optional Property.type null) and calls register() with it. "
@@ -51,6 +52,7 @@ public class NodeRegistryExtensibilityTestImplementations extends ContextAwareAd
         else
             throw new AssertionError("No CN to test against!");
     }
+    */
     
     private void testRegister_NoPropType(Node node, String version) {
         
