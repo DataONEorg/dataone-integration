@@ -8,8 +8,11 @@ import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
+import org.apache.commons.collections.IteratorUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 import org.dataone.client.exception.ClientSideException;
@@ -20,6 +23,7 @@ import org.dataone.integration.adapters.CommonCallAdapter;
 import org.dataone.integration.adapters.MNCallAdapter;
 import org.dataone.integration.webTest.WebTestDescription;
 import org.dataone.integration.webTest.WebTestName;
+import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.IdentifierNotUnique;
 import org.dataone.service.exceptions.InsufficientResources;
 import org.dataone.service.exceptions.InvalidRequest;
@@ -36,7 +40,6 @@ import org.dataone.service.types.v1.NodeReference;
 import org.dataone.service.types.v1.ObjectFormatIdentifier;
 import org.dataone.service.types.v2.SystemMetadata;
 import org.dataone.service.types.v2.TypeFactory;
-import org.dataone.service.util.TypeMarshaller;
 import org.jibx.runtime.JiBXException;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -52,7 +55,20 @@ public class SidMNTestImplementations extends SidCommonTestImplementations {
     
     @Override
     protected Iterator<Node> getNodeIterator() {
-        return getMemberNodeIterator();
+        Iterator<Node> memberNodeIterator = getMemberNodeIterator();
+        List<Node> availableMNs = (List<Node>) IteratorUtils.toList(memberNodeIterator);
+        List<Node> v2MNs = new ArrayList<Node>();
+        for (Node mn : availableMNs) {
+            MNCallAdapter mnCallAdapter = new MNCallAdapter(getSession(cnSubmitter), mn, "v2");
+            try {
+                mnCallAdapter.ping();
+                v2MNs.add(mn);
+                log.info("MN included in test: " + mn.getBaseURL());
+            } catch (Exception e) {
+                log.info("MN excluded from test: " + mn.getBaseURL());
+            }
+        }
+        return v2MNs.iterator();
     }
     
     @Override
@@ -627,7 +643,18 @@ public class SidMNTestImplementations extends SidCommonTestImplementations {
                 try {
                     sidPkg = callAdapter.getPackage(null, formatID, sid);
                     pidPkg = callAdapter.getPackage(null, formatID, pid);
-                    assertTrue("getPackage() Case " + caseNum, IOUtils.contentEquals(sidPkg, pidPkg));
+                    
+//                    FileOutputStream sidOut = new FileOutputStream(new File("C:\\Users\\Andrei\\stuff\\sidPkg"));
+//                    FileOutputStream pidOut = new FileOutputStream(new File("C:\\Users\\Andrei\\stuff\\pidPkg"));
+//                    IOUtils.copy(sidPkg, sidOut);
+//                    IOUtils.copy(pidPkg, pidOut);
+                    
+                    assertTrue("getPackage() Case " + caseNum + ", getPackage for sid and pid should return equivalent InputStreams.", IOUtils.contentEquals(sidPkg, pidPkg));
+                } catch (BaseException e) {
+                    e.printStackTrace();
+                    throw new AssertionError(callAdapter.getNodeBaseServiceUrl() + " Case: " + caseNum + 
+                            " : " + e.getClass().getSimpleName() + " : " + e.getDetail_code() + " : " +  
+                            e.getDescription() + " : " + e.getMessage());
                 } catch (Exception e) {
                     e.printStackTrace();
                     throw new AssertionError(callAdapter.getNodeBaseServiceUrl() + " Case: " + caseNum + 
