@@ -450,6 +450,26 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
         return memberNodeList.iterator();
     }
 
+    /**
+     * Uses getMemberNodeIterator() but includes only v2 Nodes.
+     */
+    protected Iterator<Node> getV2MemberNodeIterator() {
+        Iterator<Node> memberNodeIterator = memberNodeList.iterator();
+        List<Node> v2MNs = new ArrayList<Node>();
+        while (memberNodeIterator.hasNext()) {
+            Node mn = memberNodeIterator.next();
+            MNCallAdapter mnCallAdapter = new MNCallAdapter(getSession(cnSubmitter), mn, "v2");
+            try {
+                mnCallAdapter.ping();
+                v2MNs.add(mn);
+                log.info("MN included in test: " + mn.getBaseURL());
+            } catch (Exception e) {
+                log.info("MN excluded from test: " + mn.getBaseURL());
+            }
+        }
+        return v2MNs.iterator();
+    }
+    
     protected Iterator<Node> getCoordinatingNodeIterator() {
         return coordinatingNodeList.iterator();
     }
@@ -1670,10 +1690,11 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
         formatID.setValue(RESOURCE_MAP_FORMAT_ID);
         AccessRule accessRule = new AccessRule();
         getSession("testRightsHolder");
-        Subject subject = getSubject("testRightsHolder");
+//        Subject subject = getSubject("testRightsHolder");
+        Subject subject = D1TypeBuilder.buildSubject(Constants.SUBJECT_PUBLIC);
         
         accessRule.addSubject(subject);
-        accessRule.addPermission(Permission.CHANGE_PERMISSION);
+        accessRule.addPermission(Permission.READ);
         
         Identifier scimetaPid = null;
         Identifier dataObjPid = null;
