@@ -1686,7 +1686,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
         
         // create science metadata object
         try {
-            scimetaPid = createTestObject(cca, "testPackage_scimeta_", accessRule);
+            scimetaPid = createTestObject(cca, D1TypeBuilder.buildIdentifier("testPackage_scimeta_" + ExampleUtilities.generateIdentifier()), accessRule);
         } catch (Exception e) {
             e.printStackTrace();
             throw new ClientSideException("Unable to create object for MNPackage testing.", e);
