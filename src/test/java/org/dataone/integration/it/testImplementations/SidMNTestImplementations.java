@@ -53,22 +53,12 @@ public class SidMNTestImplementations extends SidCommonTestImplementations {
         return "Tests v2 API methods for MNs that accept SID parameters";
     }
     
+    /**
+     * Overrides getMemberNodeIterator() to include only v2 Nodes.
+     */
     @Override
     protected Iterator<Node> getNodeIterator() {
-        Iterator<Node> memberNodeIterator = getMemberNodeIterator();
-        List<Node> availableMNs = (List<Node>) IteratorUtils.toList(memberNodeIterator);
-        List<Node> v2MNs = new ArrayList<Node>();
-        for (Node mn : availableMNs) {
-            MNCallAdapter mnCallAdapter = new MNCallAdapter(getSession(cnSubmitter), mn, "v2");
-            try {
-                mnCallAdapter.ping();
-                v2MNs.add(mn);
-                log.info("MN included in test: " + mn.getBaseURL());
-            } catch (Exception e) {
-                log.info("MN excluded from test: " + mn.getBaseURL());
-            }
-        }
-        return v2MNs.iterator();
+        return getV2MemberNodeIterator();
     }
     
     @Override
