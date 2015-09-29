@@ -1690,8 +1690,8 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
         formatID.setValue(RESOURCE_MAP_FORMAT_ID);
         AccessRule accessRule = new AccessRule();
         getSession("testRightsHolder");
-//        Subject subject = getSubject("testRightsHolder");
-        Subject subject = D1TypeBuilder.buildSubject(Constants.SUBJECT_PUBLIC);
+        Subject subject = getSubject("testRightsHolder");
+//        Subject subject = D1TypeBuilder.buildSubject(Constants.SUBJECT_PUBLIC);
         
         accessRule.addSubject(subject);
         accessRule.addPermission(Permission.READ);
