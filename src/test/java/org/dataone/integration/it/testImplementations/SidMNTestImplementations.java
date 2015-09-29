@@ -1,8 +1,13 @@
 package org.dataone.integration.it.testImplementations;
 
 import static org.junit.Assert.assertTrue;
+import gov.loc.repository.bagit.Bag;
+import gov.loc.repository.bagit.BagFactory;
+import gov.loc.repository.bagit.Manifest;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
@@ -12,7 +17,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import org.apache.commons.collections.IteratorUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 import org.dataone.client.exception.ClientSideException;
@@ -634,8 +638,41 @@ public class SidMNTestImplementations extends SidCommonTestImplementations {
                     sidPkg = callAdapter.getPackage(null, formatID, sid);
                     pidPkg = callAdapter.getPackage(null, formatID, pid);
                     
-                    boolean streamsEqual = IOUtils.contentEquals(sidPkg, pidPkg);
-                    assertTrue("getPackage() Case " + caseNum + ", getPackage for sid and pid should return equivalent InputStreams.", streamsEqual);
+                    // find an object from the sid package
+        			ObjectFormatIdentifier format = new ObjectFormatIdentifier();
+                    format.setValue("application/bagit-097");
+        			BagFactory bagFactory = new BagFactory();
+
+        			File sidBagFile = File.createTempFile("sidBagit.", ".zip");
+        			IOUtils.copy(sidPkg, new FileOutputStream(sidBagFile));
+        			Bag sidBag = bagFactory.createBag(sidBagFile);
+                    List<String> sidFilePaths = new ArrayList<String>();
+        			Iterator<Manifest> manifestIter = sidBag.getTagManifests().iterator();
+        			while (manifestIter.hasNext()) {
+        				Manifest manifest = manifestIter.next();
+        				String filepath = manifest.getFilepath();
+        				sidFilePaths.add(filepath);
+        			}
+        			
+        			// get using pid
+        			File pidBagFile = File.createTempFile("pidBagit.", ".zip");
+        			IOUtils.copy(pidPkg, new FileOutputStream(pidBagFile));
+        			Bag pidBag = bagFactory.createBag(pidBagFile);
+                    List<String> pidFilePaths = new ArrayList<String>();
+        			Iterator<Manifest> pidManifestIter = pidBag.getTagManifests().iterator();
+        			while (pidManifestIter.hasNext()) {
+        				Manifest manifest = pidManifestIter.next();
+        				String filepath = manifest.getFilepath();
+        				pidFilePaths.add(filepath);
+        			}
+        			
+        			// clean up
+        			sidBagFile.delete();
+        			pidBagFile.delete();
+        			
+        			// check the contents
+                    boolean contentsEqual = sidFilePaths.containsAll(pidFilePaths);
+                    assertTrue("getPackage() Case " + caseNum + ", getPackage for sid and pid should return same content.", contentsEqual);
                     
                 } catch (BaseException e) {
                     e.printStackTrace();

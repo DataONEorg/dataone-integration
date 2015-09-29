@@ -155,6 +155,31 @@
             <artifactId>solr-solrj</artifactId>
             <version>3.4.0</version>
         </dependency>
+	<dependency>
+    		<groupId>gov.loc</groupId>
+			<artifactId>bagit</artifactId>
+			<version>4.4</version>
+			<type>jar</type>
+			<exclusions>
+				<exclusion>
+					<groupId>xml-apis</groupId>
+					<artifactId>xml-apis</artifactId>
+		        </exclusion>
+		        <exclusion>
+					<groupId>org.apache.httpcomponents</groupId>
+					<artifactId>httpclient</artifactId>
+		        </exclusion>
+		        <exclusion>
+		        	<groupId>org.apache.httpcomponents</groupId>
+    				<artifactId>httpmime</artifactId>
+		        </exclusion>
+		        <exclusion>
+					<groupId>commons-codec</groupId>
+					<artifactId>commons-codec</artifactId>
+		        </exclusion>
+			</exclusions>
+    	</dependency>
+    	
     <dependency>
       <groupId>org.dataone</groupId>
       <artifactId>d1_common_java</artifactId>
@@ -319,7 +344,7 @@
         <plugin>
         <groupId>org.eclipse.jetty</groupId>
         <artifactId>jetty-maven-plugin</artifactId>
-        <version>9.2.2-SNAPSHOT</version>
+        <version>9.2.2.v20140723</version>
         <configuration>
           <war>${project.basedir}/target/mycustom.war</war>
         </configuration>
