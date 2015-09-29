@@ -634,12 +634,9 @@ public class SidMNTestImplementations extends SidCommonTestImplementations {
                     sidPkg = callAdapter.getPackage(null, formatID, sid);
                     pidPkg = callAdapter.getPackage(null, formatID, pid);
                     
-//                    FileOutputStream sidOut = new FileOutputStream(new File("C:\\Users\\Andrei\\stuff\\sidPkg"));
-//                    FileOutputStream pidOut = new FileOutputStream(new File("C:\\Users\\Andrei\\stuff\\pidPkg"));
-//                    IOUtils.copy(sidPkg, sidOut);
-//                    IOUtils.copy(pidPkg, pidOut);
+                    boolean streamsEqual = IOUtils.contentEquals(sidPkg, pidPkg);
+                    assertTrue("getPackage() Case " + caseNum + ", getPackage for sid and pid should return equivalent InputStreams.", streamsEqual);
                     
-                    assertTrue("getPackage() Case " + caseNum + ", getPackage for sid and pid should return equivalent InputStreams.", IOUtils.contentEquals(sidPkg, pidPkg));
                 } catch (BaseException e) {
                     e.printStackTrace();
                     throw new AssertionError(callAdapter.getNodeBaseServiceUrl() + " Case: " + caseNum + 
