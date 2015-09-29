@@ -50,6 +50,14 @@ public class MNStorageV2IT extends ContextAwareTestCaseDataone
     protected String getTestDescription() {
         return "Test Case that runs through the MN version 2 of storage API methods";
     }
+    
+    /**
+     * Overrides getMemberNodeIterator() to include only v2 Nodes.
+     */
+    @Override
+    protected Iterator<Node> getMemberNodeIterator() {
+        return getV2MemberNodeIterator();
+    }
 
     @Override
     @Test

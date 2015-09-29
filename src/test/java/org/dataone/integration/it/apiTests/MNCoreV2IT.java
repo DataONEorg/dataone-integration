@@ -1,11 +1,14 @@
 package org.dataone.integration.it.apiTests;
 
+import java.util.Iterator;
+
 import org.dataone.integration.ContextAwareTestCaseDataone;
 import org.dataone.integration.it.testDefinitions.CoreTestDefinitions;
 import org.dataone.integration.it.testDefinitions.MNCoreTestDefinitions;
 import org.dataone.integration.it.testImplementations.CoreTestImplementations;
 import org.dataone.integration.it.testImplementations.SidMNTestImplementations;
 import org.dataone.integration.webTest.WebTestImplementation;
+import org.dataone.service.types.v1.Node;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -36,6 +39,14 @@ implements CoreTestDefinitions, MNCoreTestDefinitions
     @Override
     protected String getTestDescription() {
         return "Test Case that runs through the MN version 2 or core API methods";
+    }
+    
+    /**
+     * Overrides getMemberNodeIterator() to include only v2 Nodes.
+     */
+    @Override
+    protected Iterator<Node> getMemberNodeIterator() {
+        return getV2MemberNodeIterator();
     }
     
     @Override

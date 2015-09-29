@@ -1,9 +1,12 @@
 package org.dataone.integration.it.apiTests;
 
+import java.util.Iterator;
+
 import org.dataone.integration.ContextAwareTestCaseDataone;
 import org.dataone.integration.it.testDefinitions.MNCoreSlowTestDefinitions;
 import org.dataone.integration.it.testImplementations.CoreTestImplementations;
 import org.dataone.integration.webTest.WebTestImplementation;
+import org.dataone.service.types.v1.Node;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -22,6 +25,14 @@ public class MNCoreV2SlowIT extends ContextAwareTestCaseDataone
     protected String getTestDescription() {
         return "Test Case that runs through the MN version 2 core API methods "
                 + "that may run slowly";
+    }
+    
+    /**
+     * Overrides getMemberNodeIterator() to include only v2 Nodes.
+     */
+    @Override
+    protected Iterator<Node> getMemberNodeIterator() {
+        return getV2MemberNodeIterator();
     }
 
     @Before

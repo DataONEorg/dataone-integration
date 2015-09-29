@@ -1,11 +1,14 @@
 package org.dataone.integration.it.apiTests;
 
+import java.util.Iterator;
+
 import org.dataone.integration.ContextAwareTestCaseDataone;
 import org.dataone.integration.it.testDefinitions.MNReplicationTestDefinitions;
 import org.dataone.integration.it.testDefinitions.MNSystemMetadataChangedTestDefinitions;
 import org.dataone.integration.it.testImplementations.MNReplicationTestImplementations;
 import org.dataone.integration.it.testImplementations.MNSystemMetadataChangedMethodTestImplementations;
 import org.dataone.integration.webTest.WebTestImplementation;
+import org.dataone.service.types.v1.Node;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -29,6 +32,14 @@ public class MNReplicationV2IT extends ContextAwareTestCaseDataone
         return "Test Case that runs through the MN version 2 of replication API methods";
     }
 
+    /**
+     * Overrides getMemberNodeIterator() to include only v2 Nodes.
+     */
+    @Override
+    protected Iterator<Node> getMemberNodeIterator() {
+        return getV2MemberNodeIterator();
+    }
+    
     @Override
     @Test
     @Ignore("Test implementation exists but claims to not be implemented (see MNReplicationTestImplementations)")
