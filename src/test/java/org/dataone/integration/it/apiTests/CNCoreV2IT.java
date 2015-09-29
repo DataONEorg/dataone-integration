@@ -285,15 +285,13 @@ implements CoreTestDefinitions, CNCoreTestDefinitions, CNv2CoreTestDefinitions, 
     @Override
     @Test
     public void testUpdateSystemMetadata_NotAuthorized_RightsHolder() {
-        updateSysMetaImpl.testUpdateSystemMetadata_CN(getCoordinatingNodeIterator(), "v2");
-        
+        updateSysMetaImpl.testUpdateSystemMetadata_NotAuthorized_RightsHolder(getCoordinatingNodeIterator(), "v2");
     }
 
     @Override
     @Test
     public void testUpdateSystemMetadata_CN() {
         updateSysMetaImpl.testUpdateSystemMetadata_CN(getCoordinatingNodeIterator(), "v2");
-        
     }
 
     @Override
