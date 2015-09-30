@@ -73,8 +73,8 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
     private List<Node> mnList;
     private List<Node> cnList;
     private Node mnV2NoSync;
-    private static final long SYNC_WAIT = 5 * 60000;       // FIXME this is based on manually setting sync time on MNs
-    private static final long REPLICATION_WAIT = 1 * 60000;
+    private static final long SYNC_WAIT = 10 * 60000;       // FIXME this is based on manually setting sync time on MNs
+    private static final long REPLICATION_WAIT = 5 * 60000;
     
     @Before
     public void setup() {
