@@ -88,7 +88,6 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
 //            
 //            SystemMetadata sysmeta = cnCertCallAdapter.getSystemMetadata(null, testObjPid);
 //            sysmeta.setSerialVersion(sysmeta.getSerialVersion().add(BigInteger.ONE));
-//            sysmeta.setDateSysMetadataModified(new Date());
 //            mnCertCallAdapter.updateSystemMetadata(null, testObjPid , sysmeta);
 //            handleFail(mnCertCallAdapter.getLatestRequestUrl(), "updateSystemMetadata call should fail for a connection with unauthorized certificate");
 //        } 
@@ -134,10 +133,8 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
             
             SystemMetadata sysmeta = callAdapter.getSystemMetadata(null, testObjPid);
             BigInteger newSerialVersion = sysmeta.getSerialVersion().add(BigInteger.ONE);
-            Date nowIsh = new Date();
             Date originalDate = sysmeta.getDateSysMetadataModified();
             sysmeta.setSerialVersion(newSerialVersion);
-            sysmeta.setDateSysMetadataModified(nowIsh);
             
             boolean success = callAdapter.updateSystemMetadata(null, testObjPid , sysmeta);
             assertTrue("Call to updateSystemMetadata() should be successful.", success);
@@ -574,7 +571,6 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
             
             SystemMetadata sysmeta = callAdapter.getSystemMetadata(null, testObjPid);
             sysmeta.getSerialVersion().add(BigInteger.ONE);
-            sysmeta.setDateSysMetadataModified(new Date());
             
             NodeList nodes = cn.listNodes();
             Node diffMN = null;

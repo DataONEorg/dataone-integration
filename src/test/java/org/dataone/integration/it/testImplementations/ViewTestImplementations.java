@@ -8,6 +8,7 @@ import java.util.Date;
 import java.util.Iterator;
 
 import org.apache.commons.io.IOUtils;
+import org.dataone.client.v1.types.D1TypeBuilder;
 import org.dataone.integration.APITestUtils;
 import org.dataone.integration.ContextAwareTestCaseDataone;
 import org.dataone.integration.ExampleUtilities;
@@ -131,15 +132,7 @@ public class ViewTestImplementations extends ContextAwareAdapter {
         
         InputStream resultStream = null;
         try {
-            AccessRule accessRule = APITestUtils.buildAccessRule("testRightsHolder", Permission.CHANGE_PERMISSION);
-            Identifier pid = new Identifier();
-            pid.setValue("bogus pid");
-            Identifier testObjPid = catc.procureTestObject(callAdapter, accessRule, pid);
-            
-            SystemMetadata sysmeta = callAdapter.getSystemMetadata(null, testObjPid);
-            sysmeta.setSerialVersion(sysmeta.getSerialVersion().add(BigInteger.ONE));
-            sysmeta.setDateSysMetadataModified(new Date());
-            
+            Identifier pid = D1TypeBuilder.buildIdentifier("bogus pid");
             resultStream = callAdapter.view(null, "default", pid);
             handleFail(callAdapter.getLatestRequestUrl(), "view call should fail for bogus pid");
         } 

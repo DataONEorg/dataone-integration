@@ -254,8 +254,6 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
             
             BigInteger newSerialVersion = sysmeta.getSerialVersion().add(BigInteger.ONE);
             sysmeta.setSerialVersion(newSerialVersion);
-            Date nowIsh = new Date();
-            sysmeta.setDateSysMetadataModified(nowIsh);
             
             log.info("testSystemMetadataChanged_ExistingObj:   "
                     + "new sysmeta.dateSystemMetadataChanged: " + sysmeta.getDateSysMetadataModified());
@@ -457,8 +455,6 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
                     + "original sysmeta.serialVersion      : " + sysmeta.getSerialVersion());
             BigInteger newSerialVersion = sysmeta.getSerialVersion().add(BigInteger.ONE);
             sysmeta.setSerialVersion(newSerialVersion);
-            Date nowIsh = new Date();
-            sysmeta.setDateSysMetadataModified(nowIsh);
             accessRule = APITestUtils.buildAccessRule(getSubject("testRightsHolder").getValue(), Permission.CHANGE_PERMISSION);
             AccessPolicy accessPolicy = new AccessPolicy();
             accessPolicy.addAllow(accessRule);
@@ -661,8 +657,6 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
                     + "original sysmeta.serialVersion      : " + sysmeta.getSerialVersion());
             BigInteger newSerialVersion = sysmeta.getSerialVersion().add(BigInteger.ONE);
             sysmeta.setSerialVersion(newSerialVersion);
-            Date nowIsh = new Date();
-            sysmeta.setDateSysMetadataModified(nowIsh);
             
             log.info("testSetReplicationStatus_NoChange:   "
                     + "new sysmeta.dateSystemMetadataChanged: " + originalSysmetaModified);

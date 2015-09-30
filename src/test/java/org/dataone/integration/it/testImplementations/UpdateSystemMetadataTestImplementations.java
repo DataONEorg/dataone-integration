@@ -64,7 +64,6 @@ public abstract class UpdateSystemMetadataTestImplementations extends ContextAwa
             
             SystemMetadata sysmeta = cnCertCallAdapter.getSystemMetadata(null, testObjPid);
             sysmeta.setSerialVersion(sysmeta.getSerialVersion().add(BigInteger.ONE));
-            sysmeta.setDateSysMetadataModified(new Date());
             personCallAdapter.updateSystemMetadata(null, testObjPid , sysmeta);
             handleFail(personCallAdapter.getLatestRequestUrl(), "updateSystemMetadata call should fail for a connection with unauthorized certificate");
         } 
@@ -106,7 +105,6 @@ public abstract class UpdateSystemMetadataTestImplementations extends ContextAwa
             SystemMetadata sysmeta = callAdapter.getSystemMetadata(null, testObjPid);
             sysmeta.setSerialVersion(sysmeta.getSerialVersion().add(BigInteger.ONE));
             sysmeta.setIdentifier(D1TypeBuilder.buildIdentifier(""));
-            sysmeta.setDateSysMetadataModified(new Date());
             
             callAdapter.updateSystemMetadata(null, testObjPid , sysmeta);
             handleFail(callAdapter.getLatestRequestUrl(), "updateSystemMetadata call should fail for invalid metadata");
@@ -148,7 +146,6 @@ public abstract class UpdateSystemMetadataTestImplementations extends ContextAwa
             
             SystemMetadata sysmeta = callAdapter.getSystemMetadata(null, testObjPid);
             sysmeta.setSerialVersion(null);
-            sysmeta.setDateSysMetadataModified(new Date());
             
             callAdapter.updateSystemMetadata(null, testObjPid , sysmeta);
             handleFail(callAdapter.getLatestRequestUrl(), "updateSystemMetadata call should fail for invalid metadata");
@@ -191,7 +188,6 @@ public abstract class UpdateSystemMetadataTestImplementations extends ContextAwa
             
             SystemMetadata sysmeta = callAdapter.getSystemMetadata(null, testObjPid);
             sysmeta.setSerialVersion(null);
-            sysmeta.setDateSysMetadataModified(new Date());
             
             boolean success = callAdapter.updateSystemMetadata(null, testObjPid , sysmeta);
             assertTrue("testUpdateSystemMetadata_NoSerialVersion() : should successfully call updateSystemMetadata "
@@ -231,7 +227,6 @@ public abstract class UpdateSystemMetadataTestImplementations extends ContextAwa
             
             SystemMetadata sysmeta = callAdapter.getSystemMetadata(null, testObjPid);
             sysmeta.setSerialVersion(sysmeta.getSerialVersion().add(BigInteger.ONE));
-            sysmeta.setDateSysMetadataModified(new Date());
             Identifier diffPid = new Identifier();
             diffPid.setValue("bogus pid");
             sysmeta.setIdentifier(diffPid);
@@ -681,7 +676,6 @@ public abstract class UpdateSystemMetadataTestImplementations extends ContextAwa
             
             SystemMetadata sysmeta = callAdapter.getSystemMetadata(null, testObjPid);
             sysmeta.setSerialVersion(sysmeta.getSerialVersion().add(BigInteger.ONE));
-            sysmeta.setDateSysMetadataModified(new Date());
             
             callAdapter.updateSystemMetadata(null, pid , sysmeta);
             handleFail(callAdapter.getLatestRequestUrl(), "updateSystemMetadata call should fail for bogus pid");

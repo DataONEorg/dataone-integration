@@ -57,7 +57,6 @@ public class CNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
 //            
 //            SystemMetadata sysmeta = cnCertCallAdapter.getSystemMetadata(null, testObjPid);
 //            sysmeta.setSerialVersion(sysmeta.getSerialVersion().add(BigInteger.ONE));
-//            sysmeta.setDateSysMetadataModified(new Date());
 //            mnCertCallAdapter.updateSystemMetadata(null, testObjPid , sysmeta);
 //            handleFail(mnCertCallAdapter.getLatestRequestUrl(), "updateSystemMetadata call should fail for a connection with unauthorized certificate");
 //        } 
@@ -99,9 +98,7 @@ public class CNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
             
             SystemMetadata sysmeta = callAdapter.getSystemMetadata(null, testObjPid);
             BigInteger newSerialVersion = sysmeta.getSerialVersion().add(BigInteger.ONE);
-            Date nowIsh = callAdapter.ping();
             sysmeta.setSerialVersion(newSerialVersion);
-            sysmeta.setDateSysMetadataModified(nowIsh);
             callAdapter.updateSystemMetadata(null, testObjPid , sysmeta);
             handleFail(callAdapter.getLatestRequestUrl(), "updateSystemMetadata call should fail for a connection with non-CN certificate");
         } catch (NotAuthorized e) {
@@ -143,7 +140,6 @@ public class CNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
             BigInteger newSerialVersion = sysmeta.getSerialVersion().add(BigInteger.ONE);
             Date nowIsh = callAdapter.ping();
             sysmeta.setSerialVersion(newSerialVersion);
-            sysmeta.setDateSysMetadataModified(nowIsh);
             boolean success = callAdapter.updateSystemMetadata(null, testObjPid , sysmeta);
             assertTrue("Call to updateSystemMetadata() should be successful.", success);
             
