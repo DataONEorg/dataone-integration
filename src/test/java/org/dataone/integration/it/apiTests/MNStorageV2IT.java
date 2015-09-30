@@ -170,8 +170,8 @@ public class MNStorageV2IT extends ContextAwareTestCaseDataone
     
     @Override
     @Test
-    public void testUpdateSystemMetadata_InvalidSystemMetadata_NoSerialVersion() {
-        updSysmetaImpl.testUpdateSystemMetadata_InvalidRequest_NoSerialVersion(getMemberNodeIterator(), "v2");
+    public void testUpdateSystemMetadata_NoSerialVersion() {
+        updSysmetaImpl.testUpdateSystemMetadata_NoSerialVersion(getMemberNodeIterator(), "v2");
     }
     
     @Override

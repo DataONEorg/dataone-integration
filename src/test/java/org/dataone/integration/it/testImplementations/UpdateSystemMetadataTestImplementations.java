@@ -1,5 +1,7 @@
 package org.dataone.integration.it.testImplementations;
 
+import static org.junit.Assert.assertTrue;
+
 import java.math.BigInteger;
 import java.util.Date;
 import java.util.Iterator;
@@ -135,13 +137,13 @@ public abstract class UpdateSystemMetadataTestImplementations extends ContextAwa
         
         CommonCallAdapter callAdapter = getCallAdapter(node, version);
         String currentUrl = node.getBaseURL();
-        printTestHeader("testUpdateSystemMetadata_InvalidRequest(...) vs. node: " + currentUrl);
+        printTestHeader("testUpdateSystemMetadata_InvalidRequest_NoSerialVersion(...) vs. node: " + currentUrl);
         currentUrl = callAdapter.getNodeBaseServiceUrl();
         
         try {
             AccessRule accessRule = APITestUtils.buildAccessRule("testRightsHolder", Permission.CHANGE_PERMISSION);
             Identifier pid = new Identifier();
-            pid.setValue("testUpdateSystemMetadata_InvalidRequest_" + ExampleUtilities.generateIdentifier());
+            pid.setValue("testUpdateSystemMetadata_InvalidRequest_NoSerialVersion_" + ExampleUtilities.generateIdentifier());
             Identifier testObjPid = catc.procureTestObject(callAdapter, accessRule, pid);
             
             SystemMetadata sysmeta = callAdapter.getSystemMetadata(null, testObjPid);
@@ -154,6 +156,47 @@ public abstract class UpdateSystemMetadataTestImplementations extends ContextAwa
         catch (InvalidRequest e) {
             // expected
         }
+        catch (BaseException e) {
+            handleFail(callAdapter.getLatestRequestUrl(), "Expected an InvalidRequest exception. Got: " + 
+                    e.getClass().getSimpleName() + ": " + e.getDetail_code() + ": " + e.getDescription());
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+            handleFail(currentUrl, "Expected an InvalidRequest exception. Got: " + e.getClass().getName() + 
+                    ": " + e.getMessage());
+        }
+    }
+    
+    @WebTestName("updateSystemMetadata - tests if the call fails with system metadata containing no serialVersion")
+    @WebTestDescription("this test calls updateSystemMetadata() with serialVersion null in the system "
+            + "metadata verifies that no exception is thrown - tests that caller is not in charge "
+            + "of system metadata's serialVersion")
+    public void testUpdateSystemMetadata_NoSerialVersion(Iterator<Node> nodeIterator, String version) {
+        while (nodeIterator.hasNext())
+            testUpdateSystemMetadata_NoSerialVersion(nodeIterator.next(), version);
+    }
+    
+    public void testUpdateSystemMetadata_NoSerialVersion(Node node, String version) {
+        
+        CommonCallAdapter callAdapter = getCallAdapter(node, version);
+        String currentUrl = node.getBaseURL();
+        printTestHeader("testUpdateSystemMetadata_NoSerialVersion() vs. node: " + currentUrl);
+        currentUrl = callAdapter.getNodeBaseServiceUrl();
+        
+        try {
+            AccessRule accessRule = APITestUtils.buildAccessRule("testRightsHolder", Permission.CHANGE_PERMISSION);
+            Identifier pid = new Identifier();
+            pid.setValue("testUpdateSystemMetadata_NoSerialVersion_" + ExampleUtilities.generateIdentifier());
+            Identifier testObjPid = catc.procureTestObject(callAdapter, accessRule, pid);
+            
+            SystemMetadata sysmeta = callAdapter.getSystemMetadata(null, testObjPid);
+            sysmeta.setSerialVersion(null);
+            sysmeta.setDateSysMetadataModified(new Date());
+            
+            boolean success = callAdapter.updateSystemMetadata(null, testObjPid , sysmeta);
+            assertTrue("testUpdateSystemMetadata_NoSerialVersion() : should successfully call updateSystemMetadata "
+                    + "with null serialVersion.", success);
+        } 
         catch (BaseException e) {
             handleFail(callAdapter.getLatestRequestUrl(), "Expected an InvalidRequest exception. Got: " + 
                     e.getClass().getSimpleName() + ": " + e.getDetail_code() + ": " + e.getDescription());
