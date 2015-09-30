@@ -650,7 +650,6 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
             
             sysmeta = cn.getSystemMetadata(null, testObjPid);
             sysmeta.getSerialVersion().add(BigInteger.ONE);
-            sysmeta.setDateSysMetadataModified(new Date());
             
         } catch (BaseException e) {
             throw new AssertionError("Test setup failed: " + cnCertAuthMN.getLatestRequestUrl() + " : " + e.getClass().getSimpleName() + ": " + 
@@ -676,6 +675,7 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
                     + "there should be at least one successful replica MN available!", successfulReplicas.size() > 0);
             
             Node nonAuthMN = null;
+            outerloop:
             for (Replica replica : successfulReplicas) {
                 NodeReference replicaMN = replica.getReplicaMemberNode();
                 
@@ -685,6 +685,7 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
                             && n.getIdentifier().getValue().equals(replicaMN.getValue())
                             && n.getState() == NodeState.UP) {
                         nonAuthMN = n;
+                        break outerloop;
                     }
                 }
             }

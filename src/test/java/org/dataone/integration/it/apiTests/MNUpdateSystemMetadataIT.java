@@ -41,31 +41,7 @@ public class MNUpdateSystemMetadataIT extends ContextAwareTestCaseDataone {
     
     @Override
     protected Iterator<Node> getMemberNodeIterator() {
-        Node cNode = getCoordinatingNodeIterator().next();
-        CNCallAdapter cn = new CNCallAdapter(getSession(cnSubmitter), cNode, "v2");
-
-        List<Node> mnList = new ArrayList();
-        try {
-            for(Node n : cn.listNodes().getNodeList())
-                if(n.getType() == NodeType.MN)
-                    try {
-                        MNCallAdapter mn = new MNCallAdapter(getSession(cnSubmitter), n, "v2");
-                        // mn.ping();
-                        mn.getCapabilities();   // ping call seems to be broken
-                        if(n.getBaseURL().contains("8"))
-                            continue;
-                        mnList.add(n);
-                    } catch (Exception e) {
-                        log.warn("Couldn't ping MN at " + n.getBaseURL() + ". Skipping it.", e);
-                        e.printStackTrace();
-                    }
-                        
-        } catch (Exception e) {
-            log.fatal("Unable to fetch node list from CN: " + cn.getNodeBaseServiceUrl(), e);
-        }
-        
-        assertTrue("Test requires knowledge of at least one member node to work!", mnList.size() > 0);
-        return mnList.iterator();
+        return getV2MemberNodeIterator();
     }
     
     @Test 

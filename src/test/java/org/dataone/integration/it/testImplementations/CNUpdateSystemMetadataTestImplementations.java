@@ -148,10 +148,8 @@ public class CNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
             assertTrue("Call to updateSystemMetadata() should be successful.", success);
             
             SystemMetadata fetchedSysmeta = callAdapter.getSystemMetadata(null, testObjPid);
-            boolean serialVersionMatches = fetchedSysmeta.getSerialVersion().equals(newSerialVersion);
-            boolean dateModifiedMatches = fetchedSysmeta.getDateSysMetadataModified().after(nowIsh);
-            assertTrue("System metadata should now have updated serialVersion", serialVersionMatches);
-            assertTrue("System metadata should now have updated dateSysMetadataModified", dateModifiedMatches );
+            boolean dateModifiedChanged = fetchedSysmeta.getDateSysMetadataModified().after(nowIsh);
+            assertTrue("System metadata should now have updated dateSysMetadataModified", dateModifiedChanged );
         } 
         catch (BaseException e) {
             handleFail(callAdapter.getLatestRequestUrl(), e.getClass().getSimpleName() + ": " + 
