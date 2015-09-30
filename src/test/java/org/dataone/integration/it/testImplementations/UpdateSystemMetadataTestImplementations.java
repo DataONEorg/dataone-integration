@@ -194,12 +194,12 @@ public abstract class UpdateSystemMetadataTestImplementations extends ContextAwa
                     + "with null serialVersion.", success);
         } 
         catch (BaseException e) {
-            handleFail(callAdapter.getLatestRequestUrl(), "Expected an InvalidRequest exception. Got: " + 
+            handleFail(callAdapter.getLatestRequestUrl(), "Expected no exception. Got: " + 
                     e.getClass().getSimpleName() + ": " + e.getDetail_code() + ": " + e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
-            handleFail(currentUrl, "Expected an InvalidRequest exception. Got: " + e.getClass().getName() + 
+            handleFail(currentUrl, "Expected no exception. Got: " + e.getClass().getName() + 
                     ": " + e.getMessage());
         }
     }
