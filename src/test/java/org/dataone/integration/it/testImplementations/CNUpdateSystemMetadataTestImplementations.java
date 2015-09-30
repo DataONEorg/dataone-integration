@@ -139,14 +139,8 @@ public class CNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
             Identifier testObjPid = catc.procureTestObject(callAdapter, accessRule, pid);
             
             SystemMetadata sysmeta = callAdapter.getSystemMetadata(null, testObjPid);
-            BigInteger newSerialVersion = sysmeta.getSerialVersion().add(BigInteger.ONE);
-            sysmeta.setSerialVersion(newSerialVersion);
             boolean success = callAdapter.updateSystemMetadata(null, testObjPid , sysmeta);
             assertTrue("Call to updateSystemMetadata() should be successful.", success);
-            Thread.sleep(5000);
-            SystemMetadata fetchedSysmeta = callAdapter.getSystemMetadata(null, testObjPid);
-            boolean dateModifiedChanged = fetchedSysmeta.getDateSysMetadataModified().after(sysmeta.getDateSysMetadataModified());
-            assertTrue("System metadata should now have updated dateSysMetadataModified", dateModifiedChanged );
         } 
         catch (BaseException e) {
             handleFail(callAdapter.getLatestRequestUrl(), e.getClass().getSimpleName() + ": " + 
