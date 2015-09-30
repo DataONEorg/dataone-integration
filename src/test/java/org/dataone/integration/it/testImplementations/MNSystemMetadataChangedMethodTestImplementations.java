@@ -95,16 +95,19 @@ public class MNSystemMetadataChangedMethodTestImplementations extends ContextAwa
                                 e.getClass() + ": " + e.getMessage());
                     }
                 }
-                checkTrue(mn.getLatestRequestUrl(),
-                        "the test should return at least one success or InvalidRequest",
-                        success + invReq > 0);
-                checkTrue(mn.getLatestRequestUrl(),
-                        "the test should only return return success or InvalidRequest for one CN (environment)",
-                        success + invReq == 1);
+                // log the results before checking for failure
                 log.info("success = " + success);
                 log.info("InvalidRequest = " + invReq);
                 log.info("NotAuthorized = " + notAuth);
                 log.info("other = " + other);
+                
+                checkTrue(mn.getLatestRequestUrl(),
+                        "the test should return at least one success or InvalidRequest",
+                        success + invReq > 0);
+                checkTrue(mn.getLatestRequestUrl(),
+                        "the test should only return success or InvalidRequest for one CN (environment)",
+                        success + invReq == 1);
+                
 
             } else {
                 handleFail(mn.getLatestRequestUrl(),"systemMetadataChanged() will likely fail because" +
