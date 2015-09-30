@@ -85,30 +85,32 @@ public class CNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
     
     public void testUpdateSystemMetadata_NotAuthorized_RightsHolder(Node node, String version) {
         
-        CommonCallAdapter callAdapter = getCallAdapter(node, version);
+        CommonCallAdapter cnCallAdapter = getCallAdapter(node, version);
+        CommonCallAdapter rightsHolderCallAdapter = new CNCallAdapter(getSession("testRightsHolder"), node, version);
         String currentUrl = node.getBaseURL();
         printTestHeader("testUpdateSystemMetadata_RightsHolder(...) vs. node: " + currentUrl);
-        currentUrl = callAdapter.getNodeBaseServiceUrl();
+        currentUrl = cnCallAdapter.getNodeBaseServiceUrl();
         
         try {
             AccessRule accessRule = APITestUtils.buildAccessRule("testRightsHolder", Permission.CHANGE_PERMISSION);
             Identifier pid = new Identifier();
             pid.setValue("testUpdateSystemMetadata_RightsHolder_" + ExampleUtilities.generateIdentifier());
-            Identifier testObjPid = catc.procureTestObject(callAdapter, accessRule, pid);
+            Identifier testObjPid = catc.procureTestObject(cnCallAdapter, accessRule, pid);
             
-            SystemMetadata sysmeta = callAdapter.getSystemMetadata(null, testObjPid);
+            SystemMetadata sysmeta = cnCallAdapter.getSystemMetadata(null, testObjPid);
             BigInteger newSerialVersion = sysmeta.getSerialVersion().add(BigInteger.ONE);
             sysmeta.setSerialVersion(newSerialVersion);
-            callAdapter.updateSystemMetadata(null, testObjPid , sysmeta);
-            handleFail(callAdapter.getLatestRequestUrl(), "updateSystemMetadata call should fail for a connection with non-CN certificate");
+            
+            rightsHolderCallAdapter.updateSystemMetadata(null, testObjPid , sysmeta);
+            handleFail(rightsHolderCallAdapter.getLatestRequestUrl(), "updateSystemMetadata call should fail for a connection with non-CN certificate");
         } catch (NotAuthorized e) {
             // expected outcome 
         } catch (BaseException e) {
-            handleFail(callAdapter.getLatestRequestUrl(), e.getClass().getSimpleName() + ": " + 
+            handleFail(rightsHolderCallAdapter.getLatestRequestUrl(), e.getClass().getSimpleName() + ": " + 
                     e.getDetail_code() + ": " + e.getDescription());
         } catch(Exception e) {
             e.printStackTrace();
-            handleFail(currentUrl, e.getClass().getName() + ": " + e.getMessage());
+            handleFail(rightsHolderCallAdapter.getLatestRequestUrl(), e.getClass().getName() + ": " + e.getMessage());
         }
     }
     
