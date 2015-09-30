@@ -440,7 +440,7 @@ public class SidMNTestImplementations extends SidCommonTestImplementations {
         Identifier s2 = createIdentifier("S2_", node);
         
         createPackage(callAdapter, p1, s1, null, null);
-        createPackage(callAdapter, p2, s1, p1, null);
+        createPackage(callAdapter, p2, s2, p1, null);
         callAdapter.delete(null, p1);
         
         return new IdPair(s2, p2);
