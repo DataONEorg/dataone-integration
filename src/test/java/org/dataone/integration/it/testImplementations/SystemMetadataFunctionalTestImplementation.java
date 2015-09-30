@@ -242,7 +242,7 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
             // modify the sysmeta
             
             log.info("testSystemMetadataChanged_ExistingObj:   "
-                    + "fetching sysmeta from auth MN");
+                    + "fetching sysmeta for pid " + createdPid.getValue() + " from auth MN");
                     
             SystemMetadata sysmeta = mn.getSystemMetadata(null, createdPid);
             
@@ -316,7 +316,7 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
             Thread.sleep(REPLICATION_WAIT);
             
             log.info("testSystemMetadataChanged_ExistingObj:   "
-                    + "done waiting for replication, fetching sysmeta from CN");
+                    + "done waiting for replication, fetching sysmeta for pid " + createdPid.getValue() + " from CN");
                     
             fetchedCNSysmeta = cn.getSystemMetadata(null, createdPid);
             List<Replica> replicaList = fetchedCNSysmeta.getReplicaList();
@@ -434,18 +434,18 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
             
             try {
                 SystemMetadata fetchedSysmeta = cn.getSystemMetadata(null, createdPid);
-                assertTrue("cn.getSystemMetadata() should successfully fetch the sysmeta", fetchedSysmeta != null);
+                assertTrue("cn.getSystemMetadata() should successfully fetch the sysmeta for pid " + createdPid.getValue() + " from " + cn.getLatestRequestUrl(), fetchedSysmeta != null);
             } catch (Exception e) {
-                throw new AssertionError("cn.getSystemMetadata() should successfully fetch the sysmeta");
+                throw new AssertionError("cn.getSystemMetadata() should successfully fetch the sysmeta for pid " + createdPid.getValue() + " from " + cn.getLatestRequestUrl());
             }
             
             log.info("testSystemMetadataChanged_ExistingObj:   "
-                    + "fetched sysmeta from CN successfully");
+                    + "fetched sysmeta for pid " + createdPid.getValue() + " from CN successfully");
             
             // modify the sysmeta
             
             log.info("testSystemMetadataChanged_ExistingObj:   "
-                    + "fetching sysmeta from auth MN");
+                    + "fetching sysmeta for pid " + createdPid.getValue() + " from auth MN");
             
             SystemMetadata sysmeta = mn.getSystemMetadata(null, createdPid);
             Date originalSysmetaModified = sysmeta.getDateSysMetadataModified();
@@ -518,7 +518,7 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
             Thread.sleep(REPLICATION_WAIT);
             
             log.info("testSystemMetadataChanged_ExistingObj:   "
-                    + "done waiting for replication, fetching sysmeta from CN");
+                    + "done waiting for replication, fetching sysmeta for pid " + createdPid.getValue() + " from CN");
             
             fetchedCNSysmeta = cn.getSystemMetadata(null, createdPid);
             List<Replica> replicaList = fetchedCNSysmeta.getReplicaList();
@@ -636,18 +636,18 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
             
             try {
                 SystemMetadata fetchedSysmeta = cn.getSystemMetadata(null, createdPid);
-                assertTrue("cn.getSystemMetadata() should successfully fetch the sysmeta", fetchedSysmeta != null);
+                assertTrue("cn.getSystemMetadata() should successfully fetch the sysmeta for pid " + createdPid.getValue() + " from " + cn.getLatestRequestUrl(), fetchedSysmeta != null);
             } catch (Exception e) {
-                throw new AssertionError("cn.getSystemMetadata() should successfully fetch the sysmeta");
+                throw new AssertionError("cn.getSystemMetadata() should successfully fetch the sysmeta for pid " + createdPid.getValue() + " from " + cn.getLatestRequestUrl());
             }
             
             log.info("testSetReplicationStatus_NoChange:   "
-                    + "fetched sysmeta from CN successfully");
+                    + "fetched sysmeta for pid " + createdPid.getValue() + " from CN successfully");
             
             // modify the sysmeta
             
             log.info("testSetReplicationStatus_NoChange:   "
-                    + "fetching sysmeta from auth MN");
+                    + "fetching sysmeta for pid " + createdPid.getValue() + " from auth MN");
             
             SystemMetadata sysmeta = mn.getSystemMetadata(null, createdPid);
             Date originalSysmetaModified = sysmeta.getDateSysMetadataModified();
@@ -715,7 +715,7 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
             Thread.sleep(REPLICATION_WAIT);
             
             log.info("testSetReplicationStatus_NoChange:   "
-                    + "done waiting for replication, fetching sysmeta from CN");
+                    + "done waiting for replication, fetching sysmeta for pid " + createdPid.getValue() + " from CN");
             
             fetchedCNSysmeta = cn.getSystemMetadata(null, createdPid);
             List<Replica> replicaList = fetchedCNSysmeta.getReplicaList();
