@@ -1717,8 +1717,9 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             e1.printStackTrace();
         }
         
+        SystemMetadata fetchedSysmeta = null;
         try {
-            cn.getSystemMetadata(null, pid);
+            fetchedSysmeta = cn.getSystemMetadata(null, pid);
         } catch (NotFound e) {
             throw new AssertionError(cn.getLatestRequestUrl() + " testV2CreateV1CnSetReplicationPolicy() : unable to fetch sysmeta from CN! Check status of CN sync. "
                     + ": NotFound " + e.getDetail_code() + ", " + e.getDescription() + ":" + e.getMessage());
@@ -1730,7 +1731,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         
         try {
             replPolicy.setNumberReplicas(replPolicy.getNumberReplicas() + 1);
-            cn.setReplicationPolicy(null, pid, replPolicy, 2);
+            cn.setReplicationPolicy(null, pid, replPolicy, fetchedSysmeta.getSerialVersion().longValue());
             handleFail(cn.getLatestRequestUrl(), "testV2CreateV1CnSetReplicationPolicy() : setReplicationPolicy "
                     + "call to CN should fail because object has a v2 node as its authoritative MN" );
         } catch (NotAuthorized e) {
@@ -1788,8 +1789,9 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             e1.printStackTrace();
         }
         
+        SystemMetadata fetchedSysmeta = null;
         try {
-            cn.getSystemMetadata(null, pid);
+            fetchedSysmeta = cn.getSystemMetadata(null, pid);
         } catch (NotFound e) {
             throw new AssertionError(cn.getLatestRequestUrl() + " testV2CreateV1CnSetAccessPolicy() : unable to fetch sysmeta from CN! Check status of CN sync. "
                     + ": NotFound " + e.getDetail_code() + ", " + e.getDescription() + ":" + e.getMessage());
@@ -1802,7 +1804,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         try {
             AccessPolicy accessPolicy = new AccessPolicy();
             accessPolicy.addAllow(accessRule);
-            cn.setAccessPolicy(null, pid, null, 2);
+            cn.setAccessPolicy(null, pid, null, fetchedSysmeta.getSerialVersion().longValue());
             handleFail(cn.getLatestRequestUrl(), "testV2CreateV1CnSetAccessPolicy() : setAccessPolicy "
                     + "call to CN should fail because object has a v2 node as its authoritative MN" );
         } catch (NotAuthorized e) {
@@ -1860,8 +1862,9 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             e1.printStackTrace();
         }
         
+        SystemMetadata fetchedSysmeta = null;
         try {
-            cn.getSystemMetadata(null, pid);
+            fetchedSysmeta = cn.getSystemMetadata(null, pid);
         } catch (NotFound e) {
             throw new AssertionError(cn.getLatestRequestUrl() + " testV2CreateV1CnSetRightsHolder() : unable to fetch sysmeta from CN! Check status of CN sync. "
                     + ": NotFound " + e.getDetail_code() + ", " + e.getDescription() + ":" + e.getMessage());
@@ -1874,7 +1877,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         try {
             getSession("testRightsHolder");
             Subject newSubject = D1TypeBuilder.buildSubject("testRightsHolder");
-            cn.setRightsHolder(null, pid, newSubject, 2);
+            cn.setRightsHolder(null, pid, newSubject, fetchedSysmeta.getSerialVersion().longValue());
             handleFail(cn.getLatestRequestUrl(), "testV2CreateV1CnSetRightsHolder() : setRightsHolder "
                     + "call to CN should fail because object has a v2 node as its authoritative MN" );
         } catch (NotAuthorized e) {
@@ -1934,8 +1937,9 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             e1.printStackTrace();
         }
         
+        SystemMetadata fetchedSysmeta = null;
         try {
-            cn.getSystemMetadata(null, pid);
+            fetchedSysmeta = cn.getSystemMetadata(null, pid);
         } catch (NotFound e) {
             throw new AssertionError(cn.getLatestRequestUrl() + " testV2CreateV1CnSetObsoletedBy() : unable to fetch sysmeta from CN! Check status of CN sync. "
                     + ": NotFound " + e.getDetail_code() + ", " + e.getDescription() + ":" + e.getMessage());
@@ -1946,7 +1950,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         // CN setObsoletedBy
         
         try {
-            cn.setObsoletedBy(null, pid, obsoletedByPid, 2);
+            cn.setObsoletedBy(null, pid, obsoletedByPid, fetchedSysmeta.getSerialVersion().longValue());
             handleFail(cn.getLatestRequestUrl(), "testV2CreateV1CnSetObsoletedBy() : setObsoletedBy "
                     + "call to CN should fail because object has a v2 node as its authoritative MN" );
         } catch (NotAuthorized e) {
