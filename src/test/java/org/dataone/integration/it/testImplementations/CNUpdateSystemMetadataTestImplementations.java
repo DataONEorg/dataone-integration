@@ -116,7 +116,7 @@ public class CNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
     @WebTestDescription("this test calls updateSystemMetadata() using a certificate with "
             + "a coordinating node subject to update the metadata, "
             + "checks that the call was successful, then also uses getSystemMetadata() "
-            + "to fetch the new metadata and check that for updated serialVersion and "
+            + "to fetch the new metadata and check that for updated "
             + "dateSysMetadataModified")
     public void testUpdateSystemMetadata_CN(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
@@ -138,13 +138,12 @@ public class CNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
             
             SystemMetadata sysmeta = callAdapter.getSystemMetadata(null, testObjPid);
             BigInteger newSerialVersion = sysmeta.getSerialVersion().add(BigInteger.ONE);
-            Date nowIsh = callAdapter.ping();
             sysmeta.setSerialVersion(newSerialVersion);
             boolean success = callAdapter.updateSystemMetadata(null, testObjPid , sysmeta);
             assertTrue("Call to updateSystemMetadata() should be successful.", success);
-            
+            Thread.sleep(5000);
             SystemMetadata fetchedSysmeta = callAdapter.getSystemMetadata(null, testObjPid);
-            boolean dateModifiedChanged = fetchedSysmeta.getDateSysMetadataModified().after(nowIsh);
+            boolean dateModifiedChanged = fetchedSysmeta.getDateSysMetadataModified().after(sysmeta.getDateSysMetadataModified());
             assertTrue("System metadata should now have updated dateSysMetadataModified", dateModifiedChanged );
         } 
         catch (BaseException e) {
