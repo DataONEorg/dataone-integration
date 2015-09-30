@@ -154,6 +154,12 @@
             <groupId>org.apache.solr</groupId>
             <artifactId>solr-solrj</artifactId>
             <version>3.4.0</version>
+            <exclusions>
+            	<exclusion>
+					<groupId>commons-io</groupId>
+					<artifactId>commons-io</artifactId>
+		        </exclusion>
+            </exclusions>
         </dependency>
 	<dependency>
     		<groupId>gov.loc</groupId>
