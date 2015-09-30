@@ -55,6 +55,7 @@ public class MNSystemMetadataChangedMethodTestImplementations extends ContextAwa
 
         MNCallAdapter[] cNodeSessions = new MNCallAdapter[]{
                 new MNCallAdapter(getSession("cnDevUNM1"), node, version),
+                new MNCallAdapter(getSession("cnDevUNM2"), node, version),
                 new MNCallAdapter(getSession("cnSandboxUNM1"), node, version),
                 new MNCallAdapter(getSession("cnStageUNM1"), node, version)};
 
