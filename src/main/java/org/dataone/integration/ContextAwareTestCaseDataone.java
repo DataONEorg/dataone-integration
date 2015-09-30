@@ -71,6 +71,7 @@ import org.dataone.client.v1.itk.D1Object;
 import org.dataone.client.v1.types.D1TypeBuilder;
 import org.dataone.configuration.Settings;
 import org.dataone.configuration.TestSettings;
+import org.dataone.integration.adapters.CNCallAdapter;
 import org.dataone.integration.adapters.CommonCallAdapter;
 import org.dataone.integration.adapters.MNCallAdapter;
 import org.dataone.ore.ResourceMapFactory;
@@ -1753,13 +1754,24 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
             SystemMetadata sysmeta = TypeFactory.convertTypeFromType(d1o.getSystemMetadata(), SystemMetadata.class);
             sysmeta.setSeriesId(packageSid);
             sysmeta.setObsoletes(obsoletes);
-            sysmeta.setObsoletedBy(obsoletedBy);
             
-            // is this an MN.update()?
-            if (cca instanceof MNCallAdapter && obsoletes != null)
+            if (cca instanceof MNCallAdapter && obsoletes != null) {
+                // is this an MN.update() ? 
                 ((MNCallAdapter)cca).update(null, obsoletes, objectInputStream, sysmeta.getIdentifier(), sysmeta);
-            else // or a regular MN or CN create()?
+            } else if (cca instanceof CNCallAdapter && obsoletes != null) { 
+                // is this a CN "update()" ?
+                // need to update obsoletedBy on last object
+            
                 cca.create(null, sysmeta.getIdentifier(), objectInputStream, sysmeta);
+                
+                SystemMetadata obsoletesSysmeta = cca.getSystemMetadata(null, obsoletes);
+                obsoletesSysmeta.setObsoletedBy(obsoletedBy);
+                cca.updateSystemMetadata(null, obsoletes, obsoletesSysmeta);
+            }
+            else { 
+                // or a regular MN or CN create()?
+                cca.create(null, sysmeta.getIdentifier(), objectInputStream, sysmeta);
+            }
             
         } catch (Exception e) {
             e.printStackTrace();
