@@ -662,13 +662,17 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
                     replicaList != null && replicaList.size() > 0);
             
             List<Replica> successfulReplicas = new ArrayList<Replica>();
-            for (Replica replica : replicaList)
+            String replicaStr = "";
+            for (Replica replica : replicaList) {
+                replicaStr += replica.getReplicaMemberNode().getValue() + ", ";
                 if (replica.getReplicationStatus() == ReplicationStatus.COMPLETED 
                         && !replica.getReplicaMemberNode().getValue().equals(node.getIdentifier().getValue()))
                     successfulReplicas.add(replica);
-
+            }
+            
             assertTrue("testUpdateSystemMetadata_CNCertNonAuthMN : After waiting for replication to occur, "
-                    + "there should be at least one successful replica MN available!", successfulReplicas.size() > 0);
+                    + "there should be at least one successful replica MN available! "
+                    + "Replicas: " + replicaStr, successfulReplicas.size() > 0);
             
             Node nonAuthMN = null;
             outerloop:
