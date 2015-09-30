@@ -8,7 +8,7 @@ public interface CNUpdateSystemMetadataTestDefinitions {
 
     public void testUpdateSystemMetadata_NotAuthorizedMN();
     
-    public void testUpdateSystemMetadata_InvalidRequest_NoSerialVersion();
+    public void testUpdateSystemMetadata_NoSerialVersion();
 
     public void testUpdateSystemMetadata_InvalidRequest_NoPid();
     
