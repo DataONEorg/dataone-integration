@@ -32,6 +32,7 @@ import org.dataone.integration.webTest.WebTestDescription;
 import org.dataone.integration.webTest.WebTestName;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.InvalidRequest;
+import org.dataone.service.exceptions.NotAuthorized;
 import org.dataone.service.exceptions.NotFound;
 import org.dataone.service.types.v1.AccessPolicy;
 import org.dataone.service.types.v1.AccessRule;
@@ -1606,7 +1607,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
      "Test operates on a v2 MN and a CN." +
      "It does a create on the v2 MN, then attempts to archive the object on the CN. " +
      "The archive call should fail since the object is a v2 object - its authoritative " +
-     "MN is a v2 MN, so the v2 API should be used to do the update.")
+     "MN is a v2 MN, so the v2 API should be used to do the update. Expects a NotAuthorized exception.")
     public void testV2CreateV1CnArchive() {
 
         assertTrue("Tests require at least 1 MN that supports the v2 API", v2mns.size() >= 1);
@@ -1661,12 +1662,12 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             cn.archive(null, pid);
             handleFail(cn.getLatestRequestUrl(), "testV2CreateV1Archive() : archive call to CN should fail because "
                     + "object being archived has a v2 node as its authoritative MN" );
-        } catch (InvalidRequest e) {
+        } catch (NotAuthorized e) {
             
         } catch (Exception e) {
             e.printStackTrace();
             handleFail(cn.getLatestRequestUrl(), "testV2CreateV1Archive() : expected archive call to CN should fail "
-                    + "with an InvalidRequest exception because object being archived has a v2 node as its "
+                    + "with a NotAuthorized exception because object being archived has a v2 node as its "
                     + "authoritative MN. Got: " + e.getClass().getSimpleName() + " : " + e.getMessage() );
         }
     }
@@ -1676,7 +1677,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
      "Test operates on a v2 MN and a CN." +
      "It does a create on the v2 MN, then attempts to setReplicationPolicy on the object on the CN. " +
      "The archive call should fail since the object is a v2 object - its authoritative " +
-     "MN is a v2 MN, so the v2 API should be used to do the update.")
+     "MN is a v2 MN, so the v2 API should be used to do the update. Expects a NotAuthorized exception.")
     public void testV2CreateV1CnSetReplicationPolicy() {
 
         assertTrue("Tests require at least 1 MN that supports the v2 API", v2mns.size() >= 1);
@@ -1732,12 +1733,12 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             cn.setReplicationPolicy(null, pid, replPolicy, 2);
             handleFail(cn.getLatestRequestUrl(), "testV2CreateV1CnSetReplicationPolicy() : setReplicationPolicy "
                     + "call to CN should fail because object has a v2 node as its authoritative MN" );
-        } catch (InvalidRequest e) {
+        } catch (NotAuthorized e) {
             
         } catch (Exception e) {
             e.printStackTrace();
             handleFail(cn.getLatestRequestUrl(), "testV2CreateV1CnSetReplicationPolicy() : expected setReplicationPolicy "
-                    + "call to CN should fail with an InvalidRequest exception because object has a v2 node as its "
+                    + "call to CN should fail with a NotAuthorized exception because object has a v2 node as its "
                     + "authoritative MN. Got: " + e.getClass().getSimpleName() + " : " + e.getMessage() );
         }
     }
@@ -1747,7 +1748,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
      "Test operates on a v2 MN and a CN." +
      "It does a create on the v2 MN, then attempts to setAccessPolicy on the object on the CN. " +
      "The archive call should fail since the object is a v2 object - its authoritative " +
-     "MN is a v2 MN, so the v2 API should be used to do the update.")
+     "MN is a v2 MN, so the v2 API should be used to do the update. Expects a NotAuthorized exception.")
     public void testV2CreateV1CnSetAccessPolicy() {
 
         assertTrue("Tests require at least 1 MN that supports the v2 API", v2mns.size() >= 1);
@@ -1804,12 +1805,12 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             cn.setAccessPolicy(null, pid, null, 2);
             handleFail(cn.getLatestRequestUrl(), "testV2CreateV1CnSetAccessPolicy() : setAccessPolicy "
                     + "call to CN should fail because object has a v2 node as its authoritative MN" );
-        } catch (InvalidRequest e) {
+        } catch (NotAuthorized e) {
             
         } catch (Exception e) {
             e.printStackTrace();
             handleFail(cn.getLatestRequestUrl(), "testV2CreateV1CnSetAccessPolicy() : expected setAccessPolicy "
-                    + "call to CN should fail with an InvalidRequest exception because object has a v2 node as its "
+                    + "call to CN should fail with a NotAuthorized exception because object has a v2 node as its "
                     + "authoritative MN. Got: " + e.getClass().getSimpleName() + " : " + e.getMessage() );
         }
     }
@@ -1819,7 +1820,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
      "Test operates on a v2 MN and a CN." +
      "It does a create on the v2 MN, then attempts to setRightsHolder the object on the CN. " +
      "The archive call should fail since the object is a v2 object - its authoritative " +
-     "MN is a v2 MN, so the v2 API should be used to do the update.")
+     "MN is a v2 MN, so the v2 API should be used to do the update. Expects a NotAuthorized exception.")
     public void testV2CreateV1CnSetRightsHolder() {
 
         assertTrue("Tests require at least 1 MN that supports the v2 API", v2mns.size() >= 1);
@@ -1876,12 +1877,12 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             cn.setRightsHolder(null, pid, newSubject, 2);
             handleFail(cn.getLatestRequestUrl(), "testV2CreateV1CnSetRightsHolder() : setRightsHolder "
                     + "call to CN should fail because object has a v2 node as its authoritative MN" );
-        } catch (InvalidRequest e) {
+        } catch (NotAuthorized e) {
             
         } catch (Exception e) {
             e.printStackTrace();
             handleFail(cn.getLatestRequestUrl(), "testV2CreateV1CnSetRightsHolder() : expected setRightsHolder "
-                    + "call to CN should fail with an InvalidRequest exception because object has a v2 node as its "
+                    + "call to CN should fail with a NotAuthorized exception because object has a v2 node as its "
                     + "authoritative MN. Got: " + e.getClass().getSimpleName() + " : " + e.getMessage() );
         }
     }
@@ -1891,7 +1892,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
      "Test operates on a v2 MN and a CN." +
      "It does a create on the v2 MN, then attempts to setObsoletedBy on the object on the CN. " +
      "The archive call should fail since the object is a v2 object - its authoritative " +
-     "MN is a v2 MN, so the v2 API should be used to do the update.")
+     "MN is a v2 MN, so the v2 API should be used to do the update. Expects a NotAuthorized exception.")
     public void testV2CreateV1CnSetObsoletedBy() {
 
         assertTrue("Tests require at least 1 MN that supports the v2 API", v2mns.size() >= 1);
@@ -1948,12 +1949,12 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             cn.setObsoletedBy(null, pid, obsoletedByPid, 2);
             handleFail(cn.getLatestRequestUrl(), "testV2CreateV1CnSetObsoletedBy() : setObsoletedBy "
                     + "call to CN should fail because object has a v2 node as its authoritative MN" );
-        } catch (InvalidRequest e) {
+        } catch (NotAuthorized e) {
             
         } catch (Exception e) {
             e.printStackTrace();
             handleFail(cn.getLatestRequestUrl(), "testV2CreateV1CnSetObsoletedBy() : expected setObsoletedBy "
-                    + "call to CN should fail with an InvalidRequest exception because object has a v2 node as its "
+                    + "call to CN should fail with a NotAuthorized exception because object has a v2 node as its "
                     + "authoritative MN. Got: " + e.getClass().getSimpleName() + " : " + e.getMessage() );
         }
     }
