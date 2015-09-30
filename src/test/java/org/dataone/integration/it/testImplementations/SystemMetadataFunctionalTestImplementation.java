@@ -100,7 +100,7 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
                         
                         List<Service> serviceList = capabilities.getServices().getServiceList();
                         for (Service service : serviceList)
-                            if(service.getName().equalsIgnoreCase("MNReplication")) {
+                            if(service.getName().equalsIgnoreCase("MNReplication") && service.getAvailable() == true) {
                                 mnList.add(n);
                                 break;
                             }
@@ -191,9 +191,9 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
         
         try {
             NodeReference nodeRef = mnV2NoSync.getIdentifier();
-            mnV2NoSync.setSynchronize(true);
-            org.dataone.service.types.v2.Node v2Capabilities = TypeFactory.convertTypeFromType(mnV2NoSync, org.dataone.service.types.v2.Node.class);
-            cn.updateNodeCapabilities(null, nodeRef, v2Capabilities);
+            org.dataone.service.types.v2.Node currentCapabilities = cn.getNodeCapabilities(nodeRef);
+            currentCapabilities.setSynchronize(true);
+            cn.updateNodeCapabilities(null, nodeRef, currentCapabilities);
         } catch (Exception e) {
             throw new AssertionError("Unable to update MN capabilities to re-enable synchronization on: " + mnV2NoSync.getIdentifier());
         }
