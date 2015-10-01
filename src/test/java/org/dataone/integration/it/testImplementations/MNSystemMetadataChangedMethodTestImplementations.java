@@ -108,10 +108,12 @@ public class MNSystemMetadataChangedMethodTestImplementations extends ContextAwa
                 log.info("other = " + other);
                 
                 checkTrue(mn.getLatestRequestUrl(),
-                        "the test should return at least one success or InvalidRequest",
+                        "the test should return at least one success or InvalidRequest " 
+                		+ "success=" + success + ", invReq=" + invReq + ", other=" + other + ", notAuth=" + notAuth,
                         success + invReq > 0);
                 checkTrue(mn.getLatestRequestUrl(),
-                        "the test should only return success or InvalidRequest for one CN (environment)",
+                        "the test should only return success or InvalidRequest for one CN (environment) "
+                        + "success=" + success + ", invReq=" + invReq + ", other=" + other + ", notAuth=" + notAuth,
                         success + invReq == 1);
                 
 
