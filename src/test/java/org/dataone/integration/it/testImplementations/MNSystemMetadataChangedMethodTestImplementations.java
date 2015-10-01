@@ -53,11 +53,12 @@ public class MNSystemMetadataChangedMethodTestImplementations extends ContextAwa
     
     public void testSystemMetadataChanged(Node node, String version) {
 
+        String[] certLabels = {"cnDevUNM1", "cnDevUCSB2", "cnSandboxUNM1", "cnStageUNM1"};
         MNCallAdapter[] cNodeSessions = new MNCallAdapter[]{
-                new MNCallAdapter(getSession("cnDevUNM1"), node, version),
-                new MNCallAdapter(getSession("cnDevUNM2"), node, version),
-                new MNCallAdapter(getSession("cnSandboxUNM1"), node, version),
-                new MNCallAdapter(getSession("cnStageUNM1"), node, version)};
+                new MNCallAdapter(getSession(certLabels[0]), node, version),
+                new MNCallAdapter(getSession(certLabels[1]), node, version),
+                new MNCallAdapter(getSession(certLabels[2]), node, version),
+                new MNCallAdapter(getSession(certLabels[3]), node, version)};
 
         MNCallAdapter mn = new MNCallAdapter(getSession("testRightsHolder"), node, version);
         String currentUrl = mn.getNodeBaseServiceUrl();
@@ -79,15 +80,20 @@ public class MNSystemMetadataChangedMethodTestImplementations extends ContextAwa
                 int invReq = 0;
                 int notAuth = 0;
                 int other = 0;
-                for (MNCallAdapter cNodeSession : cNodeSessions) {
+                for (int i=0; i<cNodeSessions.length; i++) {
+                    MNCallAdapter cNodeSession = cNodeSessions[i];
                     try {
                         cNodeSession.systemMetadataChanged(null, pid, 10, afterCreate);
+                        log.info("success with cert : " + certLabels[i]);
                         success++;
                     } catch (InvalidRequest e) {
+                        log.info("InvalidRequest with cert : " + certLabels[i]);
                         invReq++;
                     } catch (NotAuthorized e) {
+                        log.info("NotAuthorized with cert : " + certLabels[i]);
                         notAuth++;
                     } catch (Exception e) {
+                        log.info("Exception with cert : " + certLabels[i]);
                         other++;
                         handleFail(mn.getLatestRequestUrl(), "unexpected exception: " +
                                 "systemMetadataChanged should only throw InvalidRequest" +
