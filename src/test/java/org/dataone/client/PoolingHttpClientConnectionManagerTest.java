@@ -29,6 +29,7 @@ import org.dataone.service.types.v1.ObjectLocation;
 import org.dataone.service.types.v1.ObjectLocationList;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class PoolingHttpClientConnectionManagerTest {
@@ -44,7 +45,7 @@ public class PoolingHttpClientConnectionManagerTest {
     }
 
     @Test
-    public void test() {
+    public void test_true() {
         ;
     }
 
@@ -231,6 +232,7 @@ public class PoolingHttpClientConnectionManagerTest {
         return stream;
     }
 
+    @Ignore("this isn't needed as a regular test")
     @Test
     public void testFromExample() {
         Settings.getConfiguration().setProperty("D1Client.CN_URL", "https://cn-sandbox-2.test.dataone.org/cn");
