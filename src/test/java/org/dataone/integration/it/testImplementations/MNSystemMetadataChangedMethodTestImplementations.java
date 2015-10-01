@@ -53,7 +53,7 @@ public class MNSystemMetadataChangedMethodTestImplementations extends ContextAwa
     
     public void testSystemMetadataChanged(Node node, String version) {
 
-        String[] certLabels = {"cnDevUNM1", "cnDevUCSB2", "cnSandboxUNM1", "cnStageUNM1"};
+        String[] certLabels = {"cnDevUNM1", "cnDevUNM2", "cnSandboxUNM1", "cnStageUNM1"};
         MNCallAdapter[] cNodeSessions = new MNCallAdapter[]{
                 new MNCallAdapter(getSession(certLabels[0]), node, version),
                 new MNCallAdapter(getSession(certLabels[1]), node, version),
@@ -95,11 +95,17 @@ public class MNSystemMetadataChangedMethodTestImplementations extends ContextAwa
                     } catch (Exception e) {
                         log.info("Exception with cert : " + certLabels[i]);
                         other++;
-                        handleFail(mn.getLatestRequestUrl(), "unexpected exception: " +
+                        handleFail(cNodeSession.getLatestRequestUrl(), "unexpected exception: " +
                                 "systemMetadataChanged should only throw InvalidRequest" +
                                 "or NotAuthorized exceptions if the service is not failing.  Got: " +
                                 e.getClass() + ": " + e.getMessage());
                     }
+                    
+                    checkTrue(cNodeSession.getLatestRequestUrl(),
+                        "the test should return at least one success, InvalidRequest, or InvalidRequest each round " 
+                		+ "success=" + success + ", invReq=" + invReq + ", notAuth=" + notAuth + ", other=" + other,
+                        success + invReq + notAuth > 0);
+                    
                 }
                 // log the results before checking for failure
                 log.info("success = " + success);
@@ -107,13 +113,10 @@ public class MNSystemMetadataChangedMethodTestImplementations extends ContextAwa
                 log.info("NotAuthorized = " + notAuth);
                 log.info("other = " + other);
                 
-                checkTrue(mn.getLatestRequestUrl(),
-                        "the test should return at least one success or InvalidRequest " 
-                		+ "success=" + success + ", invReq=" + invReq + ", other=" + other + ", notAuth=" + notAuth,
-                        success + invReq > 0);
+                
                 checkTrue(mn.getLatestRequestUrl(),
                         "the test should only return success or InvalidRequest for one CN (environment) "
-                        + "success=" + success + ", invReq=" + invReq + ", other=" + other + ", notAuth=" + notAuth,
+                        + "success=" + success + ", invReq=" + invReq + ", notAuth=" + notAuth + ", other=" + other,
                         success + invReq == 1);
                 
 
@@ -145,7 +148,7 @@ public class MNSystemMetadataChangedMethodTestImplementations extends ContextAwa
     
     public void testSystemMetadataChanged_EarlierDate(Node node, String version) {
   
-        MNCallAdapter mn = new MNCallAdapter(getSession("cnDevUNM1"), node, version);
+        MNCallAdapter mn = new MNCallAdapter(getSession(cnSubmitter), node, version);
         String currentUrl = mn.getNodeBaseServiceUrl();
         printTestHeader("testSystemMetadataChanged() vs. node: " + currentUrl);
 
@@ -222,7 +225,7 @@ public class MNSystemMetadataChangedMethodTestImplementations extends ContextAwa
     public void testSystemMetadataChanged_withCreate(Node node, String version) 
     {
         String currentUrl = node.getBaseURL();
-        MNCallAdapter cca = new MNCallAdapter(getSession("cnDevUNM1"), node, version);
+        MNCallAdapter cca = new MNCallAdapter(getSession(cnSubmitter), node, version);
         currentUrl = cca.getNodeBaseServiceUrl();
         printTestHeader("testSystemMetadataChanged() vs. node: " + currentUrl);
 
