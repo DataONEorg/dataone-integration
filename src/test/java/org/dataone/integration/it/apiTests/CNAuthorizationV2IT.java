@@ -63,7 +63,7 @@ public class CNAuthorizationV2IT extends V2IsAuthorizedAuthorizationTestImpl
     @Override
     @Test
     public void testSetRightsHolder() {
-        cnAuthTestImpl.testSetRightsHolder(getCoordinatingNodeIterator(), "v2");
+        cnAuthTestImpl.testSetRightsHolderV2(getCoordinatingNodeIterator(), "v2");
     }
 
     @Override

@@ -118,6 +118,59 @@ public class CNAuthTestImplementations extends ContextAwareAdapter {
         }
     }
     
+    @WebTestName("setRightsHolder - tests that setRightsHolder works")
+    @WebTestDescription("tries to use setRightsHolder to change the rights holder, "
+            + "but this should fail since it's done against a v2 object "
+            + "(one that has a v2 authoritative MN)" )
+    public void testSetRightsHolderV2(Iterator<Node> nodeIterator, String version) {
+        while (nodeIterator.hasNext())
+            testSetRightsHolderV2(nodeIterator.next(), version);
+    }
+    
+    public void testSetRightsHolderV2(Node node, String version) 
+    {
+        String currentUrl = node.getBaseURL();
+        printTestHeader("testSetRightsHolder(...) vs. node: " + currentUrl);
+
+        CNCallAdapter callAdapterCN = new CNCallAdapter(getSession(cnSubmitter), node, version);
+        CNCallAdapter callAdapterRightsHolder = new CNCallAdapter(getSession("testRightsHolder"), node, version);
+        CNCallAdapter callAdapterPerson = new CNCallAdapter(getSession("testPerson"), node, version);
+        Subject originalOwnerSubject = ContextAwareTestCaseDataone.getSubject("testRightsHolder");
+        Subject inheritorSubject = ContextAwareTestCaseDataone.getSubject("testPerson");
+        
+        try {
+            // create a new identifier for testing, owned by current subject and with null AP
+            Identifier changeableObject = APITestUtils.buildIdentifier(
+                    "TierTesting:setRH:" + ExampleUtilities.generateIdentifier()); 
+
+            changeableObject = catc.createTestObject(callAdapterCN, changeableObject, null, cnSubmitter);
+            
+            if (changeableObject != null) {
+                SystemMetadata smd = callAdapterCN.getSystemMetadata(null, changeableObject);
+                
+                try {
+                    Identifier response = callAdapterCN.setRightsHolder(
+                            null, 
+                            changeableObject,
+                            inheritorSubject, 
+                            smd.getSerialVersion().longValue());
+                    handleFail(callAdapterRightsHolder.getLatestRequestUrl(), "v2 CN.setRightsHolder() on v2 object should fail");
+                } catch (NotAuthorized na) {
+                    // expected for v2 
+                }
+            } else {
+                handleFail(callAdapterCN.getLatestRequestUrl(),"could not create object for testing setRightsHolder");
+            }
+        } 
+        catch (BaseException e) {
+            handleFail(callAdapterCN.getLatestRequestUrl(),e.getDescription());
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+            handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+        }
+    }
+    
     @WebTestName("setAccessPolicy - tests that setAccessPolicy works")
     @WebTestDescription("finds an object that can be modified, clears its AccessPolicy, "
             + "calls isAuthorized with a non-owner subject expecting a "
