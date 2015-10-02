@@ -134,8 +134,6 @@ public class CNAuthTestImplementations extends ContextAwareAdapter {
 
         CNCallAdapter callAdapterCN = new CNCallAdapter(getSession(cnSubmitter), node, version);
         CNCallAdapter callAdapterRightsHolder = new CNCallAdapter(getSession("testRightsHolder"), node, version);
-        CNCallAdapter callAdapterPerson = new CNCallAdapter(getSession("testPerson"), node, version);
-        Subject originalOwnerSubject = ContextAwareTestCaseDataone.getSubject("testRightsHolder");
         Subject inheritorSubject = ContextAwareTestCaseDataone.getSubject("testPerson");
         
         try {
@@ -326,5 +324,43 @@ public class CNAuthTestImplementations extends ContextAwareAdapter {
             handleFail(currentUrl, e.getClass().getName() + ": " + e.getMessage());
         }
         Settings.getConfiguration().setProperty("D1Client.useLocalCache", origObjectCacheSetting);
+    }
+    
+    @WebTestName("setAccessPolicy - tests that setAccessPolicy fails for a v2 authoritative object")
+    @WebTestDescription("tries to set the access policy of a v2 object (one that has a v2 "
+            + "authoritative MN) and expects it to fail")
+    public void testSetAccessPolicyV2(Iterator<Node> nodeIterator, String version) {
+        while (nodeIterator.hasNext())
+            testSetAccessPolicyV2(nodeIterator.next(), version);
+    }
+
+    public void testSetAccessPolicyV2(Node node, String version) 
+    {   
+        CNCallAdapter callAdapterCN = new CNCallAdapter(getSession(cnSubmitter), node, version);
+        CNCallAdapter callAdapterRH = new CNCallAdapter(getSession("testRightsHolder"), node, version);
+        
+        Settings.getConfiguration().setProperty("D1Client.useLocalCache", false);
+        Settings.getConfiguration().setProperty("D1Client.CNode.create.timeouts", 10000);
+        String currentUrl = callAdapterCN.getNodeBaseServiceUrl();
+        printTestHeader("testSetAccessPolicy() vs. node: " + currentUrl);
+        
+        try {
+            Identifier pid = D1TypeBuilder.buildIdentifier("testSetAccessPolicy_" + ExampleUtilities.generateIdentifier());
+            pid = catc.createTestObject(callAdapterCN, pid, null, cnSubmitter);
+
+            SystemMetadata smd = callAdapterCN.getSystemMetadata(null, pid);
+            try {
+                callAdapterCN.setAccessPolicy(null, pid, new AccessPolicy(), smd.getSerialVersion().longValue());
+                handleFail(callAdapterCN.getLatestRequestUrl(), "v2 CN.setRightsHolder() on v2 object should fail");
+            } catch (NotAuthorized na) {
+                // expected for v2 
+            }
+        } catch (BaseException e) {
+            handleFail(callAdapterRH.getLatestRequestUrl(), e.getClass().getSimpleName() + ": " + 
+                    e.getDetail_code() + ": " + e.getDescription());
+        } catch (Exception e) {
+            e.printStackTrace();
+            handleFail(currentUrl, e.getClass().getName() + ": " + e.getMessage());
+        }
     }
 }
