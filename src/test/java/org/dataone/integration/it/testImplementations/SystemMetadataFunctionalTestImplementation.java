@@ -100,7 +100,8 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
                         
                         List<Service> serviceList = capabilities.getServices().getServiceList();
                         for (Service service : serviceList)
-                            if(service.getName().equalsIgnoreCase("MNReplication") && service.getAvailable() == true) {
+                            if(service.getName().equalsIgnoreCase("MNReplication") 
+                                    && service.getAvailable()) {
                                 mnList.add(n);
                                 break;
                             }
@@ -167,7 +168,12 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
             try {
                 capabilities = mnCallAdapter.getCapabilities();
                 capabilities.setSynchronize(false);
-                org.dataone.service.types.v2.Node v2Capabilities = TypeFactory.convertTypeFromType(capabilities, org.dataone.service.types.v2.Node.class);
+                org.dataone.service.types.v2.Node v2Capabilities = null;
+                if (capabilities instanceof org.dataone.service.types.v2.Node)
+                    v2Capabilities = (org.dataone.service.types.v2.Node) capabilities;
+                else
+                    v2Capabilities = TypeFactory.convertTypeFromType(capabilities, org.dataone.service.types.v2.Node.class);
+                    
                 cn.updateNodeCapabilities(null, v2Capabilities.getIdentifier(), v2Capabilities);
                 mnV2NoSync = capabilities;
                 break;
@@ -183,8 +189,10 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
     
     @After
     public void tearDown() {
-        if(mnV2NoSync == null)
+        if(mnV2NoSync == null) {
+            log.error("Cannot reenable sync on MN, no reference to MN with sync disabled is saved! Reenable in LDAP.");
             return;
+        }
         
         Node cNode = cnList.get(0);
         CNCallAdapter cn = new CNCallAdapter(getSession(cnSubmitter), cNode, "v2");
@@ -195,7 +203,8 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
             currentCapabilities.setSynchronize(true);
             cn.updateNodeCapabilities(null, nodeRef, currentCapabilities);
         } catch (Exception e) {
-            throw new AssertionError("Unable to update MN capabilities to re-enable synchronization on: " + mnV2NoSync.getIdentifier());
+            throw new AssertionError("Unable to update MN capabilities to re-enable synchronization on: " + mnV2NoSync.getIdentifier() +
+                    " Reenable in LDAP.");
         }
     }
     
