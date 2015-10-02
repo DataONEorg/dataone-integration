@@ -79,6 +79,10 @@ public class CommonCallAdapter implements D1Node {
         return node;
     }
     
+    public String getVersion() {
+        return version;
+    }
+    
     public Date ping() throws NotImplemented, ServiceFailure, InsufficientResources, ClientSideException {
         if (this.node.getType().equals(NodeType.MN)) {
             if (this.version.toLowerCase().equals("v1")) {

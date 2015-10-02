@@ -98,6 +98,7 @@ import org.dataone.service.types.v1.ObjectInfo;
 import org.dataone.service.types.v1.ObjectList;
 import org.dataone.service.types.v1.Permission;
 import org.dataone.service.types.v1.ReplicationPolicy;
+import org.dataone.service.types.v1.Service;
 import org.dataone.service.types.v1.Subject;
 import org.dataone.service.types.v1.util.AccessUtil;
 import org.dataone.service.types.v2.SystemMetadata;
@@ -1286,12 +1287,14 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
                 //			} else {
                 byte[] contentBytes = ExampleUtilities.getExampleObjectOfType(DEFAULT_TEST_OBJECTFORMAT);
                 objectInputStream = new ByteArrayInputStream(contentBytes);
-                NodeReference nodeReference = D1TypeBuilder.buildNodeReference("bogusAuthoritativeNode");
+                
+                // we need to try to give it a valid authoritative MN
+                // so we look for a valid node reference
+                NodeReference nodeReference = null;
                 if(d1Node instanceof MNCallAdapter) {
-                    NodeReference nodeIdentifier = ((MNCallAdapter) d1Node).getNode().getIdentifier();
-                    if (nodeIdentifier != null)
-                        nodeReference = nodeIdentifier;
-                    else {
+                    nodeReference = ((MNCallAdapter) d1Node).getNode().getIdentifier();
+
+                    if (nodeReference == null)
                         try {
                             Node capabilities = ((MNCallAdapter) d1Node).getCapabilities();
                             nodeReference = capabilities.getIdentifier();
@@ -1300,8 +1303,36 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
                                     " to use as the system metadata's authoritativeMemberNode for created object: " + 
                                     pid + " because the getCapabilities() call failed.", e);
                         }
+                } else if (d1Node instanceof CNCallAdapter) {
+                    CNCallAdapter cn = (CNCallAdapter) d1Node;
+                    org.dataone.service.types.v2.NodeList nodeList = cn.listNodes();
+                    boolean needV2Node = cn.getVersion().equalsIgnoreCase("v2");
+                    
+                    nodesLoop:
+                    for (Node n : nodeList.getNodeList()) {
+                        if (n.getType() != NodeType.MN) // skip CNs
+                            continue;
+                        
+                        if (!needV2Node) { // if not v2, any MN reference will do
+                            nodeReference = n.getIdentifier();
+                            break;
+                        }
+                        
+                        // check node's services for at least one "v2" service
+                        for (Service service : n.getServices().getServiceList()) {
+                            if (service.getVersion().equalsIgnoreCase("v2")) {
+                                nodeReference = n.getIdentifier();
+                                break nodesLoop;
+                            }
+                        }
                     }
                 }
+                
+                if (nodeReference == null) { // only as last resort... =[
+                    nodeReference = D1TypeBuilder.buildNodeReference("bogusAuthoritativeNode");
+                    log.warn("Unable to find a valid authoritative MN to use for the object: " + pid);
+                }
+                
                 Subject submitterSubject = D1TypeBuilder.buildSubject(submitterX500);
                 d1o = new D1Object(pid, contentBytes,
                         D1TypeBuilder.buildFormatIdentifier(DEFAULT_TEST_OBJECTFORMAT),
