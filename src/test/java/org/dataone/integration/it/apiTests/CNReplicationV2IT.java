@@ -15,7 +15,7 @@ import org.junit.Test;
  * Tests CNReplication functionality for v2 of the API 
  */
 public class CNReplicationV2IT extends ContextAwareTestCaseDataone implements
-        CNReplicationTestDefinitions, CNReplicationSidTestDefinitions {
+        CNReplicationTestDefinitions {
 
     @WebTestImplementation
     private CNReplicationTestImplementations replicationTestImpl;
@@ -164,11 +164,5 @@ public class CNReplicationV2IT extends ContextAwareTestCaseDataone implements
     @Ignore("No test exists for this yet")
     public void testDeleteReplicationMetadata() {
         //replicationTestImpl.testDeleteReplicationMetadata(getCoordinatingNodeIterator(), "v2");
-    }
-
-    @Override
-    @Test
-    public void testSidSetReplicationPolicy() {
-        sidImpl.testSetReplicationPolicy();
     }
 }

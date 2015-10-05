@@ -77,16 +77,4 @@ public class CNAuthorizationV2IT extends V2IsAuthorizedAuthorizationTestImpl
     public void testSidIsAuthorized() {
         sidImpl.testIsAuthorized();
     }
-
-    @Override
-    @Test
-    public void testSidSetRightsHolder() {
-        sidImpl.testSetRightsHolder();
-    }
-
-    @Override
-    @Test
-    public void testSidSetAccessPolicy() {
-        sidImpl.testSetAccessPolicy();
-    }
 }
