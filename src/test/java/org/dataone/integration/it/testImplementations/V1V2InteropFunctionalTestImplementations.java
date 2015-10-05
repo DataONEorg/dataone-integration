@@ -88,7 +88,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         cnList = IteratorUtils.toList(cnIter);
         
         if(cnList.size() > 0) {
-            cnV1 = new CNCallAdapter(getSession(cnSubmitter), cnList.get(0), "v2");
+            cnV1 = new CNCallAdapter(getSession(cnSubmitter), cnList.get(0), "v1");
             cnV2 = new CNCallAdapter(getSession(cnSubmitter), cnList.get(0), "v2");
         }
         if(cnV2 != null) {
