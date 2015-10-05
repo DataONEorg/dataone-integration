@@ -539,8 +539,10 @@ public class SidCNTestImplementations extends SidCommonTestImplementations {
     
     @WebTestName("setReplicationPolicy: tests that setReplicationPolicy works if given a SID")
     @WebTestDescription("this test checks if setting the replication policy with a SID "
-            + "correctly changed the policy for the head PID")
-    @Ignore("According to \"Mutability of Content\" page, only supposed to work for PIDS. v2 API disagrees though...")
+            + "will fail with a NotAuthorized exception - since a SID implies it's a "
+            + "v2 object and this method should only work with v1 objects")
+    // Should yield NotAuthorized regardless of identifier, but:
+    // @Ignore("According to \"Mutability of Content\" page, only supposed to work for PIDS. v2 API disagrees though...")
     @Test
     public void testSetReplicationPolicy() {
 
@@ -561,25 +563,22 @@ public class SidCNTestImplementations extends SidCommonTestImplementations {
                     Method setupMethod = getSetupClass().getClass().getDeclaredMethod(setupMethodName, CommonCallAdapter.class, Node.class);
                     IdPair idPair = (IdPair) setupMethod.invoke(this, callAdapter, node);
                     Identifier sid = idPair.sid;
-                    Identifier pid = idPair.headPid;
         
                     ReplicationPolicy policy = new ReplicationPolicy();
                     NodeReference nodeRef = new NodeReference();
                     String testNodeRef = "BLARG";
                     nodeRef.setValue(testNodeRef);
                     policy.addBlockedMemberNode(nodeRef);
-                    callAdapter.setReplicationPolicy(null, sid, policy, 1);
                     
-                    SystemMetadata sysmeta = callAdapter.getSystemMetadata(null, pid);
-                    ReplicationPolicy fetchedPolicy = sysmeta.getReplicationPolicy();
-                    
-                    assertTrue("setReplicationPolicy() Case " + caseNum + " : blocked nodes size", 
-                            fetchedPolicy.getBlockedMemberNodeList().size() == 1);
-                    
-                    NodeReference fetchedNodeRef = fetchedPolicy.getBlockedMemberNodeList().get(0);
-                    
-                    assertTrue("setReplicationPolicy() Case " + caseNum + " : test node ref",
-                            fetchedNodeRef.getValue().equals(testNodeRef));
+                    try {
+                        callAdapter.setReplicationPolicy(null, sid, policy, 1);
+                    } catch (NotAuthorized na) {
+                        // expected result
+                        continue;
+                    }
+                    handleFail(callAdapter.getLatestRequestUrl(), "testSetReplicationPolicy() - "
+                            + "setReplicationPolicy should fail for an object with a v2 "
+                            + "authoritative member node, even when given a sid.");
                 } catch (BaseException e) {
                     e.printStackTrace();
                     handleFail( callAdapter.getNodeBaseServiceUrl(), "Case: " + i + " : " + e.getDescription());
