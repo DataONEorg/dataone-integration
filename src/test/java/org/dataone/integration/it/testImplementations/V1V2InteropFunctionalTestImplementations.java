@@ -55,7 +55,8 @@ import org.xml.sax.InputSource;
 public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCaseDataone {
 
     private static final String cnSubmitter = Settings.getConfiguration().getString("dataone.it.cnode.submitter.cn", "cnDevUNM1");
-    private CNCallAdapter cn;
+    private CNCallAdapter cnV1;
+    private CNCallAdapter cnV2;
     /** MNs supporting ONLY the V1 API */
     private List<Node> v1mns;
     /** MNs supporting the V2 API (might also support V1 API) */
@@ -86,15 +87,17 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         
         cnList = IteratorUtils.toList(cnIter);
         
-        if(cnList.size() > 0)
-            cn = new CNCallAdapter(getSession(cnSubmitter), cnList.get(0), "v2");
-        if(cn != null) {
+        if(cnList.size() > 0) {
+            cnV1 = new CNCallAdapter(getSession(cnSubmitter), cnList.get(0), "v2");
+            cnV2 = new CNCallAdapter(getSession(cnSubmitter), cnList.get(0), "v2");
+        }
+        if(cnV2 != null) {
             try {
-                for(Node n : cn.listNodes().getNodeList())
+                for(Node n : cnV2.listNodes().getNodeList())
                     if(n.getType() == NodeType.MN)
                         mnList.add(n);
             } catch (Exception e) {
-                throw new AssertionError("Unable to fetch node list from CN: " + cn.getNodeBaseServiceUrl(), e);
+                throw new AssertionError("Unable to fetch node list from CN: " + cnV2.getNodeBaseServiceUrl(), e);
             }
         }
         
@@ -525,7 +528,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
 
         Node replicaMN = null;
         try {
-            SystemMetadata cnSysmeta = cn.getSystemMetadata(null, pid);
+            SystemMetadata cnSysmeta = cnV2.getSystemMetadata(null, pid);
             List<Replica> replicaList = cnSysmeta.getReplicaList();
             outerloop:
             for (Replica rep : replicaList) {
@@ -537,10 +540,10 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
                 }
             }
         } catch (NotFound e) {
-            throw new AssertionError(cn.getLatestRequestUrl() + " testV1CreateV2Get() : unable to fetch sysmeta from CN! Check status of CN sync. "
+            throw new AssertionError(cnV2.getLatestRequestUrl() + " testV1CreateV2Get() : unable to fetch sysmeta from CN! Check status of CN sync. "
                     + ": NotFound " + e.getDetail_code() + ", " + e.getDescription() + ":" + e.getMessage());
         } catch (Exception e) {
-            throw new AssertionError(cn.getLatestRequestUrl() + " testV1CreateV2Get() : unable to fetch sysmeta from CN! Check status of CN sync.");
+            throw new AssertionError(cnV2.getLatestRequestUrl() + " testV1CreateV2Get() : unable to fetch sysmeta from CN! Check status of CN sync.");
         }
         
         if(replicaMN == null)
@@ -690,7 +693,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         
         Node replicaMN = null;
         try {
-            SystemMetadata cnSysmeta = cn.getSystemMetadata(null, pid);
+            SystemMetadata cnSysmeta = cnV2.getSystemMetadata(null, pid);
             List<Replica> replicaList = cnSysmeta.getReplicaList();
             outerloop:
             for (Replica rep : replicaList) {
@@ -702,10 +705,10 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
                 }
             }
         } catch (NotFound e) {
-            throw new AssertionError(cn.getLatestRequestUrl() + " testV1CreateV2GetSysmeta() : unable to fetch sysmeta from CN! Check status of CN sync. "
+            throw new AssertionError(cnV2.getLatestRequestUrl() + " testV1CreateV2GetSysmeta() : unable to fetch sysmeta from CN! Check status of CN sync. "
                     + ": NotFound " + e.getDetail_code() + ", " + e.getDescription() + ":" + e.getMessage());
         } catch (Exception e) {
-            throw new AssertionError(cn.getLatestRequestUrl() + " testV1CreateV2GetSysmeta() : unable to fetch sysmeta from CN! Check status of CN sync.");
+            throw new AssertionError(cnV2.getLatestRequestUrl() + " testV1CreateV2GetSysmeta() : unable to fetch sysmeta from CN! Check status of CN sync.");
         }
         
         if(replicaMN == null)
@@ -848,7 +851,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         
         Node replicaMN = null;
         try {
-            SystemMetadata cnSysmeta = cn.getSystemMetadata(null, pid);
+            SystemMetadata cnSysmeta = cnV2.getSystemMetadata(null, pid);
             List<Replica> replicaList = cnSysmeta.getReplicaList();
             outerloop:
             for (Replica rep : replicaList) {
@@ -860,10 +863,10 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
                 }
             }
         } catch (NotFound e) {
-            throw new AssertionError(cn.getLatestRequestUrl() + " testV1CreateV2Query() : unable to fetch sysmeta from CN! Check status of CN sync. "
+            throw new AssertionError(cnV2.getLatestRequestUrl() + " testV1CreateV2Query() : unable to fetch sysmeta from CN! Check status of CN sync. "
                     + ": NotFound " + e.getDetail_code() + ", " + e.getDescription() + ":" + e.getMessage());
         } catch (Exception e) {
-            throw new AssertionError(cn.getLatestRequestUrl() + " testV1CreateV2Query() : unable to fetch sysmeta from CN! Check status of CN sync.");
+            throw new AssertionError(cnV2.getLatestRequestUrl() + " testV1CreateV2Query() : unable to fetch sysmeta from CN! Check status of CN sync.");
         }
         
         if(replicaMN == null)
@@ -1245,7 +1248,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         
         Node replicaMN = null;
         try {
-            SystemMetadata cnSysmeta = cn.getSystemMetadata(null, pid);
+            SystemMetadata cnSysmeta = cnV2.getSystemMetadata(null, pid);
             List<Replica> replicaList = cnSysmeta.getReplicaList();
             outerloop:
             for (Replica rep : replicaList) {
@@ -1257,10 +1260,10 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
                 }
             }
         } catch (NotFound e) {
-            throw new AssertionError(cn.getLatestRequestUrl() + " testV1CreateV2Delete() : unable to fetch sysmeta from CN! Check status of CN sync. "
+            throw new AssertionError(cnV2.getLatestRequestUrl() + " testV1CreateV2Delete() : unable to fetch sysmeta from CN! Check status of CN sync. "
                     + ": NotFound " + e.getDetail_code() + ", " + e.getDescription() + ":" + e.getMessage());
         } catch (Exception e) {
-            throw new AssertionError(cn.getLatestRequestUrl() + " testV1CreateV2Delete() : unable to fetch sysmeta from CN! Check status of CN sync.");
+            throw new AssertionError(cnV2.getLatestRequestUrl() + " testV1CreateV2Delete() : unable to fetch sysmeta from CN! Check status of CN sync.");
         }
         
         if(replicaMN == null)
@@ -1552,7 +1555,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         
         Node replicaMN = null;
         try {
-            SystemMetadata cnSysmeta = cn.getSystemMetadata(null, pid);
+            SystemMetadata cnSysmeta = cnV2.getSystemMetadata(null, pid);
             List<Replica> replicaList = cnSysmeta.getReplicaList();
             outerloop:
             for (Replica rep : replicaList) {
@@ -1564,10 +1567,10 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
                 }
             }
         } catch (NotFound e) {
-            throw new AssertionError(cn.getLatestRequestUrl() + " testV1CreateV2ListObjects() : unable to fetch sysmeta from CN! Check status of CN sync. "
+            throw new AssertionError(cnV2.getLatestRequestUrl() + " testV1CreateV2ListObjects() : unable to fetch sysmeta from CN! Check status of CN sync. "
                     + ": NotFound " + e.getDetail_code() + ", " + e.getDescription() + ":" + e.getMessage());
         } catch (Exception e) {
-            throw new AssertionError(cn.getLatestRequestUrl() + " testV1CreateV2ListObjects() : unable to fetch sysmeta from CN! Check status of CN sync.");
+            throw new AssertionError(cnV2.getLatestRequestUrl() + " testV1CreateV2ListObjects() : unable to fetch sysmeta from CN! Check status of CN sync.");
         }
         
         if(replicaMN == null)
@@ -1602,13 +1605,13 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         }
     }
     
-    @WebTestName("v2 create, v1 archive")
+    @WebTestName("v2 create, CN archive")
     @WebTestDescription(
      "Test operates on a v2 MN and a CN." +
-     "It does a create on the v2 MN, then attempts to archive the object on the CN. " +
-     "The archive call should fail since the object is a v2 object - its authoritative " +
-     "MN is a v2 MN, so the v2 API should be used to do the update. Expects a NotAuthorized exception.")
-    public void testV2CreateV1CnArchive() {
+     "It does a create on the v2 MN, then attempts to archive the object on the CN using both the v1 and v2 call. " +
+     "The archive calls should fail since the object is a v2 object - its authoritative " +
+     "MN is a v2 MN, and this call should only work for an object with a v1 authoritative MN. Expects a NotAuthorized exception.")
+    public void testV2CreateCnArchive() {
 
         assertTrue("Tests require at least 1 MN that supports the v2 API", v2mns.size() >= 1);
         
@@ -1625,18 +1628,18 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         
         // v2 create
         
-        Identifier pid = D1TypeBuilder.buildIdentifier("testV2CreateV1Archive_" + ExampleUtilities.generateIdentifier());
+        Identifier pid = D1TypeBuilder.buildIdentifier("testV2CreateCnArchive_" + ExampleUtilities.generateIdentifier());
         try {
             pid = createTestObject(v2CallAdapter, pid, accessRule, replPolicy);
         } catch (BaseException e) {
             e.printStackTrace();
-            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + " testV2CreateV1Archive() couldn't create test object: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + " testV2CreateCnArchive() couldn't create test object: " 
                     + e.getClass().getSimpleName() + ": " 
                     + e.getDetail_code() + ":: " + e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
-            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + " testV2CreateV1Archive() couldn't create test object: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + " testV2CreateCnArchive() couldn't create test object: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
         
@@ -1648,37 +1651,52 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         }
         
         try {
-            cn.getSystemMetadata(null, pid);
+            cnV1.getSystemMetadata(null, pid);
         } catch (NotFound e) {
-            throw new AssertionError(cn.getLatestRequestUrl() + " testV2CreateV1Archive() : unable to fetch sysmeta from CN! Check status of CN sync. "
+            handleFail(cnV1.getLatestRequestUrl(), " testV2CreateCnArchive() : unable to fetch sysmeta from CN! Check status of CN sync. "
                     + ": NotFound " + e.getDetail_code() + ", " + e.getDescription() + ":" + e.getMessage());
         } catch (Exception e) {
-            throw new AssertionError(cn.getLatestRequestUrl() + " testV2CreateV1Archive() : unable to fetch sysmeta from CN! Check status of CN sync.");
+            handleFail(cnV1.getLatestRequestUrl(),  " testV2CreateCnArchive() : unable to fetch sysmeta from CN! Check status of CN sync.");
         }
         
         // CN archive
         
         try {
-            cn.archive(null, pid);
-            handleFail(cn.getLatestRequestUrl(), "testV2CreateV1Archive() : archive call to CN should fail because "
+            cnV1.archive(null, pid);
+            handleFail(cnV1.getLatestRequestUrl(), "testV2CreateCnArchive() : v1 archive call to CN should fail because "
                     + "object being archived has a v2 node as its authoritative MN" );
         } catch (NotAuthorized e) {
             
         } catch (Exception e) {
             e.printStackTrace();
-            handleFail(cn.getLatestRequestUrl(), "testV2CreateV1Archive() : expected archive call to CN should fail "
+            handleFail(cnV1.getLatestRequestUrl(), "testV2CreateCnArchive() : expected v1 archive call to CN should fail "
+                    + "with a NotAuthorized exception because object being archived has a v2 node as its "
+                    + "authoritative MN. Got: " + e.getClass().getSimpleName() + " : " + e.getMessage() );
+        }
+        
+        // v2 call
+        
+        try {
+            cnV2.archive(null, pid);
+            handleFail(cnV2.getLatestRequestUrl(), "testV2CreateCnArchive() : v2 archive call to CN should fail because "
+                    + "object being archived has a v2 node as its authoritative MN" );
+        } catch (NotAuthorized e) {
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            handleFail(cnV2.getLatestRequestUrl(), "testV2CreateCnArchive() : expected v2 archive call to CN should fail "
                     + "with a NotAuthorized exception because object being archived has a v2 node as its "
                     + "authoritative MN. Got: " + e.getClass().getSimpleName() + " : " + e.getMessage() );
         }
     }
     
-    @WebTestName("v2 create, v1 setReplicationPolicy")
+    @WebTestName("v2 create, CN setReplicationPolicy")
     @WebTestDescription(
      "Test operates on a v2 MN and a CN." +
-     "It does a create on the v2 MN, then attempts to setReplicationPolicy on the object on the CN. " +
-     "The archive call should fail since the object is a v2 object - its authoritative " +
-     "MN is a v2 MN, so the v2 API should be used to do the update. Expects a NotAuthorized exception.")
-    public void testV2CreateV1CnSetReplicationPolicy() {
+     "It does a create on the v2 MN, then attempts to setReplicationPolicy on the object on the CN using both the v1 and v2 call. " +
+     "The setReplicationPolicy calls should fail since the object is a v2 object - its authoritative " +
+     "MN is a v2 MN, and this call should only work for an object with a v1 authoritative MN. Expects a NotAuthorized exception.")
+    public void testV2CreateCnSetReplicationPolicy() {
 
         assertTrue("Tests require at least 1 MN that supports the v2 API", v2mns.size() >= 1);
         
@@ -1695,18 +1713,18 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         
         // v2 create
         
-        Identifier pid = D1TypeBuilder.buildIdentifier("testV2CreateV1CnSetReplicationPolicy_" + ExampleUtilities.generateIdentifier());
+        Identifier pid = D1TypeBuilder.buildIdentifier("testV2CreateCnSetReplicationPolicy_" + ExampleUtilities.generateIdentifier());
         try {
             pid = createTestObject(v2CallAdapter, pid, accessRule, replPolicy);
         } catch (BaseException e) {
             e.printStackTrace();
-            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + " testV2CreateV1CnSetReplicationPolicy() couldn't create test object: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + " testV2CreateCnSetReplicationPolicy() couldn't create test object: " 
                     + e.getClass().getSimpleName() + ": " 
                     + e.getDetail_code() + ":: " + e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
-            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + " testV2CreateV1CnSetReplicationPolicy() couldn't create test object: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + " testV2CreateCnSetReplicationPolicy() couldn't create test object: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
         
@@ -1719,38 +1737,54 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         
         SystemMetadata fetchedSysmeta = null;
         try {
-            fetchedSysmeta = cn.getSystemMetadata(null, pid);
+            fetchedSysmeta = cnV1.getSystemMetadata(null, pid);
         } catch (NotFound e) {
-            throw new AssertionError(cn.getLatestRequestUrl() + " testV2CreateV1CnSetReplicationPolicy() : unable to fetch sysmeta from CN! Check status of CN sync. "
+            handleFail(cnV1.getLatestRequestUrl(),  " testV2CreateCnSetReplicationPolicy() : unable to fetch sysmeta from CN! Check status of CN sync. "
                     + ": NotFound " + e.getDetail_code() + ", " + e.getDescription() + ":" + e.getMessage());
         } catch (Exception e) {
-            throw new AssertionError(cn.getLatestRequestUrl() + " testV2CreateV1CnSetReplicationPolicy() : unable to fetch sysmeta from CN! Check status of CN sync.");
+            handleFail(cnV1.getLatestRequestUrl(),  " testV2CreateCnSetReplicationPolicy() : unable to fetch sysmeta from CN! Check status of CN sync.");
         }
         
         // CN setReplicationPolicy
         
         try {
             replPolicy.setNumberReplicas(replPolicy.getNumberReplicas() + 1);
-            cn.setReplicationPolicy(null, pid, replPolicy, fetchedSysmeta.getSerialVersion().longValue());
-            handleFail(cn.getLatestRequestUrl(), "testV2CreateV1CnSetReplicationPolicy() : setReplicationPolicy "
-                    + "call to CN should fail because object has a v2 node as its authoritative MN" );
+            cnV1.setReplicationPolicy(null, pid, replPolicy, fetchedSysmeta.getSerialVersion().longValue());
+            handleFail(cnV1.getLatestRequestUrl(), "testV2CreateCnSetReplicationPolicy() : setReplicationPolicy "
+                    + "v1 call to CN should fail because object has a v2 node as its authoritative MN" );
         } catch (NotAuthorized e) {
             
         } catch (Exception e) {
             e.printStackTrace();
-            handleFail(cn.getLatestRequestUrl(), "testV2CreateV1CnSetReplicationPolicy() : expected setReplicationPolicy "
-                    + "call to CN should fail with a NotAuthorized exception because object has a v2 node as its "
+            handleFail(cnV1.getLatestRequestUrl(), "testV2CreateCnSetReplicationPolicy() : expected setReplicationPolicy "
+                    + "v1 call to CN should fail with a NotAuthorized exception because object has a v2 node as its "
+                    + "authoritative MN. Got: " + e.getClass().getSimpleName() + " : " + e.getMessage() );
+        }
+        
+        // v2 call
+        
+        try {
+            replPolicy.setNumberReplicas(replPolicy.getNumberReplicas() + 1);
+            cnV2.setReplicationPolicy(null, pid, replPolicy, fetchedSysmeta.getSerialVersion().longValue());
+            handleFail(cnV2.getLatestRequestUrl(), "testV2CreateCnSetReplicationPolicy() : setReplicationPolicy "
+                    + "v2 call to CN should fail because object has a v2 node as its authoritative MN" );
+        } catch (NotAuthorized e) {
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            handleFail(cnV2.getLatestRequestUrl(), "testV2CreateCnSetReplicationPolicy() : expected setReplicationPolicy "
+                    + "v2 call to CN should fail with a NotAuthorized exception because object has a v2 node as its "
                     + "authoritative MN. Got: " + e.getClass().getSimpleName() + " : " + e.getMessage() );
         }
     }
     
-    @WebTestName("v2 create, v1 setAccessPolicy")
+    @WebTestName("v2 create, cn setAccessPolicy")
     @WebTestDescription(
      "Test operates on a v2 MN and a CN." +
-     "It does a create on the v2 MN, then attempts to setAccessPolicy on the object on the CN. " +
-     "The archive call should fail since the object is a v2 object - its authoritative " +
-     "MN is a v2 MN, so the v2 API should be used to do the update. Expects a NotAuthorized exception.")
-    public void testV2CreateV1CnSetAccessPolicy() {
+     "It does a create on the v2 MN, then attempts to setAccessPolicy on the object on the CN using both the v1 and v2 call. " +
+     "The setAccessPolicy calls should fail since the object is a v2 object - its authoritative " +
+     "MN is a v2 MN, and this call should only work for an object with a v1 authoritative MN. Expects a NotAuthorized exception.")
+    public void testV2CreateCnSetAccessPolicy() {
 
         assertTrue("Tests require at least 1 MN that supports the v2 API", v2mns.size() >= 1);
         
@@ -1767,18 +1801,18 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         
         // v2 create
         
-        Identifier pid = D1TypeBuilder.buildIdentifier("testV2CreateV1CnSetAccessPolicy_" + ExampleUtilities.generateIdentifier());
+        Identifier pid = D1TypeBuilder.buildIdentifier("testV2CreateCnSetAccessPolicy_" + ExampleUtilities.generateIdentifier());
         try {
             pid = createTestObject(v2CallAdapter, pid, accessRule, replPolicy);
         } catch (BaseException e) {
             e.printStackTrace();
-            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + " testV2CreateV1CnSetAccessPolicy() couldn't create test object: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + " testV2CreateCnSetAccessPolicy() couldn't create test object: " 
                     + e.getClass().getSimpleName() + ": " 
                     + e.getDetail_code() + ":: " + e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
-            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + " testV2CreateV1CnSetAccessPolicy() couldn't create test object: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + " testV2CreateCnSetAccessPolicy() couldn't create test object: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
         
@@ -1791,12 +1825,12 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         
         SystemMetadata fetchedSysmeta = null;
         try {
-            fetchedSysmeta = cn.getSystemMetadata(null, pid);
+            fetchedSysmeta = cnV1.getSystemMetadata(null, pid);
         } catch (NotFound e) {
-            throw new AssertionError(cn.getLatestRequestUrl() + " testV2CreateV1CnSetAccessPolicy() : unable to fetch sysmeta from CN! Check status of CN sync. "
+            handleFail(cnV1.getLatestRequestUrl(),  " testV2CreateCnSetAccessPolicy() : unable to fetch sysmeta from CN! Check status of CN sync. "
                     + ": NotFound " + e.getDetail_code() + ", " + e.getDescription() + ":" + e.getMessage());
         } catch (Exception e) {
-            throw new AssertionError(cn.getLatestRequestUrl() + " testV2CreateV1CnSetAccessPolicy() : unable to fetch sysmeta from CN! Check status of CN sync.");
+            handleFail(cnV1.getLatestRequestUrl(),  " testV2CreateCnSetAccessPolicy() : unable to fetch sysmeta from CN! Check status of CN sync.");
         }
         
         // CN setAccessPolicy
@@ -1804,26 +1838,43 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         try {
             AccessPolicy accessPolicy = new AccessPolicy();
             accessPolicy.addAllow(accessRule);
-            cn.setAccessPolicy(null, pid, null, fetchedSysmeta.getSerialVersion().longValue());
-            handleFail(cn.getLatestRequestUrl(), "testV2CreateV1CnSetAccessPolicy() : setAccessPolicy "
-                    + "call to CN should fail because object has a v2 node as its authoritative MN" );
+            cnV1.setAccessPolicy(null, pid, null, fetchedSysmeta.getSerialVersion().longValue());
+            handleFail(cnV1.getLatestRequestUrl(), "testV2CreateCnSetAccessPolicy() : setAccessPolicy "
+                    + "v1 call to CN should fail because object has a v2 node as its authoritative MN" );
         } catch (NotAuthorized e) {
             
         } catch (Exception e) {
             e.printStackTrace();
-            handleFail(cn.getLatestRequestUrl(), "testV2CreateV1CnSetAccessPolicy() : expected setAccessPolicy "
-                    + "call to CN should fail with a NotAuthorized exception because object has a v2 node as its "
+            handleFail(cnV1.getLatestRequestUrl(), "testV2CreateCnSetAccessPolicy() : expected setAccessPolicy "
+                    + "v1 call to CN should fail with a NotAuthorized exception because object has a v2 node as its "
+                    + "authoritative MN. Got: " + e.getClass().getSimpleName() + " : " + e.getMessage() );
+        }
+        
+        // v2 call
+        
+        try {
+            AccessPolicy accessPolicy = new AccessPolicy();
+            accessPolicy.addAllow(accessRule);
+            cnV2.setAccessPolicy(null, pid, null, fetchedSysmeta.getSerialVersion().longValue());
+            handleFail(cnV2.getLatestRequestUrl(), "testV2CreateCnSetAccessPolicy() : setAccessPolicy "
+                    + "v2 call to CN should fail because object has a v2 node as its authoritative MN" );
+        } catch (NotAuthorized e) {
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            handleFail(cnV2.getLatestRequestUrl(), "testV2CreateCnSetAccessPolicy() : expected setAccessPolicy "
+                    + "v2 call to CN should fail with a NotAuthorized exception because object has a v2 node as its "
                     + "authoritative MN. Got: " + e.getClass().getSimpleName() + " : " + e.getMessage() );
         }
     }
     
-    @WebTestName("v2 create, v1 setRightsHolder")
+    @WebTestName("v2 create, cn setRightsHolder")
     @WebTestDescription(
      "Test operates on a v2 MN and a CN." +
-     "It does a create on the v2 MN, then attempts to setRightsHolder the object on the CN. " +
-     "The archive call should fail since the object is a v2 object - its authoritative " +
-     "MN is a v2 MN, so the v2 API should be used to do the update. Expects a NotAuthorized exception.")
-    public void testV2CreateV1CnSetRightsHolder() {
+     "It does a create on the v2 MN, then attempts to setRightsHolder the object on the CN using both the v1 and v2 call. " +
+     "The setRightsHolder calls should fail since the object is a v2 object - its authoritative " +
+     "MN is a v2 MN, and this call should only work for an object with a v1 authoritative MN. Expects a NotAuthorized exception.")
+    public void testV2CreateCnSetRightsHolder() {
 
         assertTrue("Tests require at least 1 MN that supports the v2 API", v2mns.size() >= 1);
         
@@ -1840,18 +1891,18 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         
         // v2 create
         
-        Identifier pid = D1TypeBuilder.buildIdentifier("testV2CreateV1CnSetRightsHolder_" + ExampleUtilities.generateIdentifier());
+        Identifier pid = D1TypeBuilder.buildIdentifier("testV2CreateCnSetRightsHolder_" + ExampleUtilities.generateIdentifier());
         try {
             pid = createTestObject(v2CallAdapter, pid, accessRule, replPolicy);
         } catch (BaseException e) {
             e.printStackTrace();
-            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + " testV2CreateV1CnSetRightsHolder() couldn't create test object: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + " testV2CreateCnSetRightsHolder() couldn't create test object: " 
                     + e.getClass().getSimpleName() + ": " 
                     + e.getDetail_code() + ":: " + e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
-            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + " testV2CreateV1CnSetRightsHolder() couldn't create test object: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + " testV2CreateCnSetRightsHolder() couldn't create test object: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
         
@@ -1864,12 +1915,12 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         
         SystemMetadata fetchedSysmeta = null;
         try {
-            fetchedSysmeta = cn.getSystemMetadata(null, pid);
+            fetchedSysmeta = cnV1.getSystemMetadata(null, pid);
         } catch (NotFound e) {
-            throw new AssertionError(cn.getLatestRequestUrl() + " testV2CreateV1CnSetRightsHolder() : unable to fetch sysmeta from CN! Check status of CN sync. "
+            handleFail(cnV1.getLatestRequestUrl(),  " testV2CreateCnSetRightsHolder() : unable to fetch sysmeta from CN! Check status of CN sync. "
                     + ": NotFound " + e.getDetail_code() + ", " + e.getDescription() + ":" + e.getMessage());
         } catch (Exception e) {
-            throw new AssertionError(cn.getLatestRequestUrl() + " testV2CreateV1CnSetRightsHolder() : unable to fetch sysmeta from CN! Check status of CN sync.");
+            handleFail(cnV1.getLatestRequestUrl(),  " testV2CreateCnSetRightsHolder() : unable to fetch sysmeta from CN! Check status of CN sync.");
         }
         
         // CN setRightsHolder
@@ -1877,26 +1928,43 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         try {
             getSession("testRightsHolder");
             Subject newSubject = D1TypeBuilder.buildSubject("testRightsHolder");
-            cn.setRightsHolder(null, pid, newSubject, fetchedSysmeta.getSerialVersion().longValue());
-            handleFail(cn.getLatestRequestUrl(), "testV2CreateV1CnSetRightsHolder() : setRightsHolder "
-                    + "call to CN should fail because object has a v2 node as its authoritative MN" );
+            cnV1.setRightsHolder(null, pid, newSubject, fetchedSysmeta.getSerialVersion().longValue());
+            handleFail(cnV1.getLatestRequestUrl(), "testV2CreateCnSetRightsHolder() : setRightsHolder "
+                    + "v1 call to CN should fail because object has a v2 node as its authoritative MN" );
         } catch (NotAuthorized e) {
             
         } catch (Exception e) {
             e.printStackTrace();
-            handleFail(cn.getLatestRequestUrl(), "testV2CreateV1CnSetRightsHolder() : expected setRightsHolder "
-                    + "call to CN should fail with a NotAuthorized exception because object has a v2 node as its "
+            handleFail(cnV1.getLatestRequestUrl(), "testV2CreateCnSetRightsHolder() : expected setRightsHolder "
+                    + "v1 call to CN should fail with a NotAuthorized exception because object has a v2 node as its "
+                    + "authoritative MN. Got: " + e.getClass().getSimpleName() + " : " + e.getMessage() );
+        }
+        
+        // v2 call
+        
+        try {
+            getSession("testRightsHolder");
+            Subject newSubject = D1TypeBuilder.buildSubject("testRightsHolder");
+            cnV2.setRightsHolder(null, pid, newSubject, fetchedSysmeta.getSerialVersion().longValue());
+            handleFail(cnV2.getLatestRequestUrl(), "testV2CreateCnSetRightsHolder() : setRightsHolder "
+                    + "v2 call to CN should fail because object has a v2 node as its authoritative MN" );
+        } catch (NotAuthorized e) {
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            handleFail(cnV2.getLatestRequestUrl(), "testV2CreateCnSetRightsHolder() : expected setRightsHolder "
+                    + "v2 call to CN should fail with a NotAuthorized exception because object has a v2 node as its "
                     + "authoritative MN. Got: " + e.getClass().getSimpleName() + " : " + e.getMessage() );
         }
     }
     
-    @WebTestName("v2 create, v1 setObsoletedBy")
+    @WebTestName("v2 create, cn setObsoletedBy")
     @WebTestDescription(
      "Test operates on a v2 MN and a CN." +
-     "It does a create on the v2 MN, then attempts to setObsoletedBy on the object on the CN. " +
-     "The archive call should fail since the object is a v2 object - its authoritative " +
-     "MN is a v2 MN, so the v2 API should be used to do the update. Expects a NotAuthorized exception.")
-    public void testV2CreateV1CnSetObsoletedBy() {
+     "It does a create on the v2 MN, then attempts to setObsoletedBy on the object on the CN using both the v1 and v2 call. " +
+     "The setObsoletedBy calls should fail since the object is a v2 object - its authoritative " +
+     "MN is a v2 MN, and this call should only work for an object with a v1 authoritative MN. Expects a NotAuthorized exception.")
+    public void testV2CreateCnSetObsoletedBy() {
 
         assertTrue("Tests require at least 1 MN that supports the v2 API", v2mns.size() >= 1);
         
@@ -1939,26 +2007,41 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         
         SystemMetadata fetchedSysmeta = null;
         try {
-            fetchedSysmeta = cn.getSystemMetadata(null, pid);
+            fetchedSysmeta = cnV1.getSystemMetadata(null, pid);
         } catch (NotFound e) {
-            throw new AssertionError(cn.getLatestRequestUrl() + " testV2CreateV1CnSetObsoletedBy() : unable to fetch sysmeta from CN! Check status of CN sync. "
+            handleFail(cnV1.getLatestRequestUrl(),  " testV2CreateV1CnSetObsoletedBy() : unable to fetch sysmeta from CN! Check status of CN sync. "
                     + ": NotFound " + e.getDetail_code() + ", " + e.getDescription() + ":" + e.getMessage());
         } catch (Exception e) {
-            throw new AssertionError(cn.getLatestRequestUrl() + " testV2CreateV1CnSetObsoletedBy() : unable to fetch sysmeta from CN! Check status of CN sync.");
+            handleFail(cnV1.getLatestRequestUrl(),  " testV2CreateV1CnSetObsoletedBy() : unable to fetch sysmeta from CN! Check status of CN sync.");
         }
         
         // CN setObsoletedBy
         
         try {
-            cn.setObsoletedBy(null, pid, obsoletedByPid, fetchedSysmeta.getSerialVersion().longValue());
-            handleFail(cn.getLatestRequestUrl(), "testV2CreateV1CnSetObsoletedBy() : setObsoletedBy "
-                    + "call to CN should fail because object has a v2 node as its authoritative MN" );
+            cnV1.setObsoletedBy(null, pid, obsoletedByPid, fetchedSysmeta.getSerialVersion().longValue());
+            handleFail(cnV1.getLatestRequestUrl(), "testV2CreateV1CnSetObsoletedBy() : setObsoletedBy "
+                    + "v1 call to CN should fail because object has a v2 node as its authoritative MN" );
         } catch (NotAuthorized e) {
             
         } catch (Exception e) {
             e.printStackTrace();
-            handleFail(cn.getLatestRequestUrl(), "testV2CreateV1CnSetObsoletedBy() : expected setObsoletedBy "
-                    + "call to CN should fail with a NotAuthorized exception because object has a v2 node as its "
+            handleFail(cnV1.getLatestRequestUrl(), "testV2CreateV1CnSetObsoletedBy() : expected setObsoletedBy "
+                    + "v1 call to CN should fail with a NotAuthorized exception because object has a v2 node as its "
+                    + "authoritative MN. Got: " + e.getClass().getSimpleName() + " : " + e.getMessage() );
+        }
+        
+        // v2 call
+        
+        try {
+            cnV2.setObsoletedBy(null, pid, obsoletedByPid, fetchedSysmeta.getSerialVersion().longValue());
+            handleFail(cnV2.getLatestRequestUrl(), "testV2CreateV1CnSetObsoletedBy() : setObsoletedBy "
+                    + "v2 call to CN should fail because object has a v2 node as its authoritative MN" );
+        } catch (NotAuthorized e) {
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            handleFail(cnV2.getLatestRequestUrl(), "testV2CreateV1CnSetObsoletedBy() : expected setObsoletedBy "
+                    + "v2 call to CN should fail with a NotAuthorized exception because object has a v2 node as its "
                     + "authoritative MN. Got: " + e.getClass().getSimpleName() + " : " + e.getMessage() );
         }
     }

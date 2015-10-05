@@ -112,28 +112,27 @@ public class V1V2InteropFunctionalIT extends ContextAwareTestCaseDataone {
     }
     
     @Test
-    public void testV2CreateV1CnArchive() {
-        interopImpl.testV2CreateV1CnArchive();
+    public void testV2CreateCnArchive() {
+        interopImpl.testV2CreateCnArchive();
     }
     
     @Test
-    public void testV2CreateV1CnSetAccessPolicy() {
-        interopImpl.testV2CreateV1CnSetAccessPolicy();
+    public void testV2CreateCnSetAccessPolicy() {
+        interopImpl.testV2CreateCnSetAccessPolicy();
     }
     
     @Test
-    public void testV2CreateV1CnSetObsoletedBy() {
-        interopImpl.testV2CreateV1CnSetObsoletedBy();
+    public void testV2CreateCnSetObsoletedBy() {
+        interopImpl.testV2CreateCnSetObsoletedBy();
     }
     
     @Test
-    public void testV2CreateV1CnSetReplicationPolicy() {
-        interopImpl.testV2CreateV1CnSetReplicationPolicy();
+    public void testV2CreateCnSetReplicationPolicy() {
+        interopImpl.testV2CreateCnSetReplicationPolicy();
     }
     
     @Test
-    public void testV2CreateV1CnSetRightsHolder() {
-        interopImpl.testV2CreateV1CnSetRightsHolder();
+    public void testV2CreateCnSetRightsHolder() {
+        interopImpl.testV2CreateCnSetRightsHolder();
     }
-    
 }
