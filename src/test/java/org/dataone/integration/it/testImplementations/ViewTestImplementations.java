@@ -88,7 +88,7 @@ public class ViewTestImplementations extends ContextAwareAdapter {
 
     public void testView_InvalidTheme(Node node, String version) {
         
-        CommonCallAdapter callAdapter = new CNCallAdapter(getSession(cnSubmitter), node, version);
+        CommonCallAdapter callAdapter = new CommonCallAdapter(getSession(cnSubmitter), node, version);
         String currentUrl = node.getBaseURL();
         printTestHeader("testView_InvalidTheme(...) vs. node: " + currentUrl);
         currentUrl = callAdapter.getNodeBaseServiceUrl();
