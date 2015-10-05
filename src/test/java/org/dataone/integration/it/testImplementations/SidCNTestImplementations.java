@@ -435,15 +435,10 @@ public class SidCNTestImplementations extends SidCommonTestImplementations {
         }
     }
     
-    /**
-     * Sets up each pid chain scenario, then calls setRightsHolder() with the SID.
-     * This should update the rights holder of the head PID.
-     * So we get the rights holder on the head PID and assert it's equal to the 
-     * one we just set to the SID.
-     */
-    @WebTestName("setRightsHolder: tests that setRightsHolder works if given a SID")
+    @WebTestName("setRightsHolder: tests that setRightsHolder given a SID")
     @WebTestDescription("this test checks if setting the rights holder with a SID "
-            + "correctly changed the rights holder for the head PID")
+            + "will fail with a NotAuthorized exception - since a SID implies it's a "
+            + "v2 object and this method should only work with v1 objects")
     @Test
     public void testSetRightsHolder() {
 
@@ -463,26 +458,19 @@ public class SidCNTestImplementations extends SidCommonTestImplementations {
                     Method setupMethod = getSetupClass().getClass().getDeclaredMethod(setupMethodName, CommonCallAdapter.class, Node.class);
                     IdPair idPair = (IdPair) setupMethod.invoke(this, callAdapter, node);
                     Identifier sid = idPair.sid;
-                    Identifier pid = idPair.headPid;
         
                     getSession("testRightsHolder");
                     Subject sidRightsHolder = getSubject("testRightsHolder");
-                    callAdapter.setRightsHolder(null, sid, sidRightsHolder, 1);
                     
-                    SystemMetadata sysmeta = callAdapter.getSystemMetadata(null, pid);
-                    Subject pidRightsHolder = sysmeta.getRightsHolder();
-                    
-                    assertTrue("setRightsHolder() Case " + caseNum, sidRightsHolder.getValue().equals(pidRightsHolder.getValue()));
-                    
-                    getSession("testPerson");
-                    sidRightsHolder = getSubject("testPerson");
-                    callAdapter.setRightsHolder(null, sid, sidRightsHolder, 2);
-                    
-                    sysmeta = callAdapter.getSystemMetadata(null, pid);
-                    pidRightsHolder = sysmeta.getRightsHolder();
-                    
-                    assertTrue("setRightsHolder() Case " + caseNum, sidRightsHolder.getValue().equals(pidRightsHolder.getValue()));
-                    
+                    try {
+                        callAdapter.setRightsHolder(null, sid, sidRightsHolder, 2);
+                    } catch (NotAuthorized na) {
+                        // expected result
+                        continue;
+                    }
+                    handleFail(callAdapter.getLatestRequestUrl(), "testSetRightsHolder() - "
+                            + "setRightsHolder should fail for an object with a v2 "
+                            + "authoritative member node, even when given a sid.");
                 } catch (BaseException e) {
                     e.printStackTrace();
                     handleFail( callAdapter.getNodeBaseServiceUrl(), "Case: " + i + " : " + e.getDescription());
@@ -494,15 +482,10 @@ public class SidCNTestImplementations extends SidCommonTestImplementations {
         }
     }
     
-    /**
-     * Sets up each pid chain scenario, then calls setAccessPolicy() with the SID.
-     * This should update the access policy of the head PID.
-     * So we get the access policy on the head PID and assert it's equal to the 
-     * one we just set to the SID.
-     */
     @WebTestName("setAccessPolicy: tests that setAccessPolicy works if given a SID")
     @WebTestDescription("this test checks if setting the access policy with a SID "
-            + "correctly changed the policy for the head PID")
+            + "will fail with a NotAuthorized exception - since a SID implies it's a "
+            + "v2 object and this method should only work with v1 objects")
     @Test
     public void testSetAccessPolicy() {
 
@@ -522,7 +505,6 @@ public class SidCNTestImplementations extends SidCommonTestImplementations {
                     Method setupMethod = getSetupClass().getClass().getDeclaredMethod(setupMethodName, CommonCallAdapter.class, Node.class);
                     IdPair idPair = (IdPair) setupMethod.invoke(this, callAdapter, node);
                     Identifier sid = idPair.sid;
-                    Identifier pid = idPair.headPid;
         
                     AccessPolicy sidAccessPolicy = new AccessPolicy();
                     Subject cnSubject = getSubject(subjectLabel);
@@ -534,19 +516,16 @@ public class SidCNTestImplementations extends SidCommonTestImplementations {
                     sidAccessPolicy.addAllow(accessRuleCN);
                     sidAccessPolicy.addAllow(accessRuleBlarg);
                     
-                    callAdapter.setAccessPolicy(null, sid, sidAccessPolicy, 1);
+                    try {
+                        callAdapter.setAccessPolicy(null, sid, sidAccessPolicy, 1);
+                    } catch (NotAuthorized na) {
+                        // expected result
+                        continue;
+                    }
+                    handleFail(callAdapter.getLatestRequestUrl(), "testSetAccessPolicy() - "
+                            + "setAccessPolicy should fail for an object with a v2 "
+                            + "authoritative member node, even when given a sid.");
                     
-                    SystemMetadata sysmeta = callAdapter.getSystemMetadata(null, pid);
-                    AccessPolicy pidAccessPolicy = sysmeta.getAccessPolicy();
-                    
-                    assertTrue("setAccessPolicy() Case " + caseNum + " : allow list size", 
-                            pidAccessPolicy.getAllowList().size() == 2);
-                    AccessRule fetchedAccessRuleCN = pidAccessPolicy.getAllowList().get(0);
-                    AccessRule fetchedAccessRuleBlarg = pidAccessPolicy.getAllowList().get(1);
-                    assertTrue("setAccessPolicy() Case " + caseNum + " : CN access rule", 
-                            fetchedAccessRuleCN.getSubject(0).getValue().equals(cnSubject.getValue()));
-                    assertTrue("setAccessPolicy() Case " + caseNum + " : test access rule",
-                            fetchedAccessRuleBlarg.getSubject(0).getValue().equals(testSubject));
                 } catch (BaseException e) {
                     e.printStackTrace();
                     handleFail( callAdapter.getNodeBaseServiceUrl(), "Case: " + i + " : " + e.getDescription());
@@ -558,12 +537,6 @@ public class SidCNTestImplementations extends SidCommonTestImplementations {
         }
     }
     
-    /**
-     * Sets up each pid chain scenario, then calls setReplicationPolicy() with the SID.
-     * This should update the policy of the head PID.
-     * So we get the replication policy on the head PID and assert it's equal to the 
-     * one we just set to the SID.
-     */
     @WebTestName("setReplicationPolicy: tests that setReplicationPolicy works if given a SID")
     @WebTestDescription("this test checks if setting the replication policy with a SID "
             + "correctly changed the policy for the head PID")
@@ -618,15 +591,10 @@ public class SidCNTestImplementations extends SidCommonTestImplementations {
         }
     }
     
-    /**
-     * A more thorough CN test for archive(); overrides {@link SidCommonTestImplementations#testArchive()}.
-     * Sets up each pid chain scenario, then calls archive() with the SID.
-     * After this, the head PID should still be resolvable, but not show up in searches.
-     * So we do a solr query and assert that it returns no reults.
-     */
     @WebTestName("archive: tests that archive works if given a SID")
     @WebTestDescription("this test checks if calling archive with a SID "
-            + "makes the head PID no longer show up in solr queries")
+            + "will fail with a NotAuthorized exception - since a SID implies it's a "
+            + "v2 object and this method should only work with v1 objects")
     @Override
     @Test
     public void testArchive() {
@@ -650,56 +618,16 @@ public class SidCNTestImplementations extends SidCommonTestImplementations {
                     Identifier sid = idPair.sid;
                     Identifier pid = idPair.headPid;
         
-                    callAdapter.archive(null, sid);
-                    
-                    // test it's actually archived
-                    SystemMetadata sysmeta = null;
                     try {
-                        sysmeta = callAdapter.getSystemMetadata(null, pid);
-                    } catch (NotFound e) {
-                        assertTrue("testArchive() Case " + caseNum + ", should be able to getSystemMetadata() for an archived object", 
-                                false);
+                        callAdapter.archive(null, sid);
+                    } catch (NotAuthorized na) {
+                        // expected result
+                        continue;
                     }
-                    assertTrue("testArchive() Case " + caseNum + ", object should be archived", 
-                            sysmeta.getArchived());
-                    
-                    // test archive with solr query
-                    InputStream is = null;
-                    Document doc = null;
-                    int numFound = 1;
-                    String query = "?q=identifier:" + pid.getValue();
-                    try {
-                        is = callAdapter.query(null, QUERYTYPE_SOLR, query);
-                        DocumentBuilder factory = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-                        doc = factory.parse(new InputSource(is));
+                    handleFail(callAdapter.getLatestRequestUrl(), "testArchive() - "
+                            + "testArchive should fail for an object with a v2 "
+                            + "authoritative member node, even when given a sid.");
                         
-//                        Transformer transformer = TransformerFactory.newInstance().newTransformer();
-//                        DOMSource source = new DOMSource(doc);
-//                        StreamResult result = new StreamResult(System.out);
-//                        transformer.transform(source, result);
-                        
-                        XPath xpath = XPathFactory.newInstance().newXPath();
-                        XPathExpression expr = xpath.compile("response/result/@numFound");
-                        
-                        String numFoundStr = expr.evaluate(doc);
-                        numFound = Integer.parseInt(numFoundStr);
-                        
-                    } catch (BaseException e) {
-                        throw new AssertionError("testArchive() Case " + caseNum + ", should be able to call query() and get "
-                                + "a valid document. Query: " + query + " But got error from call on: " 
-                                + callAdapter.getLatestRequestUrl() + " : " + e.getDetail_code() + " : " + e.getDescription() 
-                                + e.getClass().getSimpleName() + ": " +  e.getMessage() + ", " + (e.getCause() == null ? "" : e.getCause().getMessage()));
-                    } catch (Exception e) {
-                        throw new AssertionError("testArchive() Case " + caseNum + ", should be able to call query() and get "
-                                + "a valid document. Query: " + query + " But got error: " 
-                                + callAdapter.getLatestRequestUrl() + " : " 
-                                + e.getClass().getSimpleName() + ": " +  e.getMessage() + ", " + (e.getCause() == null ? "" : e.getCause().getMessage()));
-                    } finally {
-                        IOUtils.closeQuietly(is);
-                    }
-                    assertTrue("testArchive() Case " + caseNum + " query() for archived object should return zero results",
-                            numFound == 0);
-    
                 } catch (BaseException e) {
                     e.printStackTrace();
                     handleFail( callAdapter.getNodeBaseServiceUrl(), "Case: " + i + " : " + e.getDescription());
