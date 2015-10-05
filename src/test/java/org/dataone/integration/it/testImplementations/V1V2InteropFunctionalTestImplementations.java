@@ -907,7 +907,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             String pidExp = "/response/result/doc/str[@name='identifier']";
             String pidVal = xPath.compile(pidExp).evaluate(doc);
             assertTrue("testV1CreateV2Query() query response should be for the pid created", 
-                    pidVal.equals(pid));
+                    pidVal.equals(pid.getValue()));
             
         } catch (BaseException e) {
             e.printStackTrace();
