@@ -900,7 +900,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             assertTrue("testV1CreateV2Query() query response doesn't have valid numFound attribute.", numFoundAttr != null);
 
             String numFoundVal = numFoundAttr.getNodeValue(); 
-            Integer numFoundInt = Integer.getInteger(numFoundVal);
+            Integer numFoundInt = Integer.parseInt(numFoundVal);
             assertTrue("testV1CreateV2Query() query response should not contain zero results.", 
                     numFoundInt > 0);
 
