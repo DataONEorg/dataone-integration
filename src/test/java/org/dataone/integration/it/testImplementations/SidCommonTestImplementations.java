@@ -546,58 +546,6 @@ public abstract class SidCommonTestImplementations extends ContextAwareTestCaseD
     }
     
     /**
-     * Sets up each pid chain scenario, then calls archive() with the SID.
-     * After this, the head PID should still be resolvable, but not show up in searches.
-     * So we do a solr query and assert that it returns no results.
-     */
-    @WebTestName("archive: tests that archive works if given a SID")
-    @WebTestDescription("this test creates a PID chain, calls archive with the SID of the chain "
-            + ", then does a solr query for the head PID of the created chain, and makes sure "
-            + "that it returns no results (since archive should make an identifier no longer show"
-            + "up in solr queries)")
-    @Test
-    public void testArchive() {
-        logger.info("Testing archive() method ... ");
-        
-        int[] casesToTest = getCasesToTest();
-        for (int i = 0; i < casesToTest.length; i++) {
-            int caseNum = casesToTest[i];
-            logger.info("Testing archive(), Case" + caseNum);
-            
-            Iterator<Node> nodeIter = getNodeIterator();
-            while (nodeIter.hasNext()) {
-                Node node = nodeIter.next();
-                CommonCallAdapter callAdapter = new CommonCallAdapter(getSession(subjectLabel), node, "v2");
-                String setupMethodName = "setup" + node.getType() + "Case" + caseNum;
-                try {
-                    Method setupMethod = getSetupClass().getClass().getDeclaredMethod(setupMethodName, CommonCallAdapter.class, Node.class);
-                    IdPair idPair = (IdPair) setupMethod.invoke(getSetupClass(), callAdapter, node);
-                    Identifier sid = idPair.sid;
-                    Identifier pid = idPair.headPid;
-        
-                    Thread.sleep(INDEXING_TIME);
-                    callAdapter.archive(null, sid);
-    
-                    SystemMetadata sysmeta = null;
-                    try {
-                        sysmeta = callAdapter.getSystemMetadata(null, pid);
-                    } catch (NotFound e) {
-                        assertTrue("archive() Case " + caseNum + ", should be able to getSystemMetadata() for an archived object", false);
-                    }
-                    assertTrue("archive() Case " + caseNum + ", object should be archived", sysmeta.getArchived());
-                    
-                } catch (BaseException e) {
-                    e.printStackTrace();
-                    handleFail(callAdapter.getNodeBaseServiceUrl(), "Case: " + i + " : " + e.getDescription());
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    handleFail(callAdapter.getNodeBaseServiceUrl(), "Case: " + i + " : " + e.getMessage() + (e.getCause() == null ? "" : e.getCause().getMessage()));
-                }
-            }
-        }
-    }
-    
-    /**
      * Sets up each pid chain scenario, then calls listObjects(), once with the PID as a filter,
      * once with the SID as a filter. The former call should return 1 result, the latter
      * should return an expected number based on the case we're testing.
