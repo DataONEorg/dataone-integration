@@ -111,7 +111,7 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
                     }
             }
         } catch (Exception e) {
-            log.error("Unable to fetch node list from CN: " + cn.getNodeBaseServiceUrl(), e);
+            log.warn("Unable to fetch node list from CN: " + cn.getNodeBaseServiceUrl(), e);
         }
 
         log.info("v2 CNs available:                         " + cnList.size());
@@ -137,13 +137,12 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
             try {
                 capabilities = mnCallAdapter.getCapabilities();
             } catch (NotImplemented | ServiceFailure | ClientSideException e) {
-                e.printStackTrace();
-                log.error("Unable to get MN capabilities. "
-                        + "Error: " + e.getClass().getSimpleName() + " : " + e.getMessage());
+                log.warn("Unable to get MN capabilities. "
+                        + "Error: " + e.getClass().getSimpleName() + " : " + e.getMessage(), e);
             }
             
             if (capabilities == null) {
-                log.error("MN returned NULL capabilities from getCapabilities(). MN: " 
+                log.warn("MN returned NULL capabilities from getCapabilities(). MN: " 
                         + n.getBaseURL());
                 continue;
             }
@@ -385,8 +384,7 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
                 if(createdPid != null)     
                     mn.delete(null, createdPid);
             } catch (Exception e2) {
-                log.error("Unable to delete test pid after running the test: " + createdPid, e2);
-                e2.printStackTrace();
+                log.warn("Unable to delete test pid after running the test: " + createdPid, e2);
             }
         }
     }
@@ -588,8 +586,7 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
                 if(createdPid != null)     
                     mn.delete(null, createdPid);
             } catch (Exception e2) {
-                log.error("Unable to delete test pid after running the test: " + createdPid, e2);
-                e2.printStackTrace();
+                log.warn("Unable to delete test pid after running the test: " + createdPid, e2);
             }
         }
     }
@@ -766,8 +763,7 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
                 if(createdPid != null)     
                     mn.delete(null, createdPid);
             } catch (Exception e2) {
-                log.error("Unable to delete test pid after running the test: " + createdPid, e2);
-                e2.printStackTrace();
+                log.warn("Unable to delete test pid after running the test: " + createdPid, e2);
             }
         }
     }
