@@ -233,7 +233,7 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
             log.info("testSystemMetadataChanged_ExistingObj:   "
                     + "creating test object");
             
-            AccessRule accessRule = APITestUtils.buildAccessRule(Constants.SUBJECT_PUBLIC, Permission.CHANGE_PERMISSION);
+            AccessRule accessRule = APITestUtils.buildAccessRule(Constants.SUBJECT_PUBLIC, Permission.READ);
             ReplicationPolicy replPolicy = new ReplicationPolicy();
             replPolicy.setNumberReplicas(null);
             Identifier pid = new Identifier();
@@ -415,7 +415,7 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
             log.info("testSystemMetadataChanged_ExistingObj:   "
                     + "creating test object");
             
-            AccessRule accessRule = APITestUtils.buildAccessRule(getSubject("testRightsHolder").getValue(), Permission.CHANGE_PERMISSION);
+            AccessRule accessRule = APITestUtils.buildAccessRule(Constants.SUBJECT_PUBLIC, Permission.READ);
             ReplicationPolicy replPolicy = new ReplicationPolicy();
             replPolicy.setNumberReplicas(null);
             Identifier pid = new Identifier();
@@ -614,7 +614,7 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
             log.info("testSetReplicationStatus_NoChange:   "
                     + "creating test object");
             
-            AccessRule accessRule = APITestUtils.buildAccessRule(Constants.SUBJECT_PUBLIC, Permission.CHANGE_PERMISSION);
+            AccessRule accessRule = APITestUtils.buildAccessRule(Constants.SUBJECT_PUBLIC, Permission.READ);
             ReplicationPolicy replPolicy = new ReplicationPolicy();
             replPolicy.setNumberReplicas(null);
             Identifier pid = new Identifier();
