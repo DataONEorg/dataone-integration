@@ -51,6 +51,12 @@ public class CNIdentityV2IT extends ContextAwareTestCaseDataone implements
     public void testVerifyAccount_NotAuthorized() {
         identityTestImpl.testVerifyAccount_NotAuthorized(getCoordinatingNodeIterator(), "v2");
     }
+    
+    @Override
+    @Test
+    public void testVerifyAccount_AlreadyVerified() {
+        identityTestImpl.testVerifyAccount_AlreadyVerified(getCoordinatingNodeIterator(), "v2");
+    }
 
     @Override
     @Test

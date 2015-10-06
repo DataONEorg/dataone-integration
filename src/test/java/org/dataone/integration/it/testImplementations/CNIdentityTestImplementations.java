@@ -20,6 +20,7 @@ import org.dataone.service.types.v1.Person;
 import org.dataone.service.types.v1.Subject;
 import org.dataone.service.types.v1.SubjectInfo;
 import org.dataone.service.util.Constants;
+import org.springframework.test.AssertThrows;
 
 public class CNIdentityTestImplementations extends ContextAwareAdapter {
 
@@ -124,41 +125,41 @@ public class CNIdentityTestImplementations extends ContextAwareAdapter {
         }
     }
 
-//    public void testVerifyAccount_AlreadyVerified(Iterator<Node> nodeIterator, String version) {
-//        while (nodeIterator.hasNext())
-//            testVerifyAccount_AlreadyVerified(nodeIterator.next(), version);
-//    }
-//    
-//    public void testVerifyAccount_AlreadyVerified(Node node, String version) {
-//        
-//        // TODO who has authorization to verify accounts?
-//    
-//        String currentUrl = node.getBaseURL();
-//        printTestHeader("testVerifyAccount_AlreadyVerified(...) vs. node: " + currentUrl);
-//        CNCallAdapter callAdapter = new CNCallAdapter(getSession("cnDevUNM1"), node, version);
-//        
-//        try {
-//            SubjectInfo subjectInfo = callAdapter.listSubjects(null, null, null, null, null);
-//            Person verifiedPerson = null;
-//            for (Person person : subjectInfo.getPersonList()) {
-//                if (person.getVerified()) {
-//                    verifiedPerson = person;
-//                    break;
-//                }
-//            }
-//            
-//            if(verifiedPerson != null)
-//                callAdapter.verifyAccount(null, verifiedPerson.getSubject());
-//        }
-//        catch (BaseException e) {
-//            e.printStackTrace();
-//            handleFail(callAdapter.getLatestRequestUrl(),e.getDescription());
-//        }
-//        catch(Exception e) {
-//            e.printStackTrace();
-//            handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
-//        }
-//    }
+    @WebTestName("verifyAccount - tests with CN subject")
+    @WebTestDescription("tests verification call as CN")
+    public void testVerifyAccount_AlreadyVerified(Iterator<Node> nodeIterator, String version) {
+        while (nodeIterator.hasNext())
+            testVerifyAccount_AlreadyVerified(nodeIterator.next(), version);
+    }
+    
+    public void testVerifyAccount_AlreadyVerified(Node node, String version) {
+            
+        String currentUrl = node.getBaseURL();
+        printTestHeader("testVerifyAccount_AlreadyVerified(...) vs. node: " + currentUrl);
+        CNCallAdapter callAdapter = new CNCallAdapter(getSession(cnSubmitter), node, version);
+        
+        try {
+            SubjectInfo subjectInfo = callAdapter.listSubjects(null, null, null, null, null);
+            Person verifiedPerson = null;
+            for (Person person : subjectInfo.getPersonList()) {
+                if (person.getVerified()) {
+                    verifiedPerson = person;
+                    break;
+                }
+            }
+            
+            if(verifiedPerson != null)
+                callAdapter.verifyAccount(null, verifiedPerson.getSubject());
+        }
+        catch (BaseException e) {
+            e.printStackTrace();
+            handleFail(callAdapter.getLatestRequestUrl(),e.getDescription());
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+            handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+        }
+    }
     
     @WebTestName("verifyAccount - tests with an unauthorized subject")
     @WebTestDescription("tests a negative case, calling verifyAccount as "

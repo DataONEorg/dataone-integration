@@ -14,6 +14,8 @@ public interface CNIdentityTestDefinitions {
 
     public void testVerifyAccount_NotAuthorized();
     
+    public void testVerifyAccount_AlreadyVerified();
+    
     public void testGetSubjectInfo();
 
     public void testGetSubjectInfo_UrlEncodingSpaces();
