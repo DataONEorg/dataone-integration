@@ -38,7 +38,6 @@ import org.dataone.service.types.v2.TypeFactory;
 import org.dataone.service.util.Constants;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 
@@ -241,7 +240,8 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
             try {
                 createdPid = createTestObject(mn, pid, accessRule, replPolicy);
             } catch (BaseException be) {
-                throw new AssertionError(mn.getLatestRequestUrl() +  "Unable to create a test object: " + pid);
+                handleFail(mn.getLatestRequestUrl(), "Unable to create a test object: " + pid);
+                throw be;
             }
             
             log.info("testSystemMetadataChanged_ExistingObj:   "
@@ -275,7 +275,8 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
             try {
                 success = mn.updateSystemMetadata(null, createdPid, sysmeta);
             } catch (BaseException be) {
-                throw new AssertionError(mn.getLatestRequestUrl() + "Call to MN updateSystemMetadata failed: " + be.getMessage());
+                handleFail(mn.getLatestRequestUrl(), "Call to MN updateSystemMetadata failed: " + be.getMessage());
+                throw be;
             }
             assertTrue("MN should have modified its own system metadata successfully.", success);
             
@@ -376,8 +377,7 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
             assertTrue("Should have found at least one replica.", replicasFound > 0);
             
         } catch (Exception e) {
-            assertTrue("Testing failed with exception: " + e.getMessage(), false);
-            e.printStackTrace();
+            log.error("Testing failed with exception: " + e.getClass().getSimpleName() + " : " + e.getMessage());
         } finally {
             // TODO ideally, purge(pid)
             try {
@@ -421,7 +421,8 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
             try {
                 createdPid = createTestObject(mn, pid, accessRule, replPolicy);
             } catch (BaseException be) {
-                throw new AssertionError(mn.getLatestRequestUrl() + "Unable to create a test object: " + pid);
+                handleFail(mn.getLatestRequestUrl(), "Unable to create a test object: " + pid);
+                throw be;
             }
             
             log.info("testSystemMetadataChanged_ExistingObj:   "
@@ -443,7 +444,8 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
                 SystemMetadata fetchedSysmeta = cn.getSystemMetadata(null, createdPid);
                 assertTrue("cn.getSystemMetadata() should successfully fetch the sysmeta for pid " + createdPid.getValue() + " from " + cn.getLatestRequestUrl(), fetchedSysmeta != null);
             } catch (Exception e) {
-                throw new AssertionError("cn.getSystemMetadata() should successfully fetch the sysmeta for pid " + createdPid.getValue() + " from " + cn.getLatestRequestUrl());
+                handleFail(cn.getLatestRequestUrl(), "cn.getSystemMetadata() should successfully fetch the sysmeta for pid " + createdPid.getValue() + " from " + cn.getLatestRequestUrl());
+                throw e;
             }
             
             log.info("testSystemMetadataChanged_ExistingObj:   "
@@ -479,7 +481,8 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
             try {
                 success = mn.updateSystemMetadata(null, createdPid, sysmeta);
             } catch (BaseException be) {
-                throw new AssertionError(mn.getLatestRequestUrl() + "Call to MN updateSystemMetadata failed: " + be.getMessage());
+                handleFail(mn.getLatestRequestUrl(), "Call to MN updateSystemMetadata failed: " + be.getMessage());
+                throw be;
             }
             assertTrue("MN should have modified its own system metadata successfully.", success);
             
@@ -578,8 +581,7 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
             assertTrue("Should have found at least one replica.", replicasFound > 0);
             
         } catch (Exception e) {
-            assertTrue("Testing failed with exception: " + e.getClass().getSimpleName() + " : " + e.getMessage(), false);
-            e.printStackTrace();
+            log.error("Testing failed with exception: " + e.getClass().getSimpleName() + " : " + e.getMessage());
         } finally {
             // TODO ideally, purge(pid)
             try {
@@ -624,7 +626,8 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
                 mnSysmeta.getAccessPolicy().addAllow(APITestUtils.buildAccessRule(Constants.SUBJECT_PUBLIC + "-2", Permission.READ));
                 mn.updateSystemMetadata(null, createdPid, mnSysmeta);
             } catch (BaseException be) {
-                throw new AssertionError(mn.getLatestRequestUrl() + "Unable to create a test object: " + pid);
+                handleFail(mn.getLatestRequestUrl(), "Unable to create a test object: " + pid);
+                throw be;
             }
             
             log.info("testSetReplicationStatus_NoChange:   "
@@ -644,7 +647,8 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
                 SystemMetadata fetchedSysmeta = cn.getSystemMetadata(null, createdPid);
                 assertTrue("cn.getSystemMetadata() should successfully fetch the sysmeta for pid " + createdPid.getValue() + " from " + cn.getLatestRequestUrl(), fetchedSysmeta != null);
             } catch (Exception e) {
-                throw new AssertionError("cn.getSystemMetadata() should successfully fetch the sysmeta for pid " + createdPid.getValue() + " from " + cn.getLatestRequestUrl());
+                handleFail(cn.getLatestRequestUrl(), "cn.getSystemMetadata() should successfully fetch the sysmeta for pid " + createdPid.getValue() + " from " + cn.getLatestRequestUrl());
+                throw e;
             }
             
             log.info("testSetReplicationStatus_NoChange:   "
@@ -676,7 +680,8 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
             try {
                 success = mn.updateSystemMetadata(null, createdPid, sysmeta);
             } catch (BaseException be) {
-                throw new AssertionError(mn.getLatestRequestUrl() + "Call to MN updateSystemMetadata failed: " + be.getMessage());
+                handleFail(mn.getLatestRequestUrl(), "Call to MN updateSystemMetadata failed: " + be.getMessage());
+                throw be;
             }
             assertTrue("MN should have modified its own system metadata successfully.", success);
             
@@ -755,8 +760,7 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
                     + "status update failures: " + statusUpdateFailures);
             
         } catch (Exception e) {
-            assertTrue("Testing failed with exception: " + e.getClass().getSimpleName() + " : " + e.getMessage(), false);
-            e.printStackTrace();
+            log.error("Testing failed with exception: " + e.getClass().getSimpleName() + " : " + e.getMessage());
         } finally {
             // TODO ideally, purge(pid)
             try {
