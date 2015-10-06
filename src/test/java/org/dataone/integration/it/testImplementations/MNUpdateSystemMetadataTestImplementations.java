@@ -641,18 +641,26 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
             replPolicy.setReplicationAllowed(true);
             replPolicy.setNumberReplicas(2);
             testObjPid = catc.createTestObject(cnCertAuthMN, pid, accessRule, replPolicy);
-           
+            
             Thread.sleep(REPLICATION_WAIT);
             
-            sysmeta = cn.getSystemMetadata(null, testObjPid);
-            sysmeta.getSerialVersion().add(BigInteger.ONE);
-            
         } catch (BaseException e) {
-            throw new AssertionError("Test setup failed: " + cnCertAuthMN.getLatestRequestUrl() + " : " + e.getClass().getSimpleName() + ": " + 
+            throw new AssertionError("Test setup failed. Couldn't create object: " + cnCertAuthMN.getLatestRequestUrl() + " : " + e.getClass().getSimpleName() + ": " + 
                     e.getDetail_code() + ": " + e.getDescription());
         } catch(Exception e) {
             e.printStackTrace();
-            throw new AssertionError("Test setup failed: " + cnCertAuthMN.getLatestRequestUrl() + " : " + e.getClass().getName() + ": " + e.getMessage());
+            throw new AssertionError("Test setup failed. Couldn't create object: " + cnCertAuthMN.getLatestRequestUrl() + " : " + e.getClass().getName() + ": " + e.getMessage());
+        }
+        
+        try {
+            sysmeta = cn.getSystemMetadata(null, testObjPid);
+            sysmeta.getSerialVersion().add(BigInteger.ONE);
+        } catch (BaseException e) {
+            throw new AssertionError("Test setup failed. Couldn't fetch object from CN: " + cn.getLatestRequestUrl() + " : " + e.getClass().getSimpleName() + ": " + 
+                    e.getDetail_code() + ": " + e.getDescription());
+        } catch(Exception e) {
+            e.printStackTrace();
+            throw new AssertionError("Test setup failed. Couldn't fetch object from CN: " + cn.getLatestRequestUrl() + " : " + e.getClass().getName() + ": " + e.getMessage());
         }
         
         try {
