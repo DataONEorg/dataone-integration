@@ -174,7 +174,9 @@ public class CNIdentityTestImplementations extends ContextAwareAdapter {
         
         String currentUrl = node.getBaseURL();
         printTestHeader("testVerifyAccount_NotAuthorized(...) vs. node: " + currentUrl);
-        CNCallAdapter callAdapter = new CNCallAdapter(getSession("testPerson"), node, version);
+        CNCallAdapter callAdapter = new CNCallAdapter(getSession(null), node, version);
+        //CNCallAdapter callAdapter = new CNCallAdapter(getSession("testPerson"), node, version);
+
         
         try {
             SubjectInfo subjectInfo = callAdapter.listSubjects(null, null, null, null, null);
