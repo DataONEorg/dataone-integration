@@ -36,6 +36,7 @@ import org.dataone.service.types.v1.Permission;
 import org.dataone.service.types.v1.Replica;
 import org.dataone.service.types.v1.ReplicationPolicy;
 import org.dataone.service.types.v1.ReplicationStatus;
+import org.dataone.service.types.v1.Service;
 import org.dataone.service.types.v1.Subject;
 import org.dataone.service.types.v2.NodeList;
 import org.dataone.service.types.v2.SystemMetadata;
@@ -629,7 +630,38 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
         
         Identifier testObjPid = null;
         SystemMetadata sysmeta = null;
+        ReplicationPolicy replPolicy = null;
         try {
+            int v2ReplicaTargets = 0;
+            NodeList nodes = cn.listNodes();
+            for (Node n : nodes.getNodeList()) {
+                if (n.getType() != NodeType.MN)
+                    continue;
+                
+                MNCallAdapter v2mn = new MNCallAdapter(getSession(cnSubmitter), n, "v2");
+                Node cap = null;
+                try {
+                    cap = v2mn.getCapabilities();
+                } catch (Exception e) {
+                    continue;
+                }
+                
+                List<Service> services = cap.getServices().getServiceList();
+                if (services != null)
+                    for (Service s : services) {
+                        if (s.getName().equalsIgnoreCase("MNReplication") && s.getVersion().equalsIgnoreCase("v2"))
+                            v2ReplicaTargets++;
+                    }
+            }
+            
+            assertTrue("testUpdateSystemMetadata_CNCertNonAuthMN requires at least 2 total v2 MNs so there's "
+                    + "at least one replica target. Found " + v2ReplicaTargets + " replica targets.", 
+                    v2ReplicaTargets >= 2);
+            
+            replPolicy = new ReplicationPolicy();
+            replPolicy.setReplicationAllowed(true);
+            replPolicy.setNumberReplicas((v2ReplicaTargets > 1) ? (v2ReplicaTargets-1) : 2);
+            
             AccessRule accessRule = new AccessRule();
             getSession("testRightsHolder");
             Subject subject = D1TypeBuilder.buildSubject(Constants.SUBJECT_PUBLIC);
@@ -637,9 +669,6 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
             accessRule.addPermission(Permission.CHANGE_PERMISSION);
             Identifier pid = new Identifier();
             pid.setValue("testUpdateSystemMetadata_CNCertNonAuthMN_" + ExampleUtilities.generateIdentifier());
-            ReplicationPolicy replPolicy = new ReplicationPolicy();
-            replPolicy.setReplicationAllowed(true);
-            replPolicy.setNumberReplicas(2);
             testObjPid = catc.createTestObject(cnCertAuthMN, pid, accessRule, replPolicy);
             
             Thread.sleep(REPLICATION_WAIT);
@@ -654,7 +683,6 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
         
         try {
             sysmeta = cn.getSystemMetadata(null, testObjPid);
-            sysmeta.getSerialVersion().add(BigInteger.ONE);
         } catch (BaseException e) {
             throw new AssertionError("Test setup failed. Couldn't fetch object from CN: " + cn.getLatestRequestUrl() + " : " + e.getClass().getSimpleName() + ": " + 
                     e.getDetail_code() + ": " + e.getDescription());
@@ -701,6 +729,8 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
                             + "was used to replicate to.", nonAuthMN != null);
  
             cnCertNonAuthMN = new MNCallAdapter(getSession(cnSubmitter), nonAuthMN, version);
+            replPolicy.setNumberReplicas(3);
+            sysmeta.setReplicationPolicy(replPolicy);
             boolean success = cnCertNonAuthMN.updateSystemMetadata(null, testObjPid , sysmeta);
             
             assertTrue("testUpdateSystemMetadata_CNCertNonAuthMN: "
