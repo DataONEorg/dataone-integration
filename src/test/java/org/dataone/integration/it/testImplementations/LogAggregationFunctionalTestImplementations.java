@@ -717,12 +717,15 @@ public class LogAggregationFunctionalTestImplementations extends ContextAwareTes
         
         for (int i=0; i<numMNs; i++) {
             Identifier publicObjPid = null;
-//            Identifier publicObjPid = null;
-//            Identifier publicObjPid = null;
+            Identifier testPersonObjPid = null;
+            Identifier testRightsHolderObjPid = null;
             
             try {
                 String mnId = mnIds.get(i);
-                publicObjPid = D1TypeBuilder.buildIdentifier("testCnGetLogRecords_Access_" + mnId);
+                publicObjPid = D1TypeBuilder.buildIdentifier("testCnGetLogRecords_Access_public_" + mnId);
+                testPersonObjPid = D1TypeBuilder.buildIdentifier("testCnGetLogRecords_Access_testPerson_" + mnId);
+                testRightsHolderObjPid = D1TypeBuilder.buildIdentifier("testCnGetLogRecords_Access_testRightsHolder_" + mnId);
+                
                 procureTestObject(mns.get(i), publicAccessRule, publicObjPid);
                 pids.add(publicObjPid.getValue());
             } catch (Exception e) {
@@ -735,24 +738,34 @@ public class LogAggregationFunctionalTestImplementations extends ContextAwareTes
             Thread.sleep(LOG_AGG_WAIT);
         } catch (InterruptedException e) {
             // no time for a sandwich :(
+            log.warn("log aggregation wait interrupted!", e);
         }
         
-//        for (int i=0; i<numMNs; i++) {
-//            Log logRecords = null;
-//            try {
-//                logRecords = cn.getLogRecords(null, null, null, null, pids.get(i), null, null);
-//            } catch (Exception e) {
-//                throw new AssertionError(cn.getLatestRequestUrl() + " testGetLogRecords_CN: unable to fetch log records "
-//                        + "for pid " + pids.get(i) + " Got exception: " + e.getClass().getSimpleName() 
-//                        + " : " + e.getMessage(), e);
-//            }
-//            assertTrue("testGetLogRecords_CN: getLogRecords() call for pid " + pids.get(i) 
-//                    + " should have a total number of results greater than zero on CN " 
-//                    + cn.getNodeBaseServiceUrl() + ".", logRecords.getTotal() > 0);
-//            assertTrue("testGetLogRecords_CN: getLogRecords() call for pid " + pids.get(i) 
-//                    + " should contain more than zero log entries on CN " 
-//                    + cn.getNodeBaseServiceUrl() + ".", logRecords.getLogEntryList().size() > 0);
-//        }
+        for (int i=0; i<numMNs; i++) {
+            Log publicLogRecords = null;
+            Log testPersonLogRecords = null;
+            Log testRightsHolderLogRecords = null;
+            try {
+                String mnId = mnIds.get(i);
+                Identifier publicObjPid = D1TypeBuilder.buildIdentifier("testCnGetLogRecords_Access_public_" + mnId);
+                Identifier testPersonObjPid = D1TypeBuilder.buildIdentifier("testCnGetLogRecords_Access_testPerson_" + mnId);
+                Identifier testRightsHolderObjPid = D1TypeBuilder.buildIdentifier("testCnGetLogRecords_Access_testRightsHolder_" + mnId);
+                
+                publicLogRecords = cn.getLogRecords(null, null, null, null, publicObjPid.getValue(), null, null);
+                testPersonLogRecords = cn.getLogRecords(null, null, null, null, testPersonObjPid.getValue(), null, null);
+                testRightsHolderLogRecords = cn.getLogRecords(null, null, null, null, testRightsHolderObjPid.getValue(), null, null);
+            } catch (Exception e) {
+                throw new AssertionError(cn.getLatestRequestUrl() + " testGetLogRecords_CN: unable to fetch log records "
+                        + "for pid " + pids.get(i) + " Got exception: " + e.getClass().getSimpleName() 
+                        + " : " + e.getMessage(), e);
+            }
+            
+            
+            
+            // TODO assertions...
+            
+            
+        }
     }
     
     /**
