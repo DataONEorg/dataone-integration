@@ -68,8 +68,6 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
     private static final long REPLICATION_WAIT = 10 * 60000;    // 5 minutes
     private static final long METACAT_INDEXING_WAIT = 10000;
     
-    private static Log log = LogFactory.getLog(SystemMetadataFunctionalTestImplementation.class);
-    
     
     @Override
     protected String getTestDescription() {
