@@ -793,7 +793,6 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
         return identifier;
     }
 
-
     /**
      * get an existing object for testing, and failing that attempt to create one (not all nodes will allow this).
      * @param  cca - the MNode or CNode object from where to procure the object Identifier
@@ -818,7 +817,39 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
      * @throws InvalidToken
      * @throws TestIterationEndingException - - when can't procure an object Identifier
      */
-    public Identifier procureTestObject(CommonCallAdapter cca, AccessRule accessRule, Identifier pid)
+    public Identifier procureTestObject(CommonCallAdapter cca, AccessRule accessRule, Identifier pid) 
+                    throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique, UnsupportedType,
+                    InsufficientResources, InvalidSystemMetadata, NotImplemented, InvalidRequest,
+                    UnsupportedEncodingException, NotFound, TestIterationEndingException{
+        return procureTestObject(cca, accessRule, pid, null, null);
+    }
+    
+    /**
+     * get an existing object for testing, and failing that attempt to create one (not all nodes will allow this).
+     * @param  cca - the MNode or CNode object from where to procure the object Identifier
+     * @param  accessRule - specifies the AccessPolicy's AccessRule contained by
+     *                      the object returned by the pid parameter.  (it makes it so on create,
+     *                      and checks for it on get).  If null, requires a null or empty
+     *                      AccessPolicy for the returned object.
+
+     * @param  pid - the Identifier of the object to get or create.  Cannot be null.
+
+     * @return - Identifier for the readable object.
+     * @throws NotFound
+     * @throws UnsupportedEncodingException
+     * @throws InvalidRequest
+     * @throws NotImplemented
+     * @throws InvalidSystemMetadata
+     * @throws InsufficientResources
+     * @throws UnsupportedType
+     * @throws IdentifierNotUnique
+     * @throws NotAuthorized
+     * @throws ServiceFailure
+     * @throws InvalidToken
+     * @throws TestIterationEndingException - - when can't procure an object Identifier
+     */
+    public Identifier procureTestObject(CommonCallAdapter cca, AccessRule accessRule, Identifier pid,
+            String submitterSubjectLabel, String rightsHolderSubjectName)
     throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique, UnsupportedType,
     InsufficientResources, InvalidSystemMetadata, NotImplemented, InvalidRequest,
     UnsupportedEncodingException, NotFound, TestIterationEndingException
@@ -867,7 +898,10 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
                     }
                 } else {
                     log.debug("procureTestObject: calling createTestObject");
-                    identifier = createTestObject(cca, pid, accessRule);
+                    if( submitterSubjectLabel != null && rightsHolderSubjectName != null)
+                        identifier = createTestObject(cca, pid, accessRule, submitterSubjectLabel, rightsHolderSubjectName);
+                    else
+                        identifier = createTestObject(cca, pid, accessRule);
                 }
             } catch (ClientSideException e1) {
                 throw new TestIterationEndingException("unexpected client-side exception encountered when trying to creat e test object", e1);
