@@ -111,15 +111,17 @@ public class LogAggregationFunctionalTestImplementations extends ContextAwareTes
         for (Node n : v2MNs)
             log.info("v2 MN:   " + n.getBaseURL());
         
-        assertTrue("Test requires that the environment has at least 2 v2 MNs to work with that "
-                + "support logging for CN log aggregation. Found: " + v2MNs.size(), 
-                v2MNs.size() >= 2);
+//        assertTrue("Test requires that the environment has at least 2 v2 MNs to work with that "
+//                + "support logging for CN log aggregation. Found: " + v2MNs.size(), 
+//                v2MNs.size() >= 2);
     }
 
     @WebTestName("getLogRecords() user-based access")
     @WebTestDescription("Tests that an authenticated user may only view their own records "
-            + "or public records, and that a CN caller may view all records.")
-    public void testGetLogRecords_Access() {
+            + "or public records, and that a CN caller may view all records. Note: allowing "
+            + "access to more than the CN is optional for an MN, so authentication failures for "
+            + "non-CN subjects are ignored.")
+    public void testMnGetLogRecords_Access() {
 
         MNCallAdapter mnCnCaller = new MNCallAdapter(getSession(cnSubmitter), v2MNs.get(0), "v2");
         MNCallAdapter mnPublicCaller = new MNCallAdapter(getSession(Constants.SUBJECT_PUBLIC), v2MNs.get(0), "v2");
@@ -138,58 +140,57 @@ public class LogAggregationFunctionalTestImplementations extends ContextAwareTes
         testRightsHolderAccessRule.addSubject(getSubject("testRightsHolder"));
         testRightsHolderAccessRule.addPermission(Permission.CHANGE_PERMISSION);
         
-        Identifier publicPid = D1TypeBuilder.buildIdentifier("testGetLogRecords_Access_public");
-        Identifier testPersonPid = D1TypeBuilder.buildIdentifier("testGetLogRecords_Access_testPerson");
-        Identifier testRightsHolderPid = D1TypeBuilder.buildIdentifier("testGetLogRecords_Access_testRightsHolder");
+        Identifier publicPid = D1TypeBuilder.buildIdentifier("testMnGetLogRecords_Access_public");
+        Identifier testPersonPid = D1TypeBuilder.buildIdentifier("testMnGetLogRecords_Access_testPerson");
+        Identifier testRightsHolderPid = D1TypeBuilder.buildIdentifier("testMnGetLogRecords_Access_testRightsHolder");
         try {
             procureTestObject(mnCnCaller, publicAccessRule, publicPid);
         } catch (Exception e) {
-            throw new AssertionError("testLogAgg_AuthUser: Unable to get or create a test object "
+            throw new AssertionError("testMnGetLogRecords_Access: Unable to get or create a test object "
                     + "with pid: " + publicPid.getValue(), e);
         }
         try {
             procureTestObject(mnCnCaller, testPersonAccessRule, testPersonPid);
         } catch (Exception e) {
-            throw new AssertionError("testLogAgg_AuthUser: Unable to get or create a test object "
+            throw new AssertionError("testMnGetLogRecords_Access: Unable to get or create a test object "
                     + "with pid: " + testPersonPid.getValue(), e);
         }
         try {
             procureTestObject(mnCnCaller, testRightsHolderAccessRule, testRightsHolderPid);
         } catch (Exception e) {
-            throw new AssertionError("testLogAgg_AuthUser: Unable to get or create a test object "
+            throw new AssertionError("testMnGetLogRecords_Access: Unable to get or create a test object "
                     + "with pid: " + testRightsHolderPid.getValue(), e);
         }
 
+        ArrayList<String> errors = new ArrayList<String>();
+        
         Log publicLog = null;
         try {
-//            publicLog = APITestUtils.pagedGetLogRecords(mnPublicCaller, null, null, null, null, null, null);
             publicLog = mnPublicCaller.getLogRecords(null, null, null, null, publicPid.getValue(), null, null);
         } catch (Exception e) {
-            handleFail(mnPublicCaller.getLatestRequestUrl(), "Unable to fetch Log records for public subject. " 
-                    + "Got exception: " + e.getClass().getSimpleName() + " : " + e.getMessage());
+            log.warn(mnPublicCaller.getLatestRequestUrl() + " Unable to fetch Log records for public subject. " 
+                    + "Got exception: " + e.getClass().getSimpleName() + " : " + e.getMessage(), e);
         }
         Log testPersonLog = null;
         try {
-//            testPersonLog = APITestUtils.pagedGetLogRecords(mnTestPersonCaller, null, null, null, null, null, null);
-            testPersonLog = mnPublicCaller.getLogRecords(null, null, null, null, testPersonPid.getValue(), null, null);
+            testPersonLog = mnTestPersonCaller.getLogRecords(null, null, null, null, testPersonPid.getValue(), null, null);
         } catch (Exception e) {
-            handleFail(mnTestPersonCaller.getLatestRequestUrl(), "Unable to fetch Log records for testPerson subject. " 
-                    + "Got exception: " + e.getClass().getSimpleName() + " : " + e.getMessage());
+            log.warn(mnTestPersonCaller.getLatestRequestUrl() + " Unable to fetch Log records for testPerson subject. " 
+                    + "Got exception: " + e.getClass().getSimpleName() + " : " + e.getMessage(), e);
         }
         Log testRightsHolderLog = null;
         try {
-//            testRightsHolderLog = APITestUtils.pagedGetLogRecords(mnTestRightsHolderCaller, null, null, null, null, null, null);
-            testRightsHolderLog = mnPublicCaller.getLogRecords(null, null, null, null, testRightsHolderPid.getValue(), null, null);
+            testRightsHolderLog = mnTestRightsHolderCaller.getLogRecords(null, null, null, null, testRightsHolderPid.getValue(), null, null);
         } catch (Exception e) {
-            handleFail(mnTestRightsHolderCaller.getLatestRequestUrl(), "Unable to fetch Log records for testRightsHolder subject. " 
-                    + "Got exception: " + e.getClass().getSimpleName() + " : " + e.getMessage());
+            log.warn(mnTestRightsHolderCaller.getLatestRequestUrl() + " Unable to fetch Log records for testRightsHolder subject. " 
+                    + "Got exception: " + e.getClass().getSimpleName() + " : " + e.getMessage(), e);
         }
         Log cnLog = null;
         try {
             cnLog = APITestUtils.pagedGetLogRecords(mnCnCaller, null, null, null, null, null, null);
         } catch (Exception e) {
-            handleFail(mnCnCaller.getLatestRequestUrl(), "Unable to fetch Log records for CN subject. " 
-                    + "Got exception: " + e.getClass().getSimpleName() + " : " + e.getMessage());
+            throw new AssertionError(mnCnCaller.getLatestRequestUrl() + " Unable to fetch Log records for CN subject. " 
+                    + "Got exception: " + e.getClass().getSimpleName() + " : " + e.getMessage(), e);
         }
         
         if (publicLog != null) {
@@ -205,9 +206,12 @@ public class LogAggregationFunctionalTestImplementations extends ContextAwareTes
                 if (logEntry.getIdentifier().equals(testRightsHolderPid))
                     testRightsHolderPidFound = true;
             }
-            assertTrue("Public subject should have access to public-accessible object we created.", publicPidFound);
-            assertFalse("Public subject should NOT have access to testPerson-accessible object we created.", testPersonPidFound);
-            assertFalse("Public subject should NOT have access to testRightsHolder-accessible object we created.", testRightsHolderPidFound);
+            if (!publicPidFound)
+                errors.add("Public subject should have access to public-accessible object we created.");
+            if (testPersonPidFound)
+                errors.add("Public subject should NOT have access to testPerson-accessible object we created.");
+            if (testRightsHolderPidFound)
+                errors.add("Public subject should NOT have access to testRightsHolder-accessible object we created.");
         }
         
         if (testPersonLog != null) {
@@ -223,9 +227,12 @@ public class LogAggregationFunctionalTestImplementations extends ContextAwareTes
                 if (logEntry.getIdentifier().equals(testRightsHolderPid))
                     testRightsHolderPidFound = true;
             }
-            assertTrue("testPerson subject should have access to public-accessible object we created.", publicPidFound);
-            assertTrue("testPerson subject should have access to testPerson-accessible object we created.", testPersonPidFound);
-            assertFalse("testPerson subject should NOT have access to testRightsHolder-accessible object we created.", testRightsHolderPidFound);
+            if (!publicPidFound)
+                errors.add("testPerson subject should have access to public-accessible object we created.");
+            if (testPersonPidFound)
+                errors.add("testPerson subject should have access to testPerson-accessible object we created.");
+            if (testRightsHolderPidFound)
+                errors.add("testPerson subject should NOT have access to testRightsHolder-accessible object we created.");
         }
         
         if (testRightsHolderLog != null) {
@@ -241,9 +248,12 @@ public class LogAggregationFunctionalTestImplementations extends ContextAwareTes
                 if (logEntry.getIdentifier().equals(testRightsHolderPid))
                     testRightsHolderPidFound = true;
             }
-            assertTrue("testRightsHolder subject should have access to public-accessible object we created.", publicPidFound);
-            assertFalse("testRightsHolder subject should NOT have access to testPerson-accessible object we created.", testPersonPidFound);
-            assertTrue("testRightsHolder subject should have access to testRightsHolder-accessible object we created.", testRightsHolderPidFound);
+            if (!publicPidFound)
+                errors.add("testRightsHolder subject should have access to public-accessible object we created.");
+            if (!testPersonPidFound)
+                errors.add("testRightsHolder subject should NOT have access to testPerson-accessible object we created.");
+            if (!testRightsHolderPidFound)
+                errors.add("testRightsHolder subject should have access to testRightsHolder-accessible object we created.");
         }
         
         if (cnLog != null) {
@@ -259,16 +269,26 @@ public class LogAggregationFunctionalTestImplementations extends ContextAwareTes
                 if (logEntry.getIdentifier().equals(testRightsHolderPid))
                     testRightsHolderPidFound = true;
             }
-            assertTrue("CN subject should have access to public-accessible object we created.", publicPidFound);
-            assertTrue("CN subject should have access to testPerson-accessible object we created.", testPersonPidFound);
-            assertTrue("CN subject should have access to testRightsHolder-accessible object we created.", testRightsHolderPidFound);
+            if (!publicPidFound)
+                errors.add("CN subject should have access to public-accessible object we created.");
+            if (!testPersonPidFound)
+                errors.add("CN subject should have access to testPerson-accessible object we created.");
+            if (!testRightsHolderPidFound)
+                errors.add("CN subject should have access to testRightsHolder-accessible object we created.");
+        }
+        
+        if (errors.size() > 0) {
+            String errorString = "";
+            for (String err : errors)
+                errorString += err + "\n";
+            throw new AssertionError("testMnGetLogRecords_Access ran into " + errors.size() + " errors:\n" + errorString);
         }
     }
 
     @WebTestName("query() user-based access")
     @WebTestDescription("Tests that an authenticated user may only view their own records "
             + "or public records, and that a CN caller may view all records.")
-    public void testQuery_Access() {
+    public void testMnQuery_Access() {
 
         MNCallAdapter mnCnCaller = new MNCallAdapter(getSession(cnSubmitter), v2MNs.get(0), "v2");
         MNCallAdapter mnPublicCaller = new MNCallAdapter(getSession(Constants.SUBJECT_PUBLIC), v2MNs.get(0), "v2");
@@ -290,15 +310,15 @@ public class LogAggregationFunctionalTestImplementations extends ContextAwareTes
 //        Identifier publicPid = D1TypeBuilder.buildIdentifier("testQuery_Access_public-TEST-");
 //        Identifier testPersonPid = D1TypeBuilder.buildIdentifier("testQuery_Access_testPerson");
 //        Identifier testRightsHolderPid = D1TypeBuilder.buildIdentifier("testQuery_Access_testRightsHolder");
-        Identifier publicPid = D1TypeBuilder.buildIdentifier("testQuery_Access_public-TEST1-");
-        Identifier testPersonPid = D1TypeBuilder.buildIdentifier("testQuery_Access_testPerson-TEST1-");
-        Identifier testRightsHolderPid = D1TypeBuilder.buildIdentifier("testQuery_Access_testRightsHolder-TEST1-");
+        Identifier publicPid = D1TypeBuilder.buildIdentifier("testMnQuery_Access_public-TEST1-");
+        Identifier testPersonPid = D1TypeBuilder.buildIdentifier("testMnQuery_Access_testPerson-TEST1-");
+        Identifier testRightsHolderPid = D1TypeBuilder.buildIdentifier("testMnQuery_Access_testRightsHolder-TEST1-");
         
         try {
             publicPid = procureTestObject(mnCnCaller, publicAccessRule, publicPid, cnSubmitter, "public");
             log.info("procured test object: " + publicPid.getValue() + " on " + mnCnCaller.getNodeId().getValue());
         } catch (Exception e) {
-            throw new AssertionError("testQuery_Access: Unable to get or create a test object "
+            throw new AssertionError("testMnQuery_Access: Unable to get or create a test object "
                     + "with pid: " + publicPid.getValue(), e);
         }
         try {
@@ -306,7 +326,7 @@ public class LogAggregationFunctionalTestImplementations extends ContextAwareTes
             testPersonPid = procureTestObject(mnCnCaller, testPersonAccessRule, testPersonPid, cnSubmitter, getSubject("testPerson").getValue());
             log.info("procured test object: " + testPersonPid.getValue() + " on " + mnCnCaller.getNodeId().getValue());
         } catch (Exception e) {
-            throw new AssertionError("testQuery_Access: Unable to get or create a test object "
+            throw new AssertionError("testMnQuery_Access: Unable to get or create a test object "
                     + "with pid: " + testPersonPid.getValue(), e);
         }
         try {
@@ -314,11 +334,11 @@ public class LogAggregationFunctionalTestImplementations extends ContextAwareTes
             testRightsHolderPid = procureTestObject(mnCnCaller, testRightsHolderAccessRule, testRightsHolderPid, cnSubmitter, getSubject("testRightsHolder").getValue());
             log.info("procured test object: " + testRightsHolderPid.getValue() + " on " + mnCnCaller.getNodeId().getValue());
         } catch (Exception e) {
-            throw new AssertionError("testQuery_Access: Unable to get or create a test object "
+            throw new AssertionError("testMnQuery_Access: Unable to get or create a test object "
                     + "with pid: " + testRightsHolderPid.getValue(), e);
         }
         
-        // for debug purposes:
+        // sysmeta for debug purposes:
         SystemMetadata sysmetaPublicObj = null;
         SystemMetadata sysmetaTestPersonObj = null;
         SystemMetadata sysmetaTestRightsHolderObj = null;
@@ -338,7 +358,7 @@ public class LogAggregationFunctionalTestImplementations extends ContextAwareTes
             testPersonPidEncoded = URLEncoder.encode(testPersonPid.getValue(), "UTF-8");
             testRightsHolderPidEncoded = URLEncoder.encode(testRightsHolderPid.getValue(), "UTF-8");
         } catch (UnsupportedEncodingException e1) {
-            throw new AssertionError("testQuery_Access() unable to encode identifiers using UTF-8", e1);
+            throw new AssertionError("testMnQuery_Access() unable to encode identifiers using UTF-8", e1);
         }
         
         ArrayList<String> errors = new ArrayList<String>();
@@ -474,7 +494,7 @@ public class LogAggregationFunctionalTestImplementations extends ContextAwareTes
             String errorString = "";
             for (String err : errors)
                 errorString += err + "\n";
-            throw new AssertionError("testQuery_Access ran into " + errors.size() + " errors:\n" + errorString);
+            throw new AssertionError("testMnQuery_Access ran into " + errors.size() + " errors:\n" + errorString);
         }
     }
     
@@ -482,7 +502,7 @@ public class LogAggregationFunctionalTestImplementations extends ContextAwareTes
     @WebTestName("getLogRecords() create on MN read on CN")
     @WebTestDescription("Tests the getLogRecords() call. After creating objects on MNs "
             + "and waiting, verifies that logs are aggregated on the CN.")
-    public void testGetLogRecords_CN() {
+    public void testCnGetLogRecords_Aggregating() {
     
         int numMNs = v2MNs.size();
         ArrayList<MNCallAdapter> mns = new ArrayList<MNCallAdapter>(numMNs);
@@ -586,6 +606,7 @@ public class LogAggregationFunctionalTestImplementations extends ContextAwareTes
 //            IOUtils.closeQuietly(os);
 //        }
         //----------------------------------------------------------------------------------------------
+        ArrayList<String> errors = new ArrayList<String>();
         
         InputStream queryResult_id = null;
         try {
@@ -593,7 +614,7 @@ public class LogAggregationFunctionalTestImplementations extends ContextAwareTes
             LogContents queryContents = getNumQueryContents(queryResult_id);
             assertTrue("query made by as CN should return some results when filtering on pid", queryContents.existingLogs > 0);
         } catch (Exception e) {
-            handleFail(mnCnCaller.getLatestRequestUrl(), "Unable to run solr query with params: identifier. " 
+            errors.add(mnCnCaller.getLatestRequestUrl() + " Unable to run solr query with params: identifier. " 
                     + "Got exception: " + e.getClass().getSimpleName() + " : " + e.getMessage());
         } finally {
             IOUtils.closeQuietly(queryResult_id);
@@ -605,7 +626,7 @@ public class LogAggregationFunctionalTestImplementations extends ContextAwareTes
             LogContents queryContents = getNumQueryContents(queryResult_title);
             assertTrue("query made by as CN should return some results when filtering on title", queryContents.existingLogs > 0);
         } catch (Exception e) {
-            handleFail(mnCnCaller.getLatestRequestUrl(), "Unable to run solr query with params: title. " 
+            errors.add(mnCnCaller.getLatestRequestUrl() + " Unable to run solr query with params: title. " 
                     + "Got exception: " + e.getClass().getSimpleName() + " : " + e.getMessage());
         } finally {
             IOUtils.closeQuietly(queryResult_title);
@@ -617,7 +638,7 @@ public class LogAggregationFunctionalTestImplementations extends ContextAwareTes
             LogContents queryContents = getNumQueryContents(queryResult_author);
             assertTrue("query made by as CN should return some results when filtering on author", queryContents.existingLogs > 0);
         } catch (Exception e) {
-            handleFail(mnCnCaller.getLatestRequestUrl(), "Unable to run solr query with params: author. " 
+            errors.add(mnCnCaller.getLatestRequestUrl() + " Unable to run solr query with params: author. " 
                     + "Got exception: " + e.getClass().getSimpleName() + " : " + e.getMessage());
         } finally {
             IOUtils.closeQuietly(queryResult_author);
@@ -646,7 +667,7 @@ public class LogAggregationFunctionalTestImplementations extends ContextAwareTes
             assertTrue("query made by as CN should return some results when filtering on "
                     + "identifier, title, and author", queryContents.existingLogs > 0);
         } catch (Exception e) {
-            handleFail(mnCnCaller.getLatestRequestUrl(), "Unable to run solr query with params: identifier, title, author. " 
+            errors.add(mnCnCaller.getLatestRequestUrl() + " Unable to run solr query with params: identifier, title, author. " 
                     + "Got exception: " + e.getClass().getSimpleName() + " : " + e.getMessage());
         } finally {
             IOUtils.closeQuietly(queryResult_pidTitleAuthor);
@@ -657,7 +678,81 @@ public class LogAggregationFunctionalTestImplementations extends ContextAwareTes
         
         
         
+        if (errors.size() > 0) {
+            String errorString = "";
+            for (String err : errors)
+                errorString += err + "\n";
+            throw new AssertionError("testQuery_Access ran into " + errors.size() + " errors:\n" + errorString);
+        }
         
+    }
+    
+    @WebTestName("getLogRecords() create on MN test access on CN")
+    @WebTestDescription("Tests the getLogRecords() call. Assumes that aggregation works, so"
+            + "the testCnGetLogRecords_Aggregating should be working. After creating objects on MNs "
+            + "and waiting, verifies that logs returned are based on the identity of the caller.")
+    public void testCnGetLogRecords_Access() {
+    
+        int numMNs = v2MNs.size();
+        ArrayList<MNCallAdapter> mns = new ArrayList<MNCallAdapter>(numMNs);
+        ArrayList<String> mnIds = new ArrayList<String>(numMNs);
+        for (Node n : v2MNs) {
+            mns.add(new MNCallAdapter(getSession(cnSubmitter), n, "v2"));
+            mnIds.add(n.getIdentifier().getValue().replaceAll(":", ""));
+        }
+        
+        AccessRule publicAccessRule = new AccessRule();
+        publicAccessRule.addSubject(D1TypeBuilder.buildSubject(Constants.SUBJECT_PUBLIC));
+        publicAccessRule.addPermission(Permission.CHANGE_PERMISSION);
+        AccessRule testPersonAccessRule = new AccessRule();
+        getSession("testPerson");
+        testPersonAccessRule.addSubject(getSubject("testPerson"));
+        testPersonAccessRule.addPermission(Permission.CHANGE_PERMISSION);
+        AccessRule testRightsHolderAccessRule = new AccessRule();
+        getSession("testRightsHolder");
+        testRightsHolderAccessRule.addSubject(getSubject("testRightsHolder"));
+        testRightsHolderAccessRule.addPermission(Permission.CHANGE_PERMISSION);
+        
+        ArrayList<String> pids = new ArrayList<String>(numMNs);
+        
+        for (int i=0; i<numMNs; i++) {
+            Identifier publicObjPid = null;
+//            Identifier publicObjPid = null;
+//            Identifier publicObjPid = null;
+            
+            try {
+                String mnId = mnIds.get(i);
+                publicObjPid = D1TypeBuilder.buildIdentifier("testCnGetLogRecords_Access_" + mnId);
+                procureTestObject(mns.get(i), publicAccessRule, publicObjPid);
+                pids.add(publicObjPid.getValue());
+            } catch (Exception e) {
+                throw new AssertionError("testGetLogRecords_CN: Unable to get or create a test object "
+                        + "with pid: " + publicObjPid.getValue(), e);
+            }
+        }
+
+        try {
+            Thread.sleep(LOG_AGG_WAIT);
+        } catch (InterruptedException e) {
+            // no time for a sandwich :(
+        }
+        
+//        for (int i=0; i<numMNs; i++) {
+//            Log logRecords = null;
+//            try {
+//                logRecords = cn.getLogRecords(null, null, null, null, pids.get(i), null, null);
+//            } catch (Exception e) {
+//                throw new AssertionError(cn.getLatestRequestUrl() + " testGetLogRecords_CN: unable to fetch log records "
+//                        + "for pid " + pids.get(i) + " Got exception: " + e.getClass().getSimpleName() 
+//                        + " : " + e.getMessage(), e);
+//            }
+//            assertTrue("testGetLogRecords_CN: getLogRecords() call for pid " + pids.get(i) 
+//                    + " should have a total number of results greater than zero on CN " 
+//                    + cn.getNodeBaseServiceUrl() + ".", logRecords.getTotal() > 0);
+//            assertTrue("testGetLogRecords_CN: getLogRecords() call for pid " + pids.get(i) 
+//                    + " should contain more than zero log entries on CN " 
+//                    + cn.getNodeBaseServiceUrl() + ".", logRecords.getLogEntryList().size() > 0);
+//        }
     }
     
     /**

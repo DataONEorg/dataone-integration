@@ -24,24 +24,28 @@ public class LogAggregationFunctionalIT extends ContextAwareTestCaseDataone {
     }
 
     @Test
-    @Ignore("FOR TESTING ------ DONT COMMIT")
-    public void testGetLogRecords_Access() {
-        logAggImpl.testGetLogRecords_Access();
+    public void testMnGetLogRecords_Access() {
+        logAggImpl.testMnGetLogRecords_Access();
     }
     
     @Test
-    public void testQuery_Access() {
-        logAggImpl.testQuery_Access();
+    public void testMnQuery_Access() {
+        logAggImpl.testMnQuery_Access();
     }
     
     @Test
-    public void testQuery_Params() {
+    public void testMnQuery_Params() {
         logAggImpl.testQuery_Params();
     }
     
     @Test
-    public void testGetLogRecords_CN() {
-        logAggImpl.testGetLogRecords_CN();
+    @Ignore("logAggregation.properties needs to be modified first")
+    public void testCnGetLogRecords_Aggregating() {
+        logAggImpl.testCnGetLogRecords_Aggregating();
     }
     
+    @Test
+    public void testCnGetLogRecords_Access() {
+        logAggImpl.testCnGetLogRecords_Access();
+    }
 }
