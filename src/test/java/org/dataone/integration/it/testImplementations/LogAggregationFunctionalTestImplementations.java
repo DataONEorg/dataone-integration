@@ -57,8 +57,7 @@ public class LogAggregationFunctionalTestImplementations extends ContextAwareTes
     private static final String cnSubmitter = Settings.getConfiguration().getString("dataone.it.cnode.submitter.cn", "cnDevUNM1");
     private CNCallAdapter cn;
     private List<Node> v2MNs;
-//    private static final long LOG_AGG_WAIT = 10 * 60000;    // 10 minutes <--- FIXME this is currently 1 day in our environments...
-    private static final long LOG_AGG_WAIT = 10;
+    private static final long LOG_AGG_WAIT = 5 * 60000;    // 5 minutes
     
     @Override
     protected String getTestDescription() {
@@ -74,6 +73,7 @@ public class LogAggregationFunctionalTestImplementations extends ContextAwareTes
         List<Node> cnList = IteratorUtils.toList(cnIter);
         assertTrue("Test requires at least one CN, but got zero CNs.", cnList.size() != 0);
             
+        log.info("Using CN " + cnList.get(0).getBaseURL() + " for tests");
         cn = new CNCallAdapter(getSession(cnSubmitter), cnList.get(0), "v2");
         
         try {
@@ -86,7 +86,6 @@ public class LogAggregationFunctionalTestImplementations extends ContextAwareTes
         
         for (Node mNode : mnList) {
             MNCallAdapter v2mn = new MNCallAdapter(getSession(cnSubmitter), mNode, "v2");
-            boolean v2support = false;
             
             try {
                 v2mn.ping();    // ping v2 endpoint
@@ -100,7 +99,6 @@ public class LogAggregationFunctionalTestImplementations extends ContextAwareTes
                         break;
                     }
                 }
-                v2support = true;
             } catch (Exception e1) {
                 log.info("Unable to assess v2 capabilities for MN: " + v2mn.getNodeBaseServiceUrl() 
                         + " : " + e1.getClass().getSimpleName() + " : " + e1.getMessage());
@@ -713,8 +711,6 @@ public class LogAggregationFunctionalTestImplementations extends ContextAwareTes
         testRightsHolderAccessRule.addSubject(getSubject("testRightsHolder"));
         testRightsHolderAccessRule.addPermission(Permission.CHANGE_PERMISSION);
         
-        ArrayList<String> pids = new ArrayList<String>(numMNs);
-        
         for (int i=0; i<numMNs; i++) {
             Identifier publicObjPid = null;
             Identifier testPersonObjPid = null;
@@ -727,10 +723,10 @@ public class LogAggregationFunctionalTestImplementations extends ContextAwareTes
                 testRightsHolderObjPid = D1TypeBuilder.buildIdentifier("testCnGetLogRecords_Access_testRightsHolder_" + mnId);
                 
                 procureTestObject(mns.get(i), publicAccessRule, publicObjPid);
-                pids.add(publicObjPid.getValue());
+                procureTestObject(mns.get(i), testPersonAccessRule, testPersonObjPid);
+                procureTestObject(mns.get(i), testRightsHolderAccessRule, testRightsHolderObjPid);
             } catch (Exception e) {
-                throw new AssertionError("testGetLogRecords_CN: Unable to get or create a test object "
-                        + "with pid: " + publicObjPid.getValue(), e);
+                throw new AssertionError("testCnGetLogRecords_Access: Unable to get or create a test object", e);
             }
         }
 
@@ -741,30 +737,43 @@ public class LogAggregationFunctionalTestImplementations extends ContextAwareTes
             log.warn("log aggregation wait interrupted!", e);
         }
         
+        ArrayList<String> errors = new ArrayList<String>();
+        
         for (int i=0; i<numMNs; i++) {
             Log publicLogRecords = null;
             Log testPersonLogRecords = null;
             Log testRightsHolderLogRecords = null;
+            
+            String mnId = mnIds.get(i);
+            Identifier publicObjPid = D1TypeBuilder.buildIdentifier("testCnGetLogRecords_Access_public_" + mnId);
+            Identifier testPersonObjPid = D1TypeBuilder.buildIdentifier("testCnGetLogRecords_Access_testPerson_" + mnId);
+            Identifier testRightsHolderObjPid = D1TypeBuilder.buildIdentifier("testCnGetLogRecords_Access_testRightsHolder_" + mnId);
             try {
-                String mnId = mnIds.get(i);
-                Identifier publicObjPid = D1TypeBuilder.buildIdentifier("testCnGetLogRecords_Access_public_" + mnId);
-                Identifier testPersonObjPid = D1TypeBuilder.buildIdentifier("testCnGetLogRecords_Access_testPerson_" + mnId);
-                Identifier testRightsHolderObjPid = D1TypeBuilder.buildIdentifier("testCnGetLogRecords_Access_testRightsHolder_" + mnId);
-                
                 publicLogRecords = cn.getLogRecords(null, null, null, null, publicObjPid.getValue(), null, null);
                 testPersonLogRecords = cn.getLogRecords(null, null, null, null, testPersonObjPid.getValue(), null, null);
                 testRightsHolderLogRecords = cn.getLogRecords(null, null, null, null, testRightsHolderObjPid.getValue(), null, null);
             } catch (Exception e) {
                 throw new AssertionError(cn.getLatestRequestUrl() + " testGetLogRecords_CN: unable to fetch log records "
-                        + "for pid " + pids.get(i) + " Got exception: " + e.getClass().getSimpleName() 
+                        + " Got exception: " + e.getClass().getSimpleName() 
                         + " : " + e.getMessage(), e);
             }
             
-            
-            
-            // TODO assertions...
-            
-            
+            if (publicLogRecords.getLogEntryList().size() == 0)
+                errors.add("getLogRecords run by CN subject should retrieve a positive number of results for public-created object ("
+                        + publicObjPid.getValue() + ")");
+            if (testPersonLogRecords.getLogEntryList().size() == 0)
+                errors.add("getLogRecords run by CN subject should retrieve a positive number of results for testPerson-created object ("
+                        + testPersonObjPid.getValue() + ")");
+            if (testRightsHolderLogRecords.getLogEntryList().size() == 0)
+                errors.add("getLogRecords run by CN subject should retrieve a positive number of results for testRightsHolder-created object ("
+                        + testRightsHolderObjPid.getValue() + ")");
+        }
+        
+        if (errors.size() > 0) {
+            String errorString = "";
+            for (String err : errors)
+                errorString += err + "\n";
+            throw new AssertionError("testCnGetLogRecords_Access ran into " + errors.size() + " errors:\n" + errorString);
         }
     }
     
