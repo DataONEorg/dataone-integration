@@ -57,7 +57,7 @@ public class LogAggregationFunctionalTestImplementations extends ContextAwareTes
     private static final String cnSubmitter = Settings.getConfiguration().getString("dataone.it.cnode.submitter.cn", "cnDevUNM1");
     private CNCallAdapter cn;
     private List<Node> v2MNs;
-    private static final long LOG_AGG_WAIT = 5 * 60000;    // 5 minutes
+    private static final long LOG_AGG_WAIT = 4 * 60000;    // 5 minutes
     
     @Override
     protected String getTestDescription() {
@@ -548,6 +548,8 @@ public class LogAggregationFunctionalTestImplementations extends ContextAwareTes
         }
         
         try {
+            log.info("testGetLogRecords_CN:   "
+                    + "waiting for log aggregation: (" + ((double)LOG_AGG_WAIT / 60000) + " minutes)");
             Thread.sleep(LOG_AGG_WAIT);
         } catch (InterruptedException e) {
             // no time for a sandwich :(
@@ -755,6 +757,8 @@ public class LogAggregationFunctionalTestImplementations extends ContextAwareTes
         }
 
         try {
+            log.info("testGetLogRecords_CN:   "
+                    + "waiting for log aggregation: (" + ((double)LOG_AGG_WAIT / 60000) + " minutes)");
             Thread.sleep(LOG_AGG_WAIT);
         } catch (InterruptedException e) {
             // no time for a sandwich :(
