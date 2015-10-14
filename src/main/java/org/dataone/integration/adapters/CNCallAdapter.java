@@ -559,7 +559,7 @@ public class CNCallAdapter extends CommonCallAdapter {
 
     public boolean hasReservation(Session session, Subject subject, Identifier id)
             throws InvalidToken, ServiceFailure, NotFound, NotAuthorized, NotImplemented,
-            InvalidRequest, IdentifierNotUnique, ClientSideException {
+            InvalidRequest, ClientSideException {
         if (this.node.getType().equals(NodeType.CN)) {
             if (this.version.toLowerCase().equals("v1")) {
                 org.dataone.service.cn.v1.CNCore cnCore = D1NodeFactory.buildNode(
