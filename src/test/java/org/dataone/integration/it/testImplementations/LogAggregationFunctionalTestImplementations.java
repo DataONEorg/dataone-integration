@@ -561,6 +561,8 @@ public class LogAggregationFunctionalTestImplementations extends ContextAwareTes
             // no time for a sandwich :(
         }
         
+        ArrayList<String> errors = new ArrayList<String>();
+        
         // check for logs on CN
         for (int i=0; i<numMNs; i++) {
             Log logRecords = null;
@@ -571,16 +573,22 @@ public class LogAggregationFunctionalTestImplementations extends ContextAwareTes
                         + "for pid " + pids.get(i) + " Got exception: " + e.getClass().getSimpleName() 
                         + " : " + e.getMessage(), e);
             }
-            assertTrue("testGetLogRecords_CN: getLogRecords() call for pid " + pids.get(i) 
+            if (logRecords.getTotal() == 0)
+                errors.add("testGetLogRecords_CN: getLogRecords() call for pid " + pids.get(i) 
                     + " should have a total number of results greater than zero on CN " 
                     + cn.getNodeBaseServiceUrl() + ". "
-                    + "(waited " + ((double)LOG_AGG_WAIT / 60000) + " minutes for log aggregation)", 
-                    logRecords.getTotal() > 0);
-            assertTrue("testGetLogRecords_CN: getLogRecords() call for pid " + pids.get(i) 
+                    + "(waited " + ((double)LOG_AGG_WAIT / 60000) + " minutes for log aggregation)");
+            if (logRecords.getLogEntryList().size() == 0)
+                errors.add("testGetLogRecords_CN: getLogRecords() call for pid " + pids.get(i) 
                     + " should contain more than zero log entries on CN " 
                     + cn.getNodeBaseServiceUrl() + ". "
-                    + "(waited " + ((double)LOG_AGG_WAIT / 60000) + " minutes for log aggregation)", 
-                    logRecords.getLogEntryList().size() > 0);
+                    + "(waited " + ((double)LOG_AGG_WAIT / 60000) + " minutes for log aggregation)");
+        }
+        if (errors.size() > 0) {
+            String errorString = "";
+            for (String err : errors)
+                errorString += err + "\n";
+            throw new AssertionError("testGetLogRecords_CN ran into " + errors.size() + " errors:\n" + errorString);
         }
     }
 
