@@ -268,11 +268,11 @@ public class LogAggregationFunctionalTestImplementations extends ContextAwareTes
                     testRightsHolderPidFound = true;
             }
             if (!publicPidFound)
-                errors.add("CN subject " + getSubject(cnSubmitter).getValue() + " should have access to public-accessible object we created.");
+                errors.add("CN subject (" + getSubject(cnSubmitter).getValue() + ") should have access to public-accessible object we created on " + mnCnCaller.getNodeBaseServiceUrl() + ".");
             if (!testPersonPidFound)
-                errors.add("CN subject " + getSubject(cnSubmitter).getValue() + " should have access to testPerson-accessible object we created.");
+                errors.add("CN subject (" + getSubject(cnSubmitter).getValue() + ") should have access to testPerson-accessible object we created on " + mnCnCaller.getNodeBaseServiceUrl() + ".");
             if (!testRightsHolderPidFound)
-                errors.add("CN subject " + getSubject(cnSubmitter).getValue() + " should have access to testRightsHolder-accessible object we created.");
+                errors.add("CN subject (" + getSubject(cnSubmitter).getValue() + ") should have access to testRightsHolder-accessible object we created on " + mnCnCaller.getNodeBaseServiceUrl() + ".");
         }
         
         if (errors.size() > 0) {
@@ -471,19 +471,19 @@ public class LogAggregationFunctionalTestImplementations extends ContextAwareTes
         
         // check result count
         if ( publicObjContents.existingLogs == 0 ) 
-            errors.add("Query run by CN subject " + getSubject(cnSubmitter).getValue() + " should retrieve a positive result count for public-created object.");
+            errors.add("Query run by CN subject (" + getSubject(cnSubmitter).getValue() + ") should retrieve a positive result count for public-created object on " + mnCnCaller.getNodeBaseServiceUrl() + ".");
         if ( personObjContents.existingLogs == 0 ) 
-            errors.add("Query run by CN subject " + getSubject(cnSubmitter).getValue() + " should retrieve a positive result count for testPerson-created object.");
+            errors.add("Query run by CN subject (" + getSubject(cnSubmitter).getValue() + ") should retrieve a positive result count for testPerson-created object on " + mnCnCaller.getNodeBaseServiceUrl() + ".");
         if ( rightsHolderObjContents.existingLogs == 0 ) 
-            errors.add("Query run by CN subject " + getSubject(cnSubmitter).getValue() + " should retrieve a positive result count for testRightsHolder-created object.");
+            errors.add("Query run by CN subject (" + getSubject(cnSubmitter).getValue() + ") should retrieve a positive result count for testRightsHolder-created object on " + mnCnCaller.getNodeBaseServiceUrl() + ".");
         
         // check result docs
         if ( publicObjContents.docsReturned == 0 ) 
-            errors.add("Query run by CN subject " + getSubject(cnSubmitter).getValue() + " should retrieve result docs for public-created object.");
+            errors.add("Query run by CN subject (" + getSubject(cnSubmitter).getValue() + ") should retrieve result docs for public-created object on " + mnCnCaller.getNodeBaseServiceUrl() + ".");
         if ( personObjContents.docsReturned == 0 ) 
-            errors.add("Query run by CN subject " + getSubject(cnSubmitter).getValue() + " should retrieve result docs for testPerson-created object.");
+            errors.add("Query run by CN subject (" + getSubject(cnSubmitter).getValue() + ") should retrieve result docs for testPerson-created object on " + mnCnCaller.getNodeBaseServiceUrl() + ".");
         if ( rightsHolderObjContents.docsReturned == 0 ) 
-            errors.add("Query run by CN subject " + getSubject(cnSubmitter).getValue() + " should retrieve result docs for testRightsHolder-created object.");
+            errors.add("Query run by CN subject (" + getSubject(cnSubmitter).getValue() + ") should retrieve result docs for testRightsHolder-created object on " + mnCnCaller.getNodeBaseServiceUrl() + ".");
         
         if (errors.size() > 0) {
             String errorString = "";
@@ -783,13 +783,13 @@ public class LogAggregationFunctionalTestImplementations extends ContextAwareTes
             }
             
             if (publicLogRecords.getLogEntryList() != null && publicLogRecords.getLogEntryList().size() == 0)
-                errors.add("getLogRecords run by CN subject " + getSubject(cnSubmitter).getValue() + " should retrieve a positive number of results for public-created object ("
+                errors.add("getLogRecords run by CN subject (" + getSubject(cnSubmitter).getValue() + ") should retrieve a positive number of results for public-created object ("
                         + publicObjPid.getValue() + ")");
             if (testPersonLogRecords.getLogEntryList() != null && testPersonLogRecords.getLogEntryList().size() == 0)
-                errors.add("getLogRecords run by CN subject " + getSubject(cnSubmitter).getValue() + " should retrieve a positive number of results for testPerson-created object ("
+                errors.add("getLogRecords run by CN subject (" + getSubject(cnSubmitter).getValue() + ") should retrieve a positive number of results for testPerson-created object ("
                         + testPersonObjPid.getValue() + ")");
             if (testRightsHolderLogRecords.getLogEntryList() != null && testRightsHolderLogRecords.getLogEntryList().size() == 0)
-                errors.add("getLogRecords run by CN subject " + getSubject(cnSubmitter).getValue() + " should retrieve a positive number of results for testRightsHolder-created object ("
+                errors.add("getLogRecords run by CN subject (" + getSubject(cnSubmitter).getValue() + ") should retrieve a positive number of results for testRightsHolder-created object ("
                         + testRightsHolderObjPid.getValue() + ")");
         }
         
