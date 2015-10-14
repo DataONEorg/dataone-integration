@@ -610,7 +610,8 @@ public class LogAggregationFunctionalTestImplementations extends ContextAwareTes
         try {
             queryResult_id = mnCnCaller.query(null, "solr", "q=identifier:" + pidEncoded);
             LogContents queryContents = getNumQueryContents(queryResult_id);
-            assertTrue("query made by as CN should return some results when filtering on pid", queryContents.existingLogs > 0);
+            if (queryContents.existingLogs == 0)
+                errors.add("query made by as CN should return some results when filtering on pid");
         } catch (Exception e) {
             errors.add(mnCnCaller.getLatestRequestUrl() + " Unable to run solr query with params: identifier. " 
                     + "Got exception: " + e.getClass().getSimpleName() + " : " + e.getMessage());
@@ -622,7 +623,8 @@ public class LogAggregationFunctionalTestImplementations extends ContextAwareTes
         try {
             queryResult_title = mnCnCaller.query(null, "solr", "q=title:" + titleEncoded);
             LogContents queryContents = getNumQueryContents(queryResult_title);
-            assertTrue("query made by as CN should return some results when filtering on title", queryContents.existingLogs > 0);
+            if (queryContents.existingLogs == 0)
+                errors.add("query made by as CN should return some results when filtering on title");
         } catch (Exception e) {
             errors.add(mnCnCaller.getLatestRequestUrl() + " Unable to run solr query with params: title. " 
                     + "Got exception: " + e.getClass().getSimpleName() + " : " + e.getMessage());
@@ -634,7 +636,8 @@ public class LogAggregationFunctionalTestImplementations extends ContextAwareTes
         try {
             queryResult_author = mnCnCaller.query(null, "solr", "q=author:" + authorEncoded);
             LogContents queryContents = getNumQueryContents(queryResult_author);
-            assertTrue("query made by as CN should return some results when filtering on author", queryContents.existingLogs > 0);
+            if (queryContents.existingLogs == 0)
+                errors.add("query made by as CN should return some results when filtering on author");
         } catch (Exception e) {
             errors.add(mnCnCaller.getLatestRequestUrl() + " Unable to run solr query with params: author. " 
                     + "Got exception: " + e.getClass().getSimpleName() + " : " + e.getMessage());
@@ -662,8 +665,8 @@ public class LogAggregationFunctionalTestImplementations extends ContextAwareTes
                     + "&q=title:" + titleEncoded
                     + "&q=author:" + authorEncoded);
             LogContents queryContents = getNumQueryContents(queryResult_pidTitleAuthor);
-            assertTrue("query made by as CN should return some results when filtering on "
-                    + "identifier, title, and author", queryContents.existingLogs > 0);
+            if (queryContents.existingLogs == 0)
+            errors.add("query made by as CN should return some results when filtering on identifier, title, and author");
         } catch (Exception e) {
             errors.add(mnCnCaller.getLatestRequestUrl() + " Unable to run solr query with params: identifier, title, author. " 
                     + "Got exception: " + e.getClass().getSimpleName() + " : " + e.getMessage());
