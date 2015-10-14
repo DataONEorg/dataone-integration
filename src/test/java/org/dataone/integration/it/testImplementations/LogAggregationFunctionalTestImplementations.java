@@ -514,6 +514,7 @@ public class LogAggregationFunctionalTestImplementations extends ContextAwareTes
         
         ArrayList<String> pids = new ArrayList<String>(numMNs);
         
+        // create objects
         for (int i=0; i<numMNs; i++) {
             Identifier pid = null;
             try {
@@ -522,17 +523,40 @@ public class LogAggregationFunctionalTestImplementations extends ContextAwareTes
                 procureTestObject(mns.get(i), publicAccessRule, pid);
                 pids.add(pid.getValue());
             } catch (Exception e) {
-                throw new AssertionError("testGetLogRecords_CN: Unable to get or create a test object "
+                throw new AssertionError("testCnGetLogRecords_Aggregating: Unable to get or create a test object "
                         + "with pid: " + pid.getValue(), e);
             }
         }
 
+        try {
+            Thread.sleep(5000);
+        } catch (InterruptedException e) {
+            // don't care
+        }
+
+        // check for log on originating MN
+        for (int i=0; i<numMNs; i++) {
+            Identifier pid = null;
+            try {
+                MNCallAdapter mn = mns.get(i);
+                pid = D1TypeBuilder.buildIdentifier(pids.get(i));
+                Log logRecords = mn.getLogRecords(null, null, null, null, pid.getValue(), null, null);
+                assertTrue("testCnGetLogRecords_Aggregating: Should be able to get record for pid: " 
+                        + pid.getValue() + " on originating mn " + mns.get(i).getNodeBaseServiceUrl(), 
+                        logRecords != null && logRecords.getLogEntryList() != null && logRecords.getLogEntryList().size() > 0);
+            } catch (Exception e) {
+                throw new AssertionError("testCnGetLogRecords_Aggregating: Unable to get record for pid: " 
+                        + pid.getValue() + " on originating mn " + mns.get(i).getNodeBaseServiceUrl(), e);
+            }
+        }
+        
         try {
             Thread.sleep(LOG_AGG_WAIT);
         } catch (InterruptedException e) {
             // no time for a sandwich :(
         }
         
+        // check for logs on CN
         for (int i=0; i<numMNs; i++) {
             Log logRecords = null;
             try {
@@ -571,9 +595,9 @@ public class LogAggregationFunctionalTestImplementations extends ContextAwareTes
         }
         
         String pidEncoded = null;
-        String title = "PISCO: Physical Oceanography: moored temperature data: Terrace Point, California, USA (TPT001)";
+        String title = "\"PISCO: Physical Oceanography: moored temperature data: Terrace Point, California, USA (TPT001)\"";
         String titleEncoded = null;
-        String author = "Margaret McManus";
+        String author = "\"Margaret McManus\"";
         String authorEncoded = null;
         
         try {
@@ -761,13 +785,13 @@ public class LogAggregationFunctionalTestImplementations extends ContextAwareTes
                         + " : " + e.getMessage(), e);
             }
             
-            if (publicLogRecords.getLogEntryList().size() == 0)
+            if (publicLogRecords.getLogEntryList() != null && publicLogRecords.getLogEntryList().size() == 0)
                 errors.add("getLogRecords run by CN subject should retrieve a positive number of results for public-created object ("
                         + publicObjPid.getValue() + ")");
-            if (testPersonLogRecords.getLogEntryList().size() == 0)
+            if (testPersonLogRecords.getLogEntryList() != null && testPersonLogRecords.getLogEntryList().size() == 0)
                 errors.add("getLogRecords run by CN subject should retrieve a positive number of results for testPerson-created object ("
                         + testPersonObjPid.getValue() + ")");
-            if (testRightsHolderLogRecords.getLogEntryList().size() == 0)
+            if (testRightsHolderLogRecords.getLogEntryList() != null && testRightsHolderLogRecords.getLogEntryList().size() == 0)
                 errors.add("getLogRecords run by CN subject should retrieve a positive number of results for testRightsHolder-created object ("
                         + testRightsHolderObjPid.getValue() + ")");
         }

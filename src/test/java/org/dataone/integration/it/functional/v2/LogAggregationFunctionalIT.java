@@ -39,7 +39,6 @@ public class LogAggregationFunctionalIT extends ContextAwareTestCaseDataone {
     }
     
     @Test
-    @Ignore("logAggregation.properties needs to be modified first")
     public void testCnGetLogRecords_Aggregating() {
         logAggImpl.testCnGetLogRecords_Aggregating();
     }
