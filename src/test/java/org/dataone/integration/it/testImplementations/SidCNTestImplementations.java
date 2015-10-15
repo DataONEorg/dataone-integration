@@ -542,6 +542,7 @@ public class SidCNTestImplementations extends SidCommonTestImplementations {
                 throw nf;
             }
         } catch (BaseException be) {
+        	be.printStackTrace();
             throw new AssertionError("Unable to create test object. " + be.getClass().getSimpleName() + " : "
                     + be.getMessage() + " " + be.getDescription(), be);
         } catch (Exception e) {
