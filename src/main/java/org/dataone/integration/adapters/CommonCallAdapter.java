@@ -106,7 +106,7 @@ public class CommonCallAdapter implements D1Node {
 
     
     // TODO: test that TypeMarshaller.convertTypeFromType works for Log class(es)
-    public Log getLogRecords(Session session, Date fromDate, Date toDate, String event, String pidFilter,
+    public Log getLogRecords(Session session, Date fromDate, Date toDate, String event, String idFilter,
             Integer start, Integer count) throws ClientSideException, InvalidRequest, InvalidToken, NotAuthorized,
             NotImplemented, ServiceFailure, InsufficientResources {
         
@@ -117,12 +117,12 @@ public class CommonCallAdapter implements D1Node {
                         URI.create(this.node.getBaseURL()));
                 // TODO use deprecated call with Session? or no?
                 org.dataone.service.types.v1.Log log = mnCore.getLogRecords(session, fromDate, toDate,
-                        Event.convert(event), pidFilter, start, count);
+                        Event.convert(event), idFilter, start, count);
                 return TypeFactory.convertTypeFromType(log, Log.class);
             } else if (this.version.toLowerCase().equals("v2")) {
                 org.dataone.service.mn.tier1.v2.MNCore mnCore = D1NodeFactory.buildNode(
                         org.dataone.service.mn.tier1.v2.MNCore.class, this.mrc, URI.create(this.node.getBaseURL()));
-                Log log = mnCore.getLogRecords(session, fromDate, toDate, event, pidFilter, start, count);
+                Log log = mnCore.getLogRecords(session, fromDate, toDate, event, idFilter, start, count);
                 return log;
             }
         } else if (this.node.getType().equals(NodeType.CN)) {
@@ -130,12 +130,12 @@ public class CommonCallAdapter implements D1Node {
                 CNCore cnCore = D1NodeFactory.buildNode(org.dataone.service.cn.v1.CNCore.class, this.mrc,
                         URI.create(this.node.getBaseURL()));
                 org.dataone.service.types.v1.Log log = cnCore.getLogRecords(session, fromDate, toDate,
-                        Event.convert(event), pidFilter, start, count);
+                        Event.convert(event), idFilter, start, count);
                 return TypeFactory.convertTypeFromType(log, Log.class);
             } else if (this.version.toLowerCase().equals("v2")) {
                 org.dataone.service.mn.tier1.v2.MNCore cnCore = D1NodeFactory.buildNode(
                         org.dataone.service.mn.tier1.v2.MNCore.class, this.mrc, URI.create(this.node.getBaseURL()));
-                Log log = cnCore.getLogRecords(session, fromDate, toDate, event, pidFilter, start, count);
+                Log log = cnCore.getLogRecords(session, fromDate, toDate, event, idFilter, start, count);
                 return log;
             }
         }
