@@ -573,12 +573,12 @@ public class LogAggregationFunctionalTestImplementations extends ContextAwareTes
                         + "for pid " + pids.get(i) + " Got exception: " + e.getClass().getSimpleName() 
                         + " : " + e.getMessage(), e);
             }
-            if (logRecords.getTotal() == 0)
+            if (logRecords == null || logRecords.getTotal() == 0)
                 errors.add("testGetLogRecords_CN: getLogRecords() call for pid " + pids.get(i) 
                     + " should have a total number of results greater than zero on CN " 
                     + cn.getNodeBaseServiceUrl() + ". "
                     + "(waited " + ((double)LOG_AGG_WAIT / 60000) + " minutes for log aggregation)");
-            if (logRecords.getLogEntryList().size() == 0)
+            if (logRecords == null || logRecords.getLogEntryList().size() == 0)
                 errors.add("testGetLogRecords_CN: getLogRecords() call for pid " + pids.get(i) 
                     + " should contain more than zero log entries on CN " 
                     + cn.getNodeBaseServiceUrl() + ". "
