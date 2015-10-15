@@ -108,7 +108,7 @@ public class CNRegisterTestImplementations extends ContextAwareAdapter {
             } else {
                 Node node0 = cNodeList.get(0);
                 NodeReference nodeRef = node0.getIdentifier();
-                nodeRef.setValue(nodeRef.getValue() + "bizzBazzBuzz");
+                nodeRef.setValue(nodeRef.getValue() + "BAD");
                 node0.setIdentifier(nodeRef);
                 node0.addSubject(clientSubject);
 
