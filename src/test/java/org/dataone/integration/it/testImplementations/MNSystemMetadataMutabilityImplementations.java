@@ -367,7 +367,7 @@ public class MNSystemMetadataMutabilityImplementations extends ContextAwareTestC
         
         // updateReplicationMetadata call
         try {
-            cn.updateReplicationMetadata(null, pid, replica, sysmeta.getSerialVersion().longValue());
+            cn.updateReplicationMetadata(null, pid, replica, cnSysmeta.getSerialVersion().longValue());
         } catch (Exception e) {
             throw new AssertionError(cn.getLatestRequestUrl() + " testUpdateReplicationMetadata_dateModified: unable "
                     + "to updateReplicationMetadata for pid " + pid.getValue() + " Got exception: " 
