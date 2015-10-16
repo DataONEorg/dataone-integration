@@ -37,7 +37,7 @@ public class MNSystemMetadataMutabilityImplementations extends ContextAwareTestC
     private List<Node> mns;
     private List<Node> v2mns;
     
-    private static final long REPLICATION_WAIT = 20 * 60000;    // 10 minutes
+    private static final long REPLICATION_WAIT = 5 * 60000;
     
     @Override
     protected String getTestDescription() {
@@ -135,11 +135,16 @@ public class MNSystemMetadataMutabilityImplementations extends ContextAwareTestC
         publicAccessRule.addSubject(D1TypeBuilder.buildSubject(Constants.SUBJECT_PUBLIC));
         publicAccessRule.addPermission(Permission.CHANGE_PERMISSION);
         
+        ReplicationPolicy replPolicy = new ReplicationPolicy();
+        replPolicy.setReplicationAllowed(true);
+        replPolicy.setNumberReplicas(v2mns.size() > 1 ? v2mns.size() -1 : 2);
+        
         Identifier pid = null;
         try {
-            pid = D1TypeBuilder.buildIdentifier("testRegisterSystemMetadata_dateModified" + ExampleUtilities.generateIdentifier());
+            getSession(cnSubmitter);
+            pid = D1TypeBuilder.buildIdentifier("testRegisterSystemMetadata_dateModified_obj1");
             log.info("attempting to create test object on " + mn.getNodeBaseServiceUrl() + " with pid " + pid.getValue());
-            pid = createTestObject(mn, pid, publicAccessRule);
+            pid = procureTestObject(mn,  publicAccessRule, pid, cnSubmitter, "public", replPolicy);
         } catch (Exception e) {
             throw new AssertionError("testRegisterSystemMetadata_dateModified: Unable to get or create a "
                     + "test object with pid: " + pid.getValue(), e);
@@ -198,9 +203,10 @@ public class MNSystemMetadataMutabilityImplementations extends ContextAwareTestC
         
         // create object on MN
         try {
-            pid = D1TypeBuilder.buildIdentifier("testRegisterSystemMetadata_dateModified_" + ExampleUtilities.generateIdentifier());
+            getSession(cnSubmitter);
+            pid = D1TypeBuilder.buildIdentifier("testRegisterSystemMetadata_dateModified_obj1");
             log.info("attempting to create test object on " + mn.getNodeBaseServiceUrl() + " with pid " + pid.getValue());
-            pid = createTestObject(mn, pid, publicAccessRule, replPolicy);
+            pid = procureTestObject(mn,  publicAccessRule, pid, cnSubmitter, "public", replPolicy);
         } catch (Exception e) {
             throw new AssertionError("testRegisterSystemMetadata_dateModified: Unable to get or create a "
                     + "test object with pid: " + pid.getValue(), e);
@@ -289,9 +295,10 @@ public class MNSystemMetadataMutabilityImplementations extends ContextAwareTestC
         
         // create object on MN
         try {
-            pid = D1TypeBuilder.buildIdentifier("testUpdateReplicationMetadata_dateModified_" + ExampleUtilities.generateIdentifier());
+            getSession(cnSubmitter);
+            pid = D1TypeBuilder.buildIdentifier("testUpdateReplicationMetadata_dateModified_obj1");
             log.info("attempting to create test object on " + mn.getNodeBaseServiceUrl() + " with pid " + pid.getValue());
-            pid = createTestObject(mn, pid, publicAccessRule, replPolicy);
+            pid = procureTestObject(mn,  publicAccessRule, pid, cnSubmitter, "public", replPolicy);
         } catch (Exception e) {
             throw new AssertionError("testUpdateReplicationMetadata_dateModified: Unable to get or create a "
                     + "test object with pid: " + pid.getValue(), e);
@@ -353,7 +360,10 @@ public class MNSystemMetadataMutabilityImplementations extends ContextAwareTestC
                 + cn.getNodeBaseServiceUrl() + ") that is on one of the v2 MNs in the environment.", replica != null);
         
         // change something on the replica before updateReplicationMetadata
-        replica.setReplicationStatus(ReplicationStatus.INVALIDATED);
+        if (replica.getReplicationStatus() != ReplicationStatus.INVALIDATED)
+            replica.setReplicationStatus(ReplicationStatus.INVALIDATED);
+        else 
+            replica.setReplicationStatus(ReplicationStatus.FAILED);
         
         // updateReplicationMetadata call
         try {
@@ -396,9 +406,10 @@ public class MNSystemMetadataMutabilityImplementations extends ContextAwareTestC
         
         // create object on MN
         try {
-            pid = D1TypeBuilder.buildIdentifier("testDeleteReplicationMetacat_dateModified_" + ExampleUtilities.generateIdentifier());
+            getSession(cnSubmitter);
+            pid = D1TypeBuilder.buildIdentifier("testDeleteReplicationMetacat_dateModified_obj1");
             log.info("attempting to create test object on " + mn.getNodeBaseServiceUrl() + " with pid " + pid.getValue());
-            pid = createTestObject(mn, pid, publicAccessRule, replPolicy);
+            pid = procureTestObject(mn,  publicAccessRule, pid, cnSubmitter, "public", replPolicy);
         } catch (Exception e) {
             throw new AssertionError("testDeleteReplicationMetacat_dateModified: Unable to get or create a "
                     + "test object with pid: " + pid.getValue(), e);

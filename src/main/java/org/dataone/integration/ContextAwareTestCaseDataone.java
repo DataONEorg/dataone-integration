@@ -821,7 +821,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
                     throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique, UnsupportedType,
                     InsufficientResources, InvalidSystemMetadata, NotImplemented, InvalidRequest,
                     UnsupportedEncodingException, NotFound, TestIterationEndingException{
-        return procureTestObject(cca, accessRule, pid, null, null);
+        return procureTestObject(cca, accessRule, pid, null, null, null);
     }
     
     /**
@@ -849,7 +849,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
      * @throws TestIterationEndingException - - when can't procure an object Identifier
      */
     public Identifier procureTestObject(CommonCallAdapter cca, AccessRule accessRule, Identifier pid,
-            String submitterSubjectLabel, String rightsHolderSubjectName)
+            String submitterSubjectLabel, String rightsHolderSubjectName, ReplicationPolicy replPolicy)
     throws InvalidToken, ServiceFailure, NotAuthorized, IdentifierNotUnique, UnsupportedType,
     InsufficientResources, InvalidSystemMetadata, NotImplemented, InvalidRequest,
     UnsupportedEncodingException, NotFound, TestIterationEndingException
@@ -898,10 +898,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
                     }
                 } else {
                     log.debug("procureTestObject: calling createTestObject");
-                    if( submitterSubjectLabel != null && rightsHolderSubjectName != null)
-                        identifier = createTestObject(cca, pid, accessRule, submitterSubjectLabel, rightsHolderSubjectName);
-                    else
-                        identifier = createTestObject(cca, pid, accessRule);
+                    identifier = createTestObject(cca, pid, accessRule, submitterSubjectLabel, rightsHolderSubjectName, replPolicy);
                 }
             } catch (ClientSideException e1) {
                 throw new TestIterationEndingException("unexpected client-side exception encountered when trying to creat e test object", e1);

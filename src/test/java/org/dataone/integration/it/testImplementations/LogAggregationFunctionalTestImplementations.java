@@ -311,7 +311,7 @@ public class LogAggregationFunctionalTestImplementations extends ContextAwareTes
         Identifier testRightsHolderPid = D1TypeBuilder.buildIdentifier("testMnQuery_Access_testRightsHolder_");
         
         try {
-            publicPid = procureTestObject(mnCnCaller, publicAccessRule, publicPid, cnSubmitter, "public");
+            publicPid = procureTestObject(mnCnCaller, publicAccessRule, publicPid, cnSubmitter, "public", null);
             log.info("procured test object: " + publicPid.getValue() + " on " + mnCnCaller.getNodeId().getValue());
         } catch (Exception e) {
             throw new AssertionError("testMnQuery_Access: Unable to get or create a test object "
@@ -319,7 +319,7 @@ public class LogAggregationFunctionalTestImplementations extends ContextAwareTes
         }
         try {
             getSession("testPerson");
-            testPersonPid = procureTestObject(mnCnCaller, testPersonAccessRule, testPersonPid, cnSubmitter, getSubject("testPerson").getValue());
+            testPersonPid = procureTestObject(mnCnCaller, testPersonAccessRule, testPersonPid, cnSubmitter, getSubject("testPerson").getValue(), null);
             log.info("procured test object: " + testPersonPid.getValue() + " on " + mnCnCaller.getNodeId().getValue());
         } catch (Exception e) {
             throw new AssertionError("testMnQuery_Access: Unable to get or create a test object "
@@ -327,7 +327,7 @@ public class LogAggregationFunctionalTestImplementations extends ContextAwareTes
         }
         try {
             getSession("testRightsHolder");
-            testRightsHolderPid = procureTestObject(mnCnCaller, testRightsHolderAccessRule, testRightsHolderPid, cnSubmitter, getSubject("testRightsHolder").getValue());
+            testRightsHolderPid = procureTestObject(mnCnCaller, testRightsHolderAccessRule, testRightsHolderPid, cnSubmitter, getSubject("testRightsHolder").getValue(), null);
             log.info("procured test object: " + testRightsHolderPid.getValue() + " on " + mnCnCaller.getNodeId().getValue());
         } catch (Exception e) {
             throw new AssertionError("testMnQuery_Access: Unable to get or create a test object "
