@@ -42,6 +42,7 @@ import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Node;
 import org.dataone.service.types.v1.NodeReference;
 import org.dataone.service.types.v1.ObjectFormatIdentifier;
+import org.dataone.service.types.v1.Session;
 import org.dataone.service.types.v2.SystemMetadata;
 import org.dataone.service.types.v2.TypeFactory;
 import org.jibx.runtime.JiBXException;
@@ -635,8 +636,9 @@ public class SidMNTestImplementations extends SidCommonTestImplementations {
                 InputStream sidPkg = null;
                 InputStream pidPkg = null;
                 try {
-                    sidPkg = callAdapter.getPackage(null, formatID, sid);
-                    pidPkg = callAdapter.getPackage(null, formatID, pid);
+                	Session sess = getSession("testRightsHolder").getSession();
+                    sidPkg = callAdapter.getPackage(sess, formatID, sid);
+                    pidPkg = callAdapter.getPackage(sess, formatID, pid);
                     
                     // find an object from the sid package
         			ObjectFormatIdentifier format = new ObjectFormatIdentifier();
