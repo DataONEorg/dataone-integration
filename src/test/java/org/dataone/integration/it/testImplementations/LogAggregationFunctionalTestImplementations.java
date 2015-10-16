@@ -145,19 +145,20 @@ public class LogAggregationFunctionalTestImplementations extends ContextAwareTes
             procureTestObject(mnCnCaller, publicAccessRule, publicPid);
         } catch (Exception e) {
             throw new AssertionError("testMnGetLogRecords_Access: Unable to get or create a test object "
-                    + "with pid: " + publicPid.getValue(), e);
+                    + "with pid: " + publicPid.getValue() + ", " + e.getClass().getSimpleName()
+                    + " : " + e.getMessage(), e);
         }
         try {
             procureTestObject(mnCnCaller, testPersonAccessRule, testPersonPid);
         } catch (Exception e) {
             throw new AssertionError("testMnGetLogRecords_Access: Unable to get or create a test object "
-                    + "with pid: " + testPersonPid.getValue(), e);
+                    + "with pid: " + testPersonPid.getValue() + ", " + e.getClass().getSimpleName() + " : " + e.getMessage(), e);
         }
         try {
             procureTestObject(mnCnCaller, testRightsHolderAccessRule, testRightsHolderPid);
         } catch (Exception e) {
             throw new AssertionError("testMnGetLogRecords_Access: Unable to get or create a test object "
-                    + "with pid: " + testRightsHolderPid.getValue(), e);
+                    + "with pid: " + testRightsHolderPid.getValue() + ", " + e.getClass().getSimpleName() + " : " + e.getMessage(), e);
         }
 
         ArrayList<String> errors = new ArrayList<String>();
@@ -314,7 +315,7 @@ public class LogAggregationFunctionalTestImplementations extends ContextAwareTes
             log.info("procured test object: " + publicPid.getValue() + " on " + mnCnCaller.getNodeId().getValue());
         } catch (Exception e) {
             throw new AssertionError("testMnQuery_Access: Unable to get or create a test object "
-                    + "with pid: " + publicPid.getValue(), e);
+                    + "with pid: " + publicPid.getValue() + ", " + e.getClass().getSimpleName() + " : " + e.getMessage(), e);
         }
         try {
             getSession("testPerson");
@@ -322,7 +323,7 @@ public class LogAggregationFunctionalTestImplementations extends ContextAwareTes
             log.info("procured test object: " + testPersonPid.getValue() + " on " + mnCnCaller.getNodeId().getValue());
         } catch (Exception e) {
             throw new AssertionError("testMnQuery_Access: Unable to get or create a test object "
-                    + "with pid: " + testPersonPid.getValue(), e);
+                    + "with pid: " + testPersonPid.getValue() + ", " + e.getClass().getSimpleName() + " : " + e.getMessage(), e);
         }
         try {
             getSession("testRightsHolder");
@@ -330,7 +331,7 @@ public class LogAggregationFunctionalTestImplementations extends ContextAwareTes
             log.info("procured test object: " + testRightsHolderPid.getValue() + " on " + mnCnCaller.getNodeId().getValue());
         } catch (Exception e) {
             throw new AssertionError("testMnQuery_Access: Unable to get or create a test object "
-                    + "with pid: " + testRightsHolderPid.getValue(), e);
+                    + "with pid: " + testRightsHolderPid.getValue() + ", " + e.getClass().getSimpleName() + " : " + e.getMessage(), e);
         }
         
         // sysmeta for debug purposes:
@@ -527,7 +528,7 @@ public class LogAggregationFunctionalTestImplementations extends ContextAwareTes
                 pids.add(pid.getValue());
             } catch (Exception e) {
                 throw new AssertionError("testCnGetLogRecords_Aggregating: Unable to get or create a test object "
-                        + "with pid: " + pid.getValue(), e);
+                        + "with pid: " + pid.getValue() + ", " + e.getClass().getSimpleName() + " : " + e.getMessage(), e);
             }
         }
 
@@ -608,7 +609,7 @@ public class LogAggregationFunctionalTestImplementations extends ContextAwareTes
             procureTestObject(mnCnCaller, publicAccessRule, pid);
         } catch (Exception e) {
             throw new AssertionError("testQuery_Access: Unable to get or create a test object "
-                    + "with pid: " + pid.getValue(), e);
+                    + "with pid: " + pid.getValue() + ", " + e.getClass().getSimpleName() + " : " + e.getMessage(), e);
         }
         
         String pidEncoded = null;
