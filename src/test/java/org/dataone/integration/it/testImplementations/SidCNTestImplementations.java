@@ -536,17 +536,18 @@ public class SidCNTestImplementations extends SidCommonTestImplementations {
             try {
                 callAdapter.getSystemMetadata(null, pid);
             } catch (NotFound nf) {
-                log.error("test object not synchronized to CN! pid: "
+                log.error("Test object not synchronized to CN! pid: "
                         + pid.getValue() + " : " + nf.getClass().getSimpleName() 
                         + " : " + nf.getMessage());
-                throw nf;
+                throw new NotFound(nf.getDetail_code(), "Test object (" + pid.getValue() + ") was created but not synchronized to CN (" 
+                        + callAdapter.getNodeBaseServiceUrl() + ")");
             }
         } catch (BaseException be) {
         	be.printStackTrace();
-            throw new AssertionError("Unable to create test object. " + be.getClass().getSimpleName() + " : "
+            throw new AssertionError("Error while creating test object. " + be.getClass().getSimpleName() + " : "
                     + be.getMessage() + " " + be.getDescription(), be);
         } catch (Exception e) {
-            throw new AssertionError("Unable to create test object. " + e.getClass().getSimpleName() + " : "
+            throw new AssertionError("Error while creating test object. " + e.getClass().getSimpleName() + " : "
                     + e.getMessage() + " ", e);
         }
         
