@@ -378,6 +378,41 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
                         currentNode.getName() + ": " + currentNode.getBaseURL());
             }
         }
+        
+        filterCnList();
+    }
+
+    /**
+     * Tries to remove the round robin CN from multiNodeCoordinatingNodeList
+     * if the size of that list is greater than 1 (so we don't leave it empty).
+     */
+    private void filterCnList() {
+        List<Node> filteredList = new ArrayList<Node>();
+
+        // won't filter if list is too small, or we may end up without CNs
+        if (multiNodeCoordinatingNodeList.size() <= 1)
+            return;
+        
+        log.info("trying to filter CN list for the round robin CN... original size: " + multiNodeCoordinatingNodeList.size() + ", includes nodes:");
+        for (Node node : multiNodeCoordinatingNodeList)
+            log.info("    CN: " + node.getBaseURL() + " \"" + node.getDescription() + "\"");
+        
+        
+        for (Node node : multiNodeCoordinatingNodeList) {
+            if (node.getDescription() != null)
+                if (node.getDescription().contains("Robin") || node.getDescription().contains("robin")) {
+                    log.info("excluding round robin CN: " + node.getBaseURL() + " \"" + node.getDescription() + "\"");
+                    continue;
+                }
+            filteredList.add(node);
+            log.info("including CN: " + node.getBaseURL() + " \"" + node.getDescription() + "\"");
+        }
+        
+        log.info("filtered CN list without round robin CN. size: " + filteredList.size() + ", including nodes:");
+        for (Node node : filteredList)
+            log.info("    CN: " + node.getBaseURL() + " \"" + node.getDescription() + "\"");
+        
+        multiNodeCoordinatingNodeList = filteredList;
     }
 
     /*
