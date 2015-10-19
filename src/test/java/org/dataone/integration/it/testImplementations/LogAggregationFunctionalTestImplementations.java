@@ -109,9 +109,9 @@ public class LogAggregationFunctionalTestImplementations extends ContextAwareTes
         for (Node n : v2MNs)
             log.info("v2 MN:   " + n.getBaseURL());
         
-//        assertTrue("Test requires that the environment has at least 2 v2 MNs to work with that "
-//                + "support logging for CN log aggregation. Found: " + v2MNs.size(), 
-//                v2MNs.size() >= 2);
+        assertTrue("Test requires that the environment has at least one v2 MN to work with that "
+                + "supports logging for CN log aggregation. Found: " + v2MNs.size(), 
+                v2MNs.size() >= 1);
     }
 
     @WebTestName("getLogRecords() user-based access")
