@@ -1,5 +1,6 @@
 package org.dataone.integration.it.testImplementations;
 
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.math.BigInteger;
@@ -303,9 +304,9 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
             
             SystemMetadata fetchedCNSysmeta = cn.getSystemMetadata(null, createdPid);
             boolean serialVersionMatches = fetchedCNSysmeta.getSerialVersion().equals(newSerialVersion);
-            boolean dateModifiedMatches = fetchedCNSysmeta.getDateSysMetadataModified().after(originalSysmetaModified);
+            boolean dateModifiedMatches = fetchedCNSysmeta.getDateSysMetadataModified().equals(originalSysmetaModified);
             assertTrue("System metadata fetched from CN should now have updated serialVersion.", serialVersionMatches);
-            assertTrue("System metadata fetched from CN should now have updated dateSysMetadataModified.", dateModifiedMatches );
+            assertFalse("System metadata fetched from CN should NOT have updated dateSysMetadataModified.", dateModifiedMatches );
             
             log.info("testSystemMetadataChanged_ExistingObj:   "
                     + "CN sysmeta matches updates made on MN");
@@ -506,9 +507,9 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
             
             SystemMetadata fetchedCNSysmeta = cn.getSystemMetadata(null, createdPid);
             boolean serialVersionMatches = fetchedCNSysmeta.getSerialVersion().equals(newSerialVersion);
-            boolean dateModifiedMatches = fetchedCNSysmeta.getDateSysMetadataModified().after(originalSysmetaModified);
+            boolean dateModifiedMatches = fetchedCNSysmeta.getDateSysMetadataModified().equals(originalSysmetaModified);
             assertTrue("System metadata fetched from CN should now have updated serialVersion.", serialVersionMatches);
-            assertTrue("System metadata fetched from CN should now have updated dateSysMetadataModified.", dateModifiedMatches );
+            assertFalse("System metadata fetched from CN should NOT have updated dateSysMetadataModified.", dateModifiedMatches );
             
             log.info("testSystemMetadataChanged_ExistingObj:   "
                     + "CN sysmeta matches updates made on MN");
@@ -705,9 +706,9 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
             
             SystemMetadata fetchedCNSysmeta = cn.getSystemMetadata(null, createdPid);
             boolean serialVersionMatches = fetchedCNSysmeta.getSerialVersion().equals(newSerialVersion);
-            boolean dateModifiedMatches = fetchedCNSysmeta.getDateSysMetadataModified().after(originalSysmetaModified);
+            boolean dateModifiedMatches = fetchedCNSysmeta.getDateSysMetadataModified().equals(originalSysmetaModified);
             assertTrue("System metadata fetched from CN should now have updated serialVersion.", serialVersionMatches);
-            assertTrue("System metadata fetched from CN should now have updated dateSysMetadataModified.", dateModifiedMatches );
+            assertFalse("System metadata fetched from CN should NOT have updated dateSysMetadataModified.", dateModifiedMatches );
             
             log.info("testSetReplicationStatus_NoChange:   "
                     + "CN sysmeta matches updates made on MN");
