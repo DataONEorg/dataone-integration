@@ -933,6 +933,12 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
                     }
                 } else {
                     log.debug("procureTestObject: calling createTestObject");
+                    if (submitterSubjectLabel == null)
+                        submitterSubjectLabel = cnSubmitter;
+                    if (rightsHolderSubjectName == null) {
+                        getSession("testRightsHolder");
+                        rightsHolderSubjectName = getSubject("testRightsHolder").getValue();
+                    }
                     identifier = createTestObject(cca, pid, accessRule, submitterSubjectLabel, rightsHolderSubjectName, replPolicy);
                 }
             } catch (ClientSideException e1) {
