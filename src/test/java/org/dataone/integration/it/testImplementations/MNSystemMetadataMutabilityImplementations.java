@@ -390,7 +390,7 @@ public class MNSystemMetadataMutabilityImplementations extends ContextAwareTestC
                 + "on setReplicationStatus.", dateUnchanged);
     }
     
-    public void testDeleteReplicationMetacat_dateModified() {
+    public void testDeleteReplicationMetadata_dateModified() {
 
         AccessRule publicAccessRule = new AccessRule();
         publicAccessRule.addSubject(D1TypeBuilder.buildSubject(Constants.SUBJECT_PUBLIC));

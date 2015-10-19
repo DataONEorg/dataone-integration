@@ -39,8 +39,8 @@ public class MNSystemMetadataMutabilityIt extends ContextAwareTestCaseDataone {
     }
     
     @Test
-    public void testDeleteReplicationMetacat_dateModified() {
-        sysmetaImpl.testDeleteReplicationMetacat_dateModified();
+    public void testDeleteReplicationMetadata_dateModified() {
+        sysmetaImpl.testDeleteReplicationMetadata_dateModified();
     }
         
     /*
@@ -59,6 +59,6 @@ public class MNSystemMetadataMutabilityIt extends ContextAwareTestCaseDataone {
     CN.setRightsHolder
     CN.registerSystemMetadata
     
-    
+    CN.deleteReplicationMetadata
     */
 }
