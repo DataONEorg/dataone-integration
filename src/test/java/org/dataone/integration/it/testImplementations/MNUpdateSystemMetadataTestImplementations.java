@@ -47,7 +47,7 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
 
     private CNCallAdapter cn;
     private static final long METACAT_INDEXING_WAIT = 10000;
-    private static final long REPLICATION_WAIT = 10 * 60000; 
+    private static final long REPLICATION_WAIT = 10 * 6 * 1000; 
     
     public MNUpdateSystemMetadataTestImplementations(ContextAwareTestCaseDataone catc) {
         super(catc);
@@ -671,8 +671,6 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
             pid.setValue("testUpdateSystemMetadata_CNCertNonAuthMN_" + ExampleUtilities.generateIdentifier());
             testObjPid = catc.createTestObject(cnCertAuthMN, pid, accessRule, replPolicy);
             
-            Thread.sleep(REPLICATION_WAIT);
-            
         } catch (BaseException e) {
             throw new AssertionError("Test setup failed. Couldn't create object: " + cnCertAuthMN.getLatestRequestUrl() + " : " + e.getClass().getSimpleName() + ": " + 
                     e.getDetail_code() + ": " + e.getDescription());
@@ -682,13 +680,23 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
         }
         
         try {
+            Thread.sleep(REPLICATION_WAIT);
+        } catch (InterruptedException e1) {
+            log.error("waiting for replication was interrupted");
+        }
+        
+        try {
             sysmeta = cn.getSystemMetadata(null, testObjPid);
         } catch (BaseException e) {
-            throw new AssertionError("Test setup failed. Couldn't fetch object from CN: " + cn.getLatestRequestUrl() + " : " + e.getClass().getSimpleName() + ": " + 
+            throw new AssertionError("Test setup failed. Couldn't fetch sysmeta (" + testObjPid + ") from CN: " 
+                    + cn.getLatestRequestUrl() + ", origin MN: " + cnCertAuthMN.getNodeBaseServiceUrl() 
+                    + " : " + e.getClass().getSimpleName() + ": " + 
                     e.getDetail_code() + ": " + e.getDescription());
         } catch(Exception e) {
             e.printStackTrace();
-            throw new AssertionError("Test setup failed. Couldn't fetch object from CN: " + cn.getLatestRequestUrl() + " : " + e.getClass().getName() + ": " + e.getMessage());
+            throw new AssertionError("Test setup failed. Couldn't fetch sysmeta (" + testObjPid + ") from CN: " 
+            + cn.getLatestRequestUrl() + ", origin MN: " + cnCertAuthMN.getNodeBaseServiceUrl() 
+            + " : " + e.getClass().getName() + ": " + e.getMessage());
         }
         
         try {
