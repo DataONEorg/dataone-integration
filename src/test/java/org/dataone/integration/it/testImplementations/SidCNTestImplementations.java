@@ -530,15 +530,15 @@ public class SidCNTestImplementations extends SidCommonTestImplementations {
             log.info("waiting for object (" + pid.getValue() + ") to sync from " + mn.getBaseURL() 
                     + " to " + callAdapter.getNodeBaseServiceUrl());
             
-            Thread.sleep(SYNC_TIME);
+            Thread.sleep(15 * 60 * 1000);
             
             log.info("test object should be synchronized to CN...");
             try {
                 callAdapter.getSystemMetadata(null, pid);
             } catch (NotFound nf) {
-                log.error("Test object not synchronized to CN! pid: "
-                        + pid.getValue() + " : " + nf.getClass().getSimpleName() 
-                        + " : " + nf.getMessage());
+                log.error("Test object (" + pid.getValue() + ") was not synchronized from " 
+                        + mn.getBaseURL() + " to " + callAdapter.getNodeBaseServiceUrl()
+                        + " : " + nf.getClass().getSimpleName() + " : " + nf.getMessage());
                 throw new NotFound(nf.getDetail_code(), "Test object (" + pid.getValue() + ") was created but not synchronized to CN (" 
                         + callAdapter.getNodeBaseServiceUrl() + ")");
             }
