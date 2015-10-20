@@ -589,9 +589,11 @@ public class CoreTestImplementations extends ContextAwareAdapter {
                 } else {
                     entries = callAdapter.getLogRecords(null, null, toDate, null, targetIdentifier.getValue(), null, null);
                     boolean oneTypeOnly = true;
+                    Identifier other = null;
                     if (entries.sizeLogEntryList() > 0) {
                         for (LogEntry le : entries.getLogEntryList()) {
                             if (!le.getIdentifier().equals(targetIdentifier)) {
+                            	other = le.getIdentifier();
                                 oneTypeOnly = false;
                                 break;
                             }
@@ -602,7 +604,7 @@ public class CoreTestImplementations extends ContextAwareAdapter {
                         checkTrue(callAdapter.getLatestRequestUrl(),
                                 "The optional pidFilter parameter is not filtering log records. "
                                         + "The log would otherwise contain only entries for the target identifier: "
-                                        + targetIdentifier.getValue(), oneTypeOnly);
+                                        + targetIdentifier.getValue() + " but found other identifier: " + other.getValue(), oneTypeOnly);
                     } else {
                         handleFail(callAdapter.getLatestRequestUrl(),
                                 "should still get a LogEntry when applying 'pidFilter' parameter");
