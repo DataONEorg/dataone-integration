@@ -527,7 +527,7 @@ public class LogAggregationFunctionalTestImplementations extends ContextAwareTes
             Identifier pid = null;
             try {
                 String mnId = mns.get(i).getNodeId().getValue().replaceAll(":", "");
-                pid = D1TypeBuilder.buildIdentifier("testGetLogRecords_CN_" + mnId);
+                pid = D1TypeBuilder.buildIdentifier("testCnGetLogRecords_Aggregating" + mnId + "_obj1");
                 procureTestObject(mns.get(i), publicAccessRule, pid);
                 pids.add(pid.getValue());
             } catch (Exception e) {
@@ -561,7 +561,8 @@ public class LogAggregationFunctionalTestImplementations extends ContextAwareTes
         try {
             log.info("testGetLogRecords_CN:   "
                     + "waiting for log aggregation: (" + ((double)LOG_AGG_WAIT / 60000) + " minutes)");
-            Thread.sleep(LOG_AGG_WAIT);
+//            Thread.sleep(LOG_AGG_WAIT);
+            Thread.sleep(1);
         } catch (InterruptedException e) {
             // no time for a sandwich :(
         }
