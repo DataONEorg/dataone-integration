@@ -30,7 +30,6 @@ import static org.junit.Assert.assertTrue;
 import org.apache.commons.lang.StringUtils;
 import org.dataone.configuration.Settings;
 import org.dataone.configuration.TestSettings;
-import org.hsqldb.lib.StringUtil;
 import org.junit.After;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -105,7 +104,7 @@ public class ContextAwareTestCaseDataoneTest {
 		
 		String prodCNurl = Settings.getConfiguration().getString("D1Client.CN_URL");	
 		System.out.println("context CN url = " + prodCNurl);
-		assertTrue("reference CN should not bleed over into context CN", StringUtil.isEmpty(prodCNurl));
+		assertTrue("reference CN should not bleed over into context CN", StringUtils.isEmpty(prodCNurl));
 	}
 	
 }
