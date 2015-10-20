@@ -530,7 +530,7 @@ public class SidCNTestImplementations extends SidCommonTestImplementations {
             log.info("waiting for object (" + pid.getValue() + ") to sync from " + mn.getBaseURL() 
                     + " to " + callAdapter.getNodeBaseServiceUrl());
             
-            Thread.sleep(15 * 60 * 1000);
+            Thread.sleep(SYNC_TIME);
             
             log.info("test object should be synchronized to CN...");
             try {
