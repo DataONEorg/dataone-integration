@@ -14,6 +14,7 @@ import org.apache.commons.logging.LogFactory;
 import org.dataone.client.v1.types.D1TypeBuilder;
 import org.dataone.configuration.Settings;
 import org.dataone.integration.ContextAwareTestCaseDataone;
+import org.dataone.integration.ExampleUtilities;
 import org.dataone.integration.adapters.CNCallAdapter;
 import org.dataone.integration.adapters.MNCallAdapter;
 import org.dataone.integration.webTest.WebTestDescription;
@@ -508,7 +509,7 @@ public class MNSystemMetadataMutabilityImplementations extends ContextAwareTestC
         // create object on MN
         try {
             getSession(cnSubmitter);
-            pid = D1TypeBuilder.buildIdentifier("testDeleteReplicationMetacat_dateModified_obj1");
+            pid = D1TypeBuilder.buildIdentifier("testDeleteReplicationMetacat_dateModified_" + ExampleUtilities.generateIdentifier());
             log.info("attempting to create test object on " + mn.getNodeBaseServiceUrl() + " with pid " + pid.getValue());
             pid = procureTestObject(mn,  publicAccessRule, pid, cnSubmitter, "public", replPolicy);
         } catch (Exception e) {
