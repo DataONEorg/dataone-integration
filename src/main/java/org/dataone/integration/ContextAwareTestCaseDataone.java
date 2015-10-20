@@ -1352,11 +1352,6 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
             String submitterX500 = CertificateManager.getInstance().getSubjectDN(certificate);
             
             try {
-                //			if (d1Node instanceof MNode) {
-                //				byte[] contentBytes = "Plain text source for test object".getBytes("UTF-8");
-                //				objectInputStream = new ByteArrayInputStream(contentBytes);
-                //				d1o = new D1Object(pid, contentBytes, ExampleUtilities.FORMAT_TEXT_PLAIN, submitterX500, "bogusAuthoritativeNode");
-                //			} else {
                 byte[] contentBytes = ExampleUtilities.getExampleObjectOfType(DEFAULT_TEST_OBJECTFORMAT);
                 objectInputStream = new ByteArrayInputStream(contentBytes);
                 
@@ -1415,19 +1410,18 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
                 sysMeta.setSeriesId(sid);
                 sysMeta.setReplicationPolicy(replPolicy);
             } catch (NoSuchAlgorithmException e) {
-                e.printStackTrace();
+                log.warn("Unexpected exception creating test object.", e);
                 throw new ServiceFailure("0000","client misconfiguration related to checksum algorithms");
             } catch (NotFound e) {
                 // method misconfiguration related to choice of object format
-                e.printStackTrace();
+                log.warn("Unexpected NotFound creating test object.", e);
                 throw e;
             } catch (IOException e) {
-                e.printStackTrace();
+                log.warn("IOException creating test object.", e);
                 throw new ServiceFailure("0000","client misconfiguration related to reading of content byte[]");
             } catch (InstantiationException | IllegalAccessException |
                     InvocationTargetException e) {
-                log.error("Unable to convert v1 SystemMetadata to v2 SystemMetadata.");
-                e.printStackTrace();
+                log.error("Unable to convert v1 SystemMetadata to v2 SystemMetadata.",e);
             }
 
             // set the rightsHolder property
@@ -1453,9 +1447,9 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
                 try {
                     TypeMarshaller.marshalTypeToOutputStream(sysMeta, os);
                 } catch (JiBXException e) {
-                    e.printStackTrace();
+                    log.error("Unexpected Error!", e);
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    log.error("Unexpected Error!", e);
                 }
                 log.info("SystemMetadata for pid: " + pid.getValue() + "\n"
                         + os.toString());
@@ -1475,10 +1469,9 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
                     "createTestObject(): returned pid from the create() should match what was given",
                     pid.getValue(), retPid.getValue());
         } catch (BaseException be) {
-            be.printStackTrace();
             throw new ClientSideException("Unable to create test object!", be);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Unexpected error!", e);
         } finally {
             // reset the client to the starting subject/certificate
             // (this should work for public user, too, since we create a public user by
