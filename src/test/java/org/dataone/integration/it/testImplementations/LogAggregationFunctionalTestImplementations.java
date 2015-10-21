@@ -618,11 +618,11 @@ public class LogAggregationFunctionalTestImplementations extends ContextAwareTes
         publicAccessRule.addSubject(D1TypeBuilder.buildSubject(Constants.SUBJECT_PUBLIC));
         publicAccessRule.addPermission(Permission.CHANGE_PERMISSION);
         
-        Identifier pid = D1TypeBuilder.buildIdentifier("testQuery_ParamOrder");
+        Identifier pid = D1TypeBuilder.buildIdentifier("testQuery_Params");
         try {
             procureTestObject(mnCnCaller, publicAccessRule, pid);
         } catch (Exception e) {
-            throw new AssertionError("testQuery_Access: Unable to get or create a test object "
+            throw new AssertionError("testQuery_Params: Unable to get or create a test object "
                     + "with pid: " + pid.getValue() + ", " + e.getClass().getSimpleName() + " : " + e.getMessage(), e);
         }
         
@@ -739,7 +739,7 @@ public class LogAggregationFunctionalTestImplementations extends ContextAwareTes
             String errorString = "";
             for (String err : errors)
                 errorString += err + "\n";
-            throw new AssertionError("testQuery_Access ran into " + errors.size() + " errors:\n" + errorString);
+            throw new AssertionError("testQuery_Params ran into " + errors.size() + " errors:\n" + errorString);
         }
         
     }

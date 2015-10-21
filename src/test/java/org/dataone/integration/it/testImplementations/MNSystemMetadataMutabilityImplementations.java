@@ -509,11 +509,11 @@ public class MNSystemMetadataMutabilityImplementations extends ContextAwareTestC
         // create object on MN
         try {
             getSession(cnSubmitter);
-            pid = D1TypeBuilder.buildIdentifier("testDeleteReplicationMetacat_dateModified_" + ExampleUtilities.generateIdentifier());
+            pid = D1TypeBuilder.buildIdentifier("testDeleteReplicationMetadata_dateModified_" + ExampleUtilities.generateIdentifier());
             log.info("attempting to create test object on " + mn.getNodeBaseServiceUrl() + " with pid " + pid.getValue());
             pid = procureTestObject(mn,  publicAccessRule, pid, cnSubmitter, "public", replPolicy);
         } catch (Exception e) {
-            throw new AssertionError("testDeleteReplicationMetacat_dateModified: Unable to get or create a "
+            throw new AssertionError("testDeleteReplicationMetadata_dateModified: Unable to get or create a "
                     + "test object with pid: " + pid.getValue(), e);
         }
 
@@ -528,7 +528,7 @@ public class MNSystemMetadataMutabilityImplementations extends ContextAwareTestC
         try {
             sysmeta = mn.getSystemMetadata(null, pid);
         } catch (Exception e) {
-            throw new AssertionError("testDeleteReplicationMetacat_dateModified: Unable to fetch sysmeta from MN "
+            throw new AssertionError("testDeleteReplicationMetadata_dateModified: Unable to fetch sysmeta from MN "
                     + mn.getLatestRequestUrl() + " for pid " + pid.getValue(), e);
         }
         Date mnSysmetaDateModified = sysmeta.getDateSysMetadataModified();
@@ -537,7 +537,7 @@ public class MNSystemMetadataMutabilityImplementations extends ContextAwareTestC
         try {
             Thread.sleep(REPLICATION_WAIT);
         } catch (InterruptedException e) {
-            log.error("testDeleteReplicationMetacat_dateModified: wait for replication interrupted");
+            log.error("testDeleteReplicationMetadata_dateModified: wait for replication interrupted");
         }
         
         // get a replica
@@ -546,7 +546,7 @@ public class MNSystemMetadataMutabilityImplementations extends ContextAwareTestC
         try {
             cnSysmeta = cnV2.getSystemMetadata(null, pid);
         } catch (Exception e) {
-            throw new AssertionError(cnV2.getLatestRequestUrl() + " testDeleteReplicationMetacat_dateModified: unable "
+            throw new AssertionError(cnV2.getLatestRequestUrl() + " testDeleteReplicationMetadata_dateModified: unable "
                     + "to fetch sysmeta from CN for pid " + pid.getValue() + " Got exception: " 
                     + e.getClass().getSimpleName() + " : " + e.getMessage(), e);
         }
@@ -577,7 +577,7 @@ public class MNSystemMetadataMutabilityImplementations extends ContextAwareTestC
         try {
             cnV2.deleteReplicationMetadata(null, pid, replica.getReplicaMemberNode(), cnSysmeta.getSerialVersion().longValue());
         } catch (Exception e) {
-            throw new AssertionError(cnV2.getLatestRequestUrl() + " testDeleteReplicationMetacat_dateModified: unable "
+            throw new AssertionError(cnV2.getLatestRequestUrl() + " testDeleteReplicationMetadata_dateModified: unable "
                     + "to deleteReplicationMetadata for pid " + pid.getValue() + " Got exception: " 
                     + e.getClass().getSimpleName() + " : " + e.getMessage(), e);
         }
@@ -586,7 +586,7 @@ public class MNSystemMetadataMutabilityImplementations extends ContextAwareTestC
         try {
             cnSysmeta = cnV2.getSystemMetadata(null, pid);
         } catch (Exception e) {
-            throw new AssertionError(cnV2.getLatestRequestUrl() + " testDeleteReplicationMetacat_dateModified: unable "
+            throw new AssertionError(cnV2.getLatestRequestUrl() + " testDeleteReplicationMetadata_dateModified: unable "
                     + "to fetch sysmeta from CN for pid " + pid.getValue() + " Got exception: " 
                     + e.getClass().getSimpleName() + " : " + e.getMessage(), e);
         }
