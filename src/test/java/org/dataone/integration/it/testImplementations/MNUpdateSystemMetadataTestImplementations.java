@@ -110,7 +110,7 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
     @WebTestDescription("this test calls updateSystemMetadata() using an object's rights-holder "
             + "as the certificate subject to update the metadata, "
             + "checks that the call was successful, then also uses getSystemMetadata() "
-            + "to fetch the new metadata and check that for updated serialVersion and "
+            + "to fetch the new metadata and check that for "
             + "dateSysMetadataModified")
     public void testUpdateSystemMetadata_RightsHolder(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
@@ -133,9 +133,7 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
             Identifier testObjPid = catc.createTestObject(callAdapter, pid, accessRule);
             
             SystemMetadata sysmeta = callAdapter.getSystemMetadata(null, testObjPid);
-            BigInteger newSerialVersion = sysmeta.getSerialVersion().add(BigInteger.ONE);
             Date originalDate = sysmeta.getDateSysMetadataModified();
-            sysmeta.setSerialVersion(newSerialVersion);
             
             boolean success = callAdapter.updateSystemMetadata(null, testObjPid , sysmeta);
             assertTrue("Call to updateSystemMetadata() should be successful.", success);
@@ -143,9 +141,7 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
             Thread.sleep(METACAT_INDEXING_WAIT);
             
             SystemMetadata fetchedSysmeta = callAdapter.getSystemMetadata(null, testObjPid);
-            boolean serialVersionMatches = fetchedSysmeta.getSerialVersion().equals(newSerialVersion);
             boolean dateModifiedMatches = fetchedSysmeta.getDateSysMetadataModified().after(originalDate);
-            assertTrue("System metadata should now have updated serialVersion", serialVersionMatches);
             assertTrue("System metadata should now have updated dateSysMetadataModified", dateModifiedMatches );
         
         } catch (ServiceFailure e) {
@@ -191,8 +187,6 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
             Identifier testObjPid = catc.createTestObject(callAdapter, pid, accessRule);
             
             SystemMetadata sysmeta = callAdapter.getSystemMetadata(null, testObjPid);
-            BigInteger newSerialVersion = sysmeta.getSerialVersion().add(BigInteger.ONE);
-            sysmeta.setSerialVersion(newSerialVersion);
             getSession("testPerson");
             sysmeta.setRightsHolder(catc.getSubject("testPerson"));
             
@@ -202,9 +196,7 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
             Thread.sleep(METACAT_INDEXING_WAIT);
             
             SystemMetadata fetchedSysmeta = callAdapter.getSystemMetadata(null, testObjPid);
-            boolean serialVersionMatches = fetchedSysmeta.getSerialVersion().equals(newSerialVersion);
             boolean rightsHolderMatches = fetchedSysmeta.getRightsHolder().getValue().equals(sysmeta.getRightsHolder().getValue());
-            assertTrue("System metadata should now have updated serialVersion", serialVersionMatches);
             assertTrue("System metadata should now have updated rightsHolder", rightsHolderMatches );
         
         } catch (ServiceFailure e) {
@@ -250,8 +242,6 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
             Identifier testObjPid = catc.createTestObject(callAdapter, pid, accessRule);
             
             SystemMetadata sysmeta = callAdapter.getSystemMetadata(null, testObjPid);
-            BigInteger newSerialVersion = sysmeta.getSerialVersion().add(BigInteger.ONE);
-            sysmeta.setSerialVersion(newSerialVersion);
             sysmeta.setFormatId(D1TypeBuilder.buildFormatIdentifier("image/png"));
             
             boolean success = callAdapter.updateSystemMetadata(null, testObjPid , sysmeta);
@@ -260,11 +250,8 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
             Thread.sleep(METACAT_INDEXING_WAIT);
             
             SystemMetadata fetchedSysmeta = callAdapter.getSystemMetadata(null, testObjPid);
-            boolean serialVersionMatches = fetchedSysmeta.getSerialVersion().equals(newSerialVersion);
             boolean formatIdMatches = fetchedSysmeta.getFormatId().getValue().equals("image/png");
-            assertTrue("System metadata should now have updated serialVersion", serialVersionMatches);
             assertTrue("System metadata should now have updated formatId", formatIdMatches );
-        
         } catch (ServiceFailure e) {
             // ServiceFailure is an allowed outcome for the MN.updateSystemMetadata()
             log.warn("MN.updateSystemMetadata() returned a ServiceFailure.");
@@ -308,8 +295,6 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
             Identifier testObjPid = catc.createTestObject(callAdapter, pid, accessRule);
             
             SystemMetadata sysmeta = callAdapter.getSystemMetadata(null, testObjPid);
-            BigInteger newSerialVersion = sysmeta.getSerialVersion().add(BigInteger.ONE);
-            sysmeta.setSerialVersion(newSerialVersion);
             
             AccessPolicy accessPolicy = new AccessPolicy();
             getSession("testGroup");
@@ -324,7 +309,6 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
             Thread.sleep(METACAT_INDEXING_WAIT);
             
             SystemMetadata fetchedSysmeta = callAdapter.getSystemMetadata(null, testObjPid);
-            boolean serialVersionMatches = fetchedSysmeta.getSerialVersion().equals(newSerialVersion);
             List<AccessRule> allowList = fetchedSysmeta.getAccessPolicy().getAllowList();
 
             assertTrue("System metadata should have an access policy with one item in its allow list.", allowList.size() == 1);
@@ -334,7 +318,6 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
             boolean accessPolicyMatches = permission == Permission.CHANGE_PERMISSION
                     && subjStr.equals(groupSubjStr);
             
-            assertTrue("System metadata should now have updated serialVersion", serialVersionMatches);
             assertTrue("System metadata should now have updated accessPolicy", accessPolicyMatches );
         
         } catch (ServiceFailure e) {
@@ -380,9 +363,7 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
             Identifier testObjPid = catc.createTestObject(callAdapter, pid, accessRule);
             
             SystemMetadata sysmeta = callAdapter.getSystemMetadata(null, testObjPid);
-            BigInteger newSerialVersion = sysmeta.getSerialVersion().add(BigInteger.ONE);
             Date nowIsh = new Date();
-            sysmeta.setSerialVersion(newSerialVersion);
 
             ReplicationPolicy replicationPolicy = new ReplicationPolicy();
             replicationPolicy.setNumberReplicas(42);
@@ -395,12 +376,10 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
             Thread.sleep(METACAT_INDEXING_WAIT);
             
             SystemMetadata fetchedSysmeta = callAdapter.getSystemMetadata(null, testObjPid);
-            boolean serialVersionMatches = fetchedSysmeta.getSerialVersion().equals(newSerialVersion);
             ReplicationPolicy fetchedReplPolicy = fetchedSysmeta.getReplicationPolicy();
             Integer numberReplicas = fetchedReplPolicy.getNumberReplicas();
             Boolean replicationAllowed = fetchedReplPolicy.getReplicationAllowed();
             boolean replicationPolicyMatches = replicationAllowed == false && numberReplicas == 42;
-            assertTrue("System metadata should now have updated serialVersion", serialVersionMatches);
             assertTrue("System metadata should now have updated replicationPolicy", replicationPolicyMatches );
         
         } catch (ServiceFailure e) {
@@ -446,8 +425,6 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
             Identifier testObjPid = catc.createTestObject(callAdapter, pid, accessRule);
             
             SystemMetadata sysmeta = callAdapter.getSystemMetadata(null, testObjPid);
-            BigInteger newSerialVersion = sysmeta.getSerialVersion().add(BigInteger.ONE);
-            sysmeta.setSerialVersion(newSerialVersion);
             
             NodeList nodes = cn.listNodes();
             Node diffMN = null;
@@ -466,9 +443,7 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
             Thread.sleep(METACAT_INDEXING_WAIT);
             
             SystemMetadata fetchedSysmeta = callAdapter.getSystemMetadata(null, testObjPid);
-            boolean serialVersionMatches = fetchedSysmeta.getSerialVersion().equals(newSerialVersion);
             boolean authMNMatches = fetchedSysmeta.getAuthoritativeMemberNode().getValue().equals(diffMN.getIdentifier().getValue());
-            assertTrue("System metadata should now have updated serialVersion", serialVersionMatches);
             assertTrue("System metadata should now have updated authoritativeMemberNode", authMNMatches );
         
         } catch (ServiceFailure e) {
@@ -514,8 +489,6 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
             Identifier testObjPid = catc.createTestObject(callAdapter, pid, accessRule);
             
             SystemMetadata sysmeta = callAdapter.getSystemMetadata(null, testObjPid);
-            BigInteger newSerialVersion = sysmeta.getSerialVersion().add(BigInteger.ONE);
-            sysmeta.setSerialVersion(newSerialVersion);
             sysmeta.setArchived(true);
             
             boolean success = callAdapter.updateSystemMetadata(null, testObjPid , sysmeta);
@@ -524,9 +497,7 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
             Thread.sleep(METACAT_INDEXING_WAIT);
             
             SystemMetadata fetchedSysmeta = callAdapter.getSystemMetadata(null, testObjPid);
-            boolean serialVersionMatches = fetchedSysmeta.getSerialVersion().equals(newSerialVersion);
             boolean archivedMatches = fetchedSysmeta.getArchived().equals(true);
-            assertTrue("System metadata should now have updated serialVersion", serialVersionMatches);
             assertTrue("System metadata should now have updated archived", archivedMatches );
         
         } catch (ServiceFailure e) {
