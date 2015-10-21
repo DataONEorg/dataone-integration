@@ -166,23 +166,32 @@ public class LogAggregationFunctionalTestImplementations extends ContextAwareTes
         Log publicLog = null;
         try {
             publicLog = mnPublicCaller.getLogRecords(null, null, null, null, publicPid.getValue(), null, null);
+        } catch (NotAuthorized nf) {
+            // expected
         } catch (Exception e) {
             log.warn(mnPublicCaller.getLatestRequestUrl() + " Unable to fetch Log records for public subject. " 
-                    + "Got exception: " + e.getClass().getSimpleName() + " : " + e.getMessage(), e);
+                    + "Expected a NotAuthorized (only CN or MN admin should have access) but got exception: " 
+                    + e.getClass().getSimpleName() + " : " + e.getMessage(), e);
         }
         Log testPersonLog = null;
         try {
             testPersonLog = mnTestPersonCaller.getLogRecords(null, null, null, null, testPersonPid.getValue(), null, null);
+        } catch (NotAuthorized nf) {
+            // expected
         } catch (Exception e) {
             log.warn(mnTestPersonCaller.getLatestRequestUrl() + " Unable to fetch Log records for testPerson subject. " 
-                    + "Got exception: " + e.getClass().getSimpleName() + " : " + e.getMessage(), e);
+                    + "Expected a NotAuthorized (only CN or MN admin should have access) but got exception: " 
+                    + e.getClass().getSimpleName() + " : " + e.getMessage(), e);
         }
         Log testRightsHolderLog = null;
         try {
             testRightsHolderLog = mnTestRightsHolderCaller.getLogRecords(null, null, null, null, testRightsHolderPid.getValue(), null, null);
+        } catch (NotAuthorized nf) {
+            // expected
         } catch (Exception e) {
             log.warn(mnTestRightsHolderCaller.getLatestRequestUrl() + " Unable to fetch Log records for testRightsHolder subject. " 
-                    + "Got exception: " + e.getClass().getSimpleName() + " : " + e.getMessage(), e);
+                    + "Expected a NotAuthorized (only CN or MN admin should have access) but got exception: " 
+                    + e.getClass().getSimpleName() + " : " + e.getMessage(), e);
         }
         Log cnLog = null;
         try {
