@@ -262,8 +262,13 @@ public abstract class SidCommonTestImplementations extends ContextAwareTestCaseD
         if(callAdapter.getNodeType() == NodeType.CN)
             throw new ClientSideException("Not for CN use!");
         
-        getSession("testRightsHolder");
         Subject subject = getSubject("testRightsHolder");
+        try {
+            subject = policy.getAllow(0).getSubject(0);
+        } catch (Exception e) {
+            e.printStackTrace();
+            // continue
+        }
         MNCallAdapter mnCallAdapter = new MNCallAdapter(getSession(subjectLabel), callAdapter.getNode(), "v2");
         byte[] contentBytes = ExampleUtilities.getExampleObjectOfType(DEFAULT_TEST_OBJECTFORMAT);
         D1Object d1o = new D1Object(newPid, contentBytes,
