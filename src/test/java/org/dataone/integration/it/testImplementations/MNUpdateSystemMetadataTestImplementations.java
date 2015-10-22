@@ -613,7 +613,14 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
                 log.info("testUpdateSystemMetadata_CNCertNonAuthMN: checking if valid replica target: " 
                         + n.getBaseURL());
                 MNCallAdapter v2mn = new MNCallAdapter(getSession(cnSubmitter), n, "v2");
-                Node cap = v2mn.getCapabilities();
+                Node cap = null;
+                try {
+                    cap = v2mn.getCapabilities();
+                } catch (Exception e) {
+                    log.info("testUpdateSystemMetadata_CNCertNonAuthMN: unable to getCapabilities() for node " 
+                            + n.getBaseURL());
+                    continue;
+                }
                 
                 List<Service> services = cap.getServices().getServiceList();
                 if (services != null)
