@@ -603,35 +603,45 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
         SystemMetadata sysmeta = null;
         ReplicationPolicy replPolicy = null;
         try {
-            int v2ReplicaTargets = 0;
+            int replicaTargets = 0;
             NodeList nodes = cn.listNodes();
             for (Node n : nodes.getNodeList()) {
                 if (n.getType() != NodeType.MN)
                     continue;
                 
-                MNCallAdapter v2mn = new MNCallAdapter(getSession(cnSubmitter), n, "v2");
                 Node cap = null;
                 try {
+                    MNCallAdapter v2mn = new MNCallAdapter(getSession(cnSubmitter), n, "v2");
                     cap = v2mn.getCapabilities();
                 } catch (Exception e) {
-                    continue;
+                    
                 }
+                if (cap == null)
+                    try {
+                        MNCallAdapter v1mn = new MNCallAdapter(getSession(cnSubmitter), n, "v1");
+                        cap = v1mn.getCapabilities();
+                    } catch (Exception e) {
+                        
+                    }
+                
+                if (cap == null)
+                    continue;
                 
                 List<Service> services = cap.getServices().getServiceList();
                 if (services != null)
                     for (Service s : services) {
-                        if (s.getName().equalsIgnoreCase("MNReplication") && s.getVersion().equalsIgnoreCase("v2"))
-                            v2ReplicaTargets++;
+                        if (s.getName().equalsIgnoreCase("MNReplication"))
+                            replicaTargets++;
                     }
             }
             
             assertTrue("testUpdateSystemMetadata_CNCertNonAuthMN requires at least 2 total v2 MNs so there's "
-                    + "at least one replica target. Found " + v2ReplicaTargets + " replica targets.", 
-                    v2ReplicaTargets >= 2);
+                    + "at least one replica target. Found " + replicaTargets + " replica targets.", 
+                    replicaTargets >= 2);
             
             replPolicy = new ReplicationPolicy();
             replPolicy.setReplicationAllowed(true);
-            replPolicy.setNumberReplicas((v2ReplicaTargets > 1) ? (v2ReplicaTargets-1) : 2);
+            replPolicy.setNumberReplicas((replicaTargets > 1) ? (replicaTargets-1) : 2);
             
             AccessRule accessRule = new AccessRule();
             getSession("testRightsHolder");
