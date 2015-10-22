@@ -694,17 +694,21 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
                     + "there should be at least one successful replica MN available! "
                     + "Replicas: " + replicaStr, successfulReplicas.size() > 0);
             
+            log.info("testUpdateSystemMetadata_CNCertNonAuthMN: checking replica list for v2 replica target nodes...");
             Node nonAuthMN = null;
+            
+            NodeList nodes = cn.listNodes();
             outerloop:
             for (Replica replica : successfulReplicas) {
                 NodeReference replicaMN = replica.getReplicaMemberNode();
                 
-                NodeList nodes = cn.listNodes();
+                log.info("testUpdateSystemMetadata_CNCertNonAuthMN: checking replica on " + replicaMN.getValue());
                 for (Node n : nodes.getNodeList()) {
                     if (n.getType() == NodeType.MN
                             && n.getIdentifier().getValue().equals(replicaMN.getValue())
                             && n.getState() == NodeState.UP) {
                         
+                        log.info("testUpdateSystemMetadata_CNCertNonAuthMN: replica is UP: " + replicaMN.getValue());
                         // need a v2 replica MN, so we can use updateSystemMetadata()
                         
                         Services services = n.getServices();
@@ -714,6 +718,7 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
                         }
                         for (Service s : services.getServiceList()) {
                             if(s.getVersion().equalsIgnoreCase("v2")) {
+                                log.info("testUpdateSystemMetadata_CNCertNonAuthMN: found v2 replica target " + n.getBaseURL());
                                 nonAuthMN = n;
                                 break outerloop;
                             }
