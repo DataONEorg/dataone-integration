@@ -666,8 +666,6 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
                     + "original sysmeta.dateSystemMetadataChanged: " + sysmeta.getDateSysMetadataModified());
             log.info("testSetReplicationStatus_NoChange:   "
                     + "original sysmeta.serialVersion      : " + sysmeta.getSerialVersion());
-            BigInteger newSerialVersion = sysmeta.getSerialVersion().add(BigInteger.ONE);
-            sysmeta.setSerialVersion(newSerialVersion);
             
             log.info("testSetReplicationStatus_NoChange:   "
                     + "new sysmeta.dateSystemMetadataChanged: " + originalSysmetaModified);
@@ -705,9 +703,7 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
                     + "done waiting for CN.synchronize(), verifying CN has correct sysmeta");
             
             SystemMetadata fetchedCNSysmeta = cn.getSystemMetadata(null, createdPid);
-            boolean serialVersionMatches = fetchedCNSysmeta.getSerialVersion().equals(newSerialVersion);
             boolean dateModifiedMatches = fetchedCNSysmeta.getDateSysMetadataModified().equals(originalSysmetaModified);
-            assertTrue("System metadata fetched from CN should now have updated serialVersion.", serialVersionMatches);
             assertFalse("System metadata fetched from CN should NOT have updated dateSysMetadataModified.", dateModifiedMatches );
             
             log.info("testSetReplicationStatus_NoChange:   "
