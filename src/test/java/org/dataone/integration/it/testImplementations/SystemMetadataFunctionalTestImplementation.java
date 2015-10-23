@@ -10,6 +10,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.apache.commons.collections.IteratorUtils;
+import org.dataone.client.RetryHandler;
 import org.dataone.client.exception.ClientSideException;
 import org.dataone.configuration.Settings;
 import org.dataone.integration.APITestUtils;
@@ -21,6 +22,9 @@ import org.dataone.integration.adapters.MNCallAdapter;
 import org.dataone.integration.webTest.WebTestDescription;
 import org.dataone.integration.webTest.WebTestName;
 import org.dataone.service.exceptions.BaseException;
+import org.dataone.service.exceptions.InvalidToken;
+import org.dataone.service.exceptions.NotAuthorized;
+import org.dataone.service.exceptions.NotFound;
 import org.dataone.service.exceptions.NotImplemented;
 import org.dataone.service.exceptions.ServiceFailure;
 import org.dataone.service.types.v1.AccessPolicy;
@@ -34,6 +38,7 @@ import org.dataone.service.types.v1.Replica;
 import org.dataone.service.types.v1.ReplicationPolicy;
 import org.dataone.service.types.v1.ReplicationStatus;
 import org.dataone.service.types.v1.Service;
+import org.dataone.service.types.v1.Session;
 import org.dataone.service.types.v2.SystemMetadata;
 import org.dataone.service.types.v2.TypeFactory;
 import org.dataone.service.util.Constants;
@@ -73,8 +78,8 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
     private List<Node> mnList;
     private List<Node> cnList;
     private Node mnV2NoSync;
-    private static final long SYNC_WAIT = 10 * 60000;       // FIXME this is based on manually setting sync time on MNs
-    private static final long REPLICATION_WAIT = 5 * 60000;
+    private static final long SYNC_WAIT_MINUTES = 10;
+    private static final long REPLICATION_WAIT_MINUTES = 5;
     
     @Before
     public void setup() {
@@ -202,7 +207,7 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
             currentCapabilities.setSynchronize(true);
             cn.updateNodeCapabilities(null, nodeRef, currentCapabilities);
         } catch (Exception e) {
-            throw new AssertionError("Unable to update MN capabilities to re-enable synchronization on: " + mnV2NoSync.getIdentifier() +
+            throw new AssertionError("Unable to update MN capabilities to re-enable synchronization on: " + mnV2NoSync.getIdentifier().getValue() +
                     " Reenable in LDAP.");
         }
     }
@@ -241,35 +246,35 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
             try {
                 createdPid = createTestObject(mn, pid, accessRule, replPolicy);
             } catch (BaseException be) {
-                handleFail(mn.getLatestRequestUrl(), "Unable to create a test object: " + pid);
+                handleFail(mn.getLatestRequestUrl(), "Unable to create a test object: " + pid.getValue());
                 throw be;
             }
             
-            log.info("testSystemMetadataChanged_ExistingObj:   "
+            log.info("testSystemMetadataChanged:   "
                     + "created test object: " + createdPid.getValue());
             
             // modify the sysmeta
             
-            log.info("testSystemMetadataChanged_ExistingObj:   "
+            log.info("testSystemMetadataChanged:   "
                     + "fetching sysmeta for pid " + createdPid.getValue() + " from auth MN");
                     
             SystemMetadata sysmeta = mn.getSystemMetadata(null, createdPid);
             
             Date originalSysmetaModified = sysmeta.getDateSysMetadataModified();
-            log.info("testSystemMetadataChanged_ExistingObj:   "
+            log.info("testSystemMetadataChanged:   "
                     + "original sysmeta.dateSystemMetadataChanged: " + originalSysmetaModified);
-            log.info("testSystemMetadataChanged_ExistingObj:   "
+            log.info("testSystemMetadataChanged:   "
                     + "original sysmeta.serialVersion      : " + sysmeta.getSerialVersion());
             
             BigInteger newSerialVersion = sysmeta.getSerialVersion().add(BigInteger.ONE);
             sysmeta.setSerialVersion(newSerialVersion);
             
-            log.info("testSystemMetadataChanged_ExistingObj:   "
+            log.info("testSystemMetadataChanged:   "
                     + "new sysmeta.dateSystemMetadataChanged: " + sysmeta.getDateSysMetadataModified());
-            log.info("testSystemMetadataChanged_ExistingObj:   "
+            log.info("testSystemMetadataChangedj:   "
                     + "new sysmeta.serialVersion      : " + sysmeta.getSerialVersion());
             
-            log.info("testSystemMetadataChanged_ExistingObj:   "
+            log.info("testSystemMetadataChanged:   "
                     + "updating sysmeta on auth MN");
                     
 			boolean success = false;
@@ -281,34 +286,48 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
             }
             assertTrue("MN should have modified its own system metadata successfully.", success);
             
-            log.info("testSystemMetadataChanged_ExistingObj:   "
+            log.info("testSystemMetadataChanged:   "
                     + "updated sysmeta on auth MN successfully");
                     
             // MN.updateSystemMetadata() call should trigger a 
             // CN.synchronize() call under the hood
             
             Node cnNode = cnList.get(0);
-            CNCallAdapter cn = new CNCallAdapter(getSession(cnSubmitter), cnNode, "v2");
+            final CNCallAdapter cn = new CNCallAdapter(getSession(cnSubmitter), cnNode, "v2");
 
             // CN needs time to synchronize
-            
-            log.info("testSystemMetadataChanged_ExistingObj:   "
-                    + "waiting for CN.synchronize() to run (" + ((double)SYNC_WAIT / 60000) + " minutes)");
-            // TODO not the same as CN sync task wait time
-            Thread.sleep(SYNC_WAIT);
-            
-            // verify that sysmeta fetched from CN is updated
-            
-            log.info("testSystemMetadataChanged_ExistingObj:   "
+            log.info("testSystemMetadataChanged:   "
+                    + "polling the CN for the systemMetadata every 30 seconds while CN.synchronize() to run. " +
+                    "(up to " + SYNC_WAIT_MINUTES + " minutes)");
+            final Identifier pollingPid = createdPid;
+            RetryHandler<SystemMetadata> handler =  new RetryHandler<SystemMetadata>() {
+
+                @Override
+                protected SystemMetadata attempt()
+                        throws TryAgainException, Exception {
+                    
+                    try {
+                        log.info("attempting CN getSystemMEtadata...");
+                       return cn.getSystemMetadata(null, pollingPid);
+                    } catch (NotFound | ServiceFailure e) {
+                        TryAgainException f = new TryAgainException();
+                        f.initCause(e);
+                        throw f;
+                    }
+                }
+                
+            };
+            SystemMetadata fetchedCNSysmeta = handler.execute(30* 1000, SYNC_WAIT_MINUTES * 60 * 1000);
+ 
+            log.info("testSystemMetadataChanged:   "
                     + "done waiting for CN.synchronize(), verifying CN has correct sysmeta");
             
-            SystemMetadata fetchedCNSysmeta = cn.getSystemMetadata(null, createdPid);
             boolean serialVersionMatches = fetchedCNSysmeta.getSerialVersion().equals(newSerialVersion);
             boolean dateModifiedMatches = fetchedCNSysmeta.getDateSysMetadataModified().equals(originalSysmetaModified);
             assertTrue("System metadata fetched from CN should now have updated serialVersion.", serialVersionMatches);
             assertFalse("System metadata fetched from CN should NOT have updated dateSysMetadataModified.", dateModifiedMatches );
             
-            log.info("testSystemMetadataChanged_ExistingObj:   "
+            log.info("testSystemMetadataChanged:   "
                     + "CN sysmeta matches updates made on MN");
                     
             // TODO could also inspect the system metadata on the CN 
@@ -319,20 +338,47 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
             // we need replica info in the sysmeta
             // so we can then verify that the sysmeta on the replica-holding MNs is updated
             
-            log.info("testSystemMetadataChanged_ExistingObj:   "
-                    + "waiting for CN to trigger replication "
-                    + "so we have replica info in sysmeta (" + ((double)SYNC_WAIT / 60000) + " minutes)");
+            log.info("testSystemMetadataChanged:   "
+                    + "waiting for CN to trigger replication. polling the CN for the systemMetadata every 30 seconds until "
+                    + "we have replica info in sysmeta. (waiting up to " + REPLICATION_WAIT_MINUTES + " minutes)");
             
-            Thread.sleep(REPLICATION_WAIT);
-            
-            log.info("testSystemMetadataChanged_ExistingObj:   "
-                    + "done waiting for replication, fetching sysmeta for pid " + createdPid.getValue() + " from CN");
+//            final Identifier pollingPid2 = createdPid;
+            RetryHandler<SystemMetadata> handler2 =  new RetryHandler<SystemMetadata>() {
+
+                @Override
+                protected SystemMetadata attempt()
+                        throws TryAgainException, Exception {
                     
+                    try {
+                        log.info("attempting CN getSystemMatadata...");
+                       SystemMetadata sysmeta = cn.getSystemMetadata(null, pollingPid);
+                       List<Replica> replicaList = sysmeta.getReplicaList();
+                       
+                       if (sysmeta.getReplicaList().size() > 0) {
+                           return sysmeta;
+                       } else {
+                           throw new TryAgainException();
+                       }
+                    } catch (NotFound | ServiceFailure e) {
+                        TryAgainException f = new TryAgainException();
+                        f.initCause(e);
+                        throw f;
+                    }
+                }
+                
+            };
+            fetchedCNSysmeta = handler2.execute(30* 1000, SYNC_WAIT_MINUTES * 60 * 1000);
+ 
+
+            
+            log.info("testSystemMetadataChanged:   "
+                    + "done waiting for replication, fetching sysmeta for pid " + createdPid.getValue() + " from CN");
+
             fetchedCNSysmeta = cn.getSystemMetadata(null, createdPid);
             List<Replica> replicaList = fetchedCNSysmeta.getReplicaList();
             assertTrue("System metadata fetched from CN should now have a non-empty replica list", replicaList.size() > 0);
             
-            log.info("testSystemMetadataChanged_ExistingObj:   "
+            log.info("testSystemMetadataChanged:   "
                     + "looking at MNs that have a replica");
                     
             // notify replica-holding MNs of the sysmeta change
@@ -344,7 +390,7 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
                 for (Node n : mnList)
                     if (n.getIdentifier().getValue().equals(replicaNodeRef.getValue())) {
                         replicaHolderNode = n;
-                        log.info("testSystemMetadataChanged_ExistingObj:   "
+                        log.info("testSystemMetadataChanged:   "
                                 + "found replica MN: " + replicaNodeRef.getValue());
                         break;
                     }
@@ -385,7 +431,7 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
                 if(createdPid != null)     
                     mn.delete(null, createdPid);
             } catch (Exception e2) {
-                log.warn("Unable to delete test pid after running the test: " + createdPid, e2);
+                log.warn("Unable to delete test pid after running the test: " + createdPid.getValue(), e2);
             }
         }
     }
@@ -422,7 +468,7 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
             try {
                 createdPid = createTestObject(mn, pid, accessRule, replPolicy);
             } catch (BaseException be) {
-                handleFail(mn.getLatestRequestUrl(), "Unable to create a test object: " + pid);
+                handleFail(mn.getLatestRequestUrl(), "Unable to create a test object: " + pid.getValue());
                 throw be;
             }
             
@@ -434,9 +480,9 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
             //    at the time when CN.synchronize() gets called
             
             log.info("testSystemMetadataChanged_ExistingObj:   "
-                    + "waiting for CN sync (" + ((double)SYNC_WAIT / 60000) + " minutes)");
+                    + "waiting for CN sync (" + SYNC_WAIT_MINUTES  + " minutes)");
             
-            Thread.sleep(SYNC_WAIT);
+            Thread.sleep(SYNC_WAIT_MINUTES * 60000);
             
             log.info("testSystemMetadataChanged_ExistingObj:   "
                     + "done waiting for CN sync, fetching sysmeta");
@@ -496,9 +542,9 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
             // CN needs time to synchronize
             
             log.info("testSystemMetadataChanged_ExistingObj:   "
-                    + "waiting for CN.synchronize() to run (" + ((double)SYNC_WAIT / 60000) + " minutes)");
+                    + "waiting for CN.synchronize() to run (" + SYNC_WAIT_MINUTES + " minutes)");
             // TODO not the same as CN sync task wait time
-            Thread.sleep(SYNC_WAIT);
+            Thread.sleep(SYNC_WAIT_MINUTES * 60000);
             
             // verify that sysmeta fetched from CN is updated
             
@@ -524,9 +570,9 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
             
             log.info("testSystemMetadataChanged_ExistingObj:   "
                     + "waiting for CN to trigger replication "
-                    + "so we have replica info in sysmeta (" + ((double)SYNC_WAIT / 60000) + " minutes)");
+                    + "so we have replica info in sysmeta (" + REPLICATION_WAIT_MINUTES + " minutes)");
             
-            Thread.sleep(REPLICATION_WAIT);
+            Thread.sleep(REPLICATION_WAIT_MINUTES * 60000);
             
             log.info("testSystemMetadataChanged_ExistingObj:   "
                     + "done waiting for replication, fetching sysmeta for pid " + createdPid.getValue() + " from CN");
@@ -589,7 +635,7 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
                 if(createdPid != null)     
                     mn.delete(null, createdPid);
             } catch (Exception e2) {
-                log.warn("Unable to delete test pid after running the test: " + createdPid, e2);
+                log.warn("Unable to delete test pid after running the test: " + createdPid.getValue(), e2);
             }
         }
     }
@@ -627,7 +673,7 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
                 mnSysmeta.getAccessPolicy().addAllow(APITestUtils.buildAccessRule(Constants.SUBJECT_PUBLIC + "-2", Permission.READ));
                 mn.updateSystemMetadata(null, createdPid, mnSysmeta);
             } catch (BaseException be) {
-                handleFail(mn.getLatestRequestUrl(), "Unable to create a test object: " + pid);
+                handleFail(mn.getLatestRequestUrl(), "Unable to create a test object: " + pid.getValue());
                 throw be;
             }
             
@@ -637,9 +683,10 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
             // wait for CN to synchronize
             
             log.info("testSetReplicationStatus_NoChange:   "
-                    + "waiting for CN sync (" + ((double)SYNC_WAIT / 60000) + " minutes)");
+                    + "waiting for CN sync (" + SYNC_WAIT_MINUTES + " minutes)");
             
-            Thread.sleep(SYNC_WAIT);
+            
+            Thread.sleep(SYNC_WAIT_MINUTES * 60000);
             
             log.info("testSetReplicationStatus_NoChange:   "
                     + "done waiting for CN sync, fetching sysmeta");
@@ -693,9 +740,9 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
             // CN needs time to synchronize
             
             log.info("testSetReplicationStatus_NoChange:   "
-                    + "waiting for CN.synchronize() to run (" + ((double)SYNC_WAIT / 60000) + " minutes)");
+                    + "waiting for CN.synchronize() to run (" + SYNC_WAIT_MINUTES + " minutes)");
             // TODO not the same as CN sync task wait time
-            Thread.sleep(SYNC_WAIT);
+            Thread.sleep(SYNC_WAIT_MINUTES * 60000);
             
             // verify that sysmeta fetched from CN is updated
             
@@ -718,9 +765,9 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
             
             log.info("testSetReplicationStatus_NoChange:   "
                     + "waiting for CN to trigger replication "
-                    + "so we have replica info in sysmeta (" + ((double)SYNC_WAIT / 60000) + " minutes)");
+                    + "so we have replica info in sysmeta (" + REPLICATION_WAIT_MINUTES + " minutes)");
             
-            Thread.sleep(REPLICATION_WAIT);
+            Thread.sleep(REPLICATION_WAIT_MINUTES * 60000);
             
             log.info("testSetReplicationStatus_NoChange:   "
                     + "done waiting for replication, fetching sysmeta for pid " + createdPid.getValue() + " from CN");
@@ -764,7 +811,7 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
                 if(createdPid != null)     
                     mn.delete(null, createdPid);
             } catch (Exception e2) {
-                log.warn("Unable to delete test pid after running the test: " + createdPid, e2);
+                log.warn("Unable to delete test pid after running the test: " + createdPid.getValue(), e2);
             }
         }
     }
