@@ -615,7 +615,7 @@ public class SidMNTestImplementations extends SidCommonTestImplementations {
     public void testGetPackage() throws NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InvalidToken, ServiceFailure, NotAuthorized, InvalidRequest, NotImplemented, NotFound, ClientSideException {
         log.info("Testing getPackage() method ... ");
         
-        for (int caseNum = 8; caseNum <= 15; caseNum++) {
+        for (int caseNum = 1; caseNum <= 15; caseNum++) {
             log.info("Testing getPackage(), Case" + caseNum);
             
             Method setupMethod = SidMNTestImplementations.class.getDeclaredMethod("setupResourcePkgMNCase" + caseNum, CommonCallAdapter.class, Node.class);
