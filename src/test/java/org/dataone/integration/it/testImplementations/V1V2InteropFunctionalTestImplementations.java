@@ -539,9 +539,11 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             }
         } catch (NotFound e) {
             throw new AssertionError(cnV2.getLatestRequestUrl() + " testV1CreateV2Get() : unable to fetch sysmeta from CN! Check status of CN sync. "
-                    + ": NotFound " + e.getDetail_code() + ", " + e.getDescription() + ":" + e.getMessage());
+                    + ": NotFound " + e.getDetail_code() + ", " + e.getDescription() + ":" + e.getMessage() 
+                    + ", origin MN: " + v1MNode.getBaseURL());
         } catch (Exception e) {
-            throw new AssertionError(cnV2.getLatestRequestUrl() + " testV1CreateV2Get() : unable to fetch sysmeta from CN! Check status of CN sync.");
+            throw new AssertionError(cnV2.getLatestRequestUrl() + " testV1CreateV2Get() : unable to fetch sysmeta from CN! Check status of CN sync." 
+                    + ", origin MN: " + v1MNode.getBaseURL());
         }
         
         if(replicaMN == null)
@@ -704,9 +706,11 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             }
         } catch (NotFound e) {
             throw new AssertionError(cnV2.getLatestRequestUrl() + " testV1CreateV2GetSysmeta() : unable to fetch sysmeta from CN! Check status of CN sync. "
-                    + ": NotFound " + e.getDetail_code() + ", " + e.getDescription() + ":" + e.getMessage());
+                    + ": NotFound " + e.getDetail_code() + ", " + e.getDescription() + ":" + e.getMessage() 
+                    + ", origin MN: " + v1MNode.getBaseURL());
         } catch (Exception e) {
-            throw new AssertionError(cnV2.getLatestRequestUrl() + " testV1CreateV2GetSysmeta() : unable to fetch sysmeta from CN! Check status of CN sync.");
+            throw new AssertionError(cnV2.getLatestRequestUrl() + " testV1CreateV2GetSysmeta() : unable to fetch sysmeta from CN! Check status of CN sync." 
+                    + ", origin MN: " + v1MNode.getBaseURL());
         }
         
         if(replicaMN == null)
@@ -862,9 +866,11 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             }
         } catch (NotFound e) {
             throw new AssertionError(cnV2.getLatestRequestUrl() + " testV1CreateV2Query() : unable to fetch sysmeta from CN! Check status of CN sync. "
-                    + ": NotFound " + e.getDetail_code() + ", " + e.getDescription() + ":" + e.getMessage());
+                    + ": NotFound " + e.getDetail_code() + ", " + e.getDescription() + ":" + e.getMessage() 
+                    + ", origin MN: " + v1MNode.getBaseURL());
         } catch (Exception e) {
-            throw new AssertionError(cnV2.getLatestRequestUrl() + " testV1CreateV2Query() : unable to fetch sysmeta from CN! Check status of CN sync.");
+            throw new AssertionError(cnV2.getLatestRequestUrl() + " testV1CreateV2Query() : unable to fetch sysmeta from CN! Check status of CN sync." 
+                    + ", origin MN: " + v1MNode.getBaseURL());
         }
         
         if(replicaMN == null)

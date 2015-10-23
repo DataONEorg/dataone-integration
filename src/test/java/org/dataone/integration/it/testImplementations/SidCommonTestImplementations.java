@@ -70,7 +70,6 @@ import org.junit.Test;
  */
 public abstract class SidCommonTestImplementations extends ContextAwareTestCaseDataone {
 
-    protected static final Logger logger = Logger.getLogger(SidCommonTestImplementations.class);
     protected static final String subjectLabel = cnSubmitter;
     protected final AccessPolicy policy = buildPublicReadAccessPolicy();
     
@@ -138,7 +137,7 @@ public abstract class SidCommonTestImplementations extends ContextAwareTestCaseD
                     callAdapter.delete(null, id);
                 } catch (InvalidToken | ServiceFailure | NotAuthorized | NotFound | NotImplemented
                         | InvalidRequest | ClientSideException e) {
-                    logger.error("Unable to delete Identifier \"" + idStr + "\" on node \""
+                    log.error("Unable to delete Identifier \"" + idStr + "\" on node \""
                             + node.getBaseURL() + "\"", e); 
                 }
             }
@@ -204,7 +203,7 @@ public abstract class SidCommonTestImplementations extends ContextAwareTestCaseD
         String sidVal = sid == null ? "null" : sid.getValue();
         String obsoletesVal = obsoletesId == null ? "null" : obsoletesId.getValue();
         String obsoletedVal = obsoletedById == null ? "null" : obsoletedById.getValue();
-        logger.info("CREATING test object... pid: " + pid.getValue() 
+        log.info("CREATING test object... pid: " + pid.getValue() 
                 + " with a sid: " + sidVal 
                 + " obsoletes: " + obsoletesVal 
                 + " obsoletedBy: " + obsoletedVal);
@@ -216,7 +215,7 @@ public abstract class SidCommonTestImplementations extends ContextAwareTestCaseD
         try {
             testObjPid = super.createTestObject(callAdapter, pid, sid, obsoletesId, obsoletedById, policy, subjectLabel, rightsHolder.getValue());
         } catch (BaseException be) {
-            logger.error("Unable to create test object. "
+            log.error("Unable to create test object. "
                     + be.getMessage() + " " + be.getDescription(), be);
             throw be;
         }
@@ -256,7 +255,7 @@ public abstract class SidCommonTestImplementations extends ContextAwareTestCaseD
             NotImplemented, InvalidRequest, NotFound, ClientSideException, IOException, NoSuchAlgorithmException, 
             InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
         
-        logger.info("UPDATING test object... pid: " + oldPid.getValue() + " with pid: " + newPid.getValue() 
+        log.info("UPDATING test object... pid: " + oldPid.getValue() + " with pid: " + newPid.getValue() 
                 + " with a sid: " + (sid == null ? "null" : sid.getValue()));
         
         if(callAdapter.getNodeType() == NodeType.CN)
@@ -304,12 +303,12 @@ public abstract class SidCommonTestImplementations extends ContextAwareTestCaseD
             + "yields metadata that points to the expected head PID")
     @Test
     public void testGetSystemMetadata() {
-        logger.info("Testing getSystemMetadata() method ... ");
+        log.info("Testing getSystemMetadata() method ... ");
         
         int[] casesToTest = getCasesToTest();
         for (int i = 0; i < casesToTest.length; i++) {
             int caseNum = casesToTest[i];
-            logger.info("Testing getSystemMetadata(), Case" + caseNum);
+            log.info("Testing getSystemMetadata(), Case" + caseNum);
             
             Iterator<Node> nodeIter = getNodeIterator();
             while (nodeIter.hasNext()) {
@@ -351,12 +350,12 @@ public abstract class SidCommonTestImplementations extends ContextAwareTestCaseD
             + "get() with the head PID yield the exact same object")
     @Test
     public void testGet() {
-        logger.info("Testing get() method ... ");
+        log.info("Testing get() method ... ");
         
         int[] casesToTest = getCasesToTest();
         for (int i = 0; i < casesToTest.length; i++) {
             int caseNum = casesToTest[i];
-            logger.info("Testing get(), Case" + caseNum);
+            log.info("Testing get(), Case" + caseNum);
             
             Iterator<Node> nodeIter = getNodeIterator();
             while (nodeIter.hasNext()) {
@@ -400,12 +399,12 @@ public abstract class SidCommonTestImplementations extends ContextAwareTestCaseD
             + "describe with the head PID yield the same object")
     @Test
     public void testDescribe() {
-        logger.info("Testing describe() method ... ");
+        log.info("Testing describe() method ... ");
         
         int[] casesToTest = getCasesToTest();
         for (int i = 0; i < casesToTest.length; i++) {
             int caseNum = casesToTest[i];
-            logger.info("Testing describe(), Case" + caseNum);
+            log.info("Testing describe(), Case" + caseNum);
             
             Iterator<Node> nodeIter = getNodeIterator();
             while (nodeIter.hasNext()) {
@@ -449,7 +448,7 @@ public abstract class SidCommonTestImplementations extends ContextAwareTestCaseD
             + "and makes sure the PID on the metadata is the expected one we called create with")
     @Test
     public void testCreate() {
-        logger.info("Testing create() method ... ");
+        log.info("Testing create() method ... ");
             
         Iterator<Node> nodeIter = getNodeIterator();
         while (nodeIter.hasNext()) {
@@ -473,7 +472,7 @@ public abstract class SidCommonTestImplementations extends ContextAwareTestCaseD
                 
                 Identifier createdPid = callAdapter.create(null, pid, objectInputStream, sysmeta);
                 
-                logger.info("Testing create(), created new object: " + createdPid);
+                log.info("Testing create(), created new object: " + createdPid);
                 markForCleanUp(callAdapter.getNode(), createdPid);
                 
                 SystemMetadata fetchedSysmeta = callAdapter.getSystemMetadata(null, sid);
@@ -501,12 +500,12 @@ public abstract class SidCommonTestImplementations extends ContextAwareTestCaseD
             + ", then calls get() on the head PID of the created chain, and makes sure it's not found")
     @Test
     public void testDelete() {
-        logger.info("Testing delete() method ... ");
+        log.info("Testing delete() method ... ");
         
         int[] casesToTest = getCasesToTest();
         for (int i = 0; i < casesToTest.length; i++) {
             int caseNum = casesToTest[i];
-            logger.info("Testing delete(), Case" + caseNum);
+            log.info("Testing delete(), Case" + caseNum);
             
             Iterator<Node> nodeIter = getNodeIterator();
             while (nodeIter.hasNext()) {
@@ -561,12 +560,12 @@ public abstract class SidCommonTestImplementations extends ContextAwareTestCaseD
             + "returns the expected number of results based on the chain we created")
     @Test
     public void testListObjects() {
-        logger.info("Testing listObjects() method ... ");
+        log.info("Testing listObjects() method ... ");
         
         int[] casesToTest = getCasesToTest();
         for (int i = 0; i < casesToTest.length; i++) {
             int caseNum = casesToTest[i];
-            logger.info("Testing listObjects(), Case" + caseNum);
+            log.info("Testing listObjects(), Case" + caseNum);
             
             Iterator<Node> nodeIter = getNodeIterator();
             while (nodeIter.hasNext()) {
@@ -619,12 +618,12 @@ public abstract class SidCommonTestImplementations extends ContextAwareTestCaseD
             " with the SID or head PID of a chain will return the same permissions")
     @Test
     public void testIsAuthorized() {
-        logger.info("Testing isAuthorized() method ... ");
+        log.info("Testing isAuthorized() method ... ");
         
         int[] casesToTest = getCasesToTest();
         for (int i = 0; i < casesToTest.length; i++) {
             int caseNum = casesToTest[i];
-            logger.info("Testing isAuthorized(), Case" + caseNum);
+            log.info("Testing isAuthorized(), Case" + caseNum);
             
             Iterator<Node> nodeIter = getNodeIterator();
             while (nodeIter.hasNext()) {
@@ -702,12 +701,12 @@ public abstract class SidCommonTestImplementations extends ContextAwareTestCaseD
             + "yields the same result")
     @Test
     public void testView() {
-        logger.info("Testing view() method ... ");
+        log.info("Testing view() method ... ");
         
         int[] casesToTest = getCasesToTest();
         for (int i = 0; i < casesToTest.length; i++) {
             int caseNum = casesToTest[i];
-            logger.info("Testing view(), Case" + caseNum);
+            log.info("Testing view(), Case" + caseNum);
             
             Iterator<Node> nodeIter = getNodeIterator();
             while (nodeIter.hasNext()) {
@@ -751,7 +750,7 @@ public abstract class SidCommonTestImplementations extends ContextAwareTestCaseD
         public IdPair(Identifier sid, Identifier headPid) {
             this.sid = sid;
             this.headPid = headPid;
-            logger.info("Created SID (" + sid.getValue() + ") and head PID (" + headPid.getValue() + ") pair.");
+            log.info("Created SID (" + sid.getValue() + ") and head PID (" + headPid.getValue() + ") pair.");
         }
     }
 }

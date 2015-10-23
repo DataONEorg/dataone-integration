@@ -51,8 +51,6 @@ import org.junit.Test;
 
 public class SidMNTestImplementations extends SidCommonTestImplementations {
 
-    private Logger logger = Logger.getLogger(SidMNTestImplementations.class);
-    
     @Override
     protected String getTestDescription() {
         return "Tests v2 API methods for MNs that accept SID parameters";
@@ -501,7 +499,7 @@ public class SidMNTestImplementations extends SidCommonTestImplementations {
         Identifier p3 = createIdentifier("P3_", node);
         Identifier s1 = createIdentifier("S1_", node);
         
-        createPackage(callAdapter, p1, s1, null, p2);
+        createPackage(callAdapter, p1, s1, null, null);
         createPackage(callAdapter, p2, s1, p1, null);
         createPackage(callAdapter, p3, s1, p2, null);
         callAdapter.delete(null, p3);
@@ -615,10 +613,10 @@ public class SidMNTestImplementations extends SidCommonTestImplementations {
             + "InputStreams for equality")
     @Test
     public void testGetPackage() throws NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InvalidToken, ServiceFailure, NotAuthorized, InvalidRequest, NotImplemented, NotFound, ClientSideException {
-        logger.info("Testing getPackage() method ... ");
+        log.info("Testing getPackage() method ... ");
         
-        for (int caseNum = 1; caseNum <= 15; caseNum++) {
-            logger.info("Testing getPackage(), Case" + caseNum);
+        for (int caseNum = 8; caseNum <= 15; caseNum++) {
+            log.info("Testing getPackage(), Case" + caseNum);
             
             Method setupMethod = SidMNTestImplementations.class.getDeclaredMethod("setupResourcePkgMNCase" + caseNum, CommonCallAdapter.class, Node.class);
             
@@ -631,7 +629,9 @@ public class SidMNTestImplementations extends SidCommonTestImplementations {
                     idPair = (IdPair) setupMethod.invoke(this, callAdapter, node);
                 } catch (Exception e1) {
                     throw new AssertionError(callAdapter.getNodeBaseServiceUrl() + " Case: " + caseNum + 
-                            " : " + e1.getClass().getSimpleName() + " : " + e1.getMessage());
+                            " : " + e1.getClass().getSimpleName() + " : " + e1.getMessage() +
+                            (e1.getCause() != null ? e1.getCause().getClass().getSimpleName() : "") +
+                            (e1.getCause() != null ? e1.getCause().getMessage() : ""));
                 }
                 Identifier sid = idPair.sid;
                 Identifier pid = idPair.headPid;
@@ -709,12 +709,12 @@ public class SidMNTestImplementations extends SidCommonTestImplementations {
             + "doesn't work if the head PID has been archived")
     @Test
     public void testUpdate() {
-        logger.info("Testing update() method ... ");
+        log.info("Testing update() method ... ");
         
         int[] casesToTest = getCasesToTest();
         for (int i = 0; i < casesToTest.length; i++) {
             int caseNum = casesToTest[i];
-            logger.info("Testing update(), Case" + caseNum);
+            log.info("Testing update(), Case" + caseNum);
             
             NodeReference nodeId = null;
             
@@ -730,7 +730,7 @@ public class SidMNTestImplementations extends SidCommonTestImplementations {
                     nodeId = nodeCap.getIdentifier();
                     node.setIdentifier(nodeId);
                 } catch (Exception e) {
-                    logger.error("Unable to fetch node identifier for node at " 
+                    log.error("Unable to fetch node identifier for node at " 
                             + node.getBaseURL(), e);
                 }
                 
@@ -789,12 +789,12 @@ public class SidMNTestImplementations extends SidCommonTestImplementations {
     @Ignore(" ... test not yet implemented ... ")
     @Test
     public void testSystemMetadataChanged() {
-        logger.info("Testing systemMetadataChanged() method ... ");
+        log.info("Testing systemMetadataChanged() method ... ");
         
         int[] casesToTest = getCasesToTest();
         for (int i = 0; i < casesToTest.length; i++) {
             int caseNum = casesToTest[i];
-            logger.info("Testing systemMetadataChanged(), Case" + caseNum);
+            log.info("Testing systemMetadataChanged(), Case" + caseNum);
             
             Iterator<Node> nodeIter = getNodeIterator();
             while (nodeIter.hasNext()) {
@@ -838,7 +838,7 @@ public class SidMNTestImplementations extends SidCommonTestImplementations {
             + "ended (obsoleted by another sid). Scenario: P1(S1) <-> P2(S2) <-> P3(S1)")
     @Test
     public void testSidReuse() {
-        logger.info("testSidReuse() method ... ");
+        log.info("testSidReuse() method ... ");
         
         Iterator<Node> nodeIter = getNodeIterator();
         while (nodeIter.hasNext()) {
@@ -886,7 +886,7 @@ public class SidMNTestImplementations extends SidCommonTestImplementations {
             + "Scenario: P1(S1) <-> P2(S2), separate chain:  P3(S3) <-> P4(S1)")
     @Test
     public void testSidReuseDiffChain() {
-        logger.info("testSidReuseDiffChain() method ... ");
+        log.info("testSidReuseDiffChain() method ... ");
         
         Iterator<Node> nodeIter = getNodeIterator();
         while (nodeIter.hasNext()) {

@@ -8,17 +8,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.security.NoSuchAlgorithmException;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.Iterator;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathExpression;
-import javax.xml.xpath.XPathFactory;
-
-import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 import org.dataone.client.exception.ClientSideException;
 import org.dataone.client.v1.itk.D1Object;
@@ -40,33 +34,23 @@ import org.dataone.service.exceptions.NotFound;
 import org.dataone.service.exceptions.NotImplemented;
 import org.dataone.service.exceptions.ServiceFailure;
 import org.dataone.service.exceptions.UnsupportedType;
-import org.dataone.service.types.v1.AccessPolicy;
-import org.dataone.service.types.v1.AccessRule;
 import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Node;
-import org.dataone.service.types.v1.NodeReference;
 import org.dataone.service.types.v1.NodeType;
+import org.dataone.service.types.v1.ObjectInfo;
+import org.dataone.service.types.v1.ObjectList;
 import org.dataone.service.types.v1.ObjectLocation;
 import org.dataone.service.types.v1.ObjectLocationList;
-import org.dataone.service.types.v1.Permission;
-import org.dataone.service.types.v1.ReplicationPolicy;
-import org.dataone.service.types.v1.Service;
 import org.dataone.service.types.v1.Subject;
-import org.dataone.service.types.v1.util.AccessUtil;
 import org.dataone.service.types.v2.NodeList;
 import org.dataone.service.types.v2.SystemMetadata;
 import org.dataone.service.types.v2.TypeFactory;
-import org.junit.Ignore;
 import org.junit.Test;
-import org.w3c.dom.Document;
-import org.xml.sax.InputSource;
 
 public class SidCNTestImplementations extends SidCommonTestImplementations {
 
-    private Logger logger = Logger.getLogger(SidCNTestImplementations.class);
-    
     /** expected time it takes for an object to sync from MN to CN - should be set configured to be lower on actual node */
-    long SYNC_TIME = 5 * 60 * 1000;
+    long SYNC_TIME = 15 * 60 * 1000;
     
     @Override
     protected String getTestDescription() {
@@ -387,7 +371,7 @@ public class SidCNTestImplementations extends SidCommonTestImplementations {
     @Test
     public void testResolve() {
 
-        logger.info("Testing resolve() method ... ");
+        log.info("Testing resolve() method ... ");
         
         Iterator<Node> cnIter = getCoordinatingNodeIterator();
         while (cnIter.hasNext()) {
@@ -468,7 +452,7 @@ public class SidCNTestImplementations extends SidCommonTestImplementations {
         String sidVal = sid == null ? "null" : sid.getValue();
         String obsoletesVal = obsoletesId == null ? "null" : obsoletesId.getValue();
         String obsoletedVal = obsoletedById == null ? "null" : obsoletedById.getValue();
-        logger.info("creating test object (on MN)... pid: " + pid.getValue() 
+        log.info("creating test object (on MN)... pid: " + pid.getValue() 
                 + " with a sid: " + sidVal 
                 + " obsoletes: " + obsoletesVal 
                 + " obsoletedBy: " + obsoletedVal);
@@ -533,6 +517,7 @@ public class SidCNTestImplementations extends SidCommonTestImplementations {
             Thread.sleep(SYNC_TIME);
             
             log.info("test object should be synchronized to CN...");
+            
             try {
                 callAdapter.getSystemMetadata(null, pid);
             } catch (NotFound nf) {
@@ -571,7 +556,7 @@ public class SidCNTestImplementations extends SidCommonTestImplementations {
             IdentifierNotUnique, UnsupportedType, InsufficientResources, InvalidSystemMetadata,
             NotImplemented, InvalidRequest, NotFound, ClientSideException, IOException, NoSuchAlgorithmException, InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
         
-        logger.info("UPDATING test object... pid: " + oldPid.getValue() + " with pid: " + newPid.getValue() 
+        log.info("UPDATING test object... pid: " + oldPid.getValue() + " with pid: " + newPid.getValue() 
                 + " with a sid: " + (sid == null ? "null" : sid.getValue()));
         
         if(callAdapter.getNodeType() == NodeType.CN)
