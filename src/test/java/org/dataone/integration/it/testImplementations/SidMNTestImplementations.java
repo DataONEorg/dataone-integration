@@ -626,7 +626,13 @@ public class SidMNTestImplementations extends SidCommonTestImplementations {
             while (nodeIter.hasNext()) {
                 Node node = nodeIter.next();
                 MNCallAdapter callAdapter = new MNCallAdapter(getSession(subjectLabel), node, "v2");
-                IdPair idPair = (IdPair) setupMethod.invoke(this, callAdapter, node);
+                IdPair idPair = null;
+                try {
+                    idPair = (IdPair) setupMethod.invoke(this, callAdapter, node);
+                } catch (Exception e1) {
+                    throw new AssertionError(callAdapter.getNodeBaseServiceUrl() + " Case: " + caseNum + 
+                            " : " + e1.getClass().getSimpleName() + " : " + e1.getMessage());
+                }
                 Identifier sid = idPair.sid;
                 Identifier pid = idPair.headPid;
                 
