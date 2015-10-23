@@ -640,7 +640,7 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
             
             replPolicy = new ReplicationPolicy();
             replPolicy.setReplicationAllowed(true);
-            replPolicy.setNumberReplicas(replicaTargets-1);
+            replPolicy.setNumberReplicas(replicaTargets);
             
             AccessRule accessRule = new AccessRule();
             getSession("testRightsHolder");
@@ -733,8 +733,9 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
                     }
                 }
             }
-            assertTrue("Environment should have at least one other MN that is up and "
-                            + "was used to replicate to.", nonAuthMN != null);
+            assertTrue("Attempted to find a replica target MN (a non-authoritative MN) but failed. "
+                    + "It has to be a v2 MN in the environment that is not the authoritative MN.", 
+                    nonAuthMN != null);
  
             cnCertNonAuthMN = new MNCallAdapter(getSession(cnSubmitter), nonAuthMN, "v2");
             replPolicy.setNumberReplicas(3);
