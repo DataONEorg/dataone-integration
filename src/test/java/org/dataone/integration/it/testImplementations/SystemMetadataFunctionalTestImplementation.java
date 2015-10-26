@@ -12,6 +12,7 @@ import java.util.List;
 import org.apache.commons.collections.IteratorUtils;
 import org.dataone.client.RetryHandler;
 import org.dataone.client.exception.ClientSideException;
+import org.dataone.client.v1.types.D1TypeBuilder;
 import org.dataone.configuration.Settings;
 import org.dataone.integration.APITestUtils;
 import org.dataone.integration.ContextAwareTestCaseDataone;
@@ -240,15 +241,18 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
             AccessRule accessRule = APITestUtils.buildAccessRule(Constants.SUBJECT_PUBLIC, Permission.READ);
             ReplicationPolicy replPolicy = new ReplicationPolicy();
             replPolicy.setNumberReplicas(null);
-            Identifier pid = new Identifier();
-            pid.setValue("testSystemMetadataChanged_" + ExampleUtilities.generateIdentifier());
-            
+            final Identifier pid = D1TypeBuilder.buildIdentifier("testSystemMetadataChanged_" + ExampleUtilities.generateIdentifier());
+            SystemMetadata sysmeta = null;
+            Date originalDateModified = null;
             try {
                 createdPid = createTestObject(mn, pid, accessRule, replPolicy);
+                Thread.sleep(10000);
+                sysmeta = mn.getSystemMetadata(null, pid);
             } catch (BaseException be) {
                 handleFail(mn.getLatestRequestUrl(), "Unable to create a test object: " + pid.getValue());
                 throw be;
             }
+            originalDateModified = sysmeta.getDateSysMetadataModified();
             
             log.info("testSystemMetadataChanged:   "
                     + "created test object: " + createdPid.getValue());
@@ -258,21 +262,12 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
             log.info("testSystemMetadataChanged:   "
                     + "fetching sysmeta for pid " + createdPid.getValue() + " from auth MN");
                     
-            SystemMetadata sysmeta = mn.getSystemMetadata(null, createdPid);
+            sysmeta = mn.getSystemMetadata(null, createdPid);
             
-            Date originalSysmetaModified = sysmeta.getDateSysMetadataModified();
-            log.info("testSystemMetadataChanged:   "
-                    + "original sysmeta.dateSystemMetadataChanged: " + originalSysmetaModified);
             log.info("testSystemMetadataChanged:   "
                     + "original sysmeta.serialVersion      : " + sysmeta.getSerialVersion());
-            
-            BigInteger newSerialVersion = sysmeta.getSerialVersion().add(BigInteger.ONE);
-            sysmeta.setSerialVersion(newSerialVersion);
-            
             log.info("testSystemMetadataChanged:   "
-                    + "new sysmeta.dateSystemMetadataChanged: " + sysmeta.getDateSysMetadataModified());
-            log.info("testSystemMetadataChangedj:   "
-                    + "new sysmeta.serialVersion      : " + sysmeta.getSerialVersion());
+                    + "original sysmeta.dateSystemMetadataChanged: " + sysmeta.getDateSysMetadataModified());
             
             log.info("testSystemMetadataChanged:   "
                     + "updating sysmeta on auth MN");
@@ -322,10 +317,10 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
             log.info("testSystemMetadataChanged:   "
                     + "done waiting for CN.synchronize(), verifying CN has correct sysmeta");
             
-            boolean serialVersionMatches = fetchedCNSysmeta.getSerialVersion().equals(newSerialVersion);
-            boolean dateModifiedMatches = fetchedCNSysmeta.getDateSysMetadataModified().equals(originalSysmetaModified);
-            assertTrue("System metadata fetched from CN should now have updated serialVersion.", serialVersionMatches);
-            assertFalse("System metadata fetched from CN should NOT have updated dateSysMetadataModified.", dateModifiedMatches );
+            // verify that sysmeta fetched from CN is updated
+            
+            boolean dateModified = fetchedCNSysmeta.getDateSysMetadataModified().after(originalDateModified);
+            assertTrue("testSystemMetadataChanged: sysmeta.dateSysMetadataModified should have been modified by the time it's synced to CN", dateModified );
             
             log.info("testSystemMetadataChanged:   "
                     + "CN sysmeta matches updates made on MN");
@@ -350,15 +345,15 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
                         throws TryAgainException, Exception {
                     
                     try {
-                        log.info("attempting CN getSystemMatadata...");
-                       SystemMetadata sysmeta = cn.getSystemMetadata(null, pollingPid);
-                       List<Replica> replicaList = sysmeta.getReplicaList();
+                        log.info("attempting CN getSystemMEtadata...");
+                        SystemMetadata sysmeta = cn.getSystemMetadata(null, pid);
+                        
+                        log.info("attempting to get replicas from CN sysmeta...");
+                        List<Replica> replicaList = sysmeta.getReplicaList();
+                        if (replicaList.size() == 0)
+                            throw new TryAgainException();
+                        return sysmeta;
                        
-                       if (sysmeta.getReplicaList().size() > 0) {
-                           return sysmeta;
-                       } else {
-                           throw new TryAgainException();
-                       }
                     } catch (NotFound | ServiceFailure e) {
                         TryAgainException f = new TryAgainException();
                         f.initCause(e);
@@ -367,9 +362,7 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
                 }
                 
             };
-            fetchedCNSysmeta = handler2.execute(30* 1000, SYNC_WAIT_MINUTES * 60 * 1000);
- 
-
+            fetchedCNSysmeta = handler2.execute(30* 1000, REPLICATION_WAIT_MINUTES * 60 * 1000);
             
             log.info("testSystemMetadataChanged:   "
                     + "done waiting for replication, fetching sysmeta for pid " + createdPid.getValue() + " from CN");
@@ -408,17 +401,6 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
                         
                 SystemMetadata replicaSysmeta = replicaHolderMN.getSystemMetadata(null, createdPid);
                 replicasFound++;
-                
-                log.info("testSystemMetadataChanged_ExistingObj:   "
-                        + "sysmeta found on replica MN, checking contents");
-                
-                serialVersionMatches = replicaSysmeta.getSerialVersion().equals(newSerialVersion);
-                dateModifiedMatches = replicaSysmeta.getDateSysMetadataModified().after(originalSysmetaModified);
-                assertTrue("System metadata fetched from replica-holder MN should now have updated serialVersion", serialVersionMatches);
-                assertTrue("System metadata fetched from replica-holder MN should now have updated dateSysMetadataModified", dateModifiedMatches );
-                
-                log.info("testSystemMetadataChanged_ExistingObj:   "
-                        + "sysmeta contents are updated");
             }
             
             assertTrue("Should have found at least one replica.", replicasFound > 0);
@@ -452,7 +434,7 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
         Identifier createdPid = null;
         MNCallAdapter mn = new MNCallAdapter(getSession("testRightsHolder"), mnV2NoSync, "v2");
         Node cnNode = cnList.get(0);
-        CNCallAdapter cn = new CNCallAdapter(getSession(cnSubmitter), cnNode, "v2");
+        final CNCallAdapter cn = new CNCallAdapter(getSession(cnSubmitter), cnNode, "v2");
 
         try {
             
@@ -463,14 +445,19 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
             AccessRule accessRule = APITestUtils.buildAccessRule(Constants.SUBJECT_PUBLIC, Permission.READ);
             ReplicationPolicy replPolicy = new ReplicationPolicy();
             replPolicy.setNumberReplicas(null);
-            Identifier pid = new Identifier();
-            pid.setValue("testSystemMetadataChanged_ExistingObj_" + ExampleUtilities.generateIdentifier());
+            final Identifier pid = D1TypeBuilder.buildIdentifier("testSystemMetadataChanged_ExistingObj_" + ExampleUtilities.generateIdentifier());
+            SystemMetadata sysmeta = null;
+            Date originalDateModified = null;
+            
             try {
                 createdPid = createTestObject(mn, pid, accessRule, replPolicy);
+                Thread.sleep(10000);
+                sysmeta = mn.getSystemMetadata(null, pid);
             } catch (BaseException be) {
                 handleFail(mn.getLatestRequestUrl(), "Unable to create a test object: " + pid.getValue());
                 throw be;
             }
+            originalDateModified = sysmeta.getDateSysMetadataModified();
             
             log.info("testSystemMetadataChanged_ExistingObj:   "
                     + "created test object: " + createdPid.getValue());
@@ -480,20 +467,25 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
             //    at the time when CN.synchronize() gets called
             
             log.info("testSystemMetadataChanged_ExistingObj:   "
-                    + "waiting for CN sync (" + SYNC_WAIT_MINUTES  + " minutes)");
+                    + "waiting for CN sync (up to" + SYNC_WAIT_MINUTES  + " minutes)");
             
-            Thread.sleep(SYNC_WAIT_MINUTES * 60000);
-            
-            log.info("testSystemMetadataChanged_ExistingObj:   "
-                    + "done waiting for CN sync, fetching sysmeta");
-            
-            try {
-                SystemMetadata fetchedSysmeta = cn.getSystemMetadata(null, createdPid);
-                assertTrue("cn.getSystemMetadata() should successfully fetch the sysmeta for pid " + createdPid.getValue() + " from " + cn.getLatestRequestUrl(), fetchedSysmeta != null);
-            } catch (Exception e) {
-                handleFail(cn.getLatestRequestUrl(), "cn.getSystemMetadata() should successfully fetch the sysmeta for pid " + createdPid.getValue() + " from " + cn.getLatestRequestUrl());
-                throw e;
-            }
+            RetryHandler<SystemMetadata> handler =  new RetryHandler<SystemMetadata>() {
+                @Override
+                protected SystemMetadata attempt()
+                        throws TryAgainException, Exception {
+                    
+                    try {
+                        log.info("attempting CN getSystemMetadata...");
+                       return cn.getSystemMetadata(null, pid);
+                    } catch (NotFound | ServiceFailure e) {
+                        TryAgainException f = new TryAgainException();
+                        f.initCause(e);
+                        throw f;
+                    }
+                }
+            };
+            SystemMetadata fetchedCNSysmeta = handler.execute(30* 1000, SYNC_WAIT_MINUTES * 60 * 1000);
+            assertTrue("cn.getSystemMetadata() should successfully fetch the sysmeta for pid " + pid.getValue() + " from " + cn.getLatestRequestUrl(), fetchedCNSysmeta != null);
             
             log.info("testSystemMetadataChanged_ExistingObj:   "
                     + "fetched sysmeta for pid " + createdPid.getValue() + " from CN successfully");
@@ -503,24 +495,14 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
             log.info("testSystemMetadataChanged_ExistingObj:   "
                     + "fetching sysmeta for pid " + createdPid.getValue() + " from auth MN");
             
-            SystemMetadata sysmeta = mn.getSystemMetadata(null, createdPid);
-            Date originalSysmetaModified = sysmeta.getDateSysMetadataModified();
-            log.info("testSystemMetadataChanged_ExistingObj:   "
-                    + "original sysmeta.dateSystemMetadataChanged: " + sysmeta.getDateSysMetadataModified());
-            log.info("testSystemMetadataChanged_ExistingObj:   "
-                    + "original sysmeta.serialVersion      : " + sysmeta.getSerialVersion());
-            BigInteger newSerialVersion = sysmeta.getSerialVersion().add(BigInteger.ONE);
-            sysmeta.setSerialVersion(newSerialVersion);
+            sysmeta = mn.getSystemMetadata(null, createdPid);
             accessRule = APITestUtils.buildAccessRule(getSubject("testRightsHolder").getValue(), Permission.CHANGE_PERMISSION);
             AccessPolicy accessPolicy = new AccessPolicy();
             accessPolicy.addAllow(accessRule);
             sysmeta.setAccessPolicy(accessPolicy);
 
             log.info("testSystemMetadataChanged_ExistingObj:   "
-                    + "new sysmeta.dateSystemMetadataChanged: " + originalSysmetaModified);
-            log.info("testSystemMetadataChanged_ExistingObj:   "
                     + "new sysmeta.serialVersion      : " + sysmeta.getSerialVersion());
-            
             log.info("testSystemMetadataChanged_ExistingObj:   "
                     + "updating sysmeta on auth MN");
             
@@ -531,6 +513,9 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
                 handleFail(mn.getLatestRequestUrl(), "Call to MN updateSystemMetadata failed: " + be.getMessage());
                 throw be;
             }
+            SystemMetadata mnSysmetaModMaybe = mn.getSystemMetadata(null, pid);
+            log.info("after updSysmeta, date is: " + mnSysmetaModMaybe.getDateSysMetadataModified());
+            
             assertTrue("MN should have modified its own system metadata successfully.", success);
             
             log.info("testSystemMetadataChanged_ExistingObj:   "
@@ -542,27 +527,30 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
             // CN needs time to synchronize
             
             log.info("testSystemMetadataChanged_ExistingObj:   "
-                    + "waiting for CN.synchronize() to run (" + SYNC_WAIT_MINUTES + " minutes)");
-            // TODO not the same as CN sync task wait time
-            Thread.sleep(SYNC_WAIT_MINUTES * 60000);
+                    + "waiting for CN.synchronize() to run (up to " + SYNC_WAIT_MINUTES + " minutes)");
+            
+            handler =  new RetryHandler<SystemMetadata>() {
+                @Override
+                protected SystemMetadata attempt()
+                        throws TryAgainException, Exception {
+                    
+                    try {
+                        log.info("attempting CN getSystemMEtadata...");
+                       return cn.getSystemMetadata(null, pid);
+                    } catch (NotFound | ServiceFailure e) {
+                        TryAgainException f = new TryAgainException();
+                        f.initCause(e);
+                        throw f;
+                    }
+                }
+            };
+            fetchedCNSysmeta = handler.execute(30* 1000, SYNC_WAIT_MINUTES * 60 * 1000);
+            assertTrue("cn.getSystemMetadata() should successfully fetch the sysmeta for pid " + pid.getValue() + " from " + cn.getLatestRequestUrl(), fetchedCNSysmeta != null);
             
             // verify that sysmeta fetched from CN is updated
             
-            log.info("testSystemMetadataChanged_ExistingObj:   "
-                    + "done waiting for CN.synchronize(), verifying CN has correct sysmeta");
-            
-            SystemMetadata fetchedCNSysmeta = cn.getSystemMetadata(null, createdPid);
-            boolean serialVersionMatches = fetchedCNSysmeta.getSerialVersion().equals(newSerialVersion);
-            boolean dateModifiedMatches = fetchedCNSysmeta.getDateSysMetadataModified().equals(originalSysmetaModified);
-            assertTrue("System metadata fetched from CN should now have updated serialVersion.", serialVersionMatches);
-            assertFalse("System metadata fetched from CN should NOT have updated dateSysMetadataModified.", dateModifiedMatches );
-            
-            log.info("testSystemMetadataChanged_ExistingObj:   "
-                    + "CN sysmeta matches updates made on MN");
-            
-            // TODO could also inspect the system metadata on the CN 
-            //      for a replica in 'requested' status 
-            //      and wait for it to move to 'completed' or 'failed'
+            boolean dateModified = fetchedCNSysmeta.getDateSysMetadataModified().after(originalDateModified);
+            assertTrue("testSystemMetadataChanged_ExistingObj: sysmeta.dateSysMetadataModified should have been modified by the time it's synced to CN", dateModified );
             
             // CN needs to run replication in order for sysmeta to contain replica info
             // we need replica info in the sysmeta
@@ -570,14 +558,33 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
             
             log.info("testSystemMetadataChanged_ExistingObj:   "
                     + "waiting for CN to trigger replication "
-                    + "so we have replica info in sysmeta (" + REPLICATION_WAIT_MINUTES + " minutes)");
+                    + "so we have replica info in sysmeta (up to" + REPLICATION_WAIT_MINUTES + " minutes)");
             
-            Thread.sleep(REPLICATION_WAIT_MINUTES * 60000);
+            handler =  new RetryHandler<SystemMetadata>() {
+                @Override
+                protected SystemMetadata attempt() throws TryAgainException, Exception {
+                    try {
+                        log.info("attempting CN getSystemMEtadata...");
+                        SystemMetadata sysmeta = cn.getSystemMetadata(null, pid);
+                        
+                        log.info("attempting to get replicas from CN sysmeta...");
+                        List<Replica> replicaList = sysmeta.getReplicaList();
+                        if (replicaList.size() == 0)
+                            throw new TryAgainException();
+                        return sysmeta;
+                        
+                    } catch (NotFound | ServiceFailure e) {
+                        TryAgainException f = new TryAgainException();
+                        f.initCause(e);
+                        throw f;
+                    }
+                }
+            };
+            fetchedCNSysmeta = handler.execute(30* 1000, REPLICATION_WAIT_MINUTES * 60 * 1000);
             
             log.info("testSystemMetadataChanged_ExistingObj:   "
-                    + "done waiting for replication, fetching sysmeta for pid " + createdPid.getValue() + " from CN");
+                    + "done waiting for replication, fetched sysmeta for pid " + createdPid.getValue() + " from CN");
             
-            fetchedCNSysmeta = cn.getSystemMetadata(null, createdPid);
             List<Replica> replicaList = fetchedCNSysmeta.getReplicaList();
             assertTrue("Replica list fetched from CN (after having time to replicate should not be null!", replicaList != null);
             assertTrue("System metadata fetched from CN should now have a non-empty replica list", replicaList.size() > 0);
@@ -612,17 +619,6 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
                 
                 SystemMetadata replicaSysmeta = replicaHolderMN.getSystemMetadata(null, createdPid);
                 replicasFound++;
-                
-                log.info("testSystemMetadataChanged_ExistingObj:   "
-                        + "sysmeta found on replica MN, checking contents");
-                
-                serialVersionMatches = replicaSysmeta.getSerialVersion().equals(newSerialVersion);
-                dateModifiedMatches = replicaSysmeta.getDateSysMetadataModified().after(originalSysmetaModified);
-                assertTrue("System metadata fetched from replica-holder MN should now have updated serialVersion", serialVersionMatches);
-                assertTrue("System metadata fetched from replica-holder MN should now have updated dateSysMetadataModified", dateModifiedMatches );
-                
-                log.info("testSystemMetadataChanged_ExistingObj:   "
-                        + "sysmeta contents are updated");
             }
             
             assertTrue("Should have found at least one replica.", replicasFound > 0);
@@ -641,8 +637,7 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
     }
     
     @WebTestName("setReplicationStatus: calling CN.setReplicationStatus() doesn't succeed regardless of status")
-    @WebTestDescription("This test needs to be run in an environment ... "
-            + "Calling setReplicaStatus with an unchanging status should not succeed - the update should "
+    @WebTestDescription("Calling setReplicaStatus with an unchanging status should not succeed - the update should "
             + "only be valid if updating the replica status to a new one.")
     @Test
     public void testSetReplicationStatus_NoChange() {
@@ -652,7 +647,7 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
         Identifier createdPid = null;
         MNCallAdapter mn = new MNCallAdapter(getSession("testRightsHolder"), mnV2NoSync, "v2");
         Node cnNode = cnList.get(0);
-        CNCallAdapter cn = new CNCallAdapter(getSession(cnSubmitter), cnNode, "v2");
+        final CNCallAdapter cn = new CNCallAdapter(getSession(cnSubmitter), cnNode, "v2");
 
         try {
             // create a test object
@@ -663,15 +658,17 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
             AccessRule accessRule = APITestUtils.buildAccessRule(Constants.SUBJECT_PUBLIC, Permission.READ);
             ReplicationPolicy replPolicy = new ReplicationPolicy();
             replPolicy.setNumberReplicas(null);
-            Identifier pid = new Identifier();
-            pid.setValue("testSetReplicationStatus_NoChange" + ExampleUtilities.generateIdentifier());
+            final Identifier pid = D1TypeBuilder.buildIdentifier("testSetReplicationStatus_NoChange" + ExampleUtilities.generateIdentifier());
+            SystemMetadata sysmeta = null;
+            Date originalDateModified = null;
+            
             try {
                 createdPid = createTestObject(mn, pid, accessRule, replPolicy);
                 Thread.sleep(10000);
-                SystemMetadata mnSysmeta = mn.getSystemMetadata(null, createdPid);
-                mnSysmeta.setSerialVersion(mnSysmeta.getSerialVersion().add(BigInteger.ONE));
-                mnSysmeta.getAccessPolicy().addAllow(APITestUtils.buildAccessRule(Constants.SUBJECT_PUBLIC + "-2", Permission.READ));
-                mn.updateSystemMetadata(null, createdPid, mnSysmeta);
+                sysmeta = mn.getSystemMetadata(null, createdPid);
+                originalDateModified = sysmeta.getDateSysMetadataModified();
+                sysmeta.getAccessPolicy().addAllow(APITestUtils.buildAccessRule(Constants.SUBJECT_PUBLIC + "-2", Permission.READ));
+                mn.updateSystemMetadata(null, createdPid, sysmeta);
             } catch (BaseException be) {
                 handleFail(mn.getLatestRequestUrl(), "Unable to create a test object: " + pid.getValue());
                 throw be;
@@ -682,22 +679,23 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
             
             // wait for CN to synchronize
             
-            log.info("testSetReplicationStatus_NoChange:   "
-                    + "waiting for CN sync (" + SYNC_WAIT_MINUTES + " minutes)");
-            
-            
-            Thread.sleep(SYNC_WAIT_MINUTES * 60000);
-            
-            log.info("testSetReplicationStatus_NoChange:   "
-                    + "done waiting for CN sync, fetching sysmeta");
-            
-            try {
-                SystemMetadata fetchedSysmeta = cn.getSystemMetadata(null, createdPid);
-                assertTrue("cn.getSystemMetadata() should successfully fetch the sysmeta for pid " + createdPid.getValue() + " from " + cn.getLatestRequestUrl(), fetchedSysmeta != null);
-            } catch (Exception e) {
-                handleFail(cn.getLatestRequestUrl(), "cn.getSystemMetadata() should successfully fetch the sysmeta for pid " + createdPid.getValue() + " from " + cn.getLatestRequestUrl());
-                throw e;
-            }
+            RetryHandler<SystemMetadata> handler =  new RetryHandler<SystemMetadata>() {
+                @Override
+                protected SystemMetadata attempt()
+                        throws TryAgainException, Exception {
+                    
+                    try {
+                        log.info("attempting CN getSystemMetadata...");
+                       return cn.getSystemMetadata(null, pid);
+                    } catch (NotFound | ServiceFailure e) {
+                        TryAgainException f = new TryAgainException();
+                        f.initCause(e);
+                        throw f;
+                    }
+                }
+            };
+            SystemMetadata fetchedCNSysmeta = handler.execute(30* 1000, SYNC_WAIT_MINUTES * 60 * 1000);
+            assertTrue("cn.getSystemMetadata() should successfully fetch the sysmeta for pid " + pid.getValue() + " from " + cn.getLatestRequestUrl(), fetchedCNSysmeta != null);
             
             log.info("testSetReplicationStatus_NoChange:   "
                     + "fetched sysmeta for pid " + createdPid.getValue() + " from CN successfully");
@@ -707,17 +705,11 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
             log.info("testSetReplicationStatus_NoChange:   "
                     + "fetching sysmeta for pid " + createdPid.getValue() + " from auth MN");
             
-            SystemMetadata sysmeta = mn.getSystemMetadata(null, createdPid);
-            Date originalSysmetaModified = sysmeta.getDateSysMetadataModified();
+            sysmeta = mn.getSystemMetadata(null, createdPid);
             log.info("testSetReplicationStatus_NoChange:   "
                     + "original sysmeta.dateSystemMetadataChanged: " + sysmeta.getDateSysMetadataModified());
             log.info("testSetReplicationStatus_NoChange:   "
                     + "original sysmeta.serialVersion      : " + sysmeta.getSerialVersion());
-            
-            log.info("testSetReplicationStatus_NoChange:   "
-                    + "new sysmeta.dateSystemMetadataChanged: " + originalSysmetaModified);
-            log.info("testSetReplicationStatus_NoChange:   "
-                    + "new sysmeta.serialVersion      : " + sysmeta.getSerialVersion());
             
             log.info("testSetReplicationStatus_NoChange:   "
                     + "updating sysmeta on auth MN");
@@ -740,39 +732,64 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
             // CN needs time to synchronize
             
             log.info("testSetReplicationStatus_NoChange:   "
-                    + "waiting for CN.synchronize() to run (" + SYNC_WAIT_MINUTES + " minutes)");
-            // TODO not the same as CN sync task wait time
-            Thread.sleep(SYNC_WAIT_MINUTES * 60000);
+                    + "waiting for CN.synchronize() to run (up to " + SYNC_WAIT_MINUTES + " minutes)");
+            
+            handler =  new RetryHandler<SystemMetadata>() {
+                @Override
+                protected SystemMetadata attempt()
+                        throws TryAgainException, Exception {
+                    
+                    try {
+                        log.info("attempting CN getSystemMEtadata...");
+                       return cn.getSystemMetadata(null, pid);
+                    } catch (NotFound | ServiceFailure e) {
+                        TryAgainException f = new TryAgainException();
+                        f.initCause(e);
+                        throw f;
+                    }
+                }
+            };
+            fetchedCNSysmeta = handler.execute(30* 1000, SYNC_WAIT_MINUTES * 60 * 1000);
+            assertTrue("cn.getSystemMetadata() should successfully fetch the sysmeta for pid " + pid.getValue() + " from " + cn.getLatestRequestUrl(), fetchedCNSysmeta != null);
             
             // verify that sysmeta fetched from CN is updated
             
-            log.info("testSetReplicationStatus_NoChange:   "
-                    + "done waiting for CN.synchronize(), verifying CN has correct sysmeta");
-            
-            SystemMetadata fetchedCNSysmeta = cn.getSystemMetadata(null, createdPid);
-            boolean dateModifiedMatches = fetchedCNSysmeta.getDateSysMetadataModified().equals(originalSysmetaModified);
-            assertFalse("System metadata fetched from CN should NOT have updated dateSysMetadataModified.", dateModifiedMatches );
-            
-            log.info("testSetReplicationStatus_NoChange:   "
-                    + "CN sysmeta matches updates made on MN");
-            
-            // TODO could also inspect the system metadata on the CN 
-            //      for a replica in 'requested' status 
-            //      and wait for it to move to 'completed' or 'failed'
+            boolean dateModified = fetchedCNSysmeta.getDateSysMetadataModified().after(originalDateModified);
+            assertTrue("testSetReplicationStatus_NoChange: sysmeta.dateSysMetadataModified should have been modified by the time it's synced to CN", dateModified );
             
             // CN needs to run replication in order for sysmeta to contain replica info
             // we need replica info in the sysmeta
+            // so we can then verify that the sysmeta on the replica-holding MNs is updated
             
             log.info("testSetReplicationStatus_NoChange:   "
                     + "waiting for CN to trigger replication "
-                    + "so we have replica info in sysmeta (" + REPLICATION_WAIT_MINUTES + " minutes)");
+                    + "so we have replica info in sysmeta (up to " + REPLICATION_WAIT_MINUTES + " minutes)");
             
-            Thread.sleep(REPLICATION_WAIT_MINUTES * 60000);
+            handler =  new RetryHandler<SystemMetadata>() {
+                @Override
+                protected SystemMetadata attempt() throws TryAgainException, Exception {
+                    try {
+                        log.info("attempting CN getSystemMEtadata...");
+                        SystemMetadata sysmeta = cn.getSystemMetadata(null, pid);
+                        
+                        log.info("attempting to get replicas from CN sysmeta...");
+                        List<Replica> replicaList = sysmeta.getReplicaList();
+                        if (replicaList.size() == 0)
+                            throw new TryAgainException();    
+                        return sysmeta;
+                        
+                    } catch (NotFound | ServiceFailure e) {
+                        TryAgainException f = new TryAgainException();
+                        f.initCause(e);
+                        throw f;
+                    }
+                }
+            };
+            fetchedCNSysmeta = handler.execute(30* 1000, REPLICATION_WAIT_MINUTES * 60 * 1000);
             
             log.info("testSetReplicationStatus_NoChange:   "
-                    + "done waiting for replication, fetching sysmeta for pid " + createdPid.getValue() + " from CN");
+                    + "done waiting for replication, fetched sysmeta for pid " + createdPid.getValue() + " from CN");
             
-            fetchedCNSysmeta = cn.getSystemMetadata(null, createdPid);
             List<Replica> replicaList = fetchedCNSysmeta.getReplicaList();
             assertTrue("Test can't continue if replica list fetched from CN (after having time to replicate) is null!", replicaList != null);
             assertTrue("Test can't continue if system metadata fetched from CN does not have a non-empty replica list", replicaList.size() > 0);
@@ -799,7 +816,8 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
             fetchedCNSysmeta = cn.getSystemMetadata(null, createdPid);
             BigInteger serialVersion = fetchedCNSysmeta.getSerialVersion();
             
-            assertTrue("", serialVersion.intValue() < 10);
+            assertTrue("sysmeta should not have been updated if the ReplicationStatus is unchanged, "
+                    + "and serialVersion should not have been incremented for each attempt", serialVersion.intValue() < 10);
             log.info("testSetReplicationStatus_NoChange:   "
                     + "status update failures: " + statusUpdateFailures);
             
