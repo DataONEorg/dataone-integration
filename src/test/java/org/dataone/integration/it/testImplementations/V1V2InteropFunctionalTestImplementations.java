@@ -18,8 +18,8 @@ import javax.xml.xpath.XPathFactory;
 
 import org.apache.commons.collections.IteratorUtils;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.dataone.client.RetryHandler;
+import org.dataone.client.RetryHandler.TryAgainException;
 import org.dataone.client.v1.itk.D1Object;
 import org.dataone.client.v1.types.D1TypeBuilder;
 import org.dataone.configuration.Settings;
@@ -34,6 +34,7 @@ import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.InvalidRequest;
 import org.dataone.service.exceptions.NotAuthorized;
 import org.dataone.service.exceptions.NotFound;
+import org.dataone.service.exceptions.ServiceFailure;
 import org.dataone.service.types.v1.AccessPolicy;
 import org.dataone.service.types.v1.AccessRule;
 import org.dataone.service.types.v1.Identifier;
@@ -500,9 +501,9 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         
         // v1 create
         
-        Identifier pid = D1TypeBuilder.buildIdentifier("testV1CreateV2Get_" + ExampleUtilities.generateIdentifier());
+        final Identifier pid = D1TypeBuilder.buildIdentifier("testV1CreateV2Get_" + ExampleUtilities.generateIdentifier());
         try {
-            pid = createTestObject(v1CallAdapter, pid, accessRule, replPolicy);
+            createTestObject(v1CallAdapter, pid, accessRule, replPolicy);
         } catch (BaseException e) {
             e.printStackTrace();
             throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + " testV1CreateV2Get() couldn't create test object: " 
@@ -515,18 +516,53 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             + e.getClass().getName() + ": " + e.getMessage());
         }
         
-        // take a nap
-        try {
-            Thread.sleep(REPLICATION_WAIT);
-        } catch (InterruptedException e1) {
-            e1.printStackTrace();
-        }
-        
         // v2 get
 
+        SystemMetadata cnSysmeta = null;
+        try {
+            RetryHandler<SystemMetadata> handler =  new RetryHandler<SystemMetadata>() {
+                @Override
+                protected SystemMetadata attempt() throws TryAgainException, Exception {
+                    try {
+                        log.info("attempting CN getSystemMEtadata...");
+                        return cnV2.getSystemMetadata(null, pid);
+                    } catch (NotFound | ServiceFailure e) {
+                        TryAgainException f = new TryAgainException();
+                        f.initCause(e);
+                        throw f;
+                    }
+                }
+            };
+            cnSysmeta = handler.execute(30* 1000, REPLICATION_WAIT);
+        } catch (Exception e) {
+            throw new AssertionError(cnV2.getLatestRequestUrl() + " testV1CreateV2Get() : unable to fetch sysmeta from CN! Check status of CN sync. "
+                    + e.getClass().getSimpleName() + " : " + e.getMessage() 
+                    + ", origin MN: " + v1MNode.getBaseURL());
+        } 
+        
         Node replicaMN = null;
         try {
-            SystemMetadata cnSysmeta = cnV2.getSystemMetadata(null, pid);
+            RetryHandler<SystemMetadata> handler =  new RetryHandler<SystemMetadata>() {
+                @Override
+                protected SystemMetadata attempt() throws TryAgainException, Exception {
+                    try {
+                        log.info("attempting CN getSystemMEtadata...");
+                        SystemMetadata sysmeta = cnV2.getSystemMetadata(null, pid);
+                        
+                        log.info("attempting to get replicas from CN sysmeta...");
+                        List<Replica> replicaList = sysmeta.getReplicaList();
+                        if (replicaList.size() == 0)
+                            throw new TryAgainException();
+                        return sysmeta;
+                    } catch (NotFound | ServiceFailure e) {
+                        TryAgainException f = new TryAgainException();
+                        f.initCause(e);
+                        throw f;
+                    }
+                }
+            };
+            cnSysmeta = handler.execute(30* 1000, REPLICATION_WAIT);
+            
             List<Replica> replicaList = cnSysmeta.getReplicaList();
             outerloop:
             for (Replica rep : replicaList) {
@@ -537,12 +573,8 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
                     }
                 }
             }
-        } catch (NotFound e) {
-            throw new AssertionError(cnV2.getLatestRequestUrl() + " testV1CreateV2Get() : unable to fetch sysmeta from CN! Check status of CN sync. "
-                    + ": NotFound " + e.getDetail_code() + ", " + e.getDescription() + ":" + e.getMessage() 
-                    + ", origin MN: " + v1MNode.getBaseURL());
         } catch (Exception e) {
-            throw new AssertionError(cnV2.getLatestRequestUrl() + " testV1CreateV2Get() : unable to fetch sysmeta from CN! Check status of CN sync." 
+            throw new AssertionError(cnV2.getLatestRequestUrl() + " testV1CreateV2Get() : unable to get replica info from CN sysmeta! Check status of CN replication." 
                     + ", origin MN: " + v1MNode.getBaseURL());
         }
         
@@ -666,11 +698,11 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         
         // v1 create
         
-        Identifier pid = D1TypeBuilder.buildIdentifier("testV1CreateV2GetSysmeta_" + ExampleUtilities.generateIdentifier());
+        final Identifier pid = D1TypeBuilder.buildIdentifier("testV1CreateV2GetSysmeta_" + ExampleUtilities.generateIdentifier());
         
         log.info("Trying to create test object: " + pid.getValue() + " on MN: " + v1CallAdapter.getNodeBaseServiceUrl());
         try {
-            pid = createTestObject(v1CallAdapter, pid, accessRule, replPolicy);
+            createTestObject(v1CallAdapter, pid, accessRule, replPolicy);
             log.info("Created test object: " + pid.getValue() + " on MN: " + v1CallAdapter.getNodeBaseServiceUrl());
         } catch (BaseException e) {
             e.printStackTrace();
@@ -684,16 +716,51 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             + e.getClass().getName() + ": " + e.getMessage());
         }
         
-        // take a nap
+        SystemMetadata cnSysmeta = null;
         try {
-            Thread.sleep(REPLICATION_WAIT);
-        } catch (InterruptedException e1) {
-            e1.printStackTrace();
-        }
+            RetryHandler<SystemMetadata> handler =  new RetryHandler<SystemMetadata>() {
+                @Override
+                protected SystemMetadata attempt() throws TryAgainException, Exception {
+                    try {
+                        log.info("attempting CN getSystemMEtadata...");
+                        return cnV2.getSystemMetadata(null, pid);
+                    } catch (NotFound | ServiceFailure e) {
+                        TryAgainException f = new TryAgainException();
+                        f.initCause(e);
+                        throw f;
+                    }
+                }
+            };
+            cnSysmeta = handler.execute(30* 1000, REPLICATION_WAIT);
+        } catch (Exception e) {
+            throw new AssertionError(cnV2.getLatestRequestUrl() + " testV1CreateV2GetSysmeta() : unable to fetch sysmeta from CN! Check status of CN sync. "
+                    + e.getClass().getSimpleName() + " : " + e.getMessage() 
+                    + ", origin MN: " + v1MNode.getBaseURL());
+        } 
         
         Node replicaMN = null;
         try {
-            SystemMetadata cnSysmeta = cnV2.getSystemMetadata(null, pid);
+            RetryHandler<SystemMetadata> handler =  new RetryHandler<SystemMetadata>() {
+                @Override
+                protected SystemMetadata attempt() throws TryAgainException, Exception {
+                    try {
+                        log.info("attempting CN getSystemMEtadata...");
+                        SystemMetadata sysmeta = cnV2.getSystemMetadata(null, pid);
+                        
+                        log.info("attempting to get replicas from CN sysmeta...");
+                        List<Replica> replicaList = sysmeta.getReplicaList();
+                        if (replicaList.size() == 0)
+                            throw new TryAgainException();
+                        return sysmeta;
+                    } catch (NotFound | ServiceFailure e) {
+                        TryAgainException f = new TryAgainException();
+                        f.initCause(e);
+                        throw f;
+                    }
+                }
+            };
+            cnSysmeta = handler.execute(30* 1000, REPLICATION_WAIT);
+            
             List<Replica> replicaList = cnSysmeta.getReplicaList();
             outerloop:
             for (Replica rep : replicaList) {
@@ -704,12 +771,8 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
                     }
                 }
             }
-        } catch (NotFound e) {
-            throw new AssertionError(cnV2.getLatestRequestUrl() + " testV1CreateV2GetSysmeta() : unable to fetch sysmeta from CN! Check status of CN sync. "
-                    + ": NotFound " + e.getDetail_code() + ", " + e.getDescription() + ":" + e.getMessage() 
-                    + ", origin MN: " + v1MNode.getBaseURL());
         } catch (Exception e) {
-            throw new AssertionError(cnV2.getLatestRequestUrl() + " testV1CreateV2GetSysmeta() : unable to fetch sysmeta from CN! Check status of CN sync." 
+            throw new AssertionError(cnV2.getLatestRequestUrl() + " testV1CreateV2GetSysmeta() : unable to get replica info from CN sysmeta! Check status of CN replication." 
                     + ", origin MN: " + v1MNode.getBaseURL());
         }
         
@@ -829,9 +892,9 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         
         // v1 create
         
-        Identifier pid = D1TypeBuilder.buildIdentifier("testV1CreateV2Query_" + ExampleUtilities.generateIdentifier());
+        final Identifier pid = D1TypeBuilder.buildIdentifier("testV1CreateV2Query_" + ExampleUtilities.generateIdentifier());
         try {
-            pid = createTestObject(v1CallAdapter, pid, accessRule, replPolicy);
+            createTestObject(v1CallAdapter, pid, accessRule, replPolicy);
         } catch (BaseException e) {
             e.printStackTrace();
             throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + " testV1CreateV2Query() couldn't create test object: " 
@@ -845,15 +908,51 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         }
         
         // wait for replication
+        SystemMetadata cnSysmeta = null;
         try {
-            Thread.sleep(REPLICATION_WAIT);
-        } catch (InterruptedException e1) {
-            e1.printStackTrace();
-        }
+            RetryHandler<SystemMetadata> handler =  new RetryHandler<SystemMetadata>() {
+                @Override
+                protected SystemMetadata attempt() throws TryAgainException, Exception {
+                    try {
+                        log.info("attempting CN getSystemMEtadata...");
+                        return cnV2.getSystemMetadata(null, pid);
+                    } catch (NotFound | ServiceFailure e) {
+                        TryAgainException f = new TryAgainException();
+                        f.initCause(e);
+                        throw f;
+                    }
+                }
+            };
+            cnSysmeta = handler.execute(30* 1000, REPLICATION_WAIT);
+        } catch (Exception e) {
+            throw new AssertionError(cnV2.getLatestRequestUrl() + " testV1CreateV2Query() : unable to fetch sysmeta from CN! Check status of CN sync. "
+                    + e.getClass().getSimpleName() + " : " + e.getMessage() 
+                    + ", origin MN: " + v1MNode.getBaseURL());
+        } 
         
         Node replicaMN = null;
         try {
-            SystemMetadata cnSysmeta = cnV2.getSystemMetadata(null, pid);
+            RetryHandler<SystemMetadata> handler =  new RetryHandler<SystemMetadata>() {
+                @Override
+                protected SystemMetadata attempt() throws TryAgainException, Exception {
+                    try {
+                        log.info("attempting CN getSystemMEtadata...");
+                        SystemMetadata sysmeta = cnV2.getSystemMetadata(null, pid);
+                        
+                        log.info("attempting to get replicas from CN sysmeta...");
+                        List<Replica> replicaList = sysmeta.getReplicaList();
+                        if (replicaList.size() == 0)
+                            throw new TryAgainException();
+                        return sysmeta;
+                    } catch (NotFound | ServiceFailure e) {
+                        TryAgainException f = new TryAgainException();
+                        f.initCause(e);
+                        throw f;
+                    }
+                }
+            };
+            cnSysmeta = handler.execute(30* 1000, REPLICATION_WAIT);
+            
             List<Replica> replicaList = cnSysmeta.getReplicaList();
             outerloop:
             for (Replica rep : replicaList) {
@@ -864,12 +963,8 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
                     }
                 }
             }
-        } catch (NotFound e) {
-            throw new AssertionError(cnV2.getLatestRequestUrl() + " testV1CreateV2Query() : unable to fetch sysmeta from CN! Check status of CN sync. "
-                    + ": NotFound " + e.getDetail_code() + ", " + e.getDescription() + ":" + e.getMessage() 
-                    + ", origin MN: " + v1MNode.getBaseURL());
         } catch (Exception e) {
-            throw new AssertionError(cnV2.getLatestRequestUrl() + " testV1CreateV2Query() : unable to fetch sysmeta from CN! Check status of CN sync." 
+            throw new AssertionError(cnV2.getLatestRequestUrl() + " testV1CreateV2Query() : unable to get replica info from CN sysmeta! Check status of CN replication." 
                     + ", origin MN: " + v1MNode.getBaseURL());
         }
         
@@ -976,7 +1071,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         } catch (InterruptedException e1) {
             e1.printStackTrace();
         }
-        
+
         // v1 query
 
         Node v1MNode = v1mns.get(0);
@@ -1177,7 +1272,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         } catch (InterruptedException e1) {
             e1.printStackTrace();
         }
-        
+
         // v1 delete
 
         Node v1MNode = v1mns.get(0);
@@ -1228,9 +1323,9 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         
         // v1 create
         
-        Identifier pid = D1TypeBuilder.buildIdentifier("testV1CreateV2Delete_" + ExampleUtilities.generateIdentifier());
+        final Identifier pid = D1TypeBuilder.buildIdentifier("testV1CreateV2Delete_" + ExampleUtilities.generateIdentifier());
         try {
-            pid = createTestObject(v1CallAdapter, pid, accessRule, replPolicy);
+            createTestObject(v1CallAdapter, pid, accessRule, replPolicy);
         } catch (BaseException e) {
             e.printStackTrace();
             throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + " testV1CreateV2Delete() couldn't create test object: " 
@@ -1244,15 +1339,51 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         }
         
         // wait for replication
+        SystemMetadata cnSysmeta = null;
         try {
-            Thread.sleep(REPLICATION_WAIT);
-        } catch (InterruptedException e1) {
-            e1.printStackTrace();
-        }
+            RetryHandler<SystemMetadata> handler =  new RetryHandler<SystemMetadata>() {
+                @Override
+                protected SystemMetadata attempt() throws TryAgainException, Exception {
+                    try {
+                        log.info("attempting CN getSystemMEtadata...");
+                        return cnV2.getSystemMetadata(null, pid);
+                    } catch (NotFound | ServiceFailure e) {
+                        TryAgainException f = new TryAgainException();
+                        f.initCause(e);
+                        throw f;
+                    }
+                }
+            };
+            cnSysmeta = handler.execute(30* 1000, REPLICATION_WAIT);
+        } catch (Exception e) {
+            throw new AssertionError(cnV2.getLatestRequestUrl() + " testV1CreateV2Query() : unable to fetch sysmeta from CN! Check status of CN sync. "
+                    + e.getClass().getSimpleName() + " : " + e.getMessage() 
+                    + ", origin MN: " + v1MNode.getBaseURL());
+        } 
         
         Node replicaMN = null;
         try {
-            SystemMetadata cnSysmeta = cnV2.getSystemMetadata(null, pid);
+            RetryHandler<SystemMetadata> handler =  new RetryHandler<SystemMetadata>() {
+                @Override
+                protected SystemMetadata attempt() throws TryAgainException, Exception {
+                    try {
+                        log.info("attempting CN getSystemMEtadata...");
+                        SystemMetadata sysmeta = cnV2.getSystemMetadata(null, pid);
+                        
+                        log.info("attempting to get replicas from CN sysmeta...");
+                        List<Replica> replicaList = sysmeta.getReplicaList();
+                        if (replicaList.size() == 0)
+                            throw new TryAgainException();
+                        return sysmeta;
+                    } catch (NotFound | ServiceFailure e) {
+                        TryAgainException f = new TryAgainException();
+                        f.initCause(e);
+                        throw f;
+                    }
+                }
+            };
+            cnSysmeta = handler.execute(30* 1000, REPLICATION_WAIT);
+            
             List<Replica> replicaList = cnSysmeta.getReplicaList();
             outerloop:
             for (Replica rep : replicaList) {
@@ -1263,11 +1394,9 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
                     }
                 }
             }
-        } catch (NotFound e) {
-            throw new AssertionError(cnV2.getLatestRequestUrl() + " testV1CreateV2Delete() : unable to fetch sysmeta from CN! Check status of CN sync. "
-                    + ": NotFound " + e.getDetail_code() + ", " + e.getDescription() + ":" + e.getMessage());
         } catch (Exception e) {
-            throw new AssertionError(cnV2.getLatestRequestUrl() + " testV1CreateV2Delete() : unable to fetch sysmeta from CN! Check status of CN sync.");
+            throw new AssertionError(cnV2.getLatestRequestUrl() + " testV1CreateV2Query() : unable to get replica info from CN sysmeta! Check status of CN replication." 
+                    + ", origin MN: " + v1MNode.getBaseURL());
         }
         
         if(replicaMN == null)
@@ -1479,7 +1608,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         } catch (InterruptedException e1) {
             e1.printStackTrace();
         }
-        
+
         // v1 listObjects
 
         Node v1MNode = v1mns.get(0);
@@ -1535,9 +1664,9 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         
         // v1 create
         
-        Identifier pid = D1TypeBuilder.buildIdentifier("testV1CreateV2ListObjects_" + ExampleUtilities.generateIdentifier());
+        final Identifier pid = D1TypeBuilder.buildIdentifier("testV1CreateV2ListObjects_" + ExampleUtilities.generateIdentifier());
         try {
-            pid = createTestObject(v1CallAdapter, pid, accessRule, replPolicy);
+            createTestObject(v1CallAdapter, pid, accessRule, replPolicy);
         } catch (BaseException e) {
             e.printStackTrace();
             throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + " testV1CreateV2ListObjects() couldn't create test object: " 
@@ -1551,15 +1680,51 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         }
         
         // wait for replication
+        SystemMetadata cnSysmeta = null;
         try {
-            Thread.sleep(REPLICATION_WAIT);
-        } catch (InterruptedException e1) {
-            e1.printStackTrace();
-        }
+            RetryHandler<SystemMetadata> handler =  new RetryHandler<SystemMetadata>() {
+                @Override
+                protected SystemMetadata attempt() throws TryAgainException, Exception {
+                    try {
+                        log.info("attempting CN getSystemMEtadata...");
+                        return cnV2.getSystemMetadata(null, pid);
+                    } catch (NotFound | ServiceFailure e) {
+                        TryAgainException f = new TryAgainException();
+                        f.initCause(e);
+                        throw f;
+                    }
+                }
+            };
+            cnSysmeta = handler.execute(30* 1000, REPLICATION_WAIT);
+        } catch (Exception e) {
+            throw new AssertionError(cnV2.getLatestRequestUrl() + " testV1CreateV2ListObjects() : unable to fetch sysmeta from CN! Check status of CN sync. "
+                    + e.getClass().getSimpleName() + " : " + e.getMessage() 
+                    + ", origin MN: " + v1MNode.getBaseURL());
+        } 
         
         Node replicaMN = null;
         try {
-            SystemMetadata cnSysmeta = cnV2.getSystemMetadata(null, pid);
+            RetryHandler<SystemMetadata> handler =  new RetryHandler<SystemMetadata>() {
+                @Override
+                protected SystemMetadata attempt() throws TryAgainException, Exception {
+                    try {
+                        log.info("attempting CN getSystemMEtadata...");
+                        SystemMetadata sysmeta = cnV2.getSystemMetadata(null, pid);
+                        
+                        log.info("attempting to get replicas from CN sysmeta...");
+                        List<Replica> replicaList = sysmeta.getReplicaList();
+                        if (replicaList.size() == 0)
+                            throw new TryAgainException();
+                        return sysmeta;
+                    } catch (NotFound | ServiceFailure e) {
+                        TryAgainException f = new TryAgainException();
+                        f.initCause(e);
+                        throw f;
+                    }
+                }
+            };
+            cnSysmeta = handler.execute(30* 1000, REPLICATION_WAIT);
+            
             List<Replica> replicaList = cnSysmeta.getReplicaList();
             outerloop:
             for (Replica rep : replicaList) {
@@ -1570,11 +1735,9 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
                     }
                 }
             }
-        } catch (NotFound e) {
-            throw new AssertionError(cnV2.getLatestRequestUrl() + " testV1CreateV2ListObjects() : unable to fetch sysmeta from CN! Check status of CN sync. "
-                    + ": NotFound " + e.getDetail_code() + ", " + e.getDescription() + ":" + e.getMessage());
         } catch (Exception e) {
-            throw new AssertionError(cnV2.getLatestRequestUrl() + " testV1CreateV2ListObjects() : unable to fetch sysmeta from CN! Check status of CN sync.");
+            throw new AssertionError(cnV2.getLatestRequestUrl() + " testV1CreateV2ListObjects() : unable to get replica info from CN sysmeta! Check status of CN replication." 
+                    + ", origin MN: " + v1MNode.getBaseURL());
         }
         
         if(replicaMN == null)
@@ -1632,9 +1795,9 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         
         // v2 create
         
-        Identifier pid = D1TypeBuilder.buildIdentifier("testV2CreateCnArchive_" + ExampleUtilities.generateIdentifier());
+        final Identifier pid = D1TypeBuilder.buildIdentifier("testV2CreateCnArchive_" + ExampleUtilities.generateIdentifier());
         try {
-            pid = createTestObject(v2CallAdapter, pid, accessRule, replPolicy);
+            createTestObject(v2CallAdapter, pid, accessRule, replPolicy);
         } catch (BaseException e) {
             e.printStackTrace();
             throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + " testV2CreateCnArchive() couldn't create test object: " 
@@ -1649,19 +1812,25 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         
         // wait for replication
         try {
-            Thread.sleep(REPLICATION_WAIT);
-        } catch (InterruptedException e1) {
-            e1.printStackTrace();
-        }
-        
-        try {
-            cnV1.getSystemMetadata(null, pid);
-        } catch (NotFound e) {
-            handleFail(cnV1.getLatestRequestUrl(), " testV2CreateCnArchive() : unable to fetch sysmeta from CN! Check status of CN sync. "
-                    + ": NotFound " + e.getDetail_code() + ", " + e.getDescription() + ":" + e.getMessage());
+            RetryHandler<SystemMetadata> handler =  new RetryHandler<SystemMetadata>() {
+                @Override
+                protected SystemMetadata attempt() throws TryAgainException, Exception {
+                    try {
+                        log.info("attempting CN getSystemMEtadata...");
+                        return cnV1.getSystemMetadata(null, pid);
+                    } catch (NotFound | ServiceFailure e) {
+                        TryAgainException f = new TryAgainException();
+                        f.initCause(e);
+                        throw f;
+                    }
+                }
+            };
+            handler.execute(30* 1000, REPLICATION_WAIT);
         } catch (Exception e) {
-            handleFail(cnV1.getLatestRequestUrl(),  " testV2CreateCnArchive() : unable to fetch sysmeta from CN! Check status of CN sync.");
-        }
+            throw new AssertionError(cnV1.getLatestRequestUrl() + " testV2CreateCnArchive() : unable to fetch sysmeta from CN! Check status of CN sync. "
+                    + e.getClass().getSimpleName() + " : " + e.getMessage() 
+                    + ", origin MN: " + v2MNode.getBaseURL());
+        } 
         
         // CN archive
         
@@ -1717,9 +1886,9 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         
         // v2 create
         
-        Identifier pid = D1TypeBuilder.buildIdentifier("testV2CreateCnSetReplicationPolicy_" + ExampleUtilities.generateIdentifier());
+        final Identifier pid = D1TypeBuilder.buildIdentifier("testV2CreateCnSetReplicationPolicy_" + ExampleUtilities.generateIdentifier());
         try {
-            pid = createTestObject(v2CallAdapter, pid, accessRule, replPolicy);
+            createTestObject(v2CallAdapter, pid, accessRule, replPolicy);
         } catch (BaseException e) {
             e.printStackTrace();
             throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + " testV2CreateCnSetReplicationPolicy() couldn't create test object: " 
@@ -1733,20 +1902,26 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         }
         
         // wait for replication
-        try {
-            Thread.sleep(REPLICATION_WAIT);
-        } catch (InterruptedException e1) {
-            e1.printStackTrace();
-        }
-        
         SystemMetadata fetchedSysmeta = null;
         try {
-            fetchedSysmeta = cnV1.getSystemMetadata(null, pid);
-        } catch (NotFound e) {
-            handleFail(cnV1.getLatestRequestUrl(),  " testV2CreateCnSetReplicationPolicy() : unable to fetch sysmeta from CN! Check status of CN sync. "
-                    + ": NotFound " + e.getDetail_code() + ", " + e.getDescription() + ":" + e.getMessage());
+            RetryHandler<SystemMetadata> handler =  new RetryHandler<SystemMetadata>() {
+                @Override
+                protected SystemMetadata attempt() throws TryAgainException, Exception {
+                    try {
+                        log.info("attempting CN getSystemMEtadata...");
+                        return cnV1.getSystemMetadata(null, pid);
+                    } catch (NotFound | ServiceFailure e) {
+                        TryAgainException f = new TryAgainException();
+                        f.initCause(e);
+                        throw f;
+                    }
+                }
+            };
+            fetchedSysmeta = handler.execute(30* 1000, REPLICATION_WAIT);
         } catch (Exception e) {
-            handleFail(cnV1.getLatestRequestUrl(),  " testV2CreateCnSetReplicationPolicy() : unable to fetch sysmeta from CN! Check status of CN sync.");
+            throw new AssertionError(cnV1.getLatestRequestUrl() + " testV2CreateCnSetReplicationPolicy() : unable to fetch sysmeta from CN! Check status of CN sync. "
+                    + e.getClass().getSimpleName() + " : " + e.getMessage() 
+                    + ", origin MN: " + v2MNode.getBaseURL());
         }
         
         // CN setReplicationPolicy
@@ -1805,9 +1980,9 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         
         // v2 create
         
-        Identifier pid = D1TypeBuilder.buildIdentifier("testV2CreateCnSetAccessPolicy_" + ExampleUtilities.generateIdentifier());
+        final Identifier pid = D1TypeBuilder.buildIdentifier("testV2CreateCnSetAccessPolicy_" + ExampleUtilities.generateIdentifier());
         try {
-            pid = createTestObject(v2CallAdapter, pid, accessRule, replPolicy);
+            createTestObject(v2CallAdapter, pid, accessRule, replPolicy);
         } catch (BaseException e) {
             e.printStackTrace();
             throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + " testV2CreateCnSetAccessPolicy() couldn't create test object: " 
@@ -1821,20 +1996,26 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         }
         
         // wait for replication
-        try {
-            Thread.sleep(REPLICATION_WAIT);
-        } catch (InterruptedException e1) {
-            e1.printStackTrace();
-        }
-        
         SystemMetadata fetchedSysmeta = null;
         try {
-            fetchedSysmeta = cnV1.getSystemMetadata(null, pid);
-        } catch (NotFound e) {
-            handleFail(cnV1.getLatestRequestUrl(),  " testV2CreateCnSetAccessPolicy() : unable to fetch sysmeta from CN! Check status of CN sync. "
-                    + ": NotFound " + e.getDetail_code() + ", " + e.getDescription() + ":" + e.getMessage());
+            RetryHandler<SystemMetadata> handler =  new RetryHandler<SystemMetadata>() {
+                @Override
+                protected SystemMetadata attempt() throws TryAgainException, Exception {
+                    try {
+                        log.info("attempting CN getSystemMEtadata...");
+                        return cnV1.getSystemMetadata(null, pid);
+                    } catch (NotFound | ServiceFailure e) {
+                        TryAgainException f = new TryAgainException();
+                        f.initCause(e);
+                        throw f;
+                    }
+                }
+            };
+            fetchedSysmeta = handler.execute(30* 1000, REPLICATION_WAIT);
         } catch (Exception e) {
-            handleFail(cnV1.getLatestRequestUrl(),  " testV2CreateCnSetAccessPolicy() : unable to fetch sysmeta from CN! Check status of CN sync.");
+            throw new AssertionError(cnV1.getLatestRequestUrl() + " testV2CreateCnSetAccessPolicy() : unable to fetch sysmeta from CN! Check status of CN sync. "
+                    + e.getClass().getSimpleName() + " : " + e.getMessage() 
+                    + ", origin MN: " + v2MNode.getBaseURL());
         }
         
         // CN setAccessPolicy
@@ -1895,9 +2076,9 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         
         // v2 create
         
-        Identifier pid = D1TypeBuilder.buildIdentifier("testV2CreateCnSetRightsHolder_" + ExampleUtilities.generateIdentifier());
+        final Identifier pid = D1TypeBuilder.buildIdentifier("testV2CreateCnSetRightsHolder_" + ExampleUtilities.generateIdentifier());
         try {
-            pid = createTestObject(v2CallAdapter, pid, accessRule, replPolicy);
+            createTestObject(v2CallAdapter, pid, accessRule, replPolicy);
         } catch (BaseException e) {
             e.printStackTrace();
             throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + " testV2CreateCnSetRightsHolder() couldn't create test object: " 
@@ -1911,20 +2092,26 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         }
         
         // wait for replication
-        try {
-            Thread.sleep(REPLICATION_WAIT);
-        } catch (InterruptedException e1) {
-            e1.printStackTrace();
-        }
-        
         SystemMetadata fetchedSysmeta = null;
         try {
-            fetchedSysmeta = cnV1.getSystemMetadata(null, pid);
-        } catch (NotFound e) {
-            handleFail(cnV1.getLatestRequestUrl(),  " testV2CreateCnSetRightsHolder() : unable to fetch sysmeta from CN! Check status of CN sync. "
-                    + ": NotFound " + e.getDetail_code() + ", " + e.getDescription() + ":" + e.getMessage());
+            RetryHandler<SystemMetadata> handler =  new RetryHandler<SystemMetadata>() {
+                @Override
+                protected SystemMetadata attempt() throws TryAgainException, Exception {
+                    try {
+                        log.info("attempting CN getSystemMEtadata...");
+                        return cnV1.getSystemMetadata(null, pid);
+                    } catch (NotFound | ServiceFailure e) {
+                        TryAgainException f = new TryAgainException();
+                        f.initCause(e);
+                        throw f;
+                    }
+                }
+            };
+            fetchedSysmeta = handler.execute(30* 1000, REPLICATION_WAIT);
         } catch (Exception e) {
-            handleFail(cnV1.getLatestRequestUrl(),  " testV2CreateCnSetRightsHolder() : unable to fetch sysmeta from CN! Check status of CN sync.");
+            throw new AssertionError(cnV1.getLatestRequestUrl() + " testV2CreateCnSetRightsHolder() : unable to fetch sysmeta from CN! Check status of CN sync. "
+                    + e.getClass().getSimpleName() + " : " + e.getMessage() 
+                    + ", origin MN: " + v2MNode.getBaseURL());
         }
         
         // CN setRightsHolder
@@ -1985,10 +2172,10 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         
         // v2 create
         
-        Identifier pid = D1TypeBuilder.buildIdentifier("testV2CreateV1CnSetObsoletedBy_" + ExampleUtilities.generateIdentifier());
+        final Identifier pid = D1TypeBuilder.buildIdentifier("testV2CreateV1CnSetObsoletedBy_" + ExampleUtilities.generateIdentifier());
         Identifier obsoletedByPid = D1TypeBuilder.buildIdentifier("testV2CreateV1CnSetObsoletedBy_obs_" + ExampleUtilities.generateIdentifier());
         try {
-            pid = createTestObject(v2CallAdapter, pid, accessRule, replPolicy);
+            createTestObject(v2CallAdapter, pid, accessRule, replPolicy);
             obsoletedByPid = createTestObject(v2CallAdapter, obsoletedByPid, accessRule, replPolicy);
         } catch (BaseException e) {
             e.printStackTrace();
@@ -2003,20 +2190,26 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         }
         
         // wait for replication
-        try {
-            Thread.sleep(REPLICATION_WAIT);
-        } catch (InterruptedException e1) {
-            e1.printStackTrace();
-        }
-        
         SystemMetadata fetchedSysmeta = null;
         try {
-            fetchedSysmeta = cnV1.getSystemMetadata(null, pid);
-        } catch (NotFound e) {
-            handleFail(cnV1.getLatestRequestUrl(),  " testV2CreateV1CnSetObsoletedBy() : unable to fetch sysmeta from CN! Check status of CN sync. "
-                    + ": NotFound " + e.getDetail_code() + ", " + e.getDescription() + ":" + e.getMessage());
+            RetryHandler<SystemMetadata> handler =  new RetryHandler<SystemMetadata>() {
+                @Override
+                protected SystemMetadata attempt() throws TryAgainException, Exception {
+                    try {
+                        log.info("attempting CN getSystemMEtadata...");
+                        return cnV1.getSystemMetadata(null, pid);
+                    } catch (NotFound | ServiceFailure e) {
+                        TryAgainException f = new TryAgainException();
+                        f.initCause(e);
+                        throw f;
+                    }
+                }
+            };
+            fetchedSysmeta = handler.execute(30* 1000, REPLICATION_WAIT);
         } catch (Exception e) {
-            handleFail(cnV1.getLatestRequestUrl(),  " testV2CreateV1CnSetObsoletedBy() : unable to fetch sysmeta from CN! Check status of CN sync.");
+            throw new AssertionError(cnV1.getLatestRequestUrl() + " testV2CreateV1CnSetObsoletedBy() : unable to fetch sysmeta from CN! Check status of CN sync. "
+                    + e.getClass().getSimpleName() + " : " + e.getMessage() 
+                    + ", origin MN: " + v2MNode.getBaseURL());
         }
         
         // CN setObsoletedBy
