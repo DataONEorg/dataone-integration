@@ -467,7 +467,7 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
             //    at the time when CN.synchronize() gets called
             
             log.info("testSystemMetadataChanged_ExistingObj:   "
-                    + "waiting for CN sync (up to" + SYNC_WAIT_MINUTES  + " minutes)");
+                    + "waiting for CN sync (up to " + SYNC_WAIT_MINUTES  + " minutes)");
             
             RetryHandler<SystemMetadata> handler =  new RetryHandler<SystemMetadata>() {
                 @Override
@@ -558,7 +558,7 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
             
             log.info("testSystemMetadataChanged_ExistingObj:   "
                     + "waiting for CN to trigger replication "
-                    + "so we have replica info in sysmeta (up to" + REPLICATION_WAIT_MINUTES + " minutes)");
+                    + "so we have replica info in sysmeta (up to " + REPLICATION_WAIT_MINUTES + " minutes)");
             
             handler =  new RetryHandler<SystemMetadata>() {
                 @Override
