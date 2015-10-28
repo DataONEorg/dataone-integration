@@ -507,7 +507,9 @@ public class MNSystemMetadataMutabilityImplementations extends ContextAwareTestC
             NodeReference ref = r.getReplicaMemberNode();
             String refValue = ref.getValue();
             for (Node n : v1v2mns) {
-                if (refValue.equals(n.getIdentifier().getValue())) {
+                if (refValue.equals(n.getIdentifier().getValue())
+                        && !r.getReplicaMemberNode().getValue().equals(mNode.getIdentifier().getValue())
+                        && r.getReplicationStatus() == ReplicationStatus.COMPLETED) {
                     replica = r;
                     break outerloop;
                 }
@@ -654,7 +656,9 @@ public class MNSystemMetadataMutabilityImplementations extends ContextAwareTestC
             String refValue = ref.getValue();
             for (Node n : v1v2mns) {
                 log.info("comparing sysmeta replica id (" + refValue + ") with available MN id (" + n.getIdentifier().getValue() + ")");
-                if (refValue.equals(n.getIdentifier().getValue())) {
+                if (refValue.equals(n.getIdentifier().getValue())
+                        && !r.getReplicaMemberNode().getValue().equals(mNode.getIdentifier().getValue())
+                        && r.getReplicationStatus() == ReplicationStatus.COMPLETED) {
                     replica = r;
                     break outerloop;
                 }

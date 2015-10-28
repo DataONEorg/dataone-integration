@@ -581,7 +581,9 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             outerloop:
             for (Replica rep : replicaList) {
                 for (Node availMN : v2mns) {
-                    if (availMN.getIdentifier().getValue().equals( rep.getReplicaMemberNode().getValue() )) {
+                    if (availMN.getIdentifier().getValue().equals( rep.getReplicaMemberNode().getValue() )
+                            && !rep.getReplicaMemberNode().getValue().equals(authNode.getIdentifier().getValue())
+                            && rep.getReplicationStatus() == ReplicationStatus.COMPLETED) {
                         replicaMN = availMN;
                         break outerloop;
                     }
@@ -792,7 +794,9 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             outerloop:
             for (Replica rep : replicaList) {
                 for (Node availMN : v2mns) {
-                    if (availMN.getIdentifier().getValue().equals( rep.getReplicaMemberNode().getValue() )) {
+                    if (availMN.getIdentifier().getValue().equals( rep.getReplicaMemberNode().getValue() )
+                            && !rep.getReplicaMemberNode().getValue().equals(authNode.getIdentifier().getValue())
+                            && rep.getReplicationStatus() == ReplicationStatus.COMPLETED) {
                         replicaMN = availMN;
                         break outerloop;
                     }
@@ -997,7 +1001,9 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             outerloop:
             for (Replica rep : replicaList) {
                 for (Node availMN : v2mns) {
-                    if (availMN.getIdentifier().getValue().equals( rep.getReplicaMemberNode().getValue() )) {
+                    if (availMN.getIdentifier().getValue().equals( rep.getReplicaMemberNode().getValue() )
+                            && !rep.getReplicaMemberNode().getValue().equals(authNode.getIdentifier().getValue())
+                            && rep.getReplicationStatus() == ReplicationStatus.COMPLETED) {
                         replicaMN = availMN;
                         break outerloop;
                     }
@@ -1441,7 +1447,9 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             outerloop:
             for (Replica rep : replicaList) {
                 for (Node availMN : v2mns) {
-                    if (availMN.getIdentifier().getValue().equals( rep.getReplicaMemberNode().getValue() )) {
+                    if (availMN.getIdentifier().getValue().equals( rep.getReplicaMemberNode().getValue() )
+                            && !rep.getReplicaMemberNode().getValue().equals(authNode.getIdentifier().getValue())
+                            && rep.getReplicationStatus() == ReplicationStatus.COMPLETED) {
                         replicaMN = availMN;
                         break outerloop;
                     }
@@ -1795,7 +1803,9 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             outerloop:
             for (Replica rep : replicaList) {
                 for (Node availMN : v2mns) {
-                    if (availMN.getIdentifier().getValue().equals( rep.getReplicaMemberNode().getValue() )) {
+                    if (availMN.getIdentifier().getValue().equals( rep.getReplicaMemberNode().getValue() )
+                            && !rep.getReplicaMemberNode().getValue().equals(authNode.getIdentifier().getValue())
+                            && rep.getReplicationStatus() == ReplicationStatus.COMPLETED) {
                         replicaMN = availMN;
                         break outerloop;
                     }
