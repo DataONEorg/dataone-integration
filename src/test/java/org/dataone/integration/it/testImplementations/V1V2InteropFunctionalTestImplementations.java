@@ -45,6 +45,7 @@ import org.dataone.service.types.v1.ObjectList;
 import org.dataone.service.types.v1.Permission;
 import org.dataone.service.types.v1.Replica;
 import org.dataone.service.types.v1.ReplicationPolicy;
+import org.dataone.service.types.v1.ReplicationStatus;
 import org.dataone.service.types.v1.Service;
 import org.dataone.service.types.v1.Subject;
 import org.dataone.service.types.v2.SystemMetadata;
@@ -542,6 +543,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         
         Node replicaMN = null;
         try {
+            final Node authNode = v1MNode;
             RetryHandler<SystemMetadata> handler =  new RetryHandler<SystemMetadata>() {
                 @Override
                 protected SystemMetadata attempt() throws TryAgainException, Exception {
@@ -557,7 +559,9 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
                         Node v2ReplicaNode = null;
                         for (Replica rep : replicaList) {
                             for (Node v2Node : v2mns)
-                                if (v2Node.getIdentifier().getValue().equals( rep.getReplicaMemberNode().getValue() ))
+                                if (v2Node.getIdentifier().getValue().equals( rep.getReplicaMemberNode().getValue())
+                                        && !rep.getReplicaMemberNode().getValue().equals(authNode.getIdentifier().getValue())
+                                        && rep.getReplicationStatus() == ReplicationStatus.COMPLETED)
                                     v2ReplicaNode = v2Node;
                         }
                         if (v2ReplicaNode == null)
@@ -750,6 +754,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         
         Node replicaMN = null;
         try {
+            final Node authNode = v1MNode;
             RetryHandler<SystemMetadata> handler =  new RetryHandler<SystemMetadata>() {
                 @Override
                 protected SystemMetadata attempt() throws TryAgainException, Exception {
@@ -765,7 +770,9 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
                         Node v2ReplicaNode = null;
                         for (Replica rep : replicaList) {
                             for (Node v2Node : v2mns)
-                                if (v2Node.getIdentifier().getValue().equals( rep.getReplicaMemberNode().getValue() ))
+                                if (v2Node.getIdentifier().getValue().equals( rep.getReplicaMemberNode().getValue() )
+                                        && !rep.getReplicaMemberNode().getValue().equals(authNode.getIdentifier().getValue())
+                                        && rep.getReplicationStatus() == ReplicationStatus.COMPLETED)
                                     v2ReplicaNode = v2Node;
                         }
                         if (v2ReplicaNode == null)
@@ -952,6 +959,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         
         Node replicaMN = null;
         try {
+            final Node authNode = v1MNode;
             RetryHandler<SystemMetadata> handler =  new RetryHandler<SystemMetadata>() {
                 @Override
                 protected SystemMetadata attempt() throws TryAgainException, Exception {
@@ -967,7 +975,9 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
                         Node v2ReplicaNode = null;
                         for (Replica rep : replicaList) {
                             for (Node v2Node : v2mns)
-                                if (v2Node.getIdentifier().getValue().equals( rep.getReplicaMemberNode().getValue() ))
+                                if (v2Node.getIdentifier().getValue().equals( rep.getReplicaMemberNode().getValue())
+                                        && !rep.getReplicaMemberNode().getValue().equals(authNode.getIdentifier().getValue())
+                                        && rep.getReplicationStatus() == ReplicationStatus.COMPLETED)
                                     v2ReplicaNode = v2Node;
                         }
                         if (v2ReplicaNode == null)
@@ -1393,6 +1403,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         
         Node replicaMN = null;
         try {
+            final Node authNode = v1MNode;
             RetryHandler<SystemMetadata> handler =  new RetryHandler<SystemMetadata>() {
                 @Override
                 protected SystemMetadata attempt() throws TryAgainException, Exception {
@@ -1408,7 +1419,9 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
                         Node v2ReplicaNode = null;
                         for (Replica rep : replicaList) {
                             for (Node v2Node : v2mns)
-                                if (v2Node.getIdentifier().getValue().equals( rep.getReplicaMemberNode().getValue() ))
+                                if (v2Node.getIdentifier().getValue().equals( rep.getReplicaMemberNode().getValue())
+                                        && !rep.getReplicaMemberNode().getValue().equals(authNode.getIdentifier().getValue())
+                                        && rep.getReplicationStatus() == ReplicationStatus.COMPLETED)
                                     v2ReplicaNode = v2Node;
                         }
                         if (v2ReplicaNode == null)
@@ -1744,6 +1757,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         
         Node replicaMN = null;
         try {
+            final Node authNode = v1MNode;
             RetryHandler<SystemMetadata> handler =  new RetryHandler<SystemMetadata>() {
                 @Override
                 protected SystemMetadata attempt() throws TryAgainException, Exception {
@@ -1759,7 +1773,9 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
                         Node v2ReplicaNode = null;
                         for (Replica rep : replicaList) {
                             for (Node v2Node : v2mns)
-                                if (v2Node.getIdentifier().getValue().equals( rep.getReplicaMemberNode().getValue() ))
+                                if (v2Node.getIdentifier().getValue().equals( rep.getReplicaMemberNode().getValue() )
+                                        && !rep.getReplicaMemberNode().getValue().equals(authNode.getIdentifier().getValue())
+                                        && rep.getReplicationStatus() == ReplicationStatus.COMPLETED)
                                     v2ReplicaNode = v2Node;
                         }
                         if (v2ReplicaNode == null)

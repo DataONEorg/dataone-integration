@@ -11,6 +11,8 @@ import org.apache.commons.collections.IteratorUtils;
 import org.apache.commons.lang.time.DateUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.dataone.client.RetryHandler;
+import org.dataone.client.RetryHandler.TryAgainException;
 import org.dataone.client.v1.types.D1TypeBuilder;
 import org.dataone.configuration.Settings;
 import org.dataone.integration.ContextAwareTestCaseDataone;
@@ -19,6 +21,8 @@ import org.dataone.integration.adapters.CNCallAdapter;
 import org.dataone.integration.adapters.MNCallAdapter;
 import org.dataone.integration.webTest.WebTestDescription;
 import org.dataone.integration.webTest.WebTestName;
+import org.dataone.service.exceptions.NotFound;
+import org.dataone.service.exceptions.ServiceFailure;
 import org.dataone.service.types.v1.AccessPolicy;
 import org.dataone.service.types.v1.AccessRule;
 import org.dataone.service.types.v1.Identifier;
@@ -47,8 +51,8 @@ public class MNSystemMetadataMutabilityImplementations extends ContextAwareTestC
     private List<Node> v1v2mns;
     private int availableMNs = 0;
     
-    private static final long SYNC_WAIT = 5 * 60000;
-    private static final long REPLICATION_WAIT = 10 * 60000;
+    private static final long SYNC_WAIT = 15 * 60000;
+    private static final long REPLICATION_WAIT = 15 * 60000;
     
     @Override
     protected String getTestDescription() {
@@ -238,12 +242,11 @@ public class MNSystemMetadataMutabilityImplementations extends ContextAwareTestC
         replPolicy.setReplicationAllowed(true);
         replPolicy.setNumberReplicas(v2mns.size() > 1 ? v2mns.size() -1 : 2);
         
-        Identifier pid = null;
+        final Identifier pid = D1TypeBuilder.buildIdentifier("testRegisterSystemMetadata_dateModified_obj1");
         try {
             getSession(cnSubmitter);
-            pid = D1TypeBuilder.buildIdentifier("testRegisterSystemMetadata_dateModified_obj1");
             log.info("attempting to create test object on " + mn.getNodeBaseServiceUrl() + " with pid " + pid.getValue());
-            pid = procureTestObject(mn,  publicAccessRule, pid, cnSubmitter, "public", replPolicy);
+            procureTestObject(mn,  publicAccessRule, pid, cnSubmitter, "public", replPolicy);
         } catch (Exception e) {
             throw new AssertionError("testRegisterSystemMetadata_dateModified: Unable to get or create a "
                     + "test object with pid: " + pid.getValue(), e);
@@ -265,13 +268,20 @@ public class MNSystemMetadataMutabilityImplementations extends ContextAwareTestC
         Date mnSysmetaDateModified = sysmeta.getDateSysMetadataModified();
         
         try {
-            Thread.sleep(SYNC_WAIT);
-        } catch (InterruptedException e) {
-            log.warn("wait for CN sync was interrupted");
-        }
-        
-        try {
-            sysmeta = cnV2.getSystemMetadata(null, pid);
+            RetryHandler<SystemMetadata> cnGetSysmetaHandler = new RetryHandler<SystemMetadata>() {
+                @Override
+                protected SystemMetadata attempt() throws TryAgainException, Exception {
+                    try {
+                        log.info("attempting CN getSystemMEtadata...");
+                        return cnV2.getSystemMetadata(null, pid);
+                    } catch (NotFound | ServiceFailure e) {
+                        TryAgainException f = new TryAgainException();
+                        f.initCause(e);
+                        throw f;
+                    }
+                }
+            };
+            sysmeta = cnGetSysmetaHandler.execute(30*1000, SYNC_WAIT);
         } catch (Exception e) {
             throw new AssertionError("testRegisterSystemMetadata_dateModified: Unable to fetch sysmeta from CN " 
                     + cnV2.getLatestRequestUrl() + " for pid " + pid.getValue(), e);
@@ -296,16 +306,15 @@ public class MNSystemMetadataMutabilityImplementations extends ContextAwareTestC
         replPolicy.setReplicationAllowed(true);
         replPolicy.setNumberReplicas(v2mns.size() > 1 ? v2mns.size() -1 : 2);
         
-        Identifier pid = null;
+        final Identifier pid = D1TypeBuilder.buildIdentifier("testRegisterSystemMetadata_dateModified_obj1");
         Node mNode = v2mns.get(0);
         MNCallAdapter mn = new MNCallAdapter(getSession(cnSubmitter), mNode, "v2"); 
         
         // create object on MN
         try {
             getSession(cnSubmitter);
-            pid = D1TypeBuilder.buildIdentifier("testRegisterSystemMetadata_dateModified_obj1");
             log.info("attempting to create test object on " + mn.getNodeBaseServiceUrl() + " with pid " + pid.getValue());
-            pid = procureTestObject(mn,  publicAccessRule, pid, cnSubmitter, "public", replPolicy);
+            procureTestObject(mn,  publicAccessRule, pid, cnSubmitter, "public", replPolicy);
         } catch (Exception e) {
             throw new AssertionError("testRegisterSystemMetadata_dateModified: Unable to get or create a "
                     + "test object with pid: " + pid.getValue(), e);
@@ -328,10 +337,44 @@ public class MNSystemMetadataMutabilityImplementations extends ContextAwareTestC
         Date mnSysmetaDateModified = sysmeta.getDateSysMetadataModified();
         
         // need sysmeta to contain replica info first, so wait for replication
+        final Node authNode = mNode;
         try {
-            Thread.sleep(REPLICATION_WAIT);
-        } catch (InterruptedException e) {
-            log.error("testRegisterSystemMetadata_dateModified: wait for replication interrupted");
+            RetryHandler<SystemMetadata> handler =  new RetryHandler<SystemMetadata>() {
+                @Override
+                protected SystemMetadata attempt() throws TryAgainException, Exception {
+                    try {
+                        log.info("attempting CN getSystemMEtadata...");
+                        SystemMetadata sysmeta = cnV2.getSystemMetadata(null, pid);
+                        
+                        log.info("attempting to get replicas from CN sysmeta...");
+                        List<Replica> replicaList = sysmeta.getReplicaList();
+                        if (replicaList.size() == 0)
+                            throw new TryAgainException();
+                        
+                        Node v2ReplicaNode = null;
+                        for (Replica rep : replicaList) {
+                            for (Node v2Node : v2mns)
+                                if (v2Node.getIdentifier().getValue().equals( rep.getReplicaMemberNode().getValue())
+                                        && !rep.getReplicaMemberNode().getValue().equals(authNode.getIdentifier().getValue())
+                                        && rep.getReplicationStatus() == ReplicationStatus.COMPLETED)
+                                    v2ReplicaNode = v2Node;
+                        }
+                        if (v2ReplicaNode == null)
+                            throw new TryAgainException();
+                        
+                        return sysmeta;
+                    } catch (NotFound | ServiceFailure e) {
+                        TryAgainException f = new TryAgainException();
+                        f.initCause(e);
+                        throw f;
+                    }
+                }
+            };
+            handler.execute(30* 1000, REPLICATION_WAIT);
+        } catch (Exception e) {
+            throw new AssertionError(cnV2.getLatestRequestUrl() + " testSetReplicationStatus_dateModified: unable "
+                    + "to fetch sysmeta with valid replicas from CN for pid " + pid.getValue() + " Got exception: " 
+                    + e.getClass().getSimpleName() + " : " + e.getMessage(), e);
         }
         
 //      ReplicationStatus.COMPLETED
@@ -339,15 +382,6 @@ public class MNSystemMetadataMutabilityImplementations extends ContextAwareTestC
 //      ReplicationStatus.INVALIDATED
 //      ReplicationStatus.QUEUED
 //      ReplicationStatus.REQUESTED
-        
-        // verify that object has made it to CN
-        try {
-            cnV2.getSystemMetadata(null, pid);
-        } catch (Exception e) {
-            throw new AssertionError(cnV2.getLatestRequestUrl() + " testSetReplicationStatus_dateModified: unable "
-                    + "to fetch sysmeta from CN for pid " + pid.getValue() + " Got exception: " 
-                    + e.getClass().getSimpleName() + " : " + e.getMessage(), e);
-        }
         
         // setReplicationStatus call
         try {
@@ -388,16 +422,15 @@ public class MNSystemMetadataMutabilityImplementations extends ContextAwareTestC
         replPolicy.setReplicationAllowed(true);
         replPolicy.setNumberReplicas(v2mns.size() > 1 ? v2mns.size() -1 : 2);
         
-        Identifier pid = null;
+        final Identifier pid = D1TypeBuilder.buildIdentifier("testUpdateReplicationMetadata_dateModified_obj1");
         Node mNode = v2mns.get(0);
         MNCallAdapter mn = new MNCallAdapter(getSession(cnSubmitter), mNode, "v2"); 
         
         // create object on MN
         try {
             getSession(cnSubmitter);
-            pid = D1TypeBuilder.buildIdentifier("testUpdateReplicationMetadata_dateModified_obj1");
             log.info("attempting to create test object on " + mn.getNodeBaseServiceUrl() + " with pid " + pid.getValue());
-            pid = procureTestObject(mn,  publicAccessRule, pid, cnSubmitter, "public", replPolicy);
+            procureTestObject(mn,  publicAccessRule, pid, cnSubmitter, "public", replPolicy);
         } catch (Exception e) {
             throw new AssertionError("testUpdateReplicationMetadata_dateModified: Unable to get or create a "
                     + "test object with pid: " + pid.getValue(), e);
@@ -420,20 +453,44 @@ public class MNSystemMetadataMutabilityImplementations extends ContextAwareTestC
         Date mnSysmetaDateModified = sysmeta.getDateSysMetadataModified();
         
         // need sysmeta to contain replica info first, so wait for replication
-        try {
-            Thread.sleep(REPLICATION_WAIT);
-        } catch (InterruptedException e) {
-            log.error("testUpdateReplicationMetadata_dateModified: wait for replication interrupted");
-        }
-        
-        // get a replica
         SystemMetadata cnSysmeta = null;
-        Replica replica = null;
         try {
-            cnSysmeta = cnV2.getSystemMetadata(null, pid);
+            final Node authNode = mNode;
+            RetryHandler<SystemMetadata> handler =  new RetryHandler<SystemMetadata>() {
+                @Override
+                protected SystemMetadata attempt() throws TryAgainException, Exception {
+                    try {
+                        log.info("attempting CN getSystemMEtadata...");
+                        SystemMetadata sysmeta = cnV2.getSystemMetadata(null, pid);
+                        
+                        log.info("attempting to get replicas from CN sysmeta...");
+                        List<Replica> replicaList = sysmeta.getReplicaList();
+                        if (replicaList.size() == 0)
+                            throw new TryAgainException();
+                        
+                        Node v2ReplicaNode = null;
+                        for (Replica rep : replicaList) {
+                            for (Node v2Node : v2mns)
+                                if (v2Node.getIdentifier().getValue().equals( rep.getReplicaMemberNode().getValue())
+                                        && !rep.getReplicaMemberNode().getValue().equals(authNode.getIdentifier().getValue())
+                                        && rep.getReplicationStatus() == ReplicationStatus.COMPLETED)
+                                    v2ReplicaNode = v2Node;
+                        }
+                        if (v2ReplicaNode == null)
+                            throw new TryAgainException();
+                        
+                        return sysmeta;
+                    } catch (NotFound | ServiceFailure e) {
+                        TryAgainException f = new TryAgainException();
+                        f.initCause(e);
+                        throw f;
+                    }
+                }
+            };
+            cnSysmeta = handler.execute(30* 1000, REPLICATION_WAIT);
         } catch (Exception e) {
             throw new AssertionError(cnV2.getLatestRequestUrl() + " testUpdateReplicationMetadata_dateModified: unable "
-                    + "to fetch sysmeta from CN for pid " + pid.getValue() + " Got exception: " 
+                    + "to fetch sysmeta with valid replicas from CN for pid " + pid.getValue() + " Got exception: " 
                     + e.getClass().getSimpleName() + " : " + e.getMessage(), e);
         }
         
@@ -442,7 +499,9 @@ public class MNSystemMetadataMutabilityImplementations extends ContextAwareTestC
         boolean dateUnchanged = DateUtils.isSameInstant(mnSysmetaDateModified, cnSysmetaDateModified);
         assertTrue("testUpdateReplicationMetadata_dateModified: The CN should not be changing the dateSysMetadataModified "
                 + "during replication.", dateUnchanged);
-        
+
+        // get a replica
+        Replica replica = null;
         outerloop:
         for (Replica r : cnSysmeta.getReplicaList()) {
             NodeReference ref = r.getReplicaMemberNode();
@@ -502,16 +561,15 @@ public class MNSystemMetadataMutabilityImplementations extends ContextAwareTestC
         replPolicy.setReplicationAllowed(true);
         replPolicy.setNumberReplicas(v2mns.size() > 1 ? v2mns.size() -1 : 2);
         
-        Identifier pid = null;
+        final Identifier pid = D1TypeBuilder.buildIdentifier("testDeleteReplicationMetadata_dateModified_" + ExampleUtilities.generateIdentifier());
         Node mNode = v2mns.get(0);
         MNCallAdapter mn = new MNCallAdapter(getSession(cnSubmitter), mNode, "v2"); 
         
         // create object on MN
         try {
             getSession(cnSubmitter);
-            pid = D1TypeBuilder.buildIdentifier("testDeleteReplicationMetadata_dateModified_" + ExampleUtilities.generateIdentifier());
             log.info("attempting to create test object on " + mn.getNodeBaseServiceUrl() + " with pid " + pid.getValue());
-            pid = procureTestObject(mn,  publicAccessRule, pid, cnSubmitter, "public", replPolicy);
+            procureTestObject(mn,  publicAccessRule, pid, cnSubmitter, "public", replPolicy);
         } catch (Exception e) {
             throw new AssertionError("testDeleteReplicationMetadata_dateModified: Unable to get or create a "
                     + "test object with pid: " + pid.getValue(), e);
@@ -534,14 +592,47 @@ public class MNSystemMetadataMutabilityImplementations extends ContextAwareTestC
         Date mnSysmetaDateModified = sysmeta.getDateSysMetadataModified();
         
         // need sysmeta to contain replica info first, so wait for replication
-        try {
-            Thread.sleep(REPLICATION_WAIT);
-        } catch (InterruptedException e) {
-            log.error("testDeleteReplicationMetadata_dateModified: wait for replication interrupted");
-        }
-        
-        // get a replica
         SystemMetadata cnSysmeta = null;
+        try {
+            final Node authNode = mNode;
+            RetryHandler<SystemMetadata> handler =  new RetryHandler<SystemMetadata>() {
+                @Override
+                protected SystemMetadata attempt() throws TryAgainException, Exception {
+                    try {
+                        log.info("attempting CN getSystemMEtadata...");
+                        SystemMetadata sysmeta = cnV2.getSystemMetadata(null, pid);
+                        
+                        log.info("attempting to get replicas from CN sysmeta...");
+                        List<Replica> replicaList = sysmeta.getReplicaList();
+                        if (replicaList.size() == 0)
+                            throw new TryAgainException();
+                        
+                        Node v2ReplicaNode = null;
+                        for (Replica rep : replicaList) {
+                            for (Node v2Node : v2mns)
+                                if (v2Node.getIdentifier().getValue().equals( rep.getReplicaMemberNode().getValue())
+                                        && !rep.getReplicaMemberNode().getValue().equals(authNode.getIdentifier().getValue())
+                                        && rep.getReplicationStatus() == ReplicationStatus.COMPLETED)
+                                    v2ReplicaNode = v2Node;
+                        }
+                        if (v2ReplicaNode == null)
+                            throw new TryAgainException();
+                        
+                        return sysmeta;
+                    } catch (NotFound | ServiceFailure e) {
+                        TryAgainException f = new TryAgainException();
+                        f.initCause(e);
+                        throw f;
+                    }
+                }
+            };
+            cnSysmeta = handler.execute(30* 1000, REPLICATION_WAIT);
+        } catch (Exception e) {
+            throw new AssertionError(cnV2.getLatestRequestUrl() + " testDeleteReplicationMetadata_dateModified: unable "
+                    + "to fetch sysmeta with valid replicas from CN for pid " + pid.getValue() + " Got exception: " 
+                    + e.getClass().getSimpleName() + " : " + e.getMessage(), e);
+        }        
+        // get a replica
         Replica replica = null;
         try {
             cnSysmeta = cnV2.getSystemMetadata(null, pid);
@@ -617,12 +708,11 @@ public class MNSystemMetadataMutabilityImplementations extends ContextAwareTestC
         MNCallAdapter mn = new MNCallAdapter(getSession(cnSubmitter), v1MNode, "v1");
         
         // create v1 object on MN
-        Identifier pid = null;
+        final Identifier pid = D1TypeBuilder.buildIdentifier("testSetReplicationPolicy_dateModified_obj1");
         try {
             getSession(cnSubmitter);
-            pid = D1TypeBuilder.buildIdentifier("testSetReplicationPolicy_dateModified_obj1");
             log.info("attempting to create test object on " + mn.getNodeBaseServiceUrl() + " with pid " + pid.getValue());
-            pid = procureTestObject(mn,  publicAccessRule, pid, cnSubmitter, "public", replPolicy);
+            procureTestObject(mn,  publicAccessRule, pid, cnSubmitter, "public", replPolicy);
         } catch (Exception e) {
             throw new AssertionError("testSetReplicationPolicy_dateModified: Unable to get or create a "
                     + "test object with pid: " + pid.getValue(), e);
@@ -644,15 +734,23 @@ public class MNSystemMetadataMutabilityImplementations extends ContextAwareTestC
         }
         Date mnSysmetaDateModified = sysmeta.getDateSysMetadataModified();
         
-        try {
-            Thread.sleep(SYNC_WAIT);
-        } catch (InterruptedException e) {
-            log.error("testSetReplicationPolicy_dateModified: wait for CN sync interrupted");
-        }
         
         SystemMetadata cnSysmeta = null;
         try {
-            cnSysmeta = cnV1.getSystemMetadata(null, pid);
+            RetryHandler<SystemMetadata> cnGetSysmetaHandler = new RetryHandler<SystemMetadata>() {
+                @Override
+                protected SystemMetadata attempt() throws TryAgainException, Exception {
+                    try {
+                        log.info("attempting CN getSystemMEtadata...");
+                        return cnV1.getSystemMetadata(null, pid);
+                    } catch (NotFound | ServiceFailure e) {
+                        TryAgainException f = new TryAgainException();
+                        f.initCause(e);
+                        throw f;
+                    }
+                }
+            };
+            cnSysmeta = cnGetSysmetaHandler.execute(30*1000, SYNC_WAIT);
         } catch (Exception e) {
             throw new AssertionError("testSetReplicationPolicy_dateModified: Unable to fetch sysmeta from CN " 
                     + cnV1.getLatestRequestUrl() + " for pid " + pid.getValue(), e);
@@ -706,12 +804,11 @@ public class MNSystemMetadataMutabilityImplementations extends ContextAwareTestC
         MNCallAdapter mn = new MNCallAdapter(getSession(cnSubmitter), v1MNode, "v1");
         
         // create v1 object on MN
-        Identifier pid = null;
+        final Identifier pid = D1TypeBuilder.buildIdentifier("testSetAccessPolicy_dateModified_obj1");
         try {
             getSession(cnSubmitter);
-            pid = D1TypeBuilder.buildIdentifier("testSetAccessPolicy_dateModified_obj1");
             log.info("attempting to create test object on " + mn.getNodeBaseServiceUrl() + " with pid " + pid.getValue());
-            pid = procureTestObject(mn,  publicAccessRule, pid, cnSubmitter, "public", replPolicy);
+            procureTestObject(mn,  publicAccessRule, pid, cnSubmitter, "public", replPolicy);
         } catch (Exception e) {
             throw new AssertionError("testSetAccessPolicy_dateModified: Unable to get or create a "
                     + "test object with pid: " + pid.getValue(), e);
@@ -733,15 +830,23 @@ public class MNSystemMetadataMutabilityImplementations extends ContextAwareTestC
         }
         Date mnSysmetaDateModified = sysmeta.getDateSysMetadataModified();
         
-        try {
-            Thread.sleep(SYNC_WAIT);
-        } catch (InterruptedException e) {
-            log.error("testSetAccessPolicy_dateModified: wait for CN sync interrupted");
-        }
-        
         SystemMetadata cnSysmeta = null;
         try {
-            cnSysmeta = cnV1.getSystemMetadata(null, pid);
+            
+            RetryHandler<SystemMetadata> cnGetSysmetaHandler = new RetryHandler<SystemMetadata>() {
+                @Override
+                protected SystemMetadata attempt() throws TryAgainException, Exception {
+                    try {
+                        log.info("attempting CN getSystemMEtadata...");
+                        return cnV1.getSystemMetadata(null, pid);
+                    } catch (NotFound | ServiceFailure e) {
+                        TryAgainException f = new TryAgainException();
+                        f.initCause(e);
+                        throw f;
+                    }
+                }
+            };
+            cnSysmeta = cnGetSysmetaHandler.execute(30*1000, SYNC_WAIT);
         } catch (Exception e) {
             throw new AssertionError("testSetAccessPolicy_dateModified: Unable to fetch sysmeta from CN " 
                     + cnV1.getLatestRequestUrl() + " for pid " + pid.getValue(), e);
@@ -809,12 +914,11 @@ public class MNSystemMetadataMutabilityImplementations extends ContextAwareTestC
         MNCallAdapter mn = new MNCallAdapter(getSession(cnSubmitter), v1MNode, "v1");
         
         // create v1 object on MN
-        Identifier pid = null;
+        final Identifier pid = D1TypeBuilder.buildIdentifier("testSetRightsHolder_dateModified_obj1"); 
         try {
             getSession(cnSubmitter);
-            pid = D1TypeBuilder.buildIdentifier("testSetRightsHolder_dateModified_obj1");
             log.info("attempting to create test object on " + mn.getNodeBaseServiceUrl() + " with pid " + pid.getValue());
-            pid = procureTestObject(mn,  publicAccessRule, pid, cnSubmitter, "public", replPolicy);
+            procureTestObject(mn,  publicAccessRule, pid, cnSubmitter, "public", replPolicy);
         } catch (Exception e) {
             throw new AssertionError("testSetRightsHolder_dateModified: Unable to get or create a "
                     + "test object with pid: " + pid.getValue(), e);
@@ -836,15 +940,22 @@ public class MNSystemMetadataMutabilityImplementations extends ContextAwareTestC
         }
         Date mnSysmetaDateModified = sysmeta.getDateSysMetadataModified();
         
-        try {
-            Thread.sleep(SYNC_WAIT);
-        } catch (InterruptedException e) {
-            log.error("testSetRightsHolder_dateModified: wait for CN sync interrupted");
-        }
-        
         SystemMetadata cnSysmeta = null;
         try {
-            cnSysmeta = cnV1.getSystemMetadata(null, pid);
+            RetryHandler<SystemMetadata> cnGetSysmetaHandler = new RetryHandler<SystemMetadata>() {
+                @Override
+                protected SystemMetadata attempt() throws TryAgainException, Exception {
+                    try {
+                        log.info("attempting CN getSystemMEtadata...");
+                        return cnV1.getSystemMetadata(null, pid);
+                    } catch (NotFound | ServiceFailure e) {
+                        TryAgainException f = new TryAgainException();
+                        f.initCause(e);
+                        throw f;
+                    }
+                }
+            };
+            cnSysmeta = cnGetSysmetaHandler.execute(30*1000, SYNC_WAIT);
         } catch (Exception e) {
             throw new AssertionError("testSetRightsHolder_dateModified: Unable to fetch sysmeta from CN " 
                     + cnV1.getLatestRequestUrl() + " for pid " + pid.getValue(), e);

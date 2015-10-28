@@ -9,6 +9,8 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
+import org.dataone.client.RetryHandler;
+import org.dataone.client.RetryHandler.TryAgainException;
 import org.dataone.client.v1.itk.D1Object;
 import org.dataone.client.v1.types.D1TypeBuilder;
 import org.dataone.integration.APITestUtils;
@@ -23,6 +25,7 @@ import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.InvalidRequest;
 import org.dataone.service.exceptions.InvalidSystemMetadata;
 import org.dataone.service.exceptions.NotAuthorized;
+import org.dataone.service.exceptions.NotFound;
 import org.dataone.service.exceptions.ServiceFailure;
 import org.dataone.service.exceptions.SynchronizationFailed;
 import org.dataone.service.types.v1.AccessPolicy;
@@ -48,7 +51,7 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
 
     private CNCallAdapter cn;
     private static final long METACAT_INDEXING_WAIT = 10000;
-    private static final long REPLICATION_WAIT = 10 * 60 * 1000; 
+    private static final long REPLICATION_WAIT = 15 * 60 * 1000; 
     
     public MNUpdateSystemMetadataTestImplementations(ContextAwareTestCaseDataone catc) {
         super(catc);
@@ -600,11 +603,13 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
         printTestHeader("testUpdateSystemMetadata_CNCertNonAuthMN(...) vs. node: " + currentUrl);
         currentUrl = cnCertAuthMN.getNodeBaseServiceUrl();
         
-        Identifier testObjPid = null;
+        final Identifier pid = D1TypeBuilder.buildIdentifier("testUpdateSystemMetadata_CNCertNonAuthMN_" + ExampleUtilities.generateIdentifier());
         SystemMetadata sysmeta = null;
         ReplicationPolicy replPolicy = null;
+        final ArrayList<Node> replicaTargets = new ArrayList<Node>();
+        
         try {
-            int replicaTargets = 0;
+            int numReplicaTargets = 0;
             NodeList nodes = cn.listNodes();
             for (Node n : nodes.getNodeList()) {
                 if (n.getType() != NodeType.MN)
@@ -628,29 +633,28 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
                         if (s.getName().equalsIgnoreCase("MNReplication")) {
                             log.info("testUpdateSystemMetadata_CNCertNonAuthMN: found valid replica target: " 
                                     + n.getBaseURL());
-                            replicaTargets++;
+                            replicaTargets.add(cap);
+                            numReplicaTargets++;
                             break;
                         }
                     }
             }
             
             assertTrue("testUpdateSystemMetadata_CNCertNonAuthMN requires at least 2 total v2 MNs so there's "
-                    + "at least one replica target. Found " + replicaTargets + " replica targets.", 
-                    replicaTargets >= 2);
+                    + "at least one replica target. Found " + numReplicaTargets + " replica targets.", 
+                    numReplicaTargets >= 2);
             
             replPolicy = new ReplicationPolicy();
             replPolicy.setReplicationAllowed(true);
-            replPolicy.setNumberReplicas(replicaTargets);
+            replPolicy.setNumberReplicas(numReplicaTargets);
             
             AccessRule accessRule = new AccessRule();
             getSession("testRightsHolder");
             Subject subject = D1TypeBuilder.buildSubject(Constants.SUBJECT_PUBLIC);
             accessRule.addSubject(subject);
             accessRule.addPermission(Permission.CHANGE_PERMISSION);
-            Identifier pid = new Identifier();
-            pid.setValue("testUpdateSystemMetadata_CNCertNonAuthMN_" + ExampleUtilities.generateIdentifier());
             log.info("testUpdateSystemMetadata_CNCertNonAuthMN: creating test object: " + pid.getValue());
-            testObjPid = catc.createTestObject(cnCertAuthMN, pid, accessRule, replPolicy);
+            catc.createTestObject(cnCertAuthMN, pid, accessRule, replPolicy);
             
         } catch (BaseException e) {
             throw new AssertionError("Test setup failed. Couldn't create object: " + cnCertAuthMN.getLatestRequestUrl() + " : " + e.getClass().getSimpleName() + ": " + 
@@ -660,24 +664,51 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
             throw new AssertionError("Test setup failed. Couldn't create object: " + cnCertAuthMN.getLatestRequestUrl() + " : " + e.getClass().getName() + ": " + e.getMessage());
         }
         
-        try {
-            log.info("testUpdateSystemMetadata_CNCertNonAuthMN: waiting for replication... (" + ((double)REPLICATION_WAIT / 60000) + " minutes)");
-            Thread.sleep(REPLICATION_WAIT);
-        } catch (InterruptedException e1) {
-            log.error("waiting for replication was interrupted");
-        }
-        
+        log.info("testUpdateSystemMetadata_CNCertNonAuthMN: waiting for replication... (up to " + ((double)REPLICATION_WAIT / 60000) + " minutes)");
+            
         try {
             log.info("testUpdateSystemMetadata_CNCertNonAuthMN: fetching sysmeta from CN " + cn.getNodeBaseServiceUrl());
-            sysmeta = cn.getSystemMetadata(null, testObjPid);
+            final Node authNode = node;
+            RetryHandler<SystemMetadata> handler =  new RetryHandler<SystemMetadata>() {
+                @Override
+                protected SystemMetadata attempt() throws TryAgainException, Exception {
+                    try {
+                        log.info("attempting CN getSystemMEtadata...");
+                        SystemMetadata sysmeta = cn.getSystemMetadata(null, pid);
+                        
+                        log.info("attempting to get replicas from CN sysmeta...");
+                        List<Replica> replicaList = sysmeta.getReplicaList();
+                        if (replicaList.size() == 0)
+                            throw new TryAgainException();
+                        
+                        Node v2ReplicaNode = null;
+                        for (Replica rep : replicaList) {
+                            for (Node v2Node : replicaTargets)
+                                if (v2Node.getIdentifier().getValue().equals( rep.getReplicaMemberNode().getValue() )
+                                        && !rep.getReplicaMemberNode().getValue().equals(authNode.getIdentifier().getValue())
+                                        && rep.getReplicationStatus() == ReplicationStatus.COMPLETED )
+                                    v2ReplicaNode = v2Node;
+                        }
+                        if (v2ReplicaNode == null)
+                            throw new TryAgainException();
+                        
+                        return sysmeta;
+                    } catch (NotFound | ServiceFailure e) {
+                        TryAgainException f = new TryAgainException();
+                        f.initCause(e);
+                        throw f;
+                    }
+                }
+            };
+            sysmeta = handler.execute(30* 1000, REPLICATION_WAIT);
         } catch (BaseException e) {
-            throw new AssertionError("Test setup failed. Couldn't fetch sysmeta (" + testObjPid + ") from CN: " 
+            throw new AssertionError("Test setup failed. Couldn't fetch sysmeta (" + pid.getValue() + ") from CN: " 
                     + cn.getLatestRequestUrl() + ", origin MN: " + cnCertAuthMN.getNodeBaseServiceUrl() 
                     + " : " + e.getClass().getSimpleName() + ": " + 
                     e.getDetail_code() + ": " + e.getDescription());
         } catch(Exception e) {
             e.printStackTrace();
-            throw new AssertionError("Test setup failed. Couldn't fetch sysmeta (" + testObjPid + ") from CN: " 
+            throw new AssertionError("Test setup failed. Couldn't fetch sysmeta (" + pid.getValue() + ") from CN: " 
             + cn.getLatestRequestUrl() + ", origin MN: " + cnCertAuthMN.getNodeBaseServiceUrl() 
             + " : " + e.getClass().getName() + ": " + e.getMessage());
         }
@@ -706,16 +737,19 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
             
             NodeList nodes = cn.listNodes();
             outerloop:
-            for (Replica replica : successfulReplicas) {
-                NodeReference replicaMN = replica.getReplicaMemberNode();
+            for (Node n : nodes.getNodeList()) {
                 
-                log.info("testUpdateSystemMetadata_CNCertNonAuthMN: checking replica on " + replicaMN.getValue());
-                for (Node n : nodes.getNodeList()) {
-                    if (n.getType() == NodeType.MN
-                            && n.getIdentifier().getValue().equals(replicaMN.getValue())
-                            && n.getState() == NodeState.UP) {
+                if (n.getType() != NodeType.MN)
+                    continue;
+                
+                for (Replica replica : successfulReplicas) {
+                    NodeReference replicaMN = replica.getReplicaMemberNode();
+                
+                    if (n.getIdentifier().getValue().equals(replicaMN.getValue())
+                        && n.getState() == NodeState.UP) {
+                    
+                        log.info("testUpdateSystemMetadata_CNCertNonAuthMN: checking replica on " + replicaMN.getValue());
                         
-                        log.info("testUpdateSystemMetadata_CNCertNonAuthMN: replica is UP: " + replicaMN.getValue());
                         // need a v2 replica MN, so we can use updateSystemMetadata()
                         
                         Services services = n.getServices();
@@ -740,7 +774,7 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
             cnCertNonAuthMN = new MNCallAdapter(getSession(cnSubmitter), nonAuthMN, "v2");
             replPolicy.setNumberReplicas(3);
             sysmeta.setReplicationPolicy(replPolicy);
-            boolean success = cnCertNonAuthMN.updateSystemMetadata(null, testObjPid , sysmeta);
+            boolean success = cnCertNonAuthMN.updateSystemMetadata(null, pid , sysmeta);
             
             assertTrue("testUpdateSystemMetadata_CNCertNonAuthMN: "
                     + "should succeed with a CN cert making the updateSystemMetadata() call "
