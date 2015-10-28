@@ -133,15 +133,14 @@ public class CommonCallAdapter implements D1Node {
                         Event.convert(event), idFilter, start, count);
                 return TypeFactory.convertTypeFromType(log, Log.class);
             } else if (this.version.toLowerCase().equals("v2")) {
-                org.dataone.service.mn.tier1.v2.MNCore cnCore = D1NodeFactory.buildNode(
-                        org.dataone.service.mn.tier1.v2.MNCore.class, this.mrc, URI.create(this.node.getBaseURL()));
+                org.dataone.service.cn.v2.CNCore cnCore = D1NodeFactory.buildNode(
+                        org.dataone.service.cn.v2.CNCore.class, this.mrc, URI.create(this.node.getBaseURL()));
                 Log log = cnCore.getLogRecords(session, fromDate, toDate, event, idFilter, start, count);
                 return log;
             }
         }
         } catch (InstantiationException | IllegalAccessException
                 | InvocationTargetException | NoSuchMethodException e) {
-            
             throw new ClientSideException("Unable to convert a v1.Log to a v2.Log", e);
         }
         finally {}
