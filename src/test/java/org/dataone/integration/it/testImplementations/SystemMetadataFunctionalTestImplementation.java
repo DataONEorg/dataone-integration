@@ -352,6 +352,16 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
                         List<Replica> replicaList = sysmeta.getReplicaList();
                         if (replicaList.size() == 0)
                             throw new TryAgainException();
+                        
+                        Node replicaNode = null;
+                        for (Replica rep : replicaList) {
+                            for (Node v2Node : mnList)
+                                if (v2Node.getIdentifier().getValue().equals( rep.getReplicaMemberNode().getValue() ))
+                                    replicaNode = v2Node;
+                        }
+                        if (replicaNode == null)
+                            throw new TryAgainException();
+                        
                         return sysmeta;
                        
                     } catch (NotFound | ServiceFailure e) {
@@ -571,6 +581,16 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
                         List<Replica> replicaList = sysmeta.getReplicaList();
                         if (replicaList.size() == 0)
                             throw new TryAgainException();
+                        
+                        Node replicaNode = null;
+                        for (Replica rep : replicaList) {
+                            for (Node v2Node : mnList)
+                                if (v2Node.getIdentifier().getValue().equals( rep.getReplicaMemberNode().getValue() ))
+                                    replicaNode = v2Node;
+                        }
+                        if (replicaNode == null)
+                            throw new TryAgainException();
+                        
                         return sysmeta;
                         
                     } catch (NotFound | ServiceFailure e) {
@@ -776,6 +796,16 @@ public class SystemMetadataFunctionalTestImplementation extends ContextAwareTest
                         List<Replica> replicaList = sysmeta.getReplicaList();
                         if (replicaList.size() == 0)
                             throw new TryAgainException();    
+                        
+                        Node replicaNode = null;
+                        for (Replica rep : replicaList) {
+                            for (Node v2Node : mnList)
+                                if (v2Node.getIdentifier().getValue().equals( rep.getReplicaMemberNode().getValue() ))
+                                    replicaNode = v2Node;
+                        }
+                        if (replicaNode == null)
+                            throw new TryAgainException();
+                        
                         return sysmeta;
                         
                     } catch (NotFound | ServiceFailure e) {
