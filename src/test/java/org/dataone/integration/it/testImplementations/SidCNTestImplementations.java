@@ -14,6 +14,8 @@ import java.util.Date;
 import java.util.Iterator;
 
 import org.apache.log4j.Logger;
+import org.dataone.client.RetryHandler;
+import org.dataone.client.RetryHandler.TryAgainException;
 import org.dataone.client.exception.ClientSideException;
 import org.dataone.client.v1.itk.D1Object;
 import org.dataone.client.v1.types.D1TypeBuilder;
@@ -514,12 +516,26 @@ public class SidCNTestImplementations extends SidCommonTestImplementations {
             log.info("waiting for object (" + pid.getValue() + ") to sync from " + mn.getBaseURL() 
                     + " to " + callAdapter.getNodeBaseServiceUrl());
             
-            Thread.sleep(SYNC_TIME);
-            
             log.info("test object should be synchronized to CN...");
+
+            final CNCallAdapter cn = callAdapter;
+            final Identifier createdPid = pid;
+            RetryHandler<SystemMetadata> cnGetSysmetaHandler =  new RetryHandler<SystemMetadata>() {
+                @Override
+                protected SystemMetadata attempt() throws TryAgainException, Exception {
+                    try {
+                        log.info("attempting CN getSystemMEtadata...");
+                        return cn.getSystemMetadata(null, createdPid);
+                    } catch (NotFound | ServiceFailure e) {
+                        TryAgainException f = new TryAgainException();
+                        f.initCause(e);
+                        throw f;
+                    }
+                }
+            };
             
             try {
-                callAdapter.getSystemMetadata(null, pid);
+                cnGetSysmetaHandler.execute(30* 1000, SYNC_TIME);
             } catch (NotFound nf) {
                 log.error("Test object (" + pid.getValue() + ") was not synchronized from " 
                         + mn.getBaseURL() + " to " + callAdapter.getNodeBaseServiceUrl()
