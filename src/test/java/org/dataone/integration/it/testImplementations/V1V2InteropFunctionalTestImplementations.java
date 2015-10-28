@@ -553,6 +553,16 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
                         List<Replica> replicaList = sysmeta.getReplicaList();
                         if (replicaList.size() == 0)
                             throw new TryAgainException();
+                        
+                        Node v2ReplicaNode = null;
+                        for (Replica rep : replicaList) {
+                            for (Node v2Node : v2mns)
+                                if (v2Node.getIdentifier().getValue().equals( rep.getReplicaMemberNode().getValue() ))
+                                    v2ReplicaNode = v2Node;
+                        }
+                        if (v2ReplicaNode == null)
+                            throw new TryAgainException();
+                        
                         return sysmeta;
                     } catch (NotFound | ServiceFailure e) {
                         TryAgainException f = new TryAgainException();
@@ -751,6 +761,16 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
                         List<Replica> replicaList = sysmeta.getReplicaList();
                         if (replicaList.size() == 0)
                             throw new TryAgainException();
+                        
+                        Node v2ReplicaNode = null;
+                        for (Replica rep : replicaList) {
+                            for (Node v2Node : v2mns)
+                                if (v2Node.getIdentifier().getValue().equals( rep.getReplicaMemberNode().getValue() ))
+                                    v2ReplicaNode = v2Node;
+                        }
+                        if (v2ReplicaNode == null)
+                            throw new TryAgainException();
+                        
                         return sysmeta;
                     } catch (NotFound | ServiceFailure e) {
                         TryAgainException f = new TryAgainException();
@@ -943,6 +963,16 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
                         List<Replica> replicaList = sysmeta.getReplicaList();
                         if (replicaList.size() == 0)
                             throw new TryAgainException();
+                        
+                        Node v2ReplicaNode = null;
+                        for (Replica rep : replicaList) {
+                            for (Node v2Node : v2mns)
+                                if (v2Node.getIdentifier().getValue().equals( rep.getReplicaMemberNode().getValue() ))
+                                    v2ReplicaNode = v2Node;
+                        }
+                        if (v2ReplicaNode == null)
+                            throw new TryAgainException();
+                        
                         return sysmeta;
                     } catch (NotFound | ServiceFailure e) {
                         TryAgainException f = new TryAgainException();
@@ -1374,6 +1404,16 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
                         List<Replica> replicaList = sysmeta.getReplicaList();
                         if (replicaList.size() == 0)
                             throw new TryAgainException();
+                        
+                        Node v2ReplicaNode = null;
+                        for (Replica rep : replicaList) {
+                            for (Node v2Node : v2mns)
+                                if (v2Node.getIdentifier().getValue().equals( rep.getReplicaMemberNode().getValue() ))
+                                    v2ReplicaNode = v2Node;
+                        }
+                        if (v2ReplicaNode == null)
+                            throw new TryAgainException();
+                        
                         return sysmeta;
                     } catch (NotFound | ServiceFailure e) {
                         TryAgainException f = new TryAgainException();
@@ -1715,6 +1755,16 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
                         List<Replica> replicaList = sysmeta.getReplicaList();
                         if (replicaList.size() == 0)
                             throw new TryAgainException();
+                        
+                        Node v2ReplicaNode = null;
+                        for (Replica rep : replicaList) {
+                            for (Node v2Node : v2mns)
+                                if (v2Node.getIdentifier().getValue().equals( rep.getReplicaMemberNode().getValue() ))
+                                    v2ReplicaNode = v2Node;
+                        }
+                        if (v2ReplicaNode == null)
+                            throw new TryAgainException();
+                        
                         return sysmeta;
                     } catch (NotFound | ServiceFailure e) {
                         TryAgainException f = new TryAgainException();
