@@ -242,7 +242,7 @@ public class MNSystemMetadataMutabilityImplementations extends ContextAwareTestC
         replPolicy.setReplicationAllowed(true);
         replPolicy.setNumberReplicas(v2mns.size() > 1 ? v2mns.size() -1 : 2);
         
-        final Identifier pid = D1TypeBuilder.buildIdentifier("testRegisterSystemMetadata_dateModified_obj1");
+        final Identifier pid = D1TypeBuilder.buildIdentifier("testRegisterSystemMetadata_dateModified_obj4");
         try {
             getSession(cnSubmitter);
             log.info("attempting to create test object on " + mn.getNodeBaseServiceUrl() + " with pid " + pid.getValue());
@@ -306,7 +306,7 @@ public class MNSystemMetadataMutabilityImplementations extends ContextAwareTestC
         replPolicy.setReplicationAllowed(true);
         replPolicy.setNumberReplicas(v2mns.size() > 1 ? v2mns.size() -1 : 2);
         
-        final Identifier pid = D1TypeBuilder.buildIdentifier("testRegisterSystemMetadata_dateModified_obj1");
+        final Identifier pid = D1TypeBuilder.buildIdentifier("testRegisterSystemMetadata_dateModified_obj4");
         Node mNode = v2mns.get(0);
         MNCallAdapter mn = new MNCallAdapter(getSession(cnSubmitter), mNode, "v2"); 
         
@@ -422,7 +422,7 @@ public class MNSystemMetadataMutabilityImplementations extends ContextAwareTestC
         replPolicy.setReplicationAllowed(true);
         replPolicy.setNumberReplicas(v2mns.size() > 1 ? v2mns.size() -1 : 2);
         
-        final Identifier pid = D1TypeBuilder.buildIdentifier("testUpdateReplicationMetadata_dateModified_obj1");
+        final Identifier pid = D1TypeBuilder.buildIdentifier("testUpdateReplicationMetadata_dateModified_obj4");
         Node mNode = v2mns.get(0);
         MNCallAdapter mn = new MNCallAdapter(getSession(cnSubmitter), mNode, "v2"); 
         
@@ -472,8 +472,7 @@ public class MNSystemMetadataMutabilityImplementations extends ContextAwareTestC
                         for (Replica rep : replicaList) {
                             for (Node v2Node : v2mns)
                                 if (v2Node.getIdentifier().getValue().equals( rep.getReplicaMemberNode().getValue())
-                                        && !rep.getReplicaMemberNode().getValue().equals(authNode.getIdentifier().getValue())
-                                        && rep.getReplicationStatus() == ReplicationStatus.COMPLETED)
+                                        && !rep.getReplicaMemberNode().getValue().equals(authNode.getIdentifier().getValue()))
                                     v2ReplicaNode = v2Node;
                         }
                         if (v2ReplicaNode == null)
@@ -508,8 +507,7 @@ public class MNSystemMetadataMutabilityImplementations extends ContextAwareTestC
             String refValue = ref.getValue();
             for (Node n : v1v2mns) {
                 if (refValue.equals(n.getIdentifier().getValue())
-                        && !r.getReplicaMemberNode().getValue().equals(mNode.getIdentifier().getValue())
-                        && r.getReplicationStatus() == ReplicationStatus.COMPLETED) {
+                        && !r.getReplicaMemberNode().getValue().equals(mNode.getIdentifier().getValue())) {
                     replica = r;
                     break outerloop;
                 }
@@ -712,7 +710,7 @@ public class MNSystemMetadataMutabilityImplementations extends ContextAwareTestC
         MNCallAdapter mn = new MNCallAdapter(getSession(cnSubmitter), v1MNode, "v1");
         
         // create v1 object on MN
-        final Identifier pid = D1TypeBuilder.buildIdentifier("testSetReplicationPolicy_dateModified_obj1");
+        final Identifier pid = D1TypeBuilder.buildIdentifier("testSetReplicationPolicy_dateModified_obj4");
         try {
             getSession(cnSubmitter);
             log.info("attempting to create test object on " + mn.getNodeBaseServiceUrl() + " with pid " + pid.getValue());
@@ -808,7 +806,7 @@ public class MNSystemMetadataMutabilityImplementations extends ContextAwareTestC
         MNCallAdapter mn = new MNCallAdapter(getSession(cnSubmitter), v1MNode, "v1");
         
         // create v1 object on MN
-        final Identifier pid = D1TypeBuilder.buildIdentifier("testSetAccessPolicy_dateModified_obj1");
+        final Identifier pid = D1TypeBuilder.buildIdentifier("testSetAccessPolicy_dateModified_obj4");
         try {
             getSession(cnSubmitter);
             log.info("attempting to create test object on " + mn.getNodeBaseServiceUrl() + " with pid " + pid.getValue());
@@ -858,6 +856,10 @@ public class MNSystemMetadataMutabilityImplementations extends ContextAwareTestC
         
         Date cnSysmetaDateModified = cnSysmeta.getDateSysMetadataModified();
         
+        boolean dateUnchanged = DateUtils.isSameInstant(mnSysmetaDateModified, cnSysmetaDateModified);
+        assertTrue("testSetAccessPolicy_dateModified: The CN should not be changing the dateSysMetadataModified "
+                + "on sync.", dateUnchanged);
+        
         // setAccessPolicy call
         
         // we'll switch back and forth between public / testRightsHolder
@@ -892,7 +894,7 @@ public class MNSystemMetadataMutabilityImplementations extends ContextAwareTestC
         
         cnSysmetaDateModified = cnSysmeta.getDateSysMetadataModified();
         
-        boolean dateUnchanged = DateUtils.isSameInstant(mnSysmetaDateModified, cnSysmetaDateModified);
+        dateUnchanged = DateUtils.isSameInstant(mnSysmetaDateModified, cnSysmetaDateModified);
         assertTrue("testSetAccessPolicy_dateModified: The CN should not be changing the dateSysMetadataModified "
                 + "on setAccessPolicy.", dateUnchanged);
     }
@@ -916,9 +918,9 @@ public class MNSystemMetadataMutabilityImplementations extends ContextAwareTestC
         
         Node v1MNode = v1mns.get(0);
         MNCallAdapter mn = new MNCallAdapter(getSession(cnSubmitter), v1MNode, "v1");
-        
+
+        final Identifier pid = D1TypeBuilder.buildIdentifier("testSetRightsHolder_dateModified_obj4");
         // create v1 object on MN
-        final Identifier pid = D1TypeBuilder.buildIdentifier("testSetRightsHolder_dateModified_obj1"); 
         try {
             getSession(cnSubmitter);
             log.info("attempting to create test object on " + mn.getNodeBaseServiceUrl() + " with pid " + pid.getValue());
