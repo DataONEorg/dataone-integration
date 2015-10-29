@@ -537,11 +537,13 @@ public class SidCNTestImplementations extends SidCommonTestImplementations {
             try {
                 cnGetSysmetaHandler.execute(30* 1000, SYNC_TIME);
             } catch (NotFound nf) {
-                log.error("Test object (" + pid.getValue() + ") was not synchronized from " 
+                throw new NotFound(nf.getDetail_code(), "Test object (" + pid.getValue() + ") was not synchronized from " 
                         + mn.getBaseURL() + " to " + callAdapter.getNodeBaseServiceUrl()
                         + " : " + nf.getClass().getSimpleName() + " : " + nf.getMessage());
-                throw new NotFound(nf.getDetail_code(), "Test object (" + pid.getValue() + ") was created but not synchronized to CN (" 
-                        + callAdapter.getNodeBaseServiceUrl() + ")");
+            } catch (TryAgainException ta) {
+                throw new NotFound("" , "Test object (" + pid.getValue() + ") was not synchronized from " 
+                        + mn.getBaseURL() + " to " + callAdapter.getNodeBaseServiceUrl()
+                        + " : " + ta.getClass().getSimpleName() + " : " + ta.getMessage());
             }
         } catch (BaseException be) {
         	be.printStackTrace();
