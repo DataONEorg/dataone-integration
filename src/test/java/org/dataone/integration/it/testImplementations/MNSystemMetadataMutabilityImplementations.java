@@ -355,8 +355,7 @@ public class MNSystemMetadataMutabilityImplementations extends ContextAwareTestC
                         for (Replica rep : replicaList) {
                             for (Node v2Node : v2mns)
                                 if (v2Node.getIdentifier().getValue().equals( rep.getReplicaMemberNode().getValue())
-                                        && !rep.getReplicaMemberNode().getValue().equals(authNode.getIdentifier().getValue())
-                                        && rep.getReplicationStatus() == ReplicationStatus.COMPLETED)
+                                        && !rep.getReplicaMemberNode().getValue().equals(authNode.getIdentifier().getValue()))
                                     v2ReplicaNode = v2Node;
                         }
                         if (v2ReplicaNode == null)
