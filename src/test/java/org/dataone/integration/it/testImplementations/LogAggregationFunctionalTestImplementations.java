@@ -200,7 +200,6 @@ public class LogAggregationFunctionalTestImplementations extends ContextAwareTes
             cnLogPublicPid = mnCnCaller.getLogRecords(null, null, null, null, publicPid.getValue(), null, null);
             cnLogTestPersonPid = mnCnCaller.getLogRecords(null, null, null, null, testPersonPid.getValue(), null, null);
             cnLogTestRightsHolderPid = mnCnCaller.getLogRecords(null, null, null, null, testRightsHolderPid.getValue(), null, null);
-//            cnLog = APITestUtils.pagedGetLogRecords(mnCnCaller, null, null, null, null, null, null);
         } catch (Exception e) {
             throw new AssertionError(mnCnCaller.getLatestRequestUrl() + " Unable to fetch Log records for CN subject. " 
                     + "Got exception: " + e.getClass().getSimpleName() + " : " + e.getMessage(), e);
@@ -271,9 +270,6 @@ public class LogAggregationFunctionalTestImplementations extends ContextAwareTes
         
         if (cnLogPublicPid != null) {
             boolean publicPidFound = false;
-            boolean testPersonPidFound = false;
-            boolean testRightsHolderPidFound = false;
-            
             for (LogEntry logEntry : cnLogPublicPid.getLogEntryList())
                 if (logEntry.getIdentifier().equals(publicPid))
                     publicPidFound = true;
@@ -284,8 +280,7 @@ public class LogAggregationFunctionalTestImplementations extends ContextAwareTes
         
         if (cnLogTestPersonPid != null) {
             boolean testPersonPidFound = false;
-            
-            for (LogEntry logEntry : cnLogPublicPid.getLogEntryList())
+            for (LogEntry logEntry : cnLogTestPersonPid.getLogEntryList())
                 if (logEntry.getIdentifier().equals(testPersonPid))
                     testPersonPidFound = true;
             
@@ -295,8 +290,7 @@ public class LogAggregationFunctionalTestImplementations extends ContextAwareTes
         
         if (cnLogTestRightsHolderPid != null) {
             boolean testRightsHolderPidFound = false;
-            
-            for (LogEntry logEntry : cnLogPublicPid.getLogEntryList())
+            for (LogEntry logEntry : cnLogTestRightsHolderPid.getLogEntryList())
                 if (logEntry.getIdentifier().equals(testRightsHolderPid))
                     testRightsHolderPidFound = true;
             
