@@ -9,7 +9,7 @@ import org.junit.Test;
 public class V1V2InteropFunctionalIT extends ContextAwareTestCaseDataone {
 
     @WebTestImplementation
-    V1V2InteropFunctionalTestImplementations interopImpl;
+    V1V2InteropFunctionalTestImplementations interopImpl = new V1V2InteropFunctionalTestImplementations();
 
     @Override
     protected String getTestDescription() {
@@ -18,7 +18,6 @@ public class V1V2InteropFunctionalIT extends ContextAwareTestCaseDataone {
 
     @Before
     public void setup() {
-        interopImpl = new V1V2InteropFunctionalTestImplementations();
         interopImpl.setup(getCoordinatingNodeIterator());
     }
 

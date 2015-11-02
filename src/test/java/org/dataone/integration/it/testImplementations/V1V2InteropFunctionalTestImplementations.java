@@ -7,6 +7,8 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 
@@ -18,8 +20,6 @@ import javax.xml.xpath.XPathFactory;
 
 import org.apache.commons.collections.IteratorUtils;
 import org.apache.commons.io.IOUtils;
-import org.dataone.client.RetryHandler;
-import org.dataone.client.RetryHandler.TryAgainException;
 import org.dataone.client.v1.itk.D1Object;
 import org.dataone.client.v1.types.D1TypeBuilder;
 import org.dataone.configuration.Settings;
@@ -34,7 +34,6 @@ import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.InvalidRequest;
 import org.dataone.service.exceptions.NotAuthorized;
 import org.dataone.service.exceptions.NotFound;
-import org.dataone.service.exceptions.ServiceFailure;
 import org.dataone.service.types.v1.AccessPolicy;
 import org.dataone.service.types.v1.AccessRule;
 import org.dataone.service.types.v1.Identifier;
@@ -57,33 +56,58 @@ import org.xml.sax.InputSource;
 public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCaseDataone {
 
     private static final String cnSubmitter = Settings.getConfiguration().getString("dataone.it.cnode.submitter.cn", "cnDevUNM1");
-    private CNCallAdapter cnV1;
-    private CNCallAdapter cnV2;
+    private static CNCallAdapter cnV1;
+    private static CNCallAdapter cnV2;
     /** MNs supporting ONLY the V1 API */
-    private List<Node> v1mns;
+    private static List<Node> v1MNs;
     /** MNs supporting the V2 API (might also support V1 API) */
-    private List<Node> v2mns;
+    private static List<Node> v2MNs;
     /** MNs supporting BOTH the V1 & V2 APIs */
-    private List<Node> v1v2mns;
-    private int availableMNs = 0;
+    private static List<Node> v1v2MNs;
+    /** MNs supporting EITHER the V1 or V2 API */
+    private static List<Node> allMNs;
     
-    private static final long REPLICATION_WAIT = 15 * 60000;    // 5 minutes
-    private static final long METACAT_INDEXING_WAIT = 10000;
+    private static String pidTimestamp = null;
+    private static boolean setupDone = false;
     
+    private static ArrayList<String> syncTestPids = new ArrayList<String>();
+    private static ArrayList<String> replTestPids = new ArrayList<String>();
+    private static final long MAX_SYNC_MINUTES = 10;
+    private static final long MAX_REPL_MINUTES = 30;
+    private static final long POLLING_SECONDS = 20;
     
     @Override
     protected String getTestDescription() {
         return "Test Case that runs various V1 and V2 methods in conjunction with each other, "
                 + "checking for invalid interoperation.";
-        }
-
+    }
+    
     public void setup(Iterator<Node> cnIter) {
+        if (setupDone)
+            return;
+        
+        log.info("SETUP: finding available nodes...");
+        setupNodes(cnIter);
+        
+        log.info("SETUP: creating test objects...");
+        setupTestObjects();
+        
+        log.info("SETUP: waiting for sync and replication...");
+        waitForReplication();
+        
+        log.info("SETUP: finished");
+        
+        setupDone = true;
+    }
+    
+    private void setupNodes(Iterator<Node> cnIter) {
+        
         List<Node> cnList = new ArrayList<Node>();
         List<Node> mnList = new ArrayList<Node>();
-        v1mns = new ArrayList<Node>();
-        v2mns = new ArrayList<Node>();
-        v1v2mns = new ArrayList<Node>();
-        availableMNs = 0;
+        v1MNs = new ArrayList<Node>();
+        v2MNs = new ArrayList<Node>();
+        v1v2MNs = new ArrayList<Node>();
+        allMNs = new ArrayList<Node>();
         
         cnList = IteratorUtils.toList(cnIter);
         
@@ -143,36 +167,269 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             }
 
             if (v1support && !v2support)
-                v1mns.add(mNode);
+                v1MNs.add(mNode);
             if (v2support)
-                v2mns.add(mNode);
+                v2MNs.add(mNode);
             if (v1support && v2support)
-                v1v2mns.add(mNode);
-            if (v1support || v2support)
-                availableMNs++;
+                v1v2MNs.add(mNode);
+            if (v1support || v2support) {
+                allMNs.add(mNode);
+            }
         }
 
-        log.info("v1-ONLY MNs available:     " + v1mns.size());
-        log.info("v2 MNs available:          " + v2mns.size());
-        log.info("v1 & v2 MNs available:     " + v1v2mns.size());
-        log.info("available MNs:             " + availableMNs);
+        log.info("v1-ONLY MNs available:     " + v1MNs.size());
+        log.info("v2 MNs available:          " + v2MNs.size());
+        log.info("v1 & v2 MNs available:     " + v1v2MNs.size());
+        log.info("available MNs:             " + allMNs.size());
         
-        for (Node n : v1mns)
+        for (Node n : v1MNs)
             log.info("v1-ONLY MN:   " + n.getBaseURL());
-        for (Node n : v2mns)
+        for (Node n : v2MNs)
             log.info("v2 MN     :   " + n.getBaseURL());
-        for (Node n : v1v2mns)
+        for (Node n : v1v2MNs)
             log.info("v1 & v2 MN:   " + n.getBaseURL());
     }
     
-    @WebTestName("v2 create, v1 update")
-    @WebTestDescription(
-     "Test operates on a single MN that supports both v1 & v2 APIs." +
-     "It does a create on the v2 endpoint, then an update on the v1 endpoint." +
-     "The update operation should be successful.")
-    public void testV2CreateV1UpdateSameNode() {
+    private void setupTestObjects() {
+        if (pidTimestamp == null)
+            pidTimestamp = ExampleUtilities.generateIdentifier();
+        
+        try {
+            setupV2CreateV1UpdateSameNode();
+        } catch (Exception e) {
+            log.error("setup step / object creation failed! " + e.getClass().getSimpleName() + " : " + e.getMessage(), e);
+        }
+        try {
+            setupV1CreateV2UpdateSameNode();
+        } catch (Exception e) {
+            log.error("setup step / object creation failed! " + e.getClass().getSimpleName() + " : " + e.getMessage(), e);
+        }
+        try {
+            setupV2CreateV1GetSysMeta();
+        } catch (Exception e) {
+            log.error("setup step / object creation failed! " + e.getClass().getSimpleName() + " : " + e.getMessage(), e);
+        }
+        try {
+            setupV2CreateV1GetSysmetaSameNode();
+        } catch (Exception e) {
+            log.error("setup step / object creation failed! " + e.getClass().getSimpleName() + " : " + e.getMessage(), e);
+        }
+        try {
+            setupV1CreateV2Get();
+        } catch (Exception e) {
+            log.error("setup step / object creation failed! " + e.getClass().getSimpleName() + " : " + e.getMessage(), e);
+        }
+        try {
+            setupV2CreateV1GetSameNode();
+        } catch (Exception e) {
+            log.error("setup step / object creation failed! " + e.getClass().getSimpleName() + " : " + e.getMessage(), e);
+        }
+        try {
+            setupV1CreateV2GetSysmeta();
+        } catch (Exception e) {
+            log.error("setup step / object creation failed! " + e.getClass().getSimpleName() + " : " + e.getMessage(), e);
+        }
+        try {
+            setupV1CreateV2GetSysmetaSameNode();
+        } catch (Exception e) {
+            log.error("setup step / object creation failed! " + e.getClass().getSimpleName() + " : " + e.getMessage(), e);
+        }
+        try {
+            setupV1CreateV2Query();
+        } catch (Exception e) {
+            log.error("setup step / object creation failed! " + e.getClass().getSimpleName() + " : " + e.getMessage(), e);
+        }
+        try {
+            setupV2CreateV1Query();
+        } catch (Exception e) {
+            log.error("setup step / object creation failed! " + e.getClass().getSimpleName() + " : " + e.getMessage(), e);
+        }
+        try {
+            setupV2CreateV1DeleteSameNode();
+        } catch (Exception e) {
+            log.error("setup step / object creation failed! " + e.getClass().getSimpleName() + " : " + e.getMessage(), e);
+        }
+        try {
+            setupV1CreateV2DeleteSameNode();
+        } catch (Exception e) {
+            log.error("setup step / object creation failed! " + e.getClass().getSimpleName() + " : " + e.getMessage(), e);
+        }
+        try {
+            setupV2CreateV1Delete();
+        } catch (Exception e) {
+            log.error("setup step / object creation failed! " + e.getClass().getSimpleName() + " : " + e.getMessage(), e);
+        }
+        try {
+            setupV1CreateV2Delete();
+        } catch (Exception e) {
+            log.error("setup step / object creation failed! " + e.getClass().getSimpleName() + " : " + e.getMessage(), e);
+        }
+        try {
+            setupV2CreateV1ListObjectsSameNode();
+        } catch (Exception e) {
+            log.error("setup step / object creation failed! " + e.getClass().getSimpleName() + " : " + e.getMessage(), e);
+        }
+        try {
+            setupV1CreateV2ListObjectsSameNode();
+        } catch (Exception e) {
+            log.error("setup step / object creation failed! " + e.getClass().getSimpleName() + " : " + e.getMessage(), e);
+        }
+        try {
+            setupV2CreateV1ListObjects();
+        } catch (Exception e) {
+            log.error("setup step / object creation failed! " + e.getClass().getSimpleName() + " : " + e.getMessage(), e);
+        }
+        try {
+            setupV1CreateV2ListObjects();
+        } catch (Exception e) {
+            log.error("setup step / object creation failed! " + e.getClass().getSimpleName() + " : " + e.getMessage(), e);
+        }
+        try {
+            setupV2CreateCnArchive();
+        } catch (Exception e) {
+            log.error("setup step / object creation failed! " + e.getClass().getSimpleName() + " : " + e.getMessage(), e);
+        }
+        try {
+            setupV2CreateCnSetReplicationPolicy();
+        } catch (Exception e) {
+            log.error("setup step / object creation failed! " + e.getClass().getSimpleName() + " : " + e.getMessage(), e);
+        }
+        try {
+            setupV2CreateCnSetAccessPolicy();
+        } catch (Exception e) {
+            log.error("setup step / object creation failed! " + e.getClass().getSimpleName() + " : " + e.getMessage(), e);
+        }
+        try {
+            setupV2CreateCnSetRightsHolder();
+        } catch (Exception e) {
+            log.error("setup step / object creation failed! " + e.getClass().getSimpleName() + " : " + e.getMessage(), e);
+        }
+        try {
+            setupV2CreateCnSetObsoletedBy();
+        } catch (Exception e) {
+            log.error("setup step / object creation failed! " + e.getClass().getSimpleName() + " : " + e.getMessage(), e);
+        }
+    }
+    
+    private void waitForReplication() {
+        
+        log.info("waiting for CN sync task to run...");
+        
+        // wait a bit for sync task to run 
+        // before we start trying to poll the sysmeta repeatedly
+        final long INITIAL_WAIT_MINUTES = (MAX_SYNC_MINUTES < 2) ? 0 : 2; 
+        try {
+            Thread.sleep(INITIAL_WAIT_MINUTES * 60000);    
+        } catch (InterruptedException e) {
+            // ignore
+        }
+        
+        log.info("waiting for CN sync to get test objects...");
+        
+        // all syncTestPids should get sync'ed
+        
+        HashSet<String> pidsNotSyncedCurrent = new HashSet<String>(syncTestPids);
+        HashSet<String> pidsNotSyncedNext = new HashSet<String>(syncTestPids);
+        
+        long startTime = System.currentTimeMillis();
+        long endTime = startTime + ((MAX_SYNC_MINUTES-INITIAL_WAIT_MINUTES) * 60000);
+//        long timeRemaining = MAX_SYNC_MINUTES * 60000;
+        long interval = POLLING_SECONDS * 1000;
+        log.info("will check for sync'ed pids till " + (new Date(endTime)));
+        
+        while (System.currentTimeMillis() < endTime) {
+            if (pidsNotSyncedCurrent.size() == 0)
+                break;
+            
+            for (String pidValue : pidsNotSyncedCurrent) {
+                Identifier pid = D1TypeBuilder.buildIdentifier(pidValue);
+                try {
+                    log.info("checking " + cnV2.getNodeBaseServiceUrl() + " for pid : " + pidValue);
+                    cnV2.getSystemMetadata(null, pid);
+                    pidsNotSyncedNext.remove(pidValue);
+                    log.info("sysmeta found for pid : " + pidValue + " on " + cnV2.getNodeBaseServiceUrl());
+                } catch (Exception e) {
+                    log.info("sysmeta NOT found for pid : " + pidValue + " on " + cnV2.getNodeBaseServiceUrl());
+                }
+            }
+            
+            HashSet<String> pidsNotSyncedSwap = pidsNotSyncedCurrent;
+            pidsNotSyncedCurrent = pidsNotSyncedNext;  
+            pidsNotSyncedNext = pidsNotSyncedSwap;
+            
+            try {
+                log.info("waiting...");
+                Thread.sleep(interval);
+            } catch (InterruptedException e) {
+                // ignore
+            }
+        }
+        
+        for (String pidValue : pidsNotSyncedCurrent)
+            log.error("Pid not synced to CN yet: " + pidValue);
+        
+        log.info("waiting for replication of test objects...");
+        
+        HashSet<String> pidsNotReplicatedCurrent = new HashSet<String>(replTestPids);
+        HashSet<String> pidsNotReplicatedNext = new HashSet<String>(replTestPids);
+        
+        startTime = System.currentTimeMillis();
+        endTime = startTime + (MAX_REPL_MINUTES * 60000);
+        
+        log.info("will check for replicas till " + (new Date(endTime)));
+        
+        while (System.currentTimeMillis() < endTime) {
+            if (pidsNotReplicatedCurrent.size() == 0)
+                break;
+            
+            for (String pidValue : pidsNotReplicatedCurrent) {
+                Identifier pid = D1TypeBuilder.buildIdentifier(pidValue);
+                try {
+                    log.info("checking " + cnV2.getNodeBaseServiceUrl() + " for pid : " + pidValue + " for replicas");
+                    SystemMetadata cnSysmeta = cnV2.getSystemMetadata(null, pid);
+                    List<Replica> replicaList = cnSysmeta.getReplicaList();
+                    if (replicaList == null || replicaList.size() == 0) {
+                        log.info("replicas NOT found for pid : " + pidValue + " on " + cnV2.getNodeBaseServiceUrl());
+                        continue;
+                    }
+                    int numMnReplicas = 0;
+                    for (Replica rep : replicaList)
+                        for (Node n : allMNs)
+                            if (n.getIdentifier().getValue().equals(rep.getReplicaMemberNode().getValue()))
+                                numMnReplicas++;
 
-        assertTrue("Tests require at least 1 MN that supports BOTH v1 & v2 APIs", v1v2mns.size() >= 1);
+                    if (numMnReplicas < allMNs.size()-1) { // -1 for replica on CN
+                        log.info("only " + numMnReplicas + "/" + (allMNs.size()-1) + " replicas found for pid : " + pidValue + " on " + cnV2.getNodeBaseServiceUrl());
+                        continue;
+                    } else {
+                        log.info("found " + numMnReplicas + " replicas found for pid : " + pidValue + " on " + cnV2.getNodeBaseServiceUrl());
+                        pidsNotReplicatedNext.remove(pidValue);
+                    }
+                    
+                } catch (Exception e) {
+                    // just don't remove pid from set to search
+                }
+            }
+            
+            HashSet<String> pidsNotReplicatedSwap = pidsNotReplicatedCurrent;
+            pidsNotReplicatedCurrent = pidsNotReplicatedNext;  
+            pidsNotReplicatedNext = pidsNotReplicatedSwap;
+            
+            try {
+                log.info("waiting...");
+                Thread.sleep(interval);
+            } catch (InterruptedException e) {
+                // ignore
+            }
+        }
+        
+        for (String pidValue : pidsNotReplicatedCurrent)
+            log.error("Not enough replicas found on CN for: " + pidValue);
+    }
+    
+    private void setupV2CreateV1UpdateSameNode() {
+
+        assertTrue("Tests require at least 1 MN that supports BOTH v1 & v2 APIs", v1v2MNs.size() >= 1);
         
         AccessRule accessRule = new AccessRule();
         getSession("testRightsHolder");
@@ -182,16 +439,17 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         AccessPolicy policy = new AccessPolicy();
         policy.addAllow(accessRule);
         
-        Node mNode = v1v2mns.get(0);
-        MNCallAdapter v1CallAdapter = new MNCallAdapter(getSession(cnSubmitter), mNode, "v1");
+        Node mNode = v1v2MNs.get(0);
         MNCallAdapter v2CallAdapter = new MNCallAdapter(getSession(cnSubmitter), mNode, "v2");
         
         // v2 create
         
-        Identifier oldPid = D1TypeBuilder.buildIdentifier("testV2CreateV1UpdateSameNode_pid_" + ExampleUtilities.generateIdentifier());
-        Identifier oldSid = D1TypeBuilder.buildIdentifier("testV2CreateV1UpdateSameNode_sid_" + ExampleUtilities.generateIdentifier());
+        Identifier oldPid = D1TypeBuilder.buildIdentifier("testV2CreateV1UpdateSameNode_pid_" + pidTimestamp);
+        Identifier oldSid = D1TypeBuilder.buildIdentifier("testV2CreateV1UpdateSameNode_sid_" + pidTimestamp);
+        
         try {
             createTestObject(v2CallAdapter, oldPid, oldSid, null, null, policy, "testRightsHolder", "testRightsHolder");
+            syncTestPids.add(oldPid.getValue());
         } catch (BaseException e) {
             e.printStackTrace();
             throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + " testV2CreateV1UpdateSameNode() couldn't create test object: " 
@@ -203,12 +461,19 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + " testV2CreateV1UpdateSameNode() couldn't create test object: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
-        
-        try {
-            Thread.sleep(METACAT_INDEXING_WAIT);
-        } catch (InterruptedException e1) {
-            e1.printStackTrace();
-        }
+    }
+    
+    @WebTestName("v2 create, v1 update")
+    @WebTestDescription(
+     "Test operates on a single MN that supports both v1 & v2 APIs." +
+     "It does a create on the v2 endpoint, then an update on the v1 endpoint." +
+     "The update operation should be successful.")
+    public void testV2CreateV1UpdateSameNode() {
+
+        Node mNode = v1v2MNs.get(0);
+        MNCallAdapter v1CallAdapter = new MNCallAdapter(getSession(cnSubmitter), mNode, "v1");
+        MNCallAdapter v2CallAdapter = new MNCallAdapter(getSession(cnSubmitter), mNode, "v2");
+        Identifier oldPid = D1TypeBuilder.buildIdentifier("testV2CreateV1UpdateSameNode_pid_" + pidTimestamp);
         
         // grab the old sysmeta
         
@@ -227,7 +492,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         InputStream objectInputStream = null;
         
         try {
-            newPid = D1TypeBuilder.buildIdentifier("testV2CreateV1UpdateSameNode_2_" + ExampleUtilities.generateIdentifier());
+            newPid = D1TypeBuilder.buildIdentifier("testV2CreateV1UpdateSameNode_pid2_" + pidTimestamp);
             byte[] contentBytes = ExampleUtilities.getExampleObjectOfType(DEFAULT_TEST_OBJECTFORMAT);
             D1Object d1o = new D1Object(newPid, contentBytes,
                     D1TypeBuilder.buildFormatIdentifier(DEFAULT_TEST_OBJECTFORMAT),
@@ -257,14 +522,9 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         }
     }
     
-    @WebTestName("v1 create, v2 update")
-    @WebTestDescription(
-     "Test operates on a single MN that supports both v1 & v2 APIs." +
-     "It does a create on the v1 endpoint, then an update on the v2 endpoint." +
-     "The update operation should succeed.")
-    public void testV1CreateV2UpdateSameNode() {
+    private void setupV1CreateV2UpdateSameNode() {
 
-        assertTrue("Tests require at least 1 MN that supports BOTH v1 & v2 APIs", v1v2mns.size() >= 1);
+        assertTrue("Tests require at least 1 MN that supports BOTH v1 & v2 APIs", v1v2MNs.size() >= 1);
         
         AccessRule accessRule = new AccessRule();
         getSession("testRightsHolder");
@@ -272,15 +532,16 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         accessRule.addSubject(subject);
         accessRule.addPermission(Permission.CHANGE_PERMISSION);
         
-        Node mNode = v1v2mns.get(0);
+        Node mNode = v1v2MNs.get(0);
         MNCallAdapter v1CallAdapter = new MNCallAdapter(getSession(cnSubmitter), mNode, "v1");
-        MNCallAdapter v2CallAdapter = new MNCallAdapter(getSession(cnSubmitter), mNode, "v2");
         
         // v1 create
         
-        Identifier pid = null;
+        Identifier pid = D1TypeBuilder.buildIdentifier("testV1CreateV2UpdateSameNode_1_" + pidTimestamp);
+        
         try {
-            pid = createTestObject(v1CallAdapter, "testV1CreateV2UpdateSameNode_1_" + ExampleUtilities.generateIdentifier(), accessRule);
+            pid = createTestObject(v1CallAdapter, pid, accessRule);
+            syncTestPids.add(pid.getValue());
         } catch (BaseException e) {
             e.printStackTrace();
             throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + " testV1CreateV2UpdateSameNode() couldn't create test object: " 
@@ -293,12 +554,19 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             + e.getClass().getName() + ": " + e.getMessage());
         }
         
-        try {
-            Thread.sleep(METACAT_INDEXING_WAIT);
-        } catch (InterruptedException e1) {
-            e1.printStackTrace();
-        }
-        
+    }
+    
+    @WebTestName("v1 create, v2 update")
+    @WebTestDescription(
+     "Test operates on a single MN that supports both v1 & v2 APIs." +
+     "It does a create on the v1 endpoint, then an update on the v2 endpoint." +
+     "The update operation should succeed.")
+    public void testV1CreateV2UpdateSameNode() {
+
+        Node mNode = v1v2MNs.get(0);
+        MNCallAdapter v2CallAdapter = new MNCallAdapter(getSession(cnSubmitter), mNode, "v2");
+        Identifier pid = D1TypeBuilder.buildIdentifier("testV1CreateV2UpdateSameNode_1_" + pidTimestamp);
+
         // v2 update
         
         Identifier newPid = null;
@@ -306,7 +574,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         InputStream objectInputStream = null;
         
         try {
-            newPid = D1TypeBuilder.buildIdentifier("testV1CreateV2UpdateSameNode_2_" + ExampleUtilities.generateIdentifier());
+            newPid = D1TypeBuilder.buildIdentifier("testV1CreateV2UpdateSameNode_2_" + pidTimestamp);
             byte[] contentBytes = ExampleUtilities.getExampleObjectOfType(DEFAULT_TEST_OBJECTFORMAT);
             D1Object d1o = new D1Object(newPid, contentBytes,
                     D1TypeBuilder.buildFormatIdentifier(DEFAULT_TEST_OBJECTFORMAT),
@@ -317,13 +585,13 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             objectInputStream = new ByteArrayInputStream(contentBytes);
         } catch (BaseException e) {
             e.printStackTrace();
-            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + " testV1CreateV2UpdateSameNode() couldn't create update object: " 
+            throw new AssertionError("testV1CreateV2UpdateSameNode() couldn't create update object: " 
                     + e.getClass().getSimpleName() + ": " 
                     + e.getDetail_code() + ":: " + e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
-            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + " testV1CreateV2UpdateSameNode() couldn't create update object: " 
+            throw new AssertionError("testV1CreateV2UpdateSameNode() couldn't create update object: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
         
@@ -332,15 +600,52 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             assertTrue("testV2CreateV1Update: update on v2 endpoint should succeed", updPid != null);
         } catch (BaseException e) {
             e.printStackTrace();
-            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + " testV1CreateV2UpdateSameNode: update on v2 endpoint should succeed; got: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + " testV1CreateV2UpdateSameNode: update on v2 endpoint should succeed; got: " 
                     + e.getClass().getSimpleName() + ": " 
                     + e.getDetail_code() + ":: " + e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
-            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + " testV1CreateV2UpdateSameNode: update on v2 endpoint should succeed; got: " 
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + " testV1CreateV2UpdateSameNode: update on v2 endpoint should succeed; got: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
+    }
+    
+    private void setupV2CreateV1GetSysMeta() {
+        
+        assertTrue("Tests require at least 1 MN that supports ONLY the v1 API", v1MNs.size() >= 1);
+        assertTrue("Tests require at least 1 MN that supports the v2 API", v2MNs.size() >= 1);
+        
+        AccessRule accessRule = new AccessRule();
+        getSession("testRightsHolder");
+        Subject subject = D1TypeBuilder.buildSubject(Constants.SUBJECT_PUBLIC);
+        accessRule.addSubject(subject);
+        accessRule.addPermission(Permission.CHANGE_PERMISSION);
+        ReplicationPolicy replPolicy = new ReplicationPolicy();
+        replPolicy.setReplicationAllowed(true);
+        replPolicy.setNumberReplicas(allMNs.size());
+        
+        Node v2MNode = v2MNs.get(0);
+        MNCallAdapter v2CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v2MNode, "v2");
+        
+        // v2 create
+        
+        Identifier pid = D1TypeBuilder.buildIdentifier("testV2CreateV1GetSysMeta_" + pidTimestamp);
+        try {
+            pid = createTestObject(v2CallAdapter, pid, accessRule, replPolicy);
+            syncTestPids.add(pid.getValue());
+        } catch (BaseException e) {
+            e.printStackTrace();
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + " testV2CreateV1GetSysMeta() couldn't create test object: " 
+                    + e.getClass().getSimpleName() + ": " 
+                    + e.getDetail_code() + ":: " + e.getDescription());
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + " testV2CreateV1GetSysMeta() couldn't create test object: " 
+            + e.getClass().getName() + ": " + e.getMessage());
+        }
+        
     }
     
     @WebTestName("v2 create, v1 getSystemMetadata")
@@ -352,48 +657,13 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
      "down to v1 nodes.")
     public void testV2CreateV1GetSysMeta() {
         
-        assertTrue("Tests require at least 1 MN that supports ONLY the v1 API", v1mns.size() >= 1);
-        assertTrue("Tests require at least 1 MN that supports the v2 API", v2mns.size() >= 1);
-        
-        AccessRule accessRule = new AccessRule();
-        getSession("testRightsHolder");
-        Subject subject = D1TypeBuilder.buildSubject(Constants.SUBJECT_PUBLIC);
-        accessRule.addSubject(subject);
-        accessRule.addPermission(Permission.CHANGE_PERMISSION);
-        ReplicationPolicy replPolicy = new ReplicationPolicy();
-        replPolicy.setReplicationAllowed(true);
-        replPolicy.setNumberReplicas(availableMNs-1);
-        
-        Node v2MNode = v2mns.get(0);
+        Node v2MNode = v2MNs.get(0);
         MNCallAdapter v2CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v2MNode, "v2");
-        
-        // v2 create
-        
-        Identifier pid = D1TypeBuilder.buildIdentifier("testV2CreateV1GetSysMeta_" + ExampleUtilities.generateIdentifier());
-        try {
-            pid = createTestObject(v2CallAdapter, pid, accessRule, replPolicy);
-        } catch (BaseException e) {
-            e.printStackTrace();
-            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + " testV2CreateV1GetSysMeta() couldn't create test object: " 
-                    + e.getClass().getSimpleName() + ": " 
-                    + e.getDetail_code() + ":: " + e.getDescription());
-        }
-        catch(Exception e) {
-            e.printStackTrace();
-            throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + " testV2CreateV1GetSysMeta() couldn't create test object: " 
-            + e.getClass().getName() + ": " + e.getMessage());
-        }
-        
-        // go have a sandwich or ten
-        try {
-            Thread.sleep(REPLICATION_WAIT);
-        } catch (InterruptedException e1) {
-            e1.printStackTrace();
-        }
-        
+        Identifier pid = D1TypeBuilder.buildIdentifier("testV2CreateV1GetSysMeta_" + pidTimestamp);
+
         // v1 getSysmeta
 
-        Node v1MNode = v1mns.get(0);
+        Node v1MNode = v1MNs.get(0);
         MNCallAdapter v1CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v1MNode, "v1");
         
         try {
@@ -413,15 +683,9 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         }
     }
     
-    @WebTestName("v2 create, v1 getSystemMetadata, same node")
-    @WebTestDescription(
-     "Test operates on a single MN - one that supports BOTH the v1 and v2 APIs. " +
-     "It does a create on the v2 endpoint, then attempts a getSystemMetadata on the v1 endpoint. " +
-     "The getSystemMetadata should succeed since we're on the same node; " +
-     "the SystemMetadata will just be downcasted from the v2 version.")
-    public void testV2CreateV1GetSysmetaSameNode() {
+    private void setupV2CreateV1GetSysmetaSameNode() {
         
-        assertTrue("Tests require at least 1 MN that supports BOTH v1 & v2 APIs", v1v2mns.size() >= 1);
+        assertTrue("Tests require at least 1 MN that supports BOTH v1 & v2 APIs", v1v2MNs.size() >= 1);
         
         AccessRule accessRule = new AccessRule();
         getSession("testRightsHolder");
@@ -429,14 +693,15 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         accessRule.addSubject(subject);
         accessRule.addPermission(Permission.CHANGE_PERMISSION);
         
-        Node v1v2Node = v1v2mns.get(0);
+        Node v1v2Node = v1v2MNs.get(0);
         MNCallAdapter v2CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v1v2Node, "v2");
         
         // v2 create
         
-        Identifier pid = null;
+        Identifier pid = D1TypeBuilder.buildIdentifier("testV2CreateV1GetSysmetaSameNode_" + pidTimestamp);
         try {
-            pid = createTestObject(v2CallAdapter, "testV2CreateV1GetSysmetaSameNode_", accessRule);
+            pid = createTestObject(v2CallAdapter, pid, accessRule);
+            syncTestPids.add(pid.getValue());
         } catch (BaseException e) {
             e.printStackTrace();
             throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + " testV2CreateV1GetSysmetaSameNode() couldn't create test object: " 
@@ -448,12 +713,18 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + " testV2CreateV1GetSysmetaSameNode() couldn't create test object: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
+    }
+    
+    @WebTestName("v2 create, v1 getSystemMetadata, same node")
+    @WebTestDescription(
+     "Test operates on a single MN - one that supports BOTH the v1 and v2 APIs. " +
+     "It does a create on the v2 endpoint, then attempts a getSystemMetadata on the v1 endpoint. " +
+     "The getSystemMetadata should succeed since we're on the same node; " +
+     "the SystemMetadata will just be downcasted from the v2 version.")
+    public void testV2CreateV1GetSysmetaSameNode() {
         
-        try {
-            Thread.sleep(METACAT_INDEXING_WAIT);
-        } catch (InterruptedException e1) {
-            e1.printStackTrace();
-        }
+        Node v1v2Node = v1v2MNs.get(0);
+        Identifier pid = D1TypeBuilder.buildIdentifier("testV2CreateV1GetSysmetaSameNode_" + pidTimestamp);
         
         // v1 getSysmeta
 
@@ -476,17 +747,10 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         }
     }
     
-    @WebTestName("v1 create, v2 get, different nodes")
-    @WebTestDescription(
-     "Test operates on two MNs - one that supports ONLY the v1 API and a node " + 
-     "that supports the v2 API. " +
-     "It does a create on the v1 MN, then waits for replication to happen, " +
-     "then attempts a get() on the v2 MN. " +
-     "The get() should succeed")
-    public void testV1CreateV2Get() {
+    private void setupV1CreateV2Get() {
 
-        assertTrue("Tests require at least 1 MN that supports ONLY the v1 API", v1mns.size() >= 1);
-        assertTrue("Tests require at least 1 MN that supports the v2 API", v2mns.size() >= 1);
+        assertTrue("Tests require at least 1 MN that supports ONLY the v1 API", v1MNs.size() >= 1);
+        assertTrue("Tests require at least 1 MN that supports the v2 API", v2MNs.size() >= 1);
         
         AccessRule accessRule = new AccessRule();
         getSession("testRightsHolder");
@@ -495,16 +759,18 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         accessRule.addPermission(Permission.CHANGE_PERMISSION);
         ReplicationPolicy replPolicy = new ReplicationPolicy();
         replPolicy.setReplicationAllowed(true);
-        replPolicy.setNumberReplicas(availableMNs-1);
+        replPolicy.setNumberReplicas(allMNs.size());
         
-        Node v1MNode = v1mns.get(0);
+        Node v1MNode = v1MNs.get(0);
         MNCallAdapter v1CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v1MNode, "v1");
         
         // v1 create
         
-        final Identifier pid = D1TypeBuilder.buildIdentifier("testV1CreateV2Get_" + ExampleUtilities.generateIdentifier());
+        final Identifier pid = D1TypeBuilder.buildIdentifier("testV1CreateV2Get_" + pidTimestamp);
         try {
             createTestObject(v1CallAdapter, pid, accessRule, replPolicy);
+            syncTestPids.add(pid.getValue());
+            replTestPids.add(pid.getValue());
         } catch (BaseException e) {
             e.printStackTrace();
             throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + " testV1CreateV2Get() couldn't create test object: " 
@@ -515,74 +781,42 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             e.printStackTrace();
             throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + " testV1CreateV2Get() couldn't create test object: " 
             + e.getClass().getName() + ": " + e.getMessage());
-        }
+        } 
+    }
+    
+    @WebTestName("v1 create, v2 get, different nodes")
+    @WebTestDescription(
+     "Test operates on two MNs - one that supports ONLY the v1 API and a node " + 
+     "that supports the v2 API. " +
+     "It does a create on the v1 MN, then waits for replication to happen, " +
+     "then attempts a get() on the v2 MN. " +
+     "The get() should succeed")
+    public void testV1CreateV2Get() {
+
+        Node v1MNode = v1MNs.get(0);
+        final Identifier pid = D1TypeBuilder.buildIdentifier("testV1CreateV2Get_" + pidTimestamp);
         
         // v2 get
 
         SystemMetadata cnSysmeta = null;
         try {
-            RetryHandler<SystemMetadata> handler =  new RetryHandler<SystemMetadata>() {
-                @Override
-                protected SystemMetadata attempt() throws TryAgainException, Exception {
-                    try {
-                        log.info("attempting CN getSystemMEtadata...");
-                        return cnV2.getSystemMetadata(null, pid);
-                    } catch (NotFound | ServiceFailure e) {
-                        TryAgainException f = new TryAgainException();
-                        f.initCause(e);
-                        throw f;
-                    }
-                }
-            };
-            cnSysmeta = handler.execute(30* 1000, REPLICATION_WAIT);
+            cnSysmeta = cnV2.getSystemMetadata(null, pid);
+        } catch (NotFound e) {
+            throw new AssertionError(cnV2.getLatestRequestUrl() + " testV1CreateV2Get() : unable to find CN sysmeta for pid " + pid.getValue() 
+                    + ". Check status of CN sync. " + " Origin MN: " + v1MNode.getBaseURL());
         } catch (Exception e) {
-            throw new AssertionError(cnV2.getLatestRequestUrl() + " testV1CreateV2Get() : unable to fetch sysmeta from CN! Check status of CN sync. "
-                    + e.getClass().getSimpleName() + " : " + e.getMessage() 
-                    + ", origin MN: " + v1MNode.getBaseURL());
-        } 
+            throw new AssertionError(cnV2.getLatestRequestUrl() + " testV1CreateV2Get() : unable to get CN sysmeta for pid " + pid.getValue() 
+                    + ". Check status of CN sync. " + " Origin MN: " + v1MNode.getBaseURL());
+        }
         
         Node replicaMN = null;
         try {
-            final Node authNode = v1MNode;
-            RetryHandler<SystemMetadata> handler =  new RetryHandler<SystemMetadata>() {
-                @Override
-                protected SystemMetadata attempt() throws TryAgainException, Exception {
-                    try {
-                        log.info("attempting CN getSystemMEtadata...");
-                        SystemMetadata sysmeta = cnV2.getSystemMetadata(null, pid);
-                        
-                        log.info("attempting to get replicas from CN sysmeta...");
-                        List<Replica> replicaList = sysmeta.getReplicaList();
-                        if (replicaList.size() == 0)
-                            throw new TryAgainException();
-                        
-                        Node v2ReplicaNode = null;
-                        for (Replica rep : replicaList) {
-                            for (Node v2Node : v2mns)
-                                if (v2Node.getIdentifier().getValue().equals( rep.getReplicaMemberNode().getValue())
-                                        && !rep.getReplicaMemberNode().getValue().equals(authNode.getIdentifier().getValue())
-                                        && rep.getReplicationStatus() == ReplicationStatus.COMPLETED)
-                                    v2ReplicaNode = v2Node;
-                        }
-                        if (v2ReplicaNode == null)
-                            throw new TryAgainException();
-                        
-                        return sysmeta;
-                    } catch (NotFound | ServiceFailure e) {
-                        TryAgainException f = new TryAgainException();
-                        f.initCause(e);
-                        throw f;
-                    }
-                }
-            };
-            cnSysmeta = handler.execute(30* 1000, REPLICATION_WAIT);
-            
             List<Replica> replicaList = cnSysmeta.getReplicaList();
             outerloop:
             for (Replica rep : replicaList) {
-                for (Node availMN : v2mns) {
+                for (Node availMN : v2MNs) {
                     if (availMN.getIdentifier().getValue().equals( rep.getReplicaMemberNode().getValue() )
-                            && !rep.getReplicaMemberNode().getValue().equals(authNode.getIdentifier().getValue())
+                            && !rep.getReplicaMemberNode().getValue().equals(v1MNode.getIdentifier().getValue())
                             && rep.getReplicationStatus() == ReplicationStatus.COMPLETED) {
                         replicaMN = availMN;
                         break outerloop;
@@ -597,9 +831,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         if(replicaMN == null)
             throw new AssertionError("Unable to locate a replica MN for pid: " + pid.getValue());
         
-        Node v2MNode = replicaMN;
-        
-        MNCallAdapter v2CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v2MNode, "v2");
+        MNCallAdapter v2CallAdapter = new MNCallAdapter(getSession(cnSubmitter), replicaMN, "v2");
         
         InputStream is = null;
         try {
@@ -622,14 +854,9 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         }
     }
     
-    @WebTestName("v2 create, v1 get, same node")
-    @WebTestDescription(
-     "Test operates on a single MN - one that supports BOTH the v1 and v2 APIs. " +
-     "It does a create on the v2 endpoint, then attempts a get() on the v1 endpoint. " +
-     "The get() should succeed since we're on the same node.")
-    public void testV2CreateV1GetSameNode() {
+    private void setupV2CreateV1GetSameNode() {
 
-        assertTrue("Tests require at least 1 MN that supports BOTH v1 & v2 APIs", v1v2mns.size() >= 1);
+        assertTrue("Tests require at least 1 MN that supports BOTH v1 & v2 APIs", v1v2MNs.size() >= 1);
         
         AccessRule accessRule = new AccessRule();
         getSession("testRightsHolder");
@@ -637,14 +864,15 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         accessRule.addSubject(subject);
         accessRule.addPermission(Permission.CHANGE_PERMISSION);
         
-        Node v1v2Node = v1v2mns.get(0);
+        Node v1v2Node = v1v2MNs.get(0);
         MNCallAdapter v2CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v1v2Node, "v2");
         
         // v2 create
         
-        Identifier pid = null;
+        Identifier pid = D1TypeBuilder.buildIdentifier("testV2CreateV1GetSameNode_" + pidTimestamp);
         try {
-            pid = createTestObject(v2CallAdapter, "testV2CreateV1GetSameNode_", accessRule);
+            pid = createTestObject(v2CallAdapter, pid, accessRule);
+            syncTestPids.add(pid.getValue());
         } catch (BaseException e) {
             e.printStackTrace();
             throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + " testV2CreateV1GetSameNode() couldn't create test object: " 
@@ -656,12 +884,17 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + " testV2CreateV1GetSameNode() couldn't create test object: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
-        
-        try {
-            Thread.sleep(METACAT_INDEXING_WAIT);
-        } catch (InterruptedException e1) {
-            e1.printStackTrace();
-        }
+    }
+    
+    @WebTestName("v2 create, v1 get, same node")
+    @WebTestDescription(
+     "Test operates on a single MN - one that supports BOTH the v1 and v2 APIs. " +
+     "It does a create on the v2 endpoint, then attempts a get() on the v1 endpoint. " +
+     "The get() should succeed since we're on the same node.")
+    public void testV2CreateV1GetSameNode() {
+
+        Node v1v2Node = v1v2MNs.get(0);
+        Identifier pid = D1TypeBuilder.buildIdentifier("testV2CreateV1GetSameNode_" + pidTimestamp);
         
         // v1 get
 
@@ -673,17 +906,55 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             assertTrue("A get on the v1 endpoint after a v2 endpoint create on the same node "
                     + "should return a non-null InputStream.", is != null);
         } catch (BaseException e) {
-            e.printStackTrace();
             throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + " testV2CreateV1GetSameNode() couldn't create update object: " 
+                    + e.getClass().getSimpleName() + ": " 
+                    + e.getDetail_code() + ":: " + e.getDescription(), e);
+        }
+        catch(Exception e) {
+            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + " testV2CreateV1GetSameNode() couldn't create update object: " 
+            + e.getClass().getName() + ": " + e.getMessage(), e);
+        } finally {
+            IOUtils.closeQuietly(is);
+        }
+    }
+    
+    private void setupV1CreateV2GetSysmeta() {
+
+        assertTrue("Tests require at least 1 MN that supports ONLY the v1 API", v1MNs.size() >= 1);
+        assertTrue("Tests require at least 1 MN that supports the v2 API", v2MNs.size() >= 1);
+        
+        AccessRule accessRule = new AccessRule();
+        getSession("testRightsHolder");
+        Subject subject = D1TypeBuilder.buildSubject(Constants.SUBJECT_PUBLIC);
+        accessRule.addSubject(subject);
+        accessRule.addPermission(Permission.CHANGE_PERMISSION);
+        ReplicationPolicy replPolicy = new ReplicationPolicy();
+        replPolicy.setReplicationAllowed(true);
+        replPolicy.setNumberReplicas(allMNs.size());
+        
+        Node v1MNode = v1MNs.get(0);
+        MNCallAdapter v1CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v1MNode, "v1");
+        
+        // v1 create
+        
+        final Identifier pid = D1TypeBuilder.buildIdentifier("testV1CreateV2GetSysmeta_" + pidTimestamp);
+        
+        log.info("Trying to create test object: " + pid.getValue() + " on MN: " + v1CallAdapter.getNodeBaseServiceUrl());
+        try {
+            createTestObject(v1CallAdapter, pid, accessRule, replPolicy);
+            syncTestPids.add(pid.getValue());
+            replTestPids.add(pid.getValue());
+            log.info("Created test object: " + pid.getValue() + " on MN: " + v1CallAdapter.getNodeBaseServiceUrl());
+        } catch (BaseException e) {
+            e.printStackTrace();
+            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + " testV1CreateV2GetSysmeta() couldn't create test object: " 
                     + e.getClass().getSimpleName() + ": " 
                     + e.getDetail_code() + ":: " + e.getDescription());
         }
         catch(Exception e) {
             e.printStackTrace();
-            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + " testV2CreateV1GetSameNode() couldn't create update object: " 
+            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + " testV1CreateV2GetSysmeta() couldn't create test object: " 
             + e.getClass().getName() + ": " + e.getMessage());
-        } finally {
-            IOUtils.closeQuietly(is);
         }
     }
     
@@ -697,57 +968,18 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
      "upcasted to the v2 version.")
     public void testV1CreateV2GetSysmeta() {
 
-        assertTrue("Tests require at least 1 MN that supports ONLY the v1 API", v1mns.size() >= 1);
-        assertTrue("Tests require at least 1 MN that supports the v2 API", v2mns.size() >= 1);
-        
-        AccessRule accessRule = new AccessRule();
-        getSession("testRightsHolder");
-        Subject subject = D1TypeBuilder.buildSubject(Constants.SUBJECT_PUBLIC);
-        accessRule.addSubject(subject);
-        accessRule.addPermission(Permission.CHANGE_PERMISSION);
-        ReplicationPolicy replPolicy = new ReplicationPolicy();
-        replPolicy.setReplicationAllowed(true);
-        replPolicy.setNumberReplicas(availableMNs-1);
-        
-        Node v1MNode = v1mns.get(0);
-        MNCallAdapter v1CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v1MNode, "v1");
-        
         // v1 create
         
-        final Identifier pid = D1TypeBuilder.buildIdentifier("testV1CreateV2GetSysmeta_" + ExampleUtilities.generateIdentifier());
-        
-        log.info("Trying to create test object: " + pid.getValue() + " on MN: " + v1CallAdapter.getNodeBaseServiceUrl());
-        try {
-            createTestObject(v1CallAdapter, pid, accessRule, replPolicy);
-            log.info("Created test object: " + pid.getValue() + " on MN: " + v1CallAdapter.getNodeBaseServiceUrl());
-        } catch (BaseException e) {
-            e.printStackTrace();
-            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + " testV1CreateV2GetSysmeta() couldn't create test object: " 
-                    + e.getClass().getSimpleName() + ": " 
-                    + e.getDetail_code() + ":: " + e.getDescription());
-        }
-        catch(Exception e) {
-            e.printStackTrace();
-            throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + " testV1CreateV2GetSysmeta() couldn't create test object: " 
-            + e.getClass().getName() + ": " + e.getMessage());
-        }
+        Node v1MNode = v1MNs.get(0);
+        final Identifier pid = D1TypeBuilder.buildIdentifier("testV1CreateV2GetSysmeta_" + pidTimestamp);
         
         SystemMetadata cnSysmeta = null;
         try {
-            RetryHandler<SystemMetadata> handler =  new RetryHandler<SystemMetadata>() {
-                @Override
-                protected SystemMetadata attempt() throws TryAgainException, Exception {
-                    try {
-                        log.info("attempting CN getSystemMEtadata...");
-                        return cnV2.getSystemMetadata(null, pid);
-                    } catch (NotFound | ServiceFailure e) {
-                        TryAgainException f = new TryAgainException();
-                        f.initCause(e);
-                        throw f;
-                    }
-                }
-            };
-            cnSysmeta = handler.execute(30* 1000, REPLICATION_WAIT);
+            cnSysmeta = cnV2.getSystemMetadata(null, pid);
+        } catch (NotFound e) {
+            throw new AssertionError(cnV2.getLatestRequestUrl() + " testV1CreateV2GetSysmeta() : unable to find sysmeta from CN! Check status of CN sync. "
+                    + e.getClass().getSimpleName() + " : " + e.getMessage() 
+                    + ", origin MN: " + v1MNode.getBaseURL());
         } catch (Exception e) {
             throw new AssertionError(cnV2.getLatestRequestUrl() + " testV1CreateV2GetSysmeta() : unable to fetch sysmeta from CN! Check status of CN sync. "
                     + e.getClass().getSimpleName() + " : " + e.getMessage() 
@@ -755,56 +987,17 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         } 
         
         Node replicaMN = null;
-        try {
-            final Node authNode = v1MNode;
-            RetryHandler<SystemMetadata> handler =  new RetryHandler<SystemMetadata>() {
-                @Override
-                protected SystemMetadata attempt() throws TryAgainException, Exception {
-                    try {
-                        log.info("attempting CN getSystemMEtadata...");
-                        SystemMetadata sysmeta = cnV2.getSystemMetadata(null, pid);
-                        
-                        log.info("attempting to get replicas from CN sysmeta...");
-                        List<Replica> replicaList = sysmeta.getReplicaList();
-                        if (replicaList.size() == 0)
-                            throw new TryAgainException();
-                        
-                        Node v2ReplicaNode = null;
-                        for (Replica rep : replicaList) {
-                            for (Node v2Node : v2mns)
-                                if (v2Node.getIdentifier().getValue().equals( rep.getReplicaMemberNode().getValue() )
-                                        && !rep.getReplicaMemberNode().getValue().equals(authNode.getIdentifier().getValue())
-                                        && rep.getReplicationStatus() == ReplicationStatus.COMPLETED)
-                                    v2ReplicaNode = v2Node;
-                        }
-                        if (v2ReplicaNode == null)
-                            throw new TryAgainException();
-                        
-                        return sysmeta;
-                    } catch (NotFound | ServiceFailure e) {
-                        TryAgainException f = new TryAgainException();
-                        f.initCause(e);
-                        throw f;
-                    }
-                }
-            };
-            cnSysmeta = handler.execute(30* 1000, REPLICATION_WAIT);
-            
-            List<Replica> replicaList = cnSysmeta.getReplicaList();
-            outerloop:
-            for (Replica rep : replicaList) {
-                for (Node availMN : v2mns) {
-                    if (availMN.getIdentifier().getValue().equals( rep.getReplicaMemberNode().getValue() )
-                            && !rep.getReplicaMemberNode().getValue().equals(authNode.getIdentifier().getValue())
-                            && rep.getReplicationStatus() == ReplicationStatus.COMPLETED) {
-                        replicaMN = availMN;
-                        break outerloop;
-                    }
+        List<Replica> replicaList = cnSysmeta.getReplicaList();
+        outerloop:
+        for (Replica rep : replicaList) {
+            for (Node availMN : v2MNs) {
+                if (availMN.getIdentifier().getValue().equals( rep.getReplicaMemberNode().getValue() )
+                        && !rep.getReplicaMemberNode().getValue().equals(v1MNode.getIdentifier().getValue())
+                        && rep.getReplicationStatus() == ReplicationStatus.COMPLETED) {
+                    replicaMN = availMN;
+                    break outerloop;
                 }
             }
-        } catch (Exception e) {
-            throw new AssertionError(cnV2.getLatestRequestUrl() + " testV1CreateV2GetSysmeta() : unable to get replica info from CN sysmeta! Check status of CN replication." 
-                    + ", origin MN: " + v1MNode.getBaseURL());
         }
         
         if(replicaMN == null)
@@ -832,15 +1025,9 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         }
     }
     
-    @WebTestName("v1 create, v2 getSystemMetadata")
-    @WebTestDescription(
-     "Test operates on one MN which supports BOTH the v1 API and the v2 API" +
-     "It does a create on the v1 endpoint, then attempts a getSystemMetadata on the v2 endpoint." +
-     "The getSystemMetadata should succeed; the SystemMetadata will just be" + 
-     "upcasted to the v2 version.")
-    public void testV1CreateV2GetSysmetaSameNode() {
+    private void setupV1CreateV2GetSysmetaSameNode() {
 
-        assertTrue("Tests require at least 1 MN that supports BOTH v1 & v2 APIs", v1v2mns.size() >= 1);
+        assertTrue("Tests require at least 1 MN that supports BOTH v1 & v2 APIs", v1v2MNs.size() >= 1);
         
         AccessRule accessRule = new AccessRule();
         getSession("testRightsHolder");
@@ -848,14 +1035,15 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         accessRule.addSubject(subject);
         accessRule.addPermission(Permission.CHANGE_PERMISSION);
         
-        Node v1MNode = v1v2mns.get(0);
+        Node v1MNode = v1v2MNs.get(0);
         MNCallAdapter v1Endpoint = new MNCallAdapter(getSession(cnSubmitter), v1MNode, "v1");
         
         // v1 create
         
-        Identifier pid = null;
+        Identifier pid = D1TypeBuilder.buildIdentifier("testV1CreateV2GetSysmetaSameNode_" + pidTimestamp);
         try {
-            pid = createTestObject(v1Endpoint, "testV1CreateV2GetSysmetaSameNode_", accessRule);
+            pid = createTestObject(v1Endpoint, pid, accessRule);
+            syncTestPids.add(pid.getValue());
         } catch (BaseException e) {
             e.printStackTrace();
             throw new AssertionError(v1Endpoint.getLatestRequestUrl() + " testV1CreateV2GetSysmetaSameNode() couldn't create test object: " 
@@ -867,16 +1055,20 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             throw new AssertionError(v1Endpoint.getLatestRequestUrl() + " testV1CreateV2GetSysmetaSameNode() couldn't create test object: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
-        
-        try {
-            Thread.sleep(METACAT_INDEXING_WAIT);
-        } catch (InterruptedException e1) {
-            e1.printStackTrace();
-        }
-        
+    }
+    
+    @WebTestName("v1 create, v2 getSystemMetadata")
+    @WebTestDescription(
+     "Test operates on one MN which supports BOTH the v1 API and the v2 API" +
+     "It does a create on the v1 endpoint, then attempts a getSystemMetadata on the v2 endpoint." +
+     "The getSystemMetadata should succeed; the SystemMetadata will just be" + 
+     "upcasted to the v2 version.")
+    public void testV1CreateV2GetSysmetaSameNode() {
+
         // v2 getSysmeta
 
-        Node v2MNode = v1v2mns.get(0);
+        Identifier pid = D1TypeBuilder.buildIdentifier("testV1CreateV2GetSysmetaSameNode_" + pidTimestamp);
+        Node v2MNode = v1v2MNs.get(0);
         MNCallAdapter v2Endpoint = new MNCallAdapter(getSession(cnSubmitter), v2MNode, "v2");
         
         try {
@@ -896,17 +1088,10 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         }
     }
     
-    @WebTestName("v1 create, v2 query")
-    @WebTestDescription(
-     "Test operates on two MNs - one that supports ONLY the v1 API and a node " + 
-     "that supports the v2 API. " +
-     "It does a create on the v1 MN, then waits for replication to happen, " +
-     "then attempts a query for the created pid on the v2 MN. " +
-     "The query should succeed, returning a non-empty result.")
-    public void testV1CreateV2Query() {
+    private void setupV1CreateV2Query() {
 
-        assertTrue("Tests require at least 1 MN that supports ONLY the v1 API", v1mns.size() >= 1);
-        assertTrue("Tests require at least 1 MN that supports the v2 API", v2mns.size() >= 1);
+        assertTrue("Tests require at least 1 MN that supports ONLY the v1 API", v1MNs.size() >= 1);
+        assertTrue("Tests require at least 1 MN that supports the v2 API", v2MNs.size() >= 1);
         
         AccessRule accessRule = new AccessRule();
         getSession("testRightsHolder");
@@ -916,16 +1101,18 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         
         ReplicationPolicy replPolicy = new ReplicationPolicy();
         replPolicy.setReplicationAllowed(true);
-        replPolicy.setNumberReplicas(availableMNs-1);
+        replPolicy.setNumberReplicas(allMNs.size());
         
-        Node v1MNode = v1mns.get(0);
+        Node v1MNode = v1MNs.get(0);
         MNCallAdapter v1CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v1MNode, "v1");
         
         // v1 create
         
-        final Identifier pid = D1TypeBuilder.buildIdentifier("testV1CreateV2Query_" + ExampleUtilities.generateIdentifier());
+        final Identifier pid = D1TypeBuilder.buildIdentifier("testV1CreateV2Query_" + pidTimestamp);
         try {
             createTestObject(v1CallAdapter, pid, accessRule, replPolicy);
+            syncTestPids.add(pid.getValue());
+            replTestPids.add(pid.getValue());
         } catch (BaseException e) {
             e.printStackTrace();
             throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + " testV1CreateV2Query() couldn't create test object: " 
@@ -937,72 +1124,38 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + " testV1CreateV2Query() couldn't create test object: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
+    }
+    
+    @WebTestName("v1 create, v2 query")
+    @WebTestDescription(
+     "Test operates on two MNs - one that supports ONLY the v1 API and a node " + 
+     "that supports the v2 API. " +
+     "It does a create on the v1 MN, then waits for replication to happen, " +
+     "then attempts a query for the created pid on the v2 MN. " +
+     "The query should succeed, returning a non-empty result.")
+    public void testV1CreateV2Query() {
+
+        Node v1MNode = v1MNs.get(0);
+        final Identifier pid = D1TypeBuilder.buildIdentifier("testV1CreateV2Query_" + pidTimestamp);
         
-        // wait for replication
         SystemMetadata cnSysmeta = null;
         try {
-            RetryHandler<SystemMetadata> handler =  new RetryHandler<SystemMetadata>() {
-                @Override
-                protected SystemMetadata attempt() throws TryAgainException, Exception {
-                    try {
-                        log.info("attempting CN getSystemMEtadata...");
-                        return cnV2.getSystemMetadata(null, pid);
-                    } catch (NotFound | ServiceFailure e) {
-                        TryAgainException f = new TryAgainException();
-                        f.initCause(e);
-                        throw f;
-                    }
-                }
-            };
-            cnSysmeta = handler.execute(30* 1000, REPLICATION_WAIT);
+            cnSysmeta = cnV2.getSystemMetadata(null, pid);
         } catch (Exception e) {
-            throw new AssertionError(cnV2.getLatestRequestUrl() + " testV1CreateV2Query() : unable to fetch sysmeta from CN! Check status of CN sync. "
+            throw new AssertionError(cnV2.getLatestRequestUrl() + " testV1CreateV2Query() : unable to fetch sysmeta for " + pid.getValue() 
+                    + " from CN! Check status of CN sync. "
                     + e.getClass().getSimpleName() + " : " + e.getMessage() 
                     + ", origin MN: " + v1MNode.getBaseURL());
-        } 
+        }
         
         Node replicaMN = null;
         try {
-            final Node authNode = v1MNode;
-            RetryHandler<SystemMetadata> handler =  new RetryHandler<SystemMetadata>() {
-                @Override
-                protected SystemMetadata attempt() throws TryAgainException, Exception {
-                    try {
-                        log.info("attempting CN getSystemMEtadata...");
-                        SystemMetadata sysmeta = cnV2.getSystemMetadata(null, pid);
-                        
-                        log.info("attempting to get replicas from CN sysmeta...");
-                        List<Replica> replicaList = sysmeta.getReplicaList();
-                        if (replicaList.size() == 0)
-                            throw new TryAgainException();
-                        
-                        Node v2ReplicaNode = null;
-                        for (Replica rep : replicaList) {
-                            for (Node v2Node : v2mns)
-                                if (v2Node.getIdentifier().getValue().equals( rep.getReplicaMemberNode().getValue())
-                                        && !rep.getReplicaMemberNode().getValue().equals(authNode.getIdentifier().getValue())
-                                        && rep.getReplicationStatus() == ReplicationStatus.COMPLETED)
-                                    v2ReplicaNode = v2Node;
-                        }
-                        if (v2ReplicaNode == null)
-                            throw new TryAgainException();
-                        
-                        return sysmeta;
-                    } catch (NotFound | ServiceFailure e) {
-                        TryAgainException f = new TryAgainException();
-                        f.initCause(e);
-                        throw f;
-                    }
-                }
-            };
-            cnSysmeta = handler.execute(30* 1000, REPLICATION_WAIT);
-            
             List<Replica> replicaList = cnSysmeta.getReplicaList();
             outerloop:
             for (Replica rep : replicaList) {
-                for (Node availMN : v2mns) {
+                for (Node availMN : v2MNs) {
                     if (availMN.getIdentifier().getValue().equals( rep.getReplicaMemberNode().getValue() )
-                            && !rep.getReplicaMemberNode().getValue().equals(authNode.getIdentifier().getValue())
+                            && !rep.getReplicaMemberNode().getValue().equals(v1MNode.getIdentifier().getValue())
                             && rep.getReplicationStatus() == ReplicationStatus.COMPLETED) {
                         replicaMN = availMN;
                         break outerloop;
@@ -1069,18 +1222,10 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         }
     }
 
-    @WebTestName("v2 create, v1 query")
-    @WebTestDescription(
-     "Test operates on two MNs - one that supports ONLY the v1 API and a node " +
-     "that supports the v2 API. " +
-     "It does a create on the v2 MN, then waits for replication to happen, " +
-     "then attempts a query for the created pid on the v1 MN. " +
-     "The query should fail with an exception, since replication shouldn't " + 
-     "have happened upward for a v1 object to a v2 node.")
-    public void testV2CreateV1Query() {
+    private void setupV2CreateV1Query() {
 
-        assertTrue("Tests require at least 1 MN that supports ONLY the v1 API", v1mns.size() >= 1);
-        assertTrue("Tests require at least 1 MN that supports the v2 API", v2mns.size() >= 1);
+        assertTrue("Tests require at least 1 MN that supports ONLY the v1 API", v1MNs.size() >= 1);
+        assertTrue("Tests require at least 1 MN that supports the v2 API", v2MNs.size() >= 1);
         
         AccessRule accessRule = new AccessRule();
         getSession("testRightsHolder");
@@ -1089,16 +1234,17 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         accessRule.addPermission(Permission.READ);
         ReplicationPolicy replPolicy = new ReplicationPolicy();
         replPolicy.setReplicationAllowed(true);
-        replPolicy.setNumberReplicas(availableMNs-1);
+        replPolicy.setNumberReplicas(allMNs.size());
         
-        Node v2MNode = v2mns.get(0);
+        Node v2MNode = v2MNs.get(0);
         MNCallAdapter v2CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v2MNode, "v2");
         
         // v2 create
         
-        Identifier pid = D1TypeBuilder.buildIdentifier("testV2CreateV1Query_" + ExampleUtilities.generateIdentifier());
+        Identifier pid = D1TypeBuilder.buildIdentifier("testV2CreateV1Query_" + pidTimestamp);
         try {
             pid = createTestObject(v2CallAdapter, pid, accessRule, replPolicy);
+            syncTestPids.add(pid.getValue());
         } catch (BaseException e) {
             e.printStackTrace();
             throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + " testV2CreateV1Query() couldn't create test object: " 
@@ -1110,17 +1256,23 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + " testV2CreateV1Query() couldn't create test object: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
-        
-        // wait for replication
-        try {
-            Thread.sleep(REPLICATION_WAIT);
-        } catch (InterruptedException e1) {
-            e1.printStackTrace();
-        }
+    }
+    
+    @WebTestName("v2 create, v1 query")
+    @WebTestDescription(
+     "Test operates on two MNs - one that supports ONLY the v1 API and a node " +
+     "that supports the v2 API. " +
+     "It does a create on the v2 MN, then waits for replication to happen, " +
+     "then attempts a query for the created pid on the v1 MN. " +
+     "The query should fail with an exception, since replication shouldn't " + 
+     "have happened upward for a v1 object to a v2 node.")
+    public void testV2CreateV1Query() {
 
+        Identifier pid = D1TypeBuilder.buildIdentifier("testV2CreateV1Query_" + pidTimestamp);
+        
         // v1 query
 
-        Node v1MNode = v1mns.get(0);
+        Node v1MNode = v1MNs.get(0);
         MNCallAdapter v1CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v1MNode, "v1");
         
         InputStream is = null;
@@ -1146,14 +1298,9 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         }
     }
     
-    @WebTestName("v2 create, v1 delete, same node")
-    @WebTestDescription(
-     "Test operates on one MN that supports BOTH the v1 and v2 APIs " +
-     "It does a create on the v2 endpoint, then attempts to delete the object " +
-     "for that pid on the v1 endpoint. The delete should succeed.")
-    public void testV2CreateV1DeleteSameNode() {
+    private void setupV2CreateV1DeleteSameNode() {
 
-        assertTrue("Tests require at least 1 MN that supports BOTH v1 & v2 APIs", v1v2mns.size() >= 1);
+        assertTrue("Tests require at least 1 MN that supports BOTH v1 & v2 APIs", v1v2MNs.size() >= 1);
         
         AccessRule accessRule = new AccessRule();
         getSession("testRightsHolder");
@@ -1161,14 +1308,15 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         accessRule.addSubject(subject);
         accessRule.addPermission(Permission.CHANGE_PERMISSION);
         
-        Node v1v2MNode = v1v2mns.get(0);
+        Node v1v2MNode = v1v2MNs.get(0);
         MNCallAdapter v2CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v1v2MNode, "v2");
         
         // v2 create
         
-        Identifier pid = null;
+        Identifier pid = D1TypeBuilder.buildIdentifier("testV2CreateV1DeleteSameNode_" + pidTimestamp);
         try {
-            pid = createTestObject(v2CallAdapter, "testV2CreateV1DeleteSameNode_", accessRule);
+            pid = createTestObject(v2CallAdapter, pid, accessRule);
+            syncTestPids.add(pid.getValue());
         } catch (BaseException e) {
             e.printStackTrace();
             throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + " testV2CreateV1DeleteSameNode() couldn't create test object: " 
@@ -1180,12 +1328,17 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + " testV2CreateV1DeleteSameNode() couldn't create test object: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
-        
-        try {
-            Thread.sleep(METACAT_INDEXING_WAIT);
-        } catch (InterruptedException e1) {
-            e1.printStackTrace();
-        }
+    }
+    
+    @WebTestName("v2 create, v1 delete, same node")
+    @WebTestDescription(
+     "Test operates on one MN that supports BOTH the v1 and v2 APIs " +
+     "It does a create on the v2 endpoint, then attempts to delete the object " +
+     "for that pid on the v1 endpoint. The delete should succeed.")
+    public void testV2CreateV1DeleteSameNode() {
+
+        Node v1v2MNode = v1v2MNs.get(0);
+        Identifier pid = D1TypeBuilder.buildIdentifier("testV2CreateV1DeleteSameNode_" + pidTimestamp);
         
         // v1 delete
 
@@ -1208,15 +1361,9 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         }
     }
     
-    @WebTestName("v1 create, v2 delete, same node")
-    @WebTestDescription(
-     "Test operates on one MN that supports BOTH the v1 and v2 APIs " +
-     "It does a create on the v1 endpoint, then attempts to delete the object " +
-     "for that pid on the v2 endpoint. The delete should succeed since we're on " +
-     "the same node.")
-    public void testV1CreateV2DeleteSameNode() {
+    private void setupV1CreateV2DeleteSameNode() {
 
-        assertTrue("Tests require at least 1 MN that supports BOTH v1 & v2 APIs", v1v2mns.size() >= 1);
+        assertTrue("Tests require at least 1 MN that supports BOTH v1 & v2 APIs", v1v2MNs.size() >= 1);
         
         AccessRule accessRule = new AccessRule();
         getSession("testRightsHolder");
@@ -1224,14 +1371,15 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         accessRule.addSubject(subject);
         accessRule.addPermission(Permission.CHANGE_PERMISSION);
         
-        Node v1v2MNode = v1v2mns.get(0);
+        Node v1v2MNode = v1v2MNs.get(0);
         MNCallAdapter v1CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v1v2MNode, "v1");
         
         // v1 create
         
-        Identifier pid = null;
+        Identifier pid = D1TypeBuilder.buildIdentifier("testV1CreateV2DeleteSameNode_" + pidTimestamp);
         try {
-            pid = createTestObject(v1CallAdapter, "testV1CreateV2DeleteSameNode_", accessRule);
+            pid = createTestObject(v1CallAdapter, pid, accessRule);
+            syncTestPids.add(pid.getValue());
         } catch (BaseException e) {
             e.printStackTrace();
             throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + " testV1CreateV2DeleteSameNode() couldn't create test object: " 
@@ -1243,13 +1391,19 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + " testV1CreateV2DeleteSameNode() couldn't create test object: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
-        
-        try {
-            Thread.sleep(METACAT_INDEXING_WAIT);
-        } catch (InterruptedException e1) {
-            e1.printStackTrace();
-        }
-        
+    }
+    
+    @WebTestName("v1 create, v2 delete, same node")
+    @WebTestDescription(
+     "Test operates on one MN that supports BOTH the v1 and v2 APIs " +
+     "It does a create on the v1 endpoint, then attempts to delete the object " +
+     "for that pid on the v2 endpoint. The delete should succeed since we're on " +
+     "the same node.")
+    public void testV1CreateV2DeleteSameNode() {
+
+        Node v1v2MNode = v1v2MNs.get(0);
+        Identifier pid = D1TypeBuilder.buildIdentifier("testV1CreateV2DeleteSameNode_" + pidTimestamp);
+
         // v2 delete
 
         MNCallAdapter v2CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v1v2MNode, "v2");
@@ -1271,17 +1425,10 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         }
     }
     
-    @WebTestName("v2 create, v1 delete")
-    @WebTestDescription(
-     "Test operates on two MNs - one that supports ONLY the v1 API and a node " +
-     "that supports the v2 API. " +
-     "It does a create on the v2 MN, then attempts to delete the object " +
-     "for that pid on the v1 MN. The delete should fail because replication from " +
-     "a v2 MN to a v1 MN shouldn't happen for v2 objects.")
-    public void testV2CreateV1Delete() {
+    private void setupV2CreateV1Delete() {
 
-        assertTrue("Tests require at least 1 MN that supports ONLY the v1 API", v1mns.size() >= 1);
-        assertTrue("Tests require at least 1 MN that supports the v2 API", v2mns.size() >= 1);
+        assertTrue("Tests require at least 1 MN that supports ONLY the v1 API", v1MNs.size() >= 1);
+        assertTrue("Tests require at least 1 MN that supports the v2 API", v2MNs.size() >= 1);
         
         AccessRule accessRule = new AccessRule();
         getSession("testRightsHolder");
@@ -1290,16 +1437,17 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         accessRule.addPermission(Permission.CHANGE_PERMISSION);
         ReplicationPolicy replPolicy = new ReplicationPolicy();
         replPolicy.setReplicationAllowed(true);
-        replPolicy.setNumberReplicas(availableMNs-1);
+        replPolicy.setNumberReplicas(allMNs.size());
         
-        Node v2MNode = v2mns.get(0);
+        Node v2MNode = v2MNs.get(0);
         MNCallAdapter v2CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v2MNode, "v2");
         
         // v2 create
         
-        Identifier pid = D1TypeBuilder.buildIdentifier("testV2CreateV1Delete_" + ExampleUtilities.generateIdentifier());
+        Identifier pid = D1TypeBuilder.buildIdentifier("testV2CreateV1Delete_" + pidTimestamp);
         try {
             pid = createTestObject(v2CallAdapter, pid, accessRule, replPolicy);
+            syncTestPids.add(pid.getValue());
         } catch (BaseException e) {
             e.printStackTrace();
             throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + " testV2CreateV1Delete() couldn't create test object: " 
@@ -1311,18 +1459,22 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + " testV2CreateV1Delete() couldn't create test object: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
-        
-        // wait for replication
-        try {
-            Thread.sleep(REPLICATION_WAIT);
-        } catch (InterruptedException e1) {
-            e1.printStackTrace();
-        }
+    }
+    
+    @WebTestName("v2 create, v1 delete")
+    @WebTestDescription(
+     "Test operates on two MNs - one that supports ONLY the v1 API and a node " +
+     "that supports the v2 API. " +
+     "It does a create on the v2 MN, then attempts to delete the object " +
+     "for that pid on the v1 MN. The delete should fail because replication from " +
+     "a v2 MN to a v1 MN shouldn't happen for v2 objects.")
+    public void testV2CreateV1Delete() {
 
         // v1 delete
 
-        Node v1MNode = v1mns.get(0);
+        Node v1MNode = v1MNs.get(0);
         MNCallAdapter v1CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v1MNode, "v1");
+        Identifier pid = D1TypeBuilder.buildIdentifier("testV2CreateV1Delete_" + pidTimestamp);
         
         try {
             v1CallAdapter.delete(null, pid);
@@ -1343,17 +1495,10 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         }
     }
     
-    @WebTestName("v1 create, v2 delete")
-    @WebTestDescription(
-     "Test operates on two MNs - one that supports ONLY the v1 API and a node " +
-     "that supports the v2 API. " +
-     "It does a create on the v1 MN, then attempts to delete the object " +
-     "for that pid on the v2 MN. The delete should succeed because the object should " +
-     "have been replicated from the v1 MN to the v2 MN.")
-    public void testV1CreateV2Delete() {
+    private void setupV1CreateV2Delete() {
 
-        assertTrue("Tests require at least 1 MN that supports ONLY the v1 API", v1mns.size() >= 1);
-        assertTrue("Tests require at least 1 MN that supports the v2 API", v2mns.size() >= 1);
+        assertTrue("Tests require at least 1 MN that supports ONLY the v1 API", v1MNs.size() >= 1);
+        assertTrue("Tests require at least 1 MN that supports the v2 API", v2MNs.size() >= 1);
         
         AccessRule accessRule = new AccessRule();
         getSession("testRightsHolder");
@@ -1362,16 +1507,18 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         accessRule.addPermission(Permission.CHANGE_PERMISSION);
         ReplicationPolicy replPolicy = new ReplicationPolicy();
         replPolicy.setReplicationAllowed(true);
-        replPolicy.setNumberReplicas(availableMNs-1);
+        replPolicy.setNumberReplicas(allMNs.size());
         
-        Node v1MNode = v1mns.get(0);
+        Node v1MNode = v1MNs.get(0);
         MNCallAdapter v1CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v1MNode, "v1");
         
         // v1 create
         
-        final Identifier pid = D1TypeBuilder.buildIdentifier("testV1CreateV2Delete_" + ExampleUtilities.generateIdentifier());
+        final Identifier pid = D1TypeBuilder.buildIdentifier("testV1CreateV2Delete_" + pidTimestamp);
         try {
             createTestObject(v1CallAdapter, pid, accessRule, replPolicy);
+            syncTestPids.add(pid.getValue());
+            replTestPids.add(pid.getValue());
         } catch (BaseException e) {
             e.printStackTrace();
             throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + " testV1CreateV2Delete() couldn't create test object: " 
@@ -1383,72 +1530,39 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + " testV1CreateV2Delete() couldn't create test object: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
+    }
+    
+    @WebTestName("v1 create, v2 delete")
+    @WebTestDescription(
+     "Test operates on two MNs - one that supports ONLY the v1 API and a node " +
+     "that supports the v2 API. " +
+     "It does a create on the v1 MN, then attempts to delete the object " +
+     "for that pid on the v2 MN. The delete should succeed because the object should " +
+     "have been replicated from the v1 MN to the v2 MN.")
+    public void testV1CreateV2Delete() {
+
+        Node v1MNode = v1MNs.get(0);
+        Identifier pid = D1TypeBuilder.buildIdentifier("testV1CreateV2Delete_" + pidTimestamp);
         
         // wait for replication
         SystemMetadata cnSysmeta = null;
         try {
-            RetryHandler<SystemMetadata> handler =  new RetryHandler<SystemMetadata>() {
-                @Override
-                protected SystemMetadata attempt() throws TryAgainException, Exception {
-                    try {
-                        log.info("attempting CN getSystemMEtadata...");
-                        return cnV2.getSystemMetadata(null, pid);
-                    } catch (NotFound | ServiceFailure e) {
-                        TryAgainException f = new TryAgainException();
-                        f.initCause(e);
-                        throw f;
-                    }
-                }
-            };
-            cnSysmeta = handler.execute(30* 1000, REPLICATION_WAIT);
+            cnSysmeta = cnV2.getSystemMetadata(null, pid);
         } catch (Exception e) {
-            throw new AssertionError(cnV2.getLatestRequestUrl() + " testV1CreateV2Query() : unable to fetch sysmeta from CN! Check status of CN sync. "
+            throw new AssertionError(cnV2.getLatestRequestUrl() + " testV1CreateV2Query() : unable to fetch sysmeta "
+                    + "for pid " + pid.getValue() + " on CN! Check status of CN sync. "
                     + e.getClass().getSimpleName() + " : " + e.getMessage() 
                     + ", origin MN: " + v1MNode.getBaseURL());
         } 
         
         Node replicaMN = null;
         try {
-            final Node authNode = v1MNode;
-            RetryHandler<SystemMetadata> handler =  new RetryHandler<SystemMetadata>() {
-                @Override
-                protected SystemMetadata attempt() throws TryAgainException, Exception {
-                    try {
-                        log.info("attempting CN getSystemMEtadata...");
-                        SystemMetadata sysmeta = cnV2.getSystemMetadata(null, pid);
-                        
-                        log.info("attempting to get replicas from CN sysmeta...");
-                        List<Replica> replicaList = sysmeta.getReplicaList();
-                        if (replicaList.size() == 0)
-                            throw new TryAgainException();
-                        
-                        Node v2ReplicaNode = null;
-                        for (Replica rep : replicaList) {
-                            for (Node v2Node : v2mns)
-                                if (v2Node.getIdentifier().getValue().equals( rep.getReplicaMemberNode().getValue())
-                                        && !rep.getReplicaMemberNode().getValue().equals(authNode.getIdentifier().getValue())
-                                        && rep.getReplicationStatus() == ReplicationStatus.COMPLETED)
-                                    v2ReplicaNode = v2Node;
-                        }
-                        if (v2ReplicaNode == null)
-                            throw new TryAgainException();
-                        
-                        return sysmeta;
-                    } catch (NotFound | ServiceFailure e) {
-                        TryAgainException f = new TryAgainException();
-                        f.initCause(e);
-                        throw f;
-                    }
-                }
-            };
-            cnSysmeta = handler.execute(30* 1000, REPLICATION_WAIT);
-            
             List<Replica> replicaList = cnSysmeta.getReplicaList();
             outerloop:
             for (Replica rep : replicaList) {
-                for (Node availMN : v2mns) {
+                for (Node availMN : v2MNs) {
                     if (availMN.getIdentifier().getValue().equals( rep.getReplicaMemberNode().getValue() )
-                            && !rep.getReplicaMemberNode().getValue().equals(authNode.getIdentifier().getValue())
+                            && !rep.getReplicaMemberNode().getValue().equals(v1MNode.getIdentifier().getValue())
                             && rep.getReplicationStatus() == ReplicationStatus.COMPLETED) {
                         replicaMN = availMN;
                         break outerloop;
@@ -1485,14 +1599,9 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         }
     }
     
-    @WebTestName("v2 create, v1 listObjects, same node")
-    @WebTestDescription(
-     "Test operates on one MN that supports BOTH the v1 and v2 APIs " +
-     "It does a create on the v2 endpoint, then attempts to locate the object " +
-     "for that pid using listObjects() on the v1 endpoint. It should be found.")
-    public void testV2CreateV1ListObjectsSameNode() {
+    private void setupV2CreateV1ListObjectsSameNode() {
 
-        assertTrue("Tests require at least 1 MN that supports BOTH v1 & v2 APIs", v1v2mns.size() >= 1);
+        assertTrue("Tests require at least 1 MN that supports BOTH v1 & v2 APIs", v1v2MNs.size() >= 1);
         
         AccessRule accessRule = new AccessRule();
         getSession("testRightsHolder");
@@ -1500,14 +1609,15 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         accessRule.addSubject(subject);
         accessRule.addPermission(Permission.CHANGE_PERMISSION);
         
-        Node v1v2MNode = v1v2mns.get(0);
+        Node v1v2MNode = v1v2MNs.get(0);
         MNCallAdapter v2CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v1v2MNode, "v2");
         
         // v2 create
         
-        Identifier pid = null;
+        Identifier pid = D1TypeBuilder.buildIdentifier("testV2CreateV1ListObjectsSameNode_" + pidTimestamp);
         try {
-            pid = createTestObject(v2CallAdapter, "testV2CreateV1ListObjectsSameNode_", accessRule);
+            pid = createTestObject(v2CallAdapter, pid, accessRule);
+            syncTestPids.add(pid.getValue());
         } catch (BaseException e) {
             e.printStackTrace();
             throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + " testV2CreateV1ListObjectsSameNode() couldn't create test object: " 
@@ -1519,12 +1629,17 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + " testV2CreateV1ListObjectsSameNode() couldn't create test object: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
-        
-        try {
-            Thread.sleep(METACAT_INDEXING_WAIT);
-        } catch (InterruptedException e1) {
-            e1.printStackTrace();
-        }
+    }
+    
+    @WebTestName("v2 create, v1 listObjects, same node")
+    @WebTestDescription(
+     "Test operates on one MN that supports BOTH the v1 and v2 APIs " +
+     "It does a create on the v2 endpoint, then attempts to locate the object " +
+     "for that pid using listObjects() on the v1 endpoint. It should be found.")
+    public void testV2CreateV1ListObjectsSameNode() {
+
+        Node v1v2MNode = v1v2MNs.get(0);
+        Identifier pid = D1TypeBuilder.buildIdentifier("testV2CreateV1ListObjectsSameNode_" + pidTimestamp);
         
         // v1 delete
 
@@ -1553,14 +1668,9 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         }
     }
     
-    @WebTestName("v1 create, v2 listObjects, same node")
-    @WebTestDescription(
-     "Test operates on one MN that supports BOTH the v1 and v2 APIs " +
-     "It does a create on the v1 endpoint, then attempts to locate the object " +
-     "for that pid using listObjects() on the v2 endpoint. The pid should be found.")
-    public void testV1CreateV2ListObjectsSameNode() {
+    private void setupV1CreateV2ListObjectsSameNode() {
 
-        assertTrue("Tests require at least 1 MN that supports BOTH v1 & v2 APIs", v1v2mns.size() >= 1);
+        assertTrue("Tests require at least 1 MN that supports BOTH v1 & v2 APIs", v1v2MNs.size() >= 1);
         
         AccessRule accessRule = new AccessRule();
         getSession("testRightsHolder");
@@ -1568,14 +1678,15 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         accessRule.addSubject(subject);
         accessRule.addPermission(Permission.CHANGE_PERMISSION);
         
-        Node v1v2MNode = v1v2mns.get(0);
+        Node v1v2MNode = v1v2MNs.get(0);
         MNCallAdapter v1CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v1v2MNode, "v1");
         
         // v1 create
         
-        Identifier pid = null;
+        Identifier pid = D1TypeBuilder.buildIdentifier("testV1CreateV2ListObjectsSameNode_" + pidTimestamp);
         try {
-            pid = createTestObject(v1CallAdapter, "testV1CreateV2ListObjectsSameNode_", accessRule);
+            pid = createTestObject(v1CallAdapter, pid, accessRule);
+            syncTestPids.add(pid.getValue());
         } catch (BaseException e) {
             e.printStackTrace();
             throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + " testV1CreateV2ListObjectsSameNode() couldn't create test object: " 
@@ -1587,12 +1698,17 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + " testV1CreateV2ListObjectsSameNode() couldn't create test object: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
-        
-        try {
-            Thread.sleep(METACAT_INDEXING_WAIT);
-        } catch (InterruptedException e1) {
-            e1.printStackTrace();
-        }
+    }
+    
+    @WebTestName("v1 create, v2 listObjects, same node")
+    @WebTestDescription(
+     "Test operates on one MN that supports BOTH the v1 and v2 APIs " +
+     "It does a create on the v1 endpoint, then attempts to locate the object " +
+     "for that pid using listObjects() on the v2 endpoint. The pid should be found.")
+    public void testV1CreateV2ListObjectsSameNode() {
+
+        Node v1v2MNode = v1v2MNs.get(0);
+        Identifier pid = D1TypeBuilder.buildIdentifier("testV1CreateV2ListObjectsSameNode_" + pidTimestamp);
         
         // v2 listObjects
 
@@ -1621,18 +1737,10 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         }
     }
     
-    @WebTestName("v2 create, v1 listObjects")
-    @WebTestDescription(
-     "Test operates on two MNs - one that supports ONLY the v1 API and a node " +
-     "that supports the v2 API. " +
-     "It does a create on the v2 MN, then attempts to locate the object " +
-     "for that pid using listObjects() on the v1 MN. The listObjects results " +
-     "should not contain the pid created because replication from " +
-     "a v2 MN to a v1 MN shouldn't happen for v2 objects.")
-    public void testV2CreateV1ListObjects() {
+    private void setupV2CreateV1ListObjects() {
 
-        assertTrue("Tests require at least 1 MN that supports ONLY the v1 API", v1mns.size() >= 1);
-        assertTrue("Tests require at least 1 MN that supports the v2 API", v2mns.size() >= 1);
+        assertTrue("Tests require at least 1 MN that supports ONLY the v1 API", v1MNs.size() >= 1);
+        assertTrue("Tests require at least 1 MN that supports the v2 API", v2MNs.size() >= 1);
         
         AccessRule accessRule = new AccessRule();
         getSession("testRightsHolder");
@@ -1641,16 +1749,17 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         accessRule.addPermission(Permission.CHANGE_PERMISSION);
         ReplicationPolicy replPolicy = new ReplicationPolicy();
         replPolicy.setReplicationAllowed(true);
-        replPolicy.setNumberReplicas(availableMNs-1);
+        replPolicy.setNumberReplicas(allMNs.size());
         
-        Node v2MNode = v2mns.get(0);
+        Node v2MNode = v2MNs.get(0);
         MNCallAdapter v2CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v2MNode, "v2");
         
         // v2 create
         
-        Identifier pid = D1TypeBuilder.buildIdentifier("testV2CreateV1ListObjects_" + ExampleUtilities.generateIdentifier());
+        Identifier pid = D1TypeBuilder.buildIdentifier("testV2CreateV1ListObjects_" + pidTimestamp);
         try {
             pid = createTestObject(v2CallAdapter, pid, accessRule, replPolicy);
+            syncTestPids.add(pid.getValue());
         } catch (BaseException e) {
             e.printStackTrace();
             throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + " testV2CreateV1ListObjects() couldn't create test object: " 
@@ -1662,17 +1771,23 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + " testV2CreateV1ListObjects() couldn't create test object: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
-        
-        // wait for replication
-        try {
-            Thread.sleep(REPLICATION_WAIT);
-        } catch (InterruptedException e1) {
-            e1.printStackTrace();
-        }
+    }
+    
+    @WebTestName("v2 create, v1 listObjects")
+    @WebTestDescription(
+     "Test operates on two MNs - one that supports ONLY the v1 API and a node " +
+     "that supports the v2 API. " +
+     "It does a create on the v2 MN, then attempts to locate the object " +
+     "for that pid using listObjects() on the v1 MN. The listObjects results " +
+     "should not contain the pid created because replication from " +
+     "a v2 MN to a v1 MN shouldn't happen for v2 objects.")
+    public void testV2CreateV1ListObjects() {
+
+        Identifier pid = D1TypeBuilder.buildIdentifier("testV2CreateV1ListObjects_" + pidTimestamp);
 
         // v1 listObjects
 
-        Node v1MNode = v1mns.get(0);
+        Node v1MNode = v1MNs.get(0);
         MNCallAdapter v1CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v1MNode, "v1");
         
         try {
@@ -1698,18 +1813,10 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         }
     }
     
-    @WebTestName("v1 create, v2 listObjects")
-    @WebTestDescription(
-     "Test operates on two MNs - one that supports ONLY the v1 API and a node " +
-     "that supports the v2 API. " +
-     "It does a create on the v1 MN, then attempts to delete the object " +
-     "for that pid on the v2 MN. The listObjects call should return results containing " +
-     "the created pid because the object should have been replicated " +
-     "from the v1 MN to the v2 MN.")
-    public void testV1CreateV2ListObjects() {
+    private void setupV1CreateV2ListObjects() {
 
-        assertTrue("Tests require at least 1 MN that supports ONLY the v1 API", v1mns.size() >= 1);
-        assertTrue("Tests require at least 1 MN that supports the v2 API", v2mns.size() >= 1);
+        assertTrue("Tests require at least 1 MN that supports ONLY the v1 API", v1MNs.size() >= 1);
+        assertTrue("Tests require at least 1 MN that supports the v2 API", v2MNs.size() >= 1);
         
         AccessRule accessRule = new AccessRule();
         getSession("testRightsHolder");
@@ -1718,16 +1825,18 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         accessRule.addPermission(Permission.CHANGE_PERMISSION);
         ReplicationPolicy replPolicy = new ReplicationPolicy();
         replPolicy.setReplicationAllowed(true);
-        replPolicy.setNumberReplicas(availableMNs-1);
+        replPolicy.setNumberReplicas(allMNs.size());
         
-        Node v1MNode = v1mns.get(0);
+        Node v1MNode = v1MNs.get(0);
         MNCallAdapter v1CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v1MNode, "v1");
         
         // v1 create
         
-        final Identifier pid = D1TypeBuilder.buildIdentifier("testV1CreateV2ListObjects_" + ExampleUtilities.generateIdentifier());
+        final Identifier pid = D1TypeBuilder.buildIdentifier("testV1CreateV2ListObjects_" + pidTimestamp);
         try {
             createTestObject(v1CallAdapter, pid, accessRule, replPolicy);
+            syncTestPids.add(pid.getValue());
+            replTestPids.add(pid.getValue());
         } catch (BaseException e) {
             e.printStackTrace();
             throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + " testV1CreateV2ListObjects() couldn't create test object: " 
@@ -1739,24 +1848,25 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             throw new AssertionError(v1CallAdapter.getLatestRequestUrl() + " testV1CreateV2ListObjects() couldn't create test object: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
+    }
+    
+    @WebTestName("v1 create, v2 listObjects")
+    @WebTestDescription(
+     "Test operates on two MNs - one that supports ONLY the v1 API and a node " +
+     "that supports the v2 API. " +
+     "It does a create on the v1 MN, then attempts to delete the object " +
+     "for that pid on the v2 MN. The listObjects call should return results containing " +
+     "the created pid because the object should have been replicated " +
+     "from the v1 MN to the v2 MN.")
+    public void testV1CreateV2ListObjects() {
+
+        Node v1MNode = v1MNs.get(0);
+        Identifier pid = D1TypeBuilder.buildIdentifier("testV1CreateV2ListObjects_" + pidTimestamp);
         
         // wait for replication
         SystemMetadata cnSysmeta = null;
         try {
-            RetryHandler<SystemMetadata> handler =  new RetryHandler<SystemMetadata>() {
-                @Override
-                protected SystemMetadata attempt() throws TryAgainException, Exception {
-                    try {
-                        log.info("attempting CN getSystemMEtadata...");
-                        return cnV2.getSystemMetadata(null, pid);
-                    } catch (NotFound | ServiceFailure e) {
-                        TryAgainException f = new TryAgainException();
-                        f.initCause(e);
-                        throw f;
-                    }
-                }
-            };
-            cnSysmeta = handler.execute(30* 1000, REPLICATION_WAIT);
+            cnSysmeta = cnV2.getSystemMetadata(null, pid);
         } catch (Exception e) {
             throw new AssertionError(cnV2.getLatestRequestUrl() + " testV1CreateV2ListObjects() : unable to fetch sysmeta from CN! Check status of CN sync. "
                     + e.getClass().getSimpleName() + " : " + e.getMessage() 
@@ -1765,46 +1875,12 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         
         Node replicaMN = null;
         try {
-            final Node authNode = v1MNode;
-            RetryHandler<SystemMetadata> handler =  new RetryHandler<SystemMetadata>() {
-                @Override
-                protected SystemMetadata attempt() throws TryAgainException, Exception {
-                    try {
-                        log.info("attempting CN getSystemMEtadata...");
-                        SystemMetadata sysmeta = cnV2.getSystemMetadata(null, pid);
-                        
-                        log.info("attempting to get replicas from CN sysmeta...");
-                        List<Replica> replicaList = sysmeta.getReplicaList();
-                        if (replicaList.size() == 0)
-                            throw new TryAgainException();
-                        
-                        Node v2ReplicaNode = null;
-                        for (Replica rep : replicaList) {
-                            for (Node v2Node : v2mns)
-                                if (v2Node.getIdentifier().getValue().equals( rep.getReplicaMemberNode().getValue() )
-                                        && !rep.getReplicaMemberNode().getValue().equals(authNode.getIdentifier().getValue())
-                                        && rep.getReplicationStatus() == ReplicationStatus.COMPLETED)
-                                    v2ReplicaNode = v2Node;
-                        }
-                        if (v2ReplicaNode == null)
-                            throw new TryAgainException();
-                        
-                        return sysmeta;
-                    } catch (NotFound | ServiceFailure e) {
-                        TryAgainException f = new TryAgainException();
-                        f.initCause(e);
-                        throw f;
-                    }
-                }
-            };
-            cnSysmeta = handler.execute(30* 1000, REPLICATION_WAIT);
-            
             List<Replica> replicaList = cnSysmeta.getReplicaList();
             outerloop:
             for (Replica rep : replicaList) {
-                for (Node availMN : v2mns) {
+                for (Node availMN : v2MNs) {
                     if (availMN.getIdentifier().getValue().equals( rep.getReplicaMemberNode().getValue() )
-                            && !rep.getReplicaMemberNode().getValue().equals(authNode.getIdentifier().getValue())
+                            && !rep.getReplicaMemberNode().getValue().equals(v1MNode.getIdentifier().getValue())
                             && rep.getReplicationStatus() == ReplicationStatus.COMPLETED) {
                         replicaMN = availMN;
                         break outerloop;
@@ -1848,15 +1924,9 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         }
     }
     
-    @WebTestName("v2 create, CN archive")
-    @WebTestDescription(
-     "Test operates on a v2 MN and a CN." +
-     "It does a create on the v2 MN, then attempts to archive the object on the CN using both the v1 and v2 call. " +
-     "The archive calls should fail since the object is a v2 object - its authoritative " +
-     "MN is a v2 MN, and this call should only work for an object with a v1 authoritative MN. Expects a NotAuthorized exception.")
-    public void testV2CreateCnArchive() {
+    private void setupV2CreateCnArchive() {
 
-        assertTrue("Tests require at least 1 MN that supports the v2 API", v2mns.size() >= 1);
+        assertTrue("Tests require at least 1 MN that supports the v2 API", v2MNs.size() >= 1);
         
         AccessRule accessRule = new AccessRule();
         Subject subject = D1TypeBuilder.buildSubject(Constants.SUBJECT_PUBLIC);
@@ -1864,16 +1934,17 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         accessRule.addPermission(Permission.CHANGE_PERMISSION);
         ReplicationPolicy replPolicy = new ReplicationPolicy();
         replPolicy.setReplicationAllowed(true);
-        replPolicy.setNumberReplicas(availableMNs-1);
+        replPolicy.setNumberReplicas(allMNs.size());
         
-        Node v2MNode = v2mns.get(0);
+        Node v2MNode = v2MNs.get(0);
         MNCallAdapter v2CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v2MNode, "v2");
         
         // v2 create
         
-        final Identifier pid = D1TypeBuilder.buildIdentifier("testV2CreateCnArchive_" + ExampleUtilities.generateIdentifier());
+        final Identifier pid = D1TypeBuilder.buildIdentifier("testV2CreateCnArchive_" + pidTimestamp);
         try {
             createTestObject(v2CallAdapter, pid, accessRule, replPolicy);
+            syncTestPids.add(pid.getValue());
         } catch (BaseException e) {
             e.printStackTrace();
             throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + " testV2CreateCnArchive() couldn't create test object: " 
@@ -1885,28 +1956,17 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + " testV2CreateCnArchive() couldn't create test object: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
-        
-        // wait for replication
-        try {
-            RetryHandler<SystemMetadata> handler =  new RetryHandler<SystemMetadata>() {
-                @Override
-                protected SystemMetadata attempt() throws TryAgainException, Exception {
-                    try {
-                        log.info("attempting CN getSystemMEtadata...");
-                        return cnV1.getSystemMetadata(null, pid);
-                    } catch (NotFound | ServiceFailure e) {
-                        TryAgainException f = new TryAgainException();
-                        f.initCause(e);
-                        throw f;
-                    }
-                }
-            };
-            handler.execute(30* 1000, REPLICATION_WAIT);
-        } catch (Exception e) {
-            throw new AssertionError(cnV1.getLatestRequestUrl() + " testV2CreateCnArchive() : unable to fetch sysmeta from CN! Check status of CN sync. "
-                    + e.getClass().getSimpleName() + " : " + e.getMessage() 
-                    + ", origin MN: " + v2MNode.getBaseURL());
-        } 
+    }
+    
+    @WebTestName("v2 create, CN archive")
+    @WebTestDescription(
+     "Test operates on a v2 MN and a CN." +
+     "It does a create on the v2 MN, then attempts to archive the object on the CN using both the v1 and v2 call. " +
+     "The archive calls should fail since the object is a v2 object - its authoritative " +
+     "MN is a v2 MN, and this call should only work for an object with a v1 authoritative MN. Expects a NotAuthorized exception.")
+    public void testV2CreateCnArchive() {
+
+        final Identifier pid = D1TypeBuilder.buildIdentifier("testV2CreateCnArchive_" + pidTimestamp);
         
         // CN archive
         
@@ -1939,15 +1999,9 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         }
     }
     
-    @WebTestName("v2 create, CN setReplicationPolicy")
-    @WebTestDescription(
-     "Test operates on a v2 MN and a CN." +
-     "It does a create on the v2 MN, then attempts to setReplicationPolicy on the object on the CN using both the v1 and v2 call. " +
-     "The setReplicationPolicy calls should fail since the object is a v2 object - its authoritative " +
-     "MN is a v2 MN, and this call should only work for an object with a v1 authoritative MN. Expects a NotAuthorized exception.")
-    public void testV2CreateCnSetReplicationPolicy() {
+    private void setupV2CreateCnSetReplicationPolicy() {
 
-        assertTrue("Tests require at least 1 MN that supports the v2 API", v2mns.size() >= 1);
+        assertTrue("Tests require at least 1 MN that supports the v2 API", v2MNs.size() >= 1);
         
         AccessRule accessRule = new AccessRule();
         Subject subject = D1TypeBuilder.buildSubject(Constants.SUBJECT_PUBLIC);
@@ -1955,16 +2009,17 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         accessRule.addPermission(Permission.CHANGE_PERMISSION);
         ReplicationPolicy replPolicy = new ReplicationPolicy();
         replPolicy.setReplicationAllowed(true);
-        replPolicy.setNumberReplicas(availableMNs-1);
+        replPolicy.setNumberReplicas(allMNs.size());
         
-        Node v2MNode = v2mns.get(0);
+        Node v2MNode = v2MNs.get(0);
         MNCallAdapter v2CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v2MNode, "v2");
         
         // v2 create
         
-        final Identifier pid = D1TypeBuilder.buildIdentifier("testV2CreateCnSetReplicationPolicy_" + ExampleUtilities.generateIdentifier());
+        final Identifier pid = D1TypeBuilder.buildIdentifier("testV2CreateCnSetReplicationPolicy_" + pidTimestamp);
         try {
             createTestObject(v2CallAdapter, pid, accessRule, replPolicy);
+            syncTestPids.add(pid.getValue());
         } catch (BaseException e) {
             e.printStackTrace();
             throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + " testV2CreateCnSetReplicationPolicy() couldn't create test object: " 
@@ -1976,35 +2031,35 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + " testV2CreateCnSetReplicationPolicy() couldn't create test object: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
-        
-        // wait for replication
-        SystemMetadata fetchedSysmeta = null;
-        try {
-            RetryHandler<SystemMetadata> handler =  new RetryHandler<SystemMetadata>() {
-                @Override
-                protected SystemMetadata attempt() throws TryAgainException, Exception {
-                    try {
-                        log.info("attempting CN getSystemMEtadata...");
-                        return cnV1.getSystemMetadata(null, pid);
-                    } catch (NotFound | ServiceFailure e) {
-                        TryAgainException f = new TryAgainException();
-                        f.initCause(e);
-                        throw f;
-                    }
-                }
-            };
-            fetchedSysmeta = handler.execute(30* 1000, REPLICATION_WAIT);
-        } catch (Exception e) {
-            throw new AssertionError(cnV1.getLatestRequestUrl() + " testV2CreateCnSetReplicationPolicy() : unable to fetch sysmeta from CN! Check status of CN sync. "
-                    + e.getClass().getSimpleName() + " : " + e.getMessage() 
-                    + ", origin MN: " + v2MNode.getBaseURL());
-        }
+    }
+    
+    @WebTestName("v2 create, CN setReplicationPolicy")
+    @WebTestDescription(
+     "Test operates on a v2 MN and a CN." +
+     "It does a create on the v2 MN, then attempts to setReplicationPolicy on the object on the CN using both the v1 and v2 call. " +
+     "The setReplicationPolicy calls should fail since the object is a v2 object - its authoritative " +
+     "MN is a v2 MN, and this call should only work for an object with a v1 authoritative MN. Expects a NotAuthorized exception.")
+    public void testV2CreateCnSetReplicationPolicy() {
+
+        Node v2MNode = v2MNs.get(0);
+        final Identifier pid = D1TypeBuilder.buildIdentifier("testV2CreateCnSetReplicationPolicy_" + pidTimestamp);
+        ReplicationPolicy replPolicy = new ReplicationPolicy();
+        replPolicy.setReplicationAllowed(true);
+        replPolicy.setNumberReplicas(allMNs.size());
         
         // CN setReplicationPolicy
+        SystemMetadata cnSysmeta = null;
+        try {
+            cnSysmeta = cnV2.getSystemMetadata(null, pid);
+        } catch (Exception e) {
+            throw new AssertionError(cnV2.getLatestRequestUrl() + " testV2CreateCnSetReplicationPolicy() : unable to fetch sysmeta from CN! Check status of CN sync. "
+                    + e.getClass().getSimpleName() + " : " + e.getMessage() 
+                    + ", origin MN: " + v2MNode.getBaseURL());
+        } 
         
         try {
             replPolicy.setNumberReplicas(replPolicy.getNumberReplicas() + 1);
-            cnV1.setReplicationPolicy(null, pid, replPolicy, fetchedSysmeta.getSerialVersion().longValue());
+            cnV1.setReplicationPolicy(null, pid, replPolicy, cnSysmeta.getSerialVersion().longValue());
             handleFail(cnV1.getLatestRequestUrl(), "testV2CreateCnSetReplicationPolicy() : setReplicationPolicy "
                     + "v1 call to CN should fail because object has a v2 node as its authoritative MN" );
         } catch (NotAuthorized e) {
@@ -2020,7 +2075,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         
         try {
             replPolicy.setNumberReplicas(replPolicy.getNumberReplicas() + 1);
-            cnV2.setReplicationPolicy(null, pid, replPolicy, fetchedSysmeta.getSerialVersion().longValue());
+            cnV2.setReplicationPolicy(null, pid, replPolicy, cnSysmeta.getSerialVersion().longValue());
             handleFail(cnV2.getLatestRequestUrl(), "testV2CreateCnSetReplicationPolicy() : setReplicationPolicy "
                     + "v2 call to CN should fail because object has a v2 node as its authoritative MN" );
         } catch (NotAuthorized e) {
@@ -2033,15 +2088,9 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         }
     }
     
-    @WebTestName("v2 create, cn setAccessPolicy")
-    @WebTestDescription(
-     "Test operates on a v2 MN and a CN." +
-     "It does a create on the v2 MN, then attempts to setAccessPolicy on the object on the CN using both the v1 and v2 call. " +
-     "The setAccessPolicy calls should fail since the object is a v2 object - its authoritative " +
-     "MN is a v2 MN, and this call should only work for an object with a v1 authoritative MN. Expects a NotAuthorized exception.")
-    public void testV2CreateCnSetAccessPolicy() {
+    private void setupV2CreateCnSetAccessPolicy() {
 
-        assertTrue("Tests require at least 1 MN that supports the v2 API", v2mns.size() >= 1);
+        assertTrue("Tests require at least 1 MN that supports the v2 API", v2MNs.size() >= 1);
         
         AccessRule accessRule = new AccessRule();
         Subject subject = D1TypeBuilder.buildSubject(Constants.SUBJECT_PUBLIC);
@@ -2049,16 +2098,17 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         accessRule.addPermission(Permission.CHANGE_PERMISSION);
         ReplicationPolicy replPolicy = new ReplicationPolicy();
         replPolicy.setReplicationAllowed(true);
-        replPolicy.setNumberReplicas(availableMNs-1);
+        replPolicy.setNumberReplicas(allMNs.size());
         
-        Node v2MNode = v2mns.get(0);
+        Node v2MNode = v2MNs.get(0);
         MNCallAdapter v2CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v2MNode, "v2");
         
         // v2 create
         
-        final Identifier pid = D1TypeBuilder.buildIdentifier("testV2CreateCnSetAccessPolicy_" + ExampleUtilities.generateIdentifier());
+        final Identifier pid = D1TypeBuilder.buildIdentifier("testV2CreateCnSetAccessPolicy_" + pidTimestamp);
         try {
             createTestObject(v2CallAdapter, pid, accessRule, replPolicy);
+            syncTestPids.add(pid.getValue());
         } catch (BaseException e) {
             e.printStackTrace();
             throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + " testV2CreateCnSetAccessPolicy() couldn't create test object: " 
@@ -2070,36 +2120,38 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + " testV2CreateCnSetAccessPolicy() couldn't create test object: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
+    }
+    
+    @WebTestName("v2 create, cn setAccessPolicy")
+    @WebTestDescription(
+     "Test operates on a v2 MN and a CN." +
+     "It does a create on the v2 MN, then attempts to setAccessPolicy on the object on the CN using both the v1 and v2 call. " +
+     "The setAccessPolicy calls should fail since the object is a v2 object - its authoritative " +
+     "MN is a v2 MN, and this call should only work for an object with a v1 authoritative MN. Expects a NotAuthorized exception.")
+    public void testV2CreateCnSetAccessPolicy() {
+
+        Node v2MNode = v2MNs.get(0);
+        Identifier pid = D1TypeBuilder.buildIdentifier("testV2CreateCnSetAccessPolicy_" + pidTimestamp);
+        AccessRule accessRule = new AccessRule();
+        Subject subject = D1TypeBuilder.buildSubject(Constants.SUBJECT_PUBLIC);
+        accessRule.addSubject(subject);
+        accessRule.addPermission(Permission.CHANGE_PERMISSION);
         
-        // wait for replication
-        SystemMetadata fetchedSysmeta = null;
+        SystemMetadata cnSysmeta = null;
         try {
-            RetryHandler<SystemMetadata> handler =  new RetryHandler<SystemMetadata>() {
-                @Override
-                protected SystemMetadata attempt() throws TryAgainException, Exception {
-                    try {
-                        log.info("attempting CN getSystemMEtadata...");
-                        return cnV1.getSystemMetadata(null, pid);
-                    } catch (NotFound | ServiceFailure e) {
-                        TryAgainException f = new TryAgainException();
-                        f.initCause(e);
-                        throw f;
-                    }
-                }
-            };
-            fetchedSysmeta = handler.execute(30* 1000, REPLICATION_WAIT);
+            cnSysmeta = cnV2.getSystemMetadata(null, pid);
         } catch (Exception e) {
-            throw new AssertionError(cnV1.getLatestRequestUrl() + " testV2CreateCnSetAccessPolicy() : unable to fetch sysmeta from CN! Check status of CN sync. "
+            throw new AssertionError(cnV2.getLatestRequestUrl() + " testV2CreateCnSetAccessPolicy() : unable to fetch sysmeta from CN! Check status of CN sync. "
                     + e.getClass().getSimpleName() + " : " + e.getMessage() 
                     + ", origin MN: " + v2MNode.getBaseURL());
-        }
+        } 
         
         // CN setAccessPolicy
         
         try {
             AccessPolicy accessPolicy = new AccessPolicy();
             accessPolicy.addAllow(accessRule);
-            cnV1.setAccessPolicy(null, pid, null, fetchedSysmeta.getSerialVersion().longValue());
+            cnV1.setAccessPolicy(null, pid, null, cnSysmeta.getSerialVersion().longValue());
             handleFail(cnV1.getLatestRequestUrl(), "testV2CreateCnSetAccessPolicy() : setAccessPolicy "
                     + "v1 call to CN should fail because object has a v2 node as its authoritative MN" );
         } catch (NotAuthorized e) {
@@ -2116,7 +2168,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         try {
             AccessPolicy accessPolicy = new AccessPolicy();
             accessPolicy.addAllow(accessRule);
-            cnV2.setAccessPolicy(null, pid, null, fetchedSysmeta.getSerialVersion().longValue());
+            cnV2.setAccessPolicy(null, pid, null, cnSysmeta.getSerialVersion().longValue());
             handleFail(cnV2.getLatestRequestUrl(), "testV2CreateCnSetAccessPolicy() : setAccessPolicy "
                     + "v2 call to CN should fail because object has a v2 node as its authoritative MN" );
         } catch (NotAuthorized e) {
@@ -2129,15 +2181,9 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         }
     }
     
-    @WebTestName("v2 create, cn setRightsHolder")
-    @WebTestDescription(
-     "Test operates on a v2 MN and a CN." +
-     "It does a create on the v2 MN, then attempts to setRightsHolder the object on the CN using both the v1 and v2 call. " +
-     "The setRightsHolder calls should fail since the object is a v2 object - its authoritative " +
-     "MN is a v2 MN, and this call should only work for an object with a v1 authoritative MN. Expects a NotAuthorized exception.")
-    public void testV2CreateCnSetRightsHolder() {
+    private void setupV2CreateCnSetRightsHolder() {
 
-        assertTrue("Tests require at least 1 MN that supports the v2 API", v2mns.size() >= 1);
+        assertTrue("Tests require at least 1 MN that supports the v2 API", v2MNs.size() >= 1);
         
         AccessRule accessRule = new AccessRule();
         Subject subject = D1TypeBuilder.buildSubject(Constants.SUBJECT_PUBLIC);
@@ -2145,16 +2191,17 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         accessRule.addPermission(Permission.CHANGE_PERMISSION);
         ReplicationPolicy replPolicy = new ReplicationPolicy();
         replPolicy.setReplicationAllowed(true);
-        replPolicy.setNumberReplicas(availableMNs-1);
+        replPolicy.setNumberReplicas(allMNs.size());
         
-        Node v2MNode = v2mns.get(0);
+        Node v2MNode = v2MNs.get(0);
         MNCallAdapter v2CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v2MNode, "v2");
         
         // v2 create
         
-        final Identifier pid = D1TypeBuilder.buildIdentifier("testV2CreateCnSetRightsHolder_" + ExampleUtilities.generateIdentifier());
+        Identifier pid = D1TypeBuilder.buildIdentifier("testV2CreateCnSetRightsHolder_" + pidTimestamp);
         try {
             createTestObject(v2CallAdapter, pid, accessRule, replPolicy);
+            syncTestPids.add(pid.getValue());
         } catch (BaseException e) {
             e.printStackTrace();
             throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + " testV2CreateCnSetRightsHolder() couldn't create test object: " 
@@ -2166,36 +2213,43 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + " testV2CreateCnSetRightsHolder() couldn't create test object: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
+    }
+    
+    @WebTestName("v2 create, cn setRightsHolder")
+    @WebTestDescription(
+     "Test operates on a v2 MN and a CN." +
+     "It does a create on the v2 MN, then attempts to setRightsHolder the object on the CN using both the v1 and v2 call. " +
+     "The setRightsHolder calls should fail since the object is a v2 object - its authoritative " +
+     "MN is a v2 MN, and this call should only work for an object with a v1 authoritative MN. Expects a NotAuthorized exception.")
+    public void testV2CreateCnSetRightsHolder() {
+
+        AccessRule accessRule = new AccessRule();
+        Subject subject = D1TypeBuilder.buildSubject(Constants.SUBJECT_PUBLIC);
+        accessRule.addSubject(subject);
+        accessRule.addPermission(Permission.CHANGE_PERMISSION);
+        ReplicationPolicy replPolicy = new ReplicationPolicy();
+        replPolicy.setReplicationAllowed(true);
+        replPolicy.setNumberReplicas(allMNs.size());
         
-        // wait for replication
-        SystemMetadata fetchedSysmeta = null;
+        Node v2MNode = v2MNs.get(0);
+        MNCallAdapter v2CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v2MNode, "v2");
+        Identifier pid = D1TypeBuilder.buildIdentifier("testV2CreateCnSetRightsHolder_" + pidTimestamp);
+        
+        SystemMetadata cnSysmeta = null;
         try {
-            RetryHandler<SystemMetadata> handler =  new RetryHandler<SystemMetadata>() {
-                @Override
-                protected SystemMetadata attempt() throws TryAgainException, Exception {
-                    try {
-                        log.info("attempting CN getSystemMEtadata...");
-                        return cnV1.getSystemMetadata(null, pid);
-                    } catch (NotFound | ServiceFailure e) {
-                        TryAgainException f = new TryAgainException();
-                        f.initCause(e);
-                        throw f;
-                    }
-                }
-            };
-            fetchedSysmeta = handler.execute(30* 1000, REPLICATION_WAIT);
+            cnSysmeta = cnV2.getSystemMetadata(null, pid);
         } catch (Exception e) {
-            throw new AssertionError(cnV1.getLatestRequestUrl() + " testV2CreateCnSetRightsHolder() : unable to fetch sysmeta from CN! Check status of CN sync. "
+            throw new AssertionError(cnV2.getLatestRequestUrl() + " testV2CreateCnSetRightsHolder() : unable to fetch sysmeta from CN! Check status of CN sync. "
                     + e.getClass().getSimpleName() + " : " + e.getMessage() 
                     + ", origin MN: " + v2MNode.getBaseURL());
-        }
+        } 
         
         // CN setRightsHolder
         
         try {
             getSession("testRightsHolder");
             Subject newSubject = D1TypeBuilder.buildSubject("testRightsHolder");
-            cnV1.setRightsHolder(null, pid, newSubject, fetchedSysmeta.getSerialVersion().longValue());
+            cnV1.setRightsHolder(null, pid, newSubject, cnSysmeta.getSerialVersion().longValue());
             handleFail(cnV1.getLatestRequestUrl(), "testV2CreateCnSetRightsHolder() : setRightsHolder "
                     + "v1 call to CN should fail because object has a v2 node as its authoritative MN" );
         } catch (NotAuthorized e) {
@@ -2212,7 +2266,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         try {
             getSession("testRightsHolder");
             Subject newSubject = D1TypeBuilder.buildSubject("testRightsHolder");
-            cnV2.setRightsHolder(null, pid, newSubject, fetchedSysmeta.getSerialVersion().longValue());
+            cnV2.setRightsHolder(null, pid, newSubject, cnSysmeta.getSerialVersion().longValue());
             handleFail(cnV2.getLatestRequestUrl(), "testV2CreateCnSetRightsHolder() : setRightsHolder "
                     + "v2 call to CN should fail because object has a v2 node as its authoritative MN" );
         } catch (NotAuthorized e) {
@@ -2225,15 +2279,9 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         }
     }
     
-    @WebTestName("v2 create, cn setObsoletedBy")
-    @WebTestDescription(
-     "Test operates on a v2 MN and a CN." +
-     "It does a create on the v2 MN, then attempts to setObsoletedBy on the object on the CN using both the v1 and v2 call. " +
-     "The setObsoletedBy calls should fail since the object is a v2 object - its authoritative " +
-     "MN is a v2 MN, and this call should only work for an object with a v1 authoritative MN. Expects a NotAuthorized exception.")
-    public void testV2CreateCnSetObsoletedBy() {
+    private void setupV2CreateCnSetObsoletedBy() {
 
-        assertTrue("Tests require at least 1 MN that supports the v2 API", v2mns.size() >= 1);
+        assertTrue("Tests require at least 1 MN that supports the v2 API", v2MNs.size() >= 1);
         
         AccessRule accessRule = new AccessRule();
         Subject subject = D1TypeBuilder.buildSubject(Constants.SUBJECT_PUBLIC);
@@ -2241,18 +2289,20 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         accessRule.addPermission(Permission.CHANGE_PERMISSION);
         ReplicationPolicy replPolicy = new ReplicationPolicy();
         replPolicy.setReplicationAllowed(true);
-        replPolicy.setNumberReplicas(availableMNs-1);
+        replPolicy.setNumberReplicas(allMNs.size());
         
-        Node v2MNode = v2mns.get(0);
+        Node v2MNode = v2MNs.get(0);
         MNCallAdapter v2CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v2MNode, "v2");
         
         // v2 create
         
-        final Identifier pid = D1TypeBuilder.buildIdentifier("testV2CreateV1CnSetObsoletedBy_" + ExampleUtilities.generateIdentifier());
-        Identifier obsoletedByPid = D1TypeBuilder.buildIdentifier("testV2CreateV1CnSetObsoletedBy_obs_" + ExampleUtilities.generateIdentifier());
+        final Identifier pid = D1TypeBuilder.buildIdentifier("testV2CreateV1CnSetObsoletedBy_" + pidTimestamp);
+        Identifier obsoletedByPid = D1TypeBuilder.buildIdentifier("testV2CreateV1CnSetObsoletedBy_obs_" + pidTimestamp);
         try {
             createTestObject(v2CallAdapter, pid, accessRule, replPolicy);
             obsoletedByPid = createTestObject(v2CallAdapter, obsoletedByPid, accessRule, replPolicy);
+            syncTestPids.add(pid.getValue());
+            syncTestPids.add(obsoletedByPid.getValue());
         } catch (BaseException e) {
             e.printStackTrace();
             throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + " testV2CreateV1CnSetObsoletedBy() couldn't create test object: " 
@@ -2264,34 +2314,33 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             throw new AssertionError(v2CallAdapter.getLatestRequestUrl() + " testV2CreateV1CnSetObsoletedBy() couldn't create test object: " 
             + e.getClass().getName() + ": " + e.getMessage());
         }
+    }
+    
+    @WebTestName("v2 create, cn setObsoletedBy")
+    @WebTestDescription(
+     "Test operates on a v2 MN and a CN." +
+     "It does a create on the v2 MN, then attempts to setObsoletedBy on the object on the CN using both the v1 and v2 call. " +
+     "The setObsoletedBy calls should fail since the object is a v2 object - its authoritative " +
+     "MN is a v2 MN, and this call should only work for an object with a v1 authoritative MN. Expects a NotAuthorized exception.")
+    public void testV2CreateCnSetObsoletedBy() {
+
+        Node v2MNode = v2MNs.get(0);
+        Identifier pid = D1TypeBuilder.buildIdentifier("testV2CreateV1CnSetObsoletedBy_" + pidTimestamp);
+        Identifier obsoletedByPid = D1TypeBuilder.buildIdentifier("testV2CreateV1CnSetObsoletedBy_obs_" + pidTimestamp);
         
-        // wait for replication
-        SystemMetadata fetchedSysmeta = null;
+        SystemMetadata cnSysmeta = null;
         try {
-            RetryHandler<SystemMetadata> handler =  new RetryHandler<SystemMetadata>() {
-                @Override
-                protected SystemMetadata attempt() throws TryAgainException, Exception {
-                    try {
-                        log.info("attempting CN getSystemMEtadata...");
-                        return cnV1.getSystemMetadata(null, pid);
-                    } catch (NotFound | ServiceFailure e) {
-                        TryAgainException f = new TryAgainException();
-                        f.initCause(e);
-                        throw f;
-                    }
-                }
-            };
-            fetchedSysmeta = handler.execute(30* 1000, REPLICATION_WAIT);
+            cnSysmeta = cnV2.getSystemMetadata(null, pid);
         } catch (Exception e) {
-            throw new AssertionError(cnV1.getLatestRequestUrl() + " testV2CreateV1CnSetObsoletedBy() : unable to fetch sysmeta from CN! Check status of CN sync. "
+            throw new AssertionError(cnV2.getLatestRequestUrl() + " testV2CreateV1CnSetObsoletedBy() : unable to fetch sysmeta from CN! Check status of CN sync. "
                     + e.getClass().getSimpleName() + " : " + e.getMessage() 
                     + ", origin MN: " + v2MNode.getBaseURL());
-        }
+        } 
         
         // CN setObsoletedBy
         
         try {
-            cnV1.setObsoletedBy(null, pid, obsoletedByPid, fetchedSysmeta.getSerialVersion().longValue());
+            cnV1.setObsoletedBy(null, pid, obsoletedByPid, cnSysmeta.getSerialVersion().longValue());
             handleFail(cnV1.getLatestRequestUrl(), "testV2CreateV1CnSetObsoletedBy() : setObsoletedBy "
                     + "v1 call to CN should fail because object has a v2 node as its authoritative MN" );
         } catch (NotAuthorized e) {
@@ -2306,7 +2355,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         // v2 call
         
         try {
-            cnV2.setObsoletedBy(null, pid, obsoletedByPid, fetchedSysmeta.getSerialVersion().longValue());
+            cnV2.setObsoletedBy(null, pid, obsoletedByPid, cnSysmeta.getSerialVersion().longValue());
             handleFail(cnV2.getLatestRequestUrl(), "testV2CreateV1CnSetObsoletedBy() : setObsoletedBy "
                     + "v2 call to CN should fail because object has a v2 node as its authoritative MN" );
         } catch (NotAuthorized e) {
