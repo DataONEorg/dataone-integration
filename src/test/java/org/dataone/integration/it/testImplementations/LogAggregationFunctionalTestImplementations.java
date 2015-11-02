@@ -193,9 +193,14 @@ public class LogAggregationFunctionalTestImplementations extends ContextAwareTes
                     + "Expected a NotAuthorized (only CN or MN admin should have access) but got exception: " 
                     + e.getClass().getSimpleName() + " : " + e.getMessage(), e);
         }
-        Log cnLog = null;
+        Log cnLogPublicPid = null;
+        Log cnLogTestPersonPid = null;
+        Log cnLogTestRightsHolderPid = null;
         try {
-            cnLog = APITestUtils.pagedGetLogRecords(mnCnCaller, null, null, null, null, null, null);
+            cnLogPublicPid = mnCnCaller.getLogRecords(null, null, null, null, publicPid.getValue(), null, null);
+            cnLogTestPersonPid = mnCnCaller.getLogRecords(null, null, null, null, testPersonPid.getValue(), null, null);
+            cnLogTestRightsHolderPid = mnCnCaller.getLogRecords(null, null, null, null, testRightsHolderPid.getValue(), null, null);
+//            cnLog = APITestUtils.pagedGetLogRecords(mnCnCaller, null, null, null, null, null, null);
         } catch (Exception e) {
             throw new AssertionError(mnCnCaller.getLatestRequestUrl() + " Unable to fetch Log records for CN subject. " 
                     + "Got exception: " + e.getClass().getSimpleName() + " : " + e.getMessage(), e);
@@ -264,23 +269,37 @@ public class LogAggregationFunctionalTestImplementations extends ContextAwareTes
                 errors.add("testRightsHolder subject should have access to testRightsHolder-accessible object we created.");
         }
         
-        if (cnLog != null) {
+        if (cnLogPublicPid != null) {
             boolean publicPidFound = false;
             boolean testPersonPidFound = false;
             boolean testRightsHolderPidFound = false;
             
-            for (LogEntry logEntry : cnLog.getLogEntryList()) {
+            for (LogEntry logEntry : cnLogPublicPid.getLogEntryList())
                 if (logEntry.getIdentifier().equals(publicPid))
                     publicPidFound = true;
-                if (logEntry.getIdentifier().equals(testPersonPid))
-                    testPersonPidFound = true;
-                if (logEntry.getIdentifier().equals(testRightsHolderPid))
-                    testRightsHolderPidFound = true;
-            }
+            
             if (!publicPidFound)
                 errors.add("CN subject (" + getSubject(cnSubmitter).getValue() + ") should have access to public-accessible object we created on " + mnCnCaller.getNodeBaseServiceUrl() + ".");
+        }
+        
+        if (cnLogTestPersonPid != null) {
+            boolean testPersonPidFound = false;
+            
+            for (LogEntry logEntry : cnLogPublicPid.getLogEntryList())
+                if (logEntry.getIdentifier().equals(testPersonPid))
+                    testPersonPidFound = true;
+            
             if (!testPersonPidFound)
                 errors.add("CN subject (" + getSubject(cnSubmitter).getValue() + ") should have access to testPerson-accessible object we created on " + mnCnCaller.getNodeBaseServiceUrl() + ".");
+        }
+        
+        if (cnLogTestRightsHolderPid != null) {
+            boolean testRightsHolderPidFound = false;
+            
+            for (LogEntry logEntry : cnLogPublicPid.getLogEntryList())
+                if (logEntry.getIdentifier().equals(testRightsHolderPid))
+                    testRightsHolderPidFound = true;
+            
             if (!testRightsHolderPidFound)
                 errors.add("CN subject (" + getSubject(cnSubmitter).getValue() + ") should have access to testRightsHolder-accessible object we created on " + mnCnCaller.getNodeBaseServiceUrl() + ".");
         }
