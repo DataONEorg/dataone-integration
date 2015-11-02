@@ -51,7 +51,7 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
 
     private CNCallAdapter cn;
     private static final long METACAT_INDEXING_WAIT = 10000;
-    private static final long REPLICATION_WAIT = 15 * 60 * 1000; 
+    private static final long REPLICATION_WAIT = 20 * 60 * 1000; 
     
     public MNUpdateSystemMetadataTestImplementations(ContextAwareTestCaseDataone catc) {
         super(catc);
@@ -678,9 +678,11 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
                         
                         log.info("attempting to get replicas from CN sysmeta...");
                         List<Replica> replicaList = sysmeta.getReplicaList();
-                        if (replicaList.size() == 0)
-                            throw new TryAgainException();
-                        
+                        if (replicaList.size() == 0) {
+                            TryAgainException f = new TryAgainException();
+                            f.initCause(new NotFound("404","CN sysmeta contained an empty replica list!"));
+                            throw f;
+                        }
                         Node v2ReplicaNode = null;
                         for (Replica rep : replicaList) {
                             for (Node v2Node : replicaTargets)
@@ -689,8 +691,11 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
                                         && rep.getReplicationStatus() == ReplicationStatus.COMPLETED )
                                     v2ReplicaNode = v2Node;
                         }
-                        if (v2ReplicaNode == null)
-                            throw new TryAgainException();
+                        if (v2ReplicaNode == null) {
+                            TryAgainException f = new TryAgainException();
+                            f.initCause(new NotFound("404","CN sysmeta contained no replica for a v2 MN!"));
+                            throw f;
+                        }
                         
                         return sysmeta;
                     } catch (NotFound | ServiceFailure e) {
@@ -702,6 +707,7 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
             };
             sysmeta = handler.execute(30* 1000, REPLICATION_WAIT);
         } catch (BaseException e) {
+            e.printStackTrace();
             throw new AssertionError("Test setup failed. Couldn't fetch sysmeta (" + pid.getValue() + ") from CN: " 
                     + cn.getLatestRequestUrl() + ", origin MN: " + cnCertAuthMN.getNodeBaseServiceUrl() 
                     + " : " + e.getClass().getSimpleName() + ": " + 
