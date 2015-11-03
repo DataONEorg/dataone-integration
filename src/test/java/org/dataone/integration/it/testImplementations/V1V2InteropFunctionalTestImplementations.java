@@ -68,7 +68,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
     private static List<Node> allMNs;
     
     private static String pidTimestamp = null;
-    private boolean setupDone = false;
+    private static boolean setupDone = false;
     private static ArrayList<String> syncTestPids;
     private static ArrayList<String> replTestPids;
     private static final long MAX_SYNC_MINUTES = 10;
@@ -334,7 +334,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         
         long startTime = System.currentTimeMillis();
         long endTime = startTime + ((MAX_SYNC_MINUTES-INITIAL_WAIT_MINUTES) * 60000);
-//        long timeRemaining = MAX_SYNC_MINUTES * 60000;
+
         long interval = POLLING_SECONDS * 1000;
         log.info("will check for sync'ed pids till " + (new Date(endTime)));
         
@@ -356,6 +356,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
             
             pidsNotSyncedCurrent = pidsNotSyncedNext;  
             pidsNotSyncedNext = new HashSet<String>(pidsNotSyncedCurrent);
+            log.info("(" + pidsNotSyncedCurrent.size() + " objects left to sync)");
             
             if (pidsNotSyncedCurrent.size() == 0)
                 break;
@@ -401,8 +402,8 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
                             if (n.getIdentifier().getValue().equals(rep.getReplicaMemberNode().getValue()))
                                 numMnReplicas++;
 
-                    if (numMnReplicas < allMNs.size()) {
-                        log.info("only " + numMnReplicas + "/" + (allMNs.size()) + " replicas found for pid : " + pidValue + " on " + cnV2.getNodeBaseServiceUrl());
+                    if (numMnReplicas < allMNs.size()-1) {  // -1 since CN apparently gets counted by replication
+                        log.info("only " + numMnReplicas + "/" + (allMNs.size()-1) + " replicas found for pid : " + pidValue + " on " + cnV2.getNodeBaseServiceUrl());
                         continue;
                     } else {
                         log.info("found " + numMnReplicas + " replicas found for pid : " + pidValue + " on " + cnV2.getNodeBaseServiceUrl());
@@ -414,10 +415,12 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
                 }
             }
             
-            HashSet<String> pidsNotReplicatedSwap = pidsNotReplicatedCurrent;
             pidsNotReplicatedCurrent = pidsNotReplicatedNext;  
-            pidsNotReplicatedNext = pidsNotReplicatedSwap;
+            pidsNotReplicatedNext = new HashSet<String>(pidsNotReplicatedCurrent);
+            log.info("(" + pidsNotReplicatedCurrent.size() + " objects left to fully replicate)");
             
+            if (pidsNotReplicatedCurrent.size() == 0)
+                break;
             try {
                 log.info("waiting...");
                 Thread.sleep(interval);
