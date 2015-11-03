@@ -94,9 +94,8 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         log.info("SETUP: waiting for sync and replication...");
         waitForReplication();
         
-        log.info("SETUP: finished");
-        
         setupDone = true;
+        log.info("SETUP: finished");
     }
     
     private void setupNodes(Iterator<Node> cnIter) {
