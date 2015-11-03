@@ -68,10 +68,9 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
     private static List<Node> allMNs;
     
     private static String pidTimestamp = null;
-    private static boolean setupDone = false;
-    
-    private static ArrayList<String> syncTestPids = new ArrayList<String>();
-    private static ArrayList<String> replTestPids = new ArrayList<String>();
+    private boolean setupDone = false;
+    private static ArrayList<String> syncTestPids;
+    private static ArrayList<String> replTestPids;
     private static final long MAX_SYNC_MINUTES = 10;
     private static final long MAX_REPL_MINUTES = 30;
     private static final long POLLING_SECONDS = 20;
@@ -191,8 +190,10 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
     }
     
     private void setupTestObjects() {
-        if (pidTimestamp == null)
-            pidTimestamp = ExampleUtilities.generateIdentifier();
+        
+        pidTimestamp = ExampleUtilities.generateIdentifier();
+        syncTestPids = new ArrayList<String>();
+        replTestPids = new ArrayList<String>();
         
         try {
             setupV2CreateV1UpdateSameNode();
@@ -353,9 +354,11 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
                 }
             }
             
-            HashSet<String> pidsNotSyncedSwap = pidsNotSyncedCurrent;
             pidsNotSyncedCurrent = pidsNotSyncedNext;  
-            pidsNotSyncedNext = pidsNotSyncedSwap;
+            pidsNotSyncedNext = new HashSet<String>(pidsNotSyncedCurrent);
+            
+            if (pidsNotSyncedCurrent.size() == 0)
+                break;
             
             try {
                 log.info("waiting...");
