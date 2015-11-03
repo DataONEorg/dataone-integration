@@ -52,90 +52,12 @@ public class MNSystemMetadataMutabilityImplementations extends ContextAwareTestC
     private int availableMNs = 0;
     
     private static final long SYNC_WAIT = 15 * 60000;
-    private static final long REPLICATION_WAIT = 15 * 60000;
+    private static final long REPLICATION_WAIT = 30 * 60000;
     
     @Override
     protected String getTestDescription() {
         return "Test Case that runs tests against mutability of fields in sysmeta.";
     }
-    
-//    public void setup(Iterator<Node> cnIter) {
-//        List<Node> cnList = new ArrayList<Node>();
-//        List<Node> mnList = new ArrayList<Node>();
-//        mns = new ArrayList<Node>();
-//        v2mns = new ArrayList<Node>();
-//        
-//        cnList = IteratorUtils.toList(cnIter);
-//        
-//        if(cnList.size() > 0) {
-//            cn = new CNCallAdapter(getSession(cnSubmitter), cnList.get(0), "v2");
-//        }
-//        if(cn != null) {
-//            try {
-//                for(Node n : cnV2.listNodes().getNodeList())
-//                    if(n.getType() == NodeType.MN)
-//                        mnList.add(n);
-//            } catch (Exception e) {
-//                throw new AssertionError("Unable to fetch node list from CN: " + cnV2.getNodeBaseServiceUrl(), e);
-//            }
-//        }
-//        
-//        for (Node mNode : mnList) {
-//            MNCallAdapter v1mn = new MNCallAdapter(getSession(cnSubmitter), mNode, "v1");
-//            MNCallAdapter v2mn = new MNCallAdapter(getSession(cnSubmitter), mNode, "v2");
-//            
-//            boolean v1support = false;
-//            boolean v2support = false;
-//            
-//            try {
-//                List<Service> serviceList = v1mn.getCapabilities().getServices().getServiceList();
-//                for (Service service : serviceList) {
-//                    if ("MNReplication".equals(service.getName()) 
-//                            && "v1".equals(service.getVersion())
-//                            && service.getAvailable()) {
-//                        v1support = true;
-//                        break;
-//                    }
-//                }
-//            } catch (Exception e1) {
-//                log.info("Unable to assess v1 capabilities for MN : " + v1mn.getNodeBaseServiceUrl() 
-//                        + " : " + e1.getClass().getSimpleName() + " : " + e1.getMessage());
-//            }
-//            
-//            try {
-//                List<Service> serviceList = v2mn.getCapabilities().getServices().getServiceList();
-//                for (Service service : serviceList) {
-//                    if ("MNReplication".equals(service.getName()) 
-//                            && "v2".equals(service.getVersion())
-//                            && service.getAvailable()) {
-//                        v2support = true;
-//                        break;
-//                    }
-//                }
-//                v2support = true;
-//            } catch (Exception e1) {
-//                log.info("Unable to assess v2 capabilities for MN: " + v2mn.getNodeBaseServiceUrl() 
-//                        + " : " + e1.getClass().getSimpleName() + " : " + e1.getMessage());
-//            }
-//
-//            if (v1support || v2support)
-//                mns.add(mNode);
-//            if (v2support)
-//                v2mns.add(mNode);
-//        }
-//
-//        log.info("MNs available:     " + mns.size());
-//        log.info("v2 MNs available:  " + v2mns.size());
-//        
-//        
-//        for (Node n : mns)
-//            log.info("MN:   " + n.getBaseURL());
-//        for (Node n : v2mns)
-//            log.info("v2 MN     :   " + n.getBaseURL());
-//        
-//        assertTrue("Tests require at least two total available MNs.", mns.size() > 0);
-//        assertTrue("Tests require at least one available v2 MN.", v2mns.size() > 0);
-//    }
     
     public void setup(Iterator<Node> cnIter) {
         List<Node> cnList = new ArrayList<Node>();
