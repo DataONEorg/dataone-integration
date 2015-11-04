@@ -51,7 +51,7 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
 
     private CNCallAdapter cn;
     private static final long METACAT_INDEXING_WAIT = 10000;
-    private static final long REPLICATION_WAIT = 30 * 60 * 1000; 
+    private static final long REPLICATION_WAIT = 45 * 60 * 1000; 
     
     public MNUpdateSystemMetadataTestImplementations(ContextAwareTestCaseDataone catc) {
         super(catc);
