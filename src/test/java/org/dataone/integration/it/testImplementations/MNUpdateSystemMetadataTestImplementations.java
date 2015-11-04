@@ -551,7 +551,20 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
             NodeList nodes = cn.listNodes();
             Node diffMN = null;
             for (Node n : nodes.getNodeList()) {
-                if (n.getType() == NodeType.MN && !n.getIdentifier().getValue().equals(node.getIdentifier().getValue()));
+                if (n.getType() != NodeType.MN)
+                    continue;
+                Services services = n.getServices();
+                if (services == null || services.sizeServiceList() == 0)
+                    continue;
+                boolean v2Node = false;
+                for (Service s : services.getServiceList())
+                    if (s.getVersion().equalsIgnoreCase("v2")) {
+                        v2Node = true;
+                        break;
+                    }
+                if (!v2Node)
+                    continue;
+                if (!n.getIdentifier().getValue().equals(node.getIdentifier().getValue()))
                    diffMN = n;
             }
             assertTrue("Environment should have at least one other MN "
