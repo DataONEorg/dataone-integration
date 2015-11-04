@@ -659,7 +659,7 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
             
             replPolicy = new ReplicationPolicy();
             replPolicy.setReplicationAllowed(true);
-            replPolicy.setNumberReplicas(numReplicaTargets);
+            replPolicy.setNumberReplicas(numReplicaTargets-1); // -1 for current authMN
             
             AccessRule accessRule = new AccessRule();
             getSession("testRightsHolder");
@@ -682,7 +682,7 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
         try {
             log.info("testUpdateSystemMetadata_CNCertNonAuthMN: fetching sysmeta from CN " + cn.getNodeBaseServiceUrl());
             final Node authNode = node;
-            RetryHandler<SystemMetadata> handler =  new RetryHandler<SystemMetadata>() {
+            RetryHandler<SystemMetadata> getSysmetaHandler =  new RetryHandler<SystemMetadata>() {
                 @Override
                 protected SystemMetadata attempt() throws TryAgainException, Exception {
                     try {
@@ -699,9 +699,9 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
                         Node v2ReplicaNode = null;
                         for (Replica rep : replicaList) {
                             for (Node v2Node : replicaTargets)
-                                if (v2Node.getIdentifier().getValue().equals( rep.getReplicaMemberNode().getValue() )
-                                        && !rep.getReplicaMemberNode().getValue().equals(authNode.getIdentifier().getValue())
-                                        && rep.getReplicationStatus() == ReplicationStatus.COMPLETED )
+                                if (v2Node.getIdentifier().getValue().equals( rep.getReplicaMemberNode().getValue() )   // it's one of the valid v2 replica targets
+                                        && !rep.getReplicaMemberNode().getValue().equals(authNode.getIdentifier().getValue())   // it's not the auth MN
+                                        && rep.getReplicationStatus() == ReplicationStatus.COMPLETED )  // it's in completed status
                                     v2ReplicaNode = v2Node;
                         }
                         if (v2ReplicaNode == null) {
@@ -718,7 +718,7 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
                     }
                 }
             };
-            sysmeta = handler.execute(30* 1000, REPLICATION_WAIT);
+            sysmeta = getSysmetaHandler.execute(30* 1000, REPLICATION_WAIT);
         } catch (BaseException e) {
             e.printStackTrace();
             throw new AssertionError("Test setup failed. Couldn't fetch sysmeta (" + pid.getValue() + ") from CN: " 

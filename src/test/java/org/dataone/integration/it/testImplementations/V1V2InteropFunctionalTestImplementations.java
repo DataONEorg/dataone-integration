@@ -401,7 +401,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
                             if (n.getIdentifier().getValue().equals(rep.getReplicaMemberNode().getValue()))
                                 numMnReplicas++;
 
-                    if (numMnReplicas < allMNs.size()-1) {  // -1 since CN apparently gets counted by replication
+                    if (numMnReplicas < allMNs.size()-1) { // -1 for origin MN
                         log.info("only " + numMnReplicas + "/" + (allMNs.size()-1) + " replicas found for pid : " + pidValue + " on " + cnV2.getNodeBaseServiceUrl());
                         continue;
                     } else {
@@ -628,7 +628,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         accessRule.addPermission(Permission.CHANGE_PERMISSION);
         ReplicationPolicy replPolicy = new ReplicationPolicy();
         replPolicy.setReplicationAllowed(true);
-        replPolicy.setNumberReplicas(allMNs.size());
+        replPolicy.setNumberReplicas(allMNs.size()-1);
         
         Node v2MNode = v2MNs.get(0);
         MNCallAdapter v2CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v2MNode, "v2");
@@ -764,7 +764,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         accessRule.addPermission(Permission.CHANGE_PERMISSION);
         ReplicationPolicy replPolicy = new ReplicationPolicy();
         replPolicy.setReplicationAllowed(true);
-        replPolicy.setNumberReplicas(allMNs.size());
+        replPolicy.setNumberReplicas(allMNs.size()-1);
         
         Node v1MNode = v1MNs.get(0);
         MNCallAdapter v1CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v1MNode, "v1");
@@ -935,7 +935,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         accessRule.addPermission(Permission.CHANGE_PERMISSION);
         ReplicationPolicy replPolicy = new ReplicationPolicy();
         replPolicy.setReplicationAllowed(true);
-        replPolicy.setNumberReplicas(allMNs.size());
+        replPolicy.setNumberReplicas(allMNs.size()-1);
         
         Node v1MNode = v1MNs.get(0);
         MNCallAdapter v1CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v1MNode, "v1");
@@ -1106,7 +1106,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         
         ReplicationPolicy replPolicy = new ReplicationPolicy();
         replPolicy.setReplicationAllowed(true);
-        replPolicy.setNumberReplicas(allMNs.size());
+        replPolicy.setNumberReplicas(allMNs.size()-1);
         
         Node v1MNode = v1MNs.get(0);
         MNCallAdapter v1CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v1MNode, "v1");
@@ -1239,7 +1239,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         accessRule.addPermission(Permission.READ);
         ReplicationPolicy replPolicy = new ReplicationPolicy();
         replPolicy.setReplicationAllowed(true);
-        replPolicy.setNumberReplicas(allMNs.size());
+        replPolicy.setNumberReplicas(allMNs.size()-1);
         
         Node v2MNode = v2MNs.get(0);
         MNCallAdapter v2CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v2MNode, "v2");
@@ -1442,7 +1442,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         accessRule.addPermission(Permission.CHANGE_PERMISSION);
         ReplicationPolicy replPolicy = new ReplicationPolicy();
         replPolicy.setReplicationAllowed(true);
-        replPolicy.setNumberReplicas(allMNs.size());
+        replPolicy.setNumberReplicas(allMNs.size()-1);
         
         Node v2MNode = v2MNs.get(0);
         MNCallAdapter v2CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v2MNode, "v2");
@@ -1512,7 +1512,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         accessRule.addPermission(Permission.CHANGE_PERMISSION);
         ReplicationPolicy replPolicy = new ReplicationPolicy();
         replPolicy.setReplicationAllowed(true);
-        replPolicy.setNumberReplicas(allMNs.size());
+        replPolicy.setNumberReplicas(allMNs.size()-1);
         
         Node v1MNode = v1MNs.get(0);
         MNCallAdapter v1CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v1MNode, "v1");
@@ -1754,7 +1754,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         accessRule.addPermission(Permission.CHANGE_PERMISSION);
         ReplicationPolicy replPolicy = new ReplicationPolicy();
         replPolicy.setReplicationAllowed(true);
-        replPolicy.setNumberReplicas(allMNs.size());
+        replPolicy.setNumberReplicas(allMNs.size()-1);
         
         Node v2MNode = v2MNs.get(0);
         MNCallAdapter v2CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v2MNode, "v2");
@@ -1830,7 +1830,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         accessRule.addPermission(Permission.CHANGE_PERMISSION);
         ReplicationPolicy replPolicy = new ReplicationPolicy();
         replPolicy.setReplicationAllowed(true);
-        replPolicy.setNumberReplicas(allMNs.size());
+        replPolicy.setNumberReplicas(allMNs.size()-1);
         
         Node v1MNode = v1MNs.get(0);
         MNCallAdapter v1CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v1MNode, "v1");
@@ -1939,7 +1939,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         accessRule.addPermission(Permission.CHANGE_PERMISSION);
         ReplicationPolicy replPolicy = new ReplicationPolicy();
         replPolicy.setReplicationAllowed(true);
-        replPolicy.setNumberReplicas(allMNs.size());
+        replPolicy.setNumberReplicas(allMNs.size()-1);
         
         Node v2MNode = v2MNs.get(0);
         MNCallAdapter v2CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v2MNode, "v2");
@@ -2014,7 +2014,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         accessRule.addPermission(Permission.CHANGE_PERMISSION);
         ReplicationPolicy replPolicy = new ReplicationPolicy();
         replPolicy.setReplicationAllowed(true);
-        replPolicy.setNumberReplicas(allMNs.size());
+        replPolicy.setNumberReplicas(allMNs.size()-1);
         
         Node v2MNode = v2MNs.get(0);
         MNCallAdapter v2CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v2MNode, "v2");
@@ -2050,7 +2050,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         final Identifier pid = D1TypeBuilder.buildIdentifier("testV2CreateCnSetReplicationPolicy_" + pidTimestamp);
         ReplicationPolicy replPolicy = new ReplicationPolicy();
         replPolicy.setReplicationAllowed(true);
-        replPolicy.setNumberReplicas(allMNs.size());
+        replPolicy.setNumberReplicas(allMNs.size()-1);
         
         // CN setReplicationPolicy
         SystemMetadata cnSysmeta = null;
@@ -2103,7 +2103,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         accessRule.addPermission(Permission.CHANGE_PERMISSION);
         ReplicationPolicy replPolicy = new ReplicationPolicy();
         replPolicy.setReplicationAllowed(true);
-        replPolicy.setNumberReplicas(allMNs.size());
+        replPolicy.setNumberReplicas(allMNs.size()-1);
         
         Node v2MNode = v2MNs.get(0);
         MNCallAdapter v2CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v2MNode, "v2");
@@ -2196,7 +2196,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         accessRule.addPermission(Permission.CHANGE_PERMISSION);
         ReplicationPolicy replPolicy = new ReplicationPolicy();
         replPolicy.setReplicationAllowed(true);
-        replPolicy.setNumberReplicas(allMNs.size());
+        replPolicy.setNumberReplicas(allMNs.size()-1);
         
         Node v2MNode = v2MNs.get(0);
         MNCallAdapter v2CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v2MNode, "v2");
@@ -2234,7 +2234,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         accessRule.addPermission(Permission.CHANGE_PERMISSION);
         ReplicationPolicy replPolicy = new ReplicationPolicy();
         replPolicy.setReplicationAllowed(true);
-        replPolicy.setNumberReplicas(allMNs.size());
+        replPolicy.setNumberReplicas(allMNs.size()-1);
         
         Node v2MNode = v2MNs.get(0);
         MNCallAdapter v2CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v2MNode, "v2");
@@ -2294,7 +2294,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
         accessRule.addPermission(Permission.CHANGE_PERMISSION);
         ReplicationPolicy replPolicy = new ReplicationPolicy();
         replPolicy.setReplicationAllowed(true);
-        replPolicy.setNumberReplicas(allMNs.size());
+        replPolicy.setNumberReplicas(allMNs.size()-1);
         
         Node v2MNode = v2MNs.get(0);
         MNCallAdapter v2CallAdapter = new MNCallAdapter(getSession(cnSubmitter), v2MNode, "v2");
