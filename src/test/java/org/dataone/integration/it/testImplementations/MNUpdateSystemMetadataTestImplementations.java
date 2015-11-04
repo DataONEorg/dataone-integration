@@ -643,7 +643,7 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
                 List<Service> services = cap.getServices().getServiceList();
                 if (services != null)
                     for (Service s : services) {
-                        if (s.getName().equalsIgnoreCase("MNReplication")) {
+                        if (s.getName().equalsIgnoreCase("MNReplication") && s.getVersion().equalsIgnoreCase("v2")) {
                             log.info("testUpdateSystemMetadata_CNCertNonAuthMN: found valid replica target: " 
                                     + n.getBaseURL());
                             replicaTargets.add(cap);
