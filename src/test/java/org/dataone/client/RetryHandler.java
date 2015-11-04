@@ -22,6 +22,8 @@
 
 package org.dataone.client;
 
+import org.dataone.service.exceptions.BaseException;
+
 public abstract class RetryHandler<V> {
 
     public static class TryAgainException extends Exception {
@@ -49,12 +51,15 @@ public abstract class RetryHandler<V> {
                 Thread.sleep(interval);
                 timeRemaining -= interval;
                 if (timeRemaining < 0) {
+                	// try to not throw a TryAgainException outside of the RetryHandler
+                	// throw the encapsulated one instead
+                    if(e.getCause() instanceof BaseException)
+                        throw (BaseException) e.getCause();
                     throw e;
                 }
             }
         }
         return null;
-
     }
     
     /**
