@@ -405,7 +405,7 @@ public class V1V2InteropFunctionalTestImplementations extends ContextAwareTestCa
                         log.info("only " + numMnReplicas + "/" + (allMNs.size()-1) + " replicas found for pid : " + pidValue + " on " + cnV2.getNodeBaseServiceUrl());
                         continue;
                     } else {
-                        log.info("found " + numMnReplicas + " replicas found for pid : " + pidValue + " on " + cnV2.getNodeBaseServiceUrl());
+                        log.info("found " + (numMnReplicas-1) + " replicas found for pid : " + pidValue + " on " + cnV2.getNodeBaseServiceUrl());
                         pidsNotReplicatedNext.remove(pidValue);
                     }
                     
