@@ -52,7 +52,7 @@ public class MNSystemMetadataMutabilityImplementations extends ContextAwareTestC
     private int availableMNs = 0;
     
     private static final long SYNC_WAIT = 15 * 60000;
-    private static final long REPLICATION_WAIT = 30 * 60000;
+    private static final long REPLICATION_WAIT = 45 * 60000;
     
     @Override
     protected String getTestDescription() {
