@@ -9,10 +9,7 @@ import java.util.List;
 
 import org.apache.commons.collections.IteratorUtils;
 import org.apache.commons.lang.time.DateUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.dataone.client.RetryHandler;
-import org.dataone.client.RetryHandler.TryAgainException;
 import org.dataone.client.v1.types.D1TypeBuilder;
 import org.dataone.configuration.Settings;
 import org.dataone.integration.ContextAwareTestCaseDataone;
@@ -271,9 +268,11 @@ public class MNSystemMetadataMutabilityImplementations extends ContextAwareTestC
                         
                         log.info("attempting to get replicas from CN sysmeta...");
                         List<Replica> replicaList = sysmeta.getReplicaList();
-                        if (replicaList.size() == 0)
-                            throw new TryAgainException();
-                        
+                        if (replicaList.size() == 0) {
+                            TryAgainException f = new TryAgainException();
+                            f.initCause(new NotFound("404", "CN sysmeta contained an empty replica list! " + cnV2.getLatestRequestUrl()));
+                            throw f;
+                        }
                         Node v2ReplicaNode = null;
                         for (Replica rep : replicaList) {
                             for (Node v2Node : v2mns)
@@ -281,9 +280,11 @@ public class MNSystemMetadataMutabilityImplementations extends ContextAwareTestC
                                         && !rep.getReplicaMemberNode().getValue().equals(authNode.getIdentifier().getValue()))
                                     v2ReplicaNode = v2Node;
                         }
-                        if (v2ReplicaNode == null)
-                            throw new TryAgainException();
-                        
+                        if (v2ReplicaNode == null) {
+                            TryAgainException f = new TryAgainException();
+                            f.initCause(new NotFound("404", "CN sysmeta contained no replica for a v2 MN! " + cnV2.getLatestRequestUrl()));
+                            throw f;
+                        }
                         return sysmeta;
                     } catch (NotFound | ServiceFailure e) {
                         TryAgainException f = new TryAgainException();
@@ -403,8 +404,11 @@ public class MNSystemMetadataMutabilityImplementations extends ContextAwareTestC
                         
                         log.info("attempting to get replicas from CN sysmeta...");
                         List<Replica> replicaList = sysmeta.getReplicaList();
-                        if (replicaList.size() == 0)
-                            throw new TryAgainException();
+                        if (replicaList.size() == 0) {
+                            TryAgainException f = new TryAgainException();
+                            f.initCause(new NotFound("404", "CN sysmeta contained an empty replica list! " + cnV2.getLatestRequestUrl()));
+                            throw f;
+                        }
                         
                         Node v2ReplicaNode = null;
                         for (Replica rep : replicaList) {
@@ -413,8 +417,11 @@ public class MNSystemMetadataMutabilityImplementations extends ContextAwareTestC
                                         && !rep.getReplicaMemberNode().getValue().equals(authNode.getIdentifier().getValue()))
                                     v2ReplicaNode = v2Node;
                         }
-                        if (v2ReplicaNode == null)
-                            throw new TryAgainException();
+                        if (v2ReplicaNode == null) {
+                            TryAgainException f = new TryAgainException();
+                            f.initCause(new NotFound("404", "CN sysmeta contained no replica for a v2 MN! " + cnV2.getLatestRequestUrl()));
+                            throw f;
+                        }
                         
                         return sysmeta;
                     } catch (NotFound | ServiceFailure e) {
@@ -542,8 +549,11 @@ public class MNSystemMetadataMutabilityImplementations extends ContextAwareTestC
                         
                         log.info("attempting to get replicas from CN sysmeta...");
                         List<Replica> replicaList = sysmeta.getReplicaList();
-                        if (replicaList.size() == 0)
-                            throw new TryAgainException();
+                        if (replicaList.size() == 0) {
+                            TryAgainException f = new TryAgainException();
+                            f.initCause(new NotFound("404", "CN sysmeta contained an empty replica list! " + cnV2.getLatestRequestUrl()));
+                            throw f;
+                        }
                         
                         Node v2ReplicaNode = null;
                         for (Replica rep : replicaList) {
@@ -553,9 +563,11 @@ public class MNSystemMetadataMutabilityImplementations extends ContextAwareTestC
                                         && rep.getReplicationStatus() == ReplicationStatus.COMPLETED)
                                     v2ReplicaNode = v2Node;
                         }
-                        if (v2ReplicaNode == null)
-                            throw new TryAgainException();
-                        
+                        if (v2ReplicaNode == null) {
+                            TryAgainException f = new TryAgainException();
+                            f.initCause(new NotFound("404", "CN sysmeta contained no replica for a v2 MN! " + cnV2.getLatestRequestUrl()));
+                            throw f;
+                        }
                         return sysmeta;
                     } catch (NotFound | ServiceFailure e) {
                         TryAgainException f = new TryAgainException();

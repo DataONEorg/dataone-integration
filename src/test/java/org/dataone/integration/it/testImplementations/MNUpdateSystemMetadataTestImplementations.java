@@ -10,7 +10,6 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.dataone.client.RetryHandler;
-import org.dataone.client.RetryHandler.TryAgainException;
 import org.dataone.client.v1.itk.D1Object;
 import org.dataone.client.v1.types.D1TypeBuilder;
 import org.dataone.integration.APITestUtils;
@@ -693,7 +692,7 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
                         List<Replica> replicaList = sysmeta.getReplicaList();
                         if (replicaList.size() == 0) {
                             TryAgainException f = new TryAgainException();
-                            f.initCause(new NotFound("404","CN sysmeta contained an empty replica list!"));
+                            f.initCause(new NotFound("404", "CN sysmeta contained an empty replica list! " + cn.getLatestRequestUrl()));
                             throw f;
                         }
                         Node v2ReplicaNode = null;
@@ -706,7 +705,7 @@ public class MNUpdateSystemMetadataTestImplementations extends UpdateSystemMetad
                         }
                         if (v2ReplicaNode == null) {
                             TryAgainException f = new TryAgainException();
-                            f.initCause(new NotFound("404","CN sysmeta contained no replica for a v2 MN!"));
+                            f.initCause(new NotFound("404", "CN sysmeta contained no replica for a v2 MN! " + cn.getLatestRequestUrl()));
                             throw f;
                         }
                         
