@@ -130,6 +130,7 @@ public class CoreTestImplementations extends ContextAwareAdapter {
 
 
     @WebTestName("getCapabilities - test that a Node document is returned")
+    @WebTestDescription("tests that the getCapabilities() call returns a result of type Node")
     public void testGetCapabilities(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testGetCapabilities(nodeIterator.next(), version);
@@ -627,6 +628,8 @@ public class CoreTestImplementations extends ContextAwareAdapter {
         }
     }
 
+    @WebTestName("getLogRecords - date filtering")
+    @WebTestDescription("Test that the fromDate parameter works and excludes log records occurring before it.")
     public void testGetLogRecords_dateFiltering(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testGetLogRecords_dateFiltering(nodeIterator.next(), version);
