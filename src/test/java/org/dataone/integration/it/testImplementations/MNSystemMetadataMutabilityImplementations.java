@@ -45,7 +45,6 @@ public class MNSystemMetadataMutabilityImplementations extends ContextAwareTestC
     /** MNs supporting the V2 API (might also support V1 API) */
     private List<Node> v2mns;
     /** MNs supporting BOTH the V1 & V2 APIs */
-    private List<Node> v1v2mns;
     private int availableMNs = 0;
     
     private static final long SYNC_WAIT = 15 * 60000;
@@ -61,7 +60,6 @@ public class MNSystemMetadataMutabilityImplementations extends ContextAwareTestC
         List<Node> mnList = new ArrayList<Node>();
         v1mns = new ArrayList<Node>();
         v2mns = new ArrayList<Node>();
-        v1v2mns = new ArrayList<Node>();
         availableMNs = 0;
         
         cnList = IteratorUtils.toList(cnIter);
@@ -125,23 +123,18 @@ public class MNSystemMetadataMutabilityImplementations extends ContextAwareTestC
                 v1mns.add(mNode);
             if (v2support)
                 v2mns.add(mNode);
-            if (v1support && v2support)
-                v1v2mns.add(mNode);
             if (v1support || v2support)
                 availableMNs++;
         }
 
         log.info("v1-ONLY MNs available:     " + v1mns.size());
         log.info("v2 MNs available:          " + v2mns.size());
-        log.info("v1 & v2 MNs available:     " + v1v2mns.size());
         log.info("available MNs:             " + availableMNs);
         
         for (Node n : v1mns)
             log.info("v1-ONLY MN:   " + n.getBaseURL());
         for (Node n : v2mns)
             log.info("v2 MN     :   " + n.getBaseURL());
-        for (Node n : v1v2mns)
-            log.info("v1 & v2 MN:   " + n.getBaseURL());
     }
     
     @WebTestName("create / registerSystemMetadata date modified")
@@ -602,7 +595,7 @@ public class MNSystemMetadataMutabilityImplementations extends ContextAwareTestC
         for (Replica r : cnSysmeta.getReplicaList()) {
             NodeReference ref = r.getReplicaMemberNode();
             String refValue = ref.getValue();
-            for (Node n : v1v2mns) {
+            for (Node n : v2mns) {  // checking MNs that support v2 (may support v1 also, but v2 required for replication from a v2 origin node)
                 log.info("comparing sysmeta replica id (" + refValue + ") with available MN id (" + n.getIdentifier().getValue() + ")");
                 if (refValue.equals(n.getIdentifier().getValue())
                         && !r.getReplicaMemberNode().getValue().equals(mNode.getIdentifier().getValue())
