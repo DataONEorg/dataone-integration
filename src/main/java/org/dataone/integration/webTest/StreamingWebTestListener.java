@@ -97,13 +97,19 @@ class StreamingWebTestListener extends RunListener
             for (int i=0; i<f.length; i++) {
                 if (f[i].getAnnotation(WebTestImplementation.class) != null) {
                     Class<?> implClass = f[i].getType();
-                    implMethod = implClass.getMethod(d.getMethodName(), Iterator.class, String.class);
+                    
+                    try {
+                        implMethod = implClass.getMethod(d.getMethodName(), Iterator.class, String.class);
+                    } catch (NoSuchMethodException noMeth) {
+                        continue;
+                    }
+                    
                     if (implMethod != null)
                         break;
                 }
             }
         }
-        catch (NoSuchMethodException | SecurityException e) {
+        catch (SecurityException e) {
             ;
         }
         return implMethod;
