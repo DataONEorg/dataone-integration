@@ -153,7 +153,7 @@ public class MNReadV1IT extends ContextAwareTestCaseDataone
 
     @Override
     @Test
-    @Ignore("Skipped in original tier tests. Ignoring to match WebTester results for now.")
+    @Ignore("Skipped in original tier tests.")
     public void testGetReplica_ValidCertificate_NotMN() {
         mnReadTestImpl.testGetReplica_ValidCertificate_NotMN(getMemberNodeIterator(), "v1");
     }
@@ -172,7 +172,7 @@ public class MNReadV1IT extends ContextAwareTestCaseDataone
 
     @Override
     @Test
-    @Ignore("Skipped in original tier tests. Ignoring to match WebTester results for now.")
+    @Ignore("Skipped in original tier tests.")
     public void testGetReplica_IdentifierEncoding() {
         mnReadTestImpl.testGetReplica_IdentifierEncoding(getMemberNodeIterator(), "v1");
     }

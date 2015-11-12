@@ -84,56 +84,56 @@ public class CNIdentityV2IT extends ContextAwareTestCaseDataone implements
 
     @Override
     @Test
-    @Ignore("Test code is commented out, probably for a good reason.")
+    @Ignore("Original test code was disabled (commented out).")
     public void testMapIdentity() {
         identityTestImpl.testMapIdentity(getCoordinatingNodeIterator(), "v2");
     }
 
     @Override
     @Test
-    @Ignore("Test code is commented out, probably for a good reason.")
+    @Ignore("Original test code was disabled (commented out).")
     public void testRequestMapIdentity() {
         identityTestImpl.testRequestMapIdentity(getCoordinatingNodeIterator(), "v2");
     }
 
     @Override
     @Test
-    @Ignore("Test code is commented out, probably for a good reason.")
+    @Ignore("Original test code was disabled (commented out).")
     public void testGetPendingMapIdentity() {
         identityTestImpl.testGetPendingMapIdentity(getCoordinatingNodeIterator(), "v2");
     }
 
     @Override
     @Test
-    @Ignore("Test code is commented out, probably for a good reason.")
+    @Ignore("Original test code was disabled (commented out).")
     public void testConfirmMapIdentity() {
         identityTestImpl.testConfirmMapIdentity(getCoordinatingNodeIterator(), "v2");
     }
 
     @Override
     @Test
-    @Ignore("Test code is commented out, probably for a good reason.")
+    @Ignore("Original test code was disabled (commented out).")
     public void testDenyMapIdentity() {
         identityTestImpl.testDenyMapIdentity(getCoordinatingNodeIterator(), "v2");
     }
 
     @Override
     @Test
-    @Ignore("Test code is commented out, probably for a good reason.")
+    @Ignore("Original test code was disabled (commented out).")
     public void testRemoveMapIdentity() {
         identityTestImpl.testRemoveMapIdentity(getCoordinatingNodeIterator(), "v2");
     }
 
     @Override
     @Test
-    @Ignore("Test code is commented out, probably for a good reason.")
+    @Ignore("Original test code was disabled (commented out).")
     public void testCreateGroup() {
         identityTestImpl.testCreateGroup(getCoordinatingNodeIterator(), "v2");
     }
 
     @Override
     @Test
-    @Ignore("Test code is commented out, probably for a good reason.")
+    @Ignore("Original test code was disabled (commented out).")
     public void testUpdateGroup() {
         identityTestImpl.testUpdateGroup(getCoordinatingNodeIterator(), "v2");
     }

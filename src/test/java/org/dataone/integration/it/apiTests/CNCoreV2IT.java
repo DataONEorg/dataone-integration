@@ -204,7 +204,7 @@ implements CoreTestDefinitions, CNCoreTestDefinitions, CNv2CoreTestDefinitions, 
 
     @Override
     @Test
-    @Ignore("Currently there's no MN certificate available to test with.")
+    @Ignore("No MN certificate to test with.")
     public void testUpdateSystemMetadata_NotAuthorizedMN() {
         updateSysMetaImpl.testUpdateSystemMetadata_NotAuthorizedMN(getCoordinatingNodeIterator(), "v2");        
     }

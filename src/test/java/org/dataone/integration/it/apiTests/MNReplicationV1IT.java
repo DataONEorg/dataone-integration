@@ -29,7 +29,7 @@ public class MNReplicationV1IT extends ContextAwareTestCaseDataone
 
     @Override
     @Test
-    @Ignore("Test implementation exists but claims to not be implemented (see MNReplicationTestImplementations)")
+    @Ignore("Original test supposedly not implemented (see MNReplicationTestImplementations)")
     public void testReplicate() {
         mnReplicationTestImpl.testReplicate(getMemberNodeIterator(), "v1");
     }
@@ -48,7 +48,7 @@ public class MNReplicationV1IT extends ContextAwareTestCaseDataone
 
     @Override
     @Test
-    @Ignore("Test implementation exists but claims to not be implemented (see MNReplicationTestImplementations)")
+    @Ignore("Original test supposedly not implemented (see MNReplicationTestImplementations)")
     public void testReplicate_FaultyNodeReference() {
         mnReplicationTestImpl.testReplicate_FaultyNodeReference(getMemberNodeIterator(), "v1");
     }
