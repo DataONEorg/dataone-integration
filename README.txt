@@ -102,25 +102,31 @@ For *NIX OS's
 
 3. install a Java JDK if necessary (compiling the tests via maven requires a JDK)
 
-3. checkout this project, if necessary, either the development branch (/trunk) 
+4. checkout this project, if necessary, either the development branch (/trunk) 
    or a released branch (/branches/D1_INTEGRATION_v[X].[Y]
    For example:
       svn co https://repository.dataone.org/software/cicore/trunk/d1_integration
       svn co https://repository.dataone.org/software/cicore/branches/D1_INTEGRATION_v1.1
       
-4. from the checked-out d1_integration top-level directory, build the .war file (the web app)
+5. from the checked-out d1_integration top-level directory, build the .war file (the web app)
       $ mvn package
       
-5. run the MNWebTester:
+6. run the MNWebTester:
       $ java -jar target/MNWebTester_<some version and build number>.war
       
       # this starts an embedded jetty server that will be listening on port 6680 
       
-6. run / connect to the MNWebTester by pointing your browser to
+7. run / connect to the MNWebTester by pointing your browser to
 
      http://localhost:6680
      
-7. from the browser page, enter the url of the Member Node you wish to test, and
+     Note: If you get an exception that tells you there was a problem compiling with javac
+     and a full JDK is required instead of a JRE, you may need to change your java config
+     to make sure the JDK is enabled and to disable JREs, or do step 6 with this parameter:
+     
+     java -jar -Dorg.apache.jasper.compiler.disablejsr199=true target/MNWebTester_<some version and build number>.war
+     
+8. from the browser page, enter the url of the Member Node you wish to test, and
    choose the tests you wish to run.
 
 
