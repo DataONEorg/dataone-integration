@@ -942,10 +942,12 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
                     identifier = createTestObject(cca, pid, accessRule, submitterSubjectLabel, rightsHolderSubjectName, replPolicy);
                 }
             } catch (ClientSideException e1) {
-                throw new TestIterationEndingException("unexpected client-side exception encountered when trying to creat e test object", e1);
+                throw new TestIterationEndingException("unexpected client-side exception encountered when trying to create test object"
+                        + " : " + e1.getMessage(), e1);
             }
         } catch (ClientSideException e) {
-            throw new TestIterationEndingException("unexpected client-side exception encountered when trying to procure a test object", e);
+            throw new TestIterationEndingException("unexpected client-side exception encountered when trying to procure a test object "
+                    + " : " + e.getMessage(), e);
         }
         log.info(" ====>>>>> pid of procured test Object: " + identifier.getValue());
         return identifier;
