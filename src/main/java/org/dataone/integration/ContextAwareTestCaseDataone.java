@@ -1370,7 +1370,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
                         } catch (Exception e) {
                             log.warn("Unable to get a valid NodeReference for node at: " + d1Node.getNodeBaseServiceUrl() +
                                     " to use as the system metadata's authoritativeMemberNode for created object: " + 
-                                    pid + " because the getCapabilities() call failed.", e);
+                                    pid.getValue() + " because the getCapabilities() call failed.", e);
                         }
                 } else if (d1Node instanceof CNCallAdapter) {
                     CNCallAdapter cn = (CNCallAdapter) d1Node;
@@ -1399,7 +1399,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
                 
                 if (nodeReference == null) { // only as last resort... =[
                     nodeReference = D1TypeBuilder.buildNodeReference("bogusAuthoritativeNode");
-                    log.warn("Unable to find a valid authoritative MN to use for the object: " + pid);
+                    log.warn("Unable to find a valid authoritative MN to use for the object: " + pid.getValue());
                 }
                 
                 Subject submitterSubject = D1TypeBuilder.buildSubject(submitterX500);

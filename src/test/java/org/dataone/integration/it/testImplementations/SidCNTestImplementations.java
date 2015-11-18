@@ -17,6 +17,7 @@ import org.apache.log4j.Logger;
 import org.dataone.client.RetryHandler;
 import org.dataone.client.RetryHandler.TryAgainException;
 import org.dataone.client.exception.ClientSideException;
+import org.dataone.client.types.AccessPolicyEditor;
 import org.dataone.client.v1.itk.D1Object;
 import org.dataone.client.v1.types.D1TypeBuilder;
 import org.dataone.integration.ExampleUtilities;
@@ -386,9 +387,11 @@ public class SidCNTestImplementations extends SidCommonTestImplementations {
                 Identifier p2 = createIdentifier("P2_", node);
                 Identifier s1 = createIdentifier("S1_", node);
                 
-                createTestObject(callAdapter, p1, s1, null, null, true);
+                // TODO: refactor so we don't have to wait 2 sync cycles to create 2 objects on MNs
+                boolean createOnMNAndSync = true;
+                createTestObject(callAdapter, p1, s1, null, null, createOnMNAndSync);
                 //createTestObject(callAdapter, p1, s1, null, p2, true);
-                createTestObject(callAdapter, p2, s1, p1, null, true);
+                createTestObject(callAdapter, p2, s1, p1, null, createOnMNAndSync);
                 
                 Identifier sid = s1;
                 Identifier pid = p2;
@@ -507,12 +510,27 @@ public class SidCNTestImplementations extends SidCommonTestImplementations {
                     super.createTestObject(mnCallAdapter, pid, sid, obsoletesId, obsoletedById);
                 else
                     super.updateTestObject(mnCallAdapter, obsoletesId, pid, sid);
+                
+                // update the system metadata to push out a synchronize call if v2 node
+                try {
+                    SystemMetadata smd = mnCallAdapter.getSystemMetadata(null, pid);
+                    
+                    AccessPolicyEditor ape = new AccessPolicyEditor(smd.getAccessPolicy());
+                    ape.setPublicAccess();
+                    smd.setAccessPolicy(ape.getAccessPolicy());
+               
+                    mnCallAdapter.updateSystemMetadata(null, pid, smd);
+                } catch (Exception e) {
+                    log.info("Exception thrown while trying to process a system Metadata update to speed sync. no action needed");
+                    ; //oh well, nice try, but nothing to worry about
+                }
             } catch (Exception maybeBogusTimeout) {
                 log.warn("pid not created: " + pid.getValue());
             }
             
             log.info("created a test object on MN " + mn.getBaseURL() + " with pid: "
                     + pid.getValue());
+            
             log.info("waiting for object (" + pid.getValue() + ") to sync from " + mn.getBaseURL() 
                     + " to " + callAdapter.getNodeBaseServiceUrl());
             
