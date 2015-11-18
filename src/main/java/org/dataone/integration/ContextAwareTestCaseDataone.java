@@ -42,7 +42,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -99,6 +98,7 @@ import org.dataone.service.types.v1.ObjectList;
 import org.dataone.service.types.v1.Permission;
 import org.dataone.service.types.v1.ReplicationPolicy;
 import org.dataone.service.types.v1.Service;
+import org.dataone.service.types.v1.Services;
 import org.dataone.service.types.v1.Subject;
 import org.dataone.service.types.v1.util.AccessUtil;
 import org.dataone.service.types.v2.SystemMetadata;
@@ -144,6 +144,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 
     // context-related instance variables
     private boolean alreadySetup = false;
+    private boolean nodeListContainsV2Mn = false;
 
     // variables to the context interface parameters
     protected  String testContext = null;
@@ -243,6 +244,16 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
                 memberNodeList = new Vector<Node>();
                 memberNodeList.add(n);
                 log.info("*** Adding MN to list: [" + n.getBaseURL() +"]");
+                
+//                try {
+//                    MNCallAdapter mn = new MNCallAdapter(getSession(Constants.SUBJECT_PUBLIC), n, "v2");
+//                    Node mnCapabilities = mn.getCapabilities();
+//                    List<Node> mns = new ArrayList<Node>();
+//                    mns.add(mnCapabilities);
+//                    checkForV2MNs(mns);
+//                } catch (Exception e) {
+//                    log.warn("/v2/node failed on CN: " + n.getBaseURL());   // continue on
+//                }
             } else if (cnBaseUrl != null) {
                 System.out.println("~~~ Context is solo CoordinatingNode: " + cnBaseUrl);
                 Node n = new Node();
@@ -250,10 +261,16 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
                 n.setType(NodeType.CN);
                 coordinatingNodeList = new Vector<Node>();
                 coordinatingNodeList.add(n);
+                
+//                try {
+//                    CNCallAdapter cn = new CNCallAdapter(getSession(Constants.SUBJECT_PUBLIC), n, "v2");
+//                    List<org.dataone.service.types.v2.Node> nodeList = cn.listNodes().getNodeList();
+//                    checkForV2MNs(nodeList);
+//                } catch (Exception e) {
+//                    log.warn("/v2/node failed on CN: " + n.getBaseURL());   // continue on
+//                }
             } else {
                 setupMultipleNodes();
-
-
             } // nodelist set up
 
             //  now set up the reference cnBaseUrl, if it's provided
@@ -295,6 +312,8 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
         memberNodeList = multiNodeMemberNodeList;
         coordinatingNodeList = multiNodeCoordinatingNodeList;
         monitorNodeList = multiNodeMonitorNodeList;
+        
+        checkForV2Mn(memberNodeList);
     }
 
     /*
@@ -1881,4 +1900,29 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
         return resourceMapPid;
     }
 
+    private void checkForV2Mn(List<? extends Node> nodeList) {
+        for (Node n : nodeList) {
+            if (n.getType() != NodeType.MN)
+                continue;
+            
+            Services services = n.getServices();
+            if (services == null)
+                continue;
+            for (Service service : services.getServiceList()) {
+                if (service.getVersion().equalsIgnoreCase("v2")) {
+                    setNodeListContainsV2Mn(true);
+                    return;
+                }
+            }
+        }
+    }
+    
+    private void setNodeListContainsV2Mn(boolean containsV2MNs) {
+        this.nodeListContainsV2Mn = containsV2MNs;
+    }
+    
+    public boolean nodeListContainsV2Mn() {
+//        return nodeListContainsV2Mn;
+        return true;    // FIXME hard-coded to return true
+    }
 }
