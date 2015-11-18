@@ -361,14 +361,19 @@ public class NodeRegistryExtensibilityTestImplementations extends ContextAwareAd
                     Node capabilities = testMN.getCapabilities();
                     if (capabilities instanceof org.dataone.service.types.v2.Node == false)
                         throw new AssertionError("v2 getCapabilities() should not be returning v1 Node types");
-                    v2MNs.add((org.dataone.service.types.v2.Node) capabilities);
+                    for (Service service : capabilities.getServices().getServiceList()) {
+                        if (service.getName().equalsIgnoreCase("MNCore") && service.getVersion().equalsIgnoreCase("v2")) {
+                            v2MNs.add((org.dataone.service.types.v2.Node) capabilities);
+                            break;
+                        }
+                    }
                 } catch (Exception e) {
-                    // continue
+                    continue;
                 }
-                
         
         assertTrue("testUpdateNodeCapabilities() requires CN.listNodes() to contain "
-                + "at least one MN", v2MNs.size() > 0);
+                + "at least one v2 MN since it tests the ability to save modifications to a Node's "
+                + "property list (which is v2 Node only).", v2MNs.size() > 0);
         
         org.dataone.service.types.v2.Node v2MN = v2MNs.get(0);
         NodeReference mnRef = v2MN.getIdentifier();
