@@ -40,6 +40,9 @@ public class TestSettings implements IntegrationTestContextParameters {
     public static final String STD_CONFIG_PATH      = Settings.STD_CONFIG_PATH;   
 	public static final String CONTEXT_OVERRIDE_URI = "context.override.settings.uri";
 	
+    /** certain tests will fail if there are no v2 MNs known to the CN. setting this to false will make these tests pass */ 
+    public final static String CONTEXT_NODELIST_CONTAINS_V2_MN = "nodelist.contains.v2.mn";
+	
 
 	/**
 	 * set up the test configurations, following some simple logic:
@@ -83,8 +86,9 @@ public class TestSettings implements IntegrationTestContextParameters {
 				System.getProperty(REFERENCE_CONTEXT_CN_URL,System.getenv(REFERENCE_CONTEXT_CN_URL)));
 		configuration.setProperty(REFERENCE_CONTEXT_LABEL,
 				System.getProperty(REFERENCE_CONTEXT_LABEL,System.getenv(REFERENCE_CONTEXT_LABEL)));
-				
 		
+        configuration.setProperty(CONTEXT_NODELIST_CONTAINS_V2_MN,
+                System.getProperty(CONTEXT_NODELIST_CONTAINS_V2_MN,System.getenv(CONTEXT_NODELIST_CONTAINS_V2_MN)));
 		
 		// now load designated context-specific properties file
 		// the context passed in from the system properties (or environment) take precedence

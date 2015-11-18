@@ -144,7 +144,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 
     // context-related instance variables
     private boolean alreadySetup = false;
-    private boolean nodeListContainsV2Mn = false;
+    private boolean nodeListContainsV2Mn = true;
 
     // variables to the context interface parameters
     protected  String testContext = null;
@@ -280,6 +280,26 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
                 referenceCnBaseUrl = TestSettings.getReferenceCnBaseUrl(referenceContext);
             }
 
+            setNodeListContainsV2Mn(
+                    Settings.getConfiguration().getBoolean(
+                            TestSettings.CONTEXT_NODELIST_CONTAINS_V2_MN,
+                            /* default value: assume it does */ true)
+                    );
+                
+            // This approach uses a cn url to fetch a nodelist and determine what's what
+            // The issue with this is that with multiple nodes, putting it here constitutes
+            // a second call to a CN
+
+//            Iterator<Node> cns = getCoordinatingNodeIterator();
+//            String cnBaseUrl = null;
+//            if (cns.hasNext()) {
+//                cnBaseUrl = cns.next().getBaseURL();
+//            } else {
+//                cnBaseUrl = referenceCnBaseUrl;
+//            }
+//            CNCallAdapter cnode = new CNCallAdapter(getSession(Constants.SUBJECT_PUBLIC),?? )
+            
+            
             log.info("****************************************************");
         }  // settings already set up
     }
@@ -1922,7 +1942,6 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
     }
     
     public boolean nodeListContainsV2Mn() {
-//        return nodeListContainsV2Mn;
-        return true;    // FIXME hard-coded to return true
+            return nodeListContainsV2Mn;
     }
 }

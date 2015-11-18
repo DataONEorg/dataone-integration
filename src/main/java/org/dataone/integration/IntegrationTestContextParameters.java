@@ -54,10 +54,16 @@ public interface IntegrationTestContextParameters {
     public final static String CONTEXT_LABEL = "context.label";  // the string that signals the context to run against
     public final static String DEFAULT_CONTEXT = "LOCAL";  // the default value for PARAM_TEST_CONTEXT
 
+    /** sets the context to a single CN (tests don't assume connection with other nodes */
     public final static String CONTEXT_CN_URL = "context.cn.baseurl";    // the base url for the cn within the environment
+    
+    /** sets the context to a single MN (tests don't assume connection with other nodes or being registered */
     public final static String CONTEXT_MN_URL = "context.mn.baseurl";    // the base url for the MN being tested
+    
+    /** uses the nodelist at the provided uri to determine the context */
     public final static String CONTEXT_NODELIST_URI = "context.nodelist.uri";  // a uri (file or url) of the nodelist to use to set the environment
 
+    /** sets a reference context */
     public final static String REFERENCE_CONTEXT_LABEL = "reference.context.label";
     public final static String REFERENCE_CONTEXT_CN_URL = "reference.cn.baseurl";
 
