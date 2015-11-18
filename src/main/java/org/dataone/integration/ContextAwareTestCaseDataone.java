@@ -1395,6 +1395,14 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
                             }
                         }
                     }
+                    // fall back to a v1 authMN if no v2 authMN found
+                    if (nodeReference == null && needV2Node) {   
+                        for (Node n : nodeList.getNodeList())
+                            if (n.getType() == NodeType.MN) {
+                                nodeReference = n.getIdentifier();
+                                break;
+                            }
+                    }
                 }
                 
                 if (nodeReference == null) { // only as last resort... =[
