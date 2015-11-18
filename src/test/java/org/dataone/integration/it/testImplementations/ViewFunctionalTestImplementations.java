@@ -63,7 +63,8 @@ public class ViewFunctionalTestImplementations extends ContextAwareAdapter {
         } catch (Exception e) {
             throw new AssertionError(callAdapter.getNodeBaseServiceUrl() + ":   "
                     + "Unable to create a test object for testView_Scimeta functional test "
-                    + e.getMessage() + ", " + e.getCause() == null ? "" : e.getCause().getMessage(), e);
+                    + e.getMessage() + ", " + e.getCause() == null ? "" : e.getCause().getMessage()
+                    + ". pid: " + pid.getValue(), e);
         }
         
         InputStream is = null;
@@ -85,13 +86,14 @@ public class ViewFunctionalTestImplementations extends ContextAwareAdapter {
             if (htmlRoot == null)
                 throw new AssertionError(callAdapter.getNodeBaseServiceUrl() + ":   "
                         + "view() did not return an HTML document with a header node for the default theme "
-                        + "and pid: " + pid.getValue() + "" );
+                        + "and pid: " + pid.getValue() );
             
         } catch (Exception e) {
             e.printStackTrace();
             handleFail(callAdapter.getNodeBaseServiceUrl(), 
                     "Unable to run testView_Scimeta functional test: " 
-                    + e.getMessage() + ", " + e.getCause() == null ? "" : e.getCause().getMessage());
+                    + e.getMessage() + ", " + e.getCause() == null ? "" : e.getCause().getMessage()
+                    + ". pid: " + pid.getValue());
         } finally {
             IOUtils.closeQuietly(is);
         }
@@ -116,7 +118,8 @@ public class ViewFunctionalTestImplementations extends ContextAwareAdapter {
             e.printStackTrace();
             throw new AssertionError(callAdapter.getNodeBaseServiceUrl() + ":   "
                     + "Unable to create a test object for testView_ResMap functional test: " 
-                    + e.getMessage() + ", " + e.getCause() == null ? "" : e.getCause().getMessage());
+                    + e.getMessage() + ", " + e.getCause() == null ? "" : e.getCause().getMessage()
+                    + ". pid: " + pid.getValue());
         }
         
         InputStream is = null;
@@ -146,7 +149,8 @@ public class ViewFunctionalTestImplementations extends ContextAwareAdapter {
             e.printStackTrace();
             throw new AssertionError(callAdapter.getNodeBaseServiceUrl() + ":   "
                     + "Unable to run testView_ResMap functional test: " 
-                    + e.getMessage() + ", " + e.getCause() == null ? "" : e.getCause().getMessage());
+                    + e.getMessage() + ", " + e.getCause() == null ? "" : e.getCause().getMessage()
+                    + ". pid: " + pid.getValue());
         } finally {
             IOUtils.closeQuietly(is);
         }
@@ -197,6 +201,7 @@ public class ViewFunctionalTestImplementations extends ContextAwareAdapter {
         
         CommonCallAdapter callAdapter = new CommonCallAdapter(getSession(cnSubmitter), node, "v2");
         
+        Identifier pid = null;
         try {
             OptionList views = callAdapter.listViews(null);
         
@@ -211,7 +216,7 @@ public class ViewFunctionalTestImplementations extends ContextAwareAdapter {
                     AccessPolicy policy = new AccessPolicy();
                     policy.addAllow(accessRule);
                     
-                    Identifier pid = D1TypeBuilder.buildIdentifier("testListViewsExist_" + ExampleUtilities.generateIdentifier()); 
+                    pid = D1TypeBuilder.buildIdentifier("testListViewsExist_" + ExampleUtilities.generateIdentifier()); 
                     pid = catc.createTestObject(callAdapter, pid, policy, cnSubmitter, Constants.SUBJECT_PUBLIC);
                     
                     Thread.sleep(METACAT_INDEXING_TIME);
@@ -222,7 +227,8 @@ public class ViewFunctionalTestImplementations extends ContextAwareAdapter {
                     handleFail(callAdapter.getNodeBaseServiceUrl(), 
                             "listViews() returned a theme \"" + viewType 
                             + "\", which does not seem to be supported. Yielded exception: "  
-                            + e1.getMessage() + " : " + e1.getCause() == null ? "" : e1.getCause().getMessage());
+                            + e1.getMessage() + " : " + e1.getCause() == null ? "" : e1.getCause().getMessage()
+                            + ". pid: " + pid.getValue());
                 } finally {
                     IOUtils.closeQuietly(is);
                 }
@@ -232,7 +238,8 @@ public class ViewFunctionalTestImplementations extends ContextAwareAdapter {
             e.printStackTrace();
             throw new AssertionError(callAdapter.getNodeBaseServiceUrl() + ":   "
                     + "Unable to run testListViewsExist functional test: " 
-                    + e.getClass().getSimpleName() + " : " + e.getMessage() );
+                    + e.getClass().getSimpleName() + " : " + e.getMessage() 
+                    + ". pid: " + pid.getValue());
         }
     }
 }
