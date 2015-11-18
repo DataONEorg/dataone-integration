@@ -338,6 +338,9 @@ public class NodeRegistryExtensibilityTestImplementations extends ContextAwareAd
     
     private void testUpdateNodeCapabilities(Node node, String version) {
         
+        if (!catc.nodeListContainsV2Mn())
+            return;
+            
         CNCallAdapter cn = new CNCallAdapter(getSession(cnSubmitter), node, "v2");
         
         NodeList knownNodes = null;

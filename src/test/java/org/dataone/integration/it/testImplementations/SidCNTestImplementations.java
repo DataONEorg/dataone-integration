@@ -374,6 +374,9 @@ public class SidCNTestImplementations extends SidCommonTestImplementations {
     @Test
     public void testResolve() {
 
+        if (!nodeListContainsV2Mn())
+            return;
+        
         log.info("Testing resolve() method ... ");
         
         Iterator<Node> cnIter = getCoordinatingNodeIterator();

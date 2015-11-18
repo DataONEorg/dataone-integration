@@ -29,13 +29,6 @@ public class MNSystemMetadataChangedMethodTestImplementations extends ContextAwa
     }
 
 
-    @WebTestName("systemMetadataChanged - tests that systemMetadataChanged works")
-    @WebTestDescription("this test poses as CNs from 3 different environments, all "
-            + "making a call to the MN. The MN is supposed to reply before scheduling "
-            + "it's own call to the CN. MNs should return 'true' if the object is "
-            + "on their node. The test checks that only one CN returns success ('true'), "
-            + "but allows for one CN to throw an InvalidRequest exception if the object "
-            + "is not on that node.")
     /**
      * Test the call from CN to MN.  The MN is supposed to reply before scheduling
      * it's own call to the CN.  MNs should return 'true' (no excpetion) if the 
@@ -46,6 +39,13 @@ public class MNSystemMetadataChangedMethodTestImplementations extends ContextAwa
      * return a NotAuthorized
      * 
      */
+    @WebTestName("systemMetadataChanged - tests that systemMetadataChanged works")
+    @WebTestDescription("this test poses as CNs from 3 different environments, all "
+            + "making a call to the MN. The MN is supposed to reply before scheduling "
+            + "it's own call to the CN. MNs should return 'true' if the object is "
+            + "on their node. The test checks that only one CN returns success ('true'), "
+            + "but allows for one CN to throw an InvalidRequest exception if the object "
+            + "is not on that node.")
     public void testSystemMetadataChanged(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testSystemMetadataChanged(nodeIterator.next(), version);
@@ -173,12 +173,12 @@ public class MNSystemMetadataChangedMethodTestImplementations extends ContextAwa
 
     }
     
-    @WebTestName("systemMetadataChanged - tests with non-CN subject")
-    @WebTestDescription("this test tries calling systemMetadataChanged with "
-            + "a non-CN subject, making sure it results in a NotAuthorized exception")
     /**
      * This test tries to have a non-CN subject call the method.  should fail.
      */
+    @WebTestName("systemMetadataChanged - tests with non-CN subject")
+    @WebTestDescription("this test tries calling systemMetadataChanged with "
+            + "a non-CN subject, making sure it results in a NotAuthorized exception")
     public void testSystemMetadataChanged_authenticatedITKuser(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testSystemMetadataChanged_authenticatedITKuser(nodeIterator.next(), version);

@@ -129,6 +129,9 @@ public class CNAuthTestImplementations extends ContextAwareAdapter {
     
     public void testSetRightsHolderV2(Node node, String version) 
     {
+        if (!catc.nodeListContainsV2Mn())
+            return;
+        
         String currentUrl = node.getBaseURL();
         printTestHeader("testSetRightsHolder(...) vs. node: " + currentUrl);
 
@@ -336,6 +339,9 @@ public class CNAuthTestImplementations extends ContextAwareAdapter {
 
     public void testSetAccessPolicyV2(Node node, String version) 
     {   
+        if (!catc.nodeListContainsV2Mn())
+            return;
+        
         CNCallAdapter callAdapterCN = new CNCallAdapter(getSession(cnSubmitter), node, version);
         CNCallAdapter callAdapterRH = new CNCallAdapter(getSession("testRightsHolder"), node, version);
         
