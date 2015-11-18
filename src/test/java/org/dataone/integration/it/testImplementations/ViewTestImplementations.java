@@ -57,7 +57,6 @@ public class ViewTestImplementations extends ContextAwareAdapter {
             AccessRule accessRule = APITestUtils.buildAccessRule("testRightsHolder", Permission.CHANGE_PERMISSION);
             Identifier pid = new Identifier();
             pid.setValue("testView_NotAuthorized_" + ExampleUtilities.generateIdentifier());
-            pid = catc.procurePublicReadableTestObject(personCallAdapter, pid);
             Identifier testObjPid = catc.procureTestObject(cnCertCallAdapter, accessRule, pid);
             
             resultStream = personCallAdapter.view(null, "default", testObjPid);
