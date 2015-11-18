@@ -27,6 +27,7 @@ import org.dataone.service.types.v1.Node;
 import org.dataone.service.types.v1.Permission;
 import org.dataone.service.types.v2.OptionList;
 import org.dataone.service.types.v2.SystemMetadata;
+import org.dataone.service.util.Constants;
 
 public class ViewTestImplementations extends ContextAwareAdapter {
 
@@ -56,6 +57,7 @@ public class ViewTestImplementations extends ContextAwareAdapter {
             AccessRule accessRule = APITestUtils.buildAccessRule("testRightsHolder", Permission.CHANGE_PERMISSION);
             Identifier pid = new Identifier();
             pid.setValue("testView_NotAuthorized_" + ExampleUtilities.generateIdentifier());
+            pid = catc.procurePublicReadableTestObject(personCallAdapter, pid);
             Identifier testObjPid = catc.procureTestObject(cnCertCallAdapter, accessRule, pid);
             
             resultStream = personCallAdapter.view(null, "default", testObjPid);
@@ -66,7 +68,8 @@ public class ViewTestImplementations extends ContextAwareAdapter {
         }
         catch (BaseException e) {
             handleFail(cnCertCallAdapter.getLatestRequestUrl(), "Expected a NotAuthorized exception. Got: " + 
-                    e.getClass().getSimpleName() + ": " + e.getDetail_code() + ": " + e.getDescription());
+                    e.getClass().getSimpleName() + ": " + e.getDetail_code() + ": " + e.getDescription()
+                    + "from : " + cnCertCallAdapter.getLatestRequestUrl());
         }
         catch(Exception e) {
             e.printStackTrace();
@@ -120,7 +123,7 @@ public class ViewTestImplementations extends ContextAwareAdapter {
             + "and expects a NotFound exception to be thrown")
     public void testView_NotFound(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
-            testView_NotAuthorized(nodeIterator.next(), version);
+            testView_NotFound(nodeIterator.next(), version);
     }
     
     public void testView_NotFound(Node node, String version) {
