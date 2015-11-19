@@ -44,7 +44,6 @@ import org.xml.sax.InputSource;
 
 public class LogAggregationFunctionalTestImplementations extends ContextAwareTestCaseDataone {
 
-    private static final String cnSubmitter = Settings.getConfiguration().getString("dataone.it.cnode.submitter.cn", "cnDevUNM1");
     private CNCallAdapter cn;
     private List<Node> mns;
     private List<Node> v1mns;
