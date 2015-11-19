@@ -152,8 +152,12 @@ public class LogAggregationFunctionalTestImplementations extends ContextAwareTes
             return new MNCallAdapter(getSession(certificateFilename), v1v2mns.get(0), "v2");
         if (v2mns.size() > 0)
             return new MNCallAdapter(getSession(certificateFilename), v2mns.get(0), "v2");
-        if (v1mns.size() > 0)
+        if (v1mns.size() > 0) {
+            log.warn("only v1 MN available for use! (" + v1mns.get(0).getBaseURL() + ") "
+                    + "libclient used by tests calls the /v1/log and /v2/log endpoint with the"
+                    + "idFilter parameter. The v1 MN may still be using the pidFilter parameter!");
             return new MNCallAdapter(getSession(certificateFilename), v1mns.get(0), "v1");
+        }
         
         throw new AssertionError("Not enough (responsive) MNs to test with in this environment.");
     }
