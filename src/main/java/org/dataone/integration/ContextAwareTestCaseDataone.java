@@ -679,6 +679,14 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
                 e.printStackTrace();
             }
         }
+        
+        try {
+            log.info("created client for certificate file: " + certificateFilename
+                    + " with subject: " + getSubject(certificateFilename).getValue());
+        } catch (Exception e) {
+            // ignore
+        }
+        
         return sessionMap.get(certificateFilename);
     }
 
