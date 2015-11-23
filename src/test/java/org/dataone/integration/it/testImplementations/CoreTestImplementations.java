@@ -531,7 +531,7 @@ public class CoreTestImplementations extends ContextAwareAdapter {
     }
 
     @WebTestName("getLogRecords - test PID filtering")
-    @WebTestDescription("Test that pidFilter only returns objects starting with the given string "
+    @WebTestDescription("Test that pidFilter only returns objects with the given Identifier string "
      + "The test attepmpts to find a negative case and to make sure it is filtered out when the"
      + "filter is applied.")
     public void testGetLogRecords_pidFiltering(Iterator<Node> nodeIterator, String version){
@@ -551,25 +551,30 @@ public class CoreTestImplementations extends ContextAwareAdapter {
         printTestHeader("testGetLogRecords_pidFiltering() vs. node: " + currentUrl);
 
         try {
-            Date t0 = new Date();
-            Date toDate = t0;
-
-            Log entries = APITestUtils.pagedGetLogRecords(callAdapter, null, toDate, null, null, null, null);
-
-            if (entries.getTotal() == 0) {
-                // try to create a log event
-                // if it can't it will throw a TestIterationEndingException
-                Identifier pid = this.catc.procurePublicReadableTestObject(callAdapter, null);
-                callAdapter.get(null, pid);
-                toDate = callAdapter.ping();
-                entries = APITestUtils.pagedGetLogRecords(callAdapter, null, toDate, null, null, null, null);
-            }
+//            Log entries = APITestUtils.pagedGetLogRecords(callAdapter, null, toDate, null, null, null, null);
+            Log entries = callAdapter.getLogRecords(null, null, null, null, null, null, null);
+            
+            // if no entries in log, create one
+            InputStream is = null;
+            if (entries.getTotal() == 0) 
+                try {
+                    // try to create a log event
+                    // if it can't it will throw a TestIterationEndingException
+                    Identifier pid = this.catc.procurePublicReadableTestObject(callAdapter, null);
+                    is = callAdapter.get(null, pid);
+//                    entries = APITestUtils.pagedGetLogRecords(callAdapter, null, toDate, null, null, null, null);
+                    entries = callAdapter.getLogRecords(null, null, null, null, null, null, null);
+                } finally {
+                    IOUtils.closeQuietly(is);
+                }
 
             // should have at least one log entry at this point
             if (entries.sizeLogEntryList() > 0) {
+                
+                // grab 2 identifiers
                 Identifier targetIdentifier = entries.getLogEntry(0).getIdentifier();
                 Identifier otherIdentifier = null;
-
+                
                 for (LogEntry le : entries.getLogEntryList()) {
                     if (!le.getIdentifier().equals(targetIdentifier)) {
                         otherIdentifier = le.getIdentifier();
@@ -578,17 +583,20 @@ public class CoreTestImplementations extends ContextAwareAdapter {
                 }
 
                 if (otherIdentifier == null) {
-                    // create a new target that is non existent
+                    // no second Identifier available... 
+                    // create a new fake targetIdentifier
+                    // filtering on this should yield 0 results
                     otherIdentifier = targetIdentifier;
                     targetIdentifier = D1TypeBuilder
                             .buildIdentifier(targetIdentifier.getValue() + new Date().getTime());
 
-                    entries = callAdapter.getLogRecords(null, null, t0, null, targetIdentifier.getValue(), 0, 0);
+                    entries = callAdapter.getLogRecords(null, null, null, null, targetIdentifier.getValue(), 0, 0);
                     checkEquals(callAdapter.getLatestRequestUrl(), "Log should be empty for the derived identifier pattern "
                             + targetIdentifier.getValue(), String.valueOf(entries.getTotal()), "0");
 
                 } else {
-                    entries = callAdapter.getLogRecords(null, null, toDate, null, targetIdentifier.getValue(), null, null);
+                    // if there is a second Identifier available
+                    entries = callAdapter.getLogRecords(null, null, null, null, targetIdentifier.getValue(), null, null);
                     boolean oneTypeOnly = true;
                     if (entries.sizeLogEntryList() > 0) {
                         for (LogEntry le : entries.getLogEntryList()) {
