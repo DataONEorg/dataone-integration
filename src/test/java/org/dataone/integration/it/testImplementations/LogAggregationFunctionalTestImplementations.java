@@ -20,7 +20,6 @@ import javax.xml.xpath.XPathFactory;
 import org.apache.commons.collections.IteratorUtils;
 import org.apache.commons.io.IOUtils;
 import org.dataone.client.v1.types.D1TypeBuilder;
-import org.dataone.configuration.Settings;
 import org.dataone.integration.ContextAwareTestCaseDataone;
 import org.dataone.integration.adapters.CNCallAdapter;
 import org.dataone.integration.adapters.MNCallAdapter;
@@ -33,7 +32,6 @@ import org.dataone.service.types.v1.Node;
 import org.dataone.service.types.v1.NodeType;
 import org.dataone.service.types.v1.Permission;
 import org.dataone.service.types.v1.Service;
-import org.dataone.service.types.v1.Services;
 import org.dataone.service.types.v2.Log;
 import org.dataone.service.types.v2.LogEntry;
 import org.dataone.service.types.v2.SystemMetadata;
@@ -185,30 +183,49 @@ public class LogAggregationFunctionalTestImplementations extends ContextAwareTes
         getSession("testRightsHolder");
         testRightsHolderAccessRule.addSubject(getSubject("testRightsHolder"));
         testRightsHolderAccessRule.addPermission(Permission.CHANGE_PERMISSION);
+       
+        Identifier publicPid = D1TypeBuilder.buildIdentifier("testMnGetLogRecords_Access_public");//_" + ExampleUtilities.generateIdentifier());
+        Identifier testPersonPid = D1TypeBuilder.buildIdentifier("testMnGetLogRecords_Access_testPerson");//_" + ExampleUtilities.generateIdentifier());
+        Identifier testRightsHolderPid = D1TypeBuilder.buildIdentifier("testMnGetLogRecords_Access_testRightsHolder");//_" + ExampleUtilities.generateIdentifier());
         
-        Identifier publicPid = D1TypeBuilder.buildIdentifier("testMnGetLogRecords_Access_public");
-        Identifier testPersonPid = D1TypeBuilder.buildIdentifier("testMnGetLogRecords_Access_testPerson");
-        Identifier testRightsHolderPid = D1TypeBuilder.buildIdentifier("testMnGetLogRecords_Access_testRightsHolder");
+        InputStream is = null;
         try {
             publicPid = procureTestObject(mnCnCaller, publicAccessRule, publicPid);
+            is = mnCnCaller.get(null, publicPid);    // create read log record
         } catch (Exception e) {
             throw new AssertionError("testMnGetLogRecords_Access: Unable to get or create a test object "
                     + "with pid: " + publicPid.getValue() + ", " + e.getClass().getSimpleName()
                     + " : " + e.getMessage(), e);
+        } finally {
+            IOUtils.closeQuietly(is);
         }
+        
         try {
             testPersonPid = procureTestObject(mnCnCaller, testPersonAccessRule, testPersonPid);
+            is = mnCnCaller.get(null, testPersonPid);    // create read log record
         } catch (Exception e) {
             throw new AssertionError("testMnGetLogRecords_Access: Unable to get or create a test object "
                     + "with pid: " + testPersonPid.getValue() + ", " + e.getClass().getSimpleName() + " : " + e.getMessage(), e);
+        } finally {
+            IOUtils.closeQuietly(is);
         }
+        
         try {
             testRightsHolderPid = procureTestObject(mnCnCaller, testRightsHolderAccessRule, testRightsHolderPid);
+            is = mnCnCaller.get(null, testRightsHolderPid);  // create read log record
         } catch (Exception e) {
             throw new AssertionError("testMnGetLogRecords_Access: Unable to get or create a test object "
                     + "with pid: " + testRightsHolderPid.getValue() + ", " + e.getClass().getSimpleName() + " : " + e.getMessage(), e);
+        } finally {
+            IOUtils.closeQuietly(is);
         }
 
+        try {
+            Thread.sleep(5000);     // asynchronous actions on MN?
+        } catch (InterruptedException e1) {
+            ;
+        }        
+        
         ArrayList<String> errors = new ArrayList<String>();
         
         Log publicLog = null;
