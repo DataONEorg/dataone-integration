@@ -8,6 +8,7 @@ import org.dataone.integration.it.testImplementations.CoreTestImplementations;
 import org.dataone.integration.webTest.WebTestImplementation;
 import org.dataone.service.types.v1.Node;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -60,6 +61,7 @@ public class MNCoreV2SlowIT extends ContextAwareTestCaseDataone
 
     @Override
     @Test
+    @Ignore("causing severe delays in Sandbox environment for a node")
     public void testGetLogRecords_eventFiltering() {
         coreTestImpl.testGetLogRecords_eventFiltering(getMemberNodeIterator(), "v2");
     }
