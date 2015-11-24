@@ -609,8 +609,12 @@ public class LogAggregationFunctionalTestImplementations extends ContextAwareTes
     
         int numMNs = this.mns.size();
         ArrayList<MNCallAdapter> mnCallAdapters = new ArrayList<MNCallAdapter>(numMNs);
-        for (Node n : this.mns)
-            mnCallAdapters.add(new MNCallAdapter(getSession(cnSubmitter), n, "v1"));
+        for (Node n : this.mns) {
+            if (v1v2mns.contains(n) || v2mns.contains(n))   // if v2 node
+                mnCallAdapters.add(new MNCallAdapter(getSession(cnSubmitter), n, "v2"));
+            else
+                mnCallAdapters.add(new MNCallAdapter(getSession(cnSubmitter), n, "v1"));
+        }
         
         AccessRule publicAccessRule = new AccessRule();
         publicAccessRule.addSubject(D1TypeBuilder.buildSubject(Constants.SUBJECT_PUBLIC));
