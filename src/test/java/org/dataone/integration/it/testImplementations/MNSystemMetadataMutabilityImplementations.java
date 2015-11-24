@@ -104,7 +104,8 @@ public class MNSystemMetadataMutabilityImplementations extends ContextAwareTestC
             
             try {
                 v2mn.ping();        // ping v2 endpoint
-                List<Service> serviceList = v2mn.getCapabilities().getServices().getServiceList();
+                Node capabilities = v2mn.getCapabilities();
+                List<Service> serviceList = capabilities.getServices().getServiceList();
                 for (Service service : serviceList) {
                     if ("MNReplication".equals(service.getName()) 
                             && "v2".equals(service.getVersion())
@@ -158,7 +159,7 @@ public class MNSystemMetadataMutabilityImplementations extends ContextAwareTestC
         try {
             getSession(cnSubmitter);
             log.info("attempting to create test object on " + mn.getNodeBaseServiceUrl() + " with pid " + pid.getValue());
-            procureTestObject(mn,  publicAccessRule, pid, cnSubmitter, "public", replPolicy);
+            createTestObject(mn, pid, publicAccessRule, cnSubmitter, replPolicy);
         } catch (Exception e) {
             throw new AssertionError("testRegisterSystemMetadata_dateModified: Unable to get or create a "
                     + "test object with pid: " + pid.getValue(), e);
