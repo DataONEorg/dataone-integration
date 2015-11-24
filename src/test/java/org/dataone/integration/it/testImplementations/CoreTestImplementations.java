@@ -9,6 +9,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.directory.api.ldap.model.schema.comparators.ObjectIdentifierComparator;
 import org.dataone.client.auth.CertificateManager;
 import org.dataone.client.v1.types.D1TypeBuilder;
 import org.dataone.configuration.Settings;
@@ -661,8 +662,9 @@ public class CoreTestImplementations extends ContextAwareAdapter {
 
                 // read an existing object
                 InputStream is = null;
+                String objectIdentifier = null;
                 try {
-                    String objectIdentifier = "TierTesting:" + this.catc.createNodeAbbreviation(callAdapter.getNodeBaseServiceUrl())
+                    objectIdentifier = "TierTesting:" + this.catc.createNodeAbbreviation(callAdapter.getNodeBaseServiceUrl())
                             + ":Public_READ" + this.catc.getTestObjectSeriesSuffix();
                     Identifier id = this.catc.procurePublicReadableTestObject(callAdapter, D1TypeBuilder.buildIdentifier(objectIdentifier));
                     is = callAdapter.get(null, id);
@@ -670,7 +672,7 @@ public class CoreTestImplementations extends ContextAwareAdapter {
                     Thread.sleep(2000); // just in case...
                     eventLog = callAdapter.getLogRecords(null, null, null, null, null, null, null);
                 } catch (TestIterationEndingException e) {
-                    //
+                    log.error("Unable to create a log record for " + objectIdentifier, e);
                 } finally {
                     IOUtils.closeQuietly(is);
                 }
