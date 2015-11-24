@@ -155,7 +155,8 @@ public class MNSystemMetadataMutabilityImplementations extends ContextAwareTestC
         replPolicy.setReplicationAllowed(true);
         replPolicy.setNumberReplicas(v2mns.size() > 1 ? v2mns.size() -1 : 2);
         
-        final Identifier pid = D1TypeBuilder.buildIdentifier("testRegisterSystemMetadata_dateModified_obj5");
+        final Identifier pid = D1TypeBuilder.buildIdentifier("testRegisterSystemMetadata_dateModified_" 
+                + ExampleUtilities.generateIdentifier());
         try {
             getSession(cnSubmitter);
             log.info("attempting to create test object on " + mn.getNodeBaseServiceUrl() + " with pid " + pid.getValue());
