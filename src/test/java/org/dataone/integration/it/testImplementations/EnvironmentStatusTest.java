@@ -37,7 +37,7 @@ public class EnvironmentStatusTest extends ContextAwareTestCaseDataone {
     /** all MNs */
     private List<Node> mns;     
     
-    private static boolean setup = false;
+    private boolean setup = false;
     
     
     @Before
@@ -151,38 +151,64 @@ public class EnvironmentStatusTest extends ContextAwareTestCaseDataone {
             if (node.getType() != NodeType.MN)
                 continue;
             
+            if (node.getState() == NodeState.DOWN) {
+                log.warn("WARNING: CN has Node state as DOWN for: " + node.getBaseURL());
+                errors.add("WARNING: CN has Node state as DOWN for: " + node.getBaseURL());
+                continue;
+            } else if (node.getState() == NodeState.UNKNOWN) {
+                log.warn("WARNING: CN has Node state as UNKNOWN for: " + node.getBaseURL());
+                errors.add("WARNING: CN has Node state as UNKNOWN for: " + node.getBaseURL());
+            } else if (node.getState() == NodeState.UP) {
+                log.info("CN has Node state as UP for: " + node.getBaseURL());
+            }
+            
             log.info("pinging MN: " + node.getBaseURL());
             
-            try {
-                MNCallAdapter mn = new MNCallAdapter(getSession(cnSubmitter), node, "v1");
-                mn.ping();
-                log.info("success pinging v1 endpoint " + node.getBaseURL());
-            } catch (Exception e) {
-                log.error("WARNING: failed pinging v1 endpoint " + node.getBaseURL());
-                errors.add("WARNING: failed pinging v1 endpoint " + node.getBaseURL());
+            boolean pingV1 = true;
+            boolean pingV2 = true;
+            
+            Services services = node.getServices();
+            boolean foundV1Service = false;
+            boolean foundV2Service = false;
+            if (services == null) {
+                log.error("ERROR: null services for " + node.getBaseURL());
+                errors.add("ERROR: null services for " + node.getBaseURL());
+            } else {
+                for (Service s : services.getServiceList()) {
+                    String ver = s.getVersion();
+                    if (ver.equalsIgnoreCase("v1"))
+                        foundV1Service = true;
+                    else if (ver.equalsIgnoreCase("v2"))
+                        foundV2Service = true;
+                }
+                if (!foundV1Service)
+                    pingV1 = false;
+                if (!foundV2Service)
+                    pingV2 = false;
             }
             
-            try {
-                MNCallAdapter mn = new MNCallAdapter(getSession(cnSubmitter), node, "v2");
-                mn.ping();
-                log.error("success pinging v2 endpoint " + node.getBaseURL());
-            } catch (Exception e) {
-                log.error("WARNING: failed pinging v2 endpoint " + node.getBaseURL());
-                errors.add("WARNING: failed pinging v2 endpoint " + node.getBaseURL());
-            }
+            if (pingV1)
+                try {
+                    MNCallAdapter mn = new MNCallAdapter(getSession(cnSubmitter), node, "v1");
+                    mn.ping();
+                    log.info("success pinging v1 endpoint " + node.getBaseURL());
+                } catch (Exception e) {
+                    log.error("WARNING: failed pinging v1 endpoint " + node.getBaseURL());
+                    errors.add("WARNING: failed pinging v1 endpoint " + node.getBaseURL());
+                }
             
-            if (node.getState() == NodeState.DOWN) {
-                log.warn("WARNING: Node state is DOWN: " + node.getBaseURL());
-                errors.add("WARNING: Node state is DOWN: " + node.getBaseURL());
-            } else if (node.getState() == NodeState.UNKNOWN) {
-                log.warn("WARNING: Node state is UNKNOWN: " + node.getBaseURL());
-                errors.add("WARNING: Node state is UNKNOWN: " + node.getBaseURL());
-            } else if (node.getState() == NodeState.UP) {
-                log.info("Node state is UP: " + node.getBaseURL());
-            }
+            if (pingV2)
+                try {
+                    MNCallAdapter mn = new MNCallAdapter(getSession(cnSubmitter), node, "v2");
+                    mn.ping();
+                    log.error("success pinging v2 endpoint " + node.getBaseURL());
+                } catch (Exception e) {
+                    log.error("WARNING: failed pinging v2 endpoint " + node.getBaseURL());
+                    errors.add("WARNING: failed pinging v2 endpoint " + node.getBaseURL());
+                }
         }
         
-        ourputResults(errors);
+        outputResults(errors);
     }
 
     @Test
@@ -228,7 +254,7 @@ public class EnvironmentStatusTest extends ContextAwareTestCaseDataone {
                         + ") and CN (" + cns.get(0).getBaseURL() + ")");
         }
         
-        ourputResults(errors);
+        outputResults(errors);
     }
     
     @Test
@@ -274,7 +300,7 @@ public class EnvironmentStatusTest extends ContextAwareTestCaseDataone {
                         + ") and CN (" + cns.get(0).getBaseURL() + ")");
         }
         
-        ourputResults(errors);
+        outputResults(errors);
     }
     
     @Test
@@ -367,11 +393,11 @@ public class EnvironmentStatusTest extends ContextAwareTestCaseDataone {
             }
         }
         
-        ourputResults(errors);
+        outputResults(errors);
     }
     
     
-    private void ourputResults(ArrayList<String> errors) {
+    private void outputResults(ArrayList<String> errors) {
         String results = "";
         if (errors.size() > 0) {
             results += "----------------------------------------------------------------------\n";
