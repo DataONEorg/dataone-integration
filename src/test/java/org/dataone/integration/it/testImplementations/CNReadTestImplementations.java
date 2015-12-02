@@ -58,6 +58,13 @@ public class CNReadTestImplementations extends ContextAwareAdapter {
         String currentUrl = node.getBaseURL();
         printTestHeader("testResolve(...) vs. node: " + currentUrl);
 
+        NodeList nodes = null;
+        try {
+            nodes = callAdapter.listNodes();
+        } catch (Exception e) {
+            // ignore
+        }
+        
         int maxRetryAttempts = 20;
         try {
             ObjectList ol = catc.procureObjectList(callAdapter);
@@ -69,11 +76,14 @@ public class CNReadTestImplementations extends ContextAwareAdapter {
                     pid = ol.getObjectInfo(i).getIdentifier();
                     
                     // try to ensure the ovject's authMN is in the environment still
+                    if (nodes == null)
+                        break;
+                    
                     if (maxRetryAttempts > 0) {
                         maxRetryAttempts--;
                         NodeReference authMnRef = sysmeta.getAuthoritativeMemberNode();
                         authMnRef.getValue();
-                        NodeList nodes = callAdapter.listNodes();
+                        
                         for (Node n : nodes.getNodeList()) {
                             if(n.getType() != NodeType.MN)
                                 continue;
