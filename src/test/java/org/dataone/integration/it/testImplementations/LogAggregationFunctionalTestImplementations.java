@@ -608,6 +608,7 @@ public class LogAggregationFunctionalTestImplementations extends ContextAwareTes
     public void testCnGetLogRecords_Aggregating() {
     
         int numMNs = this.mns.size();
+        ArrayList<Integer> skippedMNs = new ArrayList<Integer>();
         ArrayList<MNCallAdapter> mnCallAdapters = new ArrayList<MNCallAdapter>(numMNs);
         for (Node n : this.mns) {
             if (v1v2mns.contains(n) || v2mns.contains(n))   // if v2 node
@@ -624,15 +625,16 @@ public class LogAggregationFunctionalTestImplementations extends ContextAwareTes
         
         // create objects
         for (int i=0; i<numMNs; i++) {
-            Identifier pid = null;
+            String mnId = mnCallAdapters.get(i).getNodeId().getValue().replaceAll(":", "");
+            Identifier pid = D1TypeBuilder.buildIdentifier("testCnGetLogRecords_Aggregating_" + mnId + "_obj2");
+            pids.add(pid.getValue());
             try {
-                String mnId = mnCallAdapters.get(i).getNodeId().getValue().replaceAll(":", "");
-                pid = D1TypeBuilder.buildIdentifier("testCnGetLogRecords_Aggregating_" + mnId + "_obj2");
                 procureTestObject(mnCallAdapters.get(i), publicAccessRule, pid);
-                pids.add(pid.getValue());
             } catch (Exception e) {
-                throw new AssertionError("testCnGetLogRecords_Aggregating: Unable to get or create a test object "
-                        + "with pid: " + pid.getValue() + ", " + e.getClass().getSimpleName() + " : " + e.getMessage(), e);
+                skippedMNs.add(i);
+                log.error("testCnGetLogRecords_Aggregating: Unable to get or create a test object "
+                        + "with pid: " + pid.getValue() + " on MN " + mnCallAdapters.get(i).getNodeBaseServiceUrl() 
+                        + " (mn #" + i + ")" + ", " + e.getClass().getSimpleName() + " : " + e.getMessage(), e);
             }
         }
 
@@ -644,6 +646,15 @@ public class LogAggregationFunctionalTestImplementations extends ContextAwareTes
 
         // check for log on originating MN
         for (int i=0; i<numMNs; i++) {
+            
+            boolean skip = false;
+            for (Integer skipped: skippedMNs)
+                if (i == skipped)
+                    skip = true;
+            
+            if (skip)
+                continue;
+            
             Identifier pid = null;
             try {
                 MNCallAdapter mn = mnCallAdapters.get(i);
@@ -653,6 +664,9 @@ public class LogAggregationFunctionalTestImplementations extends ContextAwareTes
                         + pid.getValue() + " on originating mn " + mnCallAdapters.get(i).getNodeBaseServiceUrl(), 
                         logRecords != null && logRecords.getLogEntryList() != null && logRecords.getLogEntryList().size() > 0);
             } catch (Exception e) {
+                log.info("pid: " + pid);
+                log.info("call adapter: " + mnCallAdapters.get(i));
+                
                 throw new AssertionError("testCnGetLogRecords_Aggregating: Unable to get record for pid: " 
                         + pid.getValue() + " on originating mn " + mnCallAdapters.get(i).getNodeBaseServiceUrl(), e);
             }
@@ -670,6 +684,15 @@ public class LogAggregationFunctionalTestImplementations extends ContextAwareTes
         
         // check for logs on CN
         for (int i=0; i<numMNs; i++) {
+            
+            boolean skip = false;
+            for (Integer skipped: skippedMNs)
+                if (i == skipped)
+                    skip = true;
+            
+            if (skip)
+                continue;
+            
             Log logRecords = null;
             try {
                 logRecords = cn.getLogRecords(null, null, null, null, pids.get(i), null, null);
