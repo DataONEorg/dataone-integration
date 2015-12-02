@@ -18,10 +18,14 @@ import org.dataone.integration.webTest.WebTestName;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Node;
+import org.dataone.service.types.v1.NodeReference;
+import org.dataone.service.types.v1.NodeType;
 import org.dataone.service.types.v1.ObjectList;
 import org.dataone.service.types.v1.ObjectLocationList;
 import org.dataone.service.types.v1_1.QueryEngineDescription;
 import org.dataone.service.types.v1_1.QueryEngineList;
+import org.dataone.service.types.v2.NodeList;
+import org.dataone.service.types.v2.SystemMetadata;
 import org.dataone.service.util.Constants;
 import org.dataone.service.util.D1Url;
 
@@ -54,16 +58,34 @@ public class CNReadTestImplementations extends ContextAwareAdapter {
         String currentUrl = node.getBaseURL();
         printTestHeader("testResolve(...) vs. node: " + currentUrl);
 
+        int maxRetryAttempts = 20;
         try {
             ObjectList ol = catc.procureObjectList(callAdapter);
             Identifier pid = null;
+            foundObjectToUse:
             for (int i = 0; i < ol.sizeObjectInfoList(); i++) {
                 try {
-                    callAdapter.getSystemMetadata(null, ol.getObjectInfo(i).getIdentifier());
+                    SystemMetadata sysmeta = callAdapter.getSystemMetadata(null, ol.getObjectInfo(i).getIdentifier());
                     pid = ol.getObjectInfo(i).getIdentifier();
+                    
+                    // try to ensure the ovject's authMN is in the environment still
+                    if (maxRetryAttempts > 0) {
+                        maxRetryAttempts--;
+                        NodeReference authMnRef = sysmeta.getAuthoritativeMemberNode();
+                        authMnRef.getValue();
+                        NodeList nodes = callAdapter.listNodes();
+                        for (Node n : nodes.getNodeList()) {
+                            if(n.getType() != NodeType.MN)
+                                continue;
+                            
+                            // our object's authMN is in the environment? use that object
+                            if(authMnRef.equals(n.getIdentifier()))
+                                break foundObjectToUse;
+                        }
+                    }
                     break;
                 } catch (BaseException be) {
-                    ;
+                    ; // continue through ObjectInfoList if getMetadata() fails
                 }
             }
             if (pid != null) {
