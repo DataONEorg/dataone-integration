@@ -35,7 +35,6 @@ import org.dataone.service.util.D1Url;
  */
 public class CNReadTestImplementations extends ContextAwareAdapter {
 
-    private static Log log = LogFactory.getLog(CNReadTestImplementations.class);
     private static final String unicodeIdPrefix = "testCNodeTier1";
     private static final String identifierEncodingTestFile = "/d1_testdocs/encodingTestSet/testUnicodeStrings.utf8.txt";
     private Vector<String> unicodeString = null;
@@ -74,7 +73,7 @@ public class CNReadTestImplementations extends ContextAwareAdapter {
                 try {
                     SystemMetadata sysmeta = callAdapter.getSystemMetadata(null, ol.getObjectInfo(i).getIdentifier());
                     pid = ol.getObjectInfo(i).getIdentifier();
-                    
+
                     // try to ensure the ovject's authMN is in the environment still
                     if (nodes == null)
                         break;
@@ -83,7 +82,6 @@ public class CNReadTestImplementations extends ContextAwareAdapter {
                         maxRetryAttempts--;
                         NodeReference authMnRef = sysmeta.getAuthoritativeMemberNode();
                         authMnRef.getValue();
-                        
                         for (Node n : nodes.getNodeList()) {
                             if(n.getType() != NodeType.MN)
                                 continue;
@@ -93,7 +91,6 @@ public class CNReadTestImplementations extends ContextAwareAdapter {
                                 break foundObjectToUse;
                         }
                     }
-                    break;
                 } catch (BaseException be) {
                     ; // continue through ObjectInfoList if getMetadata() fails
                 }
