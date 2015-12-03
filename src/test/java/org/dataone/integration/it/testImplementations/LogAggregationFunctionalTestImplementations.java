@@ -646,13 +646,7 @@ public class LogAggregationFunctionalTestImplementations extends ContextAwareTes
 
         // check for log on originating MN
         for (int i=0; i<numMNs; i++) {
-            
-            boolean skip = false;
-            for (Integer skipped: skippedMNs)
-                if (i == skipped)
-                    skip = true;
-            
-            if (skip)
+            if (skippedMNs.contains(i))
                 continue;
             
             Identifier pid = null;
@@ -684,13 +678,7 @@ public class LogAggregationFunctionalTestImplementations extends ContextAwareTes
         
         // check for logs on CN
         for (int i=0; i<numMNs; i++) {
-            
-            boolean skip = false;
-            for (Integer skipped: skippedMNs)
-                if (i == skipped)
-                    skip = true;
-            
-            if (skip)
+            if (skippedMNs.contains(i))
                 continue;
             
             Log logRecords = null;
@@ -866,6 +854,7 @@ public class LogAggregationFunctionalTestImplementations extends ContextAwareTes
         int numMNs = this.mns.size();
         ArrayList<String> mnIds = new ArrayList<String>(numMNs);
         ArrayList<MNCallAdapter> mnCallAdapters = new ArrayList<MNCallAdapter>(numMNs);
+        ArrayList<Integer> skippedMNs = new ArrayList<Integer>();
         for (Node n : this.mns) {
             mnCallAdapters.add(new MNCallAdapter(getSession(cnSubmitter), n, "v1"));
             mnIds.add(n.getIdentifier().getValue().replaceAll(":", ""));
@@ -898,7 +887,8 @@ public class LogAggregationFunctionalTestImplementations extends ContextAwareTes
                 procureTestObject(mnCallAdapters.get(i), testPersonAccessRule, testPersonObjPid);
                 procureTestObject(mnCallAdapters.get(i), testRightsHolderAccessRule, testRightsHolderObjPid);
             } catch (Exception e) {
-                throw new AssertionError("testCnGetLogRecords_Access: Unable to get or create a test object", e);
+                skippedMNs.add(i);
+                log.error("testCnGetLogRecords_Access: Unable to get or create a test object on MN " + mnCallAdapters.get(i).getNodeBaseServiceUrl(), e);
             }
         }
 
@@ -914,6 +904,9 @@ public class LogAggregationFunctionalTestImplementations extends ContextAwareTes
         ArrayList<String> errors = new ArrayList<String>();
         
         for (int i=0; i<numMNs; i++) {
+            if (skippedMNs.contains(i))
+                continue;
+            
             Log publicLogRecords = null;
             Log testPersonLogRecords = null;
             Log testRightsHolderLogRecords = null;
