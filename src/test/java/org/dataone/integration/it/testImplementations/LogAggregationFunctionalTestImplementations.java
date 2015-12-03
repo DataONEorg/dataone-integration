@@ -476,19 +476,25 @@ public class LogAggregationFunctionalTestImplementations extends ContextAwareTes
         
         // check result count
         if ( publicObjContents.existingLogs == 0 ) 
-            errors.add("Query run by public subject should retrieve a positive result count for public-created object.");
+            errors.add("Query run by public subject should retrieve a positive result count for public-created object. For MN " + mnPublicCaller.getNodeBaseServiceUrl() + ". "
+                    + "pid: " + publicPid.getValue());
         if ( personObjContents.existingLogs != 0 ) 
-            errors.add("Query run by public subject should retrieve a zero result count for testPerson-created object.");
+            errors.add("Query run by public subject should retrieve a zero result count for testPerson-created object. For MN " + mnPublicCaller.getNodeBaseServiceUrl() + ". "
+                    + "pid: " + testPersonPid.getValue());
         if ( rightsHolderObjContents.existingLogs != 0 ) 
-            errors.add("Query run by public subject should retrieve a zero result count for testRightsHolder-created object.");
+            errors.add("Query run by public subject should retrieve a zero result count for testRightsHolder-created object. For MN " + mnPublicCaller.getNodeBaseServiceUrl() + ". "
+                    + "pid: " + testRightsHolderPid.getValue());
         
         // check result docs
         if ( publicObjContents.docsReturned == 0 ) 
-            errors.add("Query run by public subject should retrieve result docs for public-created object.");
+            errors.add("Query run by public subject should retrieve result docs for public-created object. For MN " + mnPublicCaller.getNodeBaseServiceUrl() + ". "
+                    + "pid: " + publicPid.getValue());
         if ( personObjContents.docsReturned != 0 ) 
-            errors.add("Query run by public subject should NOT retrieve result docs for testPerson-created object.");
+            errors.add("Query run by public subject should NOT retrieve result docs for testPerson-created object. For MN " + mnPublicCaller.getNodeBaseServiceUrl() + ". "
+                    + "pid: " + testPersonPid.getValue());
         if ( rightsHolderObjContents.docsReturned != 0 ) 
-            errors.add("Query run by public subject should NOT retrieve result docs for testRightsHolder-created object.");
+            errors.add("Query run by public subject should NOT retrieve result docs for testRightsHolder-created object. For MN " + mnPublicCaller.getNodeBaseServiceUrl() + ". "
+                    + "pid: " + testRightsHolderPid.getValue());
         
         InputStream testPersonQueryPublicObj = null;
         InputStream testPersonQueryPersonObj = null;
@@ -507,19 +513,25 @@ public class LogAggregationFunctionalTestImplementations extends ContextAwareTes
         
         // check result count
         if ( publicObjContents.existingLogs == 0 )
-            errors.add("Query run by testPerson subject should retrieve a positive result count for public-created object.");
+            errors.add("Query run by testPerson subject should retrieve a positive result count for public-created object. For MN " + mnTestPersonCaller.getNodeBaseServiceUrl() + ". "
+                    + "pid: " + publicPid.getValue());
         if ( personObjContents.existingLogs == 0 )
-            errors.add("Query run by testPerson subject should retrieve a positive result count for testPerson-created object.");
+            errors.add("Query run by testPerson subject should retrieve a positive result count for testPerson-created object. For MN " + mnTestPersonCaller.getNodeBaseServiceUrl() + ". "
+                    + "pid: " + testPersonPid.getValue());
         if ( rightsHolderObjContents.existingLogs != 0 )
-            errors.add("Query run by testPerson subject should retrieve a zero result count for testRightsHolder-created object.");
+            errors.add("Query run by testPerson subject should retrieve a zero result count for testRightsHolder-created object. For MN " + mnTestPersonCaller.getNodeBaseServiceUrl() + ". "
+                    + "pid: " + testRightsHolderPid.getValue());
         
         // check result docs
         if ( publicObjContents.docsReturned == 0 )
-            errors.add("Query run by testPerson subject should retrieve result docs for public-created object.");
+            errors.add("Query run by testPerson subject should retrieve result docs for public-created object. For MN " + mnTestPersonCaller.getNodeBaseServiceUrl() + ". "
+                    + "pid: " + publicPid.getValue());
         if ( personObjContents.docsReturned == 0 )
-            errors.add("Query run by testPerson subject should retrieve result docs for testPerson-created object.");
+            errors.add("Query run by testPerson subject should retrieve result docs for testPerson-created object. For MN " + mnTestPersonCaller.getNodeBaseServiceUrl() + ". "
+                    + "pid: " + testPersonPid.getValue());
         if ( rightsHolderObjContents.docsReturned != 0 )
-            errors.add("Query run by testPerson subject should NOT retrieve result docs for testRightsHolder-created object.");
+            errors.add("Query run by testPerson subject should NOT retrieve result docs for testRightsHolder-created object. For MN " + mnTestPersonCaller.getNodeBaseServiceUrl() + ". "
+                    + "pid: " + testRightsHolderPid.getValue());
         
         InputStream testRightsHolderQueryPublicObj = null;
         InputStream testRightsHolderQueryPersonObj = null;
@@ -538,19 +550,25 @@ public class LogAggregationFunctionalTestImplementations extends ContextAwareTes
         
         // check result count
         if ( publicObjContents.existingLogs == 0 ) 
-            errors.add("Query run by testRightsHolder subject should retrieve a positive result count for public-created object.");
+            errors.add("Query run by testRightsHolder subject should retrieve a positive result count for public-created object. For MN " + mnTestRightsHolderCaller.getNodeBaseServiceUrl() + ". "
+                    + "pid: " + publicPid.getValue());
         if ( personObjContents.existingLogs != 0 ) 
-            errors.add("Query run by testRightsHolder subject should NOT retrieve a positive result count for testPerson-created object.");
+            errors.add("Query run by testRightsHolder subject should NOT retrieve a positive result count for testPerson-created object. For MN " + mnTestRightsHolderCaller.getNodeBaseServiceUrl() + ". "
+                    + "pid: " + testPersonPid.getValue());
         if ( rightsHolderObjContents.existingLogs == 0 ) 
-            errors.add("Query run by testRightsHolder subject should retrieve a positive result count for testRightsHolder-created object.");
+            errors.add("Query run by testRightsHolder subject should retrieve a positive result count for testRightsHolder-created object. For MN " + mnTestRightsHolderCaller.getNodeBaseServiceUrl() + ". "
+                    + "pid: " + testRightsHolderPid.getValue());
         
         // check result docs
         if ( publicObjContents.docsReturned == 0 ) 
-            errors.add("Query run by testRightsHolder subject should retrieve result docs for public-created object.");
+            errors.add("Query run by testRightsHolder subject should retrieve result docs for public-created object. For MN " + mnTestRightsHolderCaller.getNodeBaseServiceUrl() + ". "
+                    + "pid: " + publicPid.getValue());
         if ( personObjContents.docsReturned != 0 ) 
-            errors.add("Query run by testRightsHolder subject should NOT retrieve result docs for testPerson-created object.");
+            errors.add("Query run by testRightsHolder subject should NOT retrieve result docs for testPerson-created object. For MN " + mnTestRightsHolderCaller.getNodeBaseServiceUrl() + ". "
+                    + "pid: " + testPersonPid.getValue());
         if ( rightsHolderObjContents.docsReturned == 0 ) 
-            errors.add("Query run by testRightsHolder subject should retrieve result docs for testRightsHolder-created object.");
+            errors.add("Query run by testRightsHolder subject should retrieve result docs for testRightsHolder-created object. For MN " + mnTestRightsHolderCaller.getNodeBaseServiceUrl() + ". "
+                    + "pid: " + testRightsHolderPid.getValue());
         
         
         InputStream cnQueryPublicObj = null;
@@ -768,7 +786,7 @@ public class LogAggregationFunctionalTestImplementations extends ContextAwareTes
             queryResult_id = mnCnCaller.query(null, "solr", "q=identifier:" + pidEncoded);
             LogContents queryContents = getNumQueryContents(queryResult_id);
             if (queryContents.existingLogs == 0)
-                errors.add("query made by as CN should return some results when filtering on pid");
+                errors.add("query made by as CN should return some results when filtering on pid for " + mnCnCaller.getLatestRequestUrl());
         } catch (Exception e) {
             errors.add(mnCnCaller.getLatestRequestUrl() + " Unable to run solr query with params: identifier. " 
                     + "Got exception: " + e.getClass().getSimpleName() + " : " + e.getMessage());
@@ -781,7 +799,7 @@ public class LogAggregationFunctionalTestImplementations extends ContextAwareTes
             queryResult_title = mnCnCaller.query(null, "solr", "q=title:" + titleEncoded);
             LogContents queryContents = getNumQueryContents(queryResult_title);
             if (queryContents.existingLogs == 0)
-                errors.add("query made by as CN should return some results when filtering on title");
+                errors.add("query made by as CN should return some results when filtering on title for " + mnCnCaller.getLatestRequestUrl());
         } catch (Exception e) {
             errors.add(mnCnCaller.getLatestRequestUrl() + " Unable to run solr query with params: title. " 
                     + "Got exception: " + e.getClass().getSimpleName() + " : " + e.getMessage());
@@ -794,7 +812,7 @@ public class LogAggregationFunctionalTestImplementations extends ContextAwareTes
             queryResult_author = mnCnCaller.query(null, "solr", "q=author:" + authorEncoded);
             LogContents queryContents = getNumQueryContents(queryResult_author);
             if (queryContents.existingLogs == 0)
-                errors.add("query made by as CN should return some results when filtering on author");
+                errors.add("query made by as CN should return some results when filtering on author for " + mnCnCaller.getLatestRequestUrl());
         } catch (Exception e) {
             errors.add(mnCnCaller.getLatestRequestUrl() + " Unable to run solr query with params: author. " 
                     + "Got exception: " + e.getClass().getSimpleName() + " : " + e.getMessage());
@@ -823,7 +841,7 @@ public class LogAggregationFunctionalTestImplementations extends ContextAwareTes
                     + "&q=author:" + authorEncoded);
             LogContents queryContents = getNumQueryContents(queryResult_pidTitleAuthor);
             if (queryContents.existingLogs == 0)
-            errors.add("query made by as CN should return some results when filtering on identifier, title, and author");
+            errors.add("query made by as CN should return some results when filtering on identifier, title, and author for " + mnCnCaller.getLatestRequestUrl());
         } catch (Exception e) {
             errors.add(mnCnCaller.getLatestRequestUrl() + " Unable to run solr query with params: identifier, title, author. " 
                     + "Got exception: " + e.getClass().getSimpleName() + " : " + e.getMessage());
