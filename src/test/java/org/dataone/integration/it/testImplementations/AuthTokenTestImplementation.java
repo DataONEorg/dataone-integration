@@ -2,12 +2,8 @@ package org.dataone.integration.it.testImplementations;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.InvocationTargetException;
-import java.security.NoSuchAlgorithmException;
-import java.text.ParseException;
 import java.util.Iterator;
 
-import org.dataone.client.exception.ClientSideException;
 import org.dataone.integration.ContextAwareTestCaseDataone;
 import org.dataone.integration.ExampleUtilities;
 import org.dataone.integration.adapters.CNCallAdapter;
@@ -15,16 +11,6 @@ import org.dataone.integration.it.ContextAwareAdapter;
 import org.dataone.integration.webTest.WebTestDescription;
 import org.dataone.integration.webTest.WebTestName;
 import org.dataone.portal.TokenGenerator;
-import org.dataone.service.exceptions.IdentifierNotUnique;
-import org.dataone.service.exceptions.InsufficientResources;
-import org.dataone.service.exceptions.InvalidRequest;
-import org.dataone.service.exceptions.InvalidSystemMetadata;
-import org.dataone.service.exceptions.InvalidToken;
-import org.dataone.service.exceptions.NotAuthorized;
-import org.dataone.service.exceptions.NotFound;
-import org.dataone.service.exceptions.NotImplemented;
-import org.dataone.service.exceptions.ServiceFailure;
-import org.dataone.service.exceptions.UnsupportedType;
 import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Node;
 import org.dataone.service.types.v1.Permission;
@@ -32,9 +18,6 @@ import org.dataone.service.types.v1.Session;
 import org.dataone.service.types.v2.SystemMetadata;
 import org.dataone.service.types.v2.TypeFactory;
 import org.dataone.service.util.Constants;
-
-import com.nimbusds.jose.JOSEException;
-import com.nimbusds.jwt.SignedJWT;
 
 public class AuthTokenTestImplementation extends ContextAwareAdapter {
 
@@ -74,7 +57,7 @@ public class AuthTokenTestImplementation extends ContextAwareAdapter {
 
     public void testCnIsAuthorized(Node node, String version) {
 
-        String userId = "test";
+        String userId = "testId";
         String fullName = "Jane Scientist";
         Session tokenSession = getTokenSesssion(userId, fullName);
         
@@ -106,7 +89,8 @@ public class AuthTokenTestImplementation extends ContextAwareAdapter {
             callAdapter.create(tokenSession, pid, (InputStream) dataPackage[1], sysmeta);
         } catch (Exception e) {
             throw new AssertionError("Unable to create object (" + pid + ") with token (" + userId + ", " + fullName + "). "
-                    + "got " + e.getClass().getSimpleName() + " : " + e.getMessage(), e);
+                    + "got " + e.getClass().getSimpleName() + " : " + e.getMessage() 
+                    + " from " + callAdapter.getLatestRequestUrl(), e);
         }
      
         // CN.create() so no need to wait for sync 
@@ -115,7 +99,8 @@ public class AuthTokenTestImplementation extends ContextAwareAdapter {
             callAdapter.isAuthorized(tokenSession, pid, Permission.READ);
         } catch (Exception e) {
             throw new AssertionError("isAuthorized failed for object (" + pid + ") with token (" + userId + ", " + fullName + "). "
-                    + "got " + e.getClass().getSimpleName() + " : " + e.getMessage(), e);
+                    + "got " + e.getClass().getSimpleName() + " : " + e.getMessage()
+                    + " from " + callAdapter.getLatestRequestUrl(), e);
         }
     }
     
