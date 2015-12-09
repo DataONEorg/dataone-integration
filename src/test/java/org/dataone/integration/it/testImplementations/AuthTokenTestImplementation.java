@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Iterator;
 
+import org.dataone.configuration.Settings;
 import org.dataone.integration.ContextAwareTestCaseDataone;
 import org.dataone.integration.ExampleUtilities;
 import org.dataone.integration.adapters.CNCallAdapter;
@@ -24,16 +25,12 @@ public class AuthTokenTestImplementation extends ContextAwareAdapter {
 
     public AuthTokenTestImplementation(ContextAwareTestCaseDataone catc) {
         super(catc);
-        
-        // FIXME only for debugging; remove:
-//        Settings.getConfiguration().setProperty("cn.server.privatekey.filename", "C:\\Users\\Andrei\\certs\\cnSandboxUCSB1.crt");
-//        Settings.getConfiguration().setProperty("cn.server.publiccert.filename", "C:\\Users\\Andrei\\certs\\cnSandboxUCSB1.crt");
     }
     
     private Session getTokenSesssion(String userId, String fullName) {
         
         String token = null; 
-                
+        
         try {
             token = TokenGenerator.getInstance().getJWT(userId, fullName);
         } catch (Exception e) {

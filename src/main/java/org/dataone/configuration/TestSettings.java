@@ -42,7 +42,8 @@ public class TestSettings implements IntegrationTestContextParameters {
 	
     /** certain tests will fail if there are no v2 MNs known to the CN. setting this to false will make these tests pass */ 
     public final static String CONTEXT_NODELIST_CONTAINS_V2_MN = "nodelist.contains.v2.mn";
-	
+    public final static String PRIVATE_KEY_FILE = "cn.server.privatekey.filename";
+    public final static String PUBLIC_CERT_FILE = "cn.server.publiccert.filename";;
 
 	/**
 	 * set up the test configurations, following some simple logic:
@@ -90,6 +91,11 @@ public class TestSettings implements IntegrationTestContextParameters {
         configuration.setProperty(CONTEXT_NODELIST_CONTAINS_V2_MN,
                 System.getProperty(CONTEXT_NODELIST_CONTAINS_V2_MN,System.getenv(CONTEXT_NODELIST_CONTAINS_V2_MN)));
 		
+        configuration.setProperty(PRIVATE_KEY_FILE,
+                System.getProperty(PRIVATE_KEY_FILE, System.getenv(PRIVATE_KEY_FILE)));
+        configuration.setProperty(PRIVATE_KEY_FILE,
+                System.getProperty(PRIVATE_KEY_FILE,System.getenv(PRIVATE_KEY_FILE)));
+        
 		// now load designated context-specific properties file
 		// the context passed in from the system properties (or environment) take precedence
 		String contextLabel = determineContext(configuration);
