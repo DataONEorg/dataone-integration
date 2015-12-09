@@ -93,8 +93,8 @@ public class TestSettings implements IntegrationTestContextParameters {
 		
         configuration.setProperty(PRIVATE_KEY_FILE,
                 System.getProperty(PRIVATE_KEY_FILE, System.getenv(PRIVATE_KEY_FILE)));
-        configuration.setProperty(PRIVATE_KEY_FILE,
-                System.getProperty(PRIVATE_KEY_FILE,System.getenv(PRIVATE_KEY_FILE)));
+        configuration.setProperty(PUBLIC_CERT_FILE,
+                System.getProperty(PUBLIC_CERT_FILE,System.getenv(PUBLIC_CERT_FILE)));
         
 		// now load designated context-specific properties file
 		// the context passed in from the system properties (or environment) take precedence
