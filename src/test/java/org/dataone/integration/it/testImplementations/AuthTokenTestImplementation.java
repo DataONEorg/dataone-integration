@@ -7,6 +7,7 @@ import java.util.Iterator;
 import org.dataone.integration.ContextAwareTestCaseDataone;
 import org.dataone.integration.ExampleUtilities;
 import org.dataone.integration.adapters.CNCallAdapter;
+import org.dataone.integration.adapters.MNCallAdapter;
 import org.dataone.integration.it.ContextAwareAdapter;
 import org.dataone.integration.webTest.WebTestDescription;
 import org.dataone.integration.webTest.WebTestName;
@@ -23,6 +24,10 @@ public class AuthTokenTestImplementation extends ContextAwareAdapter {
 
     public AuthTokenTestImplementation(ContextAwareTestCaseDataone catc) {
         super(catc);
+        
+        // FIXME only for debugging; remove:
+//        Settings.getConfiguration().setProperty("cn.server.privatekey.filename", "C:\\Users\\Andrei\\certs\\cnSandboxUCSB1.crt");
+//        Settings.getConfiguration().setProperty("cn.server.publiccert.filename", "C:\\Users\\Andrei\\certs\\cnSandboxUCSB1.crt");
     }
     
     private Session getTokenSesssion(String userId, String fullName) {
@@ -62,7 +67,7 @@ public class AuthTokenTestImplementation extends ContextAwareAdapter {
         Session tokenSession = getTokenSesssion(userId, fullName);
         
         // calls will override public subject with tokenSession
-        CNCallAdapter callAdapter = new CNCallAdapter(getSession(Constants.SUBJECT_PUBLIC), node, version);
+        CNCallAdapter cn = new CNCallAdapter(getSession(Constants.SUBJECT_PUBLIC), node, version);
         String currentUrl = node.getBaseURL();
         printTestHeader("testCnIsAuthorized(...) vs. node: " + currentUrl);
         
@@ -86,22 +91,78 @@ public class AuthTokenTestImplementation extends ContextAwareAdapter {
         }
         
         try {
-            callAdapter.create(tokenSession, pid, (InputStream) dataPackage[1], sysmeta);
+            cn.create(tokenSession, pid, (InputStream) dataPackage[1], sysmeta);
         } catch (Exception e) {
             throw new AssertionError("Unable to create object (" + pid + ") with token (" + userId + ", " + fullName + "). "
                     + "got " + e.getClass().getSimpleName() + " : " + e.getMessage() 
-                    + " from " + callAdapter.getLatestRequestUrl(), e);
+                    + " from " + cn.getLatestRequestUrl(), e);
         }
      
         // CN.create() so no need to wait for sync 
         
         try {
-            callAdapter.isAuthorized(tokenSession, pid, Permission.READ);
+            cn.isAuthorized(tokenSession, pid, Permission.READ);
         } catch (Exception e) {
             throw new AssertionError("isAuthorized failed for object (" + pid + ") with token (" + userId + ", " + fullName + "). "
                     + "got " + e.getClass().getSimpleName() + " : " + e.getMessage()
-                    + " from " + callAdapter.getLatestRequestUrl(), e);
+                    + " from " + cn.getLatestRequestUrl(), e);
         }
     }
     
+    @WebTestName("MN.isAuthorized with token")
+    @WebTestDescription("tests that using an auth token to create an object works and "
+            + "that MN.isAuthorized then succeeds and returns true for that token")
+    public void testMnIsAuthorized(Iterator<Node> nodeIterator, String version) {
+        while (nodeIterator.hasNext())
+            testMnIsAuthorized(nodeIterator.next(), version);
+    }
+
+    public void testMnIsAuthorized(Node node, String version) {
+
+        String userId = "testId";
+        String fullName = "Jane Scientist";
+        Session tokenSession = getTokenSesssion(userId, fullName);
+        
+        // calls will override public subject with tokenSession
+        MNCallAdapter mn = new MNCallAdapter(getSession(Constants.SUBJECT_PUBLIC), node, version);
+        String currentUrl = node.getBaseURL();
+        printTestHeader("testCnIsAuthorized(...) vs. node: " + currentUrl);
+        
+        Object[] dataPackage;
+        try {
+            dataPackage = ExampleUtilities.generateTestSciDataPackage(
+                    "testCnIsAuthorized", true, userId);
+        } catch (Exception e) {
+            throw new AssertionError("Unable to generate a test object! "
+                    + "got " + e.getClass().getSimpleName() + " : " + e.getMessage(), e);
+        }
+        
+        org.dataone.service.types.v1.SystemMetadata sysmetaV1 = (org.dataone.service.types.v1.SystemMetadata) dataPackage[2];
+        Identifier pid = (Identifier) dataPackage[0];
+        SystemMetadata sysmeta;
+        try {
+            sysmeta = TypeFactory.convertTypeFromType(sysmetaV1,SystemMetadata.class);
+        } catch (Exception e) {
+            throw new AssertionError("Unable to convert v1 sysmeta to v2 sysmeta. "
+                    + "got " + e.getClass().getSimpleName() + " : " + e.getMessage(), e);
+        }
+        
+        try {
+            mn.create(tokenSession, pid, (InputStream) dataPackage[1], sysmeta);
+        } catch (Exception e) {
+            throw new AssertionError("Unable to create object (" + pid + ") with token (" + userId + ", " + fullName + "). "
+                    + "got " + e.getClass().getSimpleName() + " : " + e.getMessage() 
+                    + " from " + mn.getLatestRequestUrl(), e);
+        }
+     
+        // CN.create() so no need to wait for sync 
+        
+        try {
+            mn.isAuthorized(tokenSession, pid, Permission.READ);
+        } catch (Exception e) {
+            throw new AssertionError("isAuthorized failed for object (" + pid + ") with token (" + userId + ", " + fullName + "). "
+                    + "got " + e.getClass().getSimpleName() + " : " + e.getMessage()
+                    + " from " + mn.getLatestRequestUrl(), e);
+        }
+    }
 }
