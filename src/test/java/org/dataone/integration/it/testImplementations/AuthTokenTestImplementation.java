@@ -65,10 +65,13 @@ public class AuthTokenTestImplementation extends ContextAwareAdapter {
 
     public void testCnIsAuthorized(Node node, String version) {
 
+        // need to find a better way around this, but for now
+        // it makes (mostly) sure that we're only sending calls 
+        // to the CN for which we have the CN cert, otherwise
+        // the token signature can't be verified
         boolean unmSubj = cnSubmitter.toLowerCase().contains("unm");
         boolean ucsbSubj = cnSubmitter.toLowerCase().contains("ucsb");
         boolean orcSubj = cnSubmitter.toLowerCase().contains("orc");
-        
         if (node.getBaseURL().toLowerCase().contains("unm") && !unmSubj)
             return;
         if (node.getBaseURL().toLowerCase().contains("ucsb") && !ucsbSubj)
@@ -88,16 +91,14 @@ public class AuthTokenTestImplementation extends ContextAwareAdapter {
         AccessRule accessRule = new AccessRule();
         accessRule.addSubject(tokenSession.getSubject());
         accessRule.addPermission(Permission.READ);
-        AccessPolicy policy = new AccessPolicy();
-        policy.addAllow(accessRule);
         ReplicationPolicy replPolicy = new ReplicationPolicy();
         replPolicy.setReplicationAllowed(false);
         replPolicy.setNumberReplicas(0);
         
-        Identifier pid = D1TypeBuilder.buildIdentifier("testCnIsAuthorized_token_1");
+        Identifier pid = D1TypeBuilder.buildIdentifier("testCnIsAuthorized_token_5");
         
         try {
-            catc.procureTestObject(cn, accessRule, pid, cnSubmitter, cnSubmitter, replPolicy);
+            catc.procureTestObject(cn, accessRule, pid, cnSubmitter, userId, replPolicy);
         } catch (Exception e) {
             throw new AssertionError("Unable to create object (" + pid + ") with token (" + userId + ", " + fullName + "). "
                     + "got " + e.getClass().getSimpleName() + " : " + e.getMessage() 
@@ -134,27 +135,19 @@ public class AuthTokenTestImplementation extends ContextAwareAdapter {
         String currentUrl = node.getBaseURL();
         printTestHeader("testCnIsAuthorized(...) vs. node: " + currentUrl);
         
-        Object[] dataPackage;
-        try {
-            dataPackage = ExampleUtilities.generateTestSciDataPackage(
-                    "testCnIsAuthorized", true, userId);
-        } catch (Exception e) {
-            throw new AssertionError("Unable to generate a test object! "
-                    + "got " + e.getClass().getSimpleName() + " : " + e.getMessage(), e);
-        }
+        AccessRule accessRule = new AccessRule();
+        accessRule.addSubject(tokenSession.getSubject());
+        accessRule.addPermission(Permission.READ);
+        AccessPolicy policy = new AccessPolicy();
+        policy.addAllow(accessRule);
+        ReplicationPolicy replPolicy = new ReplicationPolicy();
+        replPolicy.setReplicationAllowed(false);
+        replPolicy.setNumberReplicas(0);
         
-        org.dataone.service.types.v1.SystemMetadata sysmetaV1 = (org.dataone.service.types.v1.SystemMetadata) dataPackage[2];
-        Identifier pid = (Identifier) dataPackage[0];
-        SystemMetadata sysmeta;
-        try {
-            sysmeta = TypeFactory.convertTypeFromType(sysmetaV1,SystemMetadata.class);
-        } catch (Exception e) {
-            throw new AssertionError("Unable to convert v1 sysmeta to v2 sysmeta. "
-                    + "got " + e.getClass().getSimpleName() + " : " + e.getMessage(), e);
-        }
+        Identifier pid = D1TypeBuilder.buildIdentifier("testMnIsAuthorized_token_5");
         
         try {
-            mn.create(tokenSession, pid, (InputStream) dataPackage[1], sysmeta);
+            catc.procureTestObject(mn, accessRule, pid, cnSubmitter, userId, replPolicy);
         } catch (Exception e) {
             throw new AssertionError("Unable to create object (" + pid + ") with token (" + userId + ", " + fullName + "). "
                     + "got " + e.getClass().getSimpleName() + " : " + e.getMessage() 
