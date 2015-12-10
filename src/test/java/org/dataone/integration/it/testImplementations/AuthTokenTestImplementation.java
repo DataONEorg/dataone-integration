@@ -131,7 +131,7 @@ public class AuthTokenTestImplementation extends ContextAwareAdapter {
         Session tokenSession = getTokenSesssion(userId, fullName);
         
         // calls will override public subject with tokenSession
-        MNCallAdapter mn = new MNCallAdapter(getSession(Constants.SUBJECT_PUBLIC), node, version);
+        MNCallAdapter mn = new MNCallAdapter(getSession(cnSubmitter), node, version);
         String currentUrl = node.getBaseURL();
         printTestHeader("testCnIsAuthorized(...) vs. node: " + currentUrl);
         
