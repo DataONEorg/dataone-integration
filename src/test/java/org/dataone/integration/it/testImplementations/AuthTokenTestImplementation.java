@@ -1,20 +1,17 @@
 package org.dataone.integration.it.testImplementations;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Iterator;
 
-import org.bouncycastle.asn1.isismtt.x509.ProcurationSyntax;
 import org.dataone.client.v1.types.D1TypeBuilder;
-import org.dataone.configuration.Settings;
 import org.dataone.integration.ContextAwareTestCaseDataone;
-import org.dataone.integration.ExampleUtilities;
 import org.dataone.integration.adapters.CNCallAdapter;
 import org.dataone.integration.adapters.MNCallAdapter;
 import org.dataone.integration.it.ContextAwareAdapter;
 import org.dataone.integration.webTest.WebTestDescription;
 import org.dataone.integration.webTest.WebTestName;
 import org.dataone.portal.TokenGenerator;
+import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.types.v1.AccessPolicy;
 import org.dataone.service.types.v1.AccessRule;
 import org.dataone.service.types.v1.Identifier;
@@ -22,10 +19,6 @@ import org.dataone.service.types.v1.Node;
 import org.dataone.service.types.v1.Permission;
 import org.dataone.service.types.v1.ReplicationPolicy;
 import org.dataone.service.types.v1.Session;
-import org.dataone.service.types.v1.Subject;
-import org.dataone.service.types.v2.SystemMetadata;
-import org.dataone.service.types.v2.TypeFactory;
-import org.dataone.service.util.Constants;
 
 public class AuthTokenTestImplementation extends ContextAwareAdapter {
 
@@ -109,6 +102,11 @@ public class AuthTokenTestImplementation extends ContextAwareAdapter {
         
         try {
             cn.isAuthorized(tokenSession, pid, Permission.READ);
+        } catch (BaseException e) {
+            throw new AssertionError("isAuthorized failed for object (" + pid + ") with token (" 
+                    + userId + ", " + fullName + "). " + "got " + e.getClass().getSimpleName() 
+                    + " [" + e.getCode() + "," + e.getDetail_code() + "] : " + e.getMessage()
+                    + " from " + cn.getLatestRequestUrl(), e);
         } catch (Exception e) {
             throw new AssertionError("isAuthorized failed for object (" + pid + ") with token (" + userId + ", " + fullName + "). "
                     + "got " + e.getClass().getSimpleName() + " : " + e.getMessage()
@@ -158,6 +156,11 @@ public class AuthTokenTestImplementation extends ContextAwareAdapter {
         
         try {
             mn.isAuthorized(tokenSession, pid, Permission.READ);
+        } catch (BaseException e) {
+            throw new AssertionError("isAuthorized failed for object (" + pid + ") with token (" 
+                    + userId + ", " + fullName + "). " + "got " + e.getClass().getSimpleName() 
+                    + " [" + e.getCode() + "," + e.getDetail_code() + "] : " + e.getMessage()
+                    + " from " + mn.getLatestRequestUrl(), e);
         } catch (Exception e) {
             throw new AssertionError("isAuthorized failed for object (" + pid + ") with token (" + userId + ", " + fullName + "). "
                     + "got " + e.getClass().getSimpleName() + " : " + e.getMessage()
