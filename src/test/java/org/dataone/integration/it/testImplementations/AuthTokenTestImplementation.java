@@ -17,8 +17,10 @@ import org.dataone.service.types.v1.AccessRule;
 import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Node;
 import org.dataone.service.types.v1.Permission;
+import org.dataone.service.types.v1.Person;
 import org.dataone.service.types.v1.ReplicationPolicy;
 import org.dataone.service.types.v1.Session;
+import org.dataone.service.types.v1.SubjectInfo;
 
 public class AuthTokenTestImplementation extends ContextAwareAdapter {
 
@@ -48,6 +50,41 @@ public class AuthTokenTestImplementation extends ContextAwareAdapter {
         return session;
     }
 
+    @WebTestName("CN. ...")
+    @WebTestDescription("tests  ...")
+    public void testEchoCredentials(Iterator<Node> nodeIterator, String version) {
+        while (nodeIterator.hasNext())
+            testEchoCredentials(nodeIterator.next(), version);
+    }
+
+    public void testEchoCredentials(Node node, String version) {
+
+        String userId = "testId";
+        String fullName = "Jane Scientist";
+        Session tokenSession = getTokenSesssion(userId, fullName);
+        
+        // calls will override public subject with tokenSession
+        CNCallAdapter cn = new CNCallAdapter(getSession(cnSubmitter), node, version);
+        String currentUrl = node.getBaseURL();
+        printTestHeader("testEchoCredentials(...) vs. node: " + currentUrl);
+        
+        try {
+            SubjectInfo subjectInfo = cn.echoCredentials(tokenSession);
+            for(Person p : subjectInfo.getPersonList())
+                log.info("credentials subject :" + p.getSubject());
+        } catch (BaseException e) {
+            throw new AssertionError("echoCredentials failed with token (" 
+                    + userId + ", " + fullName + "). " + "got " + e.getClass().getSimpleName() 
+                    + " [" + e.getCode() + "," + e.getDetail_code() + "] : " + e.getMessage()
+                    + " from " + cn.getLatestRequestUrl(), e);
+        } catch (Exception e) {
+            throw new AssertionError("echoCredentials failed with token (" 
+                    + userId + ", " + fullName + "). " + "got " 
+                    + e.getClass().getSimpleName() + " : " + e.getMessage()
+                    + " from " + cn.getLatestRequestUrl(), e);
+        }
+    }
+    
     @WebTestName("CN.isAuthorized with token")
     @WebTestDescription("tests that using an auth token to create an object works and "
             + "that CN.isAuthorized then succeeds and returns true for that token")
@@ -131,7 +168,7 @@ public class AuthTokenTestImplementation extends ContextAwareAdapter {
         // calls will override public subject with tokenSession
         MNCallAdapter mn = new MNCallAdapter(getSession(cnSubmitter), node, version);
         String currentUrl = node.getBaseURL();
-        printTestHeader("testCnIsAuthorized(...) vs. node: " + currentUrl);
+        printTestHeader("testMnIsAuthorized(...) vs. node: " + currentUrl);
         
         AccessRule accessRule = new AccessRule();
         accessRule.addSubject(tokenSession.getSubject());
