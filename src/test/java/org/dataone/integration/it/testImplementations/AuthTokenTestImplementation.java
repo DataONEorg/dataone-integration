@@ -63,7 +63,7 @@ public class AuthTokenTestImplementation extends ContextAwareAdapter {
         String fullName = "Jane Scientist";
         Session tokenSession = getTokenSesssion(userId, fullName);
         
-        // calls will override public subject with tokenSession
+        // calls will override subject with tokenSession
         CNCallAdapter cn = new CNCallAdapter(getSession(cnSubmitter), node, version);
         String currentUrl = node.getBaseURL();
         printTestHeader("testEchoCredentials(...) vs. node: " + currentUrl);
@@ -113,7 +113,7 @@ public class AuthTokenTestImplementation extends ContextAwareAdapter {
         String fullName = "Jane Scientist";
         Session tokenSession = getTokenSesssion(userId, fullName);
         
-        // calls will override public subject with tokenSession
+        // calls will public subject with tokenSession
         CNCallAdapter cn = new CNCallAdapter(getSession(cnSubmitter), node, version);
         String currentUrl = node.getBaseURL();
         printTestHeader("testCnIsAuthorized(...) vs. node: " + currentUrl);
@@ -165,7 +165,7 @@ public class AuthTokenTestImplementation extends ContextAwareAdapter {
         String fullName = "Jane Scientist";
         Session tokenSession = getTokenSesssion(userId, fullName);
         
-        // calls will override public subject with tokenSession
+        // calls will override subject with tokenSession
         MNCallAdapter mn = new MNCallAdapter(getSession(cnSubmitter), node, version);
         String currentUrl = node.getBaseURL();
         printTestHeader("testMnIsAuthorized(...) vs. node: " + currentUrl);
