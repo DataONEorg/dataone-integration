@@ -50,7 +50,7 @@ public class AuthTokenTestImplementation extends ContextAwareAdapter {
         return session;
     }
 
-    @WebTestName("CN. ...")
+    @WebTestName("CN ")
     @WebTestDescription("tests  ...")
     public void testEchoCredentials(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
@@ -130,7 +130,7 @@ public class AuthTokenTestImplementation extends ContextAwareAdapter {
         try {
             catc.procureTestObject(cn, accessRule, pid, cnSubmitter, userId, replPolicy);
         } catch (Exception e) {
-            throw new AssertionError("Unable to create object (" + pid + ") with token (" + userId + ", " + fullName + "). "
+            throw new AssertionError("Unable to create object (" + pid + "), "
                     + "got " + e.getClass().getSimpleName() + " : " + e.getMessage() 
                     + " from " + cn.getLatestRequestUrl(), e);
         }
@@ -184,7 +184,7 @@ public class AuthTokenTestImplementation extends ContextAwareAdapter {
         try {
             catc.procureTestObject(mn, accessRule, pid, cnSubmitter, userId, replPolicy);
         } catch (Exception e) {
-            throw new AssertionError("Unable to create object (" + pid + ") with token (" + userId + ", " + fullName + "). "
+            throw new AssertionError("Unable to create object (" + pid + "), "
                     + "got " + e.getClass().getSimpleName() + " : " + e.getMessage() 
                     + " from " + mn.getLatestRequestUrl(), e);
         }
