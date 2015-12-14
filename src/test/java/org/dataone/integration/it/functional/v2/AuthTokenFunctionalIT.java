@@ -33,7 +33,7 @@ public class AuthTokenFunctionalIT extends ContextAwareTestCaseDataone {
     
     @Test
     public void testMnIsAuthorized() {
-        testImpl.testMnIsAuthorized(getMemberNodeIterator(), "v2");
+        testImpl.testMnIsAuthorized(getV2MemberNodeIterator(), "v2");
     }
     
 }
