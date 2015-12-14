@@ -22,6 +22,11 @@ public class AuthTokenFunctionalIT extends ContextAwareTestCaseDataone {
     }
     
     @Test
+    public void testEchoCredentials() {
+        testImpl.testEchoCredentials(getCoordinatingNodeIterator(), "v2");
+    }
+    
+    @Test
     public void testCnIsAuthorized() {
         testImpl.testCnIsAuthorized(getCoordinatingNodeIterator(), "v2");
     }

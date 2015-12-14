@@ -90,7 +90,7 @@ public class AuthTokenTestImplementation extends ContextAwareAdapter {
     @WebTestDescription("tests that using an auth token to create an object works and "
             + "that CN.isAuthorized then succeeds and returns true for that token")
     public void testCnIsAuthorized(Iterator<Node> nodeIterator, String version) {
-        if (nodeIterator.hasNext())
+        while (nodeIterator.hasNext())
             testCnIsAuthorized(nodeIterator.next(), version);
     }
 
