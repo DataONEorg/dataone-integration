@@ -3,6 +3,7 @@ package org.dataone.integration.it.testImplementations;
 import java.io.IOException;
 import java.util.Iterator;
 
+import org.dataone.client.auth.AuthTokenSession;
 import org.dataone.client.v1.types.D1TypeBuilder;
 import org.dataone.integration.ContextAwareTestCaseDataone;
 import org.dataone.integration.adapters.CNCallAdapter;
@@ -89,7 +90,7 @@ public class AuthTokenTestImplementation extends ContextAwareAdapter {
     @WebTestDescription("tests that using an auth token to create an object works and "
             + "that CN.isAuthorized then succeeds and returns true for that token")
     public void testCnIsAuthorized(Iterator<Node> nodeIterator, String version) {
-        while (nodeIterator.hasNext())
+        if (nodeIterator.hasNext())
             testCnIsAuthorized(nodeIterator.next(), version);
     }
 
@@ -98,6 +99,9 @@ public class AuthTokenTestImplementation extends ContextAwareAdapter {
         String userId = "testId";
         String fullName = "Jane Scientist";
         Session tokenSession = getTokenSesssion(userId, fullName);
+        
+        if (tokenSession instanceof AuthTokenSession)
+            log.info("Created auth token: " + ((AuthTokenSession) tokenSession).getAuthToken());
         
         // calls will public subject with tokenSession
         CNCallAdapter cn = new CNCallAdapter(getSession(cnSubmitter), node, version);
