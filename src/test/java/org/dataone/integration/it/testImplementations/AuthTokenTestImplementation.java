@@ -95,20 +95,6 @@ public class AuthTokenTestImplementation extends ContextAwareAdapter {
 
     public void testCnIsAuthorized(Node node, String version) {
 
-        // need to find a better way around this, but for now
-        // it makes (mostly) sure that we're only sending calls 
-        // to the CN for which we have the CN cert, otherwise
-        // the token signature can't be verified
-        boolean unmSubj = cnSubmitter.toLowerCase().contains("unm");
-        boolean ucsbSubj = cnSubmitter.toLowerCase().contains("ucsb");
-        boolean orcSubj = cnSubmitter.toLowerCase().contains("orc");
-        if (node.getBaseURL().toLowerCase().contains("unm") && !unmSubj)
-            return;
-        if (node.getBaseURL().toLowerCase().contains("ucsb") && !ucsbSubj)
-            return;
-        if (node.getBaseURL().toLowerCase().contains("orc") && !orcSubj)
-            return;
-        
         String userId = "testId";
         String fullName = "Jane Scientist";
         Session tokenSession = getTokenSesssion(userId, fullName);
