@@ -2,6 +2,7 @@ package org.dataone.integration.it.testImplementations;
 
 import static org.junit.Assert.assertTrue;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Iterator;
@@ -9,6 +10,7 @@ import java.util.Iterator;
 import org.apache.commons.io.IOUtils;
 import org.dataone.client.RetryHandler;
 import org.dataone.client.auth.AuthTokenSession;
+import org.dataone.client.v1.itk.D1Object;
 import org.dataone.client.v1.types.D1TypeBuilder;
 import org.dataone.integration.ContextAwareTestCaseDataone;
 import org.dataone.integration.ContextAwareTestCaseDataone.LogContents;
@@ -311,8 +313,6 @@ public class AuthTokenTestImplementation extends ContextAwareAdapter {
                     + " from " + mn.getLatestRequestUrl(), e);
         }
      
-        // CN.create() so no need to wait for sync 
-        
         try {
             mn.isAuthorized(tokenSession, pid, Permission.READ);
         } catch (BaseException e) {
@@ -322,6 +322,95 @@ public class AuthTokenTestImplementation extends ContextAwareAdapter {
                     + " from " + mn.getLatestRequestUrl(), e);
         } catch (Exception e) {
             throw new AssertionError("isAuthorized failed for object (" + pid + ") with token (" + userId + ", " + fullName + "). "
+                    + "got " + e.getClass().getSimpleName() + " : " + e.getMessage()
+                    + " from " + mn.getLatestRequestUrl(), e);
+        }
+    }
+    
+    @WebTestName("MN.update with token")
+    @WebTestDescription("tests that creating an object with an auth token, then "
+            + "using MN.update with the token succeeds")
+    public void testMnUpdate(Iterator<Node> nodeIterator, String version) {
+        while (nodeIterator.hasNext())
+            testMnUpdate(nodeIterator.next(), version);
+    }
+
+    public void testMnUpdate(Node node, String version) {
+
+        String userId = SAMPLE_ORCID;
+        String fullName = "Jane Scientist";
+        Session tokenSession = getTokenSesssion(userId, fullName);
+        
+        // calls will override subject with tokenSession
+        MNCallAdapter mn = new MNCallAdapter(getSession(cnSubmitter), node, version);
+        String currentUrl = node.getBaseURL();
+        printTestHeader("testMnIsAuthorized(...) vs. node: " + currentUrl);
+        
+        AccessRule accessRule = new AccessRule();
+        accessRule.addSubject(tokenSession.getSubject());
+        accessRule.addPermission(Permission.READ);
+        AccessPolicy policy = new AccessPolicy();
+        policy.addAllow(accessRule);
+        ReplicationPolicy replPolicy = new ReplicationPolicy();
+        replPolicy.setReplicationAllowed(false);
+        replPolicy.setNumberReplicas(0);
+        
+        Identifier oldPid = D1TypeBuilder.buildIdentifier("testMnUpdate_token_8_" + ExampleUtilities.generateIdentifier());
+        
+        // create 
+        
+        try {
+            catc.createTestObject(mn, oldPid, accessRule, cnSubmitter, userId, replPolicy);
+        } catch (Exception e) {
+            throw new AssertionError("Unable to create object (" + oldPid + "), "
+                    + "got " + e.getClass().getSimpleName() + " : " + e.getMessage() 
+                    + " from " + mn.getLatestRequestUrl(), e);
+        }
+     
+        // get sysmeta
+        SystemMetadata oldSysmeta = null; 
+        try {
+            Thread.sleep(10000); // metacat writes to db asynchronously, wait 10s
+            oldSysmeta = mn.getSystemMetadata(null, oldPid);
+        } catch (Exception e) {
+            throw new AssertionError("Unable to get sysmeta for created object (" + oldPid + "), "
+                    + "got " + e.getClass().getSimpleName() + " : " + e.getMessage() 
+                    + " from " + mn.getLatestRequestUrl(), e);
+        }
+        
+        // create update object 
+        
+        Identifier newPid = D1TypeBuilder.buildIdentifier("testMnUpdate_token_8_" + ExampleUtilities.generateIdentifier());
+        SystemMetadata newSysmeta = null;
+        InputStream objectInputStream = null;
+        
+        try {
+            byte[] contentBytes = ExampleUtilities.getExampleObjectOfType(ContextAwareTestCaseDataone.DEFAULT_TEST_OBJECTFORMAT);
+            D1Object d1o = new D1Object(newPid, contentBytes,
+                    D1TypeBuilder.buildFormatIdentifier(ContextAwareTestCaseDataone.DEFAULT_TEST_OBJECTFORMAT),
+                    tokenSession.getSubject(),
+                    oldSysmeta.getAuthoritativeMemberNode());
+            newSysmeta = TypeFactory.convertTypeFromType(d1o.getSystemMetadata(), SystemMetadata.class);
+            newSysmeta.setAuthoritativeMemberNode(oldSysmeta.getAuthoritativeMemberNode());
+            newSysmeta.setObsoletes(oldPid);
+            objectInputStream = new ByteArrayInputStream(contentBytes);
+        } catch (Exception e) {
+            throw new AssertionError("creating object for MN.update() failed for object (" + newPid + ") with token (" + userId + ", " + fullName + "). "
+                    + "got " + e.getClass().getSimpleName() + " : " + e.getMessage()
+                    + " from " + mn.getLatestRequestUrl(), e);
+        }
+        
+        // update 
+        
+        try {
+            mn.update(tokenSession, oldPid, objectInputStream, newPid, newSysmeta);
+        } catch (BaseException e) {
+            throw new AssertionError("update failed for object (" + oldPid + ") with token (" 
+                    + userId + ", " + fullName + "). " + "got " + e.getClass().getSimpleName() 
+                    + " [" + e.getCode() + "," + e.getDetail_code() + "] : " + e.getMessage()
+                    + " from " + mn.getLatestRequestUrl(), e);
+        } catch (Exception e) {
+            throw new AssertionError("update failed for object (" + oldPid + ") with token (" + userId + ", " + fullName + "). "
                     + "got " + e.getClass().getSimpleName() + " : " + e.getMessage()
                     + " from " + mn.getLatestRequestUrl(), e);
         }
