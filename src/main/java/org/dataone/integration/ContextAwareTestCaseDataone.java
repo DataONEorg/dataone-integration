@@ -25,6 +25,7 @@ package org.dataone.integration;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.ByteArrayInputStream;
@@ -47,6 +48,14 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
 import java.util.concurrent.Callable;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpression;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
@@ -110,6 +119,8 @@ import org.jibx.runtime.JiBXException;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.rules.ErrorCollector;
+import org.w3c.dom.Document;
+import org.xml.sax.InputSource;
 
 /**
  * This class is intended as a base class that implements the standard IntegrationTestContextParameters
@@ -132,7 +143,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 //	public static final String DEFAULT_TEST_OBJECTFORMAT = ExampleUtilities.FORMAT_EML_2_0_0;
     public static final String RESOURCE_MAP_FORMAT_ID = "http://www.openarchives.org/ore/terms";
 
-    public static String cnSubmitter = Settings.getConfiguration().getString("dataone.it.cnode.submitter.cn", /* default */ "cnDevUNM1");
+    public static String cnSubmitter = Settings.getConfiguration().getString("dataone.it.cnode.submitter.cn", /* default */ "cnSandboxUCSB1");
 
     private static Map<String,MultipartRestClient> sessionMap = new HashMap<String,MultipartRestClient>();
     private static Map<String,Subject> subjectMap = new HashMap<String, Subject>();
@@ -1951,5 +1962,72 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
     
     public boolean nodeListContainsV2Mn() {
             return nodeListContainsV2Mn;
+    }
+    
+    /**
+     * Returns the number of results in the given InputStream,
+     * which should be the result of a CN.query() call.
+     * <b>Closes the given InputStream when done.</b>
+     * @param is the InputStream to examine
+     * @param checkDoc whether to check the actual contents of the document 
+     *  (as opposed to just the numFound in the response header)
+     */
+    public static LogContents getNumQueryContents(InputStream is) {
+        
+        LogContents logResults = new LogContents();
+        
+        try {
+            Document doc = null;
+            try {
+                DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+                doc = builder.parse(new InputSource(is));
+                
+                // for DEBUG output only
+//                try {
+//                    FileOutputStream os = new FileOutputStream(new File("C:\\Users\\Andrei\\stuff\\logAgg.txt"));
+//                    IOUtils.copy(is, os);
+//                    return logResults;
+//                } catch (Exception e2) {
+//                    e2.printStackTrace();
+//                }
+                
+            } catch (Exception e) {
+                throw new AssertionError("getNumQueryContents() " + 
+                        "unable to convert response to document, got exception: " 
+                        + e.getClass().getSimpleName() + " : " + e.getMessage(), e);
+            }
+            
+            XPath xPath =  XPathFactory.newInstance().newXPath();
+            String resultCountExp = "/response/result";
+            org.w3c.dom.Node resultNode = (org.w3c.dom.Node) xPath.compile(resultCountExp).evaluate(doc, XPathConstants.NODE);
+            org.w3c.dom.Node numFoundAttr = resultNode.getAttributes().getNamedItem("numFound");
+            assertTrue("query response doesn't have valid numFound attribute.", numFoundAttr != null);
+    
+            String numFoundVal = numFoundAttr.getNodeValue(); 
+            logResults.existingLogs = Integer.parseInt(numFoundVal);
+
+            String docsExp = "/response/result/doc";
+            XPathExpression xPathExpr = xPath.compile(docsExp);
+            org.w3c.dom.NodeList docs = (org.w3c.dom.NodeList) xPathExpr.evaluate(doc, XPathConstants.NODESET);
+            logResults.docsReturned = docs.getLength();
+            
+        } catch (XPathExpressionException e) {
+            throw new AssertionError("getNumQueryContents() xpath expression error: "
+                    + e.getClass().getSimpleName() + " : " + e.getMessage(), e);
+        } finally {
+            IOUtils.closeQuietly(is);
+        }
+
+        log.info("query results: numFound = " + logResults.existingLogs + "   <doc>s returned = " + logResults.docsReturned);
+        if (logResults.existingLogs != logResults.docsReturned)
+            log.info("The numFound attribute doesn't match number of <doc> elements found. "
+                    + "Subject used probably doesn't have access to them.");
+        
+        return logResults;
+    }
+    
+    public static class LogContents {
+        public int existingLogs = 0;
+        public int docsReturned = 0;
     }
 }

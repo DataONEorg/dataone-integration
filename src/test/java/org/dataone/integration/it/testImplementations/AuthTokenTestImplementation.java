@@ -1,11 +1,18 @@
 package org.dataone.integration.it.testImplementations;
 
+import static org.junit.Assert.assertTrue;
+
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Iterator;
 
+import org.apache.commons.io.IOUtils;
+import org.dataone.client.RetryHandler;
 import org.dataone.client.auth.AuthTokenSession;
 import org.dataone.client.v1.types.D1TypeBuilder;
 import org.dataone.integration.ContextAwareTestCaseDataone;
+import org.dataone.integration.ContextAwareTestCaseDataone.LogContents;
+import org.dataone.integration.ExampleUtilities;
 import org.dataone.integration.adapters.CNCallAdapter;
 import org.dataone.integration.adapters.MNCallAdapter;
 import org.dataone.integration.it.ContextAwareAdapter;
@@ -13,18 +20,27 @@ import org.dataone.integration.webTest.WebTestDescription;
 import org.dataone.integration.webTest.WebTestName;
 import org.dataone.portal.TokenGenerator;
 import org.dataone.service.exceptions.BaseException;
+import org.dataone.service.exceptions.NotFound;
+import org.dataone.service.exceptions.ServiceFailure;
 import org.dataone.service.types.v1.AccessPolicy;
 import org.dataone.service.types.v1.AccessRule;
 import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Node;
+import org.dataone.service.types.v1.NodeType;
 import org.dataone.service.types.v1.Permission;
 import org.dataone.service.types.v1.Person;
 import org.dataone.service.types.v1.ReplicationPolicy;
+import org.dataone.service.types.v1.Service;
 import org.dataone.service.types.v1.Session;
 import org.dataone.service.types.v1.SubjectInfo;
+import org.dataone.service.types.v2.NodeList;
+import org.dataone.service.types.v2.SystemMetadata;
+import org.dataone.service.types.v2.TypeFactory;
 
 public class AuthTokenTestImplementation extends ContextAwareAdapter {
 
+    private static final int MAX_SYNC_WAIT = 15 * 60 * 1000; // 15 minutes
+    
     public AuthTokenTestImplementation(ContextAwareTestCaseDataone catc) {
         super(catc);
     }
@@ -51,8 +67,9 @@ public class AuthTokenTestImplementation extends ContextAwareAdapter {
         return session;
     }
 
-    @WebTestName("CN ")
-    @WebTestDescription("tests  ...")
+    @WebTestName("CN.echoCredentials with a token")
+    @WebTestDescription("tests that echoCredintials can be called successfully with "
+            + "an auth token (and doesn't yield something like an InvalidToken exception)")
     public void testEchoCredentials(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testEchoCredentials(nodeIterator.next(), version);
@@ -86,9 +103,123 @@ public class AuthTokenTestImplementation extends ContextAwareAdapter {
         }
     }
     
+    @WebTestName("MN.create with token")
+    @WebTestDescription("tests that creating an object on the MN is possible "
+            + "with a token")
+    public void testMnCreate(Iterator<Node> nodeIterator, String version) {
+        while (nodeIterator.hasNext())
+            testMnCreate(nodeIterator.next(), version);
+    }
+
+    public void testMnCreate(Node node, String version) {
+
+        final CNCallAdapter cn = new CNCallAdapter(getSession(cnSubmitter), node, version);
+        MNCallAdapter mn = null;
+        
+        try {
+            NodeList nodeList = cn.listNodes();
+            
+            for (Node n : nodeList.getNodeList()) {
+                if (n.getType() != NodeType.MN)
+                    continue;
+                
+                try {
+                    MNCallAdapter mnCaller = new MNCallAdapter(getSession(cnSubmitter), n, "v2");
+                    mnCaller.ping();
+                    Node capabilities = mnCaller.getCapabilities();
+                    for (Service s : capabilities.getServices().getServiceList()) {
+                        if (s.getVersion().equalsIgnoreCase("v2")) {
+                            mn = mnCaller;
+                            break;
+                        }
+                    }
+                    if (mn != null)
+                        break;
+                } catch (Exception e1) {
+                    continue;
+                }
+            }
+        } catch (Exception e) {
+            throw new AssertionError("testCnQuery - test setup failed! ", e);
+        }
+        String userId = "testId";
+        String fullName = "Jane Scientist";
+        Session tokenSession = getTokenSesssion(userId, fullName);
+        
+        if (tokenSession instanceof AuthTokenSession)
+            log.info("Created auth token: " + ((AuthTokenSession) tokenSession).getAuthToken());
+        
+        String currentUrl = node.getBaseURL();
+        printTestHeader("testMnCreate(...) vs. node: " + currentUrl);
+        
+        Object[] dataPackage;
+        try {
+            dataPackage = ExampleUtilities.generateTestSciDataPackage(
+                    "testMnCreate_", true, userId);
+        } catch (Exception e) {
+            throw new AssertionError("Unable to generate a test object! "
+                    + "got " + e.getClass().getSimpleName() + " : " + e.getMessage(), e);
+        }
+        
+        org.dataone.service.types.v1.SystemMetadata sysmetaV1 = (org.dataone.service.types.v1.SystemMetadata) dataPackage[2];
+        final Identifier pid = (Identifier) dataPackage[0];
+        SystemMetadata sysmeta;
+        try {
+            sysmeta = TypeFactory.convertTypeFromType(sysmetaV1,SystemMetadata.class);
+        } catch (Exception e) {
+            throw new AssertionError("Unable to convert v1 sysmeta to v2 sysmeta. "
+                    + "got " + e.getClass().getSimpleName() + " : " + e.getMessage(), e);
+        }
+        
+        try {
+            mn.create(tokenSession, pid, (InputStream) dataPackage[1], sysmeta);
+        } catch (Exception e) {
+            throw new AssertionError("Unable to create object (" + pid + ") with token (" + userId + ", " + fullName + "). "
+                    + "got " + e.getClass().getSimpleName() + " : " + e.getMessage() 
+                    + " from " + mn.getLatestRequestUrl(), e);
+        }
+     
+        // MN.create() so need to wait for CN sync 
+        
+        try {
+            RetryHandler<SystemMetadata> cnGetSysmetaHandler = new RetryHandler<SystemMetadata>() {
+                @Override
+                protected SystemMetadata attempt() throws TryAgainException, Exception {
+                    try {
+                        log.info("attempting CN getSystemMEtadata...");
+                        return cn.getSystemMetadata(null, pid);
+                    } catch (NotFound | ServiceFailure e) {
+                        TryAgainException f = new TryAgainException();
+                        f.initCause(e);
+                        throw f;
+                    }
+                }
+            };
+            cnGetSysmetaHandler.execute(30*1000, MAX_SYNC_WAIT);
+        } catch (Exception e) {
+            throw new AssertionError("testCnQuery: Unable to fetch sysmeta from CN. Check status of CN sync. " 
+                    + cn.getLatestRequestUrl() + " for pid " + pid.getValue() + 
+                    ", Created on " + mn.getNodeBaseServiceUrl(), e);
+        }
+        
+        try {
+            mn.isAuthorized(tokenSession, pid, Permission.READ);
+        } catch (BaseException e) {
+            throw new AssertionError("isAuthorized failed for object (" + pid + ") with token (" 
+                    + userId + ", " + fullName + "). " + "got " + e.getClass().getSimpleName() 
+                    + " [" + e.getCode() + "," + e.getDetail_code() + "] : " + e.getMessage()
+                    + " from " + mn.getLatestRequestUrl(), e);
+        } catch (Exception e) {
+            throw new AssertionError("isAuthorized failed for object (" + pid + ") with token (" + userId + ", " + fullName + "). "
+                    + "got " + e.getClass().getSimpleName() + " : " + e.getMessage()
+                    + " from " + mn.getLatestRequestUrl(), e);
+        }
+    }
+    
     @WebTestName("CN.isAuthorized with token")
-    @WebTestDescription("tests that using an auth token to create an object works and "
-            + "that CN.isAuthorized then succeeds and returns true for that token")
+    @WebTestDescription("tests that creating an object on the CN with a token's subject "
+            + "in the access policy, then using CN.isAuthorized succeeds "
+            + "and returns true for that token")
     public void testCnIsAuthorized(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testCnIsAuthorized(nodeIterator.next(), version);
@@ -142,8 +273,8 @@ public class AuthTokenTestImplementation extends ContextAwareAdapter {
     }
     
     @WebTestName("MN.isAuthorized with token")
-    @WebTestDescription("tests that using an auth token to create an object works and "
-            + "that MN.isAuthorized then succeeds and returns true for that token")
+    @WebTestDescription("tests that creating an object then using "
+            + "MN.isAuthorized succeeds and returns true for that token")
     public void testMnIsAuthorized(Iterator<Node> nodeIterator, String version) {
         while (nodeIterator.hasNext())
             testMnIsAuthorized(nodeIterator.next(), version);
@@ -194,4 +325,125 @@ public class AuthTokenTestImplementation extends ContextAwareAdapter {
                     + " from " + mn.getLatestRequestUrl(), e);
         }
     }
+    
+    @WebTestName("CN.query with token")
+    @WebTestDescription("tests that creating an object and then using "
+            + "CN.query can locate the object")
+    public void testCnQuery(Iterator<Node> nodeIterator, String version) {
+        while (nodeIterator.hasNext())
+            testCnQuery(nodeIterator.next(), version);
+    }
+
+    public void testCnQuery(Node node, String version) {
+
+        final CNCallAdapter cn = new CNCallAdapter(getSession(cnSubmitter), node, version);
+        MNCallAdapter mn = null;
+        
+        try {
+            NodeList nodeList = cn.listNodes();
+            
+            for (Node n : nodeList.getNodeList()) {
+                if (n.getType() != NodeType.MN)
+                    continue;
+                
+                try {
+                    MNCallAdapter mnCaller = new MNCallAdapter(getSession(cnSubmitter), n, "v2");
+                    mnCaller.ping();
+                    Node capabilities = mnCaller.getCapabilities();
+                    for (Service s : capabilities.getServices().getServiceList()) {
+                        if (s.getVersion().equalsIgnoreCase("v2")) {
+                            mn = mnCaller;
+                            break;
+                        }
+                    }
+                    if (mn != null)
+                        break;
+                } catch (Exception e1) {
+                    continue;
+                }
+            }
+        } catch (Exception e) {
+            throw new AssertionError("testCnQuery - test setup failed! ", e);
+        }
+
+        assertTrue("testCnQuery - test setup needs to be able to locate a v2 MN!", mn != null);
+        
+        String userId = "testId";
+        String fullName = "Jane Scientist";
+        Session tokenSession = getTokenSesssion(userId, fullName);
+        
+        if (tokenSession instanceof AuthTokenSession)
+            log.info("Created auth token: " + ((AuthTokenSession) tokenSession).getAuthToken());
+        
+        // calls will public subject with tokenSession
+        String currentUrl = node.getBaseURL();
+        printTestHeader("testCnQuery(...) vs. node: " + currentUrl);
+        
+        AccessRule accessRule = new AccessRule();
+        accessRule.addSubject(tokenSession.getSubject());
+        accessRule.addPermission(Permission.READ);
+        ReplicationPolicy replPolicy = new ReplicationPolicy();
+        replPolicy.setReplicationAllowed(false);
+        replPolicy.setNumberReplicas(0);
+        
+        final Identifier pid = D1TypeBuilder.buildIdentifier("testCnQuery_token_5");
+        
+        try {
+            catc.procureTestObject(mn, accessRule, pid, cnSubmitter, userId, replPolicy);
+        } catch (Exception e) {
+            throw new AssertionError("Unable to create object (" + pid + "), "
+                    + "got " + e.getClass().getSimpleName() + " : " + e.getMessage() 
+                    + " from " + mn.getLatestRequestUrl(), e);
+        }
+     
+        // MN.create() so need to wait for CN sync 
+        
+        try {
+            RetryHandler<SystemMetadata> cnGetSysmetaHandler = new RetryHandler<SystemMetadata>() {
+                @Override
+                protected SystemMetadata attempt() throws TryAgainException, Exception {
+                    try {
+                        log.info("attempting CN getSystemMEtadata...");
+                        return cn.getSystemMetadata(null, pid);
+                    } catch (NotFound | ServiceFailure e) {
+                        TryAgainException f = new TryAgainException();
+                        f.initCause(e);
+                        throw f;
+                    }
+                }
+            };
+            cnGetSysmetaHandler.execute(30*1000, MAX_SYNC_WAIT);
+        } catch (Exception e) {
+            throw new AssertionError("testCnQuery: Unable to fetch sysmeta from CN. Check status of CN sync. " 
+                    + cn.getLatestRequestUrl() + " for pid " + pid.getValue() + 
+                    ", Created on " + mn.getNodeBaseServiceUrl(), e);
+        }
+        
+        // CN.query
+        
+        InputStream is = null;
+        try {
+            is = cn.query(tokenSession, "solr", "?q=identifier:" + pid.getValue());
+            log.info("CN.query ran against " + cn.getLatestRequestUrl() + " for pid " + pid.getValue());
+            
+            LogContents numQueryContents = ContextAwareTestCaseDataone.getNumQueryContents(is);
+            log.info("CN.query results have a count of " + numQueryContents.existingLogs + " logs "
+                    + "and contain " + numQueryContents.docsReturned + " returned docs.");
+            assertTrue("CN.query resutls should have a non-zero count for pid " + pid.getValue() + 
+                    " against CN " + cn.getLatestRequestUrl(), numQueryContents.existingLogs > 0);
+            
+        } catch (BaseException e) {
+            throw new AssertionError("query failed for object (" + pid + ") with token (" 
+                    + userId + ", " + fullName + "). " + "got " + e.getClass().getSimpleName() 
+                    + " [" + e.getCode() + "," + e.getDetail_code() + "] : " + e.getMessage()
+                    + " from " + cn.getLatestRequestUrl(), e);
+        } catch (Exception e) {
+            throw new AssertionError("query failed for object (" + pid + ") with token (" + userId + ", " + fullName + "). "
+                    + "got " + e.getClass().getSimpleName() + " : " + e.getMessage()
+                    + " from " + cn.getLatestRequestUrl(), e);
+        } finally {
+            IOUtils.closeQuietly(is);
+        }
+    }
+
 }
