@@ -40,6 +40,7 @@ import org.dataone.service.types.v2.TypeFactory;
 public class AuthTokenTestImplementation extends ContextAwareAdapter {
 
     private static final int MAX_SYNC_WAIT = 15 * 60 * 1000; // 15 minutes
+    private static final String SAMPLE_ORCID = "http://orcid.org/0000-0002-1825-0097";
     
     public AuthTokenTestImplementation(ContextAwareTestCaseDataone catc) {
         super(catc);
@@ -77,7 +78,7 @@ public class AuthTokenTestImplementation extends ContextAwareAdapter {
 
     public void testEchoCredentials(Node node, String version) {
 
-        String userId = "testId";
+        String userId = SAMPLE_ORCID;
         String fullName = "Jane Scientist";
         Session tokenSession = getTokenSesssion(userId, fullName);
         
@@ -142,7 +143,7 @@ public class AuthTokenTestImplementation extends ContextAwareAdapter {
         } catch (Exception e) {
             throw new AssertionError("testCnQuery - test setup failed! ", e);
         }
-        String userId = "testId";
+        String userId = SAMPLE_ORCID;
         String fullName = "Jane Scientist";
         Session tokenSession = getTokenSesssion(userId, fullName);
         
@@ -227,7 +228,7 @@ public class AuthTokenTestImplementation extends ContextAwareAdapter {
 
     public void testCnIsAuthorized(Node node, String version) {
 
-        String userId = "testId";
+        String userId = SAMPLE_ORCID;
         String fullName = "Jane Scientist";
         Session tokenSession = getTokenSesssion(userId, fullName);
         
@@ -246,7 +247,7 @@ public class AuthTokenTestImplementation extends ContextAwareAdapter {
         replPolicy.setReplicationAllowed(false);
         replPolicy.setNumberReplicas(0);
         
-        Identifier pid = D1TypeBuilder.buildIdentifier("testCnIsAuthorized_token_5");
+        Identifier pid = D1TypeBuilder.buildIdentifier("testCnIsAuthorized_token_8");
         
         try {
             catc.procureTestObject(cn, accessRule, pid, cnSubmitter, userId, replPolicy);
@@ -282,7 +283,7 @@ public class AuthTokenTestImplementation extends ContextAwareAdapter {
 
     public void testMnIsAuthorized(Node node, String version) {
 
-        String userId = "testId";
+        String userId = SAMPLE_ORCID;
         String fullName = "Jane Scientist";
         Session tokenSession = getTokenSesssion(userId, fullName);
         
@@ -300,7 +301,7 @@ public class AuthTokenTestImplementation extends ContextAwareAdapter {
         replPolicy.setReplicationAllowed(false);
         replPolicy.setNumberReplicas(0);
         
-        Identifier pid = D1TypeBuilder.buildIdentifier("testMnIsAuthorized_token_5");
+        Identifier pid = D1TypeBuilder.buildIdentifier("testMnIsAuthorized_token_8");
         
         try {
             catc.procureTestObject(mn, accessRule, pid, cnSubmitter, userId, replPolicy);
@@ -368,7 +369,7 @@ public class AuthTokenTestImplementation extends ContextAwareAdapter {
 
         assertTrue("testCnQuery - test setup needs to be able to locate a v2 MN!", mn != null);
         
-        String userId = "testId";
+        String userId = SAMPLE_ORCID;
         String fullName = "Jane Scientist";
         Session tokenSession = getTokenSesssion(userId, fullName);
         
@@ -386,7 +387,7 @@ public class AuthTokenTestImplementation extends ContextAwareAdapter {
         replPolicy.setReplicationAllowed(false);
         replPolicy.setNumberReplicas(0);
         
-        final Identifier pid = D1TypeBuilder.buildIdentifier("testCnQuery_token_5");
+        final Identifier pid = D1TypeBuilder.buildIdentifier("testCnQuery_token_8");
         
         try {
             catc.procureTestObject(mn, accessRule, pid, cnSubmitter, userId, replPolicy);
