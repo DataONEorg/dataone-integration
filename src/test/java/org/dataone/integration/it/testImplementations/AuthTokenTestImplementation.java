@@ -67,6 +67,9 @@ public class AuthTokenTestImplementation extends ContextAwareAdapter {
                     + "got IOException : " + e.getMessage(), e);
         }
 
+        if (session instanceof AuthTokenSession)
+            log.info("Created auth token: " + ((AuthTokenSession) session).getAuthToken());
+        
         return session;
     }
 
@@ -148,9 +151,6 @@ public class AuthTokenTestImplementation extends ContextAwareAdapter {
         String userId = SAMPLE_ORCID;
         String fullName = "Jane Scientist";
         Session tokenSession = getTokenSesssion(userId, fullName);
-        
-        if (tokenSession instanceof AuthTokenSession)
-            log.info("Created auth token: " + ((AuthTokenSession) tokenSession).getAuthToken());
         
         String currentUrl = node.getBaseURL();
         printTestHeader("testMnCreate(...) vs. node: " + currentUrl);
