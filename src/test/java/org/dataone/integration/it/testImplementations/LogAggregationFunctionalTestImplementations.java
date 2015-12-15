@@ -9,14 +9,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathExpression;
-import javax.xml.xpath.XPathExpressionException;
-import javax.xml.xpath.XPathFactory;
-
 import org.apache.commons.collections.IteratorUtils;
 import org.apache.commons.io.IOUtils;
 import org.dataone.client.v1.types.D1TypeBuilder;
@@ -36,9 +28,6 @@ import org.dataone.service.types.v2.Log;
 import org.dataone.service.types.v2.LogEntry;
 import org.dataone.service.types.v2.SystemMetadata;
 import org.dataone.service.util.Constants;
-import org.w3c.dom.Document;
-import org.w3c.dom.NodeList;
-import org.xml.sax.InputSource;
 
 public class LogAggregationFunctionalTestImplementations extends ContextAwareTestCaseDataone {
 
@@ -464,11 +453,11 @@ public class LogAggregationFunctionalTestImplementations extends ContextAwareTes
         LogContents rightsHolderObjContents = null; 
         try {
             publicQueryPublicObj = mnPublicCaller.query(null, "solr", "q=identifier:" + publicPidEncoded);
-            publicObjContents = getNumQueryContents(publicQueryPublicObj); 
+            publicObjContents = ContextAwareTestCaseDataone.getNumQueryContents(publicQueryPublicObj); 
             publicQueryPersonObj = mnPublicCaller.query(null, "solr", "q=identifier:" + testPersonPidEncoded);
-            personObjContents = getNumQueryContents(publicQueryPersonObj); 
+            personObjContents = ContextAwareTestCaseDataone.getNumQueryContents(publicQueryPersonObj); 
             publicQueryRightsHolderObj = mnPublicCaller.query(null, "solr", "q=identifier:" + testRightsHolderPidEncoded);
-            rightsHolderObjContents = getNumQueryContents(publicQueryRightsHolderObj); 
+            rightsHolderObjContents = ContextAwareTestCaseDataone.getNumQueryContents(publicQueryRightsHolderObj); 
         } catch (Exception e) {
             throw new AssertionError(mnPublicCaller.getLatestRequestUrl() + ", Unable to run solr query for public subject. " 
                     + "Got exception: " + e.getClass().getSimpleName() + " : " + e.getMessage());
@@ -501,11 +490,11 @@ public class LogAggregationFunctionalTestImplementations extends ContextAwareTes
         InputStream testPersonQueryRightsHolderObj = null;
         try {
             testPersonQueryPublicObj = mnTestPersonCaller.query(null, "solr", "q=identifier:" + publicPidEncoded);
-            publicObjContents = getNumQueryContents(testPersonQueryPublicObj); 
+            publicObjContents = ContextAwareTestCaseDataone.getNumQueryContents(testPersonQueryPublicObj); 
             testPersonQueryPersonObj = mnTestPersonCaller.query(null, "solr", "q=identifier:" + testPersonPidEncoded);
-            personObjContents = getNumQueryContents(testPersonQueryPersonObj); 
+            personObjContents = ContextAwareTestCaseDataone.getNumQueryContents(testPersonQueryPersonObj); 
             testPersonQueryRightsHolderObj = mnTestPersonCaller.query(null, "solr", "q=identifier:" + testRightsHolderPidEncoded);
-            rightsHolderObjContents = getNumQueryContents(testPersonQueryRightsHolderObj); 
+            rightsHolderObjContents = ContextAwareTestCaseDataone.getNumQueryContents(testPersonQueryRightsHolderObj); 
         } catch (Exception e) {
             throw new AssertionError(mnTestPersonCaller.getLatestRequestUrl() + ", Unable to run solr query for testPerson subject. " 
                     + "Got exception: " + e.getClass().getSimpleName() + " : " + e.getMessage());
@@ -538,11 +527,11 @@ public class LogAggregationFunctionalTestImplementations extends ContextAwareTes
         InputStream testRightsHolderQueryRightsHolderObj = null;
         try {
             testRightsHolderQueryPublicObj = mnTestRightsHolderCaller.query(null, "solr", "q=identifier:" + publicPidEncoded);
-            publicObjContents = getNumQueryContents(testRightsHolderQueryPublicObj); 
+            publicObjContents = ContextAwareTestCaseDataone.getNumQueryContents(testRightsHolderQueryPublicObj); 
             testRightsHolderQueryPersonObj = mnTestRightsHolderCaller.query(null, "solr", "q=identifier:" + testPersonPidEncoded);
-            personObjContents = getNumQueryContents(testRightsHolderQueryPersonObj); 
+            personObjContents = ContextAwareTestCaseDataone.getNumQueryContents(testRightsHolderQueryPersonObj); 
             testRightsHolderQueryRightsHolderObj = mnTestRightsHolderCaller.query(null, "solr", "q=identifier:" + testRightsHolderPidEncoded);
-            rightsHolderObjContents = getNumQueryContents(testRightsHolderQueryRightsHolderObj); 
+            rightsHolderObjContents = ContextAwareTestCaseDataone.getNumQueryContents(testRightsHolderQueryRightsHolderObj); 
         } catch (Exception e) {
             throw new AssertionError(mnTestRightsHolderCaller.getLatestRequestUrl() + ", Unable to run solr query for testRightsHolder subject. " 
                     + "Got exception: " + e.getClass().getSimpleName() + " : " + e.getMessage());
@@ -576,11 +565,11 @@ public class LogAggregationFunctionalTestImplementations extends ContextAwareTes
         InputStream cnQueryRightsHolderObj = null;
         try {
             cnQueryPublicObj = mnCnCaller.query(null, "solr", "q=identifier:" + publicPidEncoded);
-            publicObjContents = getNumQueryContents(cnQueryPublicObj); 
+            publicObjContents = ContextAwareTestCaseDataone.getNumQueryContents(cnQueryPublicObj); 
             cnQueryPersonObj = mnCnCaller.query(null, "solr", "q=identifier:" + testPersonPidEncoded);
-            personObjContents = getNumQueryContents(cnQueryPersonObj); 
+            personObjContents = ContextAwareTestCaseDataone.getNumQueryContents(cnQueryPersonObj); 
             cnQueryRightsHolderObj = mnCnCaller.query(null, "solr", "q=identifier:" + testRightsHolderPidEncoded);
-            rightsHolderObjContents = getNumQueryContents(cnQueryRightsHolderObj);
+            rightsHolderObjContents = ContextAwareTestCaseDataone.getNumQueryContents(cnQueryRightsHolderObj);
         } catch (Exception e) {
             handleFail(mnCnCaller.getLatestRequestUrl(), "Unable to run solr query for testRightsHolder subject.");
         }
@@ -784,7 +773,7 @@ public class LogAggregationFunctionalTestImplementations extends ContextAwareTes
         InputStream queryResult_id = null;
         try {
             queryResult_id = mnCnCaller.query(null, "solr", "q=identifier:" + pidEncoded);
-            LogContents queryContents = getNumQueryContents(queryResult_id);
+            LogContents queryContents = ContextAwareTestCaseDataone.getNumQueryContents(queryResult_id);
             if (queryContents.existingLogs == 0)
                 errors.add("query made by as CN should return some results when filtering on pid for " + mnCnCaller.getLatestRequestUrl());
         } catch (Exception e) {
@@ -797,7 +786,7 @@ public class LogAggregationFunctionalTestImplementations extends ContextAwareTes
         InputStream queryResult_title = null;
         try {
             queryResult_title = mnCnCaller.query(null, "solr", "q=title:" + titleEncoded);
-            LogContents queryContents = getNumQueryContents(queryResult_title);
+            LogContents queryContents = ContextAwareTestCaseDataone.getNumQueryContents(queryResult_title);
             if (queryContents.existingLogs == 0)
                 errors.add("query made by as CN should return some results when filtering on title for " + mnCnCaller.getLatestRequestUrl());
         } catch (Exception e) {
@@ -810,7 +799,7 @@ public class LogAggregationFunctionalTestImplementations extends ContextAwareTes
         InputStream queryResult_author = null;
         try {
             queryResult_author = mnCnCaller.query(null, "solr", "q=author:" + authorEncoded);
-            LogContents queryContents = getNumQueryContents(queryResult_author);
+            LogContents queryContents = ContextAwareTestCaseDataone.getNumQueryContents(queryResult_author);
             if (queryContents.existingLogs == 0)
                 errors.add("query made by as CN should return some results when filtering on author for " + mnCnCaller.getLatestRequestUrl());
         } catch (Exception e) {
@@ -839,7 +828,7 @@ public class LogAggregationFunctionalTestImplementations extends ContextAwareTes
             queryResult_pidTitleAuthor = mnCnCaller.query(null, "solr", "q=identifier:" + pidEncoded 
                     + "&q=title:" + titleEncoded
                     + "&q=author:" + authorEncoded);
-            LogContents queryContents = getNumQueryContents(queryResult_pidTitleAuthor);
+            LogContents queryContents = ContextAwareTestCaseDataone.getNumQueryContents(queryResult_pidTitleAuthor);
             if (queryContents.existingLogs == 0)
             errors.add("query made by as CN should return some results when filtering on identifier, title, and author for " + mnCnCaller.getLatestRequestUrl());
         } catch (Exception e) {
@@ -962,69 +951,4 @@ public class LogAggregationFunctionalTestImplementations extends ContextAwareTes
         }
     }
     
-    /**
-     * Returns the number of results in the given InputStream,
-     * which should be the result of a CN.query() call.
-     * <b>Closes the given InputStream when done.</b>
-     * @param is the InputStream to examine
-     * @param checkDoc whether to check the actual contents of the document 
-     *  (as opposed to just the numFound in the response header)
-     */
-    private LogContents getNumQueryContents(InputStream is) {
-        
-        LogContents logResults = new LogContents();
-        
-        try {
-            Document doc = null;
-            try {
-                DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-                doc = builder.parse(new InputSource(is));
-                
-//                try {
-//                    FileOutputStream os = new FileOutputStream(new File("C:\\Users\\Andrei\\stuff\\logAgg.txt"));
-//                    IOUtils.copy(is, os);
-//                    return logResults;
-//                } catch (Exception e2) {
-//                    e2.printStackTrace();
-//                }
-                
-            } catch (Exception e) {
-                throw new AssertionError("getNumQueryContents() " + 
-                        "unable to convert response to document, got exception: " 
-                        + e.getClass().getSimpleName() + " : " + e.getMessage(), e);
-            }
-            
-            XPath xPath =  XPathFactory.newInstance().newXPath();
-            String resultCountExp = "/response/result";
-            org.w3c.dom.Node resultNode = (org.w3c.dom.Node) xPath.compile(resultCountExp).evaluate(doc, XPathConstants.NODE);
-            org.w3c.dom.Node numFoundAttr = resultNode.getAttributes().getNamedItem("numFound");
-            assertTrue("query response doesn't have valid numFound attribute.", numFoundAttr != null);
-    
-            String numFoundVal = numFoundAttr.getNodeValue(); 
-            logResults.existingLogs = Integer.parseInt(numFoundVal);
-
-            String docsExp = "/response/result/doc";
-            XPathExpression xPathExpr = xPath.compile(docsExp);
-            NodeList docs = (NodeList) xPathExpr.evaluate(doc, XPathConstants.NODESET);
-            logResults.docsReturned = docs.getLength();
-            
-        } catch (XPathExpressionException e) {
-            throw new AssertionError("getNumQueryContents() xpath expression error: "
-                    + e.getClass().getSimpleName() + " : " + e.getMessage(), e);
-        } finally {
-            IOUtils.closeQuietly(is);
-        }
-
-        log.info("query results: numFound = " + logResults.existingLogs + "   <doc>s returned = " + logResults.docsReturned);
-        if (logResults.existingLogs != logResults.docsReturned)
-            log.info("The numFound attribute doesn't match number of <doc> elements found. "
-                    + "Subject used probably doesn't have access to them.");
-        
-        return logResults;
-    }
-    
-    private class LogContents {
-        public int existingLogs = 0;
-        public int docsReturned = 0;
-    }
 }
