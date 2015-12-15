@@ -177,7 +177,7 @@ public class AuthTokenTestImplementation extends ContextAwareAdapter {
         try {
             mn.create(tokenSession, pid, (InputStream) dataPackage[1], sysmeta);
         } catch (Exception e) {
-            throw new AssertionError("Unable to create object (" + pid + ") with token (" + userId + ", " + fullName + "). "
+            throw new AssertionError("Unable to create object (" + pid.getValue() + ") with token (" + userId + ", " + fullName + "). "
                     + "got " + e.getClass().getSimpleName() + " : " + e.getMessage() 
                     + " from " + mn.getLatestRequestUrl(), e);
         }
@@ -208,12 +208,12 @@ public class AuthTokenTestImplementation extends ContextAwareAdapter {
         try {
             mn.isAuthorized(tokenSession, pid, Permission.READ);
         } catch (BaseException e) {
-            throw new AssertionError("isAuthorized failed for object (" + pid + ") with token (" 
+            throw new AssertionError("isAuthorized failed for object (" + pid.getValue() + ") with token (" 
                     + userId + ", " + fullName + "). " + "got " + e.getClass().getSimpleName() 
                     + " [" + e.getCode() + "," + e.getDetail_code() + "] : " + e.getMessage()
                     + " from " + mn.getLatestRequestUrl(), e);
         } catch (Exception e) {
-            throw new AssertionError("isAuthorized failed for object (" + pid + ") with token (" + userId + ", " + fullName + "). "
+            throw new AssertionError("isAuthorized failed for object (" + pid.getValue() + ") with token (" + userId + ", " + fullName + "). "
                     + "got " + e.getClass().getSimpleName() + " : " + e.getMessage()
                     + " from " + mn.getLatestRequestUrl(), e);
         }
@@ -254,7 +254,7 @@ public class AuthTokenTestImplementation extends ContextAwareAdapter {
         try {
             catc.procureTestObject(cn, accessRule, pid, cnSubmitter, userId, replPolicy);
         } catch (Exception e) {
-            throw new AssertionError("Unable to create object (" + pid + "), "
+            throw new AssertionError("Unable to create object (" + pid.getValue() + "), "
                     + "got " + e.getClass().getSimpleName() + " : " + e.getMessage() 
                     + " from " + cn.getLatestRequestUrl(), e);
         }
@@ -264,12 +264,12 @@ public class AuthTokenTestImplementation extends ContextAwareAdapter {
         try {
             cn.isAuthorized(tokenSession, pid, Permission.READ);
         } catch (BaseException e) {
-            throw new AssertionError("isAuthorized failed for object (" + pid + ") with token (" 
+            throw new AssertionError("isAuthorized failed for object (" + pid.getValue() + ") with token (" 
                     + userId + ", " + fullName + "). " + "got " + e.getClass().getSimpleName() 
                     + " [" + e.getCode() + "," + e.getDetail_code() + "] : " + e.getMessage()
                     + " from " + cn.getLatestRequestUrl(), e);
         } catch (Exception e) {
-            throw new AssertionError("isAuthorized failed for object (" + pid + ") with token (" + userId + ", " + fullName + "). "
+            throw new AssertionError("isAuthorized failed for object (" + pid.getValue() + ") with token (" + userId + ", " + fullName + "). "
                     + "got " + e.getClass().getSimpleName() + " : " + e.getMessage()
                     + " from " + cn.getLatestRequestUrl(), e);
         }
@@ -308,7 +308,7 @@ public class AuthTokenTestImplementation extends ContextAwareAdapter {
         try {
             catc.procureTestObject(mn, accessRule, pid, cnSubmitter, userId, replPolicy);
         } catch (Exception e) {
-            throw new AssertionError("Unable to create object (" + pid + "), "
+            throw new AssertionError("Unable to create object (" + pid.getValue() + "), "
                     + "got " + e.getClass().getSimpleName() + " : " + e.getMessage() 
                     + " from " + mn.getLatestRequestUrl(), e);
         }
@@ -316,12 +316,12 @@ public class AuthTokenTestImplementation extends ContextAwareAdapter {
         try {
             mn.isAuthorized(tokenSession, pid, Permission.READ);
         } catch (BaseException e) {
-            throw new AssertionError("isAuthorized failed for object (" + pid + ") with token (" 
+            throw new AssertionError("isAuthorized failed for object (" + pid.getValue() + ") with token (" 
                     + userId + ", " + fullName + "). " + "got " + e.getClass().getSimpleName() 
                     + " [" + e.getCode() + "," + e.getDetail_code() + "] : " + e.getMessage()
                     + " from " + mn.getLatestRequestUrl(), e);
         } catch (Exception e) {
-            throw new AssertionError("isAuthorized failed for object (" + pid + ") with token (" + userId + ", " + fullName + "). "
+            throw new AssertionError("isAuthorized failed for object (" + pid.getValue() + ") with token (" + userId + ", " + fullName + "). "
                     + "got " + e.getClass().getSimpleName() + " : " + e.getMessage()
                     + " from " + mn.getLatestRequestUrl(), e);
         }
@@ -362,7 +362,7 @@ public class AuthTokenTestImplementation extends ContextAwareAdapter {
         try {
             catc.createTestObject(mn, oldPid, accessRule, cnSubmitter, userId, replPolicy);
         } catch (Exception e) {
-            throw new AssertionError("Unable to create object (" + oldPid + "), "
+            throw new AssertionError("Unable to create object (" + oldPid.getValue() + "), "
                     + "got " + e.getClass().getSimpleName() + " : " + e.getMessage() 
                     + " from " + mn.getLatestRequestUrl(), e);
         }
@@ -373,7 +373,7 @@ public class AuthTokenTestImplementation extends ContextAwareAdapter {
             Thread.sleep(10000); // metacat writes to db asynchronously, wait 10s
             oldSysmeta = mn.getSystemMetadata(null, oldPid);
         } catch (Exception e) {
-            throw new AssertionError("Unable to get sysmeta for created object (" + oldPid + "), "
+            throw new AssertionError("Unable to get sysmeta for created object (" + oldPid.getValue() + "), "
                     + "got " + e.getClass().getSimpleName() + " : " + e.getMessage() 
                     + " from " + mn.getLatestRequestUrl(), e);
         }
@@ -395,7 +395,7 @@ public class AuthTokenTestImplementation extends ContextAwareAdapter {
             newSysmeta.setObsoletes(oldPid);
             objectInputStream = new ByteArrayInputStream(contentBytes);
         } catch (Exception e) {
-            throw new AssertionError("creating object for MN.update() failed for object (" + newPid + ") with token (" + userId + ", " + fullName + "). "
+            throw new AssertionError("creating object for MN.update() failed for object (" + newPid.getValue() + ") with token (" + userId + ", " + fullName + "). "
                     + "got " + e.getClass().getSimpleName() + " : " + e.getMessage()
                     + " from " + mn.getLatestRequestUrl(), e);
         }
@@ -405,12 +405,12 @@ public class AuthTokenTestImplementation extends ContextAwareAdapter {
         try {
             mn.update(tokenSession, oldPid, objectInputStream, newPid, newSysmeta);
         } catch (BaseException e) {
-            throw new AssertionError("update failed for object (" + oldPid + ") with token (" 
+            throw new AssertionError("update failed for object (" + oldPid.getValue() + ") with token (" 
                     + userId + ", " + fullName + "). " + "got " + e.getClass().getSimpleName() 
                     + " [" + e.getCode() + "," + e.getDetail_code() + "] : " + e.getMessage()
                     + " from " + mn.getLatestRequestUrl(), e);
         } catch (Exception e) {
-            throw new AssertionError("update failed for object (" + oldPid + ") with token (" + userId + ", " + fullName + "). "
+            throw new AssertionError("update failed for object (" + oldPid.getValue() + ") with token (" + userId + ", " + fullName + "). "
                     + "got " + e.getClass().getSimpleName() + " : " + e.getMessage()
                     + " from " + mn.getLatestRequestUrl(), e);
         }
@@ -481,7 +481,7 @@ public class AuthTokenTestImplementation extends ContextAwareAdapter {
         try {
             catc.procureTestObject(mn, accessRule, pid, cnSubmitter, userId, replPolicy);
         } catch (Exception e) {
-            throw new AssertionError("Unable to create object (" + pid + "), "
+            throw new AssertionError("Unable to create object (" + pid.getValue() + "), "
                     + "got " + e.getClass().getSimpleName() + " : " + e.getMessage() 
                     + " from " + mn.getLatestRequestUrl(), e);
         }
@@ -523,12 +523,12 @@ public class AuthTokenTestImplementation extends ContextAwareAdapter {
                     " against CN " + cn.getLatestRequestUrl(), numQueryContents.existingLogs > 0);
             
         } catch (BaseException e) {
-            throw new AssertionError("query failed for object (" + pid + ") with token (" 
+            throw new AssertionError("query failed for object (" + pid.getValue() + ") with token (" 
                     + userId + ", " + fullName + "). " + "got " + e.getClass().getSimpleName() 
                     + " [" + e.getCode() + "," + e.getDetail_code() + "] : " + e.getMessage()
                     + " from " + cn.getLatestRequestUrl(), e);
         } catch (Exception e) {
-            throw new AssertionError("query failed for object (" + pid + ") with token (" + userId + ", " + fullName + "). "
+            throw new AssertionError("query failed for object (" + pid.getValue() + ") with token (" + userId + ", " + fullName + "). "
                     + "got " + e.getClass().getSimpleName() + " : " + e.getMessage()
                     + " from " + cn.getLatestRequestUrl(), e);
         } finally {
