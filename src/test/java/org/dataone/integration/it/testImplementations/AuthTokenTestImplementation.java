@@ -349,7 +349,7 @@ public class AuthTokenTestImplementation extends ContextAwareAdapter {
         
         AccessRule accessRule = new AccessRule();
         accessRule.addSubject(tokenSession.getSubject());
-        accessRule.addPermission(Permission.CHANGE_PERMISSION);
+        accessRule.addPermission(Permission.WRITE);
         AccessPolicy policy = new AccessPolicy();
         policy.addAllow(accessRule);
         
