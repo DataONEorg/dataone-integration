@@ -180,7 +180,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 
     // this here defines the default
     // can be overwritten by property passed into base class
-    protected String testObjectSeriesSuffix = "." + "14";
+    protected String testObjectSeriesSuffix = "." + "15";
     protected String testObjectSeries = null;
 
     protected static boolean failOnMissingNodes = false;
