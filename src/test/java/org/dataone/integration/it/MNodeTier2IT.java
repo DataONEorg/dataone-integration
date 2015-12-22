@@ -145,7 +145,7 @@ implements AuthAPITestDefinitions
 		
 		setupClientSubject("testRightsHolder");
 		
-		String[] cNodeIds = new String[]{"cnDevUNM1","cnSandboxUNM1", "cnStageUNM1"};
+		String[] cNodeIds = new String[]{"cnDevUNM1","cnSandboxORC1", "cnStageUNM1"};
 		
 		while ( it.hasNext() ) {
 				

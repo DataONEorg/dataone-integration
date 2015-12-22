@@ -53,7 +53,7 @@ public class MNSystemMetadataChangedMethodTestImplementations extends ContextAwa
     
     public void testSystemMetadataChanged(Node node, String version) {
 
-        String[] certLabels = {"cnDevUNM1", "cnDevUNM2", "cnSandboxUNM1", "cnStageUNM1"};
+        String[] certLabels = {"cnDevUNM1", "cnDevUNM2", "cnSandboxORC1", "cnStageUNM1"};
         MNCallAdapter[] cNodeSessions = new MNCallAdapter[]{
                 new MNCallAdapter(getSession(certLabels[0]), node, version),
                 new MNCallAdapter(getSession(certLabels[1]), node, version),

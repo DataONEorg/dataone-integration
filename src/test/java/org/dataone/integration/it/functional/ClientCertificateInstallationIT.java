@@ -115,7 +115,7 @@ public class ClientCertificateInstallationIT {
 	@Test
 	public void testSetupClientSubject_CN_sandbox() throws Exception
 	{
-		runTestSetupClient_Typical("cnSandboxUNM1", false);
+		runTestSetupClient_Typical("cnSandboxORC1", false);
 	}
 	
 	@Test
