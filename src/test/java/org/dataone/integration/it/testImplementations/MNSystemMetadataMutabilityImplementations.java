@@ -203,8 +203,9 @@ public class MNSystemMetadataMutabilityImplementations extends ContextAwareTestC
         Date cnSysmetaDateModified = sysmeta.getDateSysMetadataModified();
         
         boolean dateUnchanged = DateUtils.isSameInstant(mnSysmetaDateModified, cnSysmetaDateModified);
+        log.info("cnSysmetaDateModified=" + cnSysmetaDateModified.getTime() + "mnSysmetaDateModified=" + mnSysmetaDateModified.getTime());
         assertTrue("testRegisterSystemMetadata_dateModified: The CN should not be changing the dateSysMetadataModified "
-                + "on creation.", dateUnchanged);
+                + "on creation. pid=" + pid.getValue(), dateUnchanged);
     }
     
     @WebTestName("setReplicationStatus date modified")
@@ -339,8 +340,9 @@ public class MNSystemMetadataMutabilityImplementations extends ContextAwareTestC
         Date cnSysmetaDateModified = sysmeta.getDateSysMetadataModified();
         
         boolean dateUnchanged = DateUtils.isSameInstant(mnSysmetaDateModified, cnSysmetaDateModified);
+        log.info("cnSysmetaDateModified=" + cnSysmetaDateModified.getTime() + "mnSysmetaDateModified=" + mnSysmetaDateModified.getTime());
         assertTrue("testSetReplicationStatus_dateModified: The CN should not be changing the dateSysMetadataModified "
-                + "on setReplicationStatus.", dateUnchanged);
+                + "on setReplicationStatus. pid=" + pid.getValue(), dateUnchanged);
     }
     
     @WebTestName("updateReplicationMetadata date modified")
@@ -436,8 +438,9 @@ public class MNSystemMetadataMutabilityImplementations extends ContextAwareTestC
         Date cnSysmetaDateModified = cnSysmeta.getDateSysMetadataModified();
         // make sure replication didn't update the sysmeta
         boolean dateUnchanged = DateUtils.isSameInstant(mnSysmetaDateModified, cnSysmetaDateModified);
+        log.info("cnSysmetaDateModified=" + cnSysmetaDateModified.getTime() + "mnSysmetaDateModified=" + mnSysmetaDateModified.getTime());
         assertTrue("testUpdateReplicationMetadata_dateModified: The CN should not be changing the dateSysMetadataModified "
-                + "during replication.", dateUnchanged);
+                + "during replication. pid=" + pid.getValue(), dateUnchanged);
 
         // get a replica
         Replica replica = null;
@@ -484,8 +487,9 @@ public class MNSystemMetadataMutabilityImplementations extends ContextAwareTestC
         cnSysmetaDateModified = cnSysmeta.getDateSysMetadataModified();
         
         dateUnchanged = DateUtils.isSameInstant(mnSysmetaDateModified, cnSysmetaDateModified);
+        log.info("cnSysmetaDateModified=" + cnSysmetaDateModified.getTime() + "mnSysmetaDateModified=" + mnSysmetaDateModified.getTime());
         assertTrue("testUpdateReplicationMetadata_dateModified: The CN should not be changing the dateSysMetadataModified "
-                + "on setReplicationStatus.", dateUnchanged);
+                + "on setReplicationStatus. pid=" + pid.getValue(), dateUnchanged);
     }
     
     @WebTestName("deleteReplicationMetadata date modified")
@@ -590,8 +594,9 @@ public class MNSystemMetadataMutabilityImplementations extends ContextAwareTestC
         Date cnSysmetaDateModified = cnSysmeta.getDateSysMetadataModified();
         // make sure replication didn't update the sysmeta
         boolean dateUnchanged = DateUtils.isSameInstant(mnSysmetaDateModified, cnSysmetaDateModified);
+        log.info("cnSysmetaDateModified=" + cnSysmetaDateModified.getTime() + "mnSysmetaDateModified=" + mnSysmetaDateModified.getTime());
         assertTrue("testDeleteReplicationMetacat_dateModified: The CN should not be changing the dateSysMetadataModified "
-                + "during replication.", dateUnchanged);
+                + "during replication. pid=" + pid.getValue(), dateUnchanged);
         
         outerloop:
         for (Replica r : cnSysmeta.getReplicaList()) {
@@ -632,8 +637,9 @@ public class MNSystemMetadataMutabilityImplementations extends ContextAwareTestC
         cnSysmetaDateModified = cnSysmeta.getDateSysMetadataModified();
         
         dateUnchanged = DateUtils.isSameInstant(mnSysmetaDateModified, cnSysmetaDateModified);
+        log.info("cnSysmetaDateModified=" + cnSysmetaDateModified.getTime() + "mnSysmetaDateModified=" + mnSysmetaDateModified.getTime());
         assertTrue("testDeleteReplicationMetacat_dateModified: The CN should not be changing the dateSysMetadataModified "
-                + "on deleteReplicationMetadata.", dateUnchanged);
+                + "on deleteReplicationMetadata. pid=" + pid.getValue(), dateUnchanged);
     }
 
     @WebTestName("setReplicationPolicy date modified")
@@ -727,8 +733,9 @@ public class MNSystemMetadataMutabilityImplementations extends ContextAwareTestC
         cnSysmetaDateModified = cnSysmeta.getDateSysMetadataModified();
         
         boolean dateUnchanged = DateUtils.isSameInstant(mnSysmetaDateModified, cnSysmetaDateModified);
+        log.info("cnSysmetaDateModified=" + cnSysmetaDateModified.getTime() + "mnSysmetaDateModified=" + mnSysmetaDateModified.getTime());
         assertTrue("testSetReplicationPolicy_dateModified: The CN should not be changing the dateSysMetadataModified "
-                + "on setReplicationPolicy.", dateUnchanged);
+                + "on setReplicationPolicy. pid=" + pid.getValue(), dateUnchanged);
     }
     
     @WebTestName("setAccessPolicy date modified")
@@ -802,8 +809,9 @@ public class MNSystemMetadataMutabilityImplementations extends ContextAwareTestC
         Date cnSysmetaDateModified = cnSysmeta.getDateSysMetadataModified();
         
         boolean dateUnchanged = DateUtils.isSameInstant(mnSysmetaDateModified, cnSysmetaDateModified);
+        log.info("cnSysmetaDateModified=" + cnSysmetaDateModified.getTime() + "mnSysmetaDateModified=" + mnSysmetaDateModified.getTime());
         assertTrue("testSetAccessPolicy_dateModified: The CN should not be changing the dateSysMetadataModified "
-                + "on sync.", dateUnchanged);
+                + "on sync. pid=" + pid.getValue(), dateUnchanged);
         
         // setAccessPolicy call
         
@@ -840,8 +848,9 @@ public class MNSystemMetadataMutabilityImplementations extends ContextAwareTestC
         cnSysmetaDateModified = cnSysmeta.getDateSysMetadataModified();
         
         dateUnchanged = DateUtils.isSameInstant(mnSysmetaDateModified, cnSysmetaDateModified);
+        log.info("cnSysmetaDateModified=" + cnSysmetaDateModified.getTime() + "mnSysmetaDateModified=" + mnSysmetaDateModified.getTime());
         assertTrue("testSetAccessPolicy_dateModified: The CN should not be changing the dateSysMetadataModified "
-                + "on setAccessPolicy.", dateUnchanged);
+                + "on setAccessPolicy. pid=" + pid.getValue(), dateUnchanged);
     }
     
     @WebTestName("setRightsHolder date modified")
@@ -947,7 +956,8 @@ public class MNSystemMetadataMutabilityImplementations extends ContextAwareTestC
         cnSysmetaDateModified = cnSysmeta.getDateSysMetadataModified();
         
         boolean dateUnchanged = DateUtils.isSameInstant(mnSysmetaDateModified, cnSysmetaDateModified);
+        log.info("cnSysmetaDateModified=" + cnSysmetaDateModified.getTime() + "mnSysmetaDateModified=" + mnSysmetaDateModified.getTime());
         assertTrue("testSetRightsHolder_dateModified: The CN should not be changing the dateSysMetadataModified "
-                + "on setRightsHolder.", dateUnchanged);
+                + "on setRightsHolder. pid=" + pid.getValue(), dateUnchanged);
     }
 }
