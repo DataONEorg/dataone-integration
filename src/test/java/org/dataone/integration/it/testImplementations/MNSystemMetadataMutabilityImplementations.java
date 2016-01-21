@@ -221,7 +221,7 @@ public class MNSystemMetadataMutabilityImplementations extends ContextAwareTestC
         replPolicy.setReplicationAllowed(true);
         replPolicy.setNumberReplicas(v2mns.size() > 1 ? v2mns.size() -1 : 2);
         
-        final Identifier pid = D1TypeBuilder.buildIdentifier("testRegisterSystemMetadata_dateModified_obj5");
+        final Identifier pid = D1TypeBuilder.buildIdentifier("testRegisterSystemMetadata_dateModified_obj6");
         Node mNode = v2mns.get(0);
         MNCallAdapter mn = new MNCallAdapter(getSession(cnSubmitter), mNode, "v2"); 
         
@@ -358,7 +358,7 @@ public class MNSystemMetadataMutabilityImplementations extends ContextAwareTestC
         replPolicy.setReplicationAllowed(true);
         replPolicy.setNumberReplicas(v2mns.size() > 1 ? v2mns.size() -1 : 2);
         
-        final Identifier pid = D1TypeBuilder.buildIdentifier("testUpdateReplicationMetadata_dateModified_obj5");
+        final Identifier pid = D1TypeBuilder.buildIdentifier("testUpdateReplicationMetadata_dateModified_obj6");
         Node mNode = v2mns.get(0);
         MNCallAdapter mn = new MNCallAdapter(getSession(cnSubmitter), mNode, "v2"); 
         
@@ -661,7 +661,7 @@ public class MNSystemMetadataMutabilityImplementations extends ContextAwareTestC
         MNCallAdapter mn = new MNCallAdapter(getSession(cnSubmitter), v1MNode, "v1");
         
         // create v1 object on MN
-        final Identifier pid = D1TypeBuilder.buildIdentifier("testSetReplicationPolicy_dateModified_obj5");
+        final Identifier pid = D1TypeBuilder.buildIdentifier("testSetReplicationPolicy_dateModified_obj6");
         try {
             getSession(cnSubmitter);
             log.info("attempting to create test object on " + mn.getNodeBaseServiceUrl() + " with pid " + pid.getValue());
@@ -758,7 +758,7 @@ public class MNSystemMetadataMutabilityImplementations extends ContextAwareTestC
         MNCallAdapter mn = new MNCallAdapter(getSession(cnSubmitter), v1MNode, "v1");
         
         // create v1 object on MN
-        final Identifier pid = D1TypeBuilder.buildIdentifier("testSetAccessPolicy_dateModified_obj5");
+        final Identifier pid = D1TypeBuilder.buildIdentifier("testSetAccessPolicy_dateModified_obj6");
         try {
             getSession(cnSubmitter);
             log.info("attempting to create test object on " + mn.getNodeBaseServiceUrl() + " with pid " + pid.getValue());
@@ -873,7 +873,7 @@ public class MNSystemMetadataMutabilityImplementations extends ContextAwareTestC
         Node v1MNode = v1mns.get(0);
         MNCallAdapter mn = new MNCallAdapter(getSession(cnSubmitter), v1MNode, "v1");
 
-        final Identifier pid = D1TypeBuilder.buildIdentifier("testSetRightsHolder_dateModified_obj5");
+        final Identifier pid = D1TypeBuilder.buildIdentifier("testSetRightsHolder_dateModified_obj6");
         // create v1 object on MN
         try {
             getSession(cnSubmitter);
