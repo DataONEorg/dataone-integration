@@ -221,7 +221,7 @@ public class MNSystemMetadataMutabilityImplementations extends ContextAwareTestC
         replPolicy.setReplicationAllowed(true);
         replPolicy.setNumberReplicas(v2mns.size() > 1 ? v2mns.size() -1 : 2);
         
-        final Identifier pid = D1TypeBuilder.buildIdentifier("testRegisterSystemMetadata_dateModified_obj6");
+        final Identifier pid = D1TypeBuilder.buildIdentifier("testRegisterSystemMetadata_dateModified_obj7");
         Node mNode = v2mns.get(0);
         MNCallAdapter mn = new MNCallAdapter(getSession(cnSubmitter), mNode, "v2"); 
         
@@ -296,32 +296,26 @@ public class MNSystemMetadataMutabilityImplementations extends ContextAwareTestC
                     + e.getClass().getSimpleName() + " : " + e.getMessage(), e);
         }
         
-//      ReplicationStatus.COMPLETED
-//      ReplicationStatus.FAILED
-//      ReplicationStatus.INVALIDATED
-//      ReplicationStatus.QUEUED
-//      ReplicationStatus.REQUESTED
-        
-        // grab replica for current MN 
-        Replica authMnReplica = null;
+        // grab replica for another v2 MN 
+        Replica nonAuthReplica = null;
         for (Replica replica : cnSysmeta.getReplicaList()) {
-            if (replica.getReplicaMemberNode().equals(mNode.getIdentifier())) {
-                authMnReplica = replica;
+            if (!replica.getReplicaMemberNode().equals(mNode.getIdentifier())) {
+                nonAuthReplica = replica;
                 break;
             }
         }
         
-        assertTrue("testSetReplicationStatus_dateModified unable to grab replica for current MN", authMnReplica != null);
+        assertTrue("testSetReplicationStatus_dateModified unable to grab replica for another v2 MN", nonAuthReplica != null);
         
-        NodeReference authMnReplicaRef = authMnReplica.getReplicaMemberNode();
+        NodeReference mnReplicaRef = nonAuthReplica.getReplicaMemberNode();
         ReplicationStatus repStatus = ReplicationStatus.INVALIDATED;
-        if (authMnReplica.getReplicationStatus() == ReplicationStatus.INVALIDATED)
+        if (nonAuthReplica.getReplicationStatus() == ReplicationStatus.INVALIDATED)
             repStatus = ReplicationStatus.FAILED;
            
         // setReplicationStatus call
         try {
             // expecting lots of state checks... changing to INVALIDATED seems like it should have the least (?) 
-            cnV2.setReplicationStatus(null, pid, authMnReplicaRef, repStatus , null);
+            cnV2.setReplicationStatus(null, pid, mnReplicaRef, repStatus , null);
         } catch (Exception e) {
             throw new AssertionError(cnV2.getLatestRequestUrl() + " testSetReplicationStatus_dateModified: unable "
                     + "to setReplicationStatus for pid " + pid.getValue() + " Got exception: " 
@@ -358,7 +352,7 @@ public class MNSystemMetadataMutabilityImplementations extends ContextAwareTestC
         replPolicy.setReplicationAllowed(true);
         replPolicy.setNumberReplicas(v2mns.size() > 1 ? v2mns.size() -1 : 2);
         
-        final Identifier pid = D1TypeBuilder.buildIdentifier("testUpdateReplicationMetadata_dateModified_obj6");
+        final Identifier pid = D1TypeBuilder.buildIdentifier("testUpdateReplicationMetadata_dateModified_obj7");
         Node mNode = v2mns.get(0);
         MNCallAdapter mn = new MNCallAdapter(getSession(cnSubmitter), mNode, "v2"); 
         
@@ -661,7 +655,7 @@ public class MNSystemMetadataMutabilityImplementations extends ContextAwareTestC
         MNCallAdapter mn = new MNCallAdapter(getSession(cnSubmitter), v1MNode, "v1");
         
         // create v1 object on MN
-        final Identifier pid = D1TypeBuilder.buildIdentifier("testSetReplicationPolicy_dateModified_obj6");
+        final Identifier pid = D1TypeBuilder.buildIdentifier("testSetReplicationPolicy_dateModified_obj7");
         try {
             getSession(cnSubmitter);
             log.info("attempting to create test object on " + mn.getNodeBaseServiceUrl() + " with pid " + pid.getValue());
@@ -758,7 +752,7 @@ public class MNSystemMetadataMutabilityImplementations extends ContextAwareTestC
         MNCallAdapter mn = new MNCallAdapter(getSession(cnSubmitter), v1MNode, "v1");
         
         // create v1 object on MN
-        final Identifier pid = D1TypeBuilder.buildIdentifier("testSetAccessPolicy_dateModified_obj6");
+        final Identifier pid = D1TypeBuilder.buildIdentifier("testSetAccessPolicy_dateModified_obj7");
         try {
             getSession(cnSubmitter);
             log.info("attempting to create test object on " + mn.getNodeBaseServiceUrl() + " with pid " + pid.getValue());
@@ -873,7 +867,7 @@ public class MNSystemMetadataMutabilityImplementations extends ContextAwareTestC
         Node v1MNode = v1mns.get(0);
         MNCallAdapter mn = new MNCallAdapter(getSession(cnSubmitter), v1MNode, "v1");
 
-        final Identifier pid = D1TypeBuilder.buildIdentifier("testSetRightsHolder_dateModified_obj6");
+        final Identifier pid = D1TypeBuilder.buildIdentifier("testSetRightsHolder_dateModified_obj7");
         // create v1 object on MN
         try {
             getSession(cnSubmitter);
