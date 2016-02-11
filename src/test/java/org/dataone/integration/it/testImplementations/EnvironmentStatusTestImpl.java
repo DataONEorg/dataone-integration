@@ -23,7 +23,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 
-public class EnvironmentStatusTest extends ContextAwareTestCaseDataone {
+public class EnvironmentStatusTestImpl extends ContextAwareTestCaseDataone {
 
     private List<Node> cns;
     private NodeList cnNodeList;
