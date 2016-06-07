@@ -27,7 +27,10 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import java.io.IOException;
+
 import org.apache.commons.lang.StringUtils;
+import org.apache.http.client.ClientProtocolException;
 import org.dataone.configuration.Settings;
 import org.dataone.configuration.TestSettings;
 import org.junit.After;
@@ -105,6 +108,30 @@ public class ContextAwareTestCaseDataoneTest {
 		String prodCNurl = Settings.getConfiguration().getString("D1Client.CN_URL");	
 		System.out.println("context CN url = " + prodCNurl);
 		assertTrue("reference CN should not bleed over into context CN", StringUtils.isEmpty(prodCNurl));
+	}
+	
+	
+	@Test
+	public void testIsNodeAlive() throws ClientProtocolException, IOException, InterruptedException {
+	    String url = "https://mn-demo-5.test.dataone.org";
+	   // String url = "https://flynn-gmn-2.test.dataone.org/mn/v1/node";
+	    ContextAwareTestCaseDataone d1tc = new ContextAwareTestCaseDataone() {
+
+            @Override
+            protected String getTestDescription() {
+                // TODO Auto-generated method stub
+                return null;
+            }           
+        };
+        d1tc.isNodeAlive(url);
+        System.out.println("Got response");
+//        d1tc.isNodeAlive(url);
+        Thread.sleep(5000);
+        System.out.println("waited...");
+        Thread.sleep(5000);
+        System.out.println("waited...");
+        Thread.sleep(5000);
+        System.out.println("done...");
 	}
 	
 }

@@ -46,6 +46,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.Vector;
 import java.util.concurrent.Callable;
 
@@ -63,6 +65,7 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.dataone.client.D1Node;
@@ -313,6 +316,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
             
             log.info("****************************************************");
         }  // settings already set up
+        TestObjectCache.getInstance().logCacheUtilization(log);
     }
 
 
@@ -334,10 +338,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
                     .setConnectionRequestTimeout(10000)
                     .setSocketTimeout(10000)
                     .build();
-            RestClient rc = new RestClient(
-            HttpClients.custom().setDefaultRequestConfig(config).build()
-            );
-            parseContextNodeList(rc);
+            parseContextNodeList();
             multiNodeExists = true;
         }
         memberNodeList = multiNodeMemberNodeList;
@@ -350,7 +351,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
     /*
      * this routine sets the static node lists for reuse
      */
-    private void parseContextNodeList(RestClient rc) 
+    private void parseContextNodeList() 
     throws IOException, InstantiationException, IllegalAccessException,
     JiBXException, ServiceFailure, NotImplemented, ClientSideException
     {
@@ -385,7 +386,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
             if (currentNode.getType() == NodeType.CN) {
                 // test the baseUrl
                 try {
-                    isNodeAlive(rc, currentNode.getBaseURL());
+                    isNodeAlive(currentNode.getBaseURL());
                     multiNodeCoordinatingNodeList.add(currentNode);
                     log.info("*** Adding CN to list: " + currentNode.getName() +
                             " [ " + currentNode.getBaseURL() +" ]");
@@ -402,7 +403,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
                 }
             } else if (currentNode.getType() == NodeType.MN) {
                 try {
-                    isNodeAlive(rc, currentNode.getBaseURL());
+                    isNodeAlive(currentNode.getBaseURL());
                     multiNodeMemberNodeList.add(currentNode);
                     log.info("*** Adding MN to list: " + currentNode.getName() +
                             " [ " + currentNode.getBaseURL() +" ]");
@@ -469,7 +470,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
      * Returns true or throws an exception
      * Exceptions are thrown if a response cannot be returned from the baseurl
      */
-    private boolean isNodeAlive(RestClient rc, String baseURL) 
+    boolean isNodeAlive(String baseURL) 
     throws ClientProtocolException, IOException {
         
         log.info("isNodeAlive for Node: " + baseURL + " ...");
@@ -477,24 +478,47 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
         Date now = new Date();
         if (latestCheck == null /* never checked */ || (now.getTime() - latestCheck > 600000 /* >10 min */ )) {
             // check the node
+            
             log.info("... calling node ...");
             HttpResponse resp = null;
             try {
-               resp = rc.doGetRequest(baseURL, null);
+               resp = doHardTimedHttpRequest(baseURL, 10000);
                lastAliveMap.put(baseURL, new Long(new Date().getTime()));
-               return true;
             } 
             finally {
                 if (resp != null) 
                     EntityUtils.consumeQuietly(resp.getEntity());
                 log.info("... called node");
             }
+            if (resp != null) {
+                return true;
+            } else {
+                return false;
+            }
         } else {
             log.info("... lastAlive still fresh (using cached timestamp)");
             return true;
         }
     }
+    
+    
+    
+    private HttpResponse doHardTimedHttpRequest(String url, long millisec) throws ClientProtocolException, IOException {
+        final HttpGet getMethod = new HttpGet(url);
 
+ //       int hardTimeout = 10; // seconds
+        TimerTask task = new TimerTask() {
+            @Override
+            public void run() {
+                if (getMethod != null) {
+                    log.warn("...aborting connection...");
+                    getMethod.abort();
+                }
+            }
+        };
+        new Timer(true).schedule(task, millisec);
+        return HttpClients.createDefault().execute(getMethod);
+    }
 
     private List<Node> getNodeList(String baseURL)
     throws ClientSideException, NotImplemented, ServiceFailure {
@@ -702,11 +726,25 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
     }
 
 
-
+    /**
+     * get an ObjectList from listObjects as the current user, and if empty,
+     * try to create a public readable object.  Caches the result.  Uses default parameters.
+     * @param cca
+     * @return
+     * @throws TestIterationEndingException
+     */
     public ObjectList procureObjectList(CommonCallAdapter cca)
     throws TestIterationEndingException
     {
-        return procureObjectList(cca,false);
+        if (!TestObjectCache.getInstance().hasCachedObjectList(cca.getNodeId())) {
+            ObjectList ol = procureObjectList(cca,false);
+            log.info(String.format("Caching objectlist for node %s", cca.getNodeId().getValue()));
+            TestObjectCache.getInstance().cacheObjectList(cca.getNodeId(), ol);
+        } else {
+            log.info(String.format("Using cached objectlist for node %s", cca.getNodeId().getValue()));
+        }
+        return TestObjectCache.getInstance().getCachedObjectList(cca.getNodeId());
+        
     }
 
     /**
@@ -782,108 +820,134 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
     public Identifier procurePublicReadableTestObject(CommonCallAdapter cca, Identifier firstTry)
     throws TestIterationEndingException
     {
-        Identifier identifier = null;
-        try {
-            identifier  = procureTestObject(
-                    cca,
-                    D1TypeBuilder.buildAccessRule(
-                            Constants.SUBJECT_PUBLIC,
-                            Permission.READ),
-                    firstTry);
-        }
-        catch (Exception e) {
-            ; // fallback to plan B
-        }
-
-        // didn't get an identifier from procureObjectList, so will loop through
-        // listObjects until we find a suitable one.
-        // criteria: must be declared public; can't be too big; can't look forever
-        // (if too big, can get a heap exception  - it's already happened!)
-        BaseException latestException = null;
-        if (identifier == null) {
+        if ( !TestObjectCache.getInstance().hasCachedPublicIdentifier(cca.getNodeId()) )  {
+            Identifier identifier = null;
             try {
-                ObjectList ol = cca.listObjects(null, null, null, null, null, null);
-                if (ol != null && ol.getCount() > 0) {
+                identifier  = procureTestObject(
+                        cca,
+                        D1TypeBuilder.buildAccessRule(
+                                Constants.SUBJECT_PUBLIC,
+                                Permission.READ),
+                                firstTry);
+            }
+            catch (Exception e) {
+                ; // fallback to finding an existing object
+            }
+            
+            if (identifier == null) {
+                Object result = findPublicReadableObject(cca);
+                if (result == null) {
+                    ;
+                } 
+                else if (result instanceof Identifier) {
+                    identifier = (Identifier)result;
+                } 
+                else if (result  instanceof NotAuthorized) {
+                    throw new TestIterationEndingException("could not create a test object and" +
+                            " could not find object with a public accessRule in reasonable amount of time");
+                } 
+                else if (result instanceof Exception){
+                    throw new TestIterationEndingException("could not create a test object and" +
+                            " attempts to find an object with a public accessRule gave the following exception: " +
+                            result.getClass().getSimpleName() + ":: " + ((Exception)result).getMessage(),
+                            (Exception)result);
+                } else {
+                    throw new TestIterationEndingException("Unexcepted return! Got: " + result.getClass().getSimpleName());
+                }
+            } 
+            
+            // can cache a null
+            log.info(String.format("Caching identifier %s for node %s", identifier.getValue(),cca.getNodeId().getValue()));
+            TestObjectCache.getInstance().cachePublicIdentifier(cca.getNodeId(), identifier);
+            
+        } else {
+            log.info(String.format("Using cached identifier for node %s",cca.getNodeId().getValue()));
+        }
+        return TestObjectCache.getInstance().getCachedPublicIdentifier(cca.getNodeId());
+    }
+    
+    
+    /**
+     * gets the results from trying to find a public readable object.  It iterates
+     * through an objectlist for thirty seconds or until it finds a readable object 
+     * that is <3Mb.
+     * 
+     * @param cca
+     * @return - an Identifier of a public readable object, an exception from systemMetadatacalls, or null
+     * @throws TestIterationEndingException - if a problem calling listObjects
+     */
+    private Object findPublicReadableObject(CommonCallAdapter cca) throws TestIterationEndingException 
+             {
+        
+        Object result = null;
+        
+        ObjectList ol = null;
+        try {
+            ol = cca.listObjects(null, null, null, null, null, null);
+        } catch (BaseException be) {
+            throw new TestIterationEndingException("could not create a test object " +
+                    "and listObjects() threw exception:: " + be.getClass().getSimpleName() +
+                    " :: " + be.getDescription(),be);
+        } catch (ClientSideException e1) {
+            throw new TestIterationEndingException("could not create a test object " +
+                    "and listObjects() threw exception:: " + e1.getClass().getSimpleName() +
+                    " :: " + e1.getMessage(),e1);
+        }
+        if (ol == null ||  ol.getCount() == 0) {
+            // empty object list
+            throw new TestIterationEndingException("The objectList is empty");
+        }
 
-                    // start time of this search-loop
-                    long start = (new Date()).getTime();
+        // know we have a non-empty objectList to work with
+        
+        // start time of this search-loop
+        long start = (new Date()).getTime();
 
-                    // if the object size is less that this size,
-                    // stop looking for a smaller one.
-                    BigInteger sizeGoodEnoughLimit = new BigInteger("3000000");
-                    BigInteger objectSize = new BigInteger("999888777666");
+        // if the object size is less that this size,
+        // stop looking for a smaller one.
+        BigInteger sizeGoodEnoughLimit = new BigInteger("3000000");
+        BigInteger objectSize = new BigInteger("999888777666");
 
-                    for (ObjectInfo oi: ol.getObjectInfoList()) {
-                        if (cca instanceof CNode) {
-                            if (!oi.getFormatId().getValue().startsWith("eml:"))
-                                continue;
-                        }
-                        try {
-                            SystemMetadata smd = null;
-                            smd = cca.getSystemMetadata(null,oi.getIdentifier());
+        for (ObjectInfo oi: ol.getObjectInfoList()) {
+            if (cca instanceof CNode) {
+                if (!oi.getFormatId().getValue().startsWith("eml:"))
+                    continue;
+            }
+            try {
+                SystemMetadata smd = null;
+                smd = cca.getSystemMetadata(null,oi.getIdentifier());
 
-                            if (AccessUtil.getPermissionMap(smd.getAccessPolicy())
-                                    .containsKey(D1TypeBuilder.buildSubject(Constants.SUBJECT_PUBLIC)))
-                            {
-                                // if the current item is smaller than the previous one, use it.
-                                if (oi.getSize().compareTo(objectSize) < 1) {
-                                    identifier = oi.getIdentifier();
-                                    objectSize = oi.getSize();
-                                }
-                                // if smaller than the good enough limit, finish the search
-                                if (oi.getSize().compareTo(sizeGoodEnoughLimit) < 1) {
-                                    break;
-                                }
-                                 else {
-                                    log.debug(String.format(
-                                            "Size-limit exceeded: pid = %s, node = %s, size = %s, limit=%s",
-                                            oi.getIdentifier().getValue(),
-                                            cca.getNodeId(),
-                                            oi.getSize().toString(),
-                                            sizeGoodEnoughLimit.toString())
-                                            );
-                                }
-                            }
-                        } catch (BaseException e) {
-                            latestException = e;
-                        }
-                        // don't search forever...
-                        long now = (new Date()).getTime();
-                        if (now > start + 30 * 1000)
-                            break;
+                if (AccessUtil.getPermissionMap(smd.getAccessPolicy())
+                        .containsKey(D1TypeBuilder.buildSubject(Constants.SUBJECT_PUBLIC)))
+                {
+                    // if the current item is smaller than the previous one, use it.
+                    if (oi.getSize().compareTo(objectSize) < 1) {
+                        result = oi.getIdentifier();
+                        objectSize = oi.getSize();
+                    }
+                    // if smaller than the good enough limit, finish the search
+                    if (oi.getSize().compareTo(sizeGoodEnoughLimit) < 1) {
+                        break;
+                    }
+                    else {
+                        log.debug(String.format(
+                                "Size-limit exceeded: pid = %s, node = %s, size = %s, limit=%s",
+                                oi.getIdentifier().getValue(),
+                                cca.getNodeId(),
+                                oi.getSize().toString(),
+                                sizeGoodEnoughLimit.toString())
+                                );
                     }
                 }
-                else {
-                    // empty object list
-                    throw new TestIterationEndingException("could not create a test object and objectList is empty");
-                }
+            } catch (BaseException | ClientSideException e) {
+                result = e;
             }
-            catch (BaseException be) {  // from initial list objects
-                throw new TestIterationEndingException("could not create a test object " +
-                        "and listObjects() threw exception:: " + be.getClass().getSimpleName() +
-                        " :: " + be.getDescription(),be);
-            } catch (ClientSideException e1) {
-                throw new TestIterationEndingException("could not create a test object " +
-                        "and listObjects() threw exception:: " + e1.getClass().getSimpleName() +
-                        " :: " + e1.getMessage(),e1);
-            }
+            // don't search forever...
+            long now = (new Date()).getTime();
+            if (now > start + 30 * 1000)   // thirty seconds
+                break;
         }
-
-        if (identifier == null)
-            // nothing public found
-            if (latestException instanceof NotAuthorized) {
-                throw new TestIterationEndingException("could not create a test object and" +
-                " could not find object with a public accessRule in reasonable amount of time");
-            } else if (latestException != null){ // other problems, probably with parsing the sysmetadata leading to exceptions
-                throw new TestIterationEndingException("could not create a test object and" +
-                " attempts to find an object with a public accessRule gave the following exception: " +
-                latestException.getClass().getSimpleName() + ":: " + latestException.getDescription(),
-                latestException);
-            } else {
-                throw new TestIterationEndingException("could not create a test object and" +
-                        " could not find object with a public accessRule.");
-            }
-        return identifier;
+        return result;
     }
 
     /**
@@ -1139,7 +1203,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
     InvalidRequest, UnsupportedEncodingException, NotFound, ClientSideException
     {
         Subject subject = new Subject();
-        subject.setValue(Constants.SUBJECT_PUBLIC);
+         subject.setValue(Constants.SUBJECT_PUBLIC);
         AccessRule ar = new AccessRule();
         ar.addPermission(Permission.READ);
         ar.addSubject(subject);
