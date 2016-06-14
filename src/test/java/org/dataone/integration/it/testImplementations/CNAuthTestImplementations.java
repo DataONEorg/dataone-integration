@@ -232,7 +232,8 @@ public class CNAuthTestImplementations extends ContextAwareAdapter {
             log.info("clear the AccessPolicy");
             long serialVersion = smd.getSerialVersion().longValue();
             boolean success = callAdapterCN.setAccessPolicy(null, changeableObject, 
-                    new AccessPolicy(), serialVersion);
+                    AccessUtil.createSingleRuleAccessPolicy(new String[]{smd.getRightsHolder().getValue()},
+                            new Permission[]{Permission.READ}), serialVersion);
 
             // ensure blank policy with isAuthorized(), get()
             try {
