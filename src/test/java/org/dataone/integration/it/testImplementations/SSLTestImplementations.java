@@ -1,16 +1,12 @@
 package org.dataone.integration.it.testImplementations;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
 import java.util.Iterator;
 import java.util.List;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.ArrayUtils;
-import org.dataone.client.auth.CertificateManager;
 import org.dataone.configuration.Settings;
 import org.dataone.integration.ContextAwareTestCaseDataone;
 import org.dataone.integration.adapters.CommonCallAdapter;
@@ -24,8 +20,6 @@ import org.dataone.service.types.v1.Node;
 import org.dataone.service.types.v2.Log;
 import org.dataone.service.types.v2.LogEntry;
 import org.dataone.service.util.D1Url;
-import org.dataone.service.util.TypeMarshaller;
-import org.jibx.runtime.JiBXException;
 
 public class SSLTestImplementations extends ContextAwareAdapter {
 
@@ -99,7 +93,6 @@ public class SSLTestImplementations extends ContextAwareAdapter {
 
     public void testConnectionLayer_SelfSignedCert_curl(Node node, String version)
     {
-        String currentUrl = node.getBaseURL();
         D1Url url = new D1Url();
         url.setBaseUrl(node.getBaseURL());
         url.addNextPathElement(version);

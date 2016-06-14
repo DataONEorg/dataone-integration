@@ -35,7 +35,7 @@ implements  SSLTestDefinitions {
     @Override
     @Test
     public void testConnectionLayer_SelfSignedCert_curl() {
-//        sslTestImpl.testConnectionLayer_SelfSignedCert_curl(getCoordinatingNodeIterator(), "v1");
+        sslTestImpl.testConnectionLayer_SelfSignedCert_curl(getCoordinatingNodeIterator(), "v1");
     }
 
 
