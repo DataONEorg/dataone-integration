@@ -18,13 +18,11 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.log4j.Logger;
 import org.dataone.client.exception.ClientSideException;
 import org.dataone.client.v1.itk.D1Object;
 import org.dataone.client.v1.types.D1TypeBuilder;
 import org.dataone.integration.ContextAwareTestCaseDataone;
 import org.dataone.integration.ExampleUtilities;
-import org.dataone.integration.adapters.CNCallAdapter;
 import org.dataone.integration.adapters.CommonCallAdapter;
 import org.dataone.integration.adapters.MNCallAdapter;
 import org.dataone.integration.webTest.WebTestDescription;
@@ -49,13 +47,8 @@ import org.dataone.service.types.v1.NodeType;
 import org.dataone.service.types.v1.ObjectList;
 import org.dataone.service.types.v1.Permission;
 import org.dataone.service.types.v1.Subject;
-import org.dataone.service.types.v2.Log;
 import org.dataone.service.types.v2.SystemMetadata;
 import org.dataone.service.types.v2.TypeFactory;
-import org.dataone.service.util.Constants;
-import org.dataone.service.util.TypeMarshaller;
-import org.jibx.runtime.JiBXException;
-import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -540,10 +533,10 @@ public abstract class SidCommonTestImplementations extends ContextAwareTestCaseD
                     
                 } catch (BaseException e) {
                     e.printStackTrace();
-                    handleFail(callAdapter.getNodeBaseServiceUrl(), "Case: " + i + " : " + e.getDescription());
+                    handleFail(callAdapter.getLatestRequestUrl(), "Case: " + i + " : " + e.getDescription());
                 } catch (Exception e) {
                     e.printStackTrace();
-                    handleFail(callAdapter.getNodeBaseServiceUrl(), "Case: " + i + " : " + e.getMessage() + (e.getCause() == null ? "" : e.getCause().getMessage()));
+                    handleFail(callAdapter.getLatestRequestUrl(), "Case: " + i + " : " + e.getMessage() + (e.getCause() == null ? "" : e.getCause().getMessage()));
                 }
             }
         }
@@ -636,12 +629,12 @@ public abstract class SidCommonTestImplementations extends ContextAwareTestCaseD
                     Identifier sid = idPair.sid;
                     Identifier pid = idPair.headPid;
         
-                    boolean sidRead = false, pidRead = false;
-                    String sidReadExc = "", pidReadExc = "";
-                    boolean sidWrite = false, pidWrite = false;
-                    String sidWriteExc = "", pidWriteExc = "";
+                    boolean sidRead = false,   pidRead = false;
+                    String sidReadExc = "",    pidReadExc = "";
+                    boolean sidWrite = false,  pidWrite = false;
+                    String sidWriteExc = "",   pidWriteExc = "";
                     boolean sidChange = false, pidChange = false;
-                    String sidChangeExc = "", pidChangeExc = "";
+                    String sidChangeExc = "",  pidChangeExc = "";
                     
                     try {
                         sidRead = callAdapter.isAuthorized(null, sid, Permission.READ);
@@ -688,6 +681,8 @@ public abstract class SidCommonTestImplementations extends ContextAwareTestCaseD
                     assertEquals("isAuthorized() Case " + caseNum + ", change exceptions should match", 
                             sidChangeExc, pidChangeExc);
                     
+//                } catch (BaseException e) {
+//                    handleFail(callAdapter.getLatestRequestUrl(), "Case: " + i + " : " + e.getMessage() + (e.getCause() == null ? "" : e.getCause().getMessage()));
                 } catch (Exception e) {
                     e.printStackTrace();
                     handleFail(callAdapter.getNodeBaseServiceUrl(), "Case: " + i + " : " + e.getMessage() + (e.getCause() == null ? "" : e.getCause().getMessage()));

@@ -10,6 +10,7 @@ import org.apache.commons.logging.LogFactory;
 import org.dataone.client.D1NodeFactory;
 import org.dataone.client.exception.ClientSideException;
 import org.dataone.client.rest.MultipartRestClient;
+import org.dataone.exceptions.MarshallingException;
 import org.dataone.service.cn.v2.CNAuthorization;
 import org.dataone.service.cn.v2.CNCore;
 import org.dataone.service.cn.v2.CNDiagnostic;
@@ -54,7 +55,6 @@ import org.dataone.service.types.v2.ObjectFormat;
 import org.dataone.service.types.v2.ObjectFormatList;
 import org.dataone.service.types.v2.SystemMetadata;
 import org.dataone.service.types.v2.TypeFactory;
-import org.jibx.runtime.JiBXException;
 
 /**
  * Subclass of {@link CommonCallAdapter} that can be used to call CNode API methods that
@@ -469,7 +469,7 @@ public class CNCallAdapter extends CommonCallAdapter {
 
     public ChecksumAlgorithmList listChecksumAlgorithms() throws ServiceFailure, NotImplemented,
             ClientSideException, InstantiationException, IllegalAccessException,
-            InvocationTargetException, JiBXException, IOException {
+            InvocationTargetException, MarshallingException, IOException {
         if (this.node.getType().equals(NodeType.CN)) {
             if (this.version.toLowerCase().equals("v1")) {
                 org.dataone.service.cn.v1.CNCore cnCore = D1NodeFactory.buildNode(
@@ -509,7 +509,7 @@ public class CNCallAdapter extends CommonCallAdapter {
     public Identifier reserveIdentifier(Session session, Identifier id) throws InvalidToken,
             ServiceFailure, NotAuthorized, IdentifierNotUnique, NotImplemented, InvalidRequest,
             InstantiationException, IllegalAccessException, InvocationTargetException,
-            JiBXException, IOException, ClientSideException {
+            MarshallingException, IOException, ClientSideException {
         if (this.node.getType().equals(NodeType.CN)) {
             if (this.version.toLowerCase().equals("v1")) {
                 org.dataone.service.cn.v1.CNCore cnCore = D1NodeFactory.buildNode(

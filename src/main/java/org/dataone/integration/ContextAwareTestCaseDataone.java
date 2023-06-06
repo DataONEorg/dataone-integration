@@ -64,7 +64,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.config.RequestConfig;
+//import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
@@ -75,13 +75,13 @@ import org.dataone.client.auth.ClientIdentityManager;
 import org.dataone.client.exception.ClientSideException;
 import org.dataone.client.rest.HttpMultipartRestClient;
 import org.dataone.client.rest.MultipartRestClient;
-import org.dataone.client.rest.RestClient;
 import org.dataone.client.v1.CNode;
 import org.dataone.client.v1.MNode;
 import org.dataone.client.v1.itk.D1Object;
 import org.dataone.client.v1.types.D1TypeBuilder;
 import org.dataone.configuration.Settings;
 import org.dataone.configuration.TestSettings;
+import org.dataone.exceptions.MarshallingException;
 import org.dataone.integration.adapters.CNCallAdapter;
 import org.dataone.integration.adapters.CommonCallAdapter;
 import org.dataone.integration.adapters.MNCallAdapter;
@@ -118,7 +118,6 @@ import org.dataone.service.types.v2.TypeFactory;
 import org.dataone.service.util.Constants;
 import org.dataone.service.util.TypeMarshaller;
 import org.dspace.foresite.ResourceMap;
-import org.jibx.runtime.JiBXException;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.rules.ErrorCollector;
@@ -145,8 +144,10 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
 //	public static final String DEFAULT_TEST_OBJECTFORMAT = ExampleUtilities.FORMAT_TEXT_PLAIN;
 //	public static final String DEFAULT_TEST_OBJECTFORMAT = ExampleUtilities.FORMAT_EML_2_0_0;
     public static final String RESOURCE_MAP_FORMAT_ID = "http://www.openarchives.org/ore/terms";
+    
+    
 
-    public static String cnSubmitter = Settings.getConfiguration().getString("dataone.it.cnode.submitter.cn", /* default */ "cnSandboxUCSB1");
+    public static String cnSubmitter = Settings.getConfiguration().getString("dataone.it.cnode.submitter.cn", /* default */ "cnStageUNM1");
 
     private static Map<String,MultipartRestClient> sessionMap = new HashMap<String,MultipartRestClient>();
     private static Map<String,Subject> subjectMap = new HashMap<String, Subject>();
@@ -167,7 +168,10 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
     protected  String nodelistUri = null;
     protected  String referenceContext = null;
     protected  String referenceCnBaseUrl = null;
-
+    
+    protected  boolean isWebContext = false;  // default value
+    protected  long cacheExpiration = 5 * 60 * 1000; // millis
+    
     public List<Node> memberNodeList = new Vector<Node>();
     public List<Node> coordinatingNodeList = new Vector<Node>();
     public List<Node> monitorNodeList = new Vector<Node>();
@@ -232,6 +236,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
             if (urlThrIdUrl != null) {
                 log.info("*** mn.baseurl obtained from thread.X.mn.baseurl property");
                 mnBaseUrl = urlThrIdUrl;
+                isWebContext = true;
 
             } else if (mnBaseUrl != null) {
                 log.info("*** mn.baseurl set from context.mn.baseurl property");
@@ -328,16 +333,16 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
      */
     private void setupMultipleNodes()
     throws IOException, InstantiationException, IllegalAccessException,
-    JiBXException, ServiceFailure, NotImplemented, ClientSideException
+    MarshallingException, ServiceFailure, NotImplemented, ClientSideException
     {
         if (!multiNodeExists) {
             // building a low-timeout httpClient for determining if a
             // node is reachable or not
-            RequestConfig config = RequestConfig.custom()
-                    .setConnectTimeout(10000)
-                    .setConnectionRequestTimeout(10000)
-                    .setSocketTimeout(10000)
-                    .build();
+//            RequestConfig config = RequestConfig.custom()
+//                    .setConnectTimeout(10000)
+//                    .setConnectionRequestTimeout(10000)
+//                    .setSocketTimeout(10000)
+//                    .build();
             parseContextNodeList();
             multiNodeExists = true;
         }
@@ -353,7 +358,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
      */
     private void parseContextNodeList() 
     throws IOException, InstantiationException, IllegalAccessException,
-    JiBXException, ServiceFailure, NotImplemented, ClientSideException
+    MarshallingException, ServiceFailure, NotImplemented, ClientSideException
     {
         // we will be testing multiple member nodes
         List<Node> allNodesList = new Vector<Node>();
@@ -736,14 +741,29 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
     public ObjectList procureObjectList(CommonCallAdapter cca)
     throws TestIterationEndingException
     {
-        if (!TestObjectCache.getInstance().hasCachedObjectList(cca.getNodeId())) {
-            ObjectList ol = procureObjectList(cca,false);
-            log.info(String.format("Caching objectlist for node %s", cca.getNodeId().getValue()));
-            TestObjectCache.getInstance().cacheObjectList(cca.getNodeId(), ol);
+        String cacheNodeString = null;
+        if (cca.getNodeId() == null) {
+            cacheNodeString = cca.getNodeBaseServiceUrl();
         } else {
-            log.info(String.format("Using cached objectlist for node %s", cca.getNodeId().getValue()));
+            cacheNodeString = cca.getNodeId().getValue();
         }
-        return TestObjectCache.getInstance().getCachedObjectList(cca.getNodeId());
+        
+        if (isWebContext) {
+            if (System.currentTimeMillis() - cacheExpiration > 
+                  TestObjectCache.getInstance().getCachedObjectListCacheDate(cacheNodeString).getTime()) 
+            {
+                TestObjectCache.getInstance().clearObjectList(cacheNodeString);
+            }
+        }
+        
+        if (!TestObjectCache.getInstance().hasCachedObjectList(cacheNodeString)) {
+            ObjectList ol = procureObjectList(cca,false);
+            log.info(String.format("Caching objectlist for node %s", cacheNodeString));
+            TestObjectCache.getInstance().cacheObjectList(cacheNodeString, ol);
+        } else {
+            log.info(String.format("Using cached objectlist for node %s", cacheNodeString));
+        }
+        return TestObjectCache.getInstance().getCachedObjectList(cacheNodeString);
         
     }
 
@@ -812,6 +832,9 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
      * a public object from Tier1, Tier2, and Tier3+ nodes.  First does a procureTestObject
      * then failing that, does a listObjects(), and subsequent getSysMeta to see
      * if there is any object that satisfies the criteria (PublicReadable)
+     * 
+     * Once a public readable object is found on the node, it is cached for 
+     * other test methods to use.
      *
      * @param cca
      * @return Identifier for object to be used for testing
@@ -820,7 +843,22 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
     public Identifier procurePublicReadableTestObject(CommonCallAdapter cca, Identifier firstTry)
     throws TestIterationEndingException
     {
-        if ( !TestObjectCache.getInstance().hasCachedPublicIdentifier(cca.getNodeId()) )  {
+        String cacheNodeString = null;
+        if (cca.getNodeId() == null) {
+            cacheNodeString = cca.getNodeBaseServiceUrl();
+        } else {
+            cacheNodeString = cca.getNodeId().getValue();
+        }
+        
+        // only clear in a web context
+        if (this.isWebContext) {
+            if (System.currentTimeMillis() - cacheExpiration > 
+                TestObjectCache.getInstance().getCachedPublicIdentifierCacheDate(cacheNodeString).getTime()) {
+                TestObjectCache.getInstance().clearPublicIdentifier(cacheNodeString);
+            }
+        }
+        
+        if ( !TestObjectCache.getInstance().hasCachedPublicIdentifier(cacheNodeString))  {
             Identifier identifier = null;
             try {
                 identifier  = procureTestObject(
@@ -852,18 +890,25 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
                             result.getClass().getSimpleName() + ":: " + ((Exception)result).getMessage(),
                             (Exception)result);
                 } else {
-                    throw new TestIterationEndingException("Unexcepted return! Got: " + result.getClass().getSimpleName());
+                    throw new TestIterationEndingException("Unexpected return! Got: " + result.getClass().getSimpleName());
                 }
             } 
             
             // can cache a null
-            log.info(String.format("Caching identifier %s for node %s", identifier.getValue(),cca.getNodeId().getValue()));
-            TestObjectCache.getInstance().cachePublicIdentifier(cca.getNodeId(), identifier);
+            log.info(String.format("Caching identifier %s for node %s", 
+                    identifier == null ? null : identifier.getValue(),
+                    cacheNodeString));
+            TestObjectCache.getInstance().cachePublicIdentifier(cacheNodeString, identifier);
             
         } else {
-            log.info(String.format("Using cached identifier for node %s",cca.getNodeId().getValue()));
+            log.info(String.format("Using cached identifier for node %s",cacheNodeString));
         }
-        return TestObjectCache.getInstance().getCachedPublicIdentifier(cca.getNodeId());
+        
+        Identifier id = TestObjectCache.getInstance().getCachedPublicIdentifier(cacheNodeString);
+        if (id == null) {
+            throw new TestIterationEndingException("There were no public readable objects to be found for the node " + cacheNodeString);
+        }
+        return id;
     }
     
     
@@ -1447,6 +1492,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
      *                                   systemMetadata
      * @return the Identifier for the created object
      */
+    @SuppressWarnings("deprecation")
     public Identifier createTestObject(D1Node d1Node, Identifier pid, Identifier sid, 
             Identifier obsoletesId, Identifier obsoletedById,
             AccessPolicy policy, String submitterSubjectLabel, String rightsHolderSubjectName,
@@ -1570,7 +1616,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
                 ByteArrayOutputStream os = new ByteArrayOutputStream();
                 try {
                     TypeMarshaller.marshalTypeToOutputStream(sysMeta, os);
-                } catch (JiBXException e) {
+                } catch (MarshallingException e) {
                     log.error("Unexpected Error!", e);
                 } catch (IOException e) {
                     log.error("Unexpected Error!", e);
@@ -1612,6 +1658,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
         return retPid;
     }
 
+    @SuppressWarnings("deprecation")
     public SystemMetadata createTestSysmeta(D1Node d1Node, Identifier pid, Identifier sid, 
             Identifier obsoletesId, Identifier obsoletedById,
             AccessPolicy policy, String submitterSubjectLabel, String rightsHolderSubjectName)
@@ -1625,14 +1672,14 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
         
         try {
             setupClientSubject(submitterSubjectLabel);
-            ByteArrayInputStream objectInputStream = null;
+//            ByteArrayInputStream objectInputStream = null;
             D1Object d1o = null;
             certificate = CertificateManager.getInstance().loadCertificate();
             String submitterX500 = CertificateManager.getInstance().getSubjectDN(certificate);
             
             try {
                 byte[] contentBytes = ExampleUtilities.getExampleObjectOfType(DEFAULT_TEST_OBJECTFORMAT);
-                objectInputStream = new ByteArrayInputStream(contentBytes);
+//                objectInputStream = new ByteArrayInputStream(contentBytes);
                 d1o = new D1Object(pid, contentBytes,
                         D1TypeBuilder.buildFormatIdentifier(DEFAULT_TEST_OBJECTFORMAT),
                         D1TypeBuilder.buildSubject(submitterX500),
@@ -1966,6 +2013,7 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
             byte[] resourceMapBytes = rdfXml.getBytes("UTF-8");
             
             objectInputStream = new ByteArrayInputStream(resourceMapBytes);
+            @SuppressWarnings("deprecation")
             D1Object d1o = new D1Object(resourceMapPid, resourceMapBytes,
                     D1TypeBuilder.buildFormatIdentifier(RESOURCE_MAP_FORMAT_ID),
                     D1TypeBuilder.buildSubject(subject.getValue()),

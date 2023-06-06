@@ -75,7 +75,7 @@ To deploy a new MNWebTester, do the following:
 4. perform 'mvn package'             to build the war file
 5. scp target/MNWebTester{_some_version_and_revision}.war mncheck.test.dataone.org:
 6. ssh to mncheck.test.dataone.org
-7. sudo cp MNWebTester{...}.war /var/lib/tomcat6/webapps
+7. sudo cp MNWebTester{...}.war /var/lib/tomcat7/webapps
 
 Note: The pom contains some ant commands that don't work in the shell-less environment 
 that Hudson uses when it runs mvn commands, so auto deploy of the MNWebTester doesn't

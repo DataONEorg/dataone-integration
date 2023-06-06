@@ -53,12 +53,14 @@ public class MNSystemMetadataChangedMethodTestImplementations extends ContextAwa
     
     public void testSystemMetadataChanged(Node node, String version) {
 
-        String[] certLabels = {"cnDevUNM1", "cnDevUNM2", "cnSandboxORC1", "cnStageUNM1"};
+//        String[] certLabels = {"cnDevUNM1", "cnDevUNM2", "cnSandboxORC1", "cnStageUNM1"};
+        String[] certLabels = {"cnDevUNM1", "cnSandboxUNM1", "cnStageUNM1"};
         MNCallAdapter[] cNodeSessions = new MNCallAdapter[]{
                 new MNCallAdapter(getSession(certLabels[0]), node, version),
                 new MNCallAdapter(getSession(certLabels[1]), node, version),
-                new MNCallAdapter(getSession(certLabels[2]), node, version),
-                new MNCallAdapter(getSession(certLabels[3]), node, version)};
+                new MNCallAdapter(getSession(certLabels[2]), node, version)};
+//                new MNCallAdapter(getSession(certLabels[2]), node, version),
+//                new MNCallAdapter(getSession(certLabels[3]), node, version)};
 
         MNCallAdapter mn = new MNCallAdapter(getSession("testRightsHolder"), node, version);
         String currentUrl = mn.getNodeBaseServiceUrl();

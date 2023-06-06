@@ -669,7 +669,8 @@ public class LogAggregationFunctionalTestImplementations extends ContextAwareTes
                 log.info("call adapter: " + mnCallAdapters.get(i));
                 
                 throw new AssertionError("testCnGetLogRecords_Aggregating: Unable to get record for pid: " 
-                        + pid.getValue() + " on originating mn " + mnCallAdapters.get(i).getNodeBaseServiceUrl(), e);
+                        + pid.getValue() + " on originating mn " + mnCallAdapters.get(i).getLatestRequestUrl()
+                        + " : got exception: " + e.getClass().getCanonicalName(), e);
             }
         }
         

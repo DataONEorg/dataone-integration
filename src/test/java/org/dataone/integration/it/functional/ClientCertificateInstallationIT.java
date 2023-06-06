@@ -44,7 +44,6 @@ import org.dataone.service.types.v1.Person;
 import org.dataone.service.types.v1.Subject;
 import org.dataone.service.types.v1.SubjectInfo;
 import org.dataone.service.util.TypeMarshaller;
-import org.jibx.runtime.JiBXException;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -152,10 +151,10 @@ public class ClientCertificateInstallationIT {
 	{
 		try {
 			runTestSetupClient_Typical("testPerson_InvalidVsSchema");
-			fail("Expected an invalid schema subjectInfo to throw JiBXException");
+			fail("Expected an invalid schema subjectInfo to throw MarshallingException");
 		} catch (Exception e) {
-			if (!(e instanceof JiBXException)) {
-				fail("Expected an invalid schema subjectInfo to throw JiBXException");
+			if (!(e instanceof MarshallingException)) {
+				fail("Expected an invalid schema subjectInfo to throw MarshallingException");
 		}
 		}
 	}

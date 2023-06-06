@@ -22,6 +22,7 @@ import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.NotAuthorized;
 import org.dataone.service.exceptions.NotFound;
 import org.dataone.service.types.v1.AccessPolicy;
+import org.dataone.service.types.v1.AccessRule;
 import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Node;
 import org.dataone.service.types.v1.Permission;
@@ -357,7 +358,14 @@ public class CNAuthTestImplementations extends ContextAwareAdapter {
 
             SystemMetadata smd = callAdapterCN.getSystemMetadata(null, pid);
             try {
-                callAdapterCN.setAccessPolicy(null, pid, new AccessPolicy(), smd.getSerialVersion().longValue());
+                AccessPolicy accessPolicy = new AccessPolicy();
+                AccessRule accessRule = new AccessRule();
+                accessRule.addPermission(Permission.READ);
+                Subject subject = new Subject();
+                subject.setValue(Constants.SUBJECT_PUBLIC);
+                accessRule.addSubject(subject);
+                accessPolicy.addAllow(accessRule);
+                callAdapterCN.setAccessPolicy(null, pid, accessPolicy, smd.getSerialVersion().longValue());
                 handleFail(callAdapterCN.getLatestRequestUrl(), "v2 CN.setRightsHolder() on v2 object should fail");
             } catch (NotAuthorized na) {
                 // expected for v2 

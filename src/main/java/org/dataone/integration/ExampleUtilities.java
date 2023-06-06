@@ -94,7 +94,9 @@ public class ExampleUtilities {
     public static final String FORMAT_EML_2_0_1   = "eml://ecoinformatics.org/eml-2.0.1";
     public static final String FORMAT_EML_2_1_0   = "eml://ecoinformatics.org/eml-2.1.0";
     public static final String FORMAT_EML_2_1_1   = "eml://ecoinformatics.org/eml-2.1.1";
-
+    public static final String FORMAT_RESOURCE_MAP = "http://www.openarchives.org/ore/terms";
+    
+    
     // paths to common science data and metadata examples for the above formats
     protected static final String SCIDATA_TEXT_PLAIN = "/d1_testdocs/eml200/IPCC.200802107062739.1";
     protected static final String SCIDATA_TEXT_CSV   = "/d1_testdocs/eml201/TPT001_018MHP2000R00_20110121.40.1.csv";
@@ -102,6 +104,8 @@ public class ExampleUtilities {
     protected static final String SCIMETA_EML_2_0_1  = "/d1_testdocs/eml201/TPT001_018MHP2000R00_20110121.50.1.xml";
     protected static final String SCIMETA_EML_2_1_0  = "/d1_testdocs/eml210/peggym.130.4";
     // TODO: protected static final String SCIMETA_EML_2_1_1  = "need to get a 2.1.1 test doc";
+    protected static final String RESOURCE_MAP = "/D1shared/resourceMaps/libclient_java_example_2013_04_15.xml";
+    protected static final String RESOURCE_MAP_NON_PARSING = "/D1shared/resourceMaps/badCreator_jena_doesnot_parse.rdf";
 
 
     protected final static String preferredMNId = "c3p0";
@@ -187,6 +191,9 @@ public class ExampleUtilities {
 
         } else if ( formatIDString == FORMAT_EML_2_1_0 ) {
             fileStream = ExampleUtilities.class.getResourceAsStream(SCIMETA_EML_2_1_0);
+            
+        } else if ( formatIDString == FORMAT_RESOURCE_MAP) {
+            fileStream = ExampleUtilities.class.getResourceAsStream(RESOURCE_MAP);
 
         //TODO: get an EML 2.1.1 test doc in place
         //} else if ( formatIDString == FORMAT_EML_2_1_1 ) {

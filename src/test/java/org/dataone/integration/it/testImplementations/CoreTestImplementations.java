@@ -649,7 +649,7 @@ public class CoreTestImplementations extends ContextAwareAdapter {
         Settings.getConfiguration().setProperty("D1Client.D1Node.getLogRecords.timeout", "60000");
         // TODO: change to testCnAdmin subject when obtained
         String cnSubject = Settings.getConfiguration().getString("dataone.it.cnode.submitter.cn",
-                "cnDevUNM1");
+                "cnSandboxUNM1");
         CommonCallAdapter callAdapter = new CommonCallAdapter(getSession(cnSubject), node, version);
         String currentUrl = node.getBaseURL();
         printTestHeader("testGetLogRecords_DateFiltering(...) vs. node: " + currentUrl);

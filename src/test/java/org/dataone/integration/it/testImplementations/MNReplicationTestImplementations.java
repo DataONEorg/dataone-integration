@@ -107,7 +107,7 @@ public class MNReplicationTestImplementations extends ContextAwareAdapter {
         printTestHeader("testReplicate_ValidCertificate_NotCN vs. node: " + currentUrl);
 
         NodeReference sourceNode = new NodeReference();
-        sourceNode.setValue("bad");
+        sourceNode.setValue("urn:node:testMNCHECK");
         try {
             Object[] dataPackage = ExampleUtilities.generateTestSciDataPackage("mNodeTier4", true, subject.getValue());             
             SystemMetadata sysMetaV2 = TypeFactory.convertTypeFromType(dataPackage[2], SystemMetadata.class);

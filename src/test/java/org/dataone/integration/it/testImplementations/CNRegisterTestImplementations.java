@@ -78,7 +78,7 @@ public class CNRegisterTestImplementations extends ContextAwareAdapter {
                 // process is not automatic.
             }
         } catch (BaseException e) {
-            handleFail(callAdapter.getLatestRequestUrl(), e.getDescription());
+            handleFail(callAdapter.getLatestRequestUrl(), e.getClass().getName() + ": " + e.getDetail_code() + ": " + e.getDescription());
         } catch (Exception e) {
             e.printStackTrace();
             handleFail(currentUrl, e.getClass().getName() + ": " + e.getMessage());

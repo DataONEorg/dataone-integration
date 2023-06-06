@@ -40,4 +40,10 @@ public class CNDiagnosticFunctionalIT extends ContextAwareTestCaseDataone {
     public void testEchoIndexedObject() {
         diagImpl.testEchoIndexedObject(getCoordinatingNodeIterator(), "v2");
     }
+    
+    @Test
+    public void testEchoIndexedObject_resourceMap() {
+        diagImpl.testEchoIndexedObject_resourceMap(getCoordinatingNodeIterator(), "v2");
+    }
+    
 }

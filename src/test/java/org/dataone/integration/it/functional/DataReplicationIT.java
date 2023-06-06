@@ -53,7 +53,6 @@ import org.dataone.service.types.v1.Session;
 import org.dataone.service.types.v1.SystemMetadata;
 import org.dataone.service.util.Constants;
 import org.dataone.service.util.TypeMarshaller;
-import org.jibx.runtime.JiBXException;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
@@ -378,11 +377,11 @@ public class DataReplicationIT {
 	 * Serialize the system metadata object to a ByteArrayInputStream
 	 * @param sysmeta
 	 * @return
-	 * @throws JiBXException
+	 * @throws MarshallingException
 	 * @throws IOException 
 	 */
 	protected ByteArrayInputStream serializeSystemMetadata(SystemMetadata sysmeta)
-			throws JiBXException, IOException {
+			throws MarshallingException, IOException {
 
 		ByteArrayOutputStream sysmetaOut = new ByteArrayOutputStream();
 		TypeMarshaller.marshalTypeToOutputStream(sysmeta, sysmetaOut);

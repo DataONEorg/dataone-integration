@@ -337,4 +337,115 @@ public class CNDiagnosticFunctionalTestImplementations extends ContextAwareAdapt
             IOUtils.closeQuietly(objectInputStream);
         }
     }
+    
+    
+    @WebTestName("echoIndexedObject - tests if the echoIndexedObject call succeeds")
+    @WebTestDescription("this test calls echoIndexedObject() and verifies that a "
+            + "valid stream is returned, that it contains the expected values which "
+            + "would have been indexed, and that no exceptions are thrown")
+    public void testEchoIndexedObject_resourceMap(Iterator<Node> nodeIterator, String version) {
+        while (nodeIterator.hasNext())
+            testEchoIndexedObject_resourceMap(nodeIterator.next(), version);        
+    }
+
+    private void testEchoIndexedObject_resourceMap(Node node, String version) {
+        
+        CNCallAdapter callAdapter = new CNCallAdapter(getSession(cnSubmitter), node, version);
+        String currentUrl = node.getBaseURL();
+        printTestHeader("testEchoIndexedObject(...) vs. node: " + currentUrl);
+        
+        InputStream is = null;
+        InputStream objectInputStream = null;
+        try {
+            AccessRule accessRule = new AccessRule();
+            getSession("testRightsHolder");
+            Subject subject = ContextAwareTestCaseDataone.getSubject("testRightsHolder");
+            accessRule.addSubject(subject);
+            accessRule.addPermission(Permission.CHANGE_PERMISSION);
+            
+            Identifier pid = D1TypeBuilder.buildIdentifier("testEchoSystemMetadata_" + ExampleUtilities.generateIdentifier()); 
+            
+            byte[] contentBytes = ExampleUtilities.getExampleObjectOfType(ExampleUtilities.FORMAT_RESOURCE_MAP);
+            objectInputStream = new ByteArrayInputStream(contentBytes);
+            NodeReference nodeReference = D1TypeBuilder.buildNodeReference("bogusAuthoritativeNode");
+            D1Object d1o = new D1Object(pid, contentBytes,
+                    D1TypeBuilder.buildFormatIdentifier(ExampleUtilities.FORMAT_RESOURCE_MAP),
+                    subject, nodeReference);
+            
+            SystemMetadata sysmeta = TypeFactory.convertTypeFromType(d1o.getSystemMetadata(), SystemMetadata.class);
+//            Identifier pid = catc.createTestObject(callAdapter, "testEchoIndexedObject", accessRule);
+//            assertTrue("Test object should be created succesfully.", pid != null);
+//            Thread.sleep(METACAT_WAIT);
+//            SystemMetadata sysmeta = callAdapter.getSystemMetadata(null, pid);
+//            objStream = callAdapter.get(null, pid);
+            
+            is = callAdapter.echoIndexedObject(null, "solr", sysmeta, objectInputStream);
+            assertTrue("testEchoIndexedObject() should return a non-null InputStream", is != null);
+            
+            Document doc = null;
+            try {
+                DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+                doc = builder.parse(new InputSource(is));
+                
+                // outputs to sysout
+//                Transformer transformer = TransformerFactory.newInstance().newTransformer();
+//                DOMSource source = new DOMSource(doc);
+//                StreamResult result = new StreamResult(new FileOutputStream(new File("C:\\Users\\Andrei\\stuff\\indexedObjResult.xml")));
+//                transformer.transform(source, result);
+                
+            } catch (Exception e) {
+                handleFail(currentUrl, "echoIndexedObject() should return document representing the parsed object "
+                        + "as it would be prior to being added to a search index. " + e.getClass().getName()
+                        + ": " + e.getMessage());
+            }
+            
+            XPath xPath =  XPathFactory.newInstance().newXPath();
+            String abstractExp = "/add/doc/field[@name='abstract']";
+            String abstractVal = xPath.compile(abstractExp).evaluate(doc);
+            if(StringUtils.isBlank(abstractVal))
+                handleFail(callAdapter.getLatestRequestUrl(), "returned document has no abstract");
+            if(!abstractVal.startsWith("This metadata record describes moored seawater temperature data"))
+                handleFail(callAdapter.getLatestRequestUrl(), "returned document should contain the same abstract as the metadata sent");
+            
+            String authorGivenNameExp = "/add/doc/field[@name='author']";
+            String authorGivenNameVal = xPath.compile(authorGivenNameExp).evaluate(doc);
+            if(StringUtils.isBlank(authorGivenNameVal))
+                handleFail(callAdapter.getLatestRequestUrl(), "returned document has no author given name");
+            if(!authorGivenNameVal.equals("Margaret McManus"))
+                handleFail(callAdapter.getLatestRequestUrl(), "returned document should contain the same authorGivenName as the metadata sent");
+            
+            String titleExp = "/add/doc/field[@name='title']";
+            String titleVal = xPath.compile(titleExp).evaluate(doc);
+            if(StringUtils.isBlank(titleVal))
+                handleFail(callAdapter.getLatestRequestUrl(), "returned document has no title");
+            if(!titleVal.startsWith("PISCO: Physical Oceanography: moored temperature data"))
+                handleFail(callAdapter.getLatestRequestUrl(), "returned document should contain the same title as the metadata sent");
+            
+            String formatIdExpExp = "/add/doc/field[@name='formatId']";
+            String formatIdValVal = xPath.compile(formatIdExpExp).evaluate(doc);
+            if(StringUtils.isBlank(formatIdValVal))
+                handleFail(callAdapter.getLatestRequestUrl(), "returned document has no format ID");
+            if(!formatIdValVal.equals("eml://ecoinformatics.org/eml-2.0.1"))
+                handleFail(callAdapter.getLatestRequestUrl(), "returned document should contain the same formatId as the metadata sent");
+            
+            String formatTypeExp = "/add/doc/field[@name='formatType']";
+            String formatTypeVal = xPath.compile(formatTypeExp).evaluate(doc);
+            if(StringUtils.isBlank(formatTypeVal))
+                handleFail(callAdapter.getLatestRequestUrl(), "returned document has no format type");
+            if(!formatTypeVal.equals("METADATA"))
+                handleFail(callAdapter.getLatestRequestUrl(), "returned document should contain the same formatType as the metadata sent");
+            
+        }
+        catch (BaseException e) {
+            handleFail(callAdapter.getLatestRequestUrl(),e.getClass().getSimpleName() + ": " + 
+                    e.getDetail_code() + ":: " + e.getDescription());
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+            handleFail(currentUrl,e.getClass().getName() + ": " + e.getMessage());
+        } finally {
+            IOUtils.closeQuietly(is);
+            IOUtils.closeQuietly(objectInputStream);
+        }
+    }
 }

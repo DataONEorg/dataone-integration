@@ -113,7 +113,7 @@ public class ContextAwareTestCaseDataoneTest {
 	
 	@Test
 	public void testIsNodeAlive() throws ClientProtocolException, IOException, InterruptedException {
-	    String url = "https://mn-demo-5.test.dataone.org";
+	    String url = "https://mn-demo-6.test.dataone.org";
 	   // String url = "https://flynn-gmn-2.test.dataone.org/mn/v1/node";
 	    ContextAwareTestCaseDataone d1tc = new ContextAwareTestCaseDataone() {
 

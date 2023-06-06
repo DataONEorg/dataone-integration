@@ -103,9 +103,13 @@
         <dd>Each test attempts to provide:
           <ul>
             <li>a meaningful name</li>
-            <li>a descriptive failure message containing the last URL called</li>
+            <li>pop-up text with explanatory notes for each test (when you hover over the question-mark icon)</li>
+            <li>a descriptive failure message containing the last URL called*</li>
             <li>a stack trace as a starting point for further introspection on the test</li>
           </ul>
+          *Tests that fail while setting up the test (connection issues, or not meeting starting 
+          conditions) and before making the API call will only display the member node baseURL.
+          
         </dd>
       </dl>
     </div>

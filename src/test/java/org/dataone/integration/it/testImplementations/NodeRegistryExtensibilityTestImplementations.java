@@ -116,6 +116,7 @@ public class NodeRegistryExtensibilityTestImplementations extends ContextAwareAd
         p2.setKey("NodeTopping");
         p2.setValue("Pepperoni");
         propertyList.add(p2);
+
         
         try {
             log.info("Attempting to register new node: " + newNode.getName() + " (" + 
@@ -156,7 +157,7 @@ public class NodeRegistryExtensibilityTestImplementations extends ContextAwareAd
         // check if node has properties we set
         List<Property> fetchedPropertyList = fetchedNode.getPropertyList();
         assertTrue("testRegister(): fetched Node property list "
-                + "should contain two properties. Number of properties: " + 
+                + "should contain only two properties. Number of properties: " + 
                 fetchedPropertyList.size(), fetchedPropertyList.size() == 2);
         
         Property fetchedP1 = fetchedPropertyList.get(0);
@@ -181,6 +182,7 @@ public class NodeRegistryExtensibilityTestImplementations extends ContextAwareAd
                 + "should match the property we gave it.", 
                 fetchedP2.getValue().equals(p2.getValue()));
     }
+    
     
     @WebTestName("register - Node with extra properties")
     @WebTestDescription("this test calls creates a new Node object, adds some properties, "
@@ -499,5 +501,174 @@ public class NodeRegistryExtensibilityTestImplementations extends ContextAwareAd
                 + "should match the property we gave it.", 
                 fetchedP2.getValue().equals(p2.getValue()));
     }
+   
+    @WebTestName("updateNodeCapabilities - Cannot add 'CN_' prefixed properties to Node")
+    @WebTestDescription("this test tries to add properties that begin with the reserved prefix 'CN_'."
+            + " The call to updateNodeCapabilities should succeed, but the properties not added.")
+    public void testUpdateNodeCapabilities_CannotAddCnProps(Iterator<Node> nodeIterator, String version) {
+        if (nodeIterator.hasNext()) // all CNs share LDAP data
+            testUpdateNodeCapabilities_CannotAddCnProps(nodeIterator.next(), version);
+        else
+            throw new AssertionError("No CN to test against!");
+    }
+    
+    private void testUpdateNodeCapabilities_CannotAddCnProps(Node node, String version) {
+        
+        if (!catc.nodeListContainsV2Mn())
+            return;
+            
+        CNCallAdapter cn = new CNCallAdapter(getSession(cnSubmitter), node, "v2");
+        
+        NodeList knownNodes = null;
+        List<Property> oldPropertyListBackup = null;
+        
+        try {
+            knownNodes = cn.listNodes();
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new AssertionError(cn.getNodeBaseServiceUrl() + ":   "
+                    + "testUpdateNodeCapabilities() : "
+                    + "unable to perform test setup, call to CN.listNodes() failed! : "
+                    + e.getMessage() + ", " + e.getCause() == null ? "" : e.getCause().getMessage());
+        }
+        List<org.dataone.service.types.v2.Node> v2MNs = new ArrayList<org.dataone.service.types.v2.Node>();
+        for (Node n : knownNodes.getNodeList())
+            if (n.getType() == NodeType.MN
+                    && n.getState() == NodeState.UP)
+                try {
+                    MNCallAdapter testMN = new MNCallAdapter(getSession(cnSubmitter), n, "v2");
+                    Node capabilities = testMN.getCapabilities();
+                    if (capabilities instanceof org.dataone.service.types.v2.Node == false)
+                        throw new AssertionError("v2 getCapabilities() should not be returning v1 Node types");
+                    for (Service service : capabilities.getServices().getServiceList()) {
+                        if (service.getName().equalsIgnoreCase("MNCore") && service.getVersion().equalsIgnoreCase("v2")) {
+                            v2MNs.add((org.dataone.service.types.v2.Node) capabilities);
+                            break;
+                        }
+                    }
+                } catch (Exception e) {
+                    continue;
+                }
+        
+        assertTrue("testUpdateNodeCapabilities() requires CN.listNodes() to contain "
+                + "at least one v2 MN since it tests the ability to save modifications to a Node's "
+                + "property list (which is v2 Node only).", v2MNs.size() > 0);
+        
+        org.dataone.service.types.v2.Node v2MN = v2MNs.get(0);
+        NodeReference mnRef = v2MN.getIdentifier();
+        log.warn("testing with node: " + mnRef.getValue());
+        
+        // add to Node properties
+        List<Property> propertyList = v2MN.getPropertyList();
+        if (propertyList == null)
+            propertyList = new ArrayList<Property>();
+        Property p1 = new Property();
+        p1.setKey("CN_fromUpdateNodeCapabilities");
+        p1.setType("propType");
+        p1.setValue("this property should not have been added");
+        propertyList.add(p1);
+        Property p2 = new Property();
+        p2.setKey("NodeTopping");
+        p2.setType("propType");
+        p2.setValue("Pepperoni");
+        propertyList.add(p2);
+        v2MN.setPropertyList(propertyList);
+        // backup old node properties
+        
+        try {
+            org.dataone.service.types.v2.Node oldNodeCapabilities = cn.getNodeCapabilities(mnRef);
+            oldPropertyListBackup = oldNodeCapabilities.getPropertyList();
+        } catch (BaseException e) {
+            throw new AssertionError(cn.getNodeBaseServiceUrl() + ":   "
+                    + "testUpdateNodeCapabilities() : "
+                    + "CN.getPropertyList() call failed to get old properties with exception: " 
+                    + e.getClass().getSimpleName() + " : " + e.getDetail_code() + " : " 
+                    + e.getDescription() + " : " + e.getMessage(), e);
+        } catch (Exception e) {
+            throw new AssertionError(cn.getNodeBaseServiceUrl() + ":   "
+                    + "testUpdateNodeCapabilities() : "
+                    + "CN.getPropertyList() call failed to get old properties with exception: " 
+                    + e.getClass().getSimpleName() + " : " + e.getMessage(), e);
+        }
+        
+        // update node properties on CN
+        
+        try {
+            cn.updateNodeCapabilities(null, mnRef, v2MN);
+        } catch (BaseException e) {
+            throw new AssertionError(cn.getNodeBaseServiceUrl() + ":   "
+                    + "testUpdateNodeCapabilities() : "
+                    + "CN.updateNodeCapabilities() call failed with exception: " 
+                    + e.getClass().getSimpleName() + " : " + e.getDetail_code() + " : " 
+                    + e.getDescription() + " : " + e.getMessage(), e);
+        } catch (Exception e) {
+            throw new AssertionError(cn.getNodeBaseServiceUrl() + ":   "
+                    + "testUpdateNodeCapabilities() : "
+                    + "CN.updateNodeCapabilities() call failed with exception: " 
+                    + e.getClass().getSimpleName() + " : " + e.getMessage(), e);
+        }
+        
+        // get the node info
+        
+        org.dataone.service.types.v2.Node fetchedNode = null;
+        try {
+            fetchedNode = cn.getNodeCapabilities(mnRef);
+        } catch (BaseException e) {
+            throw new AssertionError(cn.getNodeBaseServiceUrl() + ":   "
+                    + "testUpdateNodeCapabilities() : "
+                    + "CN.getNodeCapabilities() call failed to get updated info with exception: " 
+                    + e.getClass().getSimpleName() + " : " + e.getDetail_code() + " : " 
+                    + e.getDescription() + " : " + e.getMessage(), e);
+        } catch (Exception e) {
+            throw new AssertionError(cn.getNodeBaseServiceUrl() + ":   "
+                    + "testUpdateNodeCapabilities() : "
+                    + "CN.getNodeCapabilities() call failed to get updated info with exception: " 
+                    + e.getClass().getSimpleName() + " : " + e.getMessage(), e);
+        }
+        
+        if (fetchedNode.getPropertyList() != null) {
+            log.warn("fetchedNode has PropertyList size: " + fetchedNode.getPropertyList().size());
+        } else {
+            log.warn("fetchedNode has null property list: " + fetchedNode.getPropertyList());
+
+        }
+        
+        // reset properties we changed on the node
+        try {
+            v2MN.setPropertyList(oldPropertyListBackup);
+            cn.updateNodeCapabilities(null, mnRef, v2MN);
+        } catch (BaseException e) {
+            throw new AssertionError(cn.getNodeBaseServiceUrl() + ":   "
+                    + "testUpdateNodeCapabilities() : "
+                    + "CN.updateNodeCapabilities() call failed to reset properties with exception: " 
+                    + e.getClass().getSimpleName() + " : " + e.getDetail_code() + " : " 
+                    + e.getDescription() + " : " + e.getMessage(), e);
+        } catch (Exception e) {
+            throw new AssertionError(cn.getNodeBaseServiceUrl() + ":   "
+                    + "testUpdateNodeCapabilities() : "
+                    + "CN.updateNodeCapabilities() call failed to reset properties with exception: " 
+                    + e.getClass().getSimpleName() + " : " + e.getMessage(), e);
+        }
+        
+        // check if node is updated
+        
+        List<Property> fetchedPropertyList = fetchedNode.getPropertyList();
+        assertTrue("testUpdateNodeCapabilities(): fetched Node property list "
+                + "should not be null", fetchedPropertyList != null);
+        assertTrue("testUpdateNodeCapabilities(): fetched Node property list "
+                + "should contain 1 property. Number of properties: " + 
+                fetchedPropertyList.size(), fetchedPropertyList.size() == 1);
+        
+
+        Property fetchedP2 = fetchedPropertyList.get(0);
+        assertTrue("testUpdateNodeCapabilities(): fetched Node property 2 key "
+                + "should match the property we gave it.", 
+                fetchedP2.getKey().equals(p2.getKey()));
+        assertTrue("testUpdateNodeCapabilities(): fetched Node property 2 value "
+                + "should match the property we gave it.", 
+                fetchedP2.getValue().equals(p2.getValue()));
+    }
+
+    
     
 }
