@@ -1,6 +1,13 @@
-This work was created by participants in the DataONE project, and is
+- **License**: [Apache 2](./LICENSE.md)
+- [Package source code on GitHub](https://github.com/DataONEorg/dataone-integration)
+- [**Submit Bugs and feature requests**](https://github.com/DataONEorg/dataone-integration/issues)
+- [Contributing](./CONTRIBUTING.md)
+- Contact us: support@dataone.org
+- [DataONE discussions](https://github.com/DataONEorg/dataone/discussions)
+- This work was created by participants in the DataONE project, and is
 jointly copyrighted by participating institutions in DataONE. For
 more information on DataONE, see our web site at http://dataone.org.
+
 
 # DataONE Java Integration Testing
 
