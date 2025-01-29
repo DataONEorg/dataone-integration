@@ -76,6 +76,7 @@ import org.dataone.service.types.v1.Subject;
 import org.dataone.service.types.v1.Node;
 import org.dataone.service.types.v1.SystemMetadata;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ErrorCollector;
@@ -121,6 +122,7 @@ import org.junit.runners.Parameterized.Parameters;
  * @author rnahf
  *
  */
+@Ignore("requires external services not available in Jan 2025")
 @RunWith(value = Parameterized.class)
 public class V1ClientArchitectureConformityIT {
 

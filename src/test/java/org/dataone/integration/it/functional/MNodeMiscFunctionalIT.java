@@ -34,7 +34,7 @@ import java.util.List;
 import java.util.Map;
 import org.apache.commons.io.IOUtils;
 import org.dataone.client.v1.CNode;
-import org.dataone.client.D1Client;
+import org.dataone.client.v1.itk.D1Client;
 import org.dataone.client.v1.itk.D1Object;
 import org.dataone.client.v1.types.D1TypeBuilder;
 import org.dataone.client.v1.MNode;

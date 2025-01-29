@@ -234,12 +234,12 @@ public abstract class ContextAwareTestCaseDataone implements IntegrationTestCont
                     + Thread.currentThread().getId() + ".mn.baseurl");
 
             if (urlThrIdUrl != null) {
-                log.info("*** mn.baseurl obtained from thread.X.mn.baseurl property");
+                log.info("*** mn.baseurl obtained from thread.X.mn.baseurl property: " + urlThrIdUrl);
                 mnBaseUrl = urlThrIdUrl;
                 isWebContext = true;
 
             } else if (mnBaseUrl != null) {
-                log.info("*** mn.baseurl set from context.mn.baseurl property");
+                log.info("*** mn.baseurl set from context.mn.baseurl property: " + mnBaseUrl);
             }
 
             String urlThrIdObjectSeries = System.getProperty("mnwebtester.thread."

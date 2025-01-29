@@ -23,7 +23,6 @@ package org.dataone.integration.it;
 import java.io.InputStream;
 import java.util.Iterator;
 
-import org.dataone.client.D1Client;
 import org.dataone.client.rest.DefaultHttpMultipartRestClient;
 import org.dataone.client.rest.MultipartRestClient;
 import org.dataone.client.v1.MNode;

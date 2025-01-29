@@ -1,6 +1,5 @@
 package org.dataone.client;
 
-import static org.junit.Assert.*;
 
 import java.io.BufferedReader;
 import java.io.InputStream;

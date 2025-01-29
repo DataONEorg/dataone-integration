@@ -12,7 +12,6 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.dataone.client.v1.CNode;
-import org.dataone.client.D1Client;
 import org.dataone.client.v1.MNode;
 import org.dataone.client.v2.formats.ObjectFormatCache;
 import org.dataone.ore.ResourceMapFactory;

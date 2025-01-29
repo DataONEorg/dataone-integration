@@ -33,7 +33,7 @@ import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
 import org.dataone.client.v1.CNode;
-import org.dataone.client.D1Client;
+import org.dataone.client.v1.itk.D1Client;
 import org.dataone.client.D1Node;
 import org.dataone.client.v1.types.D1TypeBuilder;
 import org.dataone.client.v1.MNode;

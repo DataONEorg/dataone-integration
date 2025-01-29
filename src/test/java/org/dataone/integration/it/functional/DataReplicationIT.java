@@ -34,7 +34,7 @@ import java.util.Date;
 
 import org.apache.http.HttpResponse;
 import org.dataone.client.CNode;
-import org.dataone.client.D1Client;
+import org.dataone.client.v1.itk.D1Client;
 import org.dataone.client.MNode;
 import org.dataone.integration.ExampleUtilities;
 import org.dataone.mimemultipart.MultipartRequestHandler;

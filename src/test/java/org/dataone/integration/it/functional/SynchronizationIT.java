@@ -33,7 +33,7 @@ import java.util.Iterator;
 import java.util.Set;
 
 import org.dataone.client.v1.CNode;
-import org.dataone.client.D1Client;
+import org.dataone.client.v1.itk.D1Client;
 import org.dataone.client.v1.MNode;
 import org.dataone.integration.APITestUtils;
 import org.dataone.integration.ContextAwareTestCaseDataone;

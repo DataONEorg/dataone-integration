@@ -7,7 +7,7 @@ import java.io.InputStream;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.poi.util.IOUtils;
-import org.dataone.client.D1Client;
+import org.dataone.client.v1.itk.D1Client;
 import org.dataone.client.v1.types.D1TypeBuilder;
 import org.dataone.client.v1.MNode;
 import org.dataone.service.exceptions.BaseException;

@@ -28,7 +28,7 @@ import java.util.Scanner;
 import java.util.Vector;
 
 import org.apache.commons.io.IOUtils;
-import org.dataone.client.D1Client;
+import org.dataone.client.v1.itk.D1Client;
 import org.dataone.client.v1.MNode;
 import org.dataone.integration.ContextAwareTestCaseDataone;
 import org.dataone.integration.ExampleUtilities;
@@ -37,6 +37,7 @@ import org.dataone.service.exceptions.InvalidSystemMetadata;
 import org.dataone.service.exceptions.InvalidToken;
 import org.dataone.service.exceptions.NotAuthorized;
 import org.dataone.service.exceptions.NotFound;
+import org.dataone.service.exceptions.ServiceFailure;
 import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.Node;
 import org.dataone.service.types.v1.ObjectInfo;
@@ -54,7 +55,7 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 	 *  Test MNStorage.create() functionality
 	 */
 	@Test
-	public void testCreate() {
+	public void testCreate() throws ServiceFailure {
 
 		setupClientSubject("testRightsHolder");
 
@@ -95,7 +96,7 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 	 *  Test MNStorage.create() functionality
 	 */
 	@Test
-	public void testCreate_NoCert() {
+	public void testCreate_NoCert() throws ServiceFailure {
 
 		setupClientSubject_NoCert();
 
@@ -138,8 +139,7 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
      */
 	@Ignore("ignoring to save time for local testing")
 	@Test
-    public void testCreateData_IdentifierEncoding() 
-    {
+    public void testCreateData_IdentifierEncoding() throws ServiceFailure {
 		setupClientSubject("testRightsHolder");
 		Iterator<Node> it = getMemberNodeIterator();
 		printTestHeader("Testing IdentifierEncoding - setting up identifiers to check");
@@ -248,7 +248,7 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 	 *  Test MNStorage.update() functionality
 	 */
 	@Test
-	public void testUpdate() {
+	public void testUpdate() throws ServiceFailure {
 
 		setupClientSubject("testRightsHolder");
 
@@ -325,7 +325,7 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 
 	
 	@Test
-	public void testUpdate_badObsoletedByInfo() {
+	public void testUpdate_badObsoletedByInfo() throws ServiceFailure {
 
 		setupClientSubject("testRightsHolder");
 
@@ -379,7 +379,7 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 
 	
 	@Test
-	public void testUpdate_badObsoletesInfo() {
+	public void testUpdate_badObsoletesInfo() throws ServiceFailure {
 
 		setupClientSubject("testRightsHolder");
 
@@ -432,7 +432,7 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 	
 	
 	@Test
-	public void testUpdate_NoCert() {
+	public void testUpdate_NoCert() throws ServiceFailure {
 
 		Iterator<Node> it = getMemberNodeIterator();
 
@@ -505,7 +505,7 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 	
 	
 	@Test
-	public void testUpdate_NoRightsOnObsoleted() {
+	public void testUpdate_NoRightsOnObsoleted() throws ServiceFailure {
 		setupClientSubject("testRightsHolder");
 
 		Iterator<Node> it = getMemberNodeIterator();
@@ -572,8 +572,7 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 	 *  Test MNStorage.archive() functionality
 	 */
 	@Test
-	public void testArchive() 
-	{
+	public void testArchive() throws ServiceFailure {
 		Iterator<Node> it = getMemberNodeIterator();
 
 		while ( it.hasNext() ) {
@@ -614,8 +613,7 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 	 *  Test MNStorage.archive() functionality
 	 */
 	@Test
-	public void testArchive_NotFound() 
-	{
+	public void testArchive_NotFound() throws ServiceFailure {
 		Iterator<Node> it = getMemberNodeIterator();
 
 		while ( it.hasNext() ) {
@@ -651,8 +649,7 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 	
 	
 	@Test
-	public void testArchive_NoCert() 
-	{
+	public void testArchive_NoCert() throws ServiceFailure {
 		Iterator<Node> it = getMemberNodeIterator();
 
 		while ( it.hasNext() ) {
@@ -723,8 +720,7 @@ public class MNodeTier3IT extends ContextAwareTestCaseDataone {
 		
 	
 	@Test
-	public void testDelete_NoCert() 
-	{
+	public void testDelete_NoCert() throws ServiceFailure {
 		Iterator<Node> it = getMemberNodeIterator();
 
 		while ( it.hasNext() ) {

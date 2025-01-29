@@ -30,7 +30,7 @@ import java.util.Iterator;
 import java.util.concurrent.Callable;
 
 import org.apache.commons.io.IOUtils;
-import org.dataone.client.D1Client;
+import org.dataone.client.v1.itk.D1Client;
 import org.dataone.client.v1.MNode;
 import org.dataone.integration.ContextAwareTestCaseDataone;
 import org.dataone.integration.ExampleUtilities;
