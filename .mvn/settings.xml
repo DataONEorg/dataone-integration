@@ -1,0 +1,25 @@
+<settings>
+    <mirrors>
+        <mirror>
+            <id>sonatype-to-dataone</id>
+            <url>https://maven.dataone.org/</url>
+            <mirrorOf>sonatype.org</mirrorOf>
+        </mirror>
+        <mirror>
+            <id>http-to-https-dataone</id>
+            <url>https://maven.dataone.org/</url>
+            <mirrorOf>dataone.org</mirrorOf>
+        </mirror>
+        <mirror>
+            <id>http-to-https-jibx</id>
+            <url>https://jibx.sourceforge.net/maven/</url>
+            <mirrorOf>Jibx Maven Repository</mirrorOf>
+        </mirror>
+        <mirror>
+            <id>http-to-https-dev.java.net</id>
+            <url>https://repo1.maven.org/maven2/</url>
+            <mirrorOf>maven2-repository.dev.java.net</mirrorOf>
+        </mirror>
+
+    </mirrors>
+</settings>

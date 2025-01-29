@@ -6,7 +6,7 @@
   <packaging>war</packaging>
   <version>2.4-SNAPSHOT</version>
   <name>DataONE Integration Testing Package</name>
-  <url>http://dataone.org</url>
+  <url>https://dataone.org</url>
   <repositories>
     <repository>
       <id>sonatype.org</id>
@@ -20,7 +20,7 @@
     </repository>
     <repository>
       <id>dataone.org</id>
-      <url>http://maven.dataone.org/</url>
+      <url>https://maven.dataone.org/</url>
       <releases>
         <enabled>true</enabled>
       </releases>
@@ -30,15 +30,16 @@
     </repository>
     <repository>
       <id>Jibx Maven Repository</id>
-      <url>http://jibx.sourceforge.net/maven/</url>
+      <url>https://jibx.sourceforge.net/maven/</url>
     </repository>
   </repositories>
 
   <properties>
-      <compiler.target.version>1.7</compiler.target.version>
+      <compiler.target.version>1.8</compiler.target.version>
       <jetty.version>8.1.15.v20140411</jetty.version>
       <slf4j.version>1.6.4</slf4j.version>
       <logback.version>1.0.1</logback.version>
+      <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
 
   <dependencies>
@@ -127,6 +128,12 @@
             <groupId>org.apache.solr</groupId>
             <artifactId>solr-solrj</artifactId>
             <version>5.2.1</version>
+            <exclusions>
+              <exclusion>
+                <groupId>commons-io</groupId>
+                <artifactId>commons-io</artifactId>
+              </exclusion>
+            </exclusions>
         </dependency>
     <dependency>
       <groupId>xom</groupId>
@@ -159,17 +166,6 @@
 		<artifactId>junrar</artifactId>
 		<version>0.7</version>
 	</dependency>
-    <dependency>
-            <groupId>org.apache.solr</groupId>
-            <artifactId>solr-solrj</artifactId>
-            <version>3.4.0</version>
-            <exclusions>
-            	<exclusion>
-					<groupId>commons-io</groupId>
-					<artifactId>commons-io</artifactId>
-		        </exclusion>
-            </exclusions>
-        </dependency>
 	<dependency>
     		<groupId>gov.loc</groupId>
 			<artifactId>bagit</artifactId>
@@ -206,8 +202,10 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.13.0</version>
         <configuration>
-          <source>1.7</source>
+          <source>1.8</source>
+          <release>8</release>
           <target>${compiler.target.version}</target>
 <!-- 					<excludes> -->
 <!--                 	   <exclude>**/something/*ClassPattern.java</exclude> -->
@@ -223,6 +221,7 @@
       <plugin>
         <groupId>com.mycila.maven-license-plugin</groupId>
         <artifactId>maven-license-plugin</artifactId>
+        <version>1.9.0</version>
         <configuration>
           <header>src/license-header.txt</header>
         </configuration>
@@ -230,6 +229,7 @@
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>buildnumber-maven-plugin</artifactId>
+        <version>3.2.1</version>
         <executions>
           <execution>
             <phase>validate</phase>
@@ -246,6 +246,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-war-plugin</artifactId>
+        <version>3.4.0</version>
         <configuration>
             <packagingExcludes>META-INF/*.SF</packagingExcludes>
           <archive>
@@ -268,7 +269,7 @@
             <id>execution1</id>
             <phase>prepare-package</phase>
             <configuration>
-              <tasks>
+              <target>
                 <copy todir="target/classes">
                   <fileset dir="target/test-classes"/>
                 </copy>
@@ -278,7 +279,7 @@
                                         <include name="Launcher*" />
                                     </fileset>
                                 </copy>
-              </tasks>
+              </target>
             </configuration>
             <goals>
               <goal>run</goal>
@@ -288,9 +289,9 @@
             <id>execution2</id>
             <phase>package</phase>
             <configuration>
-              <tasks>
+              <target>
                 <move file="target/${project.build.finalName}.war" tofile="target/MNWebTester_v${project.version}_r${buildNumber}.war"/>
-              </tasks>
+              </target>
             </configuration>
             <goals>
               <goal>run</goal>
@@ -393,9 +394,10 @@
     </license>
   </licenses>
   <scm>
-    <url>https://repository.dataone.org/software/cicore</url>
-    <connection>scm:svn:https://repository.dataone.org/software/cicore</connection>
-    <developerConnection>scm:svn:https://repository.dataone.org/software/cicore</developerConnection>
+    <url>https://github.com/DataONEorg/dataone-integration</url>
+    <connection>scm:git:https://github.com/DataONEorg/dataone-integration</connection>
+    <developerConnection>scm:git:https://repository.dataone
+      .org/software/cicore</developerConnection>
     <tag>HEAD</tag>
   </scm>
 </project>
